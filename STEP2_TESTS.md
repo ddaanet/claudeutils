@@ -54,7 +54,7 @@ Determines whether user feedback should be filtered out as trivial.
 
 ---
 
-## TDD Test Sequence (12 Tests)
+## TDD Test Sequence (8 Tests)
 
 Follow this EXACT sequence. For each test:
 1. Write the test in `tests/test_main.py`
@@ -70,7 +70,7 @@ Follow this EXACT sequence. For each test:
 #### Test 1: `test_is_trivial_empty_string`
 ```python
 def test_is_trivial_empty_string():
-    """Empty string is trivial"""
+    """Empty string is trivial."""
     assert is_trivial("") is True
 ```
 **Implementation hint:** `if not text.strip(): return True`
@@ -78,12 +78,9 @@ def test_is_trivial_empty_string():
 #### Test 2: `test_is_trivial_whitespace_only`
 ```python
 def test_is_trivial_whitespace_only():
-    """Whitespace-only strings are trivial"""
-    assert is_trivial(" ") is True
-    assert is_trivial("   ") is True
-    assert is_trivial("\t") is True
-    assert is_trivial("\n") is True
-    assert is_trivial(" \t\n ") is True
+    """Whitespace-only strings are trivial."""
+    for text in [" ", "   ", "\t", "\n", " \t\n "]:
+        assert is_trivial(text) is True
 ```
 
 ---
@@ -93,134 +90,76 @@ def test_is_trivial_whitespace_only():
 #### Test 3: `test_is_trivial_single_character`
 ```python
 def test_is_trivial_single_character():
-    """Any single character is trivial"""
-    assert is_trivial("a") is True
-    assert is_trivial("z") is True
-    assert is_trivial("1") is True
-    assert is_trivial("!") is True
-    assert is_trivial(" x ") is True  # Single char with whitespace
+    """Any single character is trivial."""
+    for text in ["a", "z", "1", "!", " x "]:
+        assert is_trivial(text) is True
 ```
 **Implementation hint:** `if len(text.strip()) == 1: return True`
 
 ---
 
-### Group C: Short Affirmations (Tests 4-7)
+### Group C: Keywords (Tests 4-6)
 
-#### Test 4: `test_is_trivial_yes_no_variants`
+#### Test 4: `test_is_trivial_keywords_case_insensitive`
 ```python
-def test_is_trivial_yes_no_variants():
-    """Yes/no variations are trivial (case-insensitive)"""
-    assert is_trivial("y") is True
-    assert is_trivial("Y") is True
-    assert is_trivial("n") is True
-    assert is_trivial("N") is True
-    assert is_trivial("yes") is True
-    assert is_trivial("YES") is True
-    assert is_trivial("no") is True
-    assert is_trivial("No") is True
+def test_is_trivial_keywords_case_insensitive():
+    """Trivial keywords are case-insensitive."""
+    # Test all keywords in various cases
+    for word in ["y", "n", "k", "g", "ok", "go", "yes", "no",
+                 "continue", "proceed", "sure", "okay", "resume"]:
+        assert is_trivial(word) is True
+        assert is_trivial(word.upper()) is True
+        assert is_trivial(word.title()) is True
 ```
 **Implementation hint:** Create set of trivial keywords, check `text.strip().lower() in trivial_set`
 
-#### Test 5: `test_is_trivial_short_keywords`
+#### Test 5: `test_is_trivial_keywords_with_whitespace`
 ```python
-def test_is_trivial_short_keywords():
-    """Short affirmative keywords are trivial"""
-    assert is_trivial("ok") is True
-    assert is_trivial("OK") is True
-    assert is_trivial("k") is True
-    assert is_trivial("K") is True
-    assert is_trivial("go") is True
-    assert is_trivial("Go") is True
-    assert is_trivial("g") is True
-    assert is_trivial("G") is True
+def test_is_trivial_keywords_with_whitespace():
+    """Trivial keywords with leading/trailing whitespace."""
+    for text in [" continue ", "\tok\t", "  yes  ", "\nresume\n"]:
+        assert is_trivial(text) is True
 ```
+**Implementation note:** The `.strip()` handles this automatically
 
-#### Test 6: `test_is_trivial_continuation_keywords`
-```python
-def test_is_trivial_continuation_keywords():
-    """Continuation/approval keywords are trivial"""
-    assert is_trivial("continue") is True
-    assert is_trivial("Continue") is True
-    assert is_trivial("proceed") is True
-    assert is_trivial("PROCEED") is True
-    assert is_trivial("sure") is True
-    assert is_trivial("Sure") is True
-    assert is_trivial("okay") is True
-    assert is_trivial("Okay") is True
-    assert is_trivial("resume") is True
-    assert is_trivial("RESUME") is True
-```
-
-#### Test 7: `test_is_trivial_with_whitespace`
-```python
-def test_is_trivial_with_whitespace():
-    """Trivial keywords with leading/trailing whitespace"""
-    assert is_trivial(" continue ") is True
-    assert is_trivial("\tok\t") is True
-    assert is_trivial("  yes  ") is True
-    assert is_trivial("\nresume\n") is True
-```
-**Implementation note:** The `.strip()` in earlier implementation handles this automatically
-
----
-
-### Group D: Slash Commands (Test 8)
-
-#### Test 8: `test_is_trivial_slash_commands`
+#### Test 6: `test_is_trivial_slash_commands`
 ```python
 def test_is_trivial_slash_commands():
-    """Slash commands are trivial"""
-    assert is_trivial("/model") is True
-    assert is_trivial("/clear") is True
-    assert is_trivial("/help") is True
-    assert is_trivial("/commit") is True
-    assert is_trivial(" /model ") is True  # With whitespace
+    """Slash commands are trivial."""
+    for text in ["/model", "/clear", "/help", "/commit", " /model "]:
+        assert is_trivial(text) is True
 ```
 **Implementation hint:** `if text.strip().startswith('/'): return True`
 
 ---
 
-### Group E: Substantive Text (Tests 9-12)
+### Group D: Non-Trivial Text (Tests 7-8)
 
-#### Test 9: `test_is_trivial_substantive_text`
+#### Test 7: `test_is_trivial_substantive_messages`
 ```python
-def test_is_trivial_substantive_text():
-    """Substantive messages are NOT trivial"""
-    assert is_trivial("Design a python script") is False
-    assert is_trivial("Help me with this bug") is False
-    assert is_trivial("Can you explain this?") is False
-    assert is_trivial("Update the function to handle edge cases") is False
+def test_is_trivial_substantive_messages():
+    """Substantive messages are NOT trivial."""
+    for text in [
+        "Design a python script",
+        "Help me with this bug",
+        "yesterday",  # Contains 'y' but not exact match
+        "yes I think that works",  # Contains keyword with other text
+    ]:
+        assert is_trivial(text) is False
 ```
+**Implementation note:** Exact match check prevents false positives
 
-#### Test 10: `test_is_trivial_longer_than_keywords`
+#### Test 8: `test_is_trivial_exact_match_only`
 ```python
-def test_is_trivial_longer_than_keywords():
-    """Words containing trivial keywords but longer are NOT trivial"""
-    assert is_trivial("yesterday") is False
-    assert is_trivial("continuous") is False
-    assert is_trivial("okapi") is False
-    assert is_trivial("going") is False
-    assert is_trivial("surely") is False
-```
-**Implementation note:** Exact match check prevents these false positives
+def test_is_trivial_exact_match_only():
+    """Case insensitivity applies only to exact keyword matches."""
+    # Exact matches are trivial
+    for text in ["YeS", "OK", "ContinUE"]:
+        assert is_trivial(text) is True
 
-#### Test 11: `test_is_trivial_sentences_with_keywords`
-```python
-def test_is_trivial_sentences_with_keywords():
-    """Sentences containing trivial keywords are NOT trivial"""
-    assert is_trivial("yes I think that works") is False
-    assert is_trivial("ok let me explain") is False
-    assert is_trivial("continue with the implementation") is False
-```
-
-#### Test 12: `test_is_trivial_mixed_case_substantive`
-```python
-def test_is_trivial_mixed_case_substantive():
-    """Case insensitivity applies only to exact keyword matches"""
-    assert is_trivial("YeS") is True  # Exact match
-    assert is_trivial("Yes please") is False  # More than just keyword
-    assert is_trivial("OK") is True  # Exact match
-    assert is_trivial("OK done") is False  # More than just keyword
+    # Keywords + extra text are NOT trivial
+    for text in ["Yes please", "OK done", "continue with this"]:
+        assert is_trivial(text) is False
 ```
 
 ---
@@ -288,36 +227,13 @@ TRIVIAL_KEYWORDS = {
 
 ## Success Criteria
 
-✅ All 12 tests written and passing
-✅ Each test followed Red-Green-Refactor cycle
-✅ User validation requested after each test-implement iteration
-✅ Run `just test` shows all tests passing (Step 1 + Step 2 = 28 tests total)
-✅ Run `just check` shows no linting or type errors
-
----
-
-## User Validation Pattern
-
-After implementing each test, request validation:
-
-```
-I've implemented the code to make test_{name} pass.
-
-Test result: PASSING ✓
-Ruff: No warnings
-MyPy: Type checks passing
-
-Ready to proceed to the next test?
-```
-
----
+- All tests from this spec written and passing
+- Red-Green-Refactor cycle followed for each test
+- User validation requested after each test-implement iteration
+- `just dev` passes (format, check, test)
 
 ## After Completion
 
-**STOP HERE.** Do not proceed to Step 3. Report completion:
-- Number of new tests passing (should be 12)
-- Total tests passing (should be 28: 16 from Step 1 + 12 from Step 2)
-- Confirmation that `just dev` passes (format, check, test)
-- Confirmation that Step 2 is complete
+**STOP HERE.** Do not proceed to Step 3.
 
-Next session will handle Step 3 (message parsing and feedback extraction).
+Report: `just dev` output and confirmation Step 2 is complete.

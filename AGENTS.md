@@ -129,8 +129,19 @@ sorted by timestamp for easy discovery of recent conversations.
 
 ### Documentation
 1. **Update feedback files:** Add new user feedback to `USER_FEEDBACK_SESSION.md`
-2. **Create handoff notes:** For context flushes, create comprehensive agent notes
-3. **Reference supporting docs:** Link to relevant files in agent prompts
+2. **Update handoff files:** Keep `agents/STEP*_HANDOFF.md` current with progress
+3. **Avoid test counts:** Use `just test` for status, not hardcoded numbers in docs
+
+## Session Handoff Protocol
+
+New session start: `/clear @START.md`
+
+This loads `START.md` which references:
+1. Core context (AGENTS.md, PLAN.md)
+2. Current task spec and progress notes
+3. Quick commands for status checks
+
+**Key principle:** Documentation should not duplicate dynamic state. Run `just test` to see current test counts instead of maintaining them in markdown.
 
 ## Common Anti-Patterns to Avoid
 
@@ -191,10 +202,10 @@ class FeedbackItem(BaseModel):
 
 ## File Reference
 
-- `PLAN.md` - Full implementation plan with all 5 steps
-- `STATUS.md` - Current project status and progress
-- `STEP*_TESTS.md` - Detailed test specifications for each step
-- `USER_FEEDBACK_SESSION.md` - All user feedback from sessions
-- `AGENTS.md` - This file (generic agent instructions)
-- `agents/NEXT_AGENT_NOTES.md` - Specific notes for current task
+- `START.md` - **Handoff entry point** (read this first on session reset)
+- `AGENTS.md` - This file (rules and preferences)
+- `PLAN.md` - Full implementation plan
+- `STEP*_TESTS.md` - Test specifications per step
+- `agents/STEP*_HANDOFF.md` - Progress notes for in-progress steps
 - `agents/STEP*_COMPLETION.md` - Completion notes for finished steps
+- `agents/NEXT_AGENT_NOTES.md` - Cross-session learnings
