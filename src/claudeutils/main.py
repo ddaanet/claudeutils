@@ -56,6 +56,56 @@ def format_title(text: str) -> str:
     return text
 
 
+def is_trivial(text: str) -> bool:
+    """Determine whether user feedback should be filtered as trivial.
+
+    Filters out:
+    - Empty strings or whitespace only
+    - Single characters
+    - Short affirmations: y, n, k, g, ok, go, yes, no, continue, proceed,
+      sure, okay, resume
+    - Slash commands (starting with /)
+
+    Args:
+        text: User feedback text to evaluate
+
+    Returns:
+        True if text is trivial (should be filtered), False if substantive
+    """
+    stripped = text.strip()
+
+    # Empty or whitespace only
+    if not stripped:
+        return True
+
+    # Single character
+    if len(stripped) == 1:
+        return True
+
+    # Slash command
+    if stripped.startswith("/"):
+        return True
+
+    # Trivial keywords
+    trivial_keywords = {
+        "y",
+        "n",
+        "k",
+        "g",
+        "ok",
+        "go",
+        "yes",
+        "no",
+        "continue",
+        "proceed",
+        "sure",
+        "okay",
+        "resume",
+    }
+
+    return stripped.lower() in trivial_keywords
+
+
 def list_top_level_sessions(project_dir: str) -> list[SessionInfo]:
     """Discovers UUID-named session files, extracts titles, sorts by timestamp."""
     history_dir = get_project_history_dir(project_dir)

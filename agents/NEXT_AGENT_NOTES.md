@@ -7,10 +7,12 @@
 - All 16 tests passing
 - Functions: `encode_project_path()`, `get_project_history_dir()`, `list_top_level_sessions()`
 
-**Step 2:** ⏳ NEXT - Trivial message filter
-- Test specification ready in `STEP2_TESTS.md`
-- 12 tests to implement
-- Function: `is_trivial(text: str) -> bool`
+**Step 2:** ⏳ IN PROGRESS - Trivial message filter
+- 4 of 12 tests completed (33%)
+- Tests 1-4 passing: empty_string, whitespace_only, single_character, yes_no_variants
+- Function `is_trivial()` implemented and working correctly
+- 8 tests remaining (5-12)
+- See `STEP2_HANDOFF.md` for detailed progress notes
 
 ## Required Reading
 

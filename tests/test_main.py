@@ -9,6 +9,7 @@ from claudeutils.main import (
     SessionInfo,
     encode_project_path,
     get_project_history_dir,
+    is_trivial,
     list_top_level_sessions,
 )
 
@@ -217,3 +218,41 @@ def test_list_sessions_handles_newlines_in_title(
 
     sessions = list_top_level_sessions(str(project))
     assert sessions[0].title == "Line one Line two"
+
+
+# ============= GROUP E: Trivial Feedback Filter =============
+
+
+def test_is_trivial_empty_string() -> None:
+    """Empty string is trivial."""
+    assert is_trivial("") is True
+
+
+def test_is_trivial_whitespace_only() -> None:
+    """Whitespace-only strings are trivial."""
+    assert is_trivial(" ") is True
+    assert is_trivial("   ") is True
+    assert is_trivial("\t") is True
+    assert is_trivial("\n") is True
+    assert is_trivial(" \t\n ") is True
+
+
+def test_is_trivial_single_character() -> None:
+    """Any single character is trivial."""
+    assert is_trivial("a") is True
+    assert is_trivial("z") is True
+    assert is_trivial("1") is True
+    assert is_trivial("!") is True
+    assert is_trivial(" x ") is True  # Single char with whitespace
+
+
+def test_is_trivial_yes_no_variants() -> None:
+    """Yes/no variations are trivial (case-insensitive)."""
+    assert is_trivial("y") is True
+    assert is_trivial("Y") is True
+    assert is_trivial("n") is True
+    assert is_trivial("N") is True
+    assert is_trivial("yes") is True
+    assert is_trivial("YES") is True
+    assert is_trivial("no") is True
+    assert is_trivial("No") is True
