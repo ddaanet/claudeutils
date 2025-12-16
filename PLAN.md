@@ -72,16 +72,21 @@ Test cases:
 
 **Trivial patterns:** `y`, `n`, `k`, `g`, `ok`, `go`, `yes`, `no`, `continue`, `proceed`, `sure`, `okay`, `resume`
 
-Test cases:
+**Detailed test specification:** See `STEP2_TESTS.md` for comprehensive TDD test plan (12 tests)
+
+Test case summary:
 1. Empty string → True
-2. Whitespace only → True
-3. Single character → True
-4. "y", "n", "ok", "go" (case insensitive) → True
-5. "yes", "continue", "resume" → True
-6. Slash commands "/model", "/clear" → True
-7. Substantive text "Design a python script" → False
-8. Mixed case "YeS" → True
-9. Text with leading/trailing whitespace " continue " → True
+2. Whitespace only (spaces, tabs, newlines) → True
+3. Single character (any char) → True
+4. Yes/no variants: "y", "n", "yes", "no" (case insensitive) → True
+5. Short keywords: "ok", "k", "go", "g" (case insensitive) → True
+6. Continuation keywords: "continue", "proceed", "sure", "okay", "resume" → True
+7. Keywords with whitespace: " continue ", "\tok\t" → True
+8. Slash commands: "/model", "/clear", "/help" → True
+9. Substantive text: "Design a python script" → False
+10. Words containing keywords: "yesterday", "continuous", "going" → False
+11. Sentences with keywords: "yes I think that works" → False
+12. Mixed case exact matches: "YeS" → True, "Yes please" → False
 
 ### Step 3: Message Parsing Tests
 **Function:** `extract_feedback_from_entry(entry: dict) -> FeedbackItem | None`
@@ -162,15 +167,20 @@ Test cases:
 
 | File | Purpose | Lines |
 |------|---------|-------|
-| `main.py` | Core implementation | ~120 |
-| `test_main.py` | Pytest test suite | ~200 |
+| `src/claudeutils/main.py` | Core implementation | ~120 |
+| `tests/test_main.py` | Pytest test suite | ~200 |
 | `pyproject.toml` | uv project config | ~15 |
+| `STEP1_TESTS.md` | Detailed TDD test spec for Step 1 (✅ created) | - |
+| `STEP2_TESTS.md` | Detailed TDD test spec for Step 2 (✅ created) | - |
 
 **Dependencies:** `uv add pytest pydantic`
 
 ## Implementation Steps (TDD)
-1. **Step 1**: Path encoding & session discovery + tests
-2. **Step 2**: Trivial filter + tests
+1. **Step 1**: Path encoding & session discovery + tests (✅ COMPLETE - 16 tests passing)
+   - See `STEP1_TESTS.md` for detailed test specifications
+   - See `agents/STEP1_COMPLETION.md` for completion notes
+2. **Step 2**: Trivial filter + tests (⏳ NEXT)
+   - See `STEP2_TESTS.md` for detailed test specifications (12 tests)
 3. **Step 3**: Message parsing + tests
 4. **Step 4**: Recursive sub-agent processing + tests
 5. **Step 5**: CLI subcommands (list/extract) + integration tests
