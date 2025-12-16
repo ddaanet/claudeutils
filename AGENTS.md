@@ -28,11 +28,11 @@
 2. Run test and see it FAIL (Red)
 3. Write minimal code to make it PASS (Green)
 4. Refactor if needed
-5. **Request user validation before continuing**
-6. Repeat with next test
+5. Repeat with next test
+6. **After every THREE test-implement cycles, request user validation before continuing**
 
 🚫 **DO NOT** write all tests upfront then implement
-✅ **DO** request confirmation after EACH test-implement cycle
+✅ **DO** request confirmation after every THREE test-implement cycles
 
 ### Implementation Steps
 
@@ -116,7 +116,7 @@ sorted by timestamp for easy discovery of recent conversations.
 ## Key User Preferences
 
 ### Communication Patterns
-1. **Request validation frequently:** After each test-implement cycle
+1. **Request validation periodically:** After every three test-implement cycles
 2. **Stop at boundaries:** Complete assigned task then stop (no scope creep)
 3. **Be explicit:** Ask clarifying questions if requirements unclear
 4. **Context awareness:** Prepare handoff notes for next agent/session
@@ -155,7 +155,7 @@ This loads `START.md` which references:
 - Continue past assigned task scope
 
 ✅ **DO:**
-- One test at a time with validation
+- One test at a time with periodic validation (every 3 cycles)
 - Stop when task complete
 - Explain all ignores/suppressions
 - Keep commits focused and concise
