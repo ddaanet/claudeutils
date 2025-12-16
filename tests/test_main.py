@@ -256,3 +256,37 @@ def test_is_trivial_yes_no_variants() -> None:
     assert is_trivial("YES") is True
     assert is_trivial("no") is True
     assert is_trivial("No") is True
+
+
+def test_is_trivial_keywords_with_whitespace() -> None:
+    """Trivial keywords with leading/trailing whitespace."""
+    for text in [" continue ", "\tok\t", "  yes  ", "\nresume\n"]:
+        assert is_trivial(text) is True
+
+
+def test_is_trivial_slash_commands() -> None:
+    """Slash commands are trivial."""
+    for text in ["/model", "/clear", "/help", "/commit", " /model "]:
+        assert is_trivial(text) is True
+
+
+def test_is_trivial_substantive_messages() -> None:
+    """Substantive messages are NOT trivial."""
+    for text in [
+        "Design a python script",
+        "Help me with this bug",
+        "yesterday",  # Contains 'y' but not exact match
+        "yes I think that works",  # Contains keyword with other text
+    ]:
+        assert is_trivial(text) is False
+
+
+def test_is_trivial_exact_match_only() -> None:
+    """Case insensitivity applies only to exact keyword matches."""
+    # Exact matches are trivial
+    for text in ["YeS", "OK", "ContinUE"]:
+        assert is_trivial(text) is True
+
+    # Keywords + extra text are NOT trivial
+    for text in ["Yes please", "OK done", "continue with this"]:
+        assert is_trivial(text) is False

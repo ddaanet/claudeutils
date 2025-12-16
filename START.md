@@ -7,10 +7,12 @@
 
 ## Current Task
 
-**Step 2: Trivial Feedback Filter** (in progress)
+**Step 2: Trivial Feedback Filter** (✅ COMPLETE)
 
 - Task spec: `STEP2_TESTS.md`
-- Progress notes: `agents/STEP2_HANDOFF.md`
+- Completion notes: `agents/STEP2_COMPLETION.md`
+
+**Next Task:** Step 3 (awaiting direction)
 
 ## Quick Commands
 
