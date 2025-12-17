@@ -2,26 +2,41 @@
 
 ## Current Status
 
-**Step 2: Trivial Feedback Filter** - ✅ COMPLETE
+**Step 3: Message Parsing** - ✅ COMPLETE
 
-See `agents/STEP2_COMPLETION.md` for details.
+See `agents/STEP3_COMPLETION.md` for details.
 
 ## Next Task
 
-**Step 3: Message Parsing** - Start when directed
+**Step 4: Recursive Sub-Agent Processing** - Start when directed
 
-Implement `extract_feedback_from_entry(entry: dict) -> FeedbackItem | None`
+Implement:
 
-See `STEP3_TESTS.md` for test specifications (when available).
+- `find_sub_agent_sessions(session_file: Path) -> list[str]`
+- `extract_feedback_recursively(session_id: str, project_dir: str) -> list[FeedbackItem]`
 
-## Key Learnings from Steps 1-2
+See `STEP4_TESTS.md` for test specifications (create if needed).
+
+## Key Learnings from Steps 1-3
 
 - Fixture return type: direct tuple, not Generator
 - Long JSON strings: use implicit concatenation
 - All functions need complete type annotations
-- Request user validation after each test-implement cycle
-- TDD workflow: one test → RED → implement → GREEN → validate
-- Stop exactly at task boundary (don't skip ahead to Step 3)
+- Request user validation after every THREE test-implement cycles
+- Stop exactly at task boundary (don't skip ahead)
+
+### TDD RED Phase is Mandatory
+
+**Critical learning from Step 3:** The RED phase must NOT be skipped.
+
+For EACH test, follow this exact sequence:
+1. Write the test
+2. **Run `just test` and see it FAIL** ← Do not skip this
+3. Verify failure is for expected reason (assertion, not import/syntax)
+4. Write minimal implementation
+5. Run test again, confirm PASS
+
+Skipping step 2 defeats TDD's purpose - you cannot prove your implementation caused the test to pass if you never saw it fail.
 
 ## User Preferences Reinforced
 

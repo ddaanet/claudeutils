@@ -2,10 +2,19 @@
 
 import json
 import re
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel
+
+
+class FeedbackType(StrEnum):
+    """Types of user feedback that can be extracted."""
+
+    TOOL_DENIAL = "tool_denial"
+    INTERRUPTION = "interruption"
+    MESSAGE = "message"
 
 
 class SessionInfo(BaseModel):
@@ -14,6 +23,18 @@ class SessionInfo(BaseModel):
     session_id: str
     title: str
     timestamp: str
+
+
+class FeedbackItem(BaseModel):
+    """Model for extracted user feedback."""
+
+    timestamp: str
+    session_id: str
+    feedback_type: FeedbackType
+    content: str
+    agent_id: str | None = None
+    slug: str | None = None
+    tool_use_id: str | None = None
 
 
 def encode_project_path(project_dir: str) -> str:
@@ -107,7 +128,7 @@ def is_trivial(text: str) -> bool:
 
 
 def list_top_level_sessions(project_dir: str) -> list[SessionInfo]:
-    """Discovers UUID-named session files, extracts titles, sorts by timestamp."""
+    """List sessions sorted by timestamp with extracted titles."""
     history_dir = get_project_history_dir(project_dir)
     sessions = []
 
@@ -155,6 +176,68 @@ def list_top_level_sessions(project_dir: str) -> list[SessionInfo]:
     sessions.sort(key=lambda s: s.timestamp, reverse=True)
 
     return sessions
+
+
+def extract_feedback_from_entry(entry: dict[str, Any]) -> FeedbackItem | None:
+    """Extract non-trivial user feedback from a conversation entry.
+
+    Args:
+        entry: A conversation entry dict from a session JSONL file
+
+    Returns:
+        FeedbackItem if feedback is found, None otherwise
+    """
+    # Only process user messages
+    if entry.get("type") != "user":
+        return None
+
+    # Extract content from message
+    message = entry.get("message", {})
+    content = message.get("content", "")
+
+    # Check for tool denial (error in tool_result)
+    if isinstance(content, list) and len(content) > 0:
+        item = content[0]
+        if isinstance(item, dict) and item.get("is_error") is True:
+            error_content = item.get("content", "")
+            tool_use_id = item.get("tool_use_id")
+            return FeedbackItem(
+                timestamp=entry.get("timestamp", ""),
+                session_id=entry.get("sessionId", ""),
+                feedback_type=FeedbackType.TOOL_DENIAL,
+                content=error_content,
+                agent_id=entry.get("agentId"),
+                slug=entry.get("slug"),
+                tool_use_id=tool_use_id,
+            )
+
+    # Extract text for regular messages
+    text = extract_content_text(content)
+
+    # Check for request interruption
+    if "[Request interrupted" in text:
+        return FeedbackItem(
+            timestamp=entry.get("timestamp", ""),
+            session_id=entry.get("sessionId", ""),
+            feedback_type=FeedbackType.INTERRUPTION,
+            content=text,
+            agent_id=entry.get("agentId"),
+            slug=entry.get("slug"),
+        )
+
+    # Filter trivial messages
+    if is_trivial(text):
+        return None
+
+    # Create FeedbackItem for substantive messages
+    return FeedbackItem(
+        timestamp=entry.get("timestamp", ""),
+        session_id=entry.get("sessionId", ""),
+        feedback_type=FeedbackType.MESSAGE,
+        content=text,
+        agent_id=entry.get("agentId"),
+        slug=entry.get("slug"),
+    )
 
 
 def main() -> None:

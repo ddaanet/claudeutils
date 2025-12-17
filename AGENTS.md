@@ -22,17 +22,39 @@
 
 ### Test-Driven Development Cycle
 
-**Critical:** Always follow Red-Green-Refactor cycle:
+**Critical:** Always follow Red-Green-Refactor cycle. The RED phase is mandatory and must not be skipped.
 
-1. Write ONE test
-2. Run test and see it FAIL (Red)
-3. Write minimal code to make it PASS (Green)
-4. Refactor if needed
-5. Repeat with next test
-6. **After every THREE test-implement cycles, request user validation before continuing**
+#### Each Test-Implement Cycle (must follow exactly):
 
-🚫 **DO NOT** write all tests upfront then implement
-✅ **DO** request confirmation after every THREE test-implement cycles
+1. **Write ONE test** - Add exactly one new test case
+2. **Run test and VERIFY it FAILS (Red)** - This step is MANDATORY
+   - Run `just test` or the specific test
+   - Confirm the test fails for the EXPECTED reason (assertion fails, not import/syntax error)
+   - If test passes unexpectedly, the test may be wrong or implementation already exists
+3. **Write minimal code to make it PASS (Green)**
+   - Only add code needed to pass THIS test
+   - Do not anticipate future tests
+4. **Run test again and confirm it PASSES**
+5. **Refactor if needed** (optional)
+6. **Repeat** with next test
+7. **After every THREE cycles, request user validation before continuing**
+
+#### Why the RED Phase Matters
+
+Skipping the RED phase defeats the purpose of TDD:
+- It verifies your test is actually testing something
+- It confirms the test fails for the right reason
+- It proves your implementation caused the test to pass
+
+🚫 **DO NOT:**
+- Write all tests upfront then implement
+- Skip running the test before implementing
+- Implement before seeing the test fail
+
+✅ **DO:**
+- Run each test immediately after writing it
+- Verify failure message matches expectations
+- Request confirmation after every THREE test-implement cycles
 
 ### Implementation Steps
 
@@ -57,13 +79,15 @@ Each step has detailed test specifications in separate files (e.g., `STEP1_TESTS
 - Ruff linting must pass with zero warnings
 - No `noqa` suppressions without explanation
 - Docstrings in imperative mood ("Extract content" not "Extracts content")
+- Docstrings wrap at column 80 (docformatter enforces this via `just format`)
 - Use specific type annotations (`list[str]`, not bare `list`)
 
 ### Testing Standards
 - All tests in `tests/` directory
-- Test fixtures should return direct values, not Generators
 - Use proper pytest parametrization for similar test cases
 - Test names should clearly describe what they verify
+- **Compare complex objects directly** for better error messages:
+  - Prefer `assert result == expected_obj` over comparing individual members
 
 ## Tooling Preferences
 
@@ -93,7 +117,6 @@ just dev       # Run all (format, check, test)
 ### Commit Message Format
 - **Concise:** Focus on WHAT changed and WHY
 - **No methodology details:** Don't mention "with TDD" or implementation approach
-- **No vendor credits:** Never mention "Claude", "Anthropic", or "AI-assisted"
 - **Design rationale:** Include reasoning for non-obvious changes
 
 ### Examples
@@ -147,6 +170,8 @@ This loads `START.md` which references:
 
 🚫 **DON'T:**
 - Write all tests before implementation
+- **Skip the RED phase** - MUST run test and see it fail before implementing
+- Implement code before verifying test fails for the expected reason
 - Skip user validation checkpoints
 - Use `noqa` comments without explanation
 - Mention TDD/methodology in commit messages
@@ -156,6 +181,8 @@ This loads `START.md` which references:
 
 ✅ **DO:**
 - One test at a time with periodic validation (every 3 cycles)
+- **Run test immediately after writing it** - verify it fails correctly
+- Only then write implementation
 - Stop when task complete
 - Explain all ignores/suppressions
 - Keep commits focused and concise
@@ -167,14 +194,12 @@ This loads `START.md` which references:
 ```bash
 # Development workflow
 just dev              # Format, check, and test
-just test             # Run pytest only
+just test ...         # Run pytest only, arguments are passed to pytest
 just check            # Run ruff + mypy only
 just format           # Auto-format code
 
 # Dependency management
 uv add pytest         # Add dependency
-uv sync               # Sync environment
-uv run pytest -v      # Run with options
 
 # Git workflow
 git status            # Check staged changes

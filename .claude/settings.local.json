@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(just format)",
+      "Bash(just check)",
+      "Bash(just dev)",
+      "Bash(just test:*)",
+      "Bash(git add:*)",
+      "Bash(git show:*)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "ask": [
+      "Bash(git commit:*)"
+    ]
+  },
+  "attribution": { "commit": "", "pr": "" }
+}

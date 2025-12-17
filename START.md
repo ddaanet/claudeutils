@@ -7,19 +7,19 @@
 
 ## Current Task
 
-**Step 2: Trivial Feedback Filter** (✅ COMPLETE)
+**Step 3: Message Parsing** (✅ COMPLETE)
 
-- Task spec: `STEP2_TESTS.md`
-- Completion notes: `agents/STEP2_COMPLETION.md`
+- Task spec: `STEP3_TESTS.md`
+- Completion notes: `agents/STEP3_COMPLETION.md`
 
-**Next Task:** Step 3 (awaiting direction)
+**Next Task:** Step 4: Recursive Sub-Agent Processing (awaiting direction)
 
 ## Quick Commands
 
 ```bash
-just dev      # Format, check, test (full cycle)
-just test     # Run pytest
-just check    # Run ruff + mypy
+just dev         # Format, check, test (full cycle)
+just test ...    # Run pytest, arguments are passed to pytest
+just check       # Run ruff + mypy
 ```
 
 ## Status Check

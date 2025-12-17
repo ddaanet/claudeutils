@@ -23,13 +23,17 @@ in-place = true
 wrap-summaries = 80
 wrap-descriptions = 80
 
+[tool.ruff]
+output-format = "concise"
+unsafe-fixes = true
+
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
     "D203",     # no blank line required before class docstring
     "D213",     # multi-line docstring summary should start at the first line
     "S603",     # subprocess call
-    "S607",     # partial executable path (tuick runs user commands from PATH)
+    "S607",     # partial executable path
     "PLR2004",  # Magic value used in comparison
     "EM",       # Error message can be duplicated in traceback, no problem.
     "TD002",    # missing-todo-author
@@ -79,3 +83,7 @@ local_partial_types = true
 module = "tests.*"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+
+[tool.pytest.ini_options]
+strict = true
+addopts = "--quiet --no-header --tb=short"
