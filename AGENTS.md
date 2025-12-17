@@ -65,7 +65,7 @@ The project follows a 5-step TDD plan:
 4. Recursive sub-agent processing
 5. CLI subcommands
 
-Each step has detailed test specifications in separate files (e.g., `STEP1_TESTS.md`).
+Each step has detailed test specifications in separate files (e.g., `agents/STEP1_TESTS.md`).
 
 ## Code Quality Standards
 
@@ -110,7 +110,7 @@ just dev       # Run all (format, check, test)
 - Implementation: `src/claudeutils/main.py`
 - Tests: `tests/test_main.py`
 - Configuration: `pyproject.toml`
-- Plans: `PLAN.md` and `STEP*_TESTS.md`
+- Plans: `agents/PLAN.md` and `agents/STEP*_TESTS.md`
 
 ## Git Commit Standards
 
@@ -151,7 +151,7 @@ sorted by timestamp for easy discovery of recent conversations.
 4. **Explain ignores:** Any `type: ignore` must have comment explaining what's intentional
 
 ### Documentation
-1. **Update feedback files:** Add new user feedback to `USER_FEEDBACK_SESSION.md`
+1. **Update feedback files:** Add new user feedback to `agents/USER_FEEDBACK_SESSION.md`
 2. **Update handoff files:** Keep `agents/STEP*_HANDOFF.md` current with progress
 3. **Avoid test counts:** Use `just test` for status, not hardcoded numbers in docs
 
@@ -229,8 +229,8 @@ class FeedbackItem(BaseModel):
 
 - `START.md` - **Handoff entry point** (read this first on session reset)
 - `AGENTS.md` - This file (rules and preferences)
-- `PLAN.md` - Full implementation plan
-- `STEP*_TESTS.md` - Test specifications per step
+- `agents/PLAN.md` - Full implementation plan
+- `agents/STEP*_TESTS.md` - Test specifications per step
 - `agents/STEP*_HANDOFF.md` - Progress notes for in-progress steps
 - `agents/STEP*_COMPLETION.md` - Completion notes for finished steps
 - `agents/NEXT_AGENT_NOTES.md` - Cross-session learnings

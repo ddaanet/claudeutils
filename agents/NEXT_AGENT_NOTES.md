@@ -15,7 +15,7 @@ Implement:
 - `find_sub_agent_sessions(session_file: Path) -> list[str]`
 - `extract_feedback_recursively(session_id: str, project_dir: str) -> list[FeedbackItem]`
 
-See `STEP4_TESTS.md` for test specifications (create if needed).
+See `agents/STEP4_TESTS.md` for test specifications (create if needed).
 
 ## Key Learnings from Steps 1-3
 

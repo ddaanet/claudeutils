@@ -6,10 +6,10 @@ Extract user feedback from Claude Code conversation history for retrospective an
 
 | File | Purpose |
 |------|---------|
-| `PLAN.md` | Full implementation plan with TDD test specifications |
-| `STATUS.md` | Current project status and next steps |
-| `USER_FEEDBACK_SESSION.md` | All user feedback from planning session |
-| `RESEARCH_FINDINGS.md` | Technical findings about conversation history storage |
+| `agents/PLAN.md` | Full implementation plan with TDD test specifications |
+| `agents/STATUS.md` | Current project status and next steps |
+| `agents/USER_FEEDBACK_SESSION.md` | All user feedback from planning session |
+| `agents/RESEARCH_FINDINGS.md` | Technical findings about conversation history storage |
 
 ## Project Goal
 
@@ -67,4 +67,4 @@ class FeedbackItem(BaseModel):
 - `test_main.py` (~200 lines)
 - `pyproject.toml` (~15 lines)
 
-See `PLAN.md` for detailed test specifications and `STATUS.md` for step-by-step implementation guide.
+See `agents/PLAN.md` for detailed test specifications and `agents/STATUS.md` for step-by-step implementation guide.
