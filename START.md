@@ -15,7 +15,18 @@
 
 ## Current Task
 
-**Step 5: CLI Subcommands** (⏳ NEXT)
+**⚠️ BLOCKER: File Size Limit Violations** (🔴 MUST FIX FIRST)
+
+- `src/claudeutils/main.py`: 417 lines (exceeds 400-line limit by 17)
+- `tests/test_main.py`: 866 lines (exceeds 400-line limit by 466)
+- **Plan exists:** `/Users/david/.claude/plans/misty-zooming-thunder.md`
+  - Split main.py into 6 modules (models, paths, parsing, discovery, extraction, cli)
+  - Split test_main.py into 5 test modules
+  - All import paths will change (breaking change, approved by user)
+  - Verification: `just dev` (includes new line-limits check)
+- **Next action:** Execute the plan to split files before implementing Step 5
+
+**Step 5: CLI Subcommands** (⏳ AFTER FILE SPLIT)
 
 - Task spec: `agents/STEP5_TESTS.md` ✅
 - `list [--project PATH]` - Show top-level sessions
