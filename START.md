@@ -15,18 +15,7 @@
 
 ## Current Task
 
-**⚠️ BLOCKER: File Size Limit Violations** (🔴 MUST FIX FIRST)
-
-- `src/claudeutils/main.py`: 417 lines (exceeds 400-line limit by 17)
-- `tests/test_main.py`: 866 lines (exceeds 400-line limit by 466)
-- **Plan exists:** `/Users/david/.claude/plans/misty-zooming-thunder.md`
-  - Split main.py into 6 modules (models, paths, parsing, discovery, extraction, cli)
-  - Split test_main.py into 5 test modules
-  - All import paths will change (breaking change, approved by user)
-  - Verification: `just dev` (includes new line-limits check)
-- **Next action:** Execute the plan to split files before implementing Step 5
-
-**Step 5: CLI Subcommands** (⏳ AFTER FILE SPLIT)
+**Step 5: CLI Subcommands** (⏳ NOT STARTED)
 
 - Task spec: `agents/STEP5_TESTS.md` ✅
 - `list [--project PATH]` - Show top-level sessions
@@ -35,6 +24,12 @@
 
 **Completed:**
 
+- **File Split Refactoring** ✅ (2025-12-18)
+  - Split `src/claudeutils/main.py` (417→449 total lines across 6 modules)
+  - Split `tests/test_main.py` (866→893 total lines across 6 test modules)
+  - All files now under 400-line limit
+  - Fixed mock patching issues in tests
+  - All 50 tests passing
 - Step 1: Path encoding & session discovery
 - Step 2: Trivial message filter
 - Step 3: Message parsing (completion notes: `agents/STEP3_COMPLETION.md`)

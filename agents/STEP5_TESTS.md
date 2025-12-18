@@ -63,6 +63,8 @@ def main() -> None:
     args = parser.parse_args()
 ```
 
+**Note:** Implement `main()` in `src/claudeutils/cli.py` (not main.py, which was split into modules)
+
 ---
 
 #### Test 2: `test_list_command_default_project`
@@ -438,12 +440,13 @@ def test_list_command_default_project(monkeypatch, tmp_path):
         called_with.append(project_dir)
         return []
 
-    monkeypatch.setattr("main.list_top_level_sessions", mock_list)
+    monkeypatch.setattr("claudeutils.discovery.list_top_level_sessions", mock_list)
 
     # Mock sys.argv
     monkeypatch.setattr("sys.argv", ["claudeutils", "list"])
 
     # Run main
+    from claudeutils.cli import main
     main()
 
     # Verify
@@ -465,10 +468,11 @@ def test_list_output_format(capsys, monkeypatch):
             timestamp="2025-12-16T10:00:00.000Z"
         )]
 
-    monkeypatch.setattr("main.list_top_level_sessions", mock_list)
+    monkeypatch.setattr("claudeutils.discovery.list_top_level_sessions", mock_list)
     monkeypatch.setattr("sys.argv", ["claudeutils", "list"])
 
     # Run main
+    from claudeutils.cli import main
     main()
 
     # Capture output
@@ -509,10 +513,19 @@ def test_list_output_format(capsys, monkeypatch):
 
 ## Reusable Functions (From Previous Steps)
 
-These functions are already implemented and tested:
+These functions are already implemented and tested in the refactored module structure:
+
+**From `claudeutils.paths`:**
 - `get_project_history_dir(project_dir: str) -> Path` - Get history directory
+
+**From `claudeutils.discovery`:**
 - `list_top_level_sessions(project_dir: str) -> list[SessionInfo]` - List sessions
+
+**From `claudeutils.extraction`:**
 - `extract_feedback_recursively(session_id: str, project_dir: str) -> list[FeedbackItem]` - Extract feedback
+
+**From `claudeutils.models`:**
+- `SessionInfo`, `FeedbackItem`, `FeedbackType` - Data models
 
 ---
 
@@ -533,10 +546,12 @@ After implementation, add to `pyproject.toml`:
 
 ```toml
 [project.scripts]
-claudeutils = "claudeutils.main:main"
+claudeutils = "claudeutils.cli:main"
 ```
 
-This allows running as: `claudeutils list` instead of `python -m claudeutils.main list`
+This allows running as: `claudeutils list` instead of `python -m claudeutils.cli list`
+
+**Note:** Entry point is in `cli.py` (not `main.py`, which was split into modules during refactoring)
 
 ---
 
