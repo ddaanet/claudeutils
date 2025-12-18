@@ -157,6 +157,17 @@ Agents waste time inventing test data. Provide it explicitly.
 
 ---
 
+## File Size Limits
+
+Plan for small, focused modules to avoid loading unneeded context:
+
+- **SHOULD NOT** exceed 300 lines per source file
+- **MUST NOT** exceed 400 lines per source file
+- When planning new features, consider whether existing files will exceed limits
+- Split large modules into focused sub-modules during planning
+
+---
+
 ## Implementation Steps Reference
 
 Reference the current implementation plan structure:

@@ -1,4 +1,8 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Bash(ls:*)",
@@ -11,11 +15,11 @@
       "Bash(git diff:*)",
       "Bash(git status:*)",
       "WebSearch",
-      "WebFetch"
+      "WebFetch",
+      "Bash(just line-limits:*)"
     ],
     "ask": [
       "Bash(git commit:*)"
     ]
-  },
-  "attribution": { "commit": "", "pr": "" }
+  }
 }

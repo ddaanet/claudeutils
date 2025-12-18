@@ -105,6 +105,14 @@ Skipping the RED phase defeats the purpose of TDD:
 - Suppress type warnings without comments
 - Use `Any` type without justification
 
+### File Size Limits
+
+Keep source files small to avoid loading unneeded context:
+
+- **SHOULD NOT** exceed 300 lines per file
+- **MUST NOT** exceed 400 lines per file
+- When files grow larger, split them into focused modules
+
 ---
 
 ## TIER 3: Optional Style Rules
