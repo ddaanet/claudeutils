@@ -85,6 +85,8 @@ Skipping the RED phase defeats the purpose of TDD:
 - Test names should clearly describe what they verify
 - **Compare complex objects directly** for better error messages:
   - Prefer `assert result == expected_obj` over comparing individual members
+- **Fixture return types:** Use direct tuple, not Generator
+- **Long JSON strings:** Use implicit concatenation across lines
 
 ### Code Quality Anti-Patterns
 
@@ -101,6 +103,16 @@ Skipping the RED phase defeats the purpose of TDD:
 
 - Use specific type annotations (`list[str]`, not bare `list`)
 - Prefer built-in generic types over `typing` module where possible (Python 3.9+)
+
+---
+
+## Sub-Agent Usage
+
+Use sub-agents for batched operations like lint fixing:
+
+- **Prefer architectural fixes** over `# noqa` suppressions
+- **Explain strategy** before launching sub-agent
+- **Transcripts location:** `~/.claude/projects/[ENCODED-PATH]/agent-*.jsonl`
 
 ---
 

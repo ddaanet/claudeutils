@@ -186,10 +186,11 @@ Test cases:
 3. **Step 3**: Message parsing + tests (✅ COMPLETE)
    - See `STEP3_TESTS.md` for detailed test specifications
    - See `agents/STEP3_COMPLETION.md` for completion notes
-4. **Step 4**: Recursive sub-agent processing + tests (⏳ NEXT)
-   - See `STEP4_TESTS.md` for detailed test specifications (9 tests)
+4. **Step 4**: Recursive sub-agent processing + tests (✅ COMPLETE)
+   - See `STEP4_TESTS.md` for detailed test specifications (13 tests)
+   - See `agents/STEP4_COMPLETION.md` for completion notes
    - Scan-based discovery: finds interrupted/failed/killed agents
-5. **Step 5**: CLI subcommands (list/extract) + integration tests
+5. **Step 5**: CLI subcommands (list/extract) + integration tests (⏳ NEXT)
 
 ---
 

@@ -15,17 +15,19 @@
 
 ## Current Task
 
-**Step 4: Recursive Sub-Agent Processing** (⏳ NEXT)
+**Step 5: CLI Subcommands** (⏳ NEXT)
 
-- Task spec: `agents/STEP4_TESTS.md` (13 tests, strict TDD iteration boundaries)
-- Key change: Scan-based discovery finds ALL agents (including interrupted/failed/killed)
-- Each test enforces minimal incremental implementation
+- Task spec: `agents/STEP5_TESTS.md` (needs creation based on `agents/PLAN.md`)
+- `list [--project PATH]` - Show top-level sessions
+- `extract SESSION_PREFIX [--project PATH] [--output FILE]` - Extract feedback recursively
+- See Plan lines 140-166 for test cases
 
 **Completed:**
 
 - Step 1: Path encoding & session discovery
 - Step 2: Trivial message filter
 - Step 3: Message parsing (completion notes: `agents/STEP3_COMPLETION.md`)
+- Step 4: Recursive sub-agent processing (completion notes: `agents/STEP4_COMPLETION.md`)
 
 ## Quick Commands
 

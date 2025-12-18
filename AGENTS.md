@@ -44,6 +44,8 @@ Skills are specialized instruction sets. Load when needed.
 2. **Stop at boundaries:** Complete assigned task then stop (no scope creep)
 3. **Be explicit:** Ask clarifying questions if requirements unclear
 4. **Context awareness:** Prepare handoff notes for next agent/session
+5. **Transparency:** Explain sub-agent strategy before launching; user may ask for transcripts
+6. **Load skills proactively:** Read relevant skill files before major operations (e.g., commit skill before committing)
 
 ### Code Patterns
 
@@ -101,7 +103,6 @@ git commit -m "..."   # Commit with concise message
 - `agents/PLAN.md` - Full implementation plan
 - `agents/STEP*_TESTS.md` - Test specifications per step
 - `agents/STEP*_COMPLETION.md` - Completion notes and handoff for each step
-- `agents/NEXT_AGENT_NOTES.md` - Cross-session learnings
 
 **Skills:**
 
