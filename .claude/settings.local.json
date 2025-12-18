@@ -16,7 +16,8 @@
       "Bash(git status:*)",
       "WebSearch",
       "WebFetch",
-      "Bash(just line-limits:*)"
+      "Bash(just line-limits:*)",
+      "Bash(wc:*)"
     ],
     "ask": [
       "Bash(git commit:*)"
