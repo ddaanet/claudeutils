@@ -5,7 +5,12 @@ description: Documentation updates and rules maintenance
 
 # Remember Skill
 
-> **Context:** Load `@AGENTS.md` for project overview and skill references.
+## BEFORE STARTING (Mandatory)
+
+**If not already loaded, read this file using the Read tool:**
+1. `AGENTS.md` - Project overview and skill references
+
+⚠️ **Do not proceed until this file is in context.**
 
 This skill governs how to maintain project documentation and manage the rules themselves.
 

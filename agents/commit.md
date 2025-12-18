@@ -5,7 +5,12 @@ description: Git commit standards
 
 # Commit Skill
 
-> **Context:** Load `@AGENTS.md` for project overview and user preferences.
+## BEFORE STARTING (Mandatory)
+
+**If not already loaded, read this file using the Read tool:**
+1. `AGENTS.md` - Project overview and user preferences
+
+⚠️ **Do not proceed until this file is in context.**
 
 ## Commit Message Format
 

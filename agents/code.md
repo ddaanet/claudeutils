@@ -5,7 +5,15 @@ description: TDD implementation and code quality
 
 # Coding Skill
 
-> **Context:** Load `@START.md` for current task, `@AGENTS.md` for project overview, `@agents/TEST_DATA.md` for sample data, and the relevant `@agents/STEP*_TESTS.md` for test specifications.
+## BEFORE STARTING (Mandatory)
+
+**If not already loaded, read these files using the Read tool:**
+1. `START.md` - Current task and status
+2. `AGENTS.md` - Project overview and user preferences
+3. `agents/TEST_DATA.md` - Data types and sample entries
+4. The relevant `agents/STEP*_TESTS.md` for your current task
+
+⚠️ **Do not proceed until these files are in context.**
 
 ## TIER 1: Critical Rules (Must Always Follow)
 
