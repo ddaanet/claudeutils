@@ -5,6 +5,8 @@ description: Git commit standards
 
 # Commit Skill
 
+> **Context:** Load `@AGENTS.md` for project overview and user preferences.
+
 ## Commit Message Format
 
 ### Core Principles

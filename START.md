@@ -5,13 +5,13 @@
 1. `AGENTS.md` - Project overview, user preferences, skill references
 2. `agents/PLAN.md` - Full implementation plan and data model
 
-## Skills (Load as Needed)
+## Skills (Read Before Action)
 
-- `@agents/code.md` - TDD implementation (load when coding)
-- `@agents/planning.md` - Test-first design (load when planning)
-- `@agents/commit.md` - Git commit standards (load when committing)
-- `@agents/remember.md` - Documentation updates (load when updating docs)
-- `@agents/handoff.md` - Ending a session (any role)
+- `agents/code.md` - Read before implementing code
+- `agents/planning.md` - Read before designing test specifications
+- `agents/commit.md` - **Read before any `git commit`**
+- `agents/remember.md` - Read before updating documentation
+- `agents/handoff.md` - Read before ending a session
 
 ## Current Task
 

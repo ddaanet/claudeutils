@@ -5,6 +5,8 @@ description: Documentation updates and rules maintenance
 
 # Remember Skill
 
+> **Context:** Load `@AGENTS.md` for project overview and skill references.
+
 This skill governs how to maintain project documentation and manage the rules themselves.
 
 ---

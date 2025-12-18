@@ -5,6 +5,8 @@ description: Test-first design for TDD execution
 
 # Planning Skill
 
+> **Context:** Load `@START.md` for current task, `@AGENTS.md` for project overview, and `@agents/PLAN.md` for data model and step details.
+
 **Goal:** Produce plans ready for TDD execution by low-reasoning agents (haiku).
 
 ## Test-First Design Methodology

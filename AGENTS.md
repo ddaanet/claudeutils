@@ -22,17 +22,17 @@
 
 ## Skills
 
-Skills are specialized instruction sets. Load when needed.
+Skills are specialized instruction sets. **Read the skill file before performing that action.**
 
-| Skill | File | When to Use |
-|-------|------|-------------|
-| planning | `@agents/planning.md` | Designing test specifications |
-| code | `@agents/code.md` | TDD implementation |
-| commit | `@agents/commit.md` | Creating git commits |
-| remember | `@agents/remember.md` | Updating docs, rules maintenance |
-| handoff | `@agents/handoff.md` | Ending a session (any role) |
+| Skill | File | Trigger |
+|-------|------|---------|
+| planning | `agents/planning.md` | Before designing test specifications |
+| code | `agents/code.md` | Before implementing code |
+| commit | `agents/commit.md` | **Before any `git commit`** |
+| remember | `agents/remember.md` | Before updating documentation |
+| handoff | `agents/handoff.md` | Before ending a session |
 
-**Usage:** Reference with `@agents/skillname.md` when starting a task.
+**How to load:** Read the file using the Read tool before starting the task.
 
 ---
 
@@ -45,7 +45,7 @@ Skills are specialized instruction sets. Load when needed.
 3. **Be explicit:** Ask clarifying questions if requirements unclear
 4. **Context awareness:** Prepare handoff notes for next agent/session
 5. **Transparency:** Explain sub-agent strategy before launching; user may ask for transcripts
-6. **Load skills proactively:** Read relevant skill files before major operations (e.g., commit skill before committing)
+6. **Load skills proactively:** Read skill files before operations (e.g., read `agents/commit.md` before running `git commit`)
 
 ### Code Patterns
 
@@ -53,6 +53,12 @@ Skills are specialized instruction sets. Load when needed.
 2. **No premature optimization:** Solve current problem, not hypothetical future ones
 3. **No suppression shortcuts:** If linter/type checker complains, fix properly
 4. **Explain ignores:** Any `type: ignore` must have comment explaining what's intentional
+
+### Tool Batching
+
+1. **Batch reads:** Before reading a file, identify other files needed soon and read them together
+2. **Batch writes:** Before writing, identify other changes that can be combined in one batch
+3. **Update context after writes:** Include Read calls at the end of a write batch to refresh context
 
 ---
 
@@ -101,6 +107,7 @@ git commit -m "..."   # Commit with concise message
 - `START.md` - **Handoff entry point** (read this first on session reset)
 - `AGENTS.md` - This file (core rules and skill references)
 - `agents/PLAN.md` - Full implementation plan
+- `agents/TEST_DATA.md` - Data types and sample entries for coding
 - `agents/STEP*_TESTS.md` - Test specifications per step
 - `agents/STEP*_COMPLETION.md` - Completion notes and handoff for each step
 

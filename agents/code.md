@@ -5,6 +5,8 @@ description: TDD implementation and code quality
 
 # Coding Skill
 
+> **Context:** Load `@START.md` for current task, `@AGENTS.md` for project overview, `@agents/TEST_DATA.md` for sample data, and the relevant `@agents/STEP*_TESTS.md` for test specifications.
+
 ## TIER 1: Critical Rules (Must Always Follow)
 
 ### Red-Green-Refactor Cycle (MANDATORY)
