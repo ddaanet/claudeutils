@@ -2,8 +2,16 @@
 
 ## Core Context (Read First)
 
-1. `AGENTS.md` - Project rules, code standards, user preferences
+1. `AGENTS.md` - Project overview, user preferences, skill references
 2. `agents/PLAN.md` - Full implementation plan and data model
+
+## Skills (Load as Needed)
+
+- `@agents/code.md` - TDD implementation (load when coding)
+- `@agents/planning.md` - Test-first design (load when planning)
+- `@agents/commit.md` - Git commit standards (load when committing)
+- `@agents/remember.md` - Documentation updates (load when updating docs)
+- `@agents/handoff.md` - Ending a session (any role)
 
 ## Current Task
 
@@ -13,6 +21,7 @@
 - Key change: Scan-based discovery finds ALL agents (including interrupted/failed/killed)
 
 **Completed:**
+
 - Step 1: Path encoding & session discovery
 - Step 2: Trivial message filter
 - Step 3: Message parsing (completion notes: `agents/STEP3_COMPLETION.md`)
