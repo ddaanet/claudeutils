@@ -46,15 +46,24 @@ Skipping the RED phase defeats the purpose of TDD:
 - It confirms the test fails for the right reason
 - It proves your implementation caused the test to pass
 
+**Unexpected success is an error.** If a new test passes without writing new code, you have over-implemented. This means:
+- You wrote more than the minimal code needed for the previous test
+- The test may not be testing what you think it's testing
+- You've lost the feedback loop that TDD provides
+
+When a test unexpectedly passes, STOP and investigate before continuing.
+
 🚫 **DO NOT:**
 - Write all tests upfront then implement
 - Skip running the test before implementing
 - Implement before seeing the test fail
+- Proceed with the next cycle without explicit user instruction
 
 ✅ **DO:**
 - Run each test immediately after writing it
 - Verify failure message matches expectations
 - Request confirmation after every THREE test-implement cycles
+- WAIT for user to say "continue" before proceeding after validation checkpoints
 
 ### Implementation Steps
 

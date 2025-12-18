@@ -117,13 +117,17 @@ Test cases using sample data:
 9. **Pydantic validation:** Invalid timestamp format raises ValidationError
 
 ### Step 4: Recursive Session Processing Tests
-**Function:** `find_sub_agent_sessions(session_file: Path) -> list[str]`
+
+**Function:** `find_related_agent_files(session_id: str, project_dir: str) -> list[Path]`
+
+Scan-based discovery finds ALL related agents, including interrupted/failed/killed ones (agent files exist before task completion).
 
 Test cases:
-1. Session with 2 agent tool calls returns 2 agent IDs
-2. Session with no agents returns empty list
-3. Duplicate agent IDs deduplicated
-4. Only extracts from tool_use entries where name="Task"
+1. Find agents by session ID (2 agent files referencing same session)
+2. Filter out agents from other sessions
+3. Empty directory returns empty list
+4. Handle malformed agent files gracefully
+5. Empty agent file returns empty list
 
 **Function:** `extract_feedback_recursively(session_id: str, project_dir: str) -> list[FeedbackItem]`
 
@@ -131,9 +135,7 @@ Test cases:
 1. **Top-level only:** Session with no sub-agents returns only main feedback
 2. **One level:** Session with 1 sub-agent returns main + sub-agent feedback
 3. **Two levels:** Session with sub-agent that spawns another agent returns all three
-4. **Cycle detection:** Circular agent references don't cause infinite loop
-5. **Missing agent file:** References to non-existent agent-*.jsonl logged as warning
-6. **Empty session:** Session with no user messages returns empty list
+4. **Missing directory:** Raises FileNotFoundError
 
 ### Step 5: CLI Subcommands Tests
 
@@ -176,14 +178,52 @@ Test cases:
 **Dependencies:** `uv add pytest pydantic`
 
 ## Implementation Steps (TDD)
-1. **Step 1**: Path encoding & session discovery + tests (✅ COMPLETE - 16 tests passing)
+1. **Step 1**: Path encoding & session discovery + tests (✅ COMPLETE)
    - See `STEP1_TESTS.md` for detailed test specifications
    - See `agents/STEP1_COMPLETION.md` for completion notes
-2. **Step 2**: Trivial filter + tests (⏳ NEXT)
-   - See `STEP2_TESTS.md` for detailed test specifications (12 tests)
-3. **Step 3**: Message parsing + tests
-4. **Step 4**: Recursive sub-agent processing + tests
+2. **Step 2**: Trivial filter + tests (✅ COMPLETE)
+   - See `STEP2_TESTS.md` for detailed test specifications
+3. **Step 3**: Message parsing + tests (✅ COMPLETE)
+   - See `STEP3_TESTS.md` for detailed test specifications
+   - See `agents/STEP3_COMPLETION.md` for completion notes
+4. **Step 4**: Recursive sub-agent processing + tests (⏳ NEXT)
+   - See `STEP4_TESTS.md` for detailed test specifications (9 tests)
+   - Scan-based discovery: finds interrupted/failed/killed agents
 5. **Step 5**: CLI subcommands (list/extract) + integration tests
+
+---
+
+## Future Features (Roadmap)
+
+### user-prompt MCP Tool Support
+
+**Goal:** Extract user feedback from `user_prompt` tool results in session files.
+
+**Reference:** https://github.com/nazar256/user-prompt-mcp
+
+**Status:** Pending - MCP not yet installed, sample data unavailable.
+
+**How it works:**
+- The `user_prompt` MCP tool allows Claude to request input from the user
+- Tool invocations and results appear in the session JSONL files (like any other tool)
+- Extract user responses from `tool_result` entries where tool name is `user_prompt`
+
+**Scope:**
+- Detect `user_prompt` tool uses in session entries
+- Extract user responses from corresponding tool results
+- Classify as a new FeedbackType (e.g., `MCP_PROMPT`)
+
+### Session Summary Extraction
+
+**Goal:** Extract a summary of a session for process compliance analysis.
+
+**Output format:**
+- Tool uses (without full inputs/outputs)
+- User inputs
+- Key assistant outputs
+- Timeline of interactions
+
+**Use case:** Analyze whether agents followed expected workflows, identify deviations from standard procedures.
 
 ## CLI Usage
 

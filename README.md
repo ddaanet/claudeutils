@@ -19,8 +19,15 @@ Create a Python CLI tool with two subcommands:
 
 ## Implementation Status
 
-**Phase:** Planning Complete ✅
-**Next:** Step 1 - Path encoding & session discovery tests
+**Current:** Step 4 - Recursive sub-agent processing (9 tests)
+
+| Step | Description | Status |
+|------|-------------|--------|
+| 1 | Path encoding & session discovery | ✅ Complete |
+| 2 | Trivial message filter | ✅ Complete |
+| 3 | Message parsing & feedback extraction | ✅ Complete |
+| 4 | Recursive sub-agent processing | ⏳ Next |
+| 5 | CLI subcommands (list/extract) | Pending |
 
 ## Quick Start (After Implementation)
 
@@ -67,4 +74,22 @@ class FeedbackItem(BaseModel):
 - `test_main.py` (~200 lines)
 - `pyproject.toml` (~15 lines)
 
-See `agents/PLAN.md` for detailed test specifications and `agents/STATUS.md` for step-by-step implementation guide.
+See `agents/PLAN.md` for detailed test specifications.
+
+## Roadmap
+
+### user-prompt MCP Tool Support
+
+Extract user feedback from [user-prompt-mcp](https://github.com/nazar256/user-prompt-mcp) tool results in session files. The `user_prompt` tool allows Claude to request user input; responses appear as `tool_result` entries in session JSONL files.
+
+**Status:** Pending - MCP not yet installed, sample data unavailable.
+
+### Session Summary Extraction
+
+Extract session summaries for process compliance analysis:
+- Tool uses (without full inputs/outputs)
+- User inputs
+- Key assistant outputs
+- Timeline of interactions
+
+Use case: Analyze agent workflow compliance, identify procedural deviations.

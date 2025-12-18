@@ -1,12 +1,15 @@
 """Claude history path and session discovery utilities."""
 
 import json
+import logging
 import re
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class FeedbackType(StrEnum):
@@ -238,6 +241,43 @@ def extract_feedback_from_entry(entry: dict[str, Any]) -> FeedbackItem | None:
         agent_id=entry.get("agentId"),
         slug=entry.get("slug"),
     )
+
+
+def find_sub_agent_ids(session_file: Path) -> list[str]:
+    """Extract all sub-agent IDs from a session JSONL file.
+
+    Scans for entries with successful Task tool completions that contain
+    an agentId in the toolUseResult field.
+
+    Args:
+        session_file: Path to session JSONL file
+
+    Returns:
+        List of unique agent IDs (deduplicated, in order of first occurrence)
+    """
+    agent_ids = []
+    seen: set[str] = set()
+
+    with session_file.open() as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line:
+                continue
+
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            # Check if entry has toolUseResult as a dict (successful completion)
+            tool_result = entry.get("toolUseResult")
+            if isinstance(tool_result, dict) and "agentId" in tool_result:
+                agent_id = tool_result["agentId"]
+                if agent_id not in seen:
+                    agent_ids.append(agent_id)
+                    seen.add(agent_id)
+
+    return agent_ids
 
 
 def main() -> None:

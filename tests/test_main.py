@@ -1,5 +1,7 @@
 """Tests for claudeutils session discovery."""
 
+import json
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -11,6 +13,7 @@ from claudeutils.main import (
     SessionInfo,
     encode_project_path,
     extract_feedback_from_entry,
+    find_sub_agent_ids,
     get_project_history_dir,
     is_trivial,
     list_top_level_sessions,
@@ -453,3 +456,164 @@ def test_extract_feedback_pydantic_validation_error() -> None:
     }
     with pytest.raises(ValidationError):
         extract_feedback_from_entry(entry)
+
+
+# ============= GROUP G: Recursive Sub-Agent Processing =============
+
+
+def test_find_sub_agent_ids_successful_tasks() -> None:
+    """Extract agent IDs from successful Task tool completions."""
+    entries = [
+        {
+            "type": "user",
+            "toolUseResult": {
+                "status": "completed",
+                "agentId": "ae9906a",
+                "content": [],
+                "totalDurationMs": 5000,
+            },
+            "timestamp": "2025-12-16T08:47:19.855Z",
+            "sessionId": "main-session-id",
+            "message": {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "content": "Agent completed",
+                        "tool_use_id": "toolu_abc123",
+                    }
+                ],
+            },
+        },
+        {
+            "type": "user",
+            "toolUseResult": {
+                "status": "completed",
+                "agentId": "ad67fd8",
+                "content": [],
+                "totalDurationMs": 3000,
+            },
+            "timestamp": "2025-12-16T08:48:00.000Z",
+            "sessionId": "main-session-id",
+            "message": {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "content": "Agent completed",
+                        "tool_use_id": "toolu_xyz789",
+                    }
+                ],
+            },
+        },
+    ]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        session_path = Path(tmpdir) / "test_session.jsonl"
+        with session_path.open("w") as f:
+            for entry in entries:
+                f.write(json.dumps(entry) + "\n")
+
+        result = find_sub_agent_ids(session_path)
+        assert result == ["ae9906a", "ad67fd8"]
+
+
+def test_find_sub_agent_ids_no_tasks() -> None:
+    """Session with no Task calls returns empty list."""
+    entries = [
+        {
+            "type": "user",
+            "message": {"role": "user", "content": "Design a script"},
+            "timestamp": "2025-12-16T08:39:26.932Z",
+            "sessionId": "main-session-id",
+        },
+        {
+            "type": "assistant",
+            "message": {
+                "role": "assistant",
+                "content": "I'll help you design a script",
+            },
+            "timestamp": "2025-12-16T08:39:27.000Z",
+            "sessionId": "main-session-id",
+        },
+    ]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        session_path = Path(tmpdir) / "test_session.jsonl"
+        with session_path.open("w") as f:
+            for entry in entries:
+                f.write(json.dumps(entry) + "\n")
+
+        result = find_sub_agent_ids(session_path)
+        assert result == []
+
+
+def test_find_sub_agent_ids_duplicates_deduplicated() -> None:
+    """Duplicate agent IDs are deduplicated."""
+    entries = [
+        {
+            "type": "user",
+            "toolUseResult": {
+                "status": "completed",
+                "agentId": "ae9906a",
+                "content": [],
+                "totalDurationMs": 5000,
+            },
+            "timestamp": "2025-12-16T08:47:19.855Z",
+            "sessionId": "main-session-id",
+            "message": {"role": "user", "content": []},
+        },
+        {
+            "type": "user",
+            "toolUseResult": {
+                "status": "completed",
+                "agentId": "ae9906a",
+                "content": [],
+                "totalDurationMs": 3000,
+            },
+            "timestamp": "2025-12-16T08:48:00.000Z",
+            "sessionId": "main-session-id",
+            "message": {"role": "user", "content": []},
+        },
+    ]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        session_path = Path(tmpdir) / "test_session.jsonl"
+        with session_path.open("w") as f:
+            for entry in entries:
+                f.write(json.dumps(entry) + "\n")
+
+        result = find_sub_agent_ids(session_path)
+        assert result == ["ae9906a"]
+
+
+def test_find_sub_agent_ids_interrupted_task_ignored() -> None:
+    """Interrupted Task (string toolUseResult) is ignored."""
+    entries = [
+        {
+            "type": "user",
+            "toolUseResult": "Error: [Request interrupted by user for tool use]",
+            "timestamp": "2025-12-16T08:43:43.872Z",
+            "sessionId": "main-session-id",
+            "message": {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "content": "[Request interrupted by user for tool use]",
+                        "is_error": True,
+                        "tool_use_id": "toolu_xyz789",
+                    }
+                ],
+            },
+        },
+    ]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        session_path = Path(tmpdir) / "test_session.jsonl"
+        with session_path.open("w") as f:
+            for entry in entries:
+                f.write(json.dumps(entry) + "\n")
+
+        result = find_sub_agent_ids(session_path)
+        assert result == []

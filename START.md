@@ -7,12 +7,15 @@
 
 ## Current Task
 
-**Step 3: Message Parsing** (✅ COMPLETE)
+**Step 4: Recursive Sub-Agent Processing** (⏳ NEXT)
 
-- Task spec: `agents/STEP3_TESTS.md`
-- Completion notes: `agents/STEP3_COMPLETION.md`
+- Task spec: `agents/STEP4_TESTS.md` (9 tests)
+- Key change: Scan-based discovery finds ALL agents (including interrupted/failed/killed)
 
-**Next Task:** Step 4: Recursive Sub-Agent Processing (awaiting direction)
+**Completed:**
+- Step 1: Path encoding & session discovery
+- Step 2: Trivial message filter
+- Step 3: Message parsing (completion notes: `agents/STEP3_COMPLETION.md`)
 
 ## Quick Commands
 
