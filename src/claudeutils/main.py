@@ -280,6 +280,135 @@ def find_sub_agent_ids(session_file: Path) -> list[str]:
     return agent_ids
 
 
+def find_related_agent_files(session_id: str, project_dir: str) -> list[Path]:
+    """Find all agent files related to a session.
+
+    Scans the project history directory for all agent-*.jsonl files that
+    reference the given session ID. Returns agents regardless of completion status.
+
+    Args:
+        session_id: The session ID to search for
+        project_dir: The project directory path
+
+    Returns:
+        List of Path objects to matching agent files
+    """
+    history_dir = get_project_history_dir(project_dir)
+    matching_files = []
+
+    for agent_file in sorted(history_dir.glob("agent-*.jsonl")):
+        try:
+            first_line = agent_file.read_text().split("\n")[0].strip()
+            if not first_line:
+                continue
+            entry = json.loads(first_line)
+            if entry.get("sessionId") == session_id:
+                matching_files.append(agent_file)
+        except json.JSONDecodeError:
+            logger.warning("Malformed JSON in %s", agent_file)
+            continue
+        except OSError:
+            continue
+
+    return matching_files
+
+
+def _extract_feedback_from_file(file_path: Path) -> list[FeedbackItem]:
+    """Extract feedback items from a single JSONL file.
+
+    Args:
+        file_path: Path to JSONL file
+
+    Returns:
+        List of FeedbackItem objects extracted from file
+    """
+    feedback: list[FeedbackItem] = []
+    for line in file_path.read_text().strip().split("\n"):
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+            result = extract_feedback_from_entry(entry)
+            if result:
+                feedback.append(result)
+        except json.JSONDecodeError:
+            continue
+    return feedback
+
+
+def _process_agent_file(agent_file: Path) -> tuple[list[FeedbackItem], str | None]:
+    """Extract feedback and agent ID from an agent file.
+
+    Args:
+        agent_file: Path to agent JSONL file
+
+    Returns:
+        Tuple of (feedback items, agent ID)
+    """
+    feedback: list[FeedbackItem] = []
+    agent_id: str | None = None
+
+    for line in agent_file.read_text().strip().split("\n"):
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+            # Track agent ID from first entry
+            if agent_id is None:
+                agent_id = entry.get("agentId")
+            # Extract feedback from agent file
+            result = extract_feedback_from_entry(entry)
+            if result:
+                feedback.append(result)
+        except json.JSONDecodeError:
+            continue
+
+    return feedback, agent_id
+
+
+def extract_feedback_recursively(
+    session_id: str, project_dir: str
+) -> list[FeedbackItem]:
+    """Extract feedback from a session and all sub-agent sessions.
+
+    Recursively extracts feedback from the given session and all agents
+    spawned from that session, building a complete tree of feedback.
+
+    Args:
+        session_id: The session ID to extract from
+        project_dir: The project directory path
+
+    Returns:
+        List of FeedbackItem objects sorted by timestamp
+
+    Raises:
+        FileNotFoundError: If the history directory does not exist
+    """
+    history_dir = get_project_history_dir(project_dir)
+    if not history_dir.exists():
+        msg = f"History directory not found: {history_dir}"
+        raise FileNotFoundError(msg)
+
+    feedback: list[FeedbackItem] = []
+
+    # Extract from main session file
+    session_file = history_dir / f"{session_id}.jsonl"
+    if session_file.exists():
+        feedback.extend(_extract_feedback_from_file(session_file))
+
+    # Find and recursively process related agent files
+    agent_files = find_related_agent_files(session_id, project_dir)
+    for agent_file in agent_files:
+        agent_feedback, agent_id = _process_agent_file(agent_file)
+        feedback.extend(agent_feedback)
+
+        # Recursively process agents spawned by this agent
+        if agent_id:
+            feedback.extend(extract_feedback_recursively(agent_id, project_dir))
+
+    return sorted(feedback, key=lambda x: x.timestamp)
+
+
 def main() -> None:
     """Entry point for claudeutils CLI."""
 

@@ -1,6 +1,7 @@
 """Tests for claudeutils session discovery."""
 
 import json
+import logging
 import tempfile
 from pathlib import Path
 
@@ -13,6 +14,8 @@ from claudeutils.main import (
     SessionInfo,
     encode_project_path,
     extract_feedback_from_entry,
+    extract_feedback_recursively,
+    find_related_agent_files,
     find_sub_agent_ids,
     get_project_history_dir,
     is_trivial,
@@ -617,3 +620,247 @@ def test_find_sub_agent_ids_interrupted_task_ignored() -> None:
 
         result = find_sub_agent_ids(session_path)
         assert result == []
+
+
+# ============= GROUP H: Recursive Sub-Agent Processing (Step 4) =============
+
+
+@pytest.fixture
+def temp_history_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> tuple[Path, Path]:
+    """Mock history directory for agent file testing."""
+    history_dir = tmp_path / "history"
+    history_dir.mkdir()
+
+    def mock_get_history(proj: str) -> Path:
+        return history_dir
+
+    monkeypatch.setattr("claudeutils.main.get_project_history_dir", mock_get_history)
+
+    return tmp_path / "project", history_dir
+
+
+def test_find_agents_empty_directory(temp_history_dir: tuple[Path, Path]) -> None:
+    """Empty directory returns empty list."""
+    project, _history_dir = temp_history_dir
+    # History directory exists but is empty
+    result = find_related_agent_files("main-123", str(project))
+    assert result == []
+
+
+def test_find_agents_no_matching_session(temp_history_dir: tuple[Path, Path]) -> None:
+    """No matching session returns empty list."""
+    project, history_dir = temp_history_dir
+    # Create an agent file with a different session ID
+    (history_dir / "agent-a1.jsonl").write_text(
+        '{"type":"user","sessionId":"other-456","agentId":"a1",'
+        '"message":{"content":"test"},"timestamp":"2025-12-16T10:00:00.000Z"}\n'
+    )
+
+    result = find_related_agent_files("main-123", str(project))
+    assert result == []
+
+
+def test_find_agents_single_match(temp_history_dir: tuple[Path, Path]) -> None:
+    """Single matching agent file returns list with Path."""
+    project, history_dir = temp_history_dir
+    # Create an agent file with matching session ID
+    agent_file = history_dir / "agent-a1.jsonl"
+    agent_file.write_text(
+        '{"type":"user","sessionId":"main-123","agentId":"a1",'
+        '"message":{"content":"test"},"timestamp":"2025-12-16T10:00:00.000Z"}\n'
+    )
+
+    result = find_related_agent_files("main-123", str(project))
+    assert result == [agent_file]
+
+
+def test_find_agents_multiple_matches_filters_correctly(
+    temp_history_dir: tuple[Path, Path],
+) -> None:
+    """Multiple agent files returns only matching ones."""
+    project, history_dir = temp_history_dir
+    # Create 3 agent files: 2 match, 1 doesn't
+    agent_a1 = history_dir / "agent-a1.jsonl"
+    agent_a1.write_text(
+        '{"type":"user","sessionId":"main-123","agentId":"a1",'
+        '"message":{"content":"test"},"timestamp":"2025-12-16T10:00:00.000Z"}\n'
+    )
+    agent_a2 = history_dir / "agent-a2.jsonl"
+    agent_a2.write_text(
+        '{"type":"user","sessionId":"other-456","agentId":"a2",'
+        '"message":{"content":"test"},"timestamp":"2025-12-16T10:05:00.000Z"}\n'
+    )
+    agent_a3 = history_dir / "agent-a3.jsonl"
+    agent_a3.write_text(
+        '{"type":"user","sessionId":"main-123","agentId":"a3",'
+        '"message":{"content":"test"},"timestamp":"2025-12-16T10:10:00.000Z"}\n'
+    )
+
+    result = find_related_agent_files("main-123", str(project))
+    assert result == [agent_a1, agent_a3]
+
+
+def test_find_agents_empty_file(temp_history_dir: tuple[Path, Path]) -> None:
+    """Empty file is skipped gracefully."""
+    project, history_dir = temp_history_dir
+    # Create an empty agent file
+    (history_dir / "agent-a1.jsonl").write_text("")
+
+    result = find_related_agent_files("main-123", str(project))
+    assert result == []
+
+
+def test_find_agents_malformed_json(
+    temp_history_dir: tuple[Path, Path], caplog: pytest.LogCaptureFixture
+) -> None:
+    """Malformed JSON is skipped with warning logged."""
+    project, history_dir = temp_history_dir
+    # Create an agent file with invalid JSON
+    (history_dir / "agent-a1.jsonl").write_text("{invalid json")
+
+    with caplog.at_level(logging.WARNING):
+        result = find_related_agent_files("main-123", str(project))
+
+    assert result == []
+    assert any("malformed" in record.message.lower() for record in caplog.records)
+
+
+def test_find_agents_missing_session_id_field(
+    temp_history_dir: tuple[Path, Path],
+) -> None:
+    """Agent file missing sessionId field is skipped."""
+    project, history_dir = temp_history_dir
+    # Create an agent file with valid JSON but no sessionId field
+    (history_dir / "agent-a1.jsonl").write_text(
+        '{"type":"user","agentId":"a1",'
+        '"message":{"content":"test"},"timestamp":"2025-12-16T10:00:00.000Z"}\n'
+    )
+
+    result = find_related_agent_files("main-123", str(project))
+    assert result == []
+
+
+def test_extract_recursive_missing_project_directory() -> None:
+    """Missing project directory raises FileNotFoundError."""
+    with pytest.raises(FileNotFoundError):
+        extract_feedback_recursively("main-123", "/nonexistent/path")
+
+
+def test_extract_recursive_no_messages_no_agents(
+    temp_history_dir: tuple[Path, Path],
+) -> None:
+    """Session with only assistant messages and no agents returns empty list."""
+    project, history_dir = temp_history_dir
+    # Create session file with only assistant messages
+    (history_dir / "main-123.jsonl").write_text(
+        '{"type":"assistant","message":{"content":"Hello"},'
+        '"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"main-123"}\n'
+    )
+
+    result = extract_feedback_recursively("main-123", str(project))
+    assert result == []
+
+
+def test_extract_recursive_top_level_only(
+    temp_history_dir: tuple[Path, Path],
+) -> None:
+    """Session with user messages and no agents returns feedback items."""
+    project, history_dir = temp_history_dir
+    # Create session file with 2 user messages
+    (history_dir / "main-123.jsonl").write_text(
+        '{"type":"user","message":{"content":"First message"},'
+        '"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"main-123"}\n'
+        '{"type":"user","message":{"content":"Second message"},'
+        '"timestamp":"2025-12-16T11:00:00.000Z","sessionId":"main-123"}\n'
+    )
+
+    result = extract_feedback_recursively("main-123", str(project))
+    assert len(result) == 2
+    assert result[0].content == "First message"
+    assert result[1].content == "Second message"
+    assert result[0].timestamp == "2025-12-16T10:00:00.000Z"
+    assert result[1].timestamp == "2025-12-16T11:00:00.000Z"
+
+
+def test_extract_recursive_one_level_of_agents(
+    temp_history_dir: tuple[Path, Path],
+) -> None:
+    """Extract feedback from main session and one agent."""
+    project, history_dir = temp_history_dir
+    # Create main session with 1 user message
+    (history_dir / "main-123.jsonl").write_text(
+        '{"type":"user","message":{"content":"Main message"},'
+        '"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"main-123"}\n'
+    )
+    # Create agent file with 1 user message
+    (history_dir / "agent-a1.jsonl").write_text(
+        '{"type":"user","sessionId":"main-123","agentId":"a1",'
+        '"message":{"content":"Agent message"},'
+        '"timestamp":"2025-12-16T10:05:00.000Z"}\n'
+    )
+
+    result = extract_feedback_recursively("main-123", str(project))
+    assert len(result) == 2
+    assert result[0].content == "Main message"
+    assert result[1].content == "Agent message"
+
+
+def test_extract_recursive_multiple_agents_same_level(
+    temp_history_dir: tuple[Path, Path],
+) -> None:
+    """Extract feedback from main session and multiple agents."""
+    project, history_dir = temp_history_dir
+    # Create main session with 1 user message
+    (history_dir / "main-123.jsonl").write_text(
+        '{"type":"user","message":{"content":"Main message"},'
+        '"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"main-123"}\n'
+    )
+    # Create 2 agent files
+    (history_dir / "agent-a1.jsonl").write_text(
+        '{"type":"user","sessionId":"main-123","agentId":"a1",'
+        '"message":{"content":"Agent 1 message"},'
+        '"timestamp":"2025-12-16T10:05:00.000Z"}\n'
+    )
+    (history_dir / "agent-a2.jsonl").write_text(
+        '{"type":"user","sessionId":"main-123","agentId":"a2",'
+        '"message":{"content":"Agent 2 message"},'
+        '"timestamp":"2025-12-16T10:10:00.000Z"}\n'
+    )
+
+    result = extract_feedback_recursively("main-123", str(project))
+    assert len(result) == 3
+    assert result[0].content == "Main message"
+    assert result[1].content == "Agent 1 message"
+    assert result[2].content == "Agent 2 message"
+
+
+def test_extract_recursive_nested_agents(
+    temp_history_dir: tuple[Path, Path],
+) -> None:
+    """Extract feedback with nested agent hierarchy."""
+    project, history_dir = temp_history_dir
+    # Create main session with 1 user message
+    (history_dir / "main-123.jsonl").write_text(
+        '{"type":"user","message":{"content":"Main message"},'
+        '"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"main-123"}\n'
+    )
+    # Create agent a1 with sessionId=main-123
+    (history_dir / "agent-a1.jsonl").write_text(
+        '{"type":"user","sessionId":"main-123","agentId":"a1",'
+        '"message":{"content":"Agent 1 message"},'
+        '"timestamp":"2025-12-16T10:05:00.000Z"}\n'
+    )
+    # Create agent a2 with sessionId=a1 (nested!)
+    (history_dir / "agent-a2.jsonl").write_text(
+        '{"type":"user","sessionId":"a1","agentId":"a2",'
+        '"message":{"content":"Agent 2 message"},'
+        '"timestamp":"2025-12-16T10:10:00.000Z"}\n'
+    )
+
+    result = extract_feedback_recursively("main-123", str(project))
+    assert len(result) == 3
+    assert result[0].content == "Main message"
+    assert result[1].content == "Agent 1 message"
+    assert result[2].content == "Agent 2 message"

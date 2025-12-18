@@ -17,8 +17,9 @@
 
 **Step 4: Recursive Sub-Agent Processing** (⏳ NEXT)
 
-- Task spec: `agents/STEP4_TESTS.md` (9 tests)
+- Task spec: `agents/STEP4_TESTS.md` (13 tests, strict TDD iteration boundaries)
 - Key change: Scan-based discovery finds ALL agents (including interrupted/failed/killed)
+- Each test enforces minimal incremental implementation
 
 **Completed:**
 
