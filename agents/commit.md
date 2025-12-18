@@ -81,11 +81,21 @@ cycle. Thanks to Claude Code for assistance.
 
 ## Git Workflow
 
+### Staging Files
+
+🚫 **Never use `git add -A` or `git add .`** - these can stage unintended files.
+
+✅ **Always add files explicitly:**
+```bash
+git add src/specific_file.py tests/test_specific.py
+```
+
 ### Common Commands
 
 ```bash
 git status            # Check staged changes
-git diff              # Review changes
+git diff HEAD         # Review all changes (staged + unstaged)
+git add <file>...     # Stage specific files explicitly
 git commit -m "..."   # Commit with concise message
 ```
 
