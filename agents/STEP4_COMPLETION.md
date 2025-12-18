@@ -233,7 +233,7 @@ These are called by the new functions:
 
 ```bash
 # Run all tests
-just test -v
+just test
 
 # Check code quality
 just check

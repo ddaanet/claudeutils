@@ -17,10 +17,10 @@
 
 **Step 5: CLI Subcommands** (⏳ NEXT)
 
-- Task spec: `agents/STEP5_TESTS.md` (needs creation based on `agents/PLAN.md`)
+- Task spec: `agents/STEP5_TESTS.md` ✅
 - `list [--project PATH]` - Show top-level sessions
 - `extract SESSION_PREFIX [--project PATH] [--output FILE]` - Extract feedback recursively
-- See Plan lines 140-166 for test cases
+- 18 tests: CLI argument parsing, output formatting, session matching, JSON serialization
 
 **Completed:**
 
