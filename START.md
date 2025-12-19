@@ -16,16 +16,22 @@
 
 ## Current Task
 
-**Next:** Implement feedback processing pipeline from `agents/PLAN.md`
+**Next:** Execute CLI refactoring from `agents/REFACTOR_PLAN.md`
 
-### Implementation Order
+### Immediate Priority
 
-1. **Feature 1: Filtering Module** - Foundation for analyze and rules
-2. **Feature 2: `collect` Subcommand** - Batch extract from all sessions
-3. **Feature 3: `analyze` Subcommand** - Statistical summary with categories
-4. **Feature 4: `rules` Subcommand** - Deduplicated rule-worthy items
+Fix complexity violations in `src/claudeutils/cli.py:54` (main function):
+- C901: Complexity 22 > 10
+- PLR0912: Branches 28 > 12
+- PLR0915: Statements 93 > 50
 
-See `agents/PLAN.md` for full test specifications (24 tests total).
+**Approach:** Extract 5 command handlers (`list`, `extract`, `collect`, `analyze`, `rules`) into dedicated functions. Plan ready for Haiku execution in `agents/REFACTOR_PLAN.md`.
+
+### After Refactoring
+
+Resume implementing feedback processing pipeline. **Note:** Features 2-4 already implemented but pending complexity fix before commit.
+
+See `agents/PLAN.md` for original feature specifications.
 
 ---
 

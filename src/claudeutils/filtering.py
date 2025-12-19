@@ -20,7 +20,11 @@ def filter_feedback(items: list[FeedbackItem]) -> list[FeedbackItem]:
 
 
 def categorize_feedback(item: FeedbackItem) -> str:
-    """Categorize feedback into instructions, corrections, process, or code_review."""
+    """Categorize feedback into specific categories based on content.
+
+    Analyzes the content to determine if feedback is instructions, corrections,
+    process-related, or code review.
+    """
     content_lower = item.content.lower()
 
     # Check for code_review keywords

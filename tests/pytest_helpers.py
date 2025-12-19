@@ -50,7 +50,7 @@ def setup_cli_mocks(
 
 def assert_json_output(
     capsys: pytest.CaptureFixture[str], expected_length: int | None = None
-) -> list[object]:
+) -> list[dict[str, object]]:
     """Capture stdout and validate JSON list output.
 
     Args:

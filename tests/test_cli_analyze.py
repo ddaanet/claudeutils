@@ -1,5 +1,6 @@
 """Tests for CLI analyze command."""
 
+import io
 import json
 from pathlib import Path
 
@@ -143,8 +144,6 @@ def test_analyze_from_stdin(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Analyze reads from stdin when given - as input."""
-    import io
-
     items = [
         FeedbackItem(
             timestamp="2025-12-16T08:39:26.932Z",

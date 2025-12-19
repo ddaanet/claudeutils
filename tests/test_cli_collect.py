@@ -196,7 +196,7 @@ def test_collect_skips_malformed_session(
         if session_id == "session1":
             return [valid_feedback]
         # Simulate extraction error for malformed session
-        raise ValueError("Malformed session data")
+        raise ValueError("Malformed data")  # noqa: TRY003 - test mock error
 
     pytest_helpers.setup_cli_mocks(monkeypatch, ["claudeutils", "collect"])
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)

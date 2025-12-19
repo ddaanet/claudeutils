@@ -1,6 +1,6 @@
 """Tests for the filtering module."""
 
-from claudeutils.filtering import is_noise, categorize_feedback, filter_feedback
+from claudeutils.filtering import categorize_feedback, filter_feedback, is_noise
 from claudeutils.models import FeedbackItem, FeedbackType
 
 

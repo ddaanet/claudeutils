@@ -67,19 +67,28 @@ def test_rules_deduplicates_by_prefix(
             timestamp="2025-12-16T08:39:26.932Z",
             session_id="session1",
             feedback_type=FeedbackType.MESSAGE,
-            content="This is a long feedback item that is definitely longer than a hundred characters but not too long so it should be kept in the results we are testing",
+            content=(
+                "This is a long feedback item that is definitely longer than "
+                "a hundred characters but not too long so it should be kept"
+            ),
         ),
         FeedbackItem(
             timestamp="2025-12-16T08:39:27.932Z",
             session_id="session1",
             feedback_type=FeedbackType.MESSAGE,
-            content="This is a long feedback item that is definitely longer than a hundred characters but not too long so it should be REMOVED because it's a duplicate",
+            content=(
+                "This is a long feedback item that is definitely longer than "
+                "a hundred characters but not too long so it should be deleted"
+            ),
         ),
         FeedbackItem(
             timestamp="2025-12-16T08:39:28.932Z",
             session_id="session1",
             feedback_type=FeedbackType.MESSAGE,
-            content="Different content that is long enough and unique to the other items in our test set",
+            content=(
+                "Different content that is long enough and unique "
+                "to the other items in our test set"
+            ),
         ),
         FeedbackItem(
             timestamp="2025-12-16T08:39:29.932Z",
@@ -101,7 +110,7 @@ def test_rules_deduplicates_by_prefix(
 
     captured = capsys.readouterr()
     # 4 items input, 3 after deduplication (first 2 share same prefix)
-    lines = [l for l in captured.out.strip().split("\n") if l]
+    lines = [line for line in captured.out.strip().split("\n") if line]
     assert len(lines) == 3
     assert "1." in lines[0]
     assert "2." in lines[1]
@@ -159,7 +168,7 @@ def test_rules_applies_stricter_filters(
 
     captured = capsys.readouterr()
     # Only 2 valid items should remain
-    lines = [l for l in captured.out.strip().split("\n") if l]
+    lines = [line for line in captured.out.strip().split("\n") if line]
     assert len(lines) == 2
     assert "1." in lines[0]
     assert "2." in lines[1]
@@ -204,7 +213,7 @@ def test_rules_custom_min_length(
 
     captured = capsys.readouterr()
     # Only 30-char item passes min-length of 25
-    lines = [l for l in captured.out.strip().split("\n") if l]
+    lines = [line for line in captured.out.strip().split("\n") if line]
     assert len(lines) == 1
     assert "1." in lines[0]
 

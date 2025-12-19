@@ -28,6 +28,14 @@ Fix errors reported by `just check` (ruff + mypy).
 
 ## Core Principles
 
+### No Complexity Refactoring
+
+⚠️ **Do NOT fix complexity issues (e.g., C901 "too complex").** Complexity fixes require refactoring, which needs planning from a strong agent. If you see complexity errors:
+
+1. Skip them
+2. Report them to the user
+3. Continue with other lint errors
+
 ### No Suppression Shortcuts
 
 If linter or type checker complains, fix the underlying issue properly.
