@@ -28,113 +28,7 @@ Three new subcommands for batch feedback processing:
 
 ---
 
-## Feature 1: `collect` Subcommand
-
-**Goal:** Extract feedback from all sessions in a single command.
-
-### Specification
-
-```
-claudeutils collect [--project PATH] [--output FILE]
-```
-
-- Iterates over all sessions from `list`
-- Calls extraction logic for each session
-- Aggregates results into a single JSON array
-- Handles errors gracefully (skip failed sessions, log to stderr)
-
-### Data Flow
-
-```
-list_top_level_sessions() → [SessionInfo]
-    ↓ for each session
-extract_feedback_recursively(session_id) → [FeedbackItem]
-    ↓ aggregate
-JSON array of all FeedbackItem
-```
-
-### Test Specification
-
-#### Group A: Basic Collection (Tests 1-3)
-
-##### Test 1: `test_collect_single_session_with_feedback`
-**Given:** One session file with substantive feedback
-**When:** `collect` is called
-**Then:** Returns JSON array with one FeedbackItem
-
-**Implementation scope:**
-- Wire up collect subcommand to argparse
-- Call list_top_level_sessions() to get sessions
-- Call extract_feedback_recursively() for each session
-- Aggregate results into output list
-- Does NOT require: multiple sessions, error handling
-
-**Fixture data:**
-```python
-# e12d203f-uuid.jsonl
-{"type":"user","message":{"role":"user","content":"Don't use git add -A"},"timestamp":"2025-12-16T08:39:26.932Z","sessionId":"e12d203f-uuid"}
-```
-
-##### Test 2: `test_collect_multiple_sessions`
-**Given:** Three session files, each with different feedback
-**When:** `collect` is called
-**Then:** Returns aggregated JSON array with 3 FeedbackItems
-
-**Implementation scope:**
-- Iterate over multiple sessions
-- Combine all FeedbackItems into single list
-- Does NOT require: error handling, subagent recursion
-
-**Fixture data:**
-```python
-# session-1.jsonl
-{"type":"user","message":{"role":"user","content":"Always use uv"},"timestamp":"2025-12-16T08:00:00.000Z","sessionId":"session-1"}
-# session-2.jsonl
-{"type":"user","message":{"role":"user","content":"Never use git add -A"},"timestamp":"2025-12-16T09:00:00.000Z","sessionId":"session-2"}
-# session-3.jsonl
-{"type":"user","message":{"role":"user","content":"Stop on unexpected results"},"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"session-3"}
-```
-
-##### Test 3: `test_collect_with_subagents`
-**Given:** Session with nested sub-agents containing feedback
-**When:** `collect` is called
-**Then:** Returns feedback from main session AND all sub-agents (4 items total)
-
-**Implementation scope:**
-- Verify aggregation includes nested feedback from sub-agents
-- Recursive extraction already handled by extract_feedback_recursively
-- Does NOT require: error handling
-
-**⏸ CHECKPOINT B1:** Basic collection complete. Run `just test -k test_collect` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
-
-#### Group B: Error Handling (Tests 4-5)
-
-##### Test 4: `test_collect_skips_malformed_session`
-**Given:** Two sessions: one valid with feedback, one malformed
-**When:** `collect` is called
-**Then:** Returns feedback from valid session only, logs warning to stderr
-
-**Implementation scope:**
-- Wrap extraction in try/except
-- Log errors to stderr
-- Continue processing remaining sessions
-- Does NOT require: file output
-
-##### Test 5: `test_collect_output_to_file`
-**Given:** Sessions with feedback, --output flag provided
-**When:** `collect --output out.json` is called
-**Then:** Writes JSON to file instead of stdout
-
-**Implementation scope:**
-- Add --output argument handling
-- Write to file when specified
-- Does NOT require: new logic beyond existing extract pattern
-
-**⏸ CHECKPOINT B2:** Collect subcommand complete. Run `just test -k test_collect` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before proceeding to Feature 3.
-
----
-
-## Feature 2: Filtering Module
+## Feature 1: Filtering Module
 
 **Goal:** Provide reusable filtering functions for noise removal and categorization.
 
@@ -270,7 +164,113 @@ Skip content containing:
 - Verify order preservation
 - Does NOT require: sorting
 
-**⏸ CHECKPOINT A3:** Filtering module complete. Run `just test tests/test_filtering.py` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before proceeding to Feature 1.
+**⏸ CHECKPOINT A3:** Filtering module complete. Run `just test tests/test_filtering.py` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before proceeding to Feature 2.
+
+---
+
+## Feature 2: `collect` Subcommand
+
+**Goal:** Extract feedback from all sessions in a single command.
+
+### Specification
+
+```
+claudeutils collect [--project PATH] [--output FILE]
+```
+
+- Iterates over all sessions from `list`
+- Calls extraction logic for each session
+- Aggregates results into a single JSON array
+- Handles errors gracefully (skip failed sessions, log to stderr)
+
+### Data Flow
+
+```
+list_top_level_sessions() → [SessionInfo]
+    ↓ for each session
+extract_feedback_recursively(session_id) → [FeedbackItem]
+    ↓ aggregate
+JSON array of all FeedbackItem
+```
+
+### Test Specification
+
+#### Group A: Basic Collection (Tests 1-3)
+
+##### Test 1: `test_collect_single_session_with_feedback`
+**Given:** One session file with substantive feedback
+**When:** `collect` is called
+**Then:** Returns JSON array with one FeedbackItem
+
+**Implementation scope:**
+- Wire up collect subcommand to argparse
+- Call list_top_level_sessions() to get sessions
+- Call extract_feedback_recursively() for each session
+- Aggregate results into output list
+- Does NOT require: multiple sessions, error handling
+
+**Fixture data:**
+```python
+# e12d203f-uuid.jsonl
+{"type":"user","message":{"role":"user","content":"Don't use git add -A"},"timestamp":"2025-12-16T08:39:26.932Z","sessionId":"e12d203f-uuid"}
+```
+
+##### Test 2: `test_collect_multiple_sessions`
+**Given:** Three session files, each with different feedback
+**When:** `collect` is called
+**Then:** Returns aggregated JSON array with 3 FeedbackItems
+
+**Implementation scope:**
+- Iterate over multiple sessions
+- Combine all FeedbackItems into single list
+- Does NOT require: error handling, subagent recursion
+
+**Fixture data:**
+```python
+# session-1.jsonl
+{"type":"user","message":{"role":"user","content":"Always use uv"},"timestamp":"2025-12-16T08:00:00.000Z","sessionId":"session-1"}
+# session-2.jsonl
+{"type":"user","message":{"role":"user","content":"Never use git add -A"},"timestamp":"2025-12-16T09:00:00.000Z","sessionId":"session-2"}
+# session-3.jsonl
+{"type":"user","message":{"role":"user","content":"Stop on unexpected results"},"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"session-3"}
+```
+
+##### Test 3: `test_collect_with_subagents`
+**Given:** Session with nested sub-agents containing feedback
+**When:** `collect` is called
+**Then:** Returns feedback from main session AND all sub-agents (4 items total)
+
+**Implementation scope:**
+- Verify aggregation includes nested feedback from sub-agents
+- Recursive extraction already handled by extract_feedback_recursively
+- Does NOT require: error handling
+
+**⏸ CHECKPOINT B1:** Basic collection complete. Run `just test -k test_collect` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
+
+#### Group B: Error Handling (Tests 4-5)
+
+##### Test 4: `test_collect_skips_malformed_session`
+**Given:** Two sessions: one valid with feedback, one malformed
+**When:** `collect` is called
+**Then:** Returns feedback from valid session only, logs warning to stderr
+
+**Implementation scope:**
+- Wrap extraction in try/except
+- Log errors to stderr
+- Continue processing remaining sessions
+- Does NOT require: file output
+
+##### Test 5: `test_collect_output_to_file`
+**Given:** Sessions with feedback, --output flag provided
+**When:** `collect --output out.json` is called
+**Then:** Writes JSON to file instead of stdout
+
+**Implementation scope:**
+- Add --output argument handling
+- Write to file when specified
+- Does NOT require: new logic beyond existing extract pattern
+
+**⏸ CHECKPOINT B2:** Collect subcommand complete. Run `just test -k test_collect` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before proceeding to Feature 3.
 
 ---
 
@@ -519,21 +519,12 @@ At each checkpoint: (1) tests pass, (2) `just check` passes, (3) user reviews.
 
 ---
 
-## Implementation Order
-
-Recommended sequence based on dependencies:
-
-1. **Feature 2: Filtering Module** - Foundation for analyze and rules
-2. **Feature 1: `collect` Subcommand** - Simplest, uses existing extraction
-3. **Feature 3: `analyze` Subcommand** - Depends on filtering
-4. **Feature 4: `rules` Subcommand** - Depends on filtering, adds dedup
-
-### Estimated Test Count
+## Estimated Test Count
 
 | Feature | Tests |
 |---------|-------|
-| collect | 5 |
 | filtering | 10 |
+| collect | 5 |
 | analyze | 4 |
 | rules | 5 |
 | **Total** | **24** |

@@ -20,8 +20,8 @@
 
 ### Implementation Order
 
-1. **Feature 2: Filtering Module** - Foundation for analyze and rules
-2. **Feature 1: `collect` Subcommand** - Batch extract from all sessions
+1. **Feature 1: Filtering Module** - Foundation for analyze and rules
+2. **Feature 2: `collect` Subcommand** - Batch extract from all sessions
 3. **Feature 3: `analyze` Subcommand** - Statistical summary with categories
 4. **Feature 4: `rules` Subcommand** - Deduplicated rule-worthy items
 

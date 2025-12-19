@@ -55,6 +55,12 @@ Haiku agents execute between checkpoints. Strong models review at checkpoints an
 
 ---
 
+## Plan Structure
+
+Write sections in implementation order. Feature 1 is implemented first.
+
+---
+
 ## Artifacts
 
 - Document design decisions in `agents/DESIGN_DECISIONS.md`

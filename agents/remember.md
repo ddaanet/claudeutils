@@ -27,6 +27,8 @@ description: Documentation updates and rules maintenance
 
 **Target:** AGENTS.md (~40 rules) + skill file ≤ 150 total. Fewer is better.
 
+**Brevity:** Strong models don't need verbose explanations. One sentence beats a paragraph.
+
 Sessions load AGENTS.md plus one skill file. Exception: commit.md and handoff.md load at session end where recency bias helps, so they're effectively budget-exempt.
 
 **Maintenance heuristics:**
