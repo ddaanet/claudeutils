@@ -5,7 +5,7 @@ description: Test-first design for TDD execution
 
 # Planning Skill
 
-**Agent:** Strong models (opus/sonnet). Plans are executed by haiku.
+**Agent:** Sonnet (default) or Opus (deep architecture). Plans executed by Haiku.
 
 **Prerequisites:** `START.md`, `AGENTS.md`, `agents/PLAN.md`
 
@@ -58,6 +58,36 @@ Haiku agents execute between checkpoints. Strong models review at checkpoints an
 ## Plan Structure
 
 Write sections in implementation order. Feature 1 is implemented first.
+
+---
+
+## Plan Format
+
+Markdown is 34-38% more token-efficient than JSON. Haiku follows explicit structure better than prose.
+
+**Use:**
+- Numbered lists for sequential steps
+- Backticks for paths and commands: `` `src/auth.ts` ``
+- **Bold** for constraints: `**MUST**`, `**NEVER**`
+- Action verbs to start each step: Read, Add, Run, Extract
+
+**Omit:**
+- Rationale (decision already made)
+- Alternatives (planner chose)
+- Error handling logic (executor handles)
+- Nested lists deeper than 2 levels
+
+**Step format:** `<verb> <target> → $output_var`
+
+```markdown
+# ❌ Verbose
+- **Tool**: read_file
+- **Input**: src/auth.ts
+- **Reasoning**: We need to understand the current implementation
+
+# ✅ Compact
+1. Read `src/auth.ts` → $auth_code
+```
 
 ---
 
