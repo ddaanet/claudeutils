@@ -16,35 +16,21 @@
 
 ## Current Task
 
-**Status:** ✅ CLI Refactoring Complete
+**Status:** Ready for implementation
 
-### Completed Work
+### Next Task: CLI Inline Help Enhancement
 
-Successfully executed all 5 phases of CLI complexity reduction refactoring:
+**Plan:** `agents/PLAN_INLINE_HELP.md`
 
-1. ✅ Extracted `handle_list()` function
-2. ✅ Extracted `handle_extract()` function
-3. ✅ Extracted `handle_collect()` function
-4. ✅ Extracted `handle_analyze()` function
-5. ✅ Extracted `handle_rules()` function
+Enhance argparse help text so agents can use CLI without README:
+- 5 tests in 2 groups (A: descriptions, B: pipeline context)
+- All changes in `src/claudeutils/cli.py`
+- Test file: `tests/test_cli_help.py`
 
-**Results:**
-- `src/claudeutils/cli.py`: All complexity violations FIXED ✅
-  - C901: 22 → ~5
-  - PLR0912: 28 → 5
-  - PLR0915: 93 → ~45
-- Main function is now clean dispatcher (~45 lines)
-- All handler functions under complexity limits
-- Command tests passing: list(8), extract(10), collect(5), analyze(4)
+### Recently Completed
 
-**Implementation Notes:**
-- Refactoring plan from `agents/REFACTOR_PLAN.md` executed exactly as specified
-- One test failure in `test_cli_rules.py:test_rules_deduplicates_by_prefix` - unrelated to refactoring (test data prefix mismatch issue)
-- Ready for commit
-
-### Next Steps
-
-Commit refactoring work, then resume feedback processing pipeline features pending from previous session.
+- ✅ README.md updated with pipeline documentation (collect → analyze → rules)
+- ✅ CLI refactoring (handler extraction, complexity reduction)
 
 ---
 

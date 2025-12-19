@@ -15,6 +15,8 @@ uv sync
 
 ## Usage
 
+### Basic Commands
+
 ```bash
 # List all conversation sessions
 uv run claudeutils list
@@ -29,6 +31,40 @@ uv run claudeutils extract e12d203f --output feedback.json
 uv run claudeutils list --project /path/to/project
 uv run claudeutils extract abc123 --project /path/to/project
 ```
+
+### Feedback Processing Pipeline
+
+Process feedback in stages: collect → analyze → rules
+
+```bash
+# Step 1: Collect feedback from ALL sessions into one file
+uv run claudeutils collect --output all_feedback.json
+
+# Step 2: Analyze - filter noise and categorize
+uv run claudeutils analyze --input all_feedback.json
+# Output: total count, filtered count, category breakdown
+
+# Step 3: Extract rule-worthy items (sorted, deduplicated)
+uv run claudeutils rules --input all_feedback.json --format json
+
+# Pipeline with stdin (no intermediate files)
+uv run claudeutils collect | uv run claudeutils analyze -
+uv run claudeutils collect | uv run claudeutils rules --input -
+```
+
+#### Categories (from analyze)
+
+- **instructions** - Directives: "don't", "never", "always", "must", "should"
+- **corrections** - Fixes: "no", "wrong", "incorrect", "fix", "error"
+- **process** - Workflow: "plan", "next step", "workflow", "before", "after"
+- **code_review** - Quality: "review", "refactor", "improve", "clarity"
+- **preferences** - Other substantive feedback
+
+#### Filtering (automatic)
+
+Noise removed: command output, bash stdout, system messages, short messages (<10 chars)
+
+Rules command applies stricter filters: removes questions ("How..."), long items (>1000 chars), and deduplicates by content prefix.
 
 ## Features
 
