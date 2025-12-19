@@ -1,12 +1,8 @@
 """Shared pytest fixtures for all tests."""
 
-from collections.abc import Callable
 from pathlib import Path
-from typing import Any
 
 import pytest
-
-from claudeutils.models import FeedbackItem, FeedbackType
 
 
 # Project Directory Fixture
@@ -63,48 +59,3 @@ def temp_history_dir(
     )
 
     return tmp_path / "project", history_dir
-
-
-# Test Data Factory Fixtures
-@pytest.fixture
-def feedback_factory() -> Callable[..., FeedbackItem]:
-    """Create FeedbackItem instances for testing."""
-
-    def _make(
-        content: str,
-        session_id: str = "e12d203f-ca65-44f0-9976-cb10b74514c1",
-        feedback_type: FeedbackType = FeedbackType.MESSAGE,
-        timestamp: str = "2025-12-16T08:00:00.000Z",
-        **kwargs: str | None,
-    ) -> FeedbackItem:
-        return FeedbackItem(
-            timestamp=timestamp,
-            session_id=session_id,
-            feedback_type=feedback_type,
-            content=content,
-            **kwargs,
-        )
-
-    return _make
-
-
-@pytest.fixture
-def build_user_entry() -> Callable[..., dict[str, Any]]:
-    """Build user message entry dicts for testing."""
-
-    def _build(
-        content: str,
-        session_id: str = "e12d203f-ca65-44f0-9976-cb10b74514c1",
-        timestamp: str = "2025-12-16T08:00:00.000Z",
-        **kwargs: Any,  # noqa: ANN401 - Temporay, function unused.
-    ) -> dict[str, Any]:
-        """Build user message entry dict."""
-        return {
-            "type": "user",
-            "message": {"role": "user", "content": content},
-            "timestamp": timestamp,
-            "sessionId": session_id,
-            **kwargs,
-        }
-
-    return _build
