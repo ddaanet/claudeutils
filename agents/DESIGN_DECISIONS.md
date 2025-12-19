@@ -261,3 +261,73 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 **Rationale:** Catch bugs early, self-documenting code, IDE support
 
 **Impact:** Zero runtime overhead, significant development-time benefit
+
+## Feedback Processing Pipeline
+
+### Pipeline Architecture
+**Decision:** Three-stage pipeline: `collect` → `analyze` → `rules`
+
+**Rationale:** Mirrors the exploratory workflow in tmp-* scripts; each stage builds on previous output
+
+**Data flow:**
+- `collect`: Batch extract from all sessions → JSON array of FeedbackItem
+- `analyze`: Filter noise, categorize → Statistics summary
+- `rules`: Stricter filter, deduplicate → Rule-worthy items for manual review
+
+### Filtering Module as Foundation
+**Decision:** Create `filtering.py` module with reusable `is_noise()` and `categorize_feedback()` functions
+
+**Rationale:** Both `analyze` and `rules` need noise filtering; DRY principle
+
+**Impact:** Filtering module implemented first; other features depend on it
+
+### Noise Detection Patterns
+**Decision:** Multi-marker detection with length threshold
+
+**Markers (return True if present):**
+- Command outputs: `<command-name>`, `<bash-stdout>`, `<bash-input>`, `<local-command-stdout>`
+- System messages: `Caveat:`, `Warmup`, `<tool_use_error>`
+- Error outputs: `Exit code`, `error: Recipe`
+
+**Length threshold:** < 10 characters (configurable for `rules`)
+
+**Rationale:** Based on analysis of 1200 feedback items; these patterns dominated noise
+
+### Categorization by Keywords
+**Decision:** Keyword-based category assignment with priority order
+
+**Categories and keywords:**
+| Category | Keywords |
+|----------|----------|
+| instructions | don't, never, always, must, should |
+| corrections | no, wrong, incorrect, fix, error |
+| code_review | review, refactor, improve, clarity |
+| process | plan, next step, workflow, before, after |
+| preferences | prefer, i want, make sure, ensure |
+| other | (default) |
+
+**Rationale:** Simple O(1) keyword matching; categories derived from feedback summary analysis
+
+### Deduplication Strategy
+**Decision:** First 100 characters as dedup key, case-insensitive
+
+**Rationale:** Handles repeated feedback across sessions; 100 chars captures intent while allowing variation in endings
+
+**Implementation:** Track seen prefixes in set; skip items with already-seen prefix
+
+### Output Format Options
+**Decision:** Support both `--format text` (default) and `--format json`
+
+**Rationale:** Text for human review, JSON for piping to other tools
+
+**Impact:** All batch commands (`analyze`, `rules`) support both formats
+
+### Stricter Filtering for Rules
+**Decision:** `rules` applies additional filters beyond `analyze`
+
+**Additional filters:**
+- Skip questions: starts with "How ", "claude code:"
+- Skip long items: > 1000 characters (too context-specific)
+- Higher min length: 20 chars (vs 10 for analyze)
+
+**Rationale:** Rule extraction needs higher signal-to-noise; context-specific feedback isn't generalizable
