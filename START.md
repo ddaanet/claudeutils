@@ -3,7 +3,8 @@
 ## Core Context (Read First)
 
 1. `AGENTS.md` - Project overview, user preferences, skill references
-2. `agents/PLAN.md` - Full implementation plan and data model
+2. `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions
+3. `agents/TEST_DATA.md` - Data types and sample entries
 
 ## Skills (Read Before Action)
 

@@ -106,10 +106,9 @@ git commit -m "..."   # Commit with concise message
 
 - `START.md` - **Handoff entry point** (read this first on session reset)
 - `AGENTS.md` - This file (core rules and skill references)
-- `agents/PLAN.md` - Full implementation plan
 - `agents/TEST_DATA.md` - Data types and sample entries for coding
-- `agents/STEP*_TESTS.md` - Test specifications per step
-- `agents/STEP*_COMPLETION.md` - Completion notes and handoff for each step
+- `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions
+- `agents/ROADMAP.md` - Future enhancement ideas
 
 **Skills:**
 

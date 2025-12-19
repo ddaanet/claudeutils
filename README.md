@@ -2,94 +2,125 @@
 
 Extract user feedback from Claude Code conversation history for retrospective analysis.
 
-## Quick Reference Files
-
-| File | Purpose |
-|------|---------|
-| `agents/PLAN.md` | Full implementation plan with TDD test specifications |
-| `agents/STATUS.md` | Current project status and next steps |
-| `agents/USER_FEEDBACK_SESSION.md` | All user feedback from planning session |
-| `agents/RESEARCH_FINDINGS.md` | Technical findings about conversation history storage |
-
-## Project Goal
-
-Create a Python CLI tool with two subcommands:
-1. `list` - Show top-level conversation sessions with titles
-2. `extract` - Extract user feedback recursively from a session
-
-## Implementation Status
-
-**Current:** Step 4 - Recursive sub-agent processing (9 tests)
-
-| Step | Description | Status |
-|------|-------------|--------|
-| 1 | Path encoding & session discovery | ✅ Complete |
-| 2 | Trivial message filter | ✅ Complete |
-| 3 | Message parsing & feedback extraction | ✅ Complete |
-| 4 | Recursive sub-agent processing | ⏳ Next |
-| 5 | CLI subcommands (list/extract) | Pending |
-
-## Quick Start (After Implementation)
+## Installation
 
 ```bash
-# Install dependencies
-uv add pytest pydantic
+# Clone repository
+git clone <repo-url>
+cd claudeutils
 
-# List sessions
-python main.py list
-
-# Extract feedback
-python main.py extract e12d203f --output feedback.json
+# Install with uv
+uv sync
 ```
+
+## Usage
+
+```bash
+# List all conversation sessions
+uv run claudeutils list
+
+# Extract feedback from a specific session (by prefix)
+uv run claudeutils extract e12d203f
+
+# Extract to file
+uv run claudeutils extract e12d203f --output feedback.json
+
+# Use custom project directory
+uv run claudeutils list --project /path/to/project
+uv run claudeutils extract abc123 --project /path/to/project
+```
+
+## Features
+
+- **Session listing:** Display top-level sessions with titles and timestamps
+- **Prefix matching:** Extract sessions by partial UUID prefix (e.g., `e12d203f`)
+- **Recursive extraction:** Automatically processes sub-agent sessions
+- **Trivial filtering:** Filters out single-character responses and common keywords
+- **Structured output:** JSON format with full metadata
+- **Type-safe:** Pydantic validation with strict mypy checking
 
 ## Data Model
 
 ```python
 class FeedbackType(StrEnum):
-    TOOL_DENIAL = "tool_denial"
-    INTERRUPTION = "interruption"
-    MESSAGE = "message"
+    TOOL_DENIAL = "tool_denial"     # User denied tool execution
+    INTERRUPTION = "interruption"   # User interrupted agent
+    MESSAGE = "message"             # User message/feedback
 
 class FeedbackItem(BaseModel):
-    timestamp: str
-    session_id: str
+    timestamp: str                  # ISO 8601 format
+    session_id: str                 # UUID or agent ID
     feedback_type: FeedbackType
-    content: str
-    agent_id: Optional[str] = None
-    slug: Optional[str] = None
-    tool_use_id: Optional[str] = None
+    content: str                    # User's message/feedback
+    agent_id: Optional[str]         # If from sub-agent
+    slug: Optional[str]             # Agent session slug
+    tool_use_id: Optional[str]      # For tool denials
 ```
 
-## Key Features
+## Development
 
-- Recursively processes sub-agent sessions
-- Filters out trivial responses (y, n, continue, etc.)
-- Validates input with Pydantic
-- Outputs structured JSON
-- Session prefix matching for easy extraction
+```bash
+# Run full dev cycle (format, check, test)
+just dev
 
-## Files to Implement
+# Run tests only
+just test
 
-- `main.py` (~120 lines)
-- `test_main.py` (~200 lines)
-- `pyproject.toml` (~15 lines)
+# Run linting and type checking
+just check
+```
 
-See `agents/PLAN.md` for detailed test specifications.
+### Project Structure
 
-## Roadmap
+```
+src/claudeutils/
+├── cli.py          # CLI entry point
+├── models.py       # Pydantic models
+├── paths.py        # Path encoding utilities
+├── parsing.py      # Content extraction
+├── discovery.py    # Session/agent discovery
+└── extraction.py   # Recursive extraction
 
-### user-prompt MCP Tool Support
+tests/
+├── test_cli_list.py
+├── test_cli_extract_basic.py
+├── test_cli_extract_output.py
+├── test_discovery.py
+├── test_parsing.py
+├── test_paths.py
+├── test_models.py
+├── test_agent_files.py
+└── test_extraction.py
+```
 
-Extract user feedback from [user-prompt-mcp](https://github.com/nazar256/user-prompt-mcp) tool results in session files. The `user_prompt` tool allows Claude to request user input; responses appear as `tool_result` entries in session JSONL files.
+## Implementation Notes
 
-**Status:** Pending - MCP not yet installed, sample data unavailable.
+Built with Test-Driven Development (TDD) across 5 implementation steps:
 
-### Session Summary Extraction
+1. **Path encoding & session discovery** - Project path encoding, session listing
+2. **Trivial message filter** - Filter out non-substantive responses
+3. **Message parsing** - Extract feedback from conversation history
+4. **Recursive sub-agent processing** - Handle nested agent sessions
+5. **CLI subcommands** - User-facing interface with argparse
 
-Extract session summaries for process compliance analysis:
-- Tool uses (without full inputs/outputs)
-- User inputs
-- Key assistant outputs
-- Timeline of interactions
+See `agents/DESIGN_DECISIONS.md` for architectural decisions and implementation patterns.
 
-Use case: Analyze agent workflow compliance, identify procedural deviations.
+## Documentation
+
+- `START.md` - Quick start guide for contributors
+- `AGENTS.md` - Project overview and coding standards
+- `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions
+- `agents/TEST_DATA.md` - Data types and sample entries
+- `agents/ROADMAP.md` - Future enhancement ideas
+- `agents/code.md` - TDD implementation guidelines (skill)
+- `agents/commit.md` - Git commit standards (skill)
+
+## Requirements
+
+- Python 3.14+
+- Dependencies: pydantic>=2.0
+- Dev dependencies: pytest, mypy, ruff
+
+## License
+
+[Add license here]
