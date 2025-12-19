@@ -165,39 +165,17 @@ Test cases:
 9. **JSON format:** Valid JSON array with all FeedbackItem fields
 10. **Integration test:** Extract from real session with 2 sub-agents, verify count
 
-## Project Structure (After Refactoring)
-
-### Source Modules (6 files, all < 400 lines)
+## Files to Create & Dependencies
 
 | File | Purpose | Lines |
 |------|---------|-------|
-| `src/claudeutils/models.py` | Pydantic models and enums | 33 |
-| `src/claudeutils/paths.py` | Path encoding utilities | 19 |
-| `src/claudeutils/parsing.py` | Content extraction and feedback parsing | 168 |
-| `src/claudeutils/discovery.py` | Session and agent file discovery | 170 |
-| `src/claudeutils/extraction.py` | Recursive feedback extraction | 53 |
-| `src/claudeutils/cli.py` | CLI entry point | 5 |
+| `src/claudeutils/main.py` | Core implementation | ~120 |
+| `tests/test_main.py` | Pytest test suite | ~200 |
+| `pyproject.toml` | uv project config | ~15 |
+| `STEP1_TESTS.md` | Detailed TDD test spec for Step 1 (✅ created) | - |
+| `STEP2_TESTS.md` | Detailed TDD test spec for Step 2 (✅ created) | - |
 
-### Test Modules (6 files, all < 400 lines)
-
-| File | Purpose | Lines |
-|------|---------|-------|
-| `tests/test_models.py` | Pydantic validation tests | 25 |
-| `tests/test_paths.py` | Path encoding tests | 50 |
-| `tests/test_parsing.py` | Parsing and filtering tests | 236 |
-| `tests/test_discovery.py` | Session/agent ID discovery tests | 301 |
-| `tests/test_agent_files.py` | Agent file discovery tests | 126 |
-| `tests/test_extraction.py` | Recursive extraction tests | 155 |
-
-### Configuration & Documentation
-
-| File | Purpose |
-|------|---------|
-| `pyproject.toml` | uv project config with dependencies |
-| `STEP*_TESTS.md` | Detailed TDD test specifications |
-| `agents/REFACTORING_COMPLETION.md` | File split completion notes |
-
-**Dependencies:** `uv add pytest pydantic` (already installed)
+**Dependencies:** `uv add pytest pydantic`
 
 ## Implementation Steps (TDD)
 1. **Step 1**: Path encoding & session discovery + tests (✅ COMPLETE)

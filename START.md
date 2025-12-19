@@ -15,27 +15,41 @@
 
 ## Current Task
 
-**Step 5: CLI Subcommands** (⏳ NOT STARTED)
-
-- Task spec: `agents/STEP5_TESTS.md` ✅
-- `list [--project PATH]` - Show top-level sessions
-- `extract SESSION_PREFIX [--project PATH] [--output FILE]` - Extract feedback recursively
-- 18 tests: CLI argument parsing, output formatting, session matching, JSON serialization
+🎉 **ALL STEPS COMPLETE** - Project delivered!
 
 **Completed:**
 
+- **Step 5: CLI Subcommands** ✅ (2025-12-19)
+  - `list [--project PATH]` - Show top-level sessions
+  - `extract SESSION_PREFIX [--project PATH] [--output FILE]` - Extract feedback recursively
+  - 18 tests passing (completion notes: `agents/STEP5_COMPLETION.md`)
+- **Step 4: Recursive sub-agent processing** ✅ (completion notes: `agents/STEP4_COMPLETION.md`)
+- **Step 3: Message parsing** ✅ (completion notes: `agents/STEP3_COMPLETION.md`)
+- **Step 2: Trivial message filter** ✅
+- **Step 1: Path encoding & session discovery** ✅
 - **File Split Refactoring** ✅ (2025-12-18)
   - Split `src/claudeutils/main.py` (417→449 total lines across 6 modules)
   - Split `tests/test_main.py` (866→893 total lines across 6 test modules)
   - All files now under 400-line limit
-  - Fixed mock patching issues in tests
-  - All 50 tests passing
-- Step 1: Path encoding & session discovery
-- Step 2: Trivial message filter
-- Step 3: Message parsing (completion notes: `agents/STEP3_COMPLETION.md`)
-- Step 4: Recursive sub-agent processing (completion notes: `agents/STEP4_COMPLETION.md`)
+  - All 68 tests passing
 
-## Quick Commands
+## Usage
+
+```bash
+# List all conversation sessions
+uv run claudeutils list
+
+# Extract feedback from a specific session
+uv run claudeutils extract e12d203f
+
+# Extract to file
+uv run claudeutils extract e12d203f --output feedback.json
+
+# Use custom project directory
+uv run claudeutils list --project /path/to/project
+```
+
+## Development Commands
 
 ```bash
 just dev         # Format, check, test (full cycle)
@@ -45,4 +59,4 @@ just check       # Run ruff + mypy
 
 ## Status Check
 
-Run `just test` to see current test status and progress.
+All 68 tests passing. Run `just test` to verify.
