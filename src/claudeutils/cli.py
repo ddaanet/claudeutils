@@ -9,6 +9,8 @@ from pathlib import Path
 
 from claudeutils.discovery import list_top_level_sessions
 from claudeutils.extraction import extract_feedback_recursively
+from claudeutils.filtering import filter_feedback, categorize_feedback
+from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
 
 
@@ -70,6 +72,40 @@ def main() -> None:
     )
     extract_parser.add_argument("--output", help="Output file path")
 
+    collect_parser = subparsers.add_parser(
+        "collect", help="Batch collect feedback from all sessions"
+    )
+    collect_parser.add_argument(
+        "--project", default=str(Path.cwd()), help="Project directory"
+    )
+    collect_parser.add_argument("--output", help="Output file path")
+
+    analyze_parser = subparsers.add_parser(
+        "analyze", help="Analyze feedback items"
+    )
+    analyze_parser.add_argument(
+        "--input", required=True, help="Input JSON file (or - for stdin)"
+    )
+    analyze_parser.add_argument(
+        "--format", default="text", choices=["text", "json"],
+        help="Output format"
+    )
+
+    rules_parser = subparsers.add_parser(
+        "rules", help="Extract rule-worthy feedback items"
+    )
+    rules_parser.add_argument(
+        "--input", required=True, help="Input JSON file (or - for stdin)"
+    )
+    rules_parser.add_argument(
+        "--min-length", type=int, default=20,
+        help="Minimum length for rule-worthy items (default: 20)"
+    )
+    rules_parser.add_argument(
+        "--format", default="text", choices=["text", "json"],
+        help="Output format"
+    )
+
     args = parser.parse_args()
 
     if args.command == "list":
@@ -93,3 +129,99 @@ def main() -> None:
             Path(args.output).write_text(json_output)
         else:
             print(json_output)
+    elif args.command == "collect":
+        sessions = list_top_level_sessions(args.project)
+        all_feedback = []
+        for session in sessions:
+            try:
+                feedback = extract_feedback_recursively(session.session_id, args.project)
+                all_feedback.extend(feedback)
+            except Exception as e:
+                print(f"Warning: Failed to extract from {session.session_id}: {e}", file=sys.stderr)
+                continue
+
+        json_output = json.dumps([item.model_dump(mode="json") for item in all_feedback])
+        if args.output:
+            Path(args.output).write_text(json_output)
+        else:
+            print(json_output)
+    elif args.command == "analyze":
+        # Load feedback from file or stdin
+        if args.input == "-":
+            json_text = sys.stdin.read()
+        else:
+            json_text = Path(args.input).read_text()
+
+        feedback_data = json.loads(json_text)
+        items = [FeedbackItem.model_validate(item) for item in feedback_data]
+
+        # Filter and categorize
+        filtered_items = filter_feedback(items)
+        categories: dict[str, int] = {}
+        for item in filtered_items:
+            category = categorize_feedback(item)
+            categories[category] = categories.get(category, 0) + 1
+
+        # Output results
+        if args.format == "json":
+            output = {
+                "total": len(items),
+                "filtered": len(filtered_items),
+                "categories": categories,
+            }
+            print(json.dumps(output))
+        else:
+            print(f"total: {len(items)}")
+            print(f"filtered: {len(filtered_items)}")
+            print("categories:")
+            for category, count in categories.items():
+                print(f"  {category}: {count}")
+    elif args.command == "rules":
+        # Load feedback from file or stdin
+        if args.input == "-":
+            json_text = sys.stdin.read()
+        else:
+            json_text = Path(args.input).read_text()
+
+        feedback_data = json.loads(json_text)
+        items = [FeedbackItem.model_validate(item) for item in feedback_data]
+
+        # Filter noise and apply stricter rules
+        filtered_items = filter_feedback(items)
+        rule_items = [
+            item for item in filtered_items
+            if not (
+                # Question check
+                (item.content.lower().startswith("how ")
+                 or item.content.lower().startswith("claude code:"))
+                # Length check (min 20, max 1000)
+                or len(item.content) < args.min_length
+                or len(item.content) > 1000
+            )
+        ]
+
+        # Sort by timestamp and deduplicate by prefix
+        rule_items.sort(key=lambda x: x.timestamp)
+        seen_prefixes: set[str] = set()
+        deduped_items = []
+        for item in rule_items:
+            prefix = item.content[:100].lower()
+            if prefix not in seen_prefixes:
+                seen_prefixes.add(prefix)
+                deduped_items.append(item)
+
+        # Output results
+        if args.format == "json":
+            output = [
+                {
+                    "index": i + 1,
+                    "timestamp": item.timestamp,
+                    "session_id": item.session_id,
+                    "content": item.content,
+                }
+                for i, item in enumerate(deduped_items)
+            ]
+            print(json.dumps(output))
+        else:
+            for i, item in enumerate(deduped_items, 1):
+                print(f"{i}. {item.content}")
