@@ -5,13 +5,23 @@ description: TDD implementation and code quality
 
 # Coding Skill
 
+**Agent:** Weak models (haiku). Strong models use `planning.md` instead.
+
+---
+
+## Plan Adherence (Critical)
+
+Follow the plan in `agents/PLAN.md` exactly. Do not improvise your own approach, create alternative task breakdowns, or reorder features. The plan specifies implementation order, test specifications, and fixture data - execute it as written.
+
+---
+
 ## BEFORE STARTING (Mandatory)
 
 **If not already loaded, read these files using the Read tool:**
 1. `START.md` - Current task and status
 2. `AGENTS.md` - Project overview and user preferences
 3. `agents/TEST_DATA.md` - Data types and sample entries
-4. The relevant `agents/STEP*_TESTS.md` for your current task
+4. `agents/PLAN.md` - Test specifications and implementation order
 
 ⚠️ **Do not proceed until these files are in context.**
 
@@ -34,8 +44,7 @@ description: TDD implementation and code quality
    - If Test 1 requires finding items and Test 2 requires filtering, Test 1's implementation should NOT include filtering
 4. **Run test again and confirm it PASSES**
 5. **Refactor if needed** (optional)
-6. **Repeat** with next test
-7. **After every THREE cycles, request user validation before continuing**
+6. **Repeat** with next test until reaching a validation checkpoint
 
 ### Why the RED Phase Matters
 
@@ -62,13 +71,12 @@ Skipping the RED phase defeats the purpose of TDD:
 - Write all tests upfront then implement
 - Skip running the test before implementing
 - Implement before seeing the test fail
-- Proceed with the next cycle without explicit user instruction
+- Fix lint or type errors (`just check`) - a separate agent handles this at checkpoints
 
 ✅ **DO:**
 - Run each test immediately after writing it
 - Verify failure message matches expectations
-- Request confirmation after every THREE test-implement cycles
-- WAIT for user to say "continue" before proceeding after validation checkpoints
+- Stop at validation checkpoints defined in the plan
 
 ### File Size Limits (Enforced)
 
@@ -88,7 +96,7 @@ When a file approaches 300 lines, proactively plan to split it before continuing
 - Full mypy strict mode required
 - All parameters and return types must have type annotations
 - No `Any` type unless justified with comment
-- If using `type: ignore`, include line comment explaining why
+- Use specific mypy error codes (e.g., `# type: ignore[arg-type]`) not blanket ignores
 
 ### Linting & Style
 
@@ -103,16 +111,6 @@ See `agents/lint.md` for detailed linting rules.
 - **Factor common code:** Extract repeated test setup into plain helper functions (not fixtures)
 - **Keep tests concise:** Pytest expands assert values; use natural loops with one assert
 - **Fixture return types:** Use direct tuple, not Generator
-
----
-
-## Sub-Agent Usage
-
-Use sub-agents for batched operations like lint fixing:
-
-- **Prefer architectural fixes** over `# noqa` suppressions
-- **Explain strategy** before launching sub-agent
-- **Transcripts location:** `~/.claude/projects/[ENCODED-PATH]/agent-*.jsonl`
 
 ---
 
@@ -137,7 +135,7 @@ just dev       # Run all (format, check, test)
 
 ### File Organization
 
-- Implementation: `src/claudeutils/main.py`
-- Tests: `tests/test_main.py`
+- Implementation: `src/claudeutils/`
+- Tests: `tests/`
 - Configuration: `pyproject.toml`
-- Plans: `agents/PLAN.md` and `agents/STEP*_TESTS.md`
+- Plan: `agents/PLAN.md`

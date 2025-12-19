@@ -41,6 +41,18 @@ Group tests by capability (discovery → filtering → error handling → recurs
 
 ---
 
+## Validation Checkpoints
+
+Build checkpoints into the plan at natural boundaries (every 3-5 tests or after completing a feature group). At each checkpoint:
+
+1. All tests pass (`just test`)
+2. Code passes lint/type checks (`just check`) - handled by lint agent
+3. User reviews progress before continuing
+
+Haiku agents execute between checkpoints. Strong models review at checkpoints and adjust the plan if needed.
+
+---
+
 ## Artifacts
 
 - Document design decisions in `agents/DESIGN_DECISIONS.md`
