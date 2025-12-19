@@ -105,7 +105,7 @@ JSON array of all FeedbackItem
 - Recursive extraction already handled by extract_feedback_recursively
 - Does NOT require: error handling
 
-**⏸ CHECKPOINT B1:** Basic collection complete. Verify: `just test -k test_collect` passes, `just check` passes. Stop for user review.
+**⏸ CHECKPOINT B1:** Basic collection complete. Run `just test -k test_collect` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
 
 #### Group B: Error Handling (Tests 4-5)
 
@@ -130,7 +130,7 @@ JSON array of all FeedbackItem
 - Write to file when specified
 - Does NOT require: new logic beyond existing extract pattern
 
-**⏸ CHECKPOINT B2:** Collect subcommand complete. Verify: `just test -k test_collect` passes, `just check` passes. Stop for user review before proceeding to Feature 3.
+**⏸ CHECKPOINT B2:** Collect subcommand complete. Run `just test -k test_collect` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before proceeding to Feature 3.
 
 ---
 
@@ -206,7 +206,7 @@ Skip content containing:
 - Add length check (< 10 chars)
 - Does NOT require: categorization
 
-**⏸ CHECKPOINT A1:** Noise detection complete. Verify: `just test -k is_noise` passes, `just check` passes. Stop for user review.
+**⏸ CHECKPOINT A1:** Noise detection complete. Run `just test -k is_noise` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
 
 #### Group B: Categorization (Tests 5-8)
 
@@ -248,7 +248,7 @@ Skip content containing:
 - Add code_review keywords (review, refactor, improve, clarity)
 - Does NOT require: preferences category
 
-**⏸ CHECKPOINT A2:** Categorization complete. Verify: `just test -k categorize` passes, `just check` passes. Stop for user review.
+**⏸ CHECKPOINT A2:** Categorization complete. Run `just test -k categorize` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
 
 #### Group C: Batch Filtering (Tests 9-10)
 
@@ -270,7 +270,7 @@ Skip content containing:
 - Verify order preservation
 - Does NOT require: sorting
 
-**⏸ CHECKPOINT A3:** Filtering module complete. Verify: `just test tests/test_filtering.py` passes, `just check` passes. Stop for user review before proceeding to Feature 1.
+**⏸ CHECKPOINT A3:** Filtering module complete. Run `just test tests/test_filtering.py` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before proceeding to Feature 1.
 
 ---
 
@@ -381,7 +381,7 @@ By category:
 {"total": 4, "filtered": 4, "categories": {"instructions": 2, "corrections": 1, "other": 1}}
 ```
 
-**⏸ CHECKPOINT C:** Analyze subcommand complete. Verify: `just test -k test_analyze` passes, `just check` passes. Stop for user review before proceeding to Feature 4.
+**⏸ CHECKPOINT C:** Analyze subcommand complete. Run `just test -k test_analyze` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before proceeding to Feature 4.
 
 ---
 
@@ -466,7 +466,7 @@ claudeutils rules [--input FILE | -] [--min-length N] [--format text|json]
 - Add min length check (< 20 chars, stricter than analyze's 10)
 - Does NOT require: JSON output
 
-**⏸ CHECKPOINT D1:** Core rule extraction complete. Verify: `just test -k test_rules` passes, `just check` passes. Stop for user review.
+**⏸ CHECKPOINT D1:** Core rule extraction complete. Run `just test -k test_rules` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
 
 #### Group B: Configuration and Output (Tests 4-5)
 
@@ -498,7 +498,7 @@ claudeutils rules [--input FILE | -] [--min-length N] [--format text|json]
 ]
 ```
 
-**⏸ CHECKPOINT D2:** Rules subcommand complete. Verify: `just test -k test_rules` passes, `just check` passes. **All features complete.** Final review with user.
+**⏸ CHECKPOINT D2:** Rules subcommand complete. Run `just test -k test_rules` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). **All features complete.** Final review with user.
 
 ---
 

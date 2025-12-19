@@ -46,8 +46,10 @@ Group tests by capability (discovery → filtering → error handling → recurs
 Build checkpoints into the plan at natural boundaries (every 3-5 tests or after completing a feature group). At each checkpoint:
 
 1. All tests pass (`just test`)
-2. Code passes lint/type checks (`just check`) - handled by lint agent
+2. Run `just check` - if it fails, STOP (code agent does NOT fix lint errors)
 3. User reviews progress before continuing
+
+**Checkpoint language must be explicit.** Write: "Run `just check` - if it fails, STOP (do not fix lint errors)" not "Verify `just check` passes" (ambiguous - could be read as "make it pass").
 
 Haiku agents execute between checkpoints. Strong models review at checkpoints and adjust the plan if needed.
 
