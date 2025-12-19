@@ -1,35 +1,13 @@
 """Tests for agent file discovery."""
 
 import logging
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from claudeutils.discovery import find_related_agent_files
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-
-@pytest.fixture
-def temp_project_dir(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> tuple[Path, Path]:
-    """Create temporary project and history directories."""
-    project = tmp_path / "myproject"
-    project.mkdir()
-
-    history_dir = tmp_path / ".claude" / "projects" / "-tmp-myproject"
-    history_dir.mkdir(parents=True)
-
-    def mock_get_history(proj: str) -> Path:
-        return history_dir
-
-    monkeypatch.setattr(
-        "claudeutils.discovery.get_project_history_dir", mock_get_history
-    )
-
-    return project, history_dir
+# temp_project_dir fixture is provided by conftest.py
 
 
 def test_find_agents_empty_directory(temp_project_dir: tuple[Path, Path]) -> None:

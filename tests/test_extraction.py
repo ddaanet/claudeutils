@@ -1,34 +1,12 @@
 """Tests for recursive feedback extraction."""
 
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from claudeutils.extraction import extract_feedback_recursively
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-
-@pytest.fixture
-def temp_history_dir(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> tuple[Path, Path]:
-    """Mock history directory for agent file testing."""
-    history_dir = tmp_path / "history"
-    history_dir.mkdir()
-
-    def mock_get_history(proj: str) -> Path:
-        return history_dir
-
-    monkeypatch.setattr(
-        "claudeutils.extraction.get_project_history_dir", mock_get_history
-    )
-    monkeypatch.setattr(
-        "claudeutils.discovery.get_project_history_dir", mock_get_history
-    )
-
-    return tmp_path / "project", history_dir
+# temp_history_dir fixture is provided by conftest.py
 
 
 def test_extract_recursive_missing_project_directory() -> None:

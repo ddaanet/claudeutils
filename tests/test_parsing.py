@@ -9,6 +9,8 @@ from claudeutils.parsing import (
     is_trivial,
 )
 
+from . import pytest_helpers as helpers
+
 
 def test_is_trivial_empty_string() -> None:
     """Empty string is trivial."""
@@ -84,8 +86,8 @@ def test_extract_feedback_non_user_message() -> None:
     entry = {
         "type": "assistant",
         "message": {"role": "assistant", "content": "Some response"},
-        "timestamp": "2025-12-16T08:39:26.932Z",
-        "sessionId": "e12d203f-ca65-44f0-9976-cb10b74514c1",
+        "timestamp": helpers.TS_BASE,
+        "sessionId": helpers.SESSION_ID_MAIN,
     }
     assert extract_feedback_from_entry(entry) is None
 
@@ -96,7 +98,7 @@ def test_extract_feedback_trivial_message() -> None:
         "type": "user",
         "message": {"role": "user", "content": "resume"},
         "timestamp": "2025-12-16T08:43:52.198Z",
-        "sessionId": "e12d203f-ca65-44f0-9976-cb10b74514c1",
+        "sessionId": helpers.SESSION_ID_MAIN,
     }
     assert extract_feedback_from_entry(entry) is None
 
@@ -108,11 +110,11 @@ def test_extract_feedback_substantive_message() -> None:
         "type": "user",
         "message": {"role": "user", "content": content},
         "timestamp": "2025-12-16T08:39:26.932Z",
-        "sessionId": "e12d203f-ca65-44f0-9976-cb10b74514c1",
+        "sessionId": helpers.SESSION_ID_MAIN,
     }
     expected = FeedbackItem(
         timestamp="2025-12-16T08:39:26.932Z",
-        session_id="e12d203f-ca65-44f0-9976-cb10b74514c1",
+        session_id=helpers.SESSION_ID_MAIN,
         feedback_type=FeedbackType.MESSAGE,
         content=content,
     )
@@ -135,7 +137,7 @@ def test_extract_feedback_tool_denial_main_session() -> None:
             ],
         },
         "timestamp": "2025-12-16T08:43:43.872Z",
-        "sessionId": "e12d203f-ca65-44f0-9976-cb10b74514c1",
+        "sessionId": helpers.SESSION_ID_MAIN,
     }
     result = extract_feedback_from_entry(entry)
     assert result is not None
@@ -167,7 +169,7 @@ def test_extract_feedback_tool_denial_subagent() -> None:
             ],
         },
         "timestamp": "2025-12-16T08:43:43.789Z",
-        "sessionId": "e12d203f-ca65-44f0-9976-cb10b74514c1",
+        "sessionId": helpers.SESSION_ID_MAIN,
         "agentId": "a6755ed",
         "slug": "fluffy-cuddling-forest",
     }
@@ -190,7 +192,7 @@ def test_extract_feedback_request_interruption() -> None:
             ],
         },
         "timestamp": "2025-12-16T08:43:43.872Z",
-        "sessionId": "e12d203f-ca65-44f0-9976-cb10b74514c1",
+        "sessionId": helpers.SESSION_ID_MAIN,
     }
     result = extract_feedback_from_entry(entry)
     assert result is not None
@@ -219,7 +221,7 @@ def test_extract_feedback_malformed_content_empty_list() -> None:
             "content": [],
         },
         "timestamp": "2025-12-16T08:39:26.932Z",
-        "sessionId": "e12d203f-ca65-44f0-9976-cb10b74514c1",
+        "sessionId": helpers.SESSION_ID_MAIN,
     }
     assert extract_feedback_from_entry(entry) is None
 
@@ -230,7 +232,7 @@ def test_extract_feedback_pydantic_validation_error() -> None:
         "type": "user",
         "message": {"role": "user", "content": "Design a script"},
         "timestamp": 12345,  # Invalid: should be string
-        "sessionId": "e12d203f-ca65-44f0-9976-cb10b74514c1",
+        "sessionId": helpers.SESSION_ID_MAIN,
     }
     with pytest.raises(ValidationError):
         extract_feedback_from_entry(entry)

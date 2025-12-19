@@ -11,7 +11,7 @@
 **Implementation Approach:** Test-Driven Development (TDD) with pytest, implemented in discrete steps.
 
 **Key Technologies:**
-- Python 3.x with full type annotations (mypy strict)
+- Python 3.14+ with full type annotations (mypy strict)
 - Pydantic for data validation
 - uv for dependency management
 - pytest for testing

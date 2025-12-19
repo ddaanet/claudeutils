@@ -1,13 +1,9 @@
 """Recursive feedback extraction from sessions and agents."""
 
-from typing import TYPE_CHECKING
-
 from .discovery import _process_agent_file, find_related_agent_files
+from .models import FeedbackItem
 from .parsing import _extract_feedback_from_file
 from .paths import get_project_history_dir
-
-if TYPE_CHECKING:
-    from .models import FeedbackItem
 
 
 def extract_feedback_recursively(

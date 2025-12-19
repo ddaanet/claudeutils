@@ -5,15 +5,17 @@ from pydantic import ValidationError
 
 from claudeutils.models import SessionInfo
 
+from . import pytest_helpers as helpers
+
 
 def test_session_info_creation() -> None:
     """Create SessionInfo with required fields and correct types."""
     info = SessionInfo(
-        session_id="e12d203f-ca65-44f0-9976-cb10b74514c1",
+        session_id=helpers.SESSION_ID_MAIN,
         title="Design a python script",
         timestamp="2025-12-16T08:39:26.932Z",
     )
-    assert info.session_id == "e12d203f-ca65-44f0-9976-cb10b74514c1"
+    assert info.session_id == helpers.SESSION_ID_MAIN
     assert info.title == "Design a python script"
     assert info.timestamp == "2025-12-16T08:39:26.932Z"
 

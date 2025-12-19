@@ -3,7 +3,7 @@
 import json
 import logging
 import re
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from .models import FeedbackItem, SessionInfo
 from .parsing import (
@@ -12,9 +12,6 @@ from .parsing import (
     format_title,
 )
 from .paths import get_project_history_dir
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

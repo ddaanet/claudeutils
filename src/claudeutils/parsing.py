@@ -1,12 +1,10 @@
 """Message parsing and feedback extraction utilities."""
 
 import json
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 from .models import FeedbackItem, FeedbackType
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def extract_content_text(content: str | list[dict[str, Any]]) -> str:

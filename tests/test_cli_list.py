@@ -1,16 +1,13 @@
 """Tests for CLI list command."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from claudeutils import cli
 from claudeutils.models import SessionInfo
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from . import pytest_helpers
 
 
 def test_cli_no_args_shows_usage(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -27,7 +24,6 @@ def test_list_command_default_project(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """List command uses current directory by default."""
-    # Track what list_top_level_sessions is called with
     called_with = []
 
     def mock_list(project_dir: str) -> list[SessionInfo]:
@@ -37,9 +33,12 @@ def test_list_command_default_project(
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
 
-    monkeypatch.setattr("sys.argv", ["claudeutils", "list"])
-    monkeypatch.setattr("os.getcwd", lambda: str(project_dir))
-    monkeypatch.setattr(cli, "list_top_level_sessions", mock_list)
+    pytest_helpers.setup_cli_mocks(
+        monkeypatch,
+        ["claudeutils", "list"],
+        cwd=str(project_dir),
+    )
+    monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
     cli.main()
 
@@ -48,17 +47,17 @@ def test_list_command_default_project(
 
 def test_list_command_with_project_flag(monkeypatch: pytest.MonkeyPatch) -> None:
     """List command respects --project flag."""
-    # Track what list_top_level_sessions is called with
     called_with = []
 
     def mock_list(project_dir: str) -> list[SessionInfo]:
         called_with.append(project_dir)
         return []
 
-    monkeypatch.setattr(
-        "sys.argv", ["claudeutils", "list", "--project", "/custom/path"]
+    pytest_helpers.setup_cli_mocks(
+        monkeypatch,
+        ["claudeutils", "list", "--project", "/custom/path"],
     )
-    monkeypatch.setattr(cli, "list_top_level_sessions", mock_list)
+    monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
     cli.main()
 
@@ -79,8 +78,11 @@ def test_list_output_format(
             )
         ]
 
-    monkeypatch.setattr("sys.argv", ["claudeutils", "list"])
-    monkeypatch.setattr(cli, "list_top_level_sessions", mock_list)
+    pytest_helpers.setup_cli_mocks(
+        monkeypatch,
+        ["claudeutils", "list"],
+    )
+    monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
     cli.main()
 
@@ -112,8 +114,11 @@ def test_list_sorted_by_timestamp(
             ),
         ]
 
-    monkeypatch.setattr("sys.argv", ["claudeutils", "list"])
-    monkeypatch.setattr(cli, "list_top_level_sessions", mock_list)
+    pytest_helpers.setup_cli_mocks(
+        monkeypatch,
+        ["claudeutils", "list"],
+    )
+    monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
     cli.main()
 
@@ -144,8 +149,11 @@ def test_list_long_title_truncated(
             )
         ]
 
-    monkeypatch.setattr("sys.argv", ["claudeutils", "list"])
-    monkeypatch.setattr(cli, "list_top_level_sessions", mock_list)
+    pytest_helpers.setup_cli_mocks(
+        monkeypatch,
+        ["claudeutils", "list"],
+    )
+    monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
     cli.main()
 
@@ -162,8 +170,11 @@ def test_list_no_sessions_message(
     def mock_list(project_dir: str) -> list[SessionInfo]:
         return []
 
-    monkeypatch.setattr("sys.argv", ["claudeutils", "list"])
-    monkeypatch.setattr(cli, "list_top_level_sessions", mock_list)
+    pytest_helpers.setup_cli_mocks(
+        monkeypatch,
+        ["claudeutils", "list"],
+    )
+    monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
     cli.main()
 
@@ -180,10 +191,11 @@ def test_list_nonexistent_project_error(
         # Simulates what list_top_level_sessions does for nonexistent dirs
         return []
 
-    monkeypatch.setattr(
-        "sys.argv", ["claudeutils", "list", "--project", "/nonexistent/path"]
+    pytest_helpers.setup_cli_mocks(
+        monkeypatch,
+        ["claudeutils", "list", "--project", "/nonexistent/path"],
     )
-    monkeypatch.setattr(cli, "list_top_level_sessions", mock_list)
+    monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
     cli.main()
 
