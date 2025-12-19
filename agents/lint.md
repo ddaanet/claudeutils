@@ -31,6 +31,12 @@ value = cast(str, data)  # type: ignore[arg-type] - API returns untyped dict
 value = cast(str, data)  # type: ignore
 ```
 
+### Use Correct Directives
+
+- Use `# noqa: <code>` for ruff suppressions (NOT pyright directives)
+- Ruff handles both linting and formatting in this project
+- Example: `# noqa: E501` not `# pyright: ignore`
+
 ---
 
 ## Quick Reference

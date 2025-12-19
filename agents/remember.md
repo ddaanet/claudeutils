@@ -5,94 +5,44 @@ description: Documentation updates and rules maintenance
 
 # Remember Skill
 
-## BEFORE STARTING (Mandatory)
+**First:** Read `AGENTS.md` if not already in context.
 
-**If not already loaded, read this file using the Read tool:**
-1. `AGENTS.md` - Project overview and skill references
-
-⚠️ **Do not proceed until this file is in context.**
-
-This skill governs how to maintain project documentation and manage the rules themselves.
+Governs project documentation maintenance and rules management.
 
 ---
 
 ## Documentation Update Rules
 
-### When to Update Documentation
+**Update:**
+- `agents/USER_FEEDBACK_SESSION.md` - New user feedback with timestamp/context
+- `agents/STEP*_COMPLETION.md` - Completion notes and handoff info
 
-1. **Update `agents/USER_FEEDBACK_SESSION.md`** - Add new user feedback with timestamp and context
-2. **Update `agents/STEP*_COMPLETION.md`** - Single file for both completion notes and handoff info
-3. **Avoid hardcoded counts** - Run `just test` for status, don't maintain test counts in markdown
-
-### What NOT to Document
-
-🚫 **Don't:**
-- Duplicate dynamic state (test counts, current status)
-- Add unnecessary documentation files proactively
-- Create README or docs unless explicitly requested
-
-✅ **Do:**
-- Update feedback files when user provides guidance
-- Keep handoff files current during multi-step work
-- Reference commands for dynamic info (`just test`)
+**Avoid:**
+- Hardcoded counts - use `just test` for dynamic status
+- Proactive documentation files unless explicitly requested
 
 ---
 
 ## Rules Budgeting System
 
-**Maximum 150 user rules total across all files. Fewer is better.**
+**Target: AGENTS.md (~40) + skill file ≤ 150 rules. Fewer is better.**
 
-### Three-Tier System
+### Progressive Disclosure
 
-Rules within each skill file should follow this distribution:
+Sessions load AGENTS.md + one relevant skill file. Budget applies to the combination.
 
-| Tier | Percentage | Position in File | Purpose |
-|------|------------|------------------|---------|
-| 1 | 20% | Start of file | Critical - must always follow |
-| 2 | 60% | Middle of file | Important - follow in most cases |
-| 3 | 20% | End of file | Optional - nice to have |
+**Exception:** commit.md and handoff.md load at session end. Recency bias deprioritizes earlier task rules, so these are effectively budget-exempt (~80 effective rules).
 
-### How to Apply Tiers
+### Three-Tier Structure (per skill file)
 
-**Within each skill file:**
-- Place most critical rules at the top (Tier 1)
-- Middle section contains important rules that apply in most cases (Tier 2)
-- End section has optional rules and style preferences (Tier 3)
+| Tier | % | Position | Purpose |
+|------|---|----------|---------|
+| 1 | 20% | Top | Critical - always follow |
+| 2 | 60% | Middle | Important - most cases |
+| 3 | 20% | Bottom | Optional - nice to have |
 
-**Example from code.md:**
-- Tier 1: RED phase rules (must always run test before implementing)
-- Tier 2: Type safety, linting standards (important but not workflow-breaking)
-- Tier 3: Specific type annotation preferences (nice to have)
+### Rule Maintenance
 
-### Maintaining the Budget
-
-**When to promote rules:**
-- User repeatedly corrects violations of a lower-tier rule
-- A pattern consistently causes problems
-
-**When to demote rules:**
-- A rule is rarely violated or referenced
-- The rule applies only to specific edge cases
-
-**When to archive/delete rules:**
-- Rule hasn't been needed in 10+ sessions
-- Rule is obsolete due to project evolution
-- Replacing with a better, more general rule
-
-**When adding new rules:**
-- Remove lowest-tier rules to stay under 150 total
-- Consider if the new rule can replace existing rules
-- Evaluate if the rule is truly needed or just nice-to-have
-
-### Rule Count by File
-
-Track approximate rule counts to stay under budget:
-- `AGENTS.md` core rules: ~30 rules
-- `agents/code.md`: ~40 rules
-- `agents/plan.md`: ~20 rules
-- `agents/commit.md`: ~15 rules
-- `agents/remember.md`: ~15 rules
-- `agents/handoff.md`: ~10 rules
-- **Headroom:** ~20 rules
-
-*These are targets, not hard limits per file. The 150 total is what matters.*
+**Promote:** Repeated violations, consistent problems
+**Demote:** Rarely referenced, edge cases only
+**Delete:** Obsolete due to project evolution, replaced by better rule

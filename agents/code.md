@@ -70,6 +70,15 @@ Skipping the RED phase defeats the purpose of TDD:
 - Request confirmation after every THREE test-implement cycles
 - WAIT for user to say "continue" before proceeding after validation checkpoints
 
+### File Size Limits (Enforced)
+
+Source files that exceed these limits block forward progress:
+
+- **SHOULD NOT** exceed 300 lines per file
+- **MUST NOT** exceed 400 lines per file
+
+When a file approaches 300 lines, proactively plan to split it before continuing implementation.
+
 ---
 
 ## TIER 2: Important Rules (Follow in Most Cases)
@@ -85,39 +94,15 @@ Skipping the RED phase defeats the purpose of TDD:
 
 See `agents/lint.md` for detailed linting rules.
 
-- Docstrings in imperative mood ("Extract content" not "Extracts content")
-- Docstrings wrap at column 80 (docformatter enforces this via `just format`)
-
 ### Testing Standards
 
 - All tests in `tests/` directory
 - Use proper pytest parametrization for similar test cases
 - Test names should clearly describe what they verify
-- **Compare complex objects directly** for better error messages:
-  - Prefer `assert result == expected_obj` over comparing individual members
+- **Compare objects directly:** Prefer `assert result == expected_obj` over individual members
+- **Factor common code:** Extract repeated test setup into plain helper functions (not fixtures)
+- **Keep tests concise:** Pytest expands assert values; use natural loops with one assert
 - **Fixture return types:** Use direct tuple, not Generator
-- **Long JSON strings:** Use implicit concatenation across lines
-
-### Code Quality Anti-Patterns
-
-See `agents/lint.md` for linting anti-patterns and when ignores are acceptable.
-
-### File Size Limits
-
-Keep source files small to avoid loading unneeded context:
-
-- **SHOULD NOT** exceed 300 lines per file
-- **MUST NOT** exceed 400 lines per file
-- When files grow larger, split them into focused modules
-
----
-
-## TIER 3: Optional Style Rules
-
-### Type Annotations
-
-- Use specific type annotations (`list[str]`, not bare `list`)
-- Prefer built-in generic types over `typing` module where possible (Python 3.9+)
 
 ---
 

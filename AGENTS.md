@@ -41,12 +41,17 @@ Skills are specialized instruction sets. **Read the skill file before performing
 
 ### Communication Patterns
 
-1. **Request validation periodically:** After every three test-implement cycles
-2. **Stop at boundaries:** Complete assigned task then stop (no scope creep)
-3. **Be explicit:** Ask clarifying questions if requirements unclear
-4. **Context awareness:** Prepare handoff notes for next agent/session
-5. **Transparency:** Explain sub-agent strategy before launching; user may ask for transcripts
-6. **Load skills proactively:** Read skill files before operations (e.g., read `agents/commit.md` before running `git commit`)
+#### Tier 1 - Critical (Always Follow)
+
+1. **Stop on unexpected results:** If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP and wait for guidance
+2. **Wait for explicit instruction:** Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
+3. **Request validation every 3 cycles:** After every three test-implement cycles, stop and request confirmation
+
+#### Tier 2 - Important
+
+4. **Load skills proactively:** Read skill files before operations (e.g., read `agents/commit.md` before `git commit`)
+5. **Stop at boundaries:** Complete assigned task then stop (no scope creep)
+6. **Be explicit:** Ask clarifying questions if requirements unclear
 
 ### Code Patterns
 
