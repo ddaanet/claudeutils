@@ -5,163 +5,43 @@ description: Test-first design for TDD execution
 
 # Planning Skill
 
-## BEFORE STARTING (Mandatory)
+**Agent:** Strong models (opus/sonnet). Plans are executed by haiku.
 
-**If not already loaded, read these files using the Read tool:**
-1. `START.md` - Current task and status
-2. `AGENTS.md` - Project overview and user preferences
-3. `agents/PLAN.md` - Data model and step details
-
-⚠️ **Do not proceed until these files are in context.**
-
-**Goal:** Produce plans ready for TDD execution by low-reasoning agents (haiku).
-
-## Test-First Design Methodology
-
-Always specify tests before implementation. The output of planning must be actionable test specifications that a low-reasoning agent can execute using TDD.
+**Prerequisites:** `START.md`, `AGENTS.md`, `agents/PLAN.md`
 
 ---
 
-## Critical Rule: Incremental Test Ordering
+## Core Principle
 
-**Each test must require writing NEW code.** If implementing test N also makes test N+1 pass, the test sequence is wrong.
-
-### Test Ordering Principles
-
-1. **Start with the simplest case** - Often an empty input or error case
-2. **Add one capability per test** - Each test should require exactly one new piece of functionality
-3. **Build complexity gradually** - Simple → filtering → multiple items → edge cases → error handling
-4. **Delay complex features** - Don't test recursion before testing the base case
-
-### Example: Good vs Bad Test Ordering
-
-**Bad ordering (allows batch implementation):**
-1. Find 2 matching items ← Requires full implementation
-2. Filter out non-matching items ← Already works from test 1
-3. Empty directory returns empty ← Already works from test 1
-
-**Good ordering (forces incremental implementation):**
-1. Empty directory returns `[]` ← Just return empty list
-2. One item, wrong ID → `[]` ← Add file reading + ID check
-3. One item, correct ID → `[path]` ← Add collection logic
-4. Multiple items with filtering ← Add loop
+Plans must force incremental implementation. Each test should require exactly one new piece of code—if a test passes unexpectedly, the sequence is wrong.
 
 ---
 
-## Requirements for Test Specifications
+## Test Ordering
 
-### 1. Implementation Scope Per Test
+**Key insight:** Consecutive tests expecting the same output will cause the second to pass unexpectedly.
 
-Each test MUST include an **Implementation scope** section stating:
+Prefer testing normal cases first (non-empty output), then edge cases. Empty-input-returns-empty tests are usually unnecessary—this behavior emerges from loops. Only test empty input when it should be an error.
+
+**Example progression:**
+1. One matching item → `[path]` (requires: read file, check ID, collect)
+2. Multiple items, some match → `[path1, path2]` (requires: loop, filter)
+3. No matches → `[]` (no new code needed—validates filtering works)
+
+---
+
+## Specification Format
+
+Haiku agents need explicit scope boundaries. For each test, specify:
+- Given/When/Then with exact fixture data inline
 - What NEW code this test requires
-- What existing code it builds upon
-- What it explicitly does NOT require yet
+- What it does NOT require yet
 
-```markdown
-#### Test 3: `test_find_single_match`
-**Given:** One file referencing target session
-**When:** `find_items("target-123", dir)` is called
-**Then:** Returns list containing one Path
-
-**Implementation scope:**
-- When ID matches, add file path to results list
-- Return list of matching Paths
-- Does NOT require: filtering, error handling, recursion
-```
-
-### 2. Detailed Natural-Language Tests
-
-Each test specification must describe:
-- **What** function/behavior is being tested
-- **Given/When/Then** format for clarity
-- **Fixture data** with exact JSON/values
-- **Expected output** (exact values or patterns)
-
-### 3. Group Tests by Capability
-
-Organize tests into logical groups that build on each other:
-
-```markdown
-### Group A: Basic Discovery (Tests 1-3)
-### Group B: Filtering (Tests 4-5)
-### Group C: Error Handling (Tests 6-7)
-### Group D: Recursion (Tests 8-10)
-```
-
-### 4. Include Fixture Data Inline
-
-Provide exact test data so agents don't have to invent it:
-
-```markdown
-**Fixture data:**
-```python
-# agent-a1.jsonl
-{"type":"user","sessionId":"main-123","message":{"content":"test"}}
-```
-```
+Group tests by capability (discovery → filtering → error handling → recursion).
 
 ---
 
-## Test Specification Template
+## Artifacts
 
-Use this format for each test:
-
-```markdown
-#### Test N: `test_function_name_behavior`
-**Given:** [Preconditions - what exists before the test]
-**When:** `function_call(args)` is called
-**Then:** [Expected result]
-
-**Implementation scope:**
-- [New code required for this test]
-- [Does NOT require: features tested later]
-
-**Fixture data:**
-```python
-# filename.ext
-{exact data}
-```
-```
-
----
-
-## Common Planning Mistakes
-
-### ❌ Tests that pass without new code
-If test 2 passes after implementing test 1, restructure the tests.
-
-### ❌ Missing implementation scope
-Without explicit scope, agents implement entire functions at once.
-
-### ❌ Testing complex before simple
-Always test base cases and error cases before happy paths.
-
-### ❌ Vague test descriptions
-"Test filtering works" → "Test: returns only files matching session ID"
-
-### ❌ Missing fixture data
-Agents waste time inventing test data. Provide it explicitly.
-
----
-
-## Checklist Before Finalizing Plan
-
-- [ ] First test is the simplest possible case
-- [ ] Each test adds exactly one new capability
-- [ ] Implementation scope is explicit for each test
-- [ ] Fixture data is provided inline
-- [ ] Tests are grouped by capability
-- [ ] No test would pass from a previous test's implementation
-- [ ] Error cases come before complex happy paths
-- [ ] Recursion/complexity tests come last
-
----
-
-## File Size Limits
-
-Plan for small, focused modules to avoid loading unneeded context:
-
-- **SHOULD NOT** exceed 300 lines per source file
-- **MUST NOT** exceed 400 lines per source file
-- When planning new features, consider whether existing files will exceed limits
-- Split large modules into focused sub-modules during planning
+- Document design decisions in `agents/DESIGN_DECISIONS.md`
+- Keep modules under 300 lines (hard limit: 400)

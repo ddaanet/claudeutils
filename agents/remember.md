@@ -5,44 +5,41 @@ description: Documentation updates and rules maintenance
 
 # Remember Skill
 
-**First:** Read `AGENTS.md` if not already in context.
+**Agent:** Strong models (opus/sonnet). See also `planning.md`.
 
-Governs project documentation maintenance and rules management.
+**Prerequisite:** `AGENTS.md`
 
 ---
 
-## Documentation Update Rules
+## Documentation Scope
 
-**Update:**
-- `agents/USER_FEEDBACK_SESSION.md` - New user feedback with timestamp/context
-- `agents/STEP*_COMPLETION.md` - Completion notes and handoff info
+**Update when relevant:**
+- `agents/DESIGN_DECISIONS.md` - Architectural choices and rationale
+- `agents/STEP*_COMPLETION.md` - Completion notes for handoff
 
 **Avoid:**
-- Hardcoded counts - use `just test` for dynamic status
-- Proactive documentation files unless explicitly requested
+- Hardcoded counts (use `just test` for dynamic status)
+- Proactive documentation unless requested
 
 ---
 
-## Rules Budgeting System
+## Rules Budgeting
 
-**Target: AGENTS.md (~40) + skill file ≤ 150 rules. Fewer is better.**
+**Target:** AGENTS.md (~40 rules) + skill file ≤ 150 total. Fewer is better.
 
-### Progressive Disclosure
+Sessions load AGENTS.md plus one skill file. Exception: commit.md and handoff.md load at session end where recency bias helps, so they're effectively budget-exempt.
 
-Sessions load AGENTS.md + one relevant skill file. Budget applies to the combination.
+**Maintenance heuristics:**
+- Promote rules after repeated violations
+- Demote rules that apply only to edge cases
+- Delete rules made obsolete by project evolution
 
-**Exception:** commit.md and handoff.md load at session end. Recency bias deprioritizes earlier task rules, so these are effectively budget-exempt (~80 effective rules).
+---
 
-### Three-Tier Structure (per skill file)
+## Rule Tiering
 
-| Tier | % | Position | Purpose |
-|------|---|----------|---------|
-| 1 | 20% | Top | Critical - always follow |
-| 2 | 60% | Middle | Important - most cases |
-| 3 | 20% | Bottom | Optional - nice to have |
+Structure each skill file with critical rules at top, optional guidance at bottom. Recency bias means later content gets more attention—place must-follow rules where they won't be forgotten.
 
-### Rule Maintenance
-
-**Promote:** Repeated violations, consistent problems
-**Demote:** Rarely referenced, edge cases only
-**Delete:** Obsolete due to project evolution, replaced by better rule
+**Tier 1 (~20%, top):** Violations cause immediate problems. Few, non-negotiable.
+**Tier 2 (~60%, middle):** Important for quality. Most rules live here.
+**Tier 3 (~20%, bottom):** Nice-to-have, edge cases, style preferences.
