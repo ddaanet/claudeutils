@@ -7,6 +7,8 @@ description: Git commit standards
 
 ## BEFORE STARTING (Mandatory)
 
+⚠️ **Do NOT use `/commit` or other built-in Claude Code skills.** Follow this file instead.
+
 **If not already loaded, read this file using the Read tool:**
 1. `AGENTS.md` - Project overview and user preferences
 
