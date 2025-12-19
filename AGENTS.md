@@ -59,9 +59,16 @@ See `agents/code.md` for TDD implementation rules and `agents/lint.md` for linti
 
 ### Tool Batching
 
-1. **Batch reads:** Before reading a file, identify other files needed soon and read them together
-2. **Batch writes:** Before writing, identify other changes that can be combined in one batch
-3. **Update context after writes:** Include Read calls at the end of a write batch to refresh context
+**Planning phase (before any tool calls):**
+1. Identify ALL changes needed for the current task
+2. Group by file: same-file edits are sequential, different-file edits can be parallel
+3. For multi-edit files: list insertion points, plan bottom-to-top order (avoids line shifts)
+
+**Execution phase:**
+4. **Batch reads:** Read multiple files in one message when needed soon
+5. **Different files:** Edit in parallel when independent
+6. **Same file:** Edit sequentially, bottom-to-top when inserting
+7. **Refresh context:** Read modified files after write batches
 
 ---
 
