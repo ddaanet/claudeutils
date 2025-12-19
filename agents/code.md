@@ -71,12 +71,25 @@ Skipping the RED phase defeats the purpose of TDD:
 - Write all tests upfront then implement
 - Skip running the test before implementing
 - Implement before seeing the test fail
-- Fix lint or type errors (`just check`) - a separate agent handles this at checkpoints
 
 ✅ **DO:**
 - Run each test immediately after writing it
 - Verify failure message matches expectations
 - Stop at validation checkpoints defined in the plan
+
+### Lint/Check Responsibility (Critical)
+
+⚠️ **Do NOT run `just check`.** A separate lint agent handles this in a clean session.
+
+**Your responsibility:**
+- Run `just test` only
+- Add type annotations as you write new code (moderate effort)
+- Follow obvious typing patterns from existing code
+
+**Not your responsibility:**
+- Running `just check`
+- Fixing lint or type errors
+- Debugging mypy failures
 
 ### File Size Limits (Enforced)
 

@@ -60,7 +60,7 @@ Add three subcommands for batch feedback processing:
 **Requires:** Add length check (< 10 chars)
 **Does NOT require:** Categorization
 
-**⏸ CHECKPOINT A1:** Run `just test -k is_noise` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
+**⏸ CHECKPOINT A1:** Run `just test -k is_noise` (must pass). Stop for user review.
 
 ### Group B: Categorization (Tests 5-8)
 
@@ -100,7 +100,7 @@ Add three subcommands for batch feedback processing:
 **Requires:** Add keywords: review, refactor, improve, clarity
 **Does NOT require:** preferences category
 
-**⏸ CHECKPOINT A2:** Run `just test -k categorize` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
+**⏸ CHECKPOINT A2:** Run `just test -k categorize` (must pass). Stop for user review.
 
 ### Group C: Batch Filtering (Tests 9-10)
 
@@ -122,7 +122,7 @@ Add three subcommands for batch feedback processing:
 **Requires:** Verify order preservation
 **Does NOT require:** Sorting
 
-**⏸ CHECKPOINT A3:** Run `just test tests/test_filtering.py` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before Feature 2.
+**⏸ CHECKPOINT A3:** Run `just test tests/test_filtering.py` (must pass). Stop for user review before Feature 2.
 
 ---
 
@@ -159,7 +159,7 @@ Add three subcommands for batch feedback processing:
 **Requires:** Verify aggregation includes nested feedback
 **Does NOT require:** Error handling
 
-**⏸ CHECKPOINT B1:** Run `just test -k test_collect` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
+**⏸ CHECKPOINT B1:** Run `just test -k test_collect` (must pass). Stop for user review.
 
 ### Group B: Error Handling (Tests 4-5)
 
@@ -181,7 +181,7 @@ Add three subcommands for batch feedback processing:
 **Requires:** Add `--output` argument, write to file when specified
 **Does NOT require:** New logic beyond existing patterns
 
-**⏸ CHECKPOINT B2:** Run `just test -k test_collect` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before Feature 3.
+**⏸ CHECKPOINT B2:** Run `just test -k test_collect` (must pass). Stop for user review before Feature 3.
 
 ---
 
@@ -227,7 +227,7 @@ Add three subcommands for batch feedback processing:
 **Requires:** Add `--format` argument, output JSON when specified
 **Does NOT require:** Text formatting changes
 
-**⏸ CHECKPOINT C:** Run `just test -k test_analyze` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review before Feature 4.
+**⏸ CHECKPOINT C:** Run `just test -k test_analyze` (must pass). Stop for user review before Feature 4.
 
 ---
 
@@ -264,7 +264,7 @@ Add three subcommands for batch feedback processing:
 **Requires:** Question prefix check (`How `, `claude code:`), max length (> 1000), min length (< 20)
 **Does NOT require:** JSON output
 
-**⏸ CHECKPOINT D1:** Run `just test -k test_rules` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). Stop for user review.
+**⏸ CHECKPOINT D1:** Run `just test -k test_rules` (must pass). Stop for user review.
 
 ### Group B: Configuration (Tests 4-5)
 
@@ -286,7 +286,7 @@ Add three subcommands for batch feedback processing:
 **Requires:** Add `--format` argument, output JSON array with index field
 **Does NOT require:** Additional filtering
 
-**⏸ CHECKPOINT D2:** Run `just test -k test_rules` (must pass). Run `just check` - if it fails, STOP (do not fix lint errors). **All features complete.** Final user review.
+**⏸ CHECKPOINT D2:** Run `just test -k test_rules` (must pass). **All features complete.** Final user review.
 
 ---
 
