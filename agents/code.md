@@ -83,8 +83,8 @@ Skipping the RED phase defeats the purpose of TDD:
 
 ### Linting & Style
 
-- Ruff linting must pass with zero warnings
-- No `noqa` suppressions without explanation
+See `agents/lint.md` for detailed linting rules.
+
 - Docstrings in imperative mood ("Extract content" not "Extracts content")
 - Docstrings wrap at column 80 (docformatter enforces this via `just format`)
 
@@ -100,10 +100,7 @@ Skipping the RED phase defeats the purpose of TDD:
 
 ### Code Quality Anti-Patterns
 
-🚫 **DON'T:**
-- Use `noqa` comments without explanation
-- Suppress type warnings without comments
-- Use `Any` type without justification
+See `agents/lint.md` for linting anti-patterns and when ignores are acceptable.
 
 ### File Size Limits
 

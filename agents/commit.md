@@ -117,3 +117,17 @@ design decisions were involved.
 EOF
 )"
 ```
+
+---
+
+## Error Recovery
+
+### Git Lock File Errors
+
+If commit fails with a lock file error (`.git/index.lock` exists):
+
+1. Wait 2 seconds and retry
+2. If still failing, wait 2 more seconds and retry once more
+3. Only ask the user after two failed retries
+
+This handles transient lock issues from concurrent git operations.

@@ -28,6 +28,7 @@ Skills are specialized instruction sets. **Read the skill file before performing
 |-------|------|---------|
 | planning | `agents/planning.md` | Before designing test specifications |
 | code | `agents/code.md` | Before implementing code |
+| lint | `agents/lint.md` | Before fixing `just check` errors |
 | commit | `agents/commit.md` | **Before any `git commit`** |
 | remember | `agents/remember.md` | Before updating documentation |
 | handoff | `agents/handoff.md` | Before ending a session |
@@ -49,10 +50,7 @@ Skills are specialized instruction sets. **Read the skill file before performing
 
 ### Code Patterns
 
-1. **Minimal implementation:** Write only what's needed to pass current test
-2. **No premature optimization:** Solve current problem, not hypothetical future ones
-3. **No suppression shortcuts:** If linter/type checker complains, fix properly
-4. **Explain ignores:** Any `type: ignore` must have comment explaining what's intentional
+See `agents/code.md` for TDD implementation rules and `agents/lint.md` for linting rules.
 
 ### Tool Batching
 
@@ -85,6 +83,12 @@ class FeedbackItem(BaseModel):
 ## Quick Command Reference
 
 ```bash
+# Tool usage
+uv run claudeutils list                        # List all sessions
+uv run claudeutils extract <prefix>            # Extract feedback by session prefix
+uv run claudeutils extract <prefix> -o out.json  # Extract to file
+uv run claudeutils list --project /path        # Use custom project directory
+
 # Development workflow
 just dev              # Format, check, and test
 just test ...         # Run pytest only, arguments are passed to pytest
@@ -114,6 +118,7 @@ git commit -m "..."   # Commit with concise message
 
 - `agents/planning.md` - Test-first design skill
 - `agents/code.md` - TDD implementation skill
+- `agents/lint.md` - Linting and type checking skill
 - `agents/commit.md` - Git commit skill
 - `agents/remember.md` - Documentation and rules maintenance skill
 - `agents/handoff.md` - Session handoff skill

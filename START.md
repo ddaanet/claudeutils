@@ -34,30 +34,8 @@
   - All files now under 400-line limit
   - All 68 tests passing
 
-## Usage
+## Quick Reference
 
-```bash
-# List all conversation sessions
-uv run claudeutils list
+See `README.md` for usage examples and development commands.
 
-# Extract feedback from a specific session
-uv run claudeutils extract e12d203f
-
-# Extract to file
-uv run claudeutils extract e12d203f --output feedback.json
-
-# Use custom project directory
-uv run claudeutils list --project /path/to/project
-```
-
-## Development Commands
-
-```bash
-just dev         # Format, check, test (full cycle)
-just test ...    # Run pytest, arguments are passed to pytest
-just check       # Run ruff + mypy
-```
-
-## Status Check
-
-All 68 tests passing. Run `just test` to verify.
+Run `just test` to verify all tests pass.
