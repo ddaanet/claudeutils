@@ -5,9 +5,26 @@ description: Fix linting and type checking errors
 
 # Lint Skill
 
+**Agent:** Weak models (haiku).
+
 ## Role
 
 Fix errors reported by `just check` (ruff + mypy).
+
+---
+
+## Workflow (Critical)
+
+**Always run `just format check`** (not just `just check`). The format step auto-fixes many issues.
+
+1. Run `just format check`
+2. If format modified files, **re-read them before editing** - your cached version is stale
+3. Fix remaining errors reported by check
+4. Repeat until clean
+
+⚠️ **Never edit a file without re-reading it first after format runs.** Format changes line numbers and content.
+
+---
 
 ## Core Principles
 
@@ -42,9 +59,10 @@ value = cast(str, data)  # type: ignore
 ## Quick Reference
 
 ```bash
-just check       # Run ruff + mypy
-just format      # Auto-format with ruff (fixes some issues automatically)
-just dev         # Full cycle: format, check, test
+just format check   # Preferred: format then check (re-read files after)
+just check          # Run ruff + mypy only
+just format         # Auto-format only
+just dev            # Full cycle: format, check, test
 ```
 
 ---

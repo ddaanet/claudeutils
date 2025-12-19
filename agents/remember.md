@@ -29,6 +29,8 @@ description: Documentation updates and rules maintenance
 
 **Brevity:** Strong models don't need verbose explanations. One sentence beats a paragraph.
 
+**Weak-agent skills:** Files targeting haiku need explicit step-by-step instructions with numbered lists and warning symbols (⚠️). Don't assume inference.
+
 Sessions load AGENTS.md plus one skill file. Exception: commit.md and handoff.md load at session end where recency bias helps, so they're effectively budget-exempt.
 
 **Maintenance heuristics:**
