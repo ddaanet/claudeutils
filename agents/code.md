@@ -77,6 +77,15 @@ Skipping the RED phase defeats the purpose of TDD:
 - Verify failure message matches expectations
 - Stop at validation checkpoints defined in the plan
 
+### Checkpoint Behavior (Critical)
+
+**"Continue" means continue to the next checkpoint, not to the end.**
+
+At each ⏸ CHECKPOINT in the plan:
+1. Run the specified tests
+2. Report: "Checkpoint X reached. [test results]. Awaiting approval."
+3. **Stop.** Do not proceed without explicit user confirmation.
+
 ### Lint/Check Responsibility (Critical)
 
 ⚠️ **Do NOT run `just check`.** A separate lint agent handles this in a clean session.
