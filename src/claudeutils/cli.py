@@ -212,7 +212,13 @@ def handle_rules(input_path: str, min_length: int, output_format: str) -> None:
 def main() -> None:
     """Entry point for claudeutils CLI."""
     parser = argparse.ArgumentParser(
-        description="Extract feedback from Claude Code sessions"
+        description="Extract feedback from Claude Code sessions",
+        epilog=(
+            "Pipeline: collect -> analyze -> rules. Use collect to gather all "
+            "feedback, analyze to filter and categorize, rules to extract "
+            "actionable items."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -231,26 +237,56 @@ def main() -> None:
     extract_parser.add_argument("--output", help="Output file path")
 
     collect_parser = subparsers.add_parser(
-        "collect", help="Batch collect feedback from all sessions"
+        "collect",
+        help="Batch collect feedback from all sessions",
+        description=(
+            "Extract feedback from all sessions recursively, including "
+            "sub-agents. Outputs JSON array of FeedbackItem objects."
+        ),
     )
     collect_parser.add_argument(
         "--project", default=str(Path.cwd()), help="Project directory"
     )
     collect_parser.add_argument("--output", help="Output file path")
 
-    analyze_parser = subparsers.add_parser("analyze", help="Analyze feedback items")
+    analyze_parser = subparsers.add_parser(
+        "analyze",
+        help="Analyze feedback items",
+        description="""Filter noise and categorize feedback items.
+
+Categories:
+  instructions  - Directives (don't, never, always, must, should)
+  corrections   - Fixes (no, wrong, incorrect, fix, error)
+  process       - Workflow (plan, next step, before, after)
+  code_review   - Quality (review, refactor, improve, clarity)
+  preferences   - Other substantive feedback
+
+Noise filtered: command output, bash stdout, system messages, short (<10 chars).""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     analyze_parser.add_argument(
-        "--input", required=True, help="Input JSON file (or - for stdin)"
+        "--input", required=True, help="Input JSON file, or '-' for stdin"
     )
     analyze_parser.add_argument(
         "--format", default="text", choices=["text", "json"], help="Output format"
     )
 
     rules_parser = subparsers.add_parser(
-        "rules", help="Extract rule-worthy feedback items"
+        "rules",
+        help="Extract rule-worthy feedback items",
+        description="""Extract actionable, rule-worthy feedback items.
+
+Applies stricter filters than analyze:
+  - Removes questions (starting with "How " or "claude code:")
+  - Removes long items (>1000 chars)
+  - Removes short items (<min-length, default 20 chars)
+  - Deduplicates by first 100 characters
+
+Output is sorted chronologically.""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     rules_parser.add_argument(
-        "--input", required=True, help="Input JSON file (or - for stdin)"
+        "--input", required=True, help="Input JSON file, or '-' for stdin"
     )
     rules_parser.add_argument(
         "--min-length",
