@@ -1,17 +1,41 @@
 ---
 name: code
-description: TDD implementation and code quality
+description: TDD implementation via code role
 ---
 
-# Coding Skill
+# Code Role
 
-**Agent:** Weak models (haiku). Strong models use `planning.md` instead.
+**Target Model:** Haiku (weak models). Strong models use `role-planning.md` instead.
 
 ---
 
 ## Plan Adherence (Critical)
 
-Follow the plan in `agents/PLAN.md` exactly. Do not improvise your own approach, create alternative task breakdowns, or reorder features. The plan specifies implementation order, test specifications, and fixture data - execute it as written.
+Follow the plan in `agents/PLAN*.md` exactly. Do not improvise your own approach, create alternative task breakdowns, or reorder features. The plan specifies implementation order, test specifications, and fixture data - execute it as written.
+
+---
+
+## Plan Conflicts (Critical)
+
+If a plan file instructs you to run a command or take an action that this role prohibits:
+
+1. **Do not execute the conflicting instruction**
+2. Report: "Plan conflict detected: [plan instruction] contradicts [role rule]"
+3. **Stop and await user guidance**
+
+Plans define task steps. Roles define behavioral constraints. Roles take precedence.
+
+---
+
+## Plan Bugs (Critical)
+
+If a plan instructs you to run a command this role prohibits (e.g., `just check`, `just lint`):
+
+1. **Do not execute the instruction**
+2. Report: "Plan bug: [instruction] violates role-code constraint [rule]"
+3. **Stop and await user guidance**
+
+This is a bug in the plan, not an ambiguity. Plans are written by other agents and may contain errors.
 
 ---
 
@@ -21,7 +45,7 @@ Follow the plan in `agents/PLAN.md` exactly. Do not improvise your own approach,
 1. `START.md` - Current task and status
 2. `AGENTS.md` - Project overview and user preferences
 3. `agents/TEST_DATA.md` - Data types and sample entries
-4. `agents/PLAN.md` - Test specifications and implementation order
+4. `agents/PLAN*.md` - Test specifications and implementation order
 
 ⚠️ **Do not proceed until these files are in context.**
 
@@ -35,7 +59,7 @@ Follow the plan in `agents/PLAN.md` exactly. Do not improvise your own approach,
 
 1. **Write ONE test** - Add exactly one new test case
 2. **Run test and VERIFY it FAILS (Red)** - This step is MANDATORY
-   - Run `just test` or the specific test
+   - Run `just role-code` or the specific test
    - Confirm the test fails for the EXPECTED reason (assertion fails, not import/syntax error)
    - If test passes unexpectedly, the test may be wrong or implementation already exists
 3. **Write minimal code to make it PASS (Green)**
@@ -81,22 +105,22 @@ Skipping the RED phase defeats the purpose of TDD:
 
 **"Continue" means continue to the next checkpoint, not to the end.**
 
-At each ⏸ CHECKPOINT in the plan:
+At each CHECKPOINT in the plan:
 1. Run the specified tests
 2. Report: "Checkpoint X reached. [test results]. Awaiting approval."
 3. **Stop.** Do not proceed without explicit user confirmation.
 
-### Lint/Check Responsibility (Critical)
+### Do NOT Run Just Check (Critical)
 
-⚠️ **Do NOT run `just check`.** A separate lint agent handles this in a clean session.
+⚠️ **Do NOT run `just check`, `just lint`, or any linting command.** The lint role handles this in a separate session.
 
 **Your responsibility:**
-- Run `just test` only
+- Run `just role-code` only
 - Add type annotations as you write new code (moderate effort)
 - Follow obvious typing patterns from existing code
 
 **Not your responsibility:**
-- Running `just check`
+- Running `just check` or `just lint`
 - Fixing lint or type errors
 - Debugging mypy failures
 
@@ -119,10 +143,6 @@ When a file approaches 300 lines, proactively plan to split it before continuing
 - All parameters and return types must have type annotations
 - No `Any` type unless justified with comment
 - Use specific mypy error codes (e.g., `# type: ignore[arg-type]`) not blanket ignores
-
-### Linting & Style
-
-See `agents/lint.md` for detailed linting rules.
 
 ### Testing Standards
 
@@ -147,12 +167,11 @@ See `agents/lint.md` for detailed linting rules.
 
 ### Task Runner
 
-Use `justfile` for common tasks:
+Use `justfile` role recipes for development:
 ```bash
-just test      # Run pytest
-just check     # Run ruff + mypy
-just format    # Auto-format with ruff
-just dev       # Run all (format, check, test)
+just role-code            # Run tests only
+just role-code tests/     # Run tests in directory
+just role-code -k test_X  # Run specific test
 ```
 
 ### File Organization
@@ -160,4 +179,4 @@ just dev       # Run all (format, check, test)
 - Implementation: `src/claudeutils/`
 - Tests: `tests/`
 - Configuration: `pyproject.toml`
-- Plan: `agents/PLAN.md`
+- Plan: `agents/PLAN*.md`

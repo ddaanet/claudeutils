@@ -3,9 +3,9 @@ name: planning
 description: Test-first design for TDD execution
 ---
 
-# Planning Skill
+# Planning Role
 
-**Agent:** Sonnet (default) or Opus (deep architecture). Plans executed by Haiku.
+**Target Model:** Sonnet (default) or Opus (deep architecture). Plans executed by code role agents.
 
 **Prerequisites:** `START.md`, `AGENTS.md`, `agents/PLAN.md`
 
@@ -32,7 +32,7 @@ Prefer testing normal cases first (non-empty output), then edge cases. Empty-inp
 
 ## Specification Format
 
-Haiku agents need explicit scope boundaries. For each test, specify:
+Code role agents need explicit scope boundaries. For each test, specify:
 - Given/When/Then with exact fixture data inline
 - What NEW code this test requires
 - What it does NOT require yet
@@ -45,13 +45,12 @@ Group tests by capability (discovery → filtering → error handling → recurs
 
 Build checkpoints into the plan at natural boundaries (every 3-5 tests or after completing a feature group). At each checkpoint:
 
-1. All tests pass (`just test`)
-2. Run `just check` - if it fails, STOP (code agent does NOT fix lint errors)
-3. User reviews progress before continuing
+1. All tests pass (`just role-code`)
+2. User reviews progress before continuing
 
-**Checkpoint language must be explicit.** Write: "Run `just check` - if it fails, STOP (do not fix lint errors)" not "Verify `just check` passes" (ambiguous - could be read as "make it pass").
+**Checkpoint language must be explicit.** Write: "Run `just role-code tests/test_X.py` - awaiting approval" not "Verify tests pass" (ambiguous).
 
-Haiku agents execute between checkpoints. Strong models review at checkpoints and adjust the plan if needed.
+Strong models review at checkpoints and adjust the plan if needed.
 
 ---
 
@@ -63,7 +62,7 @@ Write sections in implementation order. Feature 1 is implemented first.
 
 ## Plan Format
 
-Markdown is 34-38% more token-efficient than JSON. Haiku follows explicit structure better than prose.
+Markdown is 34-38% more token-efficient than JSON. Code agents follow explicit structure better than prose.
 
 **Use:**
 - Numbered lists for sequential steps

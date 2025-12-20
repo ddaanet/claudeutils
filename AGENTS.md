@@ -20,20 +20,29 @@
 
 ---
 
-## Skills
+## Roles and Rules
 
-Skills are specialized instruction sets. **Read the skill file before performing that action.**
+Roles define agent behavior modes. Rules apply during specific actions.
 
-| Skill | File | Trigger |
-|-------|------|---------|
-| planning | `agents/planning.md` | Before designing test specifications |
-| code | `agents/code.md` | Before implementing code |
-| lint | `agents/lint.md` | Before fixing `just check` errors |
-| commit | `agents/commit.md` | **Before any `git commit`** |
-| remember | `agents/remember.md` | Before updating documentation |
-| handoff | `agents/handoff.md` | Before ending a session |
+### Roles
 
-**How to load:** Read the file using the Read tool before starting the task.
+| Role | File | Model | Purpose |
+|------|------|-------|---------|
+| planning | `agents/role-planning.md` | opus/sonnet | Design test specifications |
+| code | `agents/role-code.md` | haiku | TDD implementation |
+| lint | `agents/role-lint.md` | haiku | Fix lint/type errors |
+| refactor | `agents/role-refactor.md` | sonnet | Plan refactoring changes |
+| execute | `agents/role-execute.md` | haiku | Execute planned changes |
+| remember | `agents/role-remember.md` | opus | Update agent documentation |
+
+### Rules (Action-Triggered)
+
+| Rule | File | Trigger |
+|------|------|---------|
+| commit | `agents/rules-commit.md` | Before any `git commit` |
+| handoff | `agents/rules-handoff.md` | Before ending a session |
+
+**Loading:** Read the role file at session start. Read rule files before the triggering action.
 
 ---
 
@@ -49,13 +58,13 @@ Skills are specialized instruction sets. **Read the skill file before performing
 
 #### Tier 2 - Important
 
-4. **Load skills proactively:** Read skill files before operations (e.g., read `agents/commit.md` before `git commit`)
+4. **Load skills proactively:** Read skill files before operations (e.g., read `agents/rules-commit.md` before `git commit`)
 5. **Stop at boundaries:** Complete assigned task then stop (no scope creep)
 6. **Be explicit:** Ask clarifying questions if requirements unclear
 
 ### Code Patterns
 
-See `agents/code.md` for TDD implementation rules and `agents/lint.md` for linting rules.
+See `agents/role-code.md` for TDD implementation rules and `agents/role-lint.md` for linting rules.
 
 ### Tool Batching
 
@@ -121,16 +130,21 @@ git commit -m "..."   # Commit with concise message
 ## File Reference
 
 - `START.md` - **Handoff entry point** (read this first on session reset)
-- `AGENTS.md` - This file (core rules and skill references)
+- `AGENTS.md` - This file (core rules and role/rule definitions)
 - `agents/TEST_DATA.md` - Data types and sample entries for coding
 - `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions
 - `agents/ROADMAP.md` - Future enhancement ideas
 
-**Skills:**
+**Roles:**
 
-- `agents/planning.md` - Test-first design skill
-- `agents/code.md` - TDD implementation skill
-- `agents/lint.md` - Linting and type checking skill
-- `agents/commit.md` - Git commit skill
-- `agents/remember.md` - Documentation and rules maintenance skill
-- `agents/handoff.md` - Session handoff skill
+- `agents/role-planning.md` - Design test specifications
+- `agents/role-code.md` - TDD implementation
+- `agents/role-lint.md` - Fix lint/type errors
+- `agents/role-refactor.md` - Plan refactoring changes
+- `agents/role-execute.md` - Execute planned changes
+- `agents/role-remember.md` - Update agent documentation
+
+**Rules:**
+
+- `agents/rules-commit.md` - Git commit guidelines
+- `agents/rules-handoff.md` - Session handoff guidelines

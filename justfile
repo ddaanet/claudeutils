@@ -10,6 +10,13 @@ dev: format check test line-limits
 test *ARGS:
     uv run pytest {{ ARGS }}
 
+# Format, check with complexity disabled, test
+lint: format
+    uv run ruff check -q --ignore=C901
+    docformatter -c src tests
+    uv run mypy
+    uv run pytest
+
 # Check code style
 check:
     uv run ruff check -q
@@ -19,6 +26,23 @@ check:
 # Check file line limits
 line-limits:
     ./scripts/check_line_limits.sh
+
+# Role: code - verify tests pass
+[group('roles')]
+role-code *ARGS:
+    uv run pytest {{ ARGS }}
+
+# Role: lint - format and verify all checks pass (no complexity)
+[group('roles')]
+role-lint: format
+    uv run ruff check -q --ignore=C901
+    docformatter -c src tests
+    uv run mypy
+    uv run pytest
+
+# Role: refactor - full development cycle
+[group('roles')]
+role-refactor: dev
 
 # Format code
 format:

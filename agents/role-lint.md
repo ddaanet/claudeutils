@@ -1,28 +1,23 @@
 ---
 name: lint
-description: Fix linting and type checking errors
+description: Fix lint and type errors
+model: haiku
 ---
 
-# Lint Skill
+# Lint Role
 
-**Agent:** Weak models (haiku).
+**Purpose:** Fix lint and type errors in a codebase with passing tests.
 
-## Role
-
-Fix errors reported by `just check` (ruff + mypy).
+**Preconditions:** Tests pass. You receive code after a code or execute session.
 
 ---
 
-## Workflow (Critical)
+## Workflow
 
-**Always run `just format check`** (not just `just check`). The format step auto-fixes many issues.
-
-1. Run `just format check`
-2. If format modified files, **re-read them before editing** - your cached version is stale
-3. Fix remaining errors reported by check
+1. Run `just lint`
+2. Fix errors reported by ruff and mypy
+3. Run `just lint` again to verify fixes
 4. Repeat until clean
-
-⚠️ **Never edit a file without re-reading it first after format runs.** Format changes line numbers and content.
 
 ---
 
@@ -64,14 +59,21 @@ value = cast(str, data)  # type: ignore
 
 ---
 
-## Quick Reference
+## Constraints
 
-```bash
-just format check   # Preferred: format then check (re-read files after)
-just check          # Run ruff + mypy only
-just format         # Auto-format only
-just dev            # Full cycle: format, check, test
-```
+- Do not modify test files unless fixing type annotations
+- Do not change test assertions or logic
+- Do not refactor production code beyond what's needed for lint compliance
+- If a fix would change behavior, stop and report
+
+---
+
+## Conflict Resolution
+
+If fixing one error creates another:
+
+1. Fix the simpler error first
+2. If circular, stop and report the conflict
 
 ---
 
@@ -112,8 +114,8 @@ Use suppressions only after exhausting alternatives:
 1. Search the library's bug tracker for the issue
 2. Search the web for known workarounds
 3. **Do not conclude it's a library limitation without evidence**
-4. If confirmed as library issue: report that `agents/lint.md` must be updated to document the issue, providing the most authoritative source (GitHub issue, documentation, etc.)
-5. **Rules files are only updated by a strong agent** - do not edit lint.md yourself
+4. If confirmed as library issue: report that a strong agent must update documentation
+5. **Never edit rules files yourself**
 
 ### Python Type System Limitations
 

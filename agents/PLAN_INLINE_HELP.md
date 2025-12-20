@@ -106,7 +106,7 @@ rules_parser.add_argument(
 **Requires:** Update rules parser with description above
 **Does NOT require:** Examples
 
-**CHECKPOINT A:** Run `just test -k test_help` (must pass). Run `just check` - if it fails, STOP. User review.
+**CHECKPOINT A:** Run `just role-code tests/test_cli_help.py` (must pass). Awaiting approval.
 
 ---
 
@@ -130,7 +130,7 @@ rules_parser.add_argument(
 **Requires:** Update `--input` help text as shown above
 **Does NOT require:** Examples in epilog
 
-**CHECKPOINT B:** Run `just test -k test_help` (must pass). Run `just check` - if it fails, STOP. **Complete.**
+**CHECKPOINT B:** Run `just role-code tests/test_cli_help.py` (must pass). **Complete.**
 
 ---
 

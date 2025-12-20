@@ -2,33 +2,43 @@
 
 ## Core Context (Read First)
 
-1. `AGENTS.md` - Project overview, user preferences, skill references
+1. `AGENTS.md` - Project overview, user preferences, role/rule definitions
 2. `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions
 3. `agents/TEST_DATA.md` - Data types and sample entries
 
-## Skills (Read Before Action)
+## Roles (Load at Session Start)
 
-- `agents/code.md` - Read before implementing code
-- `agents/planning.md` - Read before designing test specifications
-- `agents/commit.md` - **Read before any `git commit`**
-- `agents/remember.md` - Read before updating documentation
-- `agents/handoff.md` - Read before ending a session
+- `agents/role-planning.md` - Design test specifications (opus/sonnet)
+- `agents/role-code.md` - TDD implementation (haiku)
+- `agents/role-lint.md` - Fix lint/type errors (haiku)
+- `agents/role-refactor.md` - Plan refactoring (sonnet)
+- `agents/role-execute.md` - Execute planned changes (haiku)
+- `agents/role-remember.md` - Update agent documentation (opus)
+
+## Rules (Load Before Action)
+
+- `agents/rules-commit.md` - **Read before any `git commit`**
+- `agents/rules-handoff.md` - Read before ending a session
 
 ## Current Task
 
-**Status:** Ready for implementation
+**Status:** Ready for execution (haiku)
 
-### Next Task: CLI Inline Help Enhancement
+### File Cleanup: Complete Agent Reorganization
 
-**Plan:** `agents/PLAN_INLINE_HELP.md`
+**Plan:** `agents/PLAN_FILE_CLEANUP.md`
 
-Enhance argparse help text so agents can use CLI without README:
-- 5 tests in 2 groups (A: descriptions, B: pipeline context)
-- All changes in `src/claudeutils/cli.py`
-- Test file: `tests/test_cli_help.py`
+Complete the agent file reorganization:
+- Rename rules files (commit.md → rules-commit.md, handoff.md → rules-handoff.md)
+- Delete old role files (planning.md, code.md, lint.md, remember.md)
+- Verify all AGENTS.md references
+- Prepare handoff document for context flush
 
 ### Recently Completed
 
+- ✅ **CLI Inline Help** - Enhanced argparse help text (5 tests, all passing)
+- ✅ **Agent Reorganization** - Created role/rules structure (6 roles, 2 rules, justfile recipes)
+- ✅ **Compliance Fix** - Added Plan Conflicts/Bugs detection to role-code.md
 - ✅ README.md updated with pipeline documentation (collect → analyze → rules)
 - ✅ CLI refactoring (handler extraction, complexity reduction)
 
