@@ -22,20 +22,13 @@
 
 ## Current Task
 
-**Status:** Ready for execution (haiku)
+**Status:** Ready for new feature work
 
-### File Cleanup: Complete Agent Reorganization
-
-**Plan:** `agents/PLAN_FILE_CLEANUP.md`
-
-Complete the agent file reorganization:
-- Rename rules files (commit.md → rules-commit.md, handoff.md → rules-handoff.md)
-- Delete old role files (planning.md, code.md, lint.md, remember.md)
-- Verify all AGENTS.md references
-- Prepare handoff document for context flush
+**Note:** Agent reorganization complete. System uses role-based architecture. All tests passing (97 tests).
 
 ### Recently Completed
 
+- ✅ **File Cleanup** - Agent reorganization complete (files renamed/deleted, references verified)
 - ✅ **CLI Inline Help** - Enhanced argparse help text (5 tests, all passing)
 - ✅ **Agent Reorganization** - Created role/rules structure (6 roles, 2 rules, justfile recipes)
 - ✅ **Compliance Fix** - Added Plan Conflicts/Bugs detection to role-code.md
