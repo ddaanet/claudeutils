@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(just test:*)",
+      "Bash(git show:*)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+      "Bash(just line-limits:*)",
+      "Bash(wc:*)",
+      "Bash(just format check:*)",
+      "Bash(uv run claudeutils collect:*)",
+      "Bash(just role-code:*)",
+      "Bash(just lint:*)"
+    ],
+    "ask": [
+      "Bash(git commit:*)"
+    ],
+    "deny": [
+      "EnterPlanMode",
+      "ExitPlanMode",
+      "NotebookEdit"
+    ]
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": false,
+    "code-review@claude-plugins-official": false,
+    "commit-commands@claude-plugins-official": false,
+    "explanatory-output-style@claude-plugins-official": false,
+    "context7@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": false,
+    "hookify@claude-plugins-official": false
+  }
+}
