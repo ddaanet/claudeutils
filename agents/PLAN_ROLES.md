@@ -1,8 +1,8 @@
 # Agent Role System Architecture
 
-**Status:** Implemented and tested
-**Last Updated:** 2025-12-20
-**Author:** opus (architecture), haiku (implementation)
+- **Status:** Implemented and tested
+- **Last Updated:** 2025-12-20
+- **Author:** opus (architecture), haiku (implementation)
 
 ---
 
@@ -65,18 +65,20 @@ The agent system has been refactored from skill-based (occupation-focused) to ro
 
 #### 1. Planning Role
 
-**File:** `agents/role-planning.md`
-**Model:** Opus or Sonnet
-**Entry Point:** User requests feature design or sprint planning
+- **File:** `agents/role-planning.md`
+- **Model:** Opus or Sonnet
+- **Entry Point:** User requests feature design or sprint planning
 
 **Purpose:** Design test specifications and implementation order for other agents to execute.
 
 **Preconditions:**
+
 - `START.md` loaded (current task)
 - `AGENTS.md` loaded (project overview)
 - Codebase understanding (may require reading architecture)
 
 **Workflow:**
+
 1. Analyze task requirements and current codebase state
 2. Design test specifications (Given/When/Then format)
 3. Group tests by capability (discovery → filtering → error handling → recursion)
@@ -86,12 +88,14 @@ The agent system has been refactored from skill-based (occupation-focused) to ro
 7. Hand off to code role for implementation
 
 **Constraints:**
+
 - Each test must require exactly one piece of new code
 - No rationale or alternatives (decision already made)
 - Explicit checkpoint language: "Run `just role-code tests/...` - awaiting approval"
 - Do not execute any code
 
 **Success Criteria:**
+
 - Tests are ordered to prevent early passing
 - Implementation order matches capability grouping
 - Checkpoints occur at natural boundaries
@@ -101,31 +105,34 @@ The agent system has been refactored from skill-based (occupation-focused) to ro
 
 #### 2. Code Role
 
-**File:** `agents/role-code.md`
-**Model:** Haiku
-**Entry Point:** User says "continue" at planning checkpoint
+- **File:** `agents/role-code.md`
+- **Model:** Haiku
+- **Entry Point:** User says "continue" at planning checkpoint
 
 **Purpose:** Implement code using Test-Driven Development (TDD). Execute plan exactly as written.
 
 **Preconditions:**
+
 - `agents/PLAN*.md` exists and is unambiguous
 - Tests are ordered to prevent over-implementation
 - No linting required (separate session)
 
 **Workflow:**
+
 1. Read plan file completely
 2. For each test:
-   a. Write ONE new test
-   b. Run test → verify FAILS (Red phase is mandatory)
-   c. Write minimal code to pass test
-   d. Run test → verify PASSES
-   e. Refactor if obvious improvement (optional)
+   1. Write ONE new test
+   2. Run test → verify FAILS (Red phase is mandatory)
+   3. Write minimal code to pass test
+   4. Run test → verify PASSES
+   5. Refactor if obvious improvement (optional)
 3. At checkpoint:
    - Run `just role-code`
    - Report results
    - STOP and await user approval
 
 **Constraints:**
+
 - **Do NOT run `just check`, `just lint`, or any linting command**
 - Do NOT add type annotations beyond obvious patterns
 - Do NOT anticipate future tests
@@ -135,6 +142,7 @@ The agent system has been refactored from skill-based (occupation-focused) to ro
 
 **Plan Conflict Handling (New):**
 If plan instructs you to run a conflicting command:
+
 1. Do not execute it
 2. Report: "Plan conflict: [instruction] contradicts [constraint]"
 3. Stop and await user guidance
@@ -142,6 +150,7 @@ If plan instructs you to run a conflicting command:
 This is a bug in the plan, not an ambiguity. Plans are written by other agents.
 
 **Success Criteria:**
+
 - All tests pass at checkpoints
 - Code is minimal and typed
 - No lint/type errors introduced (caught in lint role)
@@ -150,18 +159,20 @@ This is a bug in the plan, not an ambiguity. Plans are written by other agents.
 
 #### 3. Lint Role
 
-**File:** `agents/role-lint.md`
-**Model:** Haiku
-**Entry Point:** Code role checkpoints complete; user requests lint cleanup
+- **File:** `agents/role-lint.md`
+- **Model:** Haiku
+- **Entry Point:** Code role checkpoints complete; user requests lint cleanup
 
 **Purpose:** Fix lint and type errors in codebase with passing tests.
 
 **Preconditions:**
+
 - All tests pass
 - Code role has completed its work
 - No refactoring needed (complexity issues are deferred)
 
 **Workflow:**
+
 1. Run `just lint` (format + ruff --ignore=C901 + mypy + pytest)
 2. Fix errors reported by ruff and mypy
 3. For each error:
@@ -171,6 +182,7 @@ This is a bug in the plan, not an ambiguity. Plans are written by other agents.
 4. Repeat until clean
 
 **Constraints:**
+
 - **Do NOT fix complexity issues (C901)** - report to user instead
 - Do NOT modify test logic or assertions
 - Do NOT refactor beyond lint compliance
@@ -178,6 +190,7 @@ This is a bug in the plan, not an ambiguity. Plans are written by other agents.
 - Complex fixes → report and stop
 
 **Lint Recipe Details:**
+
 ```
 just lint:
   just format                              # Auto-fix formatting
@@ -190,6 +203,7 @@ just lint:
 The `--ignore=C901` flag disables complexity checks, which are deferred to refactor role.
 
 **Success Criteria:**
+
 - `just lint` exits cleanly (no errors)
 - All 97 tests pass
 - No type errors
@@ -199,18 +213,20 @@ The `--ignore=C901` flag disables complexity checks, which are deferred to refac
 
 #### 4. Refactor Role
 
-**File:** `agents/role-refactor.md`
-**Model:** Sonnet
-**Entry Point:** User requests refactoring or optimization
+- **File:** `agents/role-refactor.md`
+- **Model:** Sonnet
+- **Entry Point:** User requests refactoring or optimization
 
 **Purpose:** Plan refactoring changes for handoff to execute role. No implementation.
 
 **Preconditions:**
+
 - `just dev` passes (tests + lint + checks all pass)
 - Complexity issues identified or optimization target specified
 - Codebase is in clean state
 
 **Workflow:**
+
 1. Analyze codebase for refactoring opportunities (complexity, duplication, maintainability)
 2. Plan specific changes with clear, atomic steps
 3. For each step:
@@ -221,6 +237,7 @@ The `--ignore=C901` flag disables complexity checks, which are deferred to refac
 5. Hand off to execute role with note: "Execute this plan using role-execute"
 
 **Constraints:**
+
 - Do not execute changes yourself
 - Do not modify test assertions
 - Do not add new tests (maintain test parity)
@@ -228,6 +245,7 @@ The `--ignore=C901` flag disables complexity checks, which are deferred to refac
 - Flag complexity issues clearly for execute role
 
 **Plan Format:**
+
 ```markdown
 ### Step N: [Brief description]
 
@@ -241,6 +259,7 @@ The `--ignore=C901` flag disables complexity checks, which are deferred to refac
 ```
 
 **Success Criteria:**
+
 - Plan is detailed enough for haiku to execute
 - Each step is atomic and clear
 - No test modifications required
@@ -250,26 +269,29 @@ The `--ignore=C901` flag disables complexity checks, which are deferred to refac
 
 #### 5. Execute Role
 
-**File:** `agents/role-execute.md`
-**Model:** Haiku
-**Entry Point:** Refactor plan completed; user says "continue"
+- **File:** `agents/role-execute.md`
+- **Model:** Haiku
+- **Entry Point:** Refactor plan completed; user says "continue"
 
 **Purpose:** Execute planned changes exactly. No judgment, no improvisation.
 
 **Preconditions:**
+
 - `agents/PLAN.md` exists with refactoring plan
 - Plan is clear and atomic (written by sonnet)
 - All tests currently pass
 
 **Workflow:**
+
 1. Read the refactor plan completely
 2. For each step:
-   a. Execute exactly as specified (no variations)
-   b. Run `just role-code` to verify tests pass
-   c. If tests pass, proceed to next step
-   d. If tests fail, stop and report
+   1. Execute exactly as specified (no variations)
+   2. Run `just role-code` to verify tests pass
+   3. If tests pass, proceed to next step
+   4. If tests fail, stop and report
 
 **Constraints:**
+
 - Follow plan exactly; no improvisation
 - Do not refactor beyond what plan specifies
 - Do not run `just lint` or `just check`
@@ -278,10 +300,12 @@ The `--ignore=C901` flag disables complexity checks, which are deferred to refac
 
 **Lint Issues During Execution:**
 If `just role-code` passes but you notice lint issues:
+
 - Simple fixes (line length, whitespace) → fix inline
 - Complex issues (type errors, cycles) → note in handoff, do not fix
 
 **Success Criteria:**
+
 - All steps executed as planned
 - All tests pass after each step
 - No ambiguous interpretation needed
@@ -290,42 +314,48 @@ If `just role-code` passes but you notice lint issues:
 
 #### 6. Remember Role
 
-**File:** `agents/role-remember.md`
-**Model:** Opus
-**Entry Point:** Discovered workflow improvement or compliance violation
+- **File:** `agents/role-remember.md`
+- **Model:** Opus
+- **Entry Point:** Discovered workflow improvement or compliance violation
 
 **Purpose:** Maintain and evolve agent documentation based on learnings.
 
 **Scope:**
+
 - `AGENTS.md` - Core rules and role definitions
 - `START.md` - Current status and handoff info
 - `agents/role-*.md` - Role-specific guidelines
 - `agents/rules-*.md` - Action-triggered rules
 
 **Do NOT update:**
+
 - `agents/PLAN*.md` - Task artifacts, not rules
 - `README.md` - User-facing documentation
 - Test files - Implementation artifacts
 
 **Workflow:**
+
 1. Identify pattern (repeated violation, workflow gap, or improvement)
 2. Decide: Which file needs updating?
 3. Update with precision and examples
 4. Tier new rules: Tier 1 (top, critical) → Tier 2 (middle) → Tier 3 (bottom, edge cases)
 
 **Rule Budgeting:**
+
 - `AGENTS.md` + role file ≤ 150 total rules
 - Fewer is better
 - Weak-agent roles (haiku) need explicit, numbered instructions
 - Strong-agent roles (opus/sonnet) need less verbosity
 
 **Constraints:**
+
 - One concept per edit
 - Always explain ignores/suppressions
 - Delete obsolete rules
 - Promote rules after repeated violations
 
 **Success Criteria:**
+
 - New rules prevent future violations
 - Documentation is clearer and more complete
 - Other agents can self-correct using rules
@@ -336,8 +366,8 @@ If `just role-code` passes but you notice lint issues:
 
 #### Commit Rule
 
-**File:** `agents/rules-commit.md`
-**Trigger:** Before any `git commit`
+- **File:** `agents/rules-commit.md`
+- **Trigger:** Before any `git commit`
 
 - Read this file before committing
 - Verify changes are intentional
@@ -346,8 +376,8 @@ If `just role-code` passes but you notice lint issues:
 
 #### Handoff Rule
 
-**File:** `agents/rules-handoff.md`
-**Trigger:** Before ending a session
+- **File:** `agents/rules-handoff.md`
+- **Trigger:** Before ending a session
 
 - Document what was completed
 - Note any blockers or TODOs
@@ -451,6 +481,7 @@ Result: Code role now detects plan conflicts and reports them instead of silentl
 Plans are written by other agents (planning or refactor roles). Plans can be wrong.
 
 When a plan says "run `just check`" but code role prohibits it:
+
 - Old: Code role silently violates its constraint (compliance failure)
 - New: Code role detects conflict, reports it, stops (transparency)
 
@@ -465,6 +496,7 @@ Lint role (haiku) cannot refactor complex functions—it would violate "do not r
 Refactor role (sonnet) can plan and reason about complexity.
 
 Solution: Lint recipe disables C901 via `--ignore=C901`. Complexity issues are:
+
 1. Reported by lint role ("Found 3 complexity issues; reporting to user")
 2. Addressed by refactor role in next iteration
 
@@ -487,6 +519,7 @@ Chose C: Execute role is haiku agent that follows refactor plans exactly, withou
 Documentation is not user-facing (README), task artifacts (PLAN.md), or implementation (code).
 
 Separate role for documentation ensures:
+
 - Rules are consistent across system
 - Updates are deliberate and principled
 - Other agents can read and reference
@@ -500,6 +533,7 @@ Only opus can update rules (strong model = careful with fundamental constraints)
 ### Phase 1: Rename Files (Complete)
 
 Old → New:
+
 - `agents/planning.md` → `agents/role-planning.md`
 - `agents/code.md` → `agents/role-code.md`
 - `agents/lint.md` → `agents/role-lint.md`
@@ -527,6 +561,7 @@ Old → New:
 ### Phase 5: Compliance Enforcement
 
 In code role: Add plan conflict detection:
+
 ```
 If plan says "run X" and X is prohibited by this role:
   1. Report conflict
@@ -585,21 +620,20 @@ If plan says "run X" and X is prohibited by this role:
 
 ## Glossary
 
-| Term | Definition |
-|------|-----------|
-| Role | A behavior mode: what the agent does, when it stops, what output it produces |
-| Rule | Action-triggered guidance (commit, handoff) |
-| Plan | Task artifact created by planning/refactor roles; executed by code/execute roles |
-| Checkpoint | Stopping point in plan; awaiting user approval before continuing |
-| Red-Green-Refactor | TDD cycle: test fails, code passes test, optional refactor |
-| Complexity Issue | C901 function too complex; requires refactoring, not linting |
-| Plan Conflict | Plan instruction contradicts role constraint; is a bug, not ambiguity |
+| Term               | Definition                                                                       |
+| ------------------ | -------------------------------------------------------------------------------- |
+| Role               | A behavior mode: what the agent does, when it stops, what output it produces     |
+| Rule               | Action-triggered guidance (commit, handoff)                                      |
+| Plan               | Task artifact created by planning/refactor roles; executed by code/execute roles |
+| Checkpoint         | Stopping point in plan; awaiting user approval before continuing                 |
+| Red-Green-Refactor | TDD cycle: test fails, code passes test, optional refactor                       |
+| Complexity Issue   | C901 function too complex; requires refactoring, not linting                     |
+| Plan Conflict      | Plan instruction contradicts role constraint; is a bug, not ambiguity            |
 
 ---
 
 ## Document History
 
-| Date | Change | Author |
-|------|--------|--------|
+| Date       | Change                            | Author      |
+| ---------- | --------------------------------- | ----------- |
 | 2025-12-20 | Initial design and implementation | opus, haiku |
-

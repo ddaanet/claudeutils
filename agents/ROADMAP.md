@@ -11,11 +11,13 @@ Future enhancement ideas for claudeutils.
 **Status:** Pending - MCP not yet installed, sample data unavailable.
 
 **How it works:**
+
 - The `user_prompt` MCP tool allows Claude to request input from the user
 - Tool invocations and results appear in the session JSONL files (like any other tool)
 - Extract user responses from `tool_result` entries where tool name is `user_prompt`
 
 **Implementation scope:**
+
 - Detect `user_prompt` tool uses in session entries
 - Extract user responses from corresponding tool results
 - Classify as a new FeedbackType (e.g., `MCP_PROMPT`)
@@ -25,6 +27,7 @@ Future enhancement ideas for claudeutils.
 **Goal:** Extract a summary of a session for process compliance analysis.
 
 **Output format:**
+
 - Tool uses (without full inputs/outputs)
 - User inputs
 - Key assistant outputs
@@ -37,6 +40,7 @@ Future enhancement ideas for claudeutils.
 **Goal:** Support different output formats beyond JSON.
 
 **Potential formats:**
+
 - Pretty-printed JSON with indentation
 - CSV format for spreadsheet analysis
 - Markdown format for human-readable reports
@@ -46,6 +50,7 @@ Future enhancement ideas for claudeutils.
 **Goal:** Allow users to filter extracted feedback.
 
 **Potential filters:**
+
 - `--type` - Filter by feedback type (message, tool_denial, interruption)
 - `--since` / `--until` - Date range filtering
 - `--agent` - Filter by agent ID

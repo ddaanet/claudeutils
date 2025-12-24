@@ -27,11 +27,13 @@ Restructure agent instruction files from monolithic role files to composable mod
 ### Current System
 
 **Files**:
+
 - 6 roles: `planning.md`, `code.md`, `lint.md`, `refactor.md`, `execute.md`, `remember.md`
 - 2 skills: `commit.md`, `handoff.md`
 - 1 master: `AGENTS.md` (project overview, communication patterns, tool batching)
 
 **Terminology**:
+
 - **Role file** (e.g., `planning.md`): Defines agent behavior mode
 - **Plan artifact** (e.g., `PLAN.md`): Task instructions created by planning/refactor roles
 - **Skill file**: Action-triggered rules (commit before git commit, handoff before session end)
@@ -62,25 +64,31 @@ Restructure agent instruction files from monolithic role files to composable mod
 ## Verified Research Findings
 
 ### Rule Format
+
 [Effect of Selection Format on LLM Performance (arXiv 2025)](https://arxiv.org/html/2503.06926): Bullet points outperform prose for task adherence due to pretraining corpus characteristics. However, connected ideas requiring context benefit from paragraph format.
 
 ### Model Capabilities
+
 [Claude Model Family (Anthropic)](https://www.anthropic.com/news/claude-3-family):
+
 - **Haiku**: Needs precise, scoped, bite-sized tasks. Quick but shallow with elaborate prompts.
 - **Sonnet**: Handles clear prompts well. Balanced for general tasks.
 - **Opus**: Can handle and benefit from very detailed/complex prompts. Catches nuances others miss.
 
 ### Position Bias (Critical)
+
 [Serial Position Effects of LLMs (2024)](https://arxiv.org/html/2406.15981v1): LLMs exhibit **strong primacy bias** (beginning matters most) and recency bias. Middle content has weakest influence ("lost in the middle" phenomenon). [Primacy exploitation research](https://arxiv.org/html/2507.13949) confirms this pattern.
 
 **Implication**: Current `remember.md` states "recency bias means later content gets more attention" - this is **incorrect**. Tier 1 (critical) rules should be at START (primacy position), not end.
 
 ### Context Loading
+
 [Effective Context Engineering for AI Agents (Anthropic)](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents): LLMs only read explicitly provided context. No learned behavior to load additional files.
 
 **Implication**: Role-primed agents won't load AGENTS.md unless explicitly instructed. No wasted rule needed to prevent loading.
 
 ### 20/60/20 Tiering
+
 User claims research basis. [ResearchGate: The 20-60-20 Rule](https://www.researchgate.net/publication/270824843_The_20-60-20_rule) found, but is organizational change management, not LLM prompting. Opus assessment: treat as reasonable heuristic, not empirically validated for LLMs.
 
 ---
@@ -90,16 +98,19 @@ User claims research basis. [ResearchGate: The 20-60-20 Rule](https://www.resear
 ### 1. Module Taxonomy
 
 **Cross-Cutting Modules** (universal behaviors):
+
 - `communication.mod` - Stop patterns, unexpected state handling, wait for instruction
 - `tool-batching.mod` - Parallel tool calls, efficiency patterns
 - `checkpoint-obedience.mod` - Following plan checkpoints (factored from code/execute roles)
 
 **Project Context Modules** (selective inclusion):
+
 - `context-overview.mod` - Project purpose, architecture summary
 - `context-datamodel.mod` - Key entities, relationships, schemas
 - `context-commands.mod` - Build, test, deploy commands
 
 **Workflow Modules** (role-specific behaviors):
+
 - `tdd-cycle.mod` - Red-green-refactor methodology
 - `plan-creation.mod` - Checkpoint insertion, plan structure
 - `plan-adherence.mod` - Checkpoint following, scope discipline
@@ -107,6 +118,7 @@ User claims research basis. [ResearchGate: The 20-60-20 Rule](https://www.resear
 - `memory-management.mod` - Documentation patterns, tiering rules
 
 **Skill Modules** (on-demand, token-cost exempt):
+
 - `commit.skill` - Git commit workflow
 - `handoff.skill` - Agent transition protocol
 
@@ -116,19 +128,21 @@ User claims research basis. [ResearchGate: The 20-60-20 Rule](https://www.resear
 
 Based on research findings:
 
-| Content Type | Format | Rationale |
-|--------------|--------|-----------|
-| Discrete rules | Bullets | arXiv 2025: bullets outperform prose for task adherence |
-| Connected concepts | Prose paragraph | Same research: linked ideas need cohesion |
-| Critical rules | ⚠️-prefixed items | Visual salience for weak models |
-| Examples | Indented code blocks | Pattern matching for all model classes |
+| Content Type       | Format               | Rationale                                               |
+| ------------------ | -------------------- | ------------------------------------------------------- |
+| Discrete rules     | Bullets              | arXiv 2025: bullets outperform prose for task adherence |
+| Connected concepts | Prose paragraph      | Same research: linked ideas need cohesion               |
+| Critical rules     | ⚠️-prefixed items     | Visual salience for weak models                         |
+| Examples           | Indented code blocks | Pattern matching for all model classes                  |
 
 **Position optimization** (serial position effects):
+
 - **Tier 1 rules**: Document START (primacy bias)
 - **Tier 3 rules**: Document END (recency bias)
 - **Tier 2 rules**: Middle (weakest position, contains most rules)
 
 **Format per module type**:
+
 - Cross-cutting: Pure itemized (discrete behaviors)
 - Workflow: Hybrid (conceptual intro + itemized rules)
 - Context: Prose (connected project knowledge)
@@ -138,11 +152,11 @@ Based on research findings:
 
 **Three-tier model class system**:
 
-| Class | Model Examples | Characteristics |
-|-------|----------------|-----------------|
-| Strong | Opus | Prose-tolerant, inference-capable |
-| Standard | Sonnet | Clear prompts, moderate expansion |
-| Weak | Haiku | Explicit steps, ⚠️ markers required |
+| Class    | Model Examples | Characteristics                    |
+| -------- | -------------- | ---------------------------------- |
+| Strong   | Opus           | Prose-tolerant, inference-capable  |
+| Standard | Sonnet         | Clear prompts, moderate expansion  |
+| Weak     | Haiku          | Explicit steps, ⚠️ markers required |
 
 **Mechanism: Semantic source + generated variants**
 
@@ -166,6 +180,7 @@ explicit: 1x : 1x   : 1.2x   # Already weak-optimized (communication)
 ```
 
 **Generation approach**:
+
 - Semantic source stores meaning-complete representation with expansion metadata
 - Expansion ratios enable deterministic budget planning
 - Opus generates variants with target rule count as hard constraint
@@ -216,6 +231,7 @@ overflow_strategy: warn  # truncate_tier3|warn|fail
 ```
 
 **Schema elements**:
+
 - `target_class`: Determines which generated variant to include
 - `rule_budget`: Per-role cap; script validates combined total ≤150
 - `modules`: Grouped by type, each with priority tier assignment (contextual, not fixed)
@@ -228,11 +244,13 @@ overflow_strategy: warn  # truncate_tier3|warn|fail
 ### 5. Generation Pipeline
 
 **Stage 1: Source Authoring (Manual)**
+
 - Create/update `modules/src/*.semantic.md`
 - Track authoring model in frontmatter
 - Include `expansion_sensitivity` and optional `weak_expansion_notes`
 
 **Stage 2: Variant Generation (Opus, cached)**
+
 - Input: semantic.md + target_class
 - Output: `modules/gen/*.{strong,standard,weak}.md`
 - Trigger: source change OR model ID change
@@ -241,6 +259,7 @@ overflow_strategy: warn  # truncate_tier3|warn|fail
 - Validation rejects variants exceeding target ±10%
 
 **Stage 3: Role Composition (Script)**
+
 - Input: role.yaml + generated variants
 - Process:
   - Select variants by target_class
@@ -249,12 +268,14 @@ overflow_strategy: warn  # truncate_tier3|warn|fail
 - Output: `roles/gen/planning.md`
 
 **Stage 4: Validation (Script)**
+
 - Rule count per role ≤ budget
 - Combined rules ≤ 150
 - Required modules present
 - No orphan modules (unused by any role)
 
 **Makefile sentinel pattern**:
+
 ```makefile
 modules/gen/%.strong.md: modules/src/%.semantic.md .model-id
     opus-generate --class=strong $< > $@
@@ -271,6 +292,7 @@ modules/gen/%.strong.md: modules/src/%.semantic.md .model-id
 
 ```markdown
 # modules/src/checkpoint-obedience.semantic.md
+
 ---
 author_model: claude-opus-4-5-20251101
 semantic_type: workflow
@@ -302,16 +324,18 @@ or output requirements.
 ```markdown
 ## CHECKPOINT ADHERENCE
 
-⚠️ STOP at every checkpoint marker in the plan
-⚠️ DO NOT proceed past a checkpoint without user instruction
-⚠️ Report completion status when reaching checkpoint
+- ⚠️ STOP at every checkpoint marker in the plan
+- ⚠️ DO NOT proceed past a checkpoint without user instruction
+- ⚠️ Report completion status when reaching checkpoint
 
 Checkpoint recognition:
+
 - Lines starting with `## Checkpoint`
 - Lines containing `[STOP]` marker
 - Explicit "pause for review" instructions
 
 When you reach a checkpoint:
+
 1. Stop all work immediately
 2. Report what was completed
 3. Wait for user to say "continue" or provide new direction
@@ -329,6 +353,7 @@ When you reach a checkpoint:
 **Objective**: Validate that Sonnet and Opus can generate appropriate weak variants.
 
 **Method**:
+
 1. Select pilot module (suggest: checkpoint-obedience, high expansion sensitivity)
 2. Create semantic source
 3. Generate weak variant with Sonnet
@@ -343,6 +368,7 @@ When you reach a checkpoint:
 **Objective**: Convert existing Opus-generated role files into semantic sources.
 
 **Method**:
+
 1. Identify cross-cutting concerns in current files
 2. Extract to semantic sources (infer expansion_sensitivity)
 3. Create role configurations (which modules, what tiers)
@@ -353,6 +379,7 @@ When you reach a checkpoint:
 ### TODO: Script Requirements
 
 **Components needed**:
+
 1. **Rule counter**: Itemize markdown, count rules (handle nested lists, prose paragraphs)
 2. **Module composer**: Combine variants per role config, apply tier→section mapping
 3. **Budget validator**: Check per-role and total rule counts
@@ -363,6 +390,7 @@ When you reach a checkpoint:
 ### TODO: Migration Strategy
 
 **Phases**:
+
 1. Pilot module conversion (checkpoint-obedience)
 2. Extract remaining modules from current files
 3. Generate variants, validate quality
@@ -384,18 +412,18 @@ When you reach a checkpoint:
 
 ## Design Decision Summary
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Module granularity | Semantic groupings, not per-rule | Enables meaningful composition; rule-level too fragmented |
-| Format authority | Research-backed (bullets + position bias) | arXiv findings, serial position effects |
-| Adaptation storage | Semantic + generated variants | Version-controlled intent + cached adaptations |
-| Expansion ratios | Fixed per-module (sensitivity-based) | Budget predictability, acknowledges varying complexity |
-| Priority system | Role-contextual assignment | Same module has different criticality per role |
-| Skill handling | Standalone, weak variants only | On-demand loading; token cost irrelevant |
-| AGENTS.md scope | Fallback only (communication + tool-batching) | Role-primed agents skip it per research |
-| Tier distribution | Tier 1→start (primacy), Tier 3→end (recency), Tier 2→middle | Position bias exploitation |
-| Rule counting | Script validates, LLM itemizes | Human oversight + automated enforcement |
-| Both sources and generated files version controlled | Enables review, diff, rollback | Generated files rarely change, valuable context |
+| Decision                                            | Choice                                                      | Rationale                                                 |
+| --------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------- |
+| Module granularity                                  | Semantic groupings, not per-rule                            | Enables meaningful composition; rule-level too fragmented |
+| Format authority                                    | Research-backed (bullets + position bias)                   | arXiv findings, serial position effects                   |
+| Adaptation storage                                  | Semantic + generated variants                               | Version-controlled intent + cached adaptations            |
+| Expansion ratios                                    | Fixed per-module (sensitivity-based)                        | Budget predictability, acknowledges varying complexity    |
+| Priority system                                     | Role-contextual assignment                                  | Same module has different criticality per role            |
+| Skill handling                                      | Standalone, weak variants only                              | On-demand loading; token cost irrelevant                  |
+| AGENTS.md scope                                     | Fallback only (communication + tool-batching)               | Role-primed agents skip it per research                   |
+| Tier distribution                                   | Tier 1→start (primacy), Tier 3→end (recency), Tier 2→middle | Position bias exploitation                                |
+| Rule counting                                       | Script validates, LLM itemizes                              | Human oversight + automated enforcement                   |
+| Both sources and generated files version controlled | Enables review, diff, rollback                              | Generated files rarely change, valuable context           |
 
 ---
 
@@ -412,6 +440,6 @@ When you reach a checkpoint:
 
 ## Document History
 
-| Date | Change | Author |
-|------|--------|--------|
+| Date       | Change                                | Author               |
+| ---------- | ------------------------------------- | -------------------- |
 | 2025-12-21 | Initial design from Opus consultation | opus-4-5, sonnet-4-5 |

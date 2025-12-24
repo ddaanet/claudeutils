@@ -10,6 +10,7 @@ description: Git commit standards
 ⚠️ **Do NOT use `/commit` or other built-in Claude Code skills.** Follow this file instead.
 
 **If not already loaded, read this file using the Read tool:**
+
 1. `AGENTS.md` - Project overview and user preferences
 
 ⚠️ **Do not proceed until this file is in context.**
@@ -25,11 +26,13 @@ description: Git commit standards
 ### Anti-Patterns - Never Include
 
 🚫 **DON'T mention:**
+
 - TDD/methodology in commit messages
 - Vendor credits (don't mention Claude/Anthropic)
 - Implementation details that are visible in the diff
 
 ✅ **DO include:**
+
 - What changed at a high level
 - Why the change was made (if not obvious)
 - Design rationale for architectural decisions
@@ -69,11 +72,13 @@ Implement Step 1 with TDD using pytest
 
 Generated with Claude Code assistance
 ```
+
 *Problems: Mentions TDD, mentions Claude, doesn't explain what Step 1 does*
 
 ```
 Add tests and implementation
 ```
+
 *Problem: Too vague, doesn't explain what was added or why*
 
 ```
@@ -82,6 +87,7 @@ Complete Step 2: trivial filter
 Implemented with strict TDD methodology following the red-green-refactor
 cycle. Thanks to Claude Code for assistance.
 ```
+
 *Problems: Mentions methodology, vendor credit, doesn't explain what the trivial filter does*
 
 ---
@@ -93,6 +99,7 @@ cycle. Thanks to Claude Code for assistance.
 🚫 **Never use `git add -A` or `git add .`** - these can stage unintended files.
 
 ✅ **Always add files explicitly:**
+
 ```bash
 git add src/specific_file.py tests/test_specific.py
 ```

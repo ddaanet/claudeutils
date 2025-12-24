@@ -5,12 +5,14 @@
 **Goal:** Extract user feedback from Claude Code conversation history for retrospective analysis.
 
 **Architecture:** Python CLI tool with two subcommands:
+
 1. `list` - Show top-level conversation sessions with titles
 2. `extract` - Extract user feedback recursively from a session
 
 **Implementation Approach:** Test-Driven Development (TDD) with pytest, implemented in discrete steps.
 
 **Key Technologies:**
+
 - Python 3.14+ with full type annotations (mypy strict)
 - Pydantic for data validation
 - uv for dependency management
@@ -26,20 +28,20 @@ Roles define agent behavior modes. Rules apply during specific actions.
 
 ### Roles
 
-| Role | File | Model | Purpose |
-|------|------|-------|---------|
+| Role     | File                      | Model       | Purpose                    |
+| -------- | ------------------------- | ----------- | -------------------------- |
 | planning | `agents/role-planning.md` | opus/sonnet | Design test specifications |
-| code | `agents/role-code.md` | haiku | TDD implementation |
-| lint | `agents/role-lint.md` | haiku | Fix lint/type errors |
-| refactor | `agents/role-refactor.md` | sonnet | Plan refactoring changes |
-| execute | `agents/role-execute.md` | haiku | Execute planned changes |
-| remember | `agents/role-remember.md` | opus | Update agent documentation |
+| code     | `agents/role-code.md`     | haiku       | TDD implementation         |
+| lint     | `agents/role-lint.md`     | haiku       | Fix lint/type errors       |
+| refactor | `agents/role-refactor.md` | sonnet      | Plan refactoring changes   |
+| execute  | `agents/role-execute.md`  | haiku       | Execute planned changes    |
+| remember | `agents/role-remember.md` | opus        | Update agent documentation |
 
 ### Rules (Action-Triggered)
 
-| Rule | File | Trigger |
-|------|------|---------|
-| commit | `agents/rules-commit.md` | Before any `git commit` |
+| Rule    | File                      | Trigger                 |
+| ------- | ------------------------- | ----------------------- |
+| commit  | `agents/rules-commit.md`  | Before any `git commit` |
 | handoff | `agents/rules-handoff.md` | Before ending a session |
 
 **Loading:** Read the role file at session start. Read rule files before the triggering action.
@@ -69,11 +71,13 @@ See `agents/role-code.md` for TDD implementation rules and `agents/role-lint.md`
 ### Tool Batching
 
 **Planning phase (before any tool calls):**
+
 1. Identify ALL changes needed for the current task
 2. Group by file: same-file edits are sequential, different-file edits can be parallel
 3. For multi-edit files: list insertion points, plan bottom-to-top order (avoids line shifts)
 
 **Execution phase:**
+
 4. **Batch reads:** Read multiple files in one message when needed soon
 5. **Different files:** Edit in parallel when independent
 6. **Same file:** Edit sequentially, bottom-to-top when inserting

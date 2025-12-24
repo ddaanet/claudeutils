@@ -33,12 +33,14 @@ model: opus
 ## What to Update
 
 **Update these files:**
+
 - `AGENTS.md` - Core rules, role definitions, preferences
 - `START.md` - Current status and handoff information
 - `agents/role-*.md` - Role-specific rules and workflows
 - `agents/rules-*.md` - Action-triggered rules
 
 **Do NOT update:**
+
 - `agents/PLAN*.md` - These are task artifacts, not rules
 - `README.md` - That's user-facing documentation
 - Test files - Those are implementation artifacts
@@ -49,9 +51,9 @@ model: opus
 
 Structure each skill file with critical rules at top, optional guidance at bottom. Recency bias means later content gets more attention—place must-follow rules where they won't be forgotten.
 
-**Tier 1 (~20%, top):** Violations cause immediate problems. Few, non-negotiable.
-**Tier 2 (~60%, middle):** Important for quality. Most rules live here.
-**Tier 3 (~20%, bottom):** Nice-to-have, edge cases, style preferences.
+- **Tier 1 (~20%, top):** Violations cause immediate problems. Few, non-negotiable.
+- **Tier 2 (~60%, middle):** Important for quality. Most rules live here.
+- **Tier 3 (~20%, bottom):** Nice-to-have, edge cases, style preferences.
 
 ---
 

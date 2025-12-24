@@ -81,21 +81,21 @@ If fixing one error creates another:
 
 ### Ruff Errors
 
-| Code | Issue | Fix |
-|------|-------|-----|
-| F401 | Unused import | Remove the import |
+| Code | Issue           | Fix                       |
+| ---- | --------------- | ------------------------- |
+| F401 | Unused import   | Remove the import         |
 | F841 | Unused variable | Remove or prefix with `_` |
-| E501 | Line too long | Break into multiple lines |
-| I001 | Import order | Run `just format` |
+| E501 | Line too long   | Break into multiple lines |
+| I001 | Import order    | Run `just format`         |
 
 ### Mypy Errors
 
-| Error | Issue | Fix |
-|-------|-------|-----|
-| `arg-type` | Wrong argument type | Fix the type or add proper cast with comment |
-| `return-value` | Wrong return type | Fix function signature or return statement |
-| `assignment` | Type mismatch | Fix variable type annotation |
-| `no-untyped-def` | Missing annotations | Add parameter and return type annotations |
+| Error            | Issue               | Fix                                          |
+| ---------------- | ------------------- | -------------------------------------------- |
+| `arg-type`       | Wrong argument type | Fix the type or add proper cast with comment |
+| `return-value`   | Wrong return type   | Fix function signature or return statement   |
+| `assignment`     | Type mismatch       | Fix variable type annotation                 |
+| `no-untyped-def` | Missing annotations | Add parameter and return type annotations    |
 
 ---
 

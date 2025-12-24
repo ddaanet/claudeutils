@@ -42,6 +42,7 @@ This is a bug in the plan, not an ambiguity. Plans are written by other agents a
 ## BEFORE STARTING (Mandatory)
 
 **If not already loaded, read these files using the Read tool:**
+
 1. `START.md` - Current task and status
 2. `AGENTS.md` - Project overview and user preferences
 3. `agents/TEST_DATA.md` - Data types and sample entries
@@ -73,11 +74,13 @@ This is a bug in the plan, not an ambiguity. Plans are written by other agents a
 ### Why the RED Phase Matters
 
 Skipping the RED phase defeats the purpose of TDD:
+
 - It verifies your test is actually testing something
 - It confirms the test fails for the right reason
 - It proves your implementation caused the test to pass
 
 **Unexpected success is an error.** If a new test passes without writing new code, you have over-implemented. This means:
+
 - You wrote more than the minimal code needed for the previous test
 - The test may not be testing what you think it's testing
 - You've lost the feedback loop that TDD provides
@@ -85,6 +88,7 @@ Skipping the RED phase defeats the purpose of TDD:
 ### When Test Passes Unexpectedly
 
 **STOP immediately:**
+
 1. Do NOT proceed to the next test
 2. Report the violation to the user
 3. Wait for user guidance on how to proceed
@@ -92,11 +96,13 @@ Skipping the RED phase defeats the purpose of TDD:
 ### TDD Anti-Patterns - Never Do These
 
 🚫 **DON'T:**
+
 - Write all tests upfront then implement
 - Skip running the test before implementing
 - Implement before seeing the test fail
 
 ✅ **DO:**
+
 - Run each test immediately after writing it
 - Verify failure message matches expectations
 - Stop at validation checkpoints defined in the plan
@@ -106,6 +112,7 @@ Skipping the RED phase defeats the purpose of TDD:
 **"Continue" means continue to the next checkpoint, not to the end.**
 
 At each CHECKPOINT in the plan:
+
 1. Run the specified tests
 2. Report: "Checkpoint X reached. [test results]. Awaiting approval."
 3. **Stop.** Do not proceed without explicit user confirmation.
@@ -115,11 +122,13 @@ At each CHECKPOINT in the plan:
 ⚠️ **Do NOT run `just check`, `just lint`, or any linting command.** The lint role handles this in a separate session.
 
 **Your responsibility:**
+
 - Run `just role-code` only
 - Add type annotations as you write new code (moderate effort)
 - Follow obvious typing patterns from existing code
 
 **Not your responsibility:**
+
 - Running `just check` or `just lint`
 - Fixing lint or type errors
 - Debugging mypy failures
@@ -168,6 +177,7 @@ When a file approaches 300 lines, proactively plan to split it before continuing
 ### Task Runner
 
 Use `justfile` role recipes for development:
+
 ```bash
 just role-code            # Run tests only
 just role-code tests/     # Run tests in directory

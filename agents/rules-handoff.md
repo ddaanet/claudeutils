@@ -21,6 +21,7 @@ This skill can be loaded by any agent role when ending a session.
 ### Completion File Structure
 
 Each `STEP#_COMPLETION.md` serves dual purpose:
+
 - **Completion notes:** What was implemented, test results, design decisions
 - **Handoff info:** Current status, next steps, file locations, blockers
 
@@ -33,17 +34,20 @@ Each `STEP#_COMPLETION.md` serves dual purpose:
 **Documentation should not duplicate dynamic state.**
 
 Instead of maintaining counts in markdown:
+
 - Run `just test` to see current test status
 - Use git commands to check file modifications
 - Let tools provide live information
 
 What to document:
+
 - Design decisions and rationale
 - User feedback and preferences
 - Blockers or questions for next session
 - References to specific code locations
 
 What NOT to document:
+
 - Test counts (use `just test`)
 - File lists (use `ls` or `git status`)
 - Implementation details visible in code

@@ -24,6 +24,7 @@ Plans must force incremental implementation. Each test should require exactly on
 Prefer testing normal cases first (non-empty output), then edge cases. Empty-input-returns-empty tests are usually unnecessary—this behavior emerges from loops. Only test empty input when it should be an error.
 
 **Example progression:**
+
 1. One matching item → `[path]` (requires: read file, check ID, collect)
 2. Multiple items, some match → `[path1, path2]` (requires: loop, filter)
 3. No matches → `[]` (no new code needed—validates filtering works)
@@ -33,6 +34,7 @@ Prefer testing normal cases first (non-empty output), then edge cases. Empty-inp
 ## Specification Format
 
 Code role agents need explicit scope boundaries. For each test, specify:
+
 - Given/When/Then with exact fixture data inline
 - What NEW code this test requires
 - What it does NOT require yet
@@ -65,12 +67,14 @@ Write sections in implementation order. Feature 1 is implemented first.
 Markdown is 34-38% more token-efficient than JSON. Code agents follow explicit structure better than prose.
 
 **Use:**
+
 - Numbered lists for sequential steps
 - Backticks for paths and commands: `` `src/auth.ts` ``
 - **Bold** for constraints: `**MUST**`, `**NEVER**`
 - Action verbs to start each step: Read, Add, Run, Extract
 
 **Omit:**
+
 - Rationale (decision already made)
 - Alternatives (planner chose)
 - Error handling logic (executor handles)
@@ -80,11 +84,13 @@ Markdown is 34-38% more token-efficient than JSON. Code agents follow explicit s
 
 ```markdown
 # ❌ Verbose
+
 - **Tool**: read_file
 - **Input**: src/auth.ts
 - **Reasoning**: We need to understand the current implementation
 
 # ✅ Compact
+
 1. Read `src/auth.ts` → $auth_code
 ```
 

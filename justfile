@@ -53,15 +53,21 @@ format:
     #!/usr/bin/env bash -euo pipefail
     tmpfile=$(mktemp tmp-fmt-XXXXXX)
     trap "rm $tmpfile" EXIT
-    uv run ruff check -q --fix-only --diff | patch >> "$tmpfile" || true
-    uv run ruff format -q --diff | patch >> "$tmpfile" || true
+    patch-and-print() {
+        patch "$@" | sed -Ene "/^patching file '/s/^[^']+'([^']+)'/  - \\1/p"
+    }
+    uv run ruff check -q --fix-only --diff | patch-and-print >> "$tmpfile" || true
+    uv run ruff format -q --diff | patch-and-print >> "$tmpfile" || true
     # docformatter --diff applies the change *and* outputs the diff, so we need to
     # reverse the patch (-R) and dry run (-C), and it prefixes the path with before and
     # after (-p1 ignores the first component of the path). Hence `patch -RCp1`.
-    docformatter --diff src tests | patch -RCp1 >> "$tmpfile" || true
-    modified=$(
-        sed -Ene "/^patching file '/s/^[^']+'([^']+)'/  - \\1/p" < "$tmpfile" \
-        | sort --unique)
+    docformatter --diff src tests | patch-and-print -RCp1 >> "$tmpfile" || true
+
+    git ls-files | grep '\.md$' | grep -v '/TEST_DATA\.md$' \
+    | uv run scripts/fix_markdown_structure.py >> "$tmpfile"
+    dprint -c .dprint.json check --list-different >> "$tmpfile" || true
+    dprint -c .dprint.json fmt -L warn >> "$tmpfile"
+    modified=$(sort --unique < "$tmpfile")
     bold=$'\033[1m'; nobold=$'\033[22m'
     red=$'\033[31m'; resetfg=$'\033[39m'
     if [ -n "$modified" ] ; then
