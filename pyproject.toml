@@ -92,4 +92,4 @@ disallow_incomplete_defs = false
 
 [tool.pytest.ini_options]
 strict = true
-addopts = "--quiet --no-header --tb=short"
+addopts = "--no-header --tb=short"

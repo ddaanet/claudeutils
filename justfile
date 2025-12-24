@@ -3,45 +3,49 @@
 help:
     @uv run just --list --unsorted
 
-# Run all checks (format, check, test)
+# Run all checks (format, check, test, line-limits)
+[no-exit-message]
 dev: format check test line-limits
 
 # Run tests quietly
+[no-exit-message]
 test *ARGS:
-    uv run pytest {{ ARGS }}
+    uv run pytest -q {{ ARGS }}
 
 # Format, check with complexity disabled, test
+[no-exit-message]
 lint: format
     uv run ruff check -q --ignore=C901
     docformatter -c src tests
     uv run mypy
-    uv run pytest
+    uv run pytest -q
 
 # Check code style
+[no-exit-message]
 check:
     uv run ruff check -q
     docformatter -c src tests
     uv run mypy
 
 # Check file line limits
+[no-exit-message]
 line-limits:
     ./scripts/check_line_limits.sh
 
 # Role: code - verify tests pass
 [group('roles')]
+[no-exit-message]
 role-code *ARGS:
     uv run pytest {{ ARGS }}
 
 # Role: lint - format and verify all checks pass (no complexity)
 [group('roles')]
-role-lint: format
-    uv run ruff check -q --ignore=C901
-    docformatter -c src tests
-    uv run mypy
-    uv run pytest
+[no-exit-message]
+role-lint: lint
 
 # Role: refactor - full development cycle
 [group('roles')]
+[no-exit-message]
 role-refactor: dev
 
 # Format code
