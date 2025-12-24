@@ -58,8 +58,8 @@ Each function gets 4 test cases:
 
 **`test_fix_dunder_references()`:**
 
-1. Existing: `## Minimal __init__.py` → `## Minimal \`__init__.py\``
-2. Single: `# __name__` → `# \`__name__\``
+1. Existing: `## Minimal __init__.py` → `` ## Minimal `__init__.py` ``
+2. Single: `# __name__` → `` # `__name__` ``
 3. Mixed: heading with dunder + non-heading line (only heading changes)
 4. Idempotent: already backticked input returns unchanged
 
