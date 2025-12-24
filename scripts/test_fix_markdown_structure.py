@@ -55,6 +55,29 @@ def test_fix_metadata_blocks_single() -> None:
     assert fix_metadata_blocks(input_lines) == input_lines
 
 
+def test_fix_metadata_blocks_first_prompt() -> None:
+    """Test design document first prompt metadata block formatting."""
+    input_lines = [
+        "# Design Document\n",
+        "\n",
+        "**Status**: Design complete, awaiting implementation planning\n",
+        "**Last Updated**: 2025-12-21\n",
+        "**Design Authority**: Opus (claude-opus-4-5-20251101)\n",
+        "\n",
+        "---\n",
+    ]
+    expected_lines = [
+        "# Design Document\n",
+        "\n",
+        "- **Status**: Design complete, awaiting implementation planning\n",
+        "- **Last Updated**: 2025-12-21\n",
+        "- **Design Authority**: Opus (claude-opus-4-5-20251101)\n",
+        "\n",
+        "---\n",
+    ]
+    assert fix_metadata_blocks(input_lines) == expected_lines
+
+
 def test_fix_metadata_blocks_mixed() -> None:
     input_lines = [
         "Some text\n",
@@ -127,6 +150,20 @@ def test_fix_warning_lines_idempotent() -> None:
     assert fix_warning_lines(input_lines) == input_lines
 
 
+def test_fix_warning_lines_options() -> None:
+    input_lines = [
+        "Option A: Refactor ...\n",
+        "Option B: Code ...\n",
+        "Option C: New ...\n",
+    ]
+    expected_lines = [
+        "- Option A: Refactor ...\n",
+        "- Option B: Code ...\n",
+        "- Option C: New ...\n",
+    ]
+    assert fix_warning_lines(input_lines) == expected_lines
+
+
 def test_fix_nested_lists_existing() -> None:
     input_lines = ["2. Parent:\n", "   a. Child 1\n", "   b. Child 2\n"]
     expected_lines = ["2. Parent:\n", "   1. Child 1\n", "   2. Child 2\n"]
@@ -173,14 +210,6 @@ def test_fix_numbered_list_spacing_existing() -> None:
     assert fix_numbered_list_spacing(input_lines) == expected_lines
 
 
-def test_fix_numbered_list_spacing_mixed() -> None:
-    input_lines = [
-        "**Phase:**\n",
-        "Some text here\n",
-    ]
-    assert fix_numbered_list_spacing(input_lines) == input_lines
-
-
 def test_fix_numbered_list_spacing_idempotent() -> None:
     input_lines = [
         "**Execution phase:**\n",
@@ -217,5 +246,48 @@ def test_process_lines_integration() -> None:
         "**Phase:**\n",
         "\n",
         "1. Execute\n",
+    ]
+    assert process_lines(input_lines) == expected_lines
+
+
+def test_process_lines_workflow_example() -> None:
+    """Real world example: workflow with nested lists and stop instructions."""
+    input_lines = [
+        "**Workflow:**\n",
+        "1. Read plan\n",
+        "2. For each test:\n",
+        "   a. Write\n",
+        "   e. Refactor\n",
+        "3. At checkpoint:\n",
+        "   - Run `just role-code`\n",
+        "   - STOP\n",
+    ]
+    expected_lines = [
+        "**Workflow:**\n",
+        "\n",
+        "1. Read plan\n",
+        "2. For each test:\n",
+        "   1. Write\n",
+        "   5. Refactor\n",
+        "3. At checkpoint:\n",
+        "   - Run `just role-code`\n",
+        "   - STOP\n",
+    ]
+    assert process_lines(input_lines) == expected_lines
+
+
+def test_process_lines_plan_conflict_example() -> None:
+    """Real world example: plan conflict handling with numbered list."""
+    input_lines = [
+        "**Plan Conflict Handling (New):**\n",
+        "If plan instructs you to run a conflicting command:\n",
+        "1. Do not execute it\n",
+    ]
+    expected_lines = [
+        "**Plan Conflict Handling (New):**\n",
+        "\n",
+        "If plan instructs you to run a conflicting command:\n",
+        "\n",
+        "1. Do not execute it\n",
     ]
     assert process_lines(input_lines) == expected_lines

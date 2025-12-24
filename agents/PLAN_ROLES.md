@@ -141,6 +141,7 @@ The agent system has been refactored from skill-based (occupation-focused) to ro
 - Files must stay under 400 lines (split proactively at 300)
 
 **Plan Conflict Handling (New):**
+
 If plan instructs you to run a conflicting command:
 
 1. Do not execute it
@@ -299,6 +300,7 @@ The `--ignore=C901` flag disables complexity checks, which are deferred to refac
 - If step is ambiguous, stop and request clarification
 
 **Lint Issues During Execution:**
+
 If `just role-code` passes but you notice lint issues:
 
 - Simple fixes (line length, whitespace) → fix inline
@@ -506,9 +508,9 @@ Solution: Lint recipe disables C901 via `--ignore=C901`. Complexity issues are:
 
 When refactor role plans changes, who executes them?
 
-Option A: Refactor role executes itself → violates "do not execute"
-Option B: Code role executes → but code role does TDD, not following a plan
-Option C: New role (execute) follows plans without judgment → clean separation
+- Option A: Refactor role executes itself → violates "do not execute"
+- Option B: Code role executes → but code role does TDD, not following a plan
+- Option C: New role (execute) follows plans without judgment → clean separation
 
 Chose C: Execute role is haiku agent that follows refactor plans exactly, without TDD.
 
@@ -564,6 +566,7 @@ In code role: Add plan conflict detection:
 
 ```
 If plan says "run X" and X is prohibited by this role:
+
   1. Report conflict
   2. Stop and await guidance
   3. (Do not execute X)

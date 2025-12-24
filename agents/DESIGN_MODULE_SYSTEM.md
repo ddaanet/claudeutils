@@ -1,8 +1,8 @@
 # Module System Design Document
 
-**Status**: Design complete, awaiting implementation planning
-**Last Updated**: 2025-12-21
-**Design Authority**: Opus (claude-opus-4-5-20251101)
+- **Status**: Design complete, awaiting implementation planning
+- **Last Updated**: 2025-12-21
+- **Design Authority**: Opus (claude-opus-4-5-20251101)
 
 ---
 
@@ -306,10 +306,7 @@ weak_expansion_notes: |
 
 ## Semantic Intent
 
-Agent must follow plan checkpoints exactly. Each checkpoint represents
-a stopping point for verification. Agent must not proceed past checkpoint
-without explicit instruction. Checkpoints may contain tool restrictions
-or output requirements.
+Agent must follow plan checkpoints exactly. Each checkpoint represents a stopping point for verification. Agent must not proceed past checkpoint without explicit instruction. Checkpoints may contain tool restrictions or output requirements.
 
 ## Key Behaviors
 

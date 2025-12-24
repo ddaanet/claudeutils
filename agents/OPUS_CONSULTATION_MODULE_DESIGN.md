@@ -1,7 +1,7 @@
 # Module System Design Consultation
 
-**Audience**: Sonnet agent executing this consultation
-**Output optimization**: Compact presentation. Include design decisions and rationale, avoid unnecessary details. Simple formatting, no ASCII art.
+- **Audience**: Sonnet agent executing this consultation
+- **Output optimization**: Compact presentation. Include design decisions and rationale, avoid unnecessary details. Simple formatting, no ASCII art.
 
 ## Verified Research
 

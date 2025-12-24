@@ -15,18 +15,20 @@ def fix_dunder_references(line: str) -> str:
 
 
 def fix_metadata_blocks(lines: list[str]) -> list[str]:
-    """Convert consecutive **Label:** value lines to list items."""
+    """Convert consecutive **Label:** or **Label**: value lines to list items."""
     result = []
     i = 0
+    # Match both **Label:** and **Label**: patterns
+    pattern = r"^\*\*[A-Za-z][^*]+:\*\* |^\*\*[A-Za-z][^*]+\*\*: "
     while i < len(lines):
         line = lines[i]
-        if re.match(r"^\*\*[A-Za-z][^*]+:\*\*", line.strip()):
+        if re.match(pattern, line.strip()):
             metadata_lines = [line]
             j = i + 1
             found_blank = False
             while j < len(lines):
                 next_line = lines[j]
-                if re.match(r"^\*\*[A-Za-z][^*]+:\*\*", next_line.strip()):
+                if re.match(pattern, next_line.strip()):
                     metadata_lines.append(next_line)
                     j += 1
                 elif next_line.strip() == "":
@@ -54,26 +56,54 @@ def fix_metadata_blocks(lines: list[str]) -> list[str]:
 def fix_numbered_list_spacing(lines: list[str]) -> list[str]:
     """Ensure lists after **Label:** have blank line before them."""
     result = []
+    numbered_list_pattern = r"^[0-9]+\. \S"
+    bullet_list_pattern = r"^[*+-] \S"
+
     for i, line in enumerate(lines):
-        result.append(line)
-        if re.match(r"^\*\*[^*]+:\*\*\s*$", line.strip()):
-            if i + 1 < len(lines):
-                next_line = lines[i + 1].strip()
-                if re.match(r"^(?:[0-9]+\.|[*+-]) \S", next_line):
+        # Add blank line before top-level numbered lists
+        # Skip if previous line is already blank or is a bullet/numbered list
+        if (
+            i > 0
+            and re.match(numbered_list_pattern, line.strip())
+            and not line.startswith("   ")
+        ):
+            prev_line_idx = len(result) - 1
+            if prev_line_idx >= 0:
+                prev = result[prev_line_idx].strip()
+                # Add blank only if prev is not blank, not a list item, not **Label:**
+                if (
+                    prev != ""
+                    and not re.match(numbered_list_pattern, prev)
+                    and not re.match(bullet_list_pattern, prev)
+                    and not re.match(r"^\*\*[^*]+:\*\*\s*$", prev)
+                ):
                     result.append("\n")
+
+        result.append(line)
+
+        # Add blank line after **Label:**
+        if re.match(r"^\*\*[^*]+:\*\*\s*$", line.strip()):
+            if i + 1 < len(lines) and lines[i + 1].strip() != "":
+                result.append("\n")
     return result
 
 
 def fix_warning_lines(lines: list[str]) -> list[str]:
-    """Convert consecutive ⚠️ lines to list items."""
+    """Convert consecutive ⚠️ or Option X: lines to list items."""
     result = []
     i = 0
+    option_pattern = r"^Option [A-Z]: "
+
+    def is_listable_line(line: str) -> bool:
+        stripped = line.strip()
+        return stripped.startswith("⚠️ ") or bool(re.match(option_pattern, stripped))
+
     while i < len(lines):
         line = lines[i]
-        if line.strip().startswith("⚠️"):
+        if is_listable_line(line):
             warning_lines = [line]
             j = i + 1
-            while j < len(lines) and lines[j].strip().startswith("⚠️"):
+            while j < len(lines) and is_listable_line(lines[j]):
                 warning_lines.append(lines[j])
                 j += 1
             if len(warning_lines) >= 2:

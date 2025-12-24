@@ -54,7 +54,7 @@ format:
     tmpfile=$(mktemp tmp-fmt-XXXXXX)
     trap "rm $tmpfile" EXIT
     patch-and-print() {
-        patch "$@" | sed -Ene "/^patching file '/s/^[^']+'([^']+)'/  - \\1/p"
+        patch "$@" | sed -Ene "/^patching file '/s/^[^']+'([^']+)'/\\1/p"
     }
     uv run ruff check -q --fix-only --diff | patch-and-print >> "$tmpfile" || true
     uv run ruff format -q --diff | patch-and-print >> "$tmpfile" || true
@@ -65,12 +65,13 @@ format:
 
     git ls-files | grep '\.md$' | grep -v '/TEST_DATA\.md$' \
     | uv run scripts/fix_markdown_structure.py >> "$tmpfile"
-    dprint -c .dprint.json check --list-different >> "$tmpfile" || true
-    dprint -c .dprint.json fmt -L warn >> "$tmpfile"
+    dprint -c .dprint.json check --list-different \
+    | sed "s|^$(pwd)/||g" >> "$tmpfile" || true
+    dprint -c .dprint.json fmt -L warn
     modified=$(sort --unique < "$tmpfile")
-    bold=$'\033[1m'; nobold=$'\033[22m'
-    red=$'\033[31m'; resetfg=$'\033[39m'
     if [ -n "$modified" ] ; then
-        echo "$bold${red}Reformatted files:$nobold$resetfg"
-        echo "$modified"
+        bold=$'\033[1m'; nobold=$'\033[22m'
+        red=$'\033[31m'; resetfg=$'\033[39m'
+        echo "${bold}${red}**Reformatted files:**"
+        echo "$modified" | sed "s|^|${bold}${red}  - ${nobold}${resetfg}|"
     fi
