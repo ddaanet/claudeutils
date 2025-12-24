@@ -11,13 +11,16 @@ description: TDD implementation via code role
 
 ## Plan Adherence (Critical)
 
-Follow the plan in `agents/PLAN*.md` exactly. Do not improvise your own approach, create alternative task breakdowns, or reorder features. The plan specifies implementation order, test specifications, and fixture data - execute it as written.
+Follow the plan in `agents/PLAN*.md` exactly. Do not improvise your own approach, create
+alternative task breakdowns, or reorder features. The plan specifies implementation
+order, test specifications, and fixture data - execute it as written.
 
 ---
 
 ## Plan Conflicts (Critical)
 
-If a plan file instructs you to run a command or take an action that this role prohibits:
+If a plan file instructs you to run a command or take an action that this role
+prohibits:
 
 1. **Do not execute the conflicting instruction**
 2. Report: "Plan conflict detected: [plan instruction] contradicts [role rule]"
@@ -29,13 +32,15 @@ Plans define task steps. Roles define behavioral constraints. Roles take precede
 
 ## Plan Bugs (Critical)
 
-If a plan instructs you to run a command this role prohibits (e.g., `just check`, `just lint`):
+If a plan instructs you to run a command this role prohibits (e.g., `just check`,
+`just lint`):
 
 1. **Do not execute the instruction**
 2. Report: "Plan bug: [instruction] violates role-code constraint [rule]"
 3. **Stop and await user guidance**
 
-This is a bug in the plan, not an ambiguity. Plans are written by other agents and may contain errors.
+This is a bug in the plan, not an ambiguity. Plans are written by other agents and may
+contain errors.
 
 ---
 
@@ -54,19 +59,22 @@ This is a bug in the plan, not an ambiguity. Plans are written by other agents a
 
 ### Red-Green-Refactor Cycle (MANDATORY)
 
-**Critical:** Always follow Red-Green-Refactor cycle. The RED phase is mandatory and must not be skipped.
+**Critical:** Always follow Red-Green-Refactor cycle. The RED phase is mandatory and
+must not be skipped.
 
 #### Each Test-Implement Cycle (must follow exactly):
 
 1. **Write ONE test** - Add exactly one new test case
 2. **Run test and VERIFY it FAILS (Red)** - This step is MANDATORY
    - Run `just role-code` or the specific test
-   - Confirm the test fails for the EXPECTED reason (assertion fails, not import/syntax error)
+   - Confirm the test fails for the EXPECTED reason (assertion fails, not import/syntax
+     error)
    - If test passes unexpectedly, the test may be wrong or implementation already exists
 3. **Write minimal code to make it PASS (Green)**
    - Only add code needed to pass THIS test
    - Do not anticipate future tests
-   - If Test 1 requires finding items and Test 2 requires filtering, Test 1's implementation should NOT include filtering
+   - If Test 1 requires finding items and Test 2 requires filtering, Test 1's
+     implementation should NOT include filtering
 4. **Run test again and confirm it PASSES**
 5. **Refactor if needed** (optional)
 6. **Repeat** with next test until reaching a validation checkpoint
@@ -79,7 +87,8 @@ Skipping the RED phase defeats the purpose of TDD:
 - It confirms the test fails for the right reason
 - It proves your implementation caused the test to pass
 
-**Unexpected success is an error.** If a new test passes without writing new code, you have over-implemented. This means:
+**Unexpected success is an error.** If a new test passes without writing new code, you
+have over-implemented. This means:
 
 - You wrote more than the minimal code needed for the previous test
 - The test may not be testing what you think it's testing
@@ -119,7 +128,8 @@ At each CHECKPOINT in the plan:
 
 ### Do NOT Run Just Check (Critical)
 
-⚠️ **Do NOT run `just check`, `just lint`, or any linting command.** The lint role handles this in a separate session.
+⚠️ **Do NOT run `just check`, `just lint`, or any linting command.** The lint role
+handles this in a separate session.
 
 **Your responsibility:**
 
@@ -140,7 +150,8 @@ Source files that exceed these limits block forward progress:
 - **SHOULD NOT** exceed 300 lines per file
 - **MUST NOT** exceed 400 lines per file
 
-When a file approaches 300 lines, proactively plan to split it before continuing implementation.
+When a file approaches 300 lines, proactively plan to split it before continuing
+implementation.
 
 ---
 
@@ -158,9 +169,12 @@ When a file approaches 300 lines, proactively plan to split it before continuing
 - All tests in `tests/` directory
 - Use proper pytest parametrization for similar test cases
 - Test names should clearly describe what they verify
-- **Compare objects directly:** Prefer `assert result == expected_obj` over individual members
-- **Factor common code:** Extract repeated test setup into plain helper functions (not fixtures)
-- **Keep tests concise:** Pytest expands assert values; use natural loops with one assert
+- **Compare objects directly:** Prefer `assert result == expected_obj` over individual
+  members
+- **Factor common code:** Extract repeated test setup into plain helper functions (not
+  fixtures)
+- **Keep tests concise:** Pytest expands assert values; use natural loops with one
+  assert
 - **Fixture return types:** Use direct tuple, not Generator
 
 ---

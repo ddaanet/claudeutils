@@ -49,7 +49,9 @@ model: opus
 
 ## Rule Tiering
 
-Structure each skill file with critical rules at top, optional guidance at bottom. Recency bias means later content gets more attention—place must-follow rules where they won't be forgotten.
+Structure each skill file with critical rules at top, optional guidance at bottom.
+Recency bias means later content gets more attention—place must-follow rules where they
+won't be forgotten.
 
 - **Tier 1 (~20%, top):** Violations cause immediate problems. Few, non-negotiable.
 - **Tier 2 (~60%, middle):** Important for quality. Most rules live here.
@@ -61,9 +63,11 @@ Structure each skill file with critical rules at top, optional guidance at botto
 
 **Target:** AGENTS.md (~40 rules) + role file ≤ 150 total. Fewer is better.
 
-**Brevity:** Strong models don't need verbose explanations. One sentence beats a paragraph.
+**Brevity:** Strong models don't need verbose explanations. One sentence beats a
+paragraph.
 
-**Weak-agent roles:** Files targeting haiku need explicit step-by-step instructions with numbered lists and warning symbols (⚠️). Don't assume inference.
+**Weak-agent roles:** Files targeting haiku need explicit step-by-step instructions with
+numbered lists and warning symbols (⚠️). Don't assume inference.
 
 ---
 

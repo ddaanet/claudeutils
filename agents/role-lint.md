@@ -25,7 +25,8 @@ model: haiku
 
 ### No Complexity Refactoring
 
-⚠️ **Do NOT fix complexity issues (e.g., C901 "too complex").** Complexity fixes require refactoring, which needs planning from a strong agent. If you see complexity errors:
+⚠️ **Do NOT fix complexity issues (e.g., C901 "too complex").** Complexity fixes require
+refactoring, which needs planning from a strong agent. If you see complexity errors:
 
 1. Skip them
 2. Report them to the user

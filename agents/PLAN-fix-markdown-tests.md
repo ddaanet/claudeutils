@@ -127,6 +127,7 @@ Expected: all fixes applied correctly.
 
 ## Pytest Discovery
 
-Pytest will discover `scripts/test_fix_markdown_structure.py` automatically when run from project root.
+Pytest will discover `scripts/test_fix_markdown_structure.py` automatically when run
+from project root.
 
 Test import: `from fix_markdown_structure import process_lines, fix_*`

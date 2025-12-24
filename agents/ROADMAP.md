@@ -33,7 +33,8 @@ Future enhancement ideas for claudeutils.
 - Key assistant outputs
 - Timeline of interactions
 
-**Use case:** Analyze whether agents followed expected workflows, identify deviations from standard procedures.
+**Use case:** Analyze whether agents followed expected workflows, identify deviations
+from standard procedures.
 
 ## Additional Output Formats
 

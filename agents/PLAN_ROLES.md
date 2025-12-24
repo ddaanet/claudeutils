@@ -8,9 +8,13 @@
 
 ## Executive Summary
 
-The agent system has been refactored from skill-based (occupation-focused) to role-based (behavior-mode focused). This document describes the complete architecture, decision rationale, and operational model.
+The agent system has been refactored from skill-based (occupation-focused) to role-based
+(behavior-mode focused). This document describes the complete architecture, decision
+rationale, and operational model.
 
-**Key Change:** Plans can now explicitly conflict with code role constraints. These conflicts are caught and reported by the code agent rather than silently violated. This prevents compliance failures and improves transparency.
+**Key Change:** Plans can now explicitly conflict with code role constraints. These
+conflicts are caught and reported by the code agent rather than silently violated. This
+prevents compliance failures and improves transparency.
 
 ---
 
@@ -69,7 +73,8 @@ The agent system has been refactored from skill-based (occupation-focused) to ro
 - **Model:** Opus or Sonnet
 - **Entry Point:** User requests feature design or sprint planning
 
-**Purpose:** Design test specifications and implementation order for other agents to execute.
+**Purpose:** Design test specifications and implementation order for other agents to
+execute.
 
 **Preconditions:**
 
@@ -109,7 +114,8 @@ The agent system has been refactored from skill-based (occupation-focused) to ro
 - **Model:** Haiku
 - **Entry Point:** User says "continue" at planning checkpoint
 
-**Purpose:** Implement code using Test-Driven Development (TDD). Execute plan exactly as written.
+**Purpose:** Implement code using Test-Driven Development (TDD). Execute plan exactly as
+written.
 
 **Preconditions:**
 
@@ -201,7 +207,8 @@ just lint:
   uv run pytest                           # Verify tests still pass
 ```
 
-The `--ignore=C901` flag disables complexity checks, which are deferred to refactor role.
+The `--ignore=C901` flag disables complexity checks, which are deferred to refactor
+role.
 
 **Success Criteria:**
 
@@ -228,7 +235,8 @@ The `--ignore=C901` flag disables complexity checks, which are deferred to refac
 
 **Workflow:**
 
-1. Analyze codebase for refactoring opportunities (complexity, duplication, maintainability)
+1. Analyze codebase for refactoring opportunities (complexity, duplication,
+   maintainability)
 2. Plan specific changes with clear, atomic steps
 3. For each step:
    - Specify exact file and change needed
@@ -340,7 +348,8 @@ If `just role-code` passes but you notice lint issues:
 1. Identify pattern (repeated violation, workflow gap, or improvement)
 2. Decide: Which file needs updating?
 3. Update with precision and examples
-4. Tier new rules: Tier 1 (top, critical) → Tier 2 (middle) → Tier 3 (bottom, edge cases)
+4. Tier new rules: Tier 1 (top, critical) → Tier 2 (middle) → Tier 3 (bottom, edge
+   cases)
 
 **Rule Budgeting:**
 
@@ -470,11 +479,14 @@ Done: Bug fixed and tested
 
 Old system: Skills were occupation-focused (planner, coder, linter).
 
-Problem: Code role ran `just check` after implementing, violating its own constraints. Plans could contradict role rules without detection.
+Problem: Code role ran `just check` after implementing, violating its own constraints.
+Plans could contradict role rules without detection.
 
-New system: Roles are behavior-mode focused (what the agent does, what it never does, what output it produces).
+New system: Roles are behavior-mode focused (what the agent does, what it never does,
+what output it produces).
 
-Result: Code role now detects plan conflicts and reports them instead of silently violating constraints.
+Result: Code role now detects plan conflicts and reports them instead of silently
+violating constraints.
 
 ### Decision 2: Plan Conflicts Are Bugs, Not Ambiguities
 
@@ -493,7 +505,8 @@ User sees the conflict and can fix the plan.
 
 **Rationale:**
 
-Lint role (haiku) cannot refactor complex functions—it would violate "do not refactor beyond lint compliance."
+Lint role (haiku) cannot refactor complex functions—it would violate "do not refactor
+beyond lint compliance."
 
 Refactor role (sonnet) can plan and reason about complexity.
 
@@ -518,7 +531,8 @@ Chose C: Execute role is haiku agent that follows refactor plans exactly, withou
 
 **Rationale:**
 
-Documentation is not user-facing (README), task artifacts (PLAN.md), or implementation (code).
+Documentation is not user-facing (README), task artifacts (PLAN.md), or implementation
+(code).
 
 Separate role for documentation ensures:
 

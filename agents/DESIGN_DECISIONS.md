@@ -8,7 +8,8 @@ Key architectural and implementation decisions made during project development.
 
 **Decision:** Keep `src/claudeutils/__init__.py` empty (1 line)
 
-**Rationale:** Prefer explicit imports from specific modules over package-level re-exports for clarity
+**Rationale:** Prefer explicit imports from specific modules over package-level
+re-exports for clarity
 
 **Impact:** Users must import from specific modules:
 
@@ -20,15 +21,18 @@ from claudeutils.extraction import extract_feedback_recursively
 
 ### Private Helpers Stay With Callers
 
-**Decision:** `_extract_feedback_from_file()` in `parsing.py`, `_process_agent_file()` in `discovery.py`
+**Decision:** `_extract_feedback_from_file()` in `parsing.py`, `_process_agent_file()`
+in `discovery.py`
 
-**Rationale:** Keep helpers close to their callers for cohesion; extract only when complexity exceeds limits
+**Rationale:** Keep helpers close to their callers for cohesion; extract only when
+complexity exceeds limits
 
 **Impact:** Clear module boundaries, easier to understand data flow
 
 ### Module Split Pattern
 
-**Decision:** Split large files by functional responsibility (models, paths, parsing, discovery, extraction, cli)
+**Decision:** Split large files by functional responsibility (models, paths, parsing,
+discovery, extraction, cli)
 
 **Rationale:** Maintain 400-line limit while preserving logical grouping
 
@@ -38,7 +42,8 @@ from claudeutils.extraction import extract_feedback_recursively
 
 ### Path Encoding Algorithm
 
-**Decision:** Simple `/` → `-` character replacement with special root handling (`"/"` → `"-"`)
+**Decision:** Simple `/` → `-` character replacement with special root handling (`"/"` →
+`"-"`)
 
 **Rationale:** Matches Claude Code's actual encoding; simple and reversible
 
@@ -91,13 +96,15 @@ from claudeutils.extraction import extract_feedback_recursively
 
 **Rationale:** O(1) set lookup, case-insensitive exact matching only
 
-**Keywords:** `{"y", "n", "k", "g", "ok", "go", "yes", "no", "continue", "proceed", "sure", "okay", "resume"}`
+**Keywords:**
+`{"y", "n", "k", "g", "ok", "go", "yes", "no", "continue", "proceed", "sure", "okay", "resume"}`
 
 ### Feedback Extraction Layering
 
 **Decision:** Type filter → error check → interruption check → trivial filter
 
-**Rationale:** Tool denials and interruptions take priority over trivial filtering to preserve important feedback
+**Rationale:** Tool denials and interruptions take priority over trivial filtering to
+preserve important feedback
 
 **Implementation:** `parsing.py:extract_feedback_from_entry()`
 
@@ -105,7 +112,8 @@ from claudeutils.extraction import extract_feedback_recursively
 
 ### UUID Session Pattern
 
-**Decision:** Validate session files with regex `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$`
+**Decision:** Validate session files with regex
+`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$`
 
 **Rationale:** Filter out agent files (agent-*.jsonl) and other non-session files
 
@@ -186,7 +194,8 @@ from claudeutils.extraction import extract_feedback_recursively
 
 ### Error Output Pattern
 
-**Decision:** Print errors to stderr using `print(..., file=sys.stderr)` before `sys.exit(1)`
+**Decision:** Print errors to stderr using `print(..., file=sys.stderr)` before
+`sys.exit(1)`
 
 **Rationale:** Standard Unix convention - errors to stderr, data to stdout
 
@@ -197,9 +206,11 @@ from claudeutils.extraction import extract_feedback_recursively
 
 ### Entry Point Configuration
 
-**Decision:** Add `[project.scripts]` in pyproject.toml: `claudeutils = "claudeutils.cli:main"`
+**Decision:** Add `[project.scripts]` in pyproject.toml:
+`claudeutils = "claudeutils.cli:main"`
 
-**Rationale:** Simpler invocation (`uv run claudeutils list` vs `uv run python -m claudeutils.cli list`)
+**Rationale:** Simpler invocation (`uv run claudeutils list` vs
+`uv run python -m claudeutils.cli list`)
 
 **Impact:** Direct command usage after install
 
@@ -207,7 +218,8 @@ from claudeutils.extraction import extract_feedback_recursively
 
 ### Test Module Split Strategy
 
-**Decision:** Split test files to mirror source module structure + separate CLI test modules by subcommand
+**Decision:** Split test files to mirror source module structure + separate CLI test
+modules by subcommand
 
 **Structure:**
 
@@ -241,7 +253,8 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 **Rationale:** Python imports create references in the importing module's namespace
 
-**Applied:** Mock patches target `claudeutils.discovery.*` and `claudeutils.extraction.*` for functions used in those modules
+**Applied:** Mock patches target `claudeutils.discovery.*` and
+`claudeutils.extraction.*` for functions used in those modules
 
 ## Data Models
 
@@ -277,7 +290,8 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 - `_extract_feedback_from_file()` extracted from main extraction logic
 - `_process_agent_file()` extracted to handle agent file processing
 
-**Rationale:** Ruff/pylint complexity checks enforced at build time; refactor rather than suppress
+**Rationale:** Ruff/pylint complexity checks enforced at build time; refactor rather
+than suppress
 
 ### No Suppression Shortcuts
 
@@ -305,7 +319,8 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 **Decision:** Three-stage pipeline: `collect` → `analyze` → `rules`
 
-**Rationale:** Mirrors the exploratory workflow in tmp-\* scripts; each stage builds on previous output
+**Rationale:** Mirrors the exploratory workflow in tmp-\* scripts; each stage builds on
+previous output
 
 **Data flow:**
 
@@ -315,7 +330,8 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 ### Filtering Module as Foundation
 
-**Decision:** Create `filtering.py` module with reusable `is_noise()` and `categorize_feedback()` functions
+**Decision:** Create `filtering.py` module with reusable `is_noise()` and
+`categorize_feedback()` functions
 
 **Rationale:** Both `analyze` and `rules` need noise filtering; DRY principle
 
@@ -327,7 +343,8 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 **Markers (return True if present):**
 
-- Command outputs: `<command-name>`, `<bash-stdout>`, `<bash-input>`, `<local-command-stdout>`
+- Command outputs: `<command-name>`, `<bash-stdout>`, `<bash-input>`,
+  `<local-command-stdout>`
 - System messages: `Caveat:`, `Warmup`, `<tool_use_error>`
 - Error outputs: `Exit code`, `error: Recipe`
 
@@ -350,13 +367,15 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 | preferences  | prefer, i want, make sure, ensure        |
 | other        | (default)                                |
 
-**Rationale:** Simple O(1) keyword matching; categories derived from feedback summary analysis
+**Rationale:** Simple O(1) keyword matching; categories derived from feedback summary
+analysis
 
 ### Deduplication Strategy
 
 **Decision:** First 100 characters as dedup key, case-insensitive
 
-**Rationale:** Handles repeated feedback across sessions; 100 chars captures intent while allowing variation in endings
+**Rationale:** Handles repeated feedback across sessions; 100 chars captures intent
+while allowing variation in endings
 
 **Implementation:** Track seen prefixes in set; skip items with already-seen prefix
 
@@ -378,4 +397,5 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 - Skip long items: > 1000 characters (too context-specific)
 - Higher min length: 20 chars (vs 10 for analyze)
 
-**Rationale:** Rule extraction needs higher signal-to-noise; context-specific feedback isn't generalizable
+**Rationale:** Rule extraction needs higher signal-to-noise; context-specific feedback
+isn't generalizable

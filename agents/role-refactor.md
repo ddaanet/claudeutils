@@ -6,7 +6,8 @@ model: sonnet
 
 # Refactor Role
 
-**Purpose:** Analyze codebase and plan refactoring changes for handoff to an execution agent.
+**Purpose:** Analyze codebase and plan refactoring changes for handoff to an execution
+agent.
 
 **Preconditions:** Tests and lint checks pass (`just dev` succeeds).
 

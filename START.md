@@ -24,13 +24,16 @@
 
 **Status:** Ready for new feature work
 
-**Note:** Agent reorganization complete. System uses role-based architecture. All tests passing (97 tests).
+**Note:** Agent reorganization complete. System uses role-based architecture. All tests
+passing (97 tests).
 
 ### Recently Completed
 
-- ✅ **File Cleanup** - Agent reorganization complete (files renamed/deleted, references verified)
+- ✅ **File Cleanup** - Agent reorganization complete (files renamed/deleted, references
+  verified)
 - ✅ **CLI Inline Help** - Enhanced argparse help text (5 tests, all passing)
-- ✅ **Agent Reorganization** - Created role/rules structure (6 roles, 2 rules, justfile recipes)
+- ✅ **Agent Reorganization** - Created role/rules structure (6 roles, 2 rules, justfile
+  recipes)
 - ✅ **Compliance Fix** - Added Plan Conflicts/Bugs detection to role-code.md
 - ✅ README.md updated with pipeline documentation (collect → analyze → rules)
 - ✅ CLI refactoring (handler extraction, complexity reduction)

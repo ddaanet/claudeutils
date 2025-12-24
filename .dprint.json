@@ -1,7 +1,7 @@
 {
   "markdown": {
     "lineWidth": 88,
-    "textWrap": "maintain",
+    "textWrap": "always",
     "emphasisKind": "asterisks"
   },
   "excludes": [

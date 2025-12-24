@@ -2,14 +2,16 @@
 
 ## Project Overview
 
-**Goal:** Extract user feedback from Claude Code conversation history for retrospective analysis.
+**Goal:** Extract user feedback from Claude Code conversation history for retrospective
+analysis.
 
 **Architecture:** Python CLI tool with two subcommands:
 
 1. `list` - Show top-level conversation sessions with titles
 2. `extract` - Extract user feedback recursively from a session
 
-**Implementation Approach:** Test-Driven Development (TDD) with pytest, implemented in discrete steps.
+**Implementation Approach:** Test-Driven Development (TDD) with pytest, implemented in
+discrete steps.
 
 **Key Technologies:**
 
@@ -44,7 +46,8 @@ Roles define agent behavior modes. Rules apply during specific actions.
 | commit  | `agents/rules-commit.md`  | Before any `git commit` |
 | handoff | `agents/rules-handoff.md` | Before ending a session |
 
-**Loading:** Read the role file at session start. Read rule files before the triggering action.
+**Loading:** Read the role file at session start. Read rule files before the triggering
+action.
 
 ---
 
@@ -54,19 +57,24 @@ Roles define agent behavior modes. Rules apply during specific actions.
 
 #### Tier 1 - Critical (Always Follow)
 
-1. **Stop on unexpected results:** If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP and wait for guidance
-2. **Wait for explicit instruction:** Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
-3. **Request validation every 3 cycles:** After every three test-implement cycles, stop and request confirmation
+1. **Stop on unexpected results:** If something fails OR succeeds unexpectedly, describe
+   expected vs observed, then STOP and wait for guidance
+2. **Wait for explicit instruction:** Do NOT proceed with a plan or TodoWrite list
+   unless user explicitly says "continue" or equivalent
+3. **Request validation every 3 cycles:** After every three test-implement cycles, stop
+   and request confirmation
 
 #### Tier 2 - Important
 
-4. **Load skills proactively:** Read skill files before operations (e.g., read `agents/rules-commit.md` before `git commit`)
+4. **Load skills proactively:** Read skill files before operations (e.g., read
+   `agents/rules-commit.md` before `git commit`)
 5. **Stop at boundaries:** Complete assigned task then stop (no scope creep)
 6. **Be explicit:** Ask clarifying questions if requirements unclear
 
 ### Code Patterns
 
-See `agents/role-code.md` for TDD implementation rules and `agents/role-lint.md` for linting rules.
+See `agents/role-code.md` for TDD implementation rules and `agents/role-lint.md` for
+linting rules.
 
 ### Tool Batching
 
@@ -74,7 +82,8 @@ See `agents/role-code.md` for TDD implementation rules and `agents/role-lint.md`
 
 1. Identify ALL changes needed for the current task
 2. Group by file: same-file edits are sequential, different-file edits can be parallel
-3. For multi-edit files: list insertion points, plan bottom-to-top order (avoids line shifts)
+3. For multi-edit files: list insertion points, plan bottom-to-top order (avoids line
+   shifts)
 
 **Execution phase:**
 

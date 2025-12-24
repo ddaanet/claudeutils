@@ -64,7 +64,8 @@ uv run claudeutils collect | uv run claudeutils rules --input -
 
 Noise removed: command output, bash stdout, system messages, short messages (<10 chars)
 
-Rules command applies stricter filters: removes questions ("How..."), long items (>1000 chars), and deduplicates by content prefix.
+Rules command applies stricter filters: removes questions ("How..."), long items (>1000
+chars), and deduplicates by content prefix.
 
 ## Features
 
@@ -139,7 +140,8 @@ Built with Test-Driven Development (TDD) across 5 implementation steps:
 4. **Recursive sub-agent processing** - Handle nested agent sessions
 5. **CLI subcommands** - User-facing interface with argparse
 
-See `agents/DESIGN_DECISIONS.md` for architectural decisions and implementation patterns.
+See `agents/DESIGN_DECISIONS.md` for architectural decisions and implementation
+patterns.
 
 ## Documentation
 

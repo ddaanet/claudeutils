@@ -7,7 +7,8 @@ description: Git commit standards
 
 ## BEFORE STARTING (Mandatory)
 
-⚠️ **Do NOT use `/commit` or other built-in Claude Code skills.** Follow this file instead.
+⚠️ **Do NOT use `/commit` or other built-in Claude Code skills.** Follow this file
+instead.
 
 **If not already loaded, read this file using the Read tool:**
 
@@ -88,7 +89,8 @@ Implemented with strict TDD methodology following the red-green-refactor
 cycle. Thanks to Claude Code for assistance.
 ```
 
-*Problems: Mentions methodology, vendor credit, doesn't explain what the trivial filter does*
+*Problems: Mentions methodology, vendor credit, doesn't explain what the trivial filter
+does*
 
 ---
 
