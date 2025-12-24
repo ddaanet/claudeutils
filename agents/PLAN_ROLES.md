@@ -146,9 +146,7 @@ written.
 - Do NOT skip the RED phase
 - Files must stay under 400 lines (split proactively at 300)
 
-**Plan Conflict Handling (New):**
-
-If plan instructs you to run a conflicting command:
+**Plan Conflict Handling (New):** If plan instructs you to run a conflicting command:
 
 1. Do not execute it
 2. Report: "Plan conflict: [instruction] contradicts [constraint]"
@@ -307,9 +305,7 @@ role.
 - Do not modify test assertions
 - If step is ambiguous, stop and request clarification
 
-**Lint Issues During Execution:**
-
-If `just role-code` passes but you notice lint issues:
+**Lint Issues During Execution:** If `just role-code` passes but you notice lint issues:
 
 - Simple fixes (line length, whitespace) → fix inline
 - Complex issues (type errors, cycles) → note in handoff, do not fix

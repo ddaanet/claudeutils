@@ -54,37 +54,59 @@ def fix_metadata_blocks(lines: list[str]) -> list[str]:
 
 
 def fix_numbered_list_spacing(lines: list[str]) -> list[str]:
-    """Ensure lists after **Label:** have blank line before them."""
+    """Ensure numbered lists have proper blank line spacing.
+
+    Rules:
+    1. Add blank line before a numbered list when it follows non-list content
+    2. Add blank line after **Label:** when followed by a numbered list
+    3. Do NOT add blank lines within a numbered list (between items or continuations)
+    """
     result = []
     numbered_list_pattern = r"^[0-9]+\. \S"
     bullet_list_pattern = r"^[*+-] \S"
+    label_pattern = r"^\*\*[^*]+:\*\*\s*$"
+
+    in_numbered_list = False
 
     for i, line in enumerate(lines):
-        # Add blank line before top-level numbered lists
-        # Skip if previous line is already blank or is a bullet/numbered list
-        if (
-            i > 0
-            and re.match(numbered_list_pattern, line.strip())
-            and not line.startswith("   ")
-        ):
-            prev_line_idx = len(result) - 1
-            if prev_line_idx >= 0:
-                prev = result[prev_line_idx].strip()
+        stripped = line.strip()
+        is_numbered_item = bool(
+            re.match(numbered_list_pattern, stripped)
+        ) and not line.startswith("   ")
+        is_blank = stripped == ""
+        is_continuation = in_numbered_list and line.startswith("   ") and not is_blank
+
+        # Update list context BEFORE processing
+        if is_blank:
+            in_numbered_list = False
+        elif is_numbered_item:
+            # Check if we should add blank before this list item
+            if not in_numbered_list and len(result) > 0:
+                prev = result[-1].strip()
                 # Add blank only if prev is not blank, not a list item, not **Label:**
                 if (
                     prev != ""
                     and not re.match(numbered_list_pattern, prev)
                     and not re.match(bullet_list_pattern, prev)
-                    and not re.match(r"^\*\*[^*]+:\*\*\s*$", prev)
+                    and not re.match(label_pattern, prev)
                 ):
                     result.append("\n")
+            in_numbered_list = True
+        elif not is_continuation:
+            # Non-blank, non-numbered, non-continuation exits list context
+            in_numbered_list = False
 
         result.append(line)
 
-        # Add blank line after **Label:**
-        if re.match(r"^\*\*[^*]+:\*\*\s*$", line.strip()):
-            if i + 1 < len(lines) and lines[i + 1].strip() != "":
+        # Add blank line after **Label:** ONLY if next line is a numbered list
+        if re.match(label_pattern, stripped) and i + 1 < len(lines):
+            next_line = lines[i + 1]
+            next_stripped = next_line.strip()
+            if re.match(
+                numbered_list_pattern, next_stripped
+            ) and not next_line.startswith("   "):
                 result.append("\n")
+
     return result
 
 

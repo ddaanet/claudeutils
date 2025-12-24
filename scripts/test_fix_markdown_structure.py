@@ -285,9 +285,32 @@ def test_process_lines_plan_conflict_example() -> None:
     ]
     expected_lines = [
         "**Plan Conflict Handling (New):**\n",
-        "\n",
         "If plan instructs you to run a conflicting command:\n",
         "\n",
         "1. Do not execute it\n",
     ]
     assert process_lines(input_lines) == expected_lines
+
+
+def test_fix_numbered_list_spacing_agents_tier2_case() -> None:
+    """Real AGENTS.md case - don't add blanks within numbered list with continuations."""
+    input_lines = [
+        "#### Tier 2 - Important\n",
+        "\n",
+        "4. **Load skills proactively:** Read skill files before operations (e.g., read\n",
+        "   `agents/rules-commit.md` before `git commit`)\n",
+        "5. **Stop at boundaries:** Complete assigned task then stop (no scope creep)\n",
+        "6. **Be explicit:** Ask clarifying questions if requirements unclear\n",
+    ]
+    result = fix_numbered_list_spacing(input_lines)
+    assert result == input_lines
+
+
+def test_fix_numbered_list_spacing_design_keywords_case() -> None:
+    """DESIGN_DECISIONS.md Keywords - don't add blank after label before set literal."""
+    input_lines = [
+        "**Keywords:**\n",
+        '{"y", "n", "k", "g", "ok", "go", "yes", "no", "continue", "proceed", "sure", "okay", "resume"}\n',
+    ]
+    result = fix_numbered_list_spacing(input_lines)
+    assert result == input_lines
