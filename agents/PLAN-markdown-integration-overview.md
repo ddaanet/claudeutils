@@ -50,8 +50,7 @@ proper CLI subcommand.
 **Options:**
 
 - **A) Keep stdin-based** - Match current behavior
-- **B) Add glob patterns** - `claudeutils format "*.md"` or
-  `claudeutils format agents/`
+- **B) Add glob patterns** - `claudeutils format "*.md"` or `claudeutils format agents/`
 - **C) Both** - Accept stdin OR file arguments
 
 **Recommendation:** TBD - requires user input

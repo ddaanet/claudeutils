@@ -7,8 +7,8 @@ I use test-driven process to improve design and keep implementation simple.
 For each test, I do a full test-red-implement-green cycle. Which is at least 2 tool
 calls with proper tool batching and chaining:
 
-  1. test-red
-  2. implement-green.
+1. test-red
+2. implement-green.
 
 Any trivial fix is at least one more (implement-green).
 
@@ -38,8 +38,8 @@ Say:
     thought, tool call, or user answer. Actually, tool call and user prompt interaction
     have the same structure from the model's perspective. All this output becomes part
     of the conversation context on the next tool response or user prompt.
-    - So what output is *not* cached? That's unclear. Only output that has not been
-      part of a rerun? Clarifications?
+    - So what output is *not* cached? That's unclear. Only output that has not been part
+      of a rerun? Clarifications?
 
 The total read cost should be the sum of the read cost of each step:
 
@@ -48,8 +48,8 @@ The total read cost should be the sum of the read cost of each step:
 3. 1k + 50 tok cached, + 500 tok
 4. 1k + 100 tok, + 500 tok
 
-- There is a constant 10k read cost for the plan and context. Plus some for initial cache
-write.
+- There is a constant 10k read cost for the plan and context. Plus some for initial
+  cache write.
 - On further runs, this cached context is read for x0.1 read price: 1k. This read cost
   is linear with the number of tool calls.
 - There is on average 500 tok cost by tool call. It's a linear term, too.
@@ -136,10 +136,9 @@ New role for weak agents.
 
 - For each plan phase:
   1. code task, runs the full tdd loop for the phase.
-      - If a task stopped early, start a Sonnet agent with *recover* role
-      - To prevent thrashing, the recover agent agent has one try to fix the error. If
-        the proposed fix did not work, stop execution and request user input.
+     - If a task stopped early, start a Sonnet agent with *recover* role
+     - To prevent thrashing, the recover agent agent has one try to fix the error. If
+       the proposed fix did not work, stop execution and request user input.
   2. Lint task
   3. If needed: refactor plan.
   4. Code review by sonnet agent.
-
