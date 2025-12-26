@@ -44,6 +44,9 @@ ignore = [
     "FIX",      # FIXME comments should not cause failure
     "S101",     # Authorize assert
 
+    # Handled by docformatter. Enabling in ruff causes redundant changes.
+    "D209",     # Multi-line docstring closing quotes should be on a separate line
+
     # Rules that should be disabled when using ruff as a formatter.
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",     # tab-indentation
