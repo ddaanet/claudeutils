@@ -271,7 +271,7 @@ All 8 tests must pass. At this point:
 **Then:**
 
 - Exit code 0
-- File modified to `` "## About `__init__.py`\n" ``
+- File modified to ``"## About `__init__.py`\n"``
 - Stdout contains `test.md`
 
 **Requires:**
@@ -287,7 +287,7 @@ All 8 tests must pass. At this point:
 
 #### Test 11: markdown command skips unchanged files
 
-**Given:** Temp file `test.md` with `` "## About `__init__.py`\n" `` (already fixed)
+**Given:** Temp file `test.md` with ``"## About `__init__.py`\n"`` (already fixed)
 
 **When:** Run `echo "test.md" | uv run claudeutils markdown`
 

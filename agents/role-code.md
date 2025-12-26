@@ -62,7 +62,8 @@ Unacceptable failures (test not actually running):
 - ❌ `SyntaxError` — code doesn't parse
 - ❌ `NameError` — undefined reference
 
-If failure is unacceptable: fix the error first, then re-run to see actual assertion fail.
+If failure is unacceptable: fix the error first, then re-run to see actual assertion
+fail.
 
 ### On Unexpected Results
 
@@ -119,7 +120,8 @@ Omit noise that doesn't aid comprehension by an experienced engineer:
 - Test names clearly describe what they verify
 - **Compare objects directly:** `assert result == expected_obj` over individual members
 - **Factor setup:** Extract repeated setup into plain helpers (not fixtures)
-- **Keep tests concise:** Pytest expands assert values; use natural loops with one assert
+- **Keep tests concise:** Pytest expands assert values; use natural loops with one
+  assert
 
 ### File Size Limits
 
