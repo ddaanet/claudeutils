@@ -159,16 +159,29 @@ def handle_markdown() -> None:
     modified file paths to stdout.
     """
     files = [line.strip() for line in sys.stdin if line.strip()]
+
+    # Validate all files first
+    errors: list[str] = []
+    valid_files: list[Path] = []
     for filepath_str in files:
         filepath = Path(filepath_str)
         if filepath.suffix != ".md":
-            print(f"Error: {filepath_str} is not a markdown file", file=sys.stderr)
-            sys.exit(1)
-        if not filepath.exists():
-            print(f"Error: {filepath_str} does not exist", file=sys.stderr)
-            sys.exit(1)
+            errors.append(f"Error: {filepath_str} is not a markdown file")
+        elif not filepath.exists():
+            errors.append(f"Error: {filepath_str} does not exist")
+        else:
+            valid_files.append(filepath)
+
+    # Process valid files
+    for filepath in valid_files:
         if process_file(filepath):
-            print(filepath_str)
+            print(str(filepath))
+
+    # Report all errors and exit with error code
+    if errors:
+        for error in errors:
+            print(error, file=sys.stderr)
+        sys.exit(1)
 
 
 def handle_rules(input_path: str, min_length: int, output_format: str) -> None:

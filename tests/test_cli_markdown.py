@@ -112,3 +112,50 @@ def test_markdown_processes_multiple_files(tmp_path: Path) -> None:
     assert str(file1) in result.stdout
     assert str(file2) in result.stdout
     assert str(file3) not in result.stdout
+
+
+def test_markdown_batch_processes_all_valid_files_despite_errors(
+    tmp_path: Path,
+) -> None:
+    """Test: markdown command processes all valid files even when some are invalid."""
+    valid1 = tmp_path / "valid1.md"
+    invalid = tmp_path / "invalid.txt"
+    valid2 = tmp_path / "valid2.md"
+    missing = tmp_path / "missing.md"
+    valid3 = tmp_path / "valid3.md"
+
+    valid1.write_text("## About __init__.py\n")
+    invalid.write_text("content")
+    valid2.write_text("## About __name__.py\n")
+    # missing.md doesn't exist
+    valid3.write_text("## About __main__.py\n")
+
+    input_text = f"{valid1}\n{invalid}\n{valid2}\n{missing}\n{valid3}\n"
+
+    result = subprocess.run(
+        ["uv", "run", "claudeutils", "markdown"],
+        input=input_text,
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+        check=False,
+    )
+
+    # Should exit with error code due to invalid files
+    assert result.returncode == 1
+
+    # But should still process all valid files
+    assert str(valid1) in result.stdout
+    assert str(valid2) in result.stdout
+    assert str(valid3) in result.stdout
+    assert str(invalid) not in result.stdout
+    assert str(missing) not in result.stdout
+
+    # Should report all errors
+    assert "not a markdown file" in result.stderr
+    assert "does not exist" in result.stderr
+
+    # Verify valid files were actually modified
+    assert valid1.read_text() == "## About `__init__.py`\n"
+    assert valid2.read_text() == "## About `__name__.py`\n"
+    assert valid3.read_text() == "## About `__main__.py`\n"

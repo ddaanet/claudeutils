@@ -13,10 +13,7 @@ def fix_dunder_references(line: str) -> str:
 
 
 def fix_metadata_blocks(lines: list[str]) -> list[str]:
-    """Convert consecutive **Label:** or **Label**: value lines to list items.
-
-    Converts metadata blocks into markdown list format.
-    """
+    """Convert consecutive **Label:** lines to list items."""
     result = []
     i = 0
     # Match both **Label:** and **Label**: patterns
@@ -167,10 +164,7 @@ def process_lines(lines: list[str]) -> list[str]:
 
 
 def process_file(filepath: Path) -> bool:
-    """Process a markdown file.
-
-    Returns True if modified.
-    """
+    """Process a markdown file, returning True if modified."""
     with filepath.open(encoding="utf-8") as f:
         original_lines = f.readlines()
     lines = process_lines(original_lines)
