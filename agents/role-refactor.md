@@ -17,7 +17,7 @@ agent.
 
 1. **Analyze** the target code for refactoring opportunities
 2. **Plan** specific changes with clear, atomic steps
-3. **Document** the plan in `agents/PLAN.md` with:
+3. **Document** the plan with:
    - File-by-file changes
    - Expected test impact (none if pure refactor)
    - Lint considerations (note if changes may trigger line-length or similar)

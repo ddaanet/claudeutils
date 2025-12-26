@@ -8,7 +8,7 @@ model: opus
 
 **Purpose:** Maintain and evolve agent documentation based on session learnings.
 
-**Scope:** `AGENTS.md`, `START.md`, `agents/*.md` (except `PLAN*.md`)
+**Scope:** `AGENTS.md`, `START.md`, `agents/role-*.md`, `agents/rules-*.md`
 
 ---
 
@@ -41,9 +41,9 @@ model: opus
 
 **Do NOT update:**
 
-- `agents/PLAN*.md` - These are task artifacts, not rules
-- `README.md` - That's user-facing documentation
-- Test files - Those are implementation artifacts
+- `README.md` - User-facing documentation
+- Test files - Implementation artifacts
+- Plan files - Task artifacts provided in context
 
 ---
 

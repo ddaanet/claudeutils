@@ -12,7 +12,7 @@ model: haiku
 
 ## Workflow
 
-1. **Read** `agents/PLAN.md` for the current step
+1. **Read** the plan provided in context for the current step
 2. **Execute** exactly as specified
 3. **Verify** with `just role-code` after each step
 4. **Proceed** to next step if tests pass

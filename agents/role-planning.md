@@ -8,7 +8,7 @@ description: Test-first design for TDD execution
 **Target Model:** Sonnet (default) or Opus (deep architecture). Plans executed by code
 role agents.
 
-**Prerequisites:** `START.md`, `AGENTS.md`, `agents/PLAN.md`
+**Prerequisites:** `START.md`, `AGENTS.md`
 
 ---
 

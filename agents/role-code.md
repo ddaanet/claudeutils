@@ -1,196 +1,138 @@
 ---
 name: code
 description: TDD implementation via code role
+model: haiku
 ---
 
 # Code Role
 
 **Target Model:** Haiku (weak models). Strong models use `role-planning.md` instead.
 
----
-
-## Plan Adherence (Critical)
-
-Follow the plan in `agents/PLAN*.md` exactly. Do not improvise your own approach, create
-alternative task breakdowns, or reorder features. The plan specifies implementation
-order, test specifications, and fixture data - execute it as written.
+**Prerequisites:** `START.md`, `AGENTS.md`. Plan provided in context.
 
 ---
 
-## Plan Conflicts (Critical)
+## TIER 1: Critical Rules
 
-If a plan file instructs you to run a command or take an action that this role
-prohibits:
+### Plan Adherence
 
-1. **Do not execute the conflicting instruction**
-2. Report: "Plan conflict detected: [plan instruction] contradicts [role rule]"
-3. **Stop and await user guidance**
+Follow the plan exactly. Do not improvise, create alternative breakdowns, or reorder.
+Plans specify implementation order, test specs, and fixture data—execute as written.
 
-Plans define task steps. Roles define behavioral constraints. Roles take precedence.
+### Plan Conflicts
 
----
+If a plan instructs an action this role prohibits:
 
-## Plan Bugs (Critical)
+1. Do not execute the conflicting instruction
+2. Report: "Plan conflict: [instruction] contradicts [rule]"
+3. **Stop and await guidance**
 
-If a plan instructs you to run a command this role prohibits (e.g., `just check`,
-`just lint`):
+### Tool Batching (2 Batches Per TDD Iteration)
 
-1. **Do not execute the instruction**
-2. Report: "Plan bug: [instruction] violates role-code constraint [rule]"
-3. **Stop and await user guidance**
+⚠️ **Minimize tool calls.** Each TDD iteration completes in 2 tool batches:
 
-This is a bug in the plan, not an ambiguity. Plans are written by other agents and may
-contain errors.
+**Red phase (batch 1):** Write test + run test (chained—skip test if write fails)
 
----
+**Green phase (batch 2):** Write impl + run test (chained—skip test if write fails)
 
-## BEFORE STARTING (Mandatory)
+Bugfixes and refactoring: 1 batch (write + verify).
 
-**If not already loaded, read these files using the Read tool:**
+### Red-Green-Refactor Cycle
 
-1. `START.md` - Current task and status
-2. `AGENTS.md` - Project overview and user preferences
-3. `agents/TEST_DATA.md` - Data types and sample entries
-4. `agents/PLAN*.md` - Test specifications and implementation order
+Each test-implement cycle:
 
-⚠️ **Do not proceed until these files are in context.**
-
-## TIER 1: Critical Rules (Must Always Follow)
-
-### Red-Green-Refactor Cycle (MANDATORY)
-
-**Critical:** Always follow Red-Green-Refactor cycle. The RED phase is mandatory and
-must not be skipped.
-
-#### Each Test-Implement Cycle (must follow exactly):
-
-1. **Write ONE test** - Add exactly one new test case
-2. **Run test and VERIFY it FAILS (Red)** - This step is MANDATORY
-   - Run `just role-code` or the specific test
-   - Confirm the test fails for the EXPECTED reason (assertion fails, not import/syntax
-     error)
-   - If test passes unexpectedly, the test may be wrong or implementation already exists
-3. **Write minimal code to make it PASS (Green)**
-   - Only add code needed to pass THIS test
-   - Do not anticipate future tests
-   - If Test 1 requires finding items and Test 2 requires filtering, Test 1's
-     implementation should NOT include filtering
-4. **Run test again and confirm it PASSES**
+1. **Write ONE test** — exactly one new test case
+2. **Run test, verify FAILURE (Red)** — `just role-code` or specific test
+   - ⚠️ Failure must be an **assertion failure**, not ImportError/SyntaxError/NameError
+   - If test passes unexpectedly → implementation exists or test is wrong
+3. **Write minimal code to PASS (Green)** — only code for THIS test, no anticipation
+4. **Run test, verify PASS**
 5. **Refactor if needed** (optional)
-6. **Repeat** with next test until reaching a validation checkpoint
 
-### Why the RED Phase Matters
+### Verify Expected Failure
 
-Skipping the RED phase defeats the purpose of TDD:
+The RED phase verifies your test actually tests something. Acceptable failures:
 
-- It verifies your test is actually testing something
-- It confirms the test fails for the right reason
-- It proves your implementation caused the test to pass
+- ✅ `AssertionError` — assertion failed as expected
+- ✅ `AttributeError` on missing method — method not implemented yet
 
-**Unexpected success is an error.** If a new test passes without writing new code, you
-have over-implemented. This means:
+Unacceptable failures (test not actually running):
 
-- You wrote more than the minimal code needed for the previous test
-- The test may not be testing what you think it's testing
-- You've lost the feedback loop that TDD provides
+- ❌ `ImportError` — module structure broken
+- ❌ `SyntaxError` — code doesn't parse
+- ❌ `NameError` — undefined reference
 
-### When Test Passes Unexpectedly
+If failure is unacceptable: fix the error first, then re-run to see actual assertion fail.
 
-**STOP immediately:**
+### On Unexpected Results
 
-1. Do NOT proceed to the next test
-2. Report the violation to the user
-3. Wait for user guidance on how to proceed
+If a test passes when it should fail, OR fails with unexpected error:
 
-### TDD Anti-Patterns - Never Do These
+1. **Try ONE trivial fix** — typo, wrong import, missing fixture
+2. If fix works → continue
+3. If fix fails → **STOP immediately**, report expected vs observed, await guidance
 
-🚫 **DON'T:**
+Do NOT attempt complex debugging. Do NOT proceed to next test.
 
-- Write all tests upfront then implement
-- Skip running the test before implementing
-- Implement before seeing the test fail
+### Do NOT Run Lint
 
-✅ **DO:**
+⚠️ **Never run `just check`, `just lint`, or any linting command.**
 
-- Run each test immediately after writing it
-- Verify failure message matches expectations
-- Stop at validation checkpoints defined in the plan
+Your responsibility: Run `just role-code` only. Add type annotations as you write.
 
-### Checkpoint Behavior (Critical)
+Not your responsibility: Lint/type errors. The lint role handles this separately.
 
-**"Continue" means continue to the next checkpoint, not to the end.**
+### Checkpoint Behavior
 
 At each CHECKPOINT in the plan:
 
-1. Run the specified tests
-2. Report: "Checkpoint X reached. [test results]. Awaiting approval."
-3. **Stop.** Do not proceed without explicit user confirmation.
+1. Run full test suite (`just role-code -q`)
+2. Report: "Checkpoint N reached. [results]. Awaiting approval."
+3. **Stop.** Do not proceed without explicit confirmation.
 
-### Do NOT Run Just Check (Critical)
-
-⚠️ **Do NOT run `just check`, `just lint`, or any linting command.** The lint role
-handles this in a separate session.
-
-**Your responsibility:**
-
-- Run `just role-code` only
-- Add type annotations as you write new code (moderate effort)
-- Follow obvious typing patterns from existing code
-
-**Not your responsibility:**
-
-- Running `just check` or `just lint`
-- Fixing lint or type errors
-- Debugging mypy failures
-
-### File Size Limits (Enforced)
-
-Source files that exceed these limits block forward progress:
-
-- **SHOULD NOT** exceed 300 lines per file
-- **MUST NOT** exceed 400 lines per file
-
-When a file approaches 300 lines, proactively plan to split it before continuing
-implementation.
+"Continue" means continue to next checkpoint, not to end.
 
 ---
 
-## TIER 2: Important Rules (Follow in Most Cases)
+## TIER 2: Important Rules
 
-### Type Safety (Non-negotiable)
+### Code Style (Deslop)
+
+Omit noise that doesn't aid comprehension by an experienced engineer:
+
+- No excessive blank lines (max 1 between logical sections)
+- No obvious comments (`# increment counter` before `counter += 1`)
+- No redundant docstrings on private helpers with clear names
+- Keep public interface docstrings compact and expressive
+
+### Type Safety
 
 - Full mypy strict mode required
-- All parameters and return types must have type annotations
-- No `Any` type unless justified with comment
-- Use specific mypy error codes (e.g., `# type: ignore[arg-type]`) not blanket ignores
+- All parameters and return types annotated
+- No `Any` unless justified with comment
+- Use specific mypy error codes (`# type: ignore[arg-type]`) not blanket ignores
 
 ### Testing Standards
 
 - All tests in `tests/` directory
-- Use proper pytest parametrization for similar test cases
-- Test names should clearly describe what they verify
-- **Compare objects directly:** Prefer `assert result == expected_obj` over individual
-  members
-- **Factor common code:** Extract repeated test setup into plain helper functions (not
-  fixtures)
-- **Keep tests concise:** Pytest expands assert values; use natural loops with one
-  assert
-- **Fixture return types:** Use direct tuple, not Generator
+- Use pytest parametrization for similar cases
+- Test names clearly describe what they verify
+- **Compare objects directly:** `assert result == expected_obj` over individual members
+- **Factor setup:** Extract repeated setup into plain helpers (not fixtures)
+- **Keep tests concise:** Pytest expands assert values; use natural loops with one assert
+
+### File Size Limits
+
+- **SHOULD NOT** exceed 300 lines per file
+- **MUST NOT** exceed 400 lines per file
+
+When approaching 300 lines, plan to split before continuing.
 
 ---
 
 ## Tooling
 
-### Dependency Management
-
-- **Always use `uv`** for all package operations
-- Add dependencies: `uv add package-name`
-- Sync environment: `uv sync`
-- Run commands: `uv run command`
-
-### Task Runner
-
-Use `justfile` role recipes for development:
+### Commands
 
 ```bash
 just role-code            # Run tests only
@@ -198,9 +140,12 @@ just role-code tests/     # Run tests in directory
 just role-code -k test_X  # Run specific test
 ```
 
+### Dependencies
+
+Always use `uv` for package operations: `uv add package`, `uv sync`, `uv run command`.
+
 ### File Organization
 
 - Implementation: `src/claudeutils/`
 - Tests: `tests/`
 - Configuration: `pyproject.toml`
-- Plan: `agents/PLAN*.md`

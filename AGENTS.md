@@ -37,6 +37,7 @@ Roles define agent behavior modes. Rules apply during specific actions.
 | lint     | `agents/role-lint.md`     | haiku       | Fix lint/type errors       |
 | refactor | `agents/role-refactor.md` | sonnet      | Plan refactoring changes   |
 | execute  | `agents/role-execute.md`  | haiku       | Execute planned changes    |
+| review   | `agents/role-review.md`   | sonnet      | Code review and cleanup    |
 | remember | `agents/role-remember.md` | opus        | Update agent documentation |
 
 ### Rules (Action-Triggered)
@@ -155,6 +156,7 @@ git commit -m "..."   # Commit with concise message
 - `agents/role-lint.md` - Fix lint/type errors
 - `agents/role-refactor.md` - Plan refactoring changes
 - `agents/role-execute.md` - Execute planned changes
+- `agents/role-review.md` - Code review and cleanup
 - `agents/role-remember.md` - Update agent documentation
 
 **Rules:**
