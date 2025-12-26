@@ -129,7 +129,7 @@ If a function requires internal section comments to navigate:
 
 ## Output
 
-Save review to `agents/review-<plan-name>.md` where `<plan-name>` matches the plan being
+Save review to `plans/review-<plan-name>.md` where `<plan-name>` matches the plan being
 implemented.
 
 ### If Changes Needed
