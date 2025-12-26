@@ -64,7 +64,7 @@ format:
     docformatter --diff src tests | patch-and-print -RCp1 >> "$tmpfile" || true
 
     git ls-files | grep '\.md$' | grep -v '/TEST_DATA\.md$' \
-    | uv run scripts/fix_markdown_structure.py >> "$tmpfile"
+    | uv run claudeutils markdown >> "$tmpfile"
     dprint -c .dprint.json check --list-different \
     | sed "s|^$(pwd)/||g" >> "$tmpfile" || true
     dprint -c .dprint.json fmt -L warn

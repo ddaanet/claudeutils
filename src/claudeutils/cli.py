@@ -10,6 +10,7 @@ from pathlib import Path
 from claudeutils.discovery import list_top_level_sessions
 from claudeutils.extraction import extract_feedback_recursively
 from claudeutils.filtering import categorize_feedback, filter_feedback
+from claudeutils.markdown import process_file
 from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
 
@@ -149,6 +150,25 @@ def handle_analyze(input_path: str, output_format: str) -> None:
         print("categories:")
         for category, count in categories.items():
             print(f"  {category}: {count}")
+
+
+def handle_markdown() -> None:
+    """Handle the markdown subcommand.
+
+    Reads file paths from stdin, processes markdown structure fixes, and prints
+    modified file paths to stdout.
+    """
+    files = [line.strip() for line in sys.stdin if line.strip()]
+    for filepath_str in files:
+        filepath = Path(filepath_str)
+        if filepath.suffix != ".md":
+            print(f"Error: {filepath_str} is not a markdown file", file=sys.stderr)
+            sys.exit(1)
+        if not filepath.exists():
+            print(f"Error: {filepath_str} does not exist", file=sys.stderr)
+            sys.exit(1)
+        if process_file(filepath):
+            print(filepath_str)
 
 
 def handle_rules(input_path: str, min_length: int, output_format: str) -> None:
@@ -298,6 +318,8 @@ Output is sorted chronologically.""",
         "--format", default="text", choices=["text", "json"], help="Output format"
     )
 
+    subparsers.add_parser("markdown", help="Process markdown files")
+
     args = parser.parse_args()
 
     if args.command == "list":
@@ -310,3 +332,5 @@ Output is sorted chronologically.""",
         handle_analyze(args.input, args.format)
     elif args.command == "rules":
         handle_rules(args.input, args.min_length, args.format)
+    elif args.command == "markdown":
+        handle_markdown()

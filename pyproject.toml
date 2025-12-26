@@ -79,7 +79,7 @@ ignore = [
 convention = "pep257"
 
 [tool.mypy]
-files = ["src", "scripts", "tests"]
+files = ["src", "tests"]
 strict = true
 extra_checks = true
 error_summary = false

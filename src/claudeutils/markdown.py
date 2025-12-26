@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
 """Fix markdown structure before reformatting."""
 
 import re
-import sys
 from pathlib import Path
 
 
@@ -15,7 +13,10 @@ def fix_dunder_references(line: str) -> str:
 
 
 def fix_metadata_blocks(lines: list[str]) -> list[str]:
-    """Convert consecutive **Label:** or **Label**: value lines to list items."""
+    """Convert consecutive **Label:** or **Label**: value lines to list items.
+
+    Converts metadata blocks into markdown list format.
+    """
     result = []
     i = 0
     # Match both **Label:** and **Label**: patterns
@@ -61,7 +62,7 @@ def fix_numbered_list_spacing(lines: list[str]) -> list[str]:
     2. Add blank line after **Label:** when followed by a numbered list
     3. Do NOT add blank lines within a numbered list (between items or continuations)
     """
-    result = []
+    result: list[str] = []
     numbered_list_pattern = r"^[0-9]+\. \S"
     bullet_list_pattern = r"^[*+-] \S"
     label_pattern = r"^\*\*[^*]+:\*\*\s*$"
@@ -166,27 +167,15 @@ def process_lines(lines: list[str]) -> list[str]:
 
 
 def process_file(filepath: Path) -> bool:
-    """Process a markdown file. Returns True if modified."""
-    with open(filepath, encoding="utf-8") as f:
+    """Process a markdown file.
+
+    Returns True if modified.
+    """
+    with filepath.open(encoding="utf-8") as f:
         original_lines = f.readlines()
     lines = process_lines(original_lines)
     if lines == original_lines:
         return False
-    with open(filepath, "w", encoding="utf-8") as f:
+    with filepath.open("w", encoding="utf-8") as f:
         f.writelines(lines)
     return True
-
-
-def main() -> None:
-    files = [line.strip() for line in sys.stdin if line.strip()]
-    if not files:
-        return
-    for filepath_str in files:
-        filepath = Path(filepath_str)
-        if filepath.exists() and filepath.suffix == ".md":
-            if process_file(filepath):
-                print(filepath_str)  # noqa: T201 - print expected in scripts
-
-
-if __name__ == "__main__":
-    main()
