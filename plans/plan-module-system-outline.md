@@ -1,9 +1,11 @@
 # Agent Module System Implementation Plan
 
-**Status**: Outline ready for review
+**Status**: Phase 2 complete (module extraction), ready for Phase 1 (tooling)
 **Created**: 2025-12-26
-**Design Authority**: DESIGN_MODULE_SYSTEM.md
+**Last Updated**: 2025-12-26
+**Design Authority**: DESIGN_MODULE_SYSTEM.md, opus-review-module-tiering.md
 **Target**: Composable module system with ≤150 rule budget
+**Modules Extracted**: 14 semantic sources in agents/modules/src/
 
 ---
 
@@ -21,164 +23,128 @@ Transform monolithic agent role files into composable module system with semanti
 
 **Objective**: Validate expansion quality and establish tooling foundation.
 
-### 1.1 Test Expansion Quality (OPEN QUESTION RESOLUTION)
+### 1.1 Test Expansion Quality
 
-**Purpose**: Determine if Sonnet can generate weak variants, or if Opus required.
+**Purpose**: Empirically compare Sonnet vs Opus for variant generation quality.
 
-1. Create pilot semantic source `modules/src/checkpoint-obedience.semantic.md`
-   - Use structure from DESIGN_MODULE_SYSTEM.md example
-   - Mark as `expansion_sensitivity: high`
-   - Include weak_expansion_notes
+**Note**: Opus recommends Opus for quality, but user wants empirical validation.
 
-2. Generate weak variant with Sonnet → `modules/gen/checkpoint-obedience.weak.sonnet.md`
-   - Prompt: target 5x expansion
-   - Validate: explicit steps, ⚠️ markers, consequence framing
+**Test module**: `agents/modules/src/checkpoint-obedience.semantic.md` (already exists)
 
-3. Generate weak variant with Opus → `modules/gen/checkpoint-obedience.weak.opus.md`
-   - Same prompt and validation criteria
+**Process**:
 
-4. Compare variants
-   - Rule count accuracy (±10% of target)
-   - Explicitness (enumerated patterns, "do not" examples)
-   - Haiku comprehension (run against sample plan)
+1. Generate weak variant with Sonnet → `agents/modules/gen/checkpoint-obedience.weak.sonnet.md`
+   - Prompt: Generate weak variant with tier markers
+   - Target: 12-16 rules based on frontmatter
+   - Include tier markers `[RULE:T1]`, `[RULE:T2]`, `[RULE:T3]`
 
-**CHECKPOINT 1**: Report expansion comparison → decide generator model (Sonnet vs Opus)
+2. Generate weak variant with Opus → `agents/modules/gen/checkpoint-obedience.weak.opus.md`
+   - Same prompt and target
+   - Same tier marker requirements
+
+3. Compare variants on:
+   - **Rule count accuracy**: Within 12-16 target range?
+   - **Tier distribution**: Close to 20/60/20?
+   - **Explicitness**: Concrete, actionable rules for weak models?
+   - **Tier assignment quality**: Does tier match criticality?
+   - **Formatting**: ⚠️ markers, "DO NOT" examples, consequence framing?
+
+4. Manual evaluation:
+   - Which variant would work better for Haiku?
+   - Does Sonnet under-expand or mis-tier?
+   - Is quality difference worth cost difference?
+
+**CHECKPOINT 1**: Report comparison results → final decision on generator (Sonnet vs Opus)
+
+**Expected outcome**: Opus likely superior, but quantify the difference.
 
 ---
 
 ### 1.2 Rule Counter Implementation
 
-**Purpose**: Automated rule counting for budget validation.
+**Purpose**: Count `[RULE]` and `[RULE:Tn]` markers for budget validation.
 
-**Requirements** (from DESIGN_DECISIONS.md, Open Question #2):
-- Handle itemized lists (bullets, numbered)
-- Handle prose paragraphs (count sentences? semantic units?)
-- Handle nested lists (2-level max per planning.md)
+**Requirements** (from opus-review-module-tiering.md):
+- Count `[RULE]` markers (basic rule count)
+- Count `[RULE:T1]`, `[RULE:T2]`, `[RULE:T3]` markers (tier-specific counts)
+- No parsing needed - simple marker counting
+- Validate marker removal (ensure no markers remain in final output)
 
 **Test sequence**:
 
-1. Count simple bullets → `["rule 1", "rule 2"]` = 2
-   - **NEW**: Basic itemized list parser
+1. Count `[RULE]` markers → simple count
+   - **INPUT**: `"[RULE] Text\n[RULE] More text"`
+   - **OUTPUT**: `2`
+   - **NEW**: Basic marker counting
 
-2. Count numbered lists → `["1. rule", "2. rule"]` = 2
-   - **NEW**: Numbered format handling
+2. Count `[RULE:T1]` markers → tier-specific count
+   - **INPUT**: `"[RULE:T1] A\n[RULE:T2] B\n[RULE:T1] C"`
+   - **OUTPUT**: `{T1: 2, T2: 1, total: 3}`
+   - **NEW**: Tier marker parsing
 
-3. Count nested bullets → parent + child rules
-   - **NEW**: Nested list traversal
-   - **DECISION NEEDED**: Count nesting as separate rules or combine?
+3. Count mixed markers → handles both formats
+   - **INPUT**: `"[RULE] A\n[RULE:T1] B\n[RULE:T2] C"`
+   - **OUTPUT**: `{untiered: 1, T1: 1, T2: 1, total: 3}`
+   - **NEW**: Mixed format handling
 
-4. Count prose paragraph → TBD strategy
-   - **DECISION NEEDED**: Sentences? Semantic units? Fixed multiplier?
+4. Validate marker removal → no markers remain
+   - **INPUT**: After removal, content should not contain `[RULE`
+   - **NEW**: Removal validation
 
-5. Count mixed document → itemized + prose sections
-   - Validates combined logic
+5. Calculate tier distribution → percentage check
+   - **INPUT**: `{T1: 3, T2: 9, T3: 3}`
+   - **OUTPUT**: `{T1: 20%, T2: 60%, T3: 20%}` (within 20/60/20 target)
+   - **NEW**: Distribution calculation
 
 **Implementation**: `src/claudeutils/module_system/rule_counter.py`
 
-**CHECKPOINT 2**: Rule counter passes all tests → decision on prose counting strategy
+**CHECKPOINT 2**: Rule counter passes all tests → ready for variant generation
 
 ---
 
 ### 1.3 Module Directory Structure
 
-1. Create directories:
-   ```
-   modules/
-     src/              # Semantic sources (version controlled)
-     gen/              # Generated variants (version controlled)
-   roles/
-     configs/          # YAML role configurations
-     gen/              # Composed role files
-   ```
+**Status**: ✅ COMPLETE (directories already exist from module extraction)
 
-2. Create `.model-id` sentinel for Makefile tracking
+Existing structure:
+```
+agents/
+  roles/            # Role configs (✅ location decided by Opus)
+    planning.yaml   # To be created in Phase 5
+    code.yaml
+    lint.yaml
+    execute.yaml
+    refactor.yaml
+    review.yaml
+    remember.yaml
+  modules/
+    src/            # 14 semantic sources (✅ complete)
+    gen/            # Generated variants (empty, to be created)
+    MODULE_INVENTORY.md
+  role-planning.md      # Current production roles
+  role-planning.next.md # Development outputs (Phase 7)
+  role-code.md
+  role-code.next.md
+  role-lint.md
+  role-execute.md
+  role-refactor.md
+  role-review.md
+  role-remember.md
+  rules-commit.md   # Skills (already exist)
+  rules-handoff.md
 
-3. Add `.gitignore` exceptions (version-control gen/ files)
+Note: .next.md files prevent overwriting during development.
+```
 
-**CHECKPOINT 3**: Directory structure ready → proceed to module extraction
-
----
-
-## Phase 2: Module Extraction & Inventory
-
-**Objective**: Extract current role files into semantic module sources.
-
-### 2.1 Identify Cross-Cutting Modules
-
-**Method**: Analyze existing role files for shared concerns.
-
-1. Read current role files → identify duplicated rules
-   - `agents/role-planning.md`
-   - `agents/role-code.md`
-   - `agents/role-lint.md`
-   - `agents/role-execute.md`
-   - `agents/role-refactor.md`
-   - `agents/role-remember.md`
-
-2. Extract communication patterns → `modules/src/communication.semantic.md`
-   - Stop patterns, unexpected state handling, wait for instruction
-   - **Source**: AGENTS.md Tier 1 Communication Patterns
-   - **Expansion sensitivity**: explicit (already weak-optimized)
-
-3. Extract tool batching → `modules/src/tool-batching.semantic.md`
-   - Parallel tool calls, efficiency patterns
-   - **Source**: AGENTS.md Tool Batching section
-   - **Expansion sensitivity**: low (concrete rules)
-
-4. Extract checkpoint patterns:
-   - Planning: checkpoint insertion → `modules/src/plan-creation.semantic.md`
-   - Code/Execute: checkpoint following → `modules/src/checkpoint-obedience.semantic.md`
-   - **Expansion sensitivity**: high (conceptual behavior)
-
-**CHECKPOINT 4**: Cross-cutting modules extracted → validate coverage of shared rules
+**CHECKPOINT 3**: Directory structure confirmed → ready for variant generation
 
 ---
 
-### 2.2 Extract Project Context Modules
-
-1. Create `modules/src/context-overview.semantic.md`
-   - **Source**: AGENTS.md Project Overview, Architecture
-   - **Format**: Prose (connected project knowledge)
-
-2. Create `modules/src/context-datamodel.semantic.md`
-   - **Source**: AGENTS.md Data Model Reference
-   - **Format**: Code blocks + explanatory prose
-
-3. Create `modules/src/context-commands.semantic.md`
-   - **Source**: AGENTS.md Quick Command Reference
-   - **Format**: Itemized with examples
-
-**CHECKPOINT 5**: Context modules ready → selective inclusion testable
-
----
-
-### 2.3 Extract Workflow Modules
-
-1. Create `modules/src/tdd-cycle.semantic.md`
-   - **Source**: `agents/role-code.md` TDD methodology
-   - **Expansion sensitivity**: high (conceptual process)
-
-2. Create `modules/src/plan-adherence.semantic.md`
-   - **Source**: `agents/role-code.md`, `agents/role-execute.md` scope discipline
-   - **Expansion sensitivity**: medium
-
-3. Create `modules/src/code-quality.semantic.md`
-   - **Source**: `agents/role-code.md` testing requirements
-   - **Expansion sensitivity**: medium
-
-4. Create `modules/src/memory-management.semantic.md`
-   - **Source**: `agents/role-remember.md` tiering, documentation patterns
-   - **Expansion sensitivity**: medium
-
-**CHECKPOINT 6**: All workflow modules extracted → module inventory complete
-
----
-
-## Phase 3: Variant Generation Pipeline
+## Phase 2: Variant Generation Pipeline
 
 **Objective**: Build automated variant generation system.
 
-### 3.1 Variant Generator Script
+### 2.1 Variant Generator Script
 
 **Implementation**: `src/claudeutils/module_system/generator.py`
 
@@ -186,51 +152,57 @@ Transform monolithic agent role files into composable module system with semanti
 
 1. Load semantic source → parsed frontmatter + content
    - **NEW**: Frontmatter parser, semantic content extraction
+   - **EXTRACT**: `target_rules.{strong,standard,weak}` ranges
 
-2. Calculate target rule count → expansion_sensitivity × base_count
-   - **NEW**: Ratio lookup (low/medium/high/explicit)
-   - **INPUT**: Module with `expansion_sensitivity: medium`, 5 rules
-   - **OUTPUT**: strong=5, standard=10, weak=15
+2. Build Opus prompt → includes tier hints and target range
+   - **NEW**: Prompt construction with tier section guidance
+   - **PROMPT**: "Generate {variant} variant with {min}-{max} rules, mark each with [RULE:T1/T2/T3] based on tier sections"
+   - **INPUT**: Semantic source with Critical/Important/Preferred sections
+   - **OUTPUT**: Prompt text for Opus
 
-3. Generate variant via LLM → formatted markdown
-   - **NEW**: Prompt construction, LLM invocation
-   - **DECISION NEEDED**: Use generator from Phase 1 (Sonnet vs Opus)
+3. Generate variant via Opus → formatted markdown with tier markers
+   - **NEW**: Opus API invocation
+   - **OUTPUT**: Variant with `[RULE:T1]`, `[RULE:T2]`, `[RULE:T3]` markers
 
-4. Validate variant rule count → ±10% of target
+4. Validate variant rule count → warn if outside target range
    - **NEW**: Use rule_counter from Phase 1.2
-   - **REQUIREMENT**: Reject if outside bounds
+   - **REQUIREMENT**: Warn (don't fail) if outside range
 
-5. Write to `modules/gen/` → versioned output
+5. Validate tier distribution → warn if skewed from 20/60/20
+   - **NEW**: Check T1/T2/T3 distribution
+   - **REQUIREMENT**: Warn if >30% deviation
+
+6. Write to `agents/modules/gen/` → versioned output
    - **NEW**: File write with atomic replacement
 
-**CHECKPOINT 7**: Variant generator produces valid outputs → ready for batch generation
+**CHECKPOINT 4**: Variant generator produces valid outputs → ready for batch generation
 
 ---
 
-### 3.2 Batch Generate All Variants
+### 2.2 Batch Generate All Variants
 
-1. For each module in `modules/src/*.semantic.md`:
+1. For each module in `agents/modules/src/*.semantic.md`:
    - Generate strong variant
    - Generate standard variant
    - Generate weak variant
    - Validate all variants
 
-2. Store in `modules/gen/{module}.{strong,standard,weak}.md`
+2. Store in `agents/modules/gen/{module}.{strong,standard,weak}.md`
 
 3. Report generation statistics:
    - Rule counts per variant
    - Expansion ratios achieved
    - Validation failures
 
-**CHECKPOINT 8**: All module variants generated → ready for role composition
+**CHECKPOINT 5**: All module variants generated → ready for role composition
 
 ---
 
-## Phase 4: Role Configuration & Composition
+## Phase 3: Role Configuration & Composition
 
 **Objective**: Build role composition system with budget validation.
 
-### 4.1 Configuration Schema Implementation
+### 3.1 Configuration Schema Implementation
 
 **Implementation**: `src/claudeutils/module_system/config.py`
 
@@ -241,7 +213,7 @@ Transform monolithic agent role files into composable module system with semanti
    - **FIELDS**: role, target_class, rule_budget, modules, sections
 
 2. Validate module references → all modules exist
-   - **NEW**: Check `modules/gen/{module}.{target_class}.md` files
+   - **NEW**: Check `agents/modules/gen/{module}.{target_class}.md` files
 
 3. Load tier-to-section mapping → ordered structure
    - **NEW**: Section template (CRITICAL_RULES, GUIDELINES, PREFERENCES, CONTEXT)
@@ -250,11 +222,11 @@ Transform monolithic agent role files into composable module system with semanti
    - **NEW**: Sum module rule counts ≤ role budget
    - **REQUIREMENT**: Handle overflow_strategy (warn/fail/truncate_tier3)
 
-**CHECKPOINT 9**: Config schema validated → ready for composer
+**CHECKPOINT 6**: Config schema validated → ready for composer
 
 ---
 
-### 4.2 Role Composer Script
+### 3.2 Role Composer Script
 
 **Implementation**: `src/claudeutils/module_system/composer.py`
 
@@ -264,78 +236,104 @@ Transform monolithic agent role files into composable module system with semanti
    - **NEW**: Use config.py from 4.1
 
 2. Select variants by target_class → collect module contents
-   - **NEW**: Read `modules/gen/{module}.{target_class}.md`
+   - **NEW**: Read `agents/modules/gen/{module}.{target_class}.md`
 
-3. Apply tier→section mapping → ordered document
-   - **NEW**: Group modules by tier, insert into sections
-   - **POSITION**: Tier 1→start (primacy), Tier 3→end (recency)
+3. Extract rules by tier marker → organize by T1/T2/T3
+   - **NEW**: Parse `[RULE:T1]`, `[RULE:T2]`, `[RULE:T3]` markers
+   - **GROUP**: All T1 rules → CRITICAL_RULES section
+   - **GROUP**: All T2 rules → GUIDELINES section
+   - **GROUP**: All T3 rules → PREFERENCES section
 
-4. Validate total rule count → ≤ role budget
+4. Remove tier markers → clean rule text
+   - **NEW**: Regex replace `[RULE:Tn]` markers
+   - **VALIDATE**: No `[RULE` strings remain in output
+
+5. Validate total rule count → ≤ role budget
    - **NEW**: Use rule_counter, check budget constraint
+   - **WARN**: If exceeded (don't fail)
 
-5. Write composed role → `roles/gen/{role}.md`
-   - **NEW**: Formatted output with frontmatter
+6. Write composed role → `agents/role-{role}.next.md` (development)
+   - **NEW**: Formatted output with frontmatter, clean rules (no markers)
+   - **NOTE**: Use .next.md suffix to avoid overwriting existing roles during development
 
-**CHECKPOINT 10**: Role composer generates valid role files → ready for validation
+**CHECKPOINT 7**: Role composer generates valid role files → ready for validation
 
 ---
 
-### 4.3 Budget Validator
+### 3.3 Budget Validator
 
 **Implementation**: `src/claudeutils/module_system/validator.py`
 
 **Test sequence**:
 
 1. Validate single role → rule count ≤ budget
-   - **INPUT**: `roles/gen/planning.md` with budget=45
+   - **INPUT**: `agents/role-planning.md` with budget=45
    - **NEW**: Parse role, count rules, check budget
 
 2. Validate all roles → total ≤ 150
    - **NEW**: Sum all role rule counts
-   - **REQUIREMENT**: Fail if total > 150
+   - **REQUIREMENT**: Warn if total > 150
 
-3. Check required modules → present in role
+3. Validate tier distribution per role → ~20/60/20
+   - **NEW**: Check T1/T2/T3 percentages
+   - **WARN**: If >30% deviation from target
+
+4. Check required modules → present in role
    - **NEW**: Verify critical modules included (e.g., communication)
 
-4. Check orphan modules → unused by any role
+5. Check orphan modules → unused by any role
    - **NEW**: Warn if module not referenced in any config
 
-**CHECKPOINT 11**: All validation passes → composition system complete
+**CHECKPOINT 8**: All validation passes → composition system complete
 
 ---
 
-## Phase 5: Makefile Integration
+## Phase 4: Makefile Integration
 
 **Objective**: Automated rebuild on source/model changes.
 
-### 5.1 Makefile Rules
+### 4.1 Makefile Rules
 
-Create `modules/Makefile`:
+Create `agents/Makefile`:
 
 ```makefile
+# Config directory (Opus decision: agents/roles/)
+CONFIG_DIR := agents/roles
+
 # Variant generation (depends on source + model ID)
-modules/gen/%.strong.md: modules/src/%.semantic.md .model-id
+agents/modules/gen/%.strong.md: agents/modules/src/%.semantic.md .model-id
     python -m claudeutils.module_system.generator --class=strong $< > $@
 
-modules/gen/%.standard.md: modules/src/%.semantic.md .model-id
+agents/modules/gen/%.standard.md: agents/modules/src/%.semantic.md .model-id
     python -m claudeutils.module_system.generator --class=standard $< > $@
 
-modules/gen/%.weak.md: modules/src/%.semantic.md .model-id
+agents/modules/gen/%.weak.md: agents/modules/src/%.semantic.md .model-id
     python -m claudeutils.module_system.generator --class=weak $< > $@
 
 # Model ID sentinel (triggers rebuild on model change)
 .model-id: FORCE
     @echo $(OPUS_MODEL_ID) | cmp -s - $@ || echo $(OPUS_MODEL_ID) > $@
 
-# Role composition (depends on config + variants)
-roles/gen/%.md: roles/configs/%.yaml modules/gen/*.md
+# Role composition - development output (.next.md suffix)
+agents/role-%.next.md: $(CONFIG_DIR)/%.yaml agents/modules/gen/*.md
     python -m claudeutils.module_system.composer $< > $@
 
+# Generate all development outputs
+next: $(patsubst $(CONFIG_DIR)/%.yaml,agents/role-%.next.md,$(wildcard $(CONFIG_DIR)/*.yaml))
+
+# Cutover: move .next.md to .md (atomic rename)
+cutover:
+    @for f in agents/role-*.next.md; do \
+        base=$${f%.next.md}; \
+        mv "$$base.md" "agents/archive/$$(basename $$base).old.md" 2>/dev/null || true; \
+        mv "$$f" "$$base.md"; \
+    done
+
 # Validation
-validate: roles/gen/*.md
+validate: agents/role-*.next.md
     python -m claudeutils.module_system.validator
 
-.PHONY: FORCE validate
+.PHONY: FORCE validate next cutover
 ```
 
 **Test**:
@@ -344,17 +342,17 @@ validate: roles/gen/*.md
 3. Change role config → role rebuilds
 4. Run `make validate` → passes
 
-**CHECKPOINT 12**: Makefile automation working → ready for role configs
+**CHECKPOINT 9**: Makefile automation working → ready for role configs
 
 ---
 
-## Phase 6: Role Configuration Creation
+## Phase 5: Role Configuration Creation
 
 **Objective**: Create YAML configs for all existing roles.
 
-### 6.1 Planning Role Config
+### 5.1 Planning Role Config
 
-Create `roles/configs/planning.yaml`:
+Create `agents/roles/planning.yaml`:
 
 ```yaml
 role: planning
@@ -362,41 +360,34 @@ target_class: strong
 rule_budget: 45
 
 modules:
-  cross_cutting:
-    - communication: tier1
-    - tool-batching: tier2
-
-  project_context:
-    - context-overview: tier2
-    - context-datamodel: tier2
-    - context-commands: tier3
-
-  workflow:
-    - plan-creation: tier1
-    - tdd-cycle: tier2
-
-conditionals:
-  plan-adherence: false
-  checkpoint-obedience: false
+  - communication
+  - tool-batching
+  - plan-creation
+  - tdd-cycle
+  - context-overview
+  - context-datamodel
+  - context-commands
 
 sections:
   - ROLE_IDENTITY
-  - CRITICAL_RULES
-  - GUIDELINES
-  - PREFERENCES
-  - CONTEXT
+  - CRITICAL_RULES       # T1 rules from all modules
+  - GUIDELINES           # T2 rules from all modules
+  - PREFERENCES          # T3 rules from all modules
+  - CONTEXT              # Project context (no tiers)
 
 overflow_strategy: warn
 ```
 
-**Generate**: `make roles/gen/planning.md`
+**Note**: Tier assignment is in module variants (via `[RULE:Tn]` markers), not in role config.
+
+**Generate**: `make agents/role-planning.next.md` (development)
 **Validate**: Rule count ≤ 45
 
 ---
 
-### 6.2 Code Role Config
+### 5.2 Code Role Config
 
-Create `roles/configs/code.yaml`:
+Create `agents/roles/code.yaml`:
 
 - target_class: weak (Haiku)
 - Includes: communication, checkpoint-obedience, tdd-cycle, context-datamodel
@@ -405,7 +396,7 @@ Create `roles/configs/code.yaml`:
 
 ---
 
-### 6.3 Remaining Role Configs
+### 5.3 Remaining Role Configs
 
 1. `lint.yaml` → minimal context, tool-batching focus
 2. `execute.yaml` → plan-adherence, checkpoint-obedience
@@ -413,51 +404,51 @@ Create `roles/configs/code.yaml`:
 4. `review.yaml` → code-quality, communication
 5. `remember.yaml` → memory-management, communication
 
-**CHECKPOINT 13**: All role configs created → validate total budget ≤ 150
+**CHECKPOINT 10**: All role configs created → validate total budget ≤ 150
 
 ---
 
-## Phase 7: Skill Module Migration
+## Phase 6: Skill Module Migration
 
 **Objective**: Convert skill files to module format.
 
-### 7.1 Commit Skill
+### 6.1 Skill Module Handling
 
-1. Extract `agents/rules-commit.md` → `modules/src/commit.skill.semantic.md`
-   - **Note**: Currently haiku-optimized, needs semantic source
-   - **Expansion sensitivity**: explicit (procedural)
+**Status**: ✅ Skills already extracted as semantic sources (commit.semantic.md, handoff.semantic.md)
 
-2. Generate weak variant only (skills loaded on-demand)
+**Opus Decision**: Skills use weak-only wording, no variant generation needed.
 
-3. Test: Load before `git commit` → follows workflow
+**Rationale** (from opus-review-module-tiering.md):
+- Skills loaded at session end (low context pressure)
+- Weak wording works universally for all models
+- Marginal token savings (~50 lines × 2 files) doesn't justify pipeline complexity
+- Avoid maintaining 6 additional files (2 skills × 3 variants)
+
+**Implementation**:
+- Skills remain as single weak-optimized files
+- Use tier markers for internal structure (primacy/recency within skill)
+- Don't count against role budget (loaded separately)
+- No generation pipeline for skills
+
+**CHECKPOINT 11**: Skill handling decided (no-op for implementation) → ready for testing
 
 ---
 
-### 7.2 Handoff Skill
-
-1. Extract `agents/rules-handoff.md` → `modules/src/handoff.skill.semantic.md`
-2. Generate weak variant
-3. Test: Load before session end → protocol followed
-
-**CHECKPOINT 14**: Skill modules working → complete module system ready
-
----
-
-## Phase 8: Side-by-Side Testing & Migration
+## Phase 7: Side-by-Side Testing & Migration
 
 **Objective**: Validate new system before cutover.
 
-### 8.1 Parallel Testing
+### 7.1 Parallel Testing
 
 1. Create test task requiring planning → code → review cycle
 
 2. Run with OLD system:
-   - Load `agents/role-planning.md`
+   - Load current `agents/role-planning.md`
    - Execute task, measure token usage
    - Note adherence to rules
 
 3. Run with NEW system:
-   - Load `roles/gen/planning.md`
+   - Load new `agents/role-planning.next.md` (generated from modules)
    - Execute same task, measure token usage
    - Note adherence to rules
 
@@ -466,23 +457,34 @@ Create `roles/configs/code.yaml`:
    - Rule adherence quality
    - Composition correctness
 
-**CHECKPOINT 15**: New system performs equivalent or better → ready for cutover
+**CHECKPOINT 12**: New system performs equivalent or better → ready for cutover
 
 ---
 
-### 8.2 Cutover & Cleanup
+### 7.2 Cutover & Cleanup
 
-1. Archive old role files → `agents/archive/`
-2. Update `AGENTS.md` → reference new role system
-3. Update `START.md` → point to new locations
-4. Update documentation → `README.md`, `agents/DESIGN_DECISIONS.md`
-5. Remove "BEFORE STARTING" sections (plans loaded by user)
+1. Atomic cutover using Makefile:
+   ```bash
+   mkdir -p agents/archive
+   make -C agents cutover
+   ```
+   This renames: `.next.md` → `.md`, old `.md` → `archive/*.old.md`
 
-**CHECKPOINT 16**: Migration complete → module system live
+2. Verify all roles load correctly with new files
+
+3. Update documentation:
+   - `AGENTS.md` → reference new role system
+   - `START.md` → point to new locations
+   - `README.md` → update if needed
+   - Remove "BEFORE STARTING" sections (plans loaded by user)
+
+4. After 1-2 weeks validation: `rm -rf agents/archive/`
+
+**CHECKPOINT 13**: Migration complete → module system live
 
 ---
 
-## Phase 9: AGENTS.md Regeneration (OPEN QUESTION)
+## Phase 8: AGENTS.md Regeneration (OPEN QUESTION)
 
 **Objective**: Decide AGENTS.md handling strategy.
 
@@ -496,16 +498,20 @@ Create `roles/configs/code.yaml`:
 - Fallback usage patterns
 - Maintenance burden
 
-**CHECKPOINT 17**: AGENTS.md strategy decided → implement if automated
+**CHECKPOINT 14**: AGENTS.md strategy decided → implement if automated
 
 ---
 
 ## Success Criteria
 
-- [ ] All modules extracted to semantic sources
+- [x] All modules extracted to semantic sources (14 modules)
+- [ ] Rule counter counts `[RULE:Tn]` markers
+- [ ] Variant generator creates variants with tier markers
 - [ ] All variants generated with valid rule counts
+- [ ] Role composer extracts by tier and removes markers
 - [ ] All 7 role configs created
-- [ ] Total rule budget ≤ 150
+- [ ] Total rule budget ≤ 150 (warn if exceeded)
+- [ ] Tier distribution ~20/60/20 (warn if >30% deviation)
 - [ ] Makefile automation working (rebuild on changes)
 - [ ] Side-by-side testing shows equivalent/better performance
 - [ ] Token cost reduction measured (Opus planning)
@@ -513,14 +519,20 @@ Create `roles/configs/code.yaml`:
 
 ---
 
-## Open Questions for Resolution
+## Resolved Questions (from Opus Review)
 
-1. **Expansion generator** (Phase 1.1): Sonnet vs Opus?
-2. **Prose counting** (Phase 1.2): Sentences, semantic units, or fixed multiplier?
-3. **Nested list counting** (Phase 1.2): Separate rules or combined?
-4. **Overflow strategy** (Phase 4.2): warn, fail, or truncate_tier3?
-5. **Commit.md pilot** (Phase 7.1): Rebuild now or defer?
-6. **AGENTS.md pipeline** (Phase 9): Manual, automated, or hybrid?
+See `plans/opus-review-module-tiering.md` and Opus agent (a8ddc9f) for detailed analysis.
+
+1. ✅ **Expansion generator**: Opus (quality over cost)
+2. ✅ **Rule counting**: Marker-based (`[RULE:Tn]`), not parsing
+3. ✅ **Tier assignment**: Hybrid - markers in variants, hints in sources
+4. ✅ **Target counts**: Ranges in frontmatter, not computed ratios
+5. ✅ **Overflow strategy**: Warn only (never fail, never auto-regenerate)
+6. ✅ **Skill handling**: Weak-only, no variant generation
+7. ✅ **Module granularity**: 14 modules appropriate
+8. ✅ **Config location**: `agents/roles/` - clear purpose, discoverable
+9. ✅ **Development naming**: `.next.md` suffix prevents overwriting during development
+10. ⏳ **AGENTS.md pipeline**: Defer to Phase 9
 
 ---
 
@@ -537,21 +549,43 @@ Create `roles/configs/code.yaml`:
 
 ## Estimated Complexity
 
-- **Phase 1-2**: 15-20 tests (foundation + extraction)
-- **Phase 3-4**: 20-25 tests (generation + composition)
-- **Phase 5-7**: 10-15 tests (automation + skills)
-- **Phase 8-9**: Integration testing + migration
+- **Phase 1**: 10-12 tests (foundation + expansion quality)
+- **Phase 2-3**: 20-25 tests (generation + composition)
+- **Phase 4-6**: 10-15 tests (automation + configs + skills)
+- **Phase 7-8**: Integration testing + migration
 
-**Total**: ~50-60 test cases, 8-10 modules, 7 role configs
+**Total**: ~40-50 test cases (reduced from parsing complexity), 14 modules (✅ complete), 7 role configs
 
 ---
 
 ## Next Steps
 
-1. Review this outline with user
-2. Resolve open questions (especially expansion generator choice)
-3. Begin Phase 1.1: Test expansion quality
-4. Proceed incrementally with checkpoints
+1. ✅ Review outline with user
+2. ✅ Resolve design questions via Opus review
+3. ✅ Module extraction complete (14 semantic sources in agents/modules/src/)
+4. ✅ Config location decided: `agents/roles/` with `.next.md` development pattern
+5. **NEXT**: Begin Phase 1.1 - Test expansion quality (Sonnet vs Opus comparison)
+6. Proceed incrementally with checkpoints
+
+## Implementation Order (from Opus Review)
+
+Recommended 3-week timeline:
+
+**Week 1: Foundation**
+- Day 1-2: Rule counter script
+- Day 3-4: Variant generator script
+- Day 5: Test generation on pilot module
+
+**Week 2: Generation Pipeline**
+- Day 1-2: Generate weak variants for all 14 modules
+- Day 3-4: Validation testing
+- Day 5: User review of generated variants
+
+**Week 3: Composition**
+- Day 1-2: Role composer script
+- Day 3: Compose all role files
+- Day 4: Side-by-side testing (old vs new)
+- Day 5: Cutover + archive old files
 
 ---
 
