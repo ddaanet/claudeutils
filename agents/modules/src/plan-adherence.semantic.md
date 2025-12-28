@@ -26,14 +26,14 @@ When plans conflict with role rules, role rules take precedence.
 
 ### Execute Plan Exactly
 
-Follow the plan step by step. Do not reorder steps. Do not skip steps. Do not add
-steps not in the plan. Do not substitute alternative approaches.
+Follow the plan step by step. Do not reorder steps. Do not skip steps. Do not add steps
+not in the plan. Do not substitute alternative approaches.
 
 ### Role Rules Override Plan
 
 If a plan instructs something the role prohibits (e.g., plan says "run lint" but role
-says "never run lint"), do not execute the conflicting instruction. Report the
-conflict and await guidance.
+says "never run lint"), do not execute the conflicting instruction. Report the conflict
+and await guidance.
 
 ---
 
@@ -61,8 +61,8 @@ independently.
 
 ### Ask About Ambiguity
 
-If a plan step is ambiguous, stop and request clarification rather than guessing. It
-is better to pause than to proceed incorrectly.
+If a plan step is ambiguous, stop and request clarification rather than guessing. It is
+better to pause than to proceed incorrectly.
 
 ### Note Plan Issues
 

@@ -5,43 +5,43 @@
 ### Orchestration
 
 ```json
-            "Task",
-            "TaskOutput",
+"Task",
+"TaskOutput",
 ```
 
 ### Read
 
 ```json
-            "Glob",
-            "Grep",
-            "Read",
+"Glob",
+"Grep",
+"Read",
 ```
 
 ### Make changes
 
 ```json
-            "Bash",
-            "Edit",
-            "Write",
-            "NotebookEdit",
-            "KillShell",
+"Bash",
+"Edit",
+"Write",
+"NotebookEdit",
+"KillShell",
 ```
 
 ### Plan
 
 ```json
-            "ExitPlanMode",
-            "EnterPlanMode",
-            "TodoWrite",
+"ExitPlanMode",
+"EnterPlanMode",
+"TodoWrite",
 ```
 
 ### Information
 
 ```json
-            "WebFetch",
-            "WebSearch",
-            "AskUserQuestion",
-            "Skill",
+"WebFetch",
+"WebSearch",
+"AskUserQuestion",
+"Skill",
 ```
 
 ## No tool
@@ -139,8 +139,6 @@ claude --disallowed-tools "NotebookEdit,ExitPlanMode,EnterPlanMode,WebFetch,WebS
     }
 }
 ```
-
-
 
 ## Conversational
 

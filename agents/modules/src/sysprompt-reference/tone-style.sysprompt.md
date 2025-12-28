@@ -46,17 +46,21 @@ markdown files.
 ## Integration Notes
 
 ### Emoji
+
 - Could be toggle in communication module
 - Interesting to experiment with on/off
 
 ### CLI Output
+
 - Aligns with "short and concise" weak-tier format
 - Markdown formatting assumed
 
 ### Communication Channel
+
 - "Never use Bash to communicate" → bash.tool.md
 - "Never use code comments to communicate" → code-quality?
 
 ### File Creation
+
 - Enable with Write tool → write.tool.md or read-edit.tool.md
 - "ALWAYS prefer editing" aligns with existing patterns

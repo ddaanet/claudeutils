@@ -1,21 +1,24 @@
 # Design Question: Role Configuration File Location
 
-**Status**: ✅ RESOLVED by Opus
-**Created**: 2025-12-26
-**Resolved**: 2025-12-26
-**Context**: Module system directory structure refinement
+- **Status**: ✅ RESOLVED by Opus
+- **Created**: 2025-12-26
+- **Resolved**: 2025-12-26
+- **Context**: Module system directory structure refinement
 
 ---
 
 ## DECISION: Option 3 (Modified) - `agents/roles/`
 
-**Rationale**: Role configs are specifications that define composition recipes. They belong alongside role outputs, not buried in module hierarchy.
+**Rationale**: Role configs are specifications that define composition recipes. They
+belong alongside role outputs, not buried in module hierarchy.
 
-**Naming Strategy**: Use `.next.md` suffix during development to avoid overwriting existing files.
+**Naming Strategy**: Use `.next.md` suffix during development to avoid overwriting
+existing files.
 
 **See**: Opus agent output (agentId: a8ddc9f) for complete analysis.
 
 **Key Points**:
+
 - Config location: `agents/roles/{role}.yaml`
 - Development output: `agents/role-{role}.next.md`
 - Production output: `agents/role-{role}.md` (after cutover)
@@ -30,6 +33,7 @@
 ## Updated Directory Structure
 
 **Confirmed changes**:
+
 ```
 agents/
 ├── modules/              # Relocated from root modules/
@@ -53,6 +57,7 @@ agents/
 ## Open Question: Role Config Location
 
 **Role configs** are YAML files that specify:
+
 - Which modules to include
 - Target model class (strong/standard/weak)
 - Rule budget
@@ -78,11 +83,13 @@ agents/
 ```
 
 **Pros**:
+
 - Clear separation: configs vs generated files
 - Keeps agents/ root clean
 - Parallel to modules/ structure
 
 **Cons**:
+
 - Generic name "configs" - what kind of configs?
 - Not immediately obvious these are role configs
 
@@ -104,11 +111,13 @@ agents/
 ```
 
 **Pros**:
+
 - Role configs are module composition specs
 - Everything module-related in one place
 - Clear hierarchy: modules → configs
 
 **Cons**:
+
 - Configs are not modules themselves
 - Might be confusing (configs alongside src/gen)
 - Longer path
@@ -129,11 +138,13 @@ agents/
 ```
 
 **Pros**:
+
 - Clear purpose: role-related files
 - Short path
 - Parallel to modules/ for discoverability
 
 **Cons**:
+
 - Could be confused with generated role files
 - Generated files in root, configs in subdirectory (asymmetric)
 
@@ -154,10 +165,12 @@ agents/
 ```
 
 **Pros**:
+
 - Clear separation: source (roles/) vs output (agents/)
 - Conceptually: configs → generation pipeline → output
 
 **Cons**:
+
 - Creates another top-level directory
 - Breaks agents/ as single location for all agent files
 - Less discoverable
@@ -177,11 +190,13 @@ agents/
 ```
 
 **Pros**:
+
 - Immediate association: config → output
 - No extra directories
 - Easy to find related files
 
 **Cons**:
+
 - Clutters agents/ root with 14+ files
 - Config and output mixed (could be confusing)
 - Harder to see all configs at once
@@ -216,7 +231,8 @@ agents/
 └── README.md
 ```
 
-**Pattern**: Configuration files generally at project root (`pyproject.toml`) or co-located with what they configure.
+**Pattern**: Configuration files generally at project root (`pyproject.toml`) or
+co-located with what they configure.
 
 ---
 
@@ -230,6 +246,7 @@ agents/
 4. **Naming convention** if directory name should differ
 
 Consider:
+
 - This is a permanent structure decision
 - Configs will be edited when adding/removing modules
 - Pipeline: `config.yaml` → variant generation → role composition → `role-{name}.md`

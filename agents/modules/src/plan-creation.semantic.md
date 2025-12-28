@@ -32,8 +32,8 @@ a feature group). Checkpoints are mandatory stopping points.
 
 ### Explicit Checkpoint Language
 
-Write: "Run `just role-code tests/test_X.py` - awaiting approval"
-Not: "Verify tests pass" (ambiguous)
+Write: "Run `just role-code tests/test_X.py` - awaiting approval" Not: "Verify tests
+pass" (ambiguous)
 
 Checkpoints must specify the exact verification command.
 
@@ -43,11 +43,12 @@ Checkpoints must specify the exact verification command.
 
 ### Test Ordering Strategy
 
-Prefer testing normal cases first (non-empty output), then edge cases. Empty-input
-tests are usually unnecessary - this behavior emerges from loops. Only test empty
-input when it should be an error.
+Prefer testing normal cases first (non-empty output), then edge cases. Empty-input tests
+are usually unnecessary - this behavior emerges from loops. Only test empty input when
+it should be an error.
 
 Example progression:
+
 1. One matching item (requires: read, check, collect)
 2. Multiple items, some match (requires: loop, filter)
 3. No matches (no new code - validates filtering)
@@ -55,6 +56,7 @@ Example progression:
 ### Specification Format
 
 For each test, specify:
+
 - Given/When/Then with exact fixture data inline
 - What NEW code this test requires
 - What it does NOT require yet
@@ -71,6 +73,7 @@ recursion. Complete one capability before moving to the next.
 ### Plan Format Efficiency
 
 Markdown is 34-38% more token-efficient than JSON. Use:
+
 - Numbered lists for sequential steps
 - Backticks for paths and commands
 - Bold for constraints: **MUST**, **NEVER**
@@ -79,6 +82,7 @@ Markdown is 34-38% more token-efficient than JSON. Use:
 ### Omit Noise
 
 Omit from plans:
+
 - Rationale (decision already made)
 - Alternatives (planner chose)
 - Error handling logic (executor handles)

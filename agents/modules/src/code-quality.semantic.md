@@ -27,8 +27,8 @@ unless justified with comment. Use specific error codes for ignores:
 
 ### File Size Limits
 
-Files SHOULD NOT exceed 300 lines. Files MUST NOT exceed 400 lines. When approaching
-300 lines, plan to split before continuing.
+Files SHOULD NOT exceed 300 lines. Files MUST NOT exceed 400 lines. When approaching 300
+lines, plan to split before continuing.
 
 ---
 
@@ -46,6 +46,7 @@ Files SHOULD NOT exceed 300 lines. Files MUST NOT exceed 400 lines. When approac
 ### Code Style (Deslop)
 
 Omit noise that doesn't aid comprehension:
+
 - No excessive blank lines (max 1 between logical sections)
 - No obvious comments (`# increment counter` before `counter += 1`)
 - No redundant docstrings on private helpers with clear names
@@ -53,8 +54,8 @@ Omit noise that doesn't aid comprehension:
 
 ### Documentation Quality
 
-Comments explain WHY, not WHAT. Remove comments that restate the code. Docstrings
-for public interfaces only. Docstring should not exceed implementation length.
+Comments explain WHY, not WHAT. Remove comments that restate the code. Docstrings for
+public interfaces only. Docstring should not exceed implementation length.
 
 ---
 

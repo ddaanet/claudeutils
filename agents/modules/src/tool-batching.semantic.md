@@ -43,8 +43,8 @@ file: same-file edits are sequential, different-file edits can be parallel.
 
 ### Refresh Context After Writes
 
-After a batch of writes, read modified files to refresh context before making
-dependent edits. Stale line numbers cause edit failures.
+After a batch of writes, read modified files to refresh context before making dependent
+edits. Stale line numbers cause edit failures.
 
 ---
 
@@ -52,5 +52,5 @@ dependent edits. Stale line numbers cause edit failures.
 
 ### Minimize Tool Call Count
 
-Each tool call has overhead. Prefer fewer calls with more content over many small
-calls. But do not sacrifice correctness for efficiency.
+Each tool call has overhead. Prefer fewer calls with more content over many small calls.
+But do not sacrifice correctness for efficiency.

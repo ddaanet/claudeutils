@@ -56,9 +56,9 @@ uv sync                    # Sync dependencies from lockfile
 
 ## Command Selection by Role
 
-| Role    | Primary Command   | Never Run        |
-|---------|-------------------|------------------|
-| code    | `just role-code`  | `just check`     |
-| lint    | `just lint`       | -                |
-| execute | `just role-code`  | `just check`     |
-| review  | `just dev`        | -                |
+| Role    | Primary Command  | Never Run    |
+| ------- | ---------------- | ------------ |
+| code    | `just role-code` | `just check` |
+| lint    | `just lint`      | -            |
+| execute | `just role-code` | `just check` |
+| review  | `just dev`       | -            |

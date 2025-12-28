@@ -36,12 +36,14 @@ agent's time searching.
 ### What to Document
 
 Document:
+
 - Design decisions and rationale
 - User feedback and preferences
 - Blockers or questions for next session
 - Current status and next steps
 
 Do NOT document:
+
 - Test counts (use `just test` for live info)
 - File lists (use `ls` or `git status`)
 - Implementation details visible in code
@@ -58,6 +60,7 @@ Document decisions and context that tools can't provide.
 ### Completion File Structure
 
 Single file serves dual purpose:
+
 - Completion notes: what was implemented, test results, decisions
 - Handoff info: status, next steps, blockers
 

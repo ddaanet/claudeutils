@@ -1,17 +1,19 @@
 # Agent Module System Implementation Plan
 
-**Status**: Phase 2 complete (module extraction), ready for Phase 1 (tooling)
-**Created**: 2025-12-26
-**Last Updated**: 2025-12-26
-**Design Authority**: DESIGN_MODULE_SYSTEM.md, opus-review-module-tiering.md
-**Target**: Composable module system with ≤150 rule budget
-**Modules Extracted**: 14 semantic sources in agents/modules/src/
+- **Status**: Phase 2 complete (module extraction), ready for Phase 1 (tooling)
+- **Created**: 2025-12-26
+- **Last Updated**: 2025-12-26
+- **Design Authority**: DESIGN_MODULE_SYSTEM.md, opus-review-module-tiering.md
+- **Target**: Composable module system with ≤150 rule budget
+- **Modules Extracted**: 14 semantic sources in agents/modules/src/
 
 ---
 
 ## Overview
 
-Transform monolithic agent role files into composable module system with semantic sources and generated variants per model class (strong/standard/weak). Key goals:
+Transform monolithic agent role files into composable module system with semantic
+sources and generated variants per model class (strong/standard/weak). Key goals:
+
 - Reduce token costs (especially Opus planning output)
 - Enable module reuse across roles
 - Maintain ≤150 total rule budget
@@ -33,12 +35,14 @@ Transform monolithic agent role files into composable module system with semanti
 
 **Process**:
 
-1. Generate weak variant with Sonnet → `agents/modules/gen/checkpoint-obedience.weak.sonnet.md`
+1. Generate weak variant with Sonnet →
+   `agents/modules/gen/checkpoint-obedience.weak.sonnet.md`
    - Prompt: Generate weak variant with tier markers
    - Target: 12-16 rules based on frontmatter
    - Include tier markers `[RULE:T1]`, `[RULE:T2]`, `[RULE:T3]`
 
-2. Generate weak variant with Opus → `agents/modules/gen/checkpoint-obedience.weak.opus.md`
+2. Generate weak variant with Opus →
+   `agents/modules/gen/checkpoint-obedience.weak.opus.md`
    - Same prompt and target
    - Same tier marker requirements
 
@@ -54,7 +58,8 @@ Transform monolithic agent role files into composable module system with semanti
    - Does Sonnet under-expand or mis-tier?
    - Is quality difference worth cost difference?
 
-**CHECKPOINT 1**: Report comparison results → final decision on generator (Sonnet vs Opus)
+**CHECKPOINT 1**: Report comparison results → final decision on generator (Sonnet vs
+Opus)
 
 **Expected outcome**: Opus likely superior, but quantify the difference.
 
@@ -65,6 +70,7 @@ Transform monolithic agent role files into composable module system with semanti
 **Purpose**: Count `[RULE]` and `[RULE:Tn]` markers for budget validation.
 
 **Requirements** (from opus-review-module-tiering.md):
+
 - Count `[RULE]` markers (basic rule count)
 - Count `[RULE:T1]`, `[RULE:T2]`, `[RULE:T3]` markers (tier-specific counts)
 - No parsing needed - simple marker counting
@@ -107,6 +113,7 @@ Transform monolithic agent role files into composable module system with semanti
 **Status**: ✅ COMPLETE (directories already exist from module extraction)
 
 Existing structure:
+
 ```
 agents/
   roles/            # Role configs (✅ location decided by Opus)
@@ -156,7 +163,8 @@ Note: .next.md files prevent overwriting during development.
 
 2. Build Opus prompt → includes tier hints and target range
    - **NEW**: Prompt construction with tier section guidance
-   - **PROMPT**: "Generate {variant} variant with {min}-{max} rules, mark each with [RULE:T1/T2/T3] based on tier sections"
+   - **PROMPT**: "Generate {variant} variant with {min}-{max} rules, mark each with
+     [RULE:T1/T2/T3] based on tier sections"
    - **INPUT**: Semantic source with Critical/Important/Preferred sections
    - **OUTPUT**: Prompt text for Opus
 
@@ -254,7 +262,8 @@ Note: .next.md files prevent overwriting during development.
 
 6. Write composed role → `agents/role-{role}.next.md` (development)
    - **NEW**: Formatted output with frontmatter, clean rules (no markers)
-   - **NOTE**: Use .next.md suffix to avoid overwriting existing roles during development
+   - **NOTE**: Use .next.md suffix to avoid overwriting existing roles during
+     development
 
 **CHECKPOINT 7**: Role composer generates valid role files → ready for validation
 
@@ -337,6 +346,7 @@ validate: agents/role-*.next.md
 ```
 
 **Test**:
+
 1. Touch semantic source → variants rebuild
 2. Change .model-id → all variants rebuild
 3. Change role config → role rebuilds
@@ -378,10 +388,11 @@ sections:
 overflow_strategy: warn
 ```
 
-**Note**: Tier assignment is in module variants (via `[RULE:Tn]` markers), not in role config.
+**Note**: Tier assignment is in module variants (via `[RULE:Tn]` markers), not in role
+config.
 
-**Generate**: `make agents/role-planning.next.md` (development)
-**Validate**: Rule count ≤ 45
+- **Generate**: `make agents/role-planning.next.md` (development)
+- **Validate**: Rule count ≤ 45
 
 ---
 
@@ -414,17 +425,20 @@ Create `agents/roles/code.yaml`:
 
 ### 6.1 Skill Module Handling
 
-**Status**: ✅ Skills already extracted as semantic sources (commit.semantic.md, handoff.semantic.md)
+**Status**: ✅ Skills already extracted as semantic sources (commit.semantic.md,
+handoff.semantic.md)
 
 **Opus Decision**: Skills use weak-only wording, no variant generation needed.
 
 **Rationale** (from opus-review-module-tiering.md):
+
 - Skills loaded at session end (low context pressure)
 - Weak wording works universally for all models
 - Marginal token savings (~50 lines × 2 files) doesn't justify pipeline complexity
 - Avoid maintaining 6 additional files (2 skills × 3 variants)
 
 **Implementation**:
+
 - Skills remain as single weak-optimized files
 - Use tier markers for internal structure (primacy/recency within skill)
 - Don't count against role budget (loaded separately)
@@ -489,11 +503,13 @@ Create `agents/roles/code.yaml`:
 **Objective**: Decide AGENTS.md handling strategy.
 
 **Options**:
+
 1. Manual maintenance (fallback for non-role-primed agents only)
 2. Include in composition pipeline (auto-generated)
 3. Hybrid (template + composed modules)
 
 **Decision criteria**:
+
 - Frequency of changes
 - Fallback usage patterns
 - Maintenance burden
@@ -521,7 +537,8 @@ Create `agents/roles/code.yaml`:
 
 ## Resolved Questions (from Opus Review)
 
-See `plans/opus-review-module-tiering.md` and Opus agent (a8ddc9f) for detailed analysis.
+See `plans/opus-review-module-tiering.md` and Opus agent (a8ddc9f) for detailed
+analysis.
 
 1. ✅ **Expansion generator**: Opus (quality over cost)
 2. ✅ **Rule counting**: Marker-based (`[RULE:Tn]`), not parsing
@@ -554,7 +571,8 @@ See `plans/opus-review-module-tiering.md` and Opus agent (a8ddc9f) for detailed 
 - **Phase 4-6**: 10-15 tests (automation + configs + skills)
 - **Phase 7-8**: Integration testing + migration
 
-**Total**: ~40-50 test cases (reduced from parsing complexity), 14 modules (✅ complete), 7 role configs
+**Total**: ~40-50 test cases (reduced from parsing complexity), 14 modules (✅
+complete), 7 role configs
 
 ---
 
@@ -572,16 +590,19 @@ See `plans/opus-review-module-tiering.md` and Opus agent (a8ddc9f) for detailed 
 Recommended 3-week timeline:
 
 **Week 1: Foundation**
+
 - Day 1-2: Rule counter script
 - Day 3-4: Variant generator script
 - Day 5: Test generation on pilot module
 
 **Week 2: Generation Pipeline**
+
 - Day 1-2: Generate weak variants for all 14 modules
 - Day 3-4: Validation testing
 - Day 5: User review of generated variants
 
 **Week 3: Composition**
+
 - Day 1-2: Role composer script
 - Day 3: Compose all role files
 - Day 4: Side-by-side testing (old vs new)

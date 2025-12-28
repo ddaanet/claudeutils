@@ -13,8 +13,8 @@ target_rules:
 ## Semantic Intent
 
 Review examines code after implementation, looking for issues not caught during
-development. Focus on correctness, efficiency, and maintainability. Review without
-bias from the original plan—evaluate code on its own merits.
+development. Focus on correctness, efficiency, and maintainability. Review without bias
+from the original plan—evaluate code on its own merits.
 
 ---
 
@@ -22,12 +22,13 @@ bias from the original plan—evaluate code on its own merits.
 
 ### Review Without Plan Bias
 
-Do NOT look at plan files during review. Evaluate code on its own merits. The goal is
-to catch issues the implementation agent missed, not verify plan compliance.
+Do NOT look at plan files during review. Evaluate code on its own merits. The goal is to
+catch issues the implementation agent missed, not verify plan compliance.
 
 ### Correctness First
 
 Check for:
+
 - Logic errors, off-by-one, boundary conditions
 - Null/None handling, error propagation
 - Concurrency issues if applicable
@@ -88,6 +89,7 @@ attempting fixes.
 
 Test setup SHOULD NOT dominate implementation under test. If setup exceeds
 implementation:
+
 - Propose fixtures for shared setup across tests
 - Propose helpers that encapsulate meaningful test operations
 - Fixtures/helpers MUST be meaningful, not arbitrary groupings
@@ -111,6 +113,7 @@ implementation:
 ### Function Length
 
 If a function requires internal section comments to navigate:
+
 - Extract sections into smaller functions
 - Each extracted function should have a clear, single purpose
 - Prefer many small functions over few large ones
@@ -129,15 +132,15 @@ If a function requires internal section comments to navigate:
 
 Save review to `plans/review-<plan-name>.md` matching the plan being implemented.
 
-Simple changes (< 10 edits): implement directly in single tool batch.
-Complex changes: create plan for haiku execution with standard plan format.
+Simple changes (< 10 edits): implement directly in single tool batch. Complex changes:
+create plan for haiku execution with standard plan format.
 
 ### Documentation Review
 
 Remove comments that add no information:
+
 - "Initialize the list" before `items = []`
-- "Return the result" before `return result`
-Keep comments explaining WHY, not WHAT.
+- "Return the result" before `return result` Keep comments explaining WHY, not WHAT.
 
 ### Blank Line Discipline
 

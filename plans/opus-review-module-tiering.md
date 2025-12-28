@@ -1,9 +1,9 @@
 # Opus Review: Module System Design Decisions
 
-**Status**: Decisions provided
-**Date**: 2025-12-26
-**Reviewer**: claude-opus-4-5-20251101
-**Input**: design-review-rule-tiering.md, DESIGN_MODULE_SYSTEM.md
+- **Status**: Decisions provided
+- **Date**: 2025-12-26
+- **Reviewer**: claude-opus-4-5-20251101
+- **Input**: design-review-rule-tiering.md, DESIGN_MODULE_SYSTEM.md
 
 ---
 
@@ -33,17 +33,18 @@ After reviewing the open questions, I recommend:
 
 **Why not the pure options?**
 
-| Option | Rejection Reason |
-|--------|------------------|
-| A (Module-level) | Violates 20/60/20 distribution requirement |
-| B (Pure markers) | Requires rigid tier markers in semantic sources |
+| Option            | Rejection Reason                                        |
+| ----------------- | ------------------------------------------------------- |
+| A (Module-level)  | Violates 20/60/20 distribution requirement              |
+| B (Pure markers)  | Requires rigid tier markers in semantic sources         |
 | C (Section-based) | 13 modules × 3 sections = excessive structural overhead |
-| D (Pure hints) | Insufficient determinism for budget validation |
+| D (Pure hints)    | Insufficient determinism for budget validation          |
 
 **Hybrid approach**:
 
 ```markdown
 # modules/src/communication.semantic.md
+
 ---
 author_model: claude-opus-4-5-20251101
 expansion_sensitivity: explicit
@@ -53,14 +54,17 @@ target_rules:
 ---
 
 ## Critical (Tier 1)
-Agent must stop on unexpected results. Describe expected vs observed, then STOP.
-Agent must wait for explicit instruction before proceeding with plans.
+
+Agent must stop on unexpected results. Describe expected vs observed, then STOP. Agent
+must wait for explicit instruction before proceeding with plans.
 
 ## Important (Tier 2)
-Request validation every 3 test-implement cycles.
-Ask clarifying questions if requirements unclear.
+
+Request validation every 3 test-implement cycles. Ask clarifying questions if
+requirements unclear.
 
 ## Preferred (Tier 3)
+
 Complete assigned task then stop (no scope creep).
 ```
 
@@ -69,19 +73,19 @@ Complete assigned task then stop (no scope creep).
 ```markdown
 # communication.weak.md
 
-[RULE:T1] ⚠️ STOP immediately if results are unexpected (fail OR succeed)
-[RULE:T1] Describe expected vs observed when stopping
-[RULE:T1] ⚠️ WAIT for explicit instruction before proceeding
-[RULE:T1] DO NOT assume "continue" is implied
+- [RULE:T1] ⚠️ STOP immediately if results are unexpected (fail OR succeed)
+- [RULE:T1] Describe expected vs observed when stopping
+- [RULE:T1] ⚠️ WAIT for explicit instruction before proceeding
+- [RULE:T1] DO NOT assume "continue" is implied
 
-[RULE:T2] Request validation every 3 test-implement cycles
-[RULE:T2] Stop and ask: "Completed 3 cycles - ready for next?"
-[RULE:T2] Ask clarifying questions if requirements are unclear
-[RULE:T2] Be explicit about assumptions
+- [RULE:T2] Request validation every 3 test-implement cycles
+- [RULE:T2] Stop and ask: "Completed 3 cycles - ready for next?"
+- [RULE:T2] Ask clarifying questions if requirements are unclear
+- [RULE:T2] Be explicit about assumptions
 
-[RULE:T3] Complete assigned task then stop
-[RULE:T3] No scope creep beyond task boundaries
-[RULE:T3] If you see improvement opportunities, note them but don't act
+- [RULE:T3] Complete assigned task then stop
+- [RULE:T3] No scope creep beyond task boundaries
+- [RULE:T3] If you see improvement opportunities, note them but don't act
 ```
 
 **Role composition**:
@@ -107,7 +111,8 @@ def compose_role(config, variants):
 
 **Key clarifications**:
 
-1. **Tier assignment does NOT change between variants**. Tier represents semantic criticality. A tier 1 rule stays tier 1 whether strong or weak variant.
+1. **Tier assignment does NOT change between variants**. Tier represents semantic
+   criticality. A tier 1 rule stays tier 1 whether strong or weak variant.
 
 2. **What changes between variants**:
    - Number of rules (expansion may split one concept into multiple rules)
@@ -120,9 +125,11 @@ def compose_role(config, variants):
      cross_cutting:
        - communication  # Include ALL tiers from this module
    ```
-   No tier filtering at inclusion. The module's internal tier markers determine placement.
+   No tier filtering at inclusion. The module's internal tier markers determine
+   placement.
 
-**Trade-off accepted**: Opus must assign tier markers during generation. This is an LLM judgment task. Validation can check tier distribution (warn if >40% tier1).
+**Trade-off accepted**: Opus must assign tier markers during generation. This is an LLM
+judgment task. Validation can check tier distribution (warn if >40% tier1).
 
 ---
 
@@ -162,13 +169,13 @@ Phase 3: Implementation (Script development)
 
 **Why planning, not implementation?**
 
-| Activity | Category | Rationale |
-|----------|----------|-----------|
-| Identify cross-cutting concerns | Planning | Requires semantic understanding |
-| Decide module boundaries | Planning | Judgment about cohesion |
-| Assign tier hints | Planning | Priority reasoning |
-| Write Python scripts | Implementation | Mechanical translation |
-| Create Makefile | Implementation | Build system knowledge |
+| Activity                        | Category       | Rationale                       |
+| ------------------------------- | -------------- | ------------------------------- |
+| Identify cross-cutting concerns | Planning       | Requires semantic understanding |
+| Decide module boundaries        | Planning       | Judgment about cohesion         |
+| Assign tier hints               | Planning       | Priority reasoning              |
+| Write Python scripts            | Implementation | Mechanical translation          |
+| Create Makefile                 | Implementation | Build system knowledge          |
 
 **Output format for extraction**:
 
@@ -211,6 +218,7 @@ target_rules:
 ```
 
 **Budget planning**:
+
 - Use max of range for budget estimation
 - Sum across modules for role budget check
 - Opus generates within range
@@ -218,13 +226,14 @@ target_rules:
 
 **Why not other options?**
 
-| Option | Issue |
-|--------|-------|
-| A (Ratios) | Too rigid; Opus can't adjust for semantic complexity |
-| B (Explicit) | Manual math; harder to adjust globally |
-| C (Opus decides) | Unpredictable; can't plan budgets |
+| Option           | Issue                                                |
+| ---------------- | ---------------------------------------------------- |
+| A (Ratios)       | Too rigid; Opus can't adjust for semantic complexity |
+| B (Explicit)     | Manual math; harder to adjust globally               |
+| C (Opus decides) | Unpredictable; can't plan budgets                    |
 
 **Ranges provide**:
+
 - Budget predictability (sum max values)
 - Opus flexibility within bounds
 - Clear validation thresholds
@@ -243,6 +252,7 @@ target_rules:
 ```
 
 **Opus generation prompt**:
+
 ```
 Generate weak variant for communication module.
 Target: 12-18 rules total.
@@ -256,17 +266,17 @@ Preserve tier distribution from semantic source (~20% T1, ~60% T2, ~20% T3).
 
 ### Thresholds
 
-| Scenario | Threshold | Warning Message |
-|----------|-----------|-----------------|
-| Module exceeds target range | >max | "communication.weak.md: 19 rules (target: 12-18)" |
-| Role exceeds budget | >budget | "planning.md: 48 rules (budget: 45, +3 over)" |
-| Global budget exceeded | >150 | "Total: 155 rules (limit: 150, +5 over)" |
-| Tier distribution skewed | >30% deviation | "planning.md: tier1=38% (expected: ~20%)" |
+| Scenario                    | Threshold      | Warning Message                                   |
+| --------------------------- | -------------- | ------------------------------------------------- |
+| Module exceeds target range | >max           | "communication.weak.md: 19 rules (target: 12-18)" |
+| Role exceeds budget         | >budget        | "planning.md: 48 rules (budget: 45, +3 over)"     |
+| Global budget exceeded      | >150           | "Total: 155 rules (limit: 150, +5 over)"          |
+| Tier distribution skewed    | >30% deviation | "planning.md: tier1=38% (expected: ~20%)"         |
 
 ### Tier Distribution Validation
 
-**Expected distribution**: 20/60/20 (T1/T2/T3)
-**Acceptable range**: ±10 percentage points
+- **Expected distribution**: 20/60/20 (T1/T2/T3)
+- **Acceptable range**: ±10 percentage points
 
 ```python
 def validate_tier_distribution(rules):
@@ -293,7 +303,8 @@ def validate_tier_distribution(rules):
 3. **Generate summary** at end of composition
 4. **Human review queue** for decisions
 
-**Never auto-regenerate**. Risk of infinite loops. Human decides: accept, adjust targets, or manually edit.
+**Never auto-regenerate**. Risk of infinite loops. Human decides: accept, adjust
+targets, or manually edit.
 
 ---
 
@@ -303,21 +314,21 @@ def validate_tier_distribution(rules):
 
 **Analysis**:
 
-| Module | Estimated Weak Rules | Assessment |
-|--------|---------------------|------------|
-| communication | 12-16 | Appropriate |
-| tool-batching | 8-12 | Appropriate |
-| checkpoint-obedience | 10-15 | Appropriate |
-| context-overview | 6-10 | Appropriate |
-| context-datamodel | 8-12 | Appropriate |
-| context-commands | 5-8 | Appropriate |
-| tdd-cycle | 15-20 | Appropriate |
-| plan-creation | 12-16 | Appropriate |
-| plan-adherence | 10-14 | Appropriate |
-| code-quality | 10-14 | Appropriate |
-| memory-management | 8-12 | Appropriate |
-| commit | 8-12 | Appropriate |
-| handoff | 6-10 | Appropriate |
+| Module               | Estimated Weak Rules | Assessment  |
+| -------------------- | -------------------- | ----------- |
+| communication        | 12-16                | Appropriate |
+| tool-batching        | 8-12                 | Appropriate |
+| checkpoint-obedience | 10-15                | Appropriate |
+| context-overview     | 6-10                 | Appropriate |
+| context-datamodel    | 8-12                 | Appropriate |
+| context-commands     | 5-8                  | Appropriate |
+| tdd-cycle            | 15-20                | Appropriate |
+| plan-creation        | 12-16                | Appropriate |
+| plan-adherence       | 10-14                | Appropriate |
+| code-quality         | 10-14                | Appropriate |
+| memory-management    | 8-12                 | Appropriate |
+| commit               | 8-12                 | Appropriate |
+| handoff              | 6-10                 | Appropriate |
 
 **Total estimated**: 118-171 rules (weak variants)
 
@@ -358,14 +369,15 @@ def remove_markers(content: str) -> str:
 
 **Edge cases handled**:
 
-| Input | Output |
-|-------|--------|
-| `[RULE] Text` | `Text` |
-| `- [RULE] Text` | `- Text` |
-| `[RULE:T1] Text` | `Text` |
+| Input              | Output   |
+| ------------------ | -------- |
+| `[RULE] Text`      | `Text`   |
+| `- [RULE] Text`    | `- Text` |
+| `[RULE:T1] Text`   | `Text`   |
 | `⚠️ [RULE:T1] Text` | `⚠️ Text` |
 
-**Multiple markers per line**: Unlikely by design. Regex handles regardless (global replace).
+**Multiple markers per line**: Unlikely by design. Regex handles regardless (global
+replace).
 
 ---
 
@@ -417,7 +429,8 @@ graph TD
 
 ### 1. Version Compatibility
 
-When Opus model ID changes, all variants regenerate. But semantic sources are static. Need migration strategy:
+When Opus model ID changes, all variants regenerate. But semantic sources are static.
+Need migration strategy:
 
 ```yaml
 # Track in semantic source
@@ -430,7 +443,8 @@ last_generated:
 
 ### 2. Partial Regeneration
 
-If one module changes, only regenerate that module's variants. Don't regenerate all 13 modules.
+If one module changes, only regenerate that module's variants. Don't regenerate all 13
+modules.
 
 ### 3. Tier Override in Role Config
 
@@ -452,12 +466,14 @@ Skills (commit, handoff) are on-demand loaded at session boundaries.
 **Decision: No variants for skills. Weak wording only.**
 
 Rationale:
+
 - Skills loaded at session end when context pressure is lowest
 - Weak wording works universally (no correctness issue for strong models)
 - Marginal token savings (~50 lines × 2 files) doesn't justify pipeline complexity
 - Avoids maintaining 6 additional generated files (2 skills × 3 variants)
 
 Skills should:
+
 - Use tier markers for internal structure (primacy/recency within skill)
 - Not count against role budget (loaded separately)
 - Remain as single weak-optimized files (no generation pipeline)
@@ -466,25 +482,25 @@ Skills should:
 
 ## Risk Assessment
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Opus tier assignment inconsistent | Medium | High | Validation + human review |
-| Budget exceeded after composition | Medium | Medium | Warn + manual adjustment |
-| Semantic source drift from variants | Low | Medium | Regeneration on source change |
-| Weak variant under-expanded | Medium | High | Target ranges allow flexibility |
+| Risk                                | Likelihood | Impact | Mitigation                      |
+| ----------------------------------- | ---------- | ------ | ------------------------------- |
+| Opus tier assignment inconsistent   | Medium     | High   | Validation + human review       |
+| Budget exceeded after composition   | Medium     | Medium | Warn + manual adjustment        |
+| Semantic source drift from variants | Low        | Medium | Regeneration on source change   |
+| Weak variant under-expanded         | Medium     | High   | Target ranges allow flexibility |
 
 ---
 
 ## Summary of Decisions
 
-| Question | Decision | Confidence |
-|----------|----------|------------|
-| Rule tiering | Hybrid B+D (markers + hints) | High |
-| Module extraction | Planning phase task | High |
-| Target counts | Ranges (Option D) | High |
-| Validation warnings | Thresholds per scenario | Medium |
-| Module granularity | 13 modules appropriate | High |
-| Marker removal | Simple regex + validation | High |
+| Question            | Decision                     | Confidence |
+| ------------------- | ---------------------------- | ---------- |
+| Rule tiering        | Hybrid B+D (markers + hints) | High       |
+| Module extraction   | Planning phase task          | High       |
+| Target counts       | Ranges (Option D)            | High       |
+| Validation warnings | Thresholds per scenario      | Medium     |
+| Module granularity  | 13 modules appropriate       | High       |
+| Marker removal      | Simple regex + validation    | High       |
 
 ---
 

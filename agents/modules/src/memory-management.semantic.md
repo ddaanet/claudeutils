@@ -1,19 +1,13 @@
 # Memory Management Module
 
 ---
-author_model: claude-opus-4-5-20251101
-semantic_type: workflow
-expansion_sensitivity: medium
-target_rules:
-  strong: 4-6
-  standard: 8-10
-  weak: 10-14
----
+
+## author_model: claude-opus-4-5-20251101 semantic_type: workflow expansion_sensitivity: medium target_rules: strong: 4-6 standard: 8-10 weak: 10-14
 
 ## Semantic Intent
 
-Agent documentation must be maintained as the project evolves. Rules should be tiered
-by importance, budgeted for token efficiency, and updated based on session learnings.
+Agent documentation must be maintained as the project evolves. Rules should be tiered by
+importance, budgeted for token efficiency, and updated based on session learnings.
 
 ---
 
@@ -21,8 +15,8 @@ by importance, budgeted for token efficiency, and updated based on session learn
 
 ### Rule Budgeting
 
-Target: AGENTS.md (~40 rules) + role file, total <= 150 rules. Fewer is better.
-Budget is a hard constraint.
+Target: AGENTS.md (~40 rules) + role file, total <= 150 rules. Fewer is better. Budget
+is a hard constraint.
 
 ### Tiering for Position Bias
 
@@ -39,13 +33,13 @@ end (recency bias). Middle position is weakest.
 
 ### Model-Appropriate Wording
 
-Strong models: Concise, one sentence per rule.
-Weak models: Explicit step-by-step with numbered lists and warning symbols.
-Don't assume inference for weak models.
+Strong models: Concise, one sentence per rule. Weak models: Explicit step-by-step with
+numbered lists and warning symbols. Don't assume inference for weak models.
 
 ### When to Update Documentation
 
 Update after:
+
 - Discovering a workflow improvement
 - Identifying a missing constraint
 - Resolving a compliance failure
@@ -53,8 +47,8 @@ Update after:
 
 ### What to Update
 
-Update: AGENTS.md, START.md, role files, rule files.
-Do NOT update: README.md, test files, plan files.
+Update: AGENTS.md, START.md, role files, rule files. Do NOT update: README.md, test
+files, plan files.
 
 ---
 
@@ -68,6 +62,6 @@ Do NOT update: README.md, test files, plan files.
 
 ### Documentation Principles
 
-Precision over brevity - rules must be unambiguous.
-Examples over abstractions - show, don't just tell.
-Constraints over guidelines - "do not" beats "try to avoid".
+- Precision over brevity - rules must be unambiguous.
+- Examples over abstractions - show, don't just tell.
+- Constraints over guidelines - "do not" beats "try to avoid".

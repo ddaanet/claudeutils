@@ -1,9 +1,9 @@
 # Phase 1: Foundation & Testing - Implementation Plan
 
-**Status**: Ready for execution
-**Created**: 2025-12-26
-**Executor**: Haiku (code role)
-**Context**: Module system implementation - Phase 1 of 8
+- **Status**: Ready for execution
+- **Created**: 2025-12-26
+- **Executor**: Haiku (code role)
+- **Context**: Module system implementation - Phase 1 of 8
 
 ---
 
@@ -11,7 +11,8 @@
 
 1. Read `plans/DESIGN_MODULE_SYSTEM.md` → understand marker-based counting
 2. Read `plans/opus-review-module-tiering.md` → understand tier markers
-3. Read `agents/modules/src/checkpoint-obedience.semantic.md` → test module for Phase 1.1
+3. Read `agents/modules/src/checkpoint-obedience.semantic.md` → test module for Phase
+   1.1
 
 ---
 
@@ -47,6 +48,7 @@
    - Enumerate patterns explicitly
    - Each rule must be concrete and actionable
    ```
+
 5. Invoke Sonnet → $sonnet_variant
 6. Write `agents/modules/gen/checkpoint-obedience.weak.sonnet.md` → $sonnet_variant
 
@@ -109,21 +111,24 @@ Create `plans/comparison-sonnet-vs-opus.md` with:
 
 #### Test 1: Empty content returns zero
 
-**Given**: Empty string
-**When**: Count rules
-**Then**: Returns `{'total': 0}`
+- **Given**: Empty string
+- **When**: Count rules
+- **Then**: Returns `{'total': 0}`
 
 **NEW code needed**:
+
 - `count_rules(content: str) -> dict` function stub
 - Return dict with 'total' key
 - Handle empty string
 
 **Does NOT need**:
+
 - Tier-specific counting
 - Marker parsing
 - Complex logic
 
 **Test code**:
+
 ```python
 def test_count_rules_empty():
     content = ""
@@ -135,21 +140,24 @@ def test_count_rules_empty():
 
 #### Test 2: Single basic marker
 
-**Given**: `"[RULE] Text here"`
-**When**: Count rules
-**Then**: Returns `{'untiered': 1, 'total': 1}`
+- **Given**: `"[RULE] Text here"`
+- **When**: Count rules
+- **Then**: Returns `{'untiered': 1, 'total': 1}`
 
 **NEW code needed**:
+
 - Regex to find `[RULE]` markers
 - Count matches
 - Return 'untiered' count
 
 **Does NOT need**:
+
 - Tier marker parsing (T1/T2/T3)
 - Multiple marker handling
 - Edge cases
 
 **Test code**:
+
 ```python
 def test_count_rules_single_basic():
     content = "[RULE] Stop on unexpected results"
@@ -162,23 +170,28 @@ def test_count_rules_single_basic():
 #### Test 3: Multiple basic markers
 
 **Given**:
+
 ```
 [RULE] First rule
 [RULE] Second rule
 [RULE] Third rule
 ```
-**When**: Count rules
-**Then**: Returns `{'untiered': 3, 'total': 3}`
+
+- **When**: Count rules
+- **Then**: Returns `{'untiered': 3, 'total': 3}`
 
 **NEW code needed**:
+
 - Loop/iteration to count all matches
 - Accurate total calculation
 
 **Does NOT need**:
+
 - Tier markers
 - Mixed format handling
 
 **Test code**:
+
 ```python
 def test_count_rules_multiple_basic():
     content = """[RULE] First rule
@@ -188,7 +201,9 @@ def test_count_rules_multiple_basic():
     assert result == {'untiered': 3, 'total': 3}
 ```
 
-**CHECKPOINT 2**: Run `just test tests/test_rule_counter.py::test_count_rules_empty tests/test_rule_counter.py::test_count_rules_single_basic tests/test_rule_counter.py::test_count_rules_multiple_basic` → awaiting approval
+**CHECKPOINT 2**: Run
+`just test tests/test_rule_counter.py::test_count_rules_empty tests/test_rule_counter.py::test_count_rules_single_basic tests/test_rule_counter.py::test_count_rules_multiple_basic`
+→ awaiting approval
 
 ---
 
@@ -196,21 +211,24 @@ def test_count_rules_multiple_basic():
 
 #### Test 4: Single T1 marker
 
-**Given**: `"[RULE:T1] Critical rule"`
-**When**: Count rules
-**Then**: Returns `{'T1': 1, 'total': 1}`
+- **Given**: `"[RULE:T1] Critical rule"`
+- **When**: Count rules
+- **Then**: Returns `{'T1': 1, 'total': 1}`
 
 **NEW code needed**:
+
 - Regex to parse `[RULE:T1]` format
 - Extract tier number (T1, T2, T3)
 - Track tier-specific counts
 
 **Does NOT need**:
+
 - Multiple tier handling
 - Mixed marker formats
 - Distribution calculations
 
 **Test code**:
+
 ```python
 def test_count_rules_tier_t1():
     content = "[RULE:T1] ⚠️ STOP on unexpected results"
@@ -223,25 +241,30 @@ def test_count_rules_tier_t1():
 #### Test 5: Multiple markers with different tiers
 
 **Given**:
+
 ```
 [RULE:T1] Critical A
 [RULE:T2] Important B
 [RULE:T1] Critical C
 [RULE:T3] Preferred D
 ```
-**When**: Count rules
-**Then**: Returns `{'T1': 2, 'T2': 1, 'T3': 1, 'total': 4}`
+
+- **When**: Count rules
+- **Then**: Returns `{'T1': 2, 'T2': 1, 'T3': 1, 'total': 4}`
 
 **NEW code needed**:
+
 - Track counts per tier
 - Accumulate across all tiers
 - Accurate total calculation
 
 **Does NOT need**:
+
 - Mixed format (basic + tier markers)
 - Distribution percentages
 
 **Test code**:
+
 ```python
 def test_count_rules_multiple_tiers():
     content = """[RULE:T1] Critical A
@@ -257,23 +280,28 @@ def test_count_rules_multiple_tiers():
 #### Test 6: Mixed basic and tier markers
 
 **Given**:
+
 ```
 [RULE] Untiered rule
 [RULE:T1] Tier 1 rule
 [RULE:T2] Tier 2 rule
 ```
-**When**: Count rules
-**Then**: Returns `{'untiered': 1, 'T1': 1, 'T2': 1, 'total': 3}`
+
+- **When**: Count rules
+- **Then**: Returns `{'untiered': 1, 'T1': 1, 'T2': 1, 'total': 3}`
 
 **NEW code needed**:
+
 - Handle both marker formats in same content
 - Separate counting for untiered vs tiered
 
 **Does NOT need**:
+
 - Distribution calculations
 - Validation
 
 **Test code**:
+
 ```python
 def test_count_rules_mixed_markers():
     content = """[RULE] Untiered rule
@@ -283,7 +311,8 @@ def test_count_rules_mixed_markers():
     assert result == {'untiered': 1, 'T1': 1, 'T2': 1, 'total': 3}
 ```
 
-**CHECKPOINT 3**: Run `just test tests/test_rule_counter.py` (tests 1-6) → awaiting approval
+**CHECKPOINT 3**: Run `just test tests/test_rule_counter.py` (tests 1-6) → awaiting
+approval
 
 ---
 
@@ -292,6 +321,7 @@ def test_count_rules_mixed_markers():
 #### Test 7: Calculate distribution percentages
 
 **Given**:
+
 ```
 [RULE:T1] A
 [RULE:T1] B
@@ -306,19 +336,23 @@ def test_count_rules_mixed_markers():
 [RULE:T3] K
 [RULE:T3] L
 ```
-**When**: Calculate distribution
-**Then**: Returns `{'T1': 25.0, 'T2': 50.0, 'T3': 25.0}`
+
+- **When**: Calculate distribution
+- **Then**: Returns `{'T1': 25.0, 'T2': 50.0, 'T3': 25.0}`
 
 **NEW code needed**:
+
 - `calculate_distribution(counts: dict) -> dict` function
 - Percentage calculation (count / total * 100)
 - Handle tier counts only (ignore 'untiered')
 
 **Does NOT need**:
+
 - Deviation calculation
 - Warning logic
 
 **Test code**:
+
 ```python
 def test_calculate_distribution():
     counts = {'T1': 3, 'T2': 6, 'T3': 3, 'total': 12}
@@ -330,18 +364,21 @@ def test_calculate_distribution():
 
 #### Test 8: Distribution with untiered rules
 
-**Given**: `{'untiered': 2, 'T1': 3, 'T2': 9, 'T3': 3, 'total': 17}`
-**When**: Calculate distribution
-**Then**: Returns `{'T1': 20.0, 'T2': 60.0, 'T3': 20.0}` (ignores untiered)
+- **Given**: `{'untiered': 2, 'T1': 3, 'T2': 9, 'T3': 3, 'total': 17}`
+- **When**: Calculate distribution
+- **Then**: Returns `{'T1': 20.0, 'T2': 60.0, 'T3': 20.0}` (ignores untiered)
 
 **NEW code needed**:
+
 - Calculate percentages based on tiered total only
 - `tiered_total = T1 + T2 + T3`
 
 **Does NOT need**:
+
 - Edge case handling (zero tiers)
 
 **Test code**:
+
 ```python
 def test_calculate_distribution_with_untiered():
     counts = {'untiered': 2, 'T1': 3, 'T2': 9, 'T3': 3, 'total': 17}
@@ -349,7 +386,8 @@ def test_calculate_distribution_with_untiered():
     assert result == {'T1': 20.0, 'T2': 60.0, 'T3': 20.0}
 ```
 
-**CHECKPOINT 4**: Run `just test tests/test_rule_counter.py` (tests 1-8) → awaiting approval
+**CHECKPOINT 4**: Run `just test tests/test_rule_counter.py` (tests 1-8) → awaiting
+approval
 
 ---
 
@@ -357,20 +395,23 @@ def test_calculate_distribution_with_untiered():
 
 #### Test 9: Remove basic markers
 
-**Given**: `"[RULE] Text here"`
-**When**: Remove markers
-**Then**: Returns `"Text here"`
+- **Given**: `"[RULE] Text here"`
+- **When**: Remove markers
+- **Then**: Returns `"Text here"`
 
 **NEW code needed**:
+
 - `remove_markers(content: str) -> str` function
 - Regex to replace `[RULE]` with empty string
 - Preserve remaining text
 
 **Does NOT need**:
+
 - Tier marker removal
 - Whitespace normalization
 
 **Test code**:
+
 ```python
 def test_remove_markers_basic():
     content = "[RULE] Text here"
@@ -382,18 +423,21 @@ def test_remove_markers_basic():
 
 #### Test 10: Remove tier markers
 
-**Given**: `"[RULE:T1] ⚠️ Critical text\n[RULE:T2] Important text"`
-**When**: Remove markers
-**Then**: Returns `"⚠️ Critical text\nImportant text"`
+- **Given**: `"[RULE:T1] ⚠️ Critical text\n[RULE:T2] Important text"`
+- **When**: Remove markers
+- **Then**: Returns `"⚠️ Critical text\nImportant text"`
 
 **NEW code needed**:
+
 - Regex to match `[RULE:T1]`, `[RULE:T2]`, `[RULE:T3]`
 - Remove all tier variants
 
 **Does NOT need**:
+
 - Validation that all markers removed
 
 **Test code**:
+
 ```python
 def test_remove_markers_tiers():
     content = "[RULE:T1] ⚠️ Critical text\n[RULE:T2] Important text"
@@ -406,25 +450,31 @@ def test_remove_markers_tiers():
 #### Test 11: Remove markers in list context
 
 **Given**:
+
 ```
 - [RULE:T1] First item
 - [RULE:T2] Second item
 ```
-**When**: Remove markers
-**Then**: Returns:
+
+- **When**: Remove markers
+- **Then**: Returns:
+
 ```
 - First item
 - Second item
 ```
 
 **NEW code needed**:
+
 - Handle markers after list symbols
 - Preserve list formatting
 
 **Does NOT need**:
+
 - Complex markdown parsing
 
 **Test code**:
+
 ```python
 def test_remove_markers_in_lists():
     content = "- [RULE:T1] First item\n- [RULE:T2] Second item"
@@ -432,7 +482,8 @@ def test_remove_markers_in_lists():
     assert result == "- First item\n- Second item"
 ```
 
-**CHECKPOINT 5**: Run `just test tests/test_rule_counter.py` (tests 1-11) → awaiting approval
+**CHECKPOINT 5**: Run `just test tests/test_rule_counter.py` (tests 1-11) → awaiting
+approval
 
 ---
 
@@ -440,20 +491,23 @@ def test_remove_markers_in_lists():
 
 #### Test 12: Validate no markers remain
 
-**Given**: `"Text with no markers"`
-**When**: Validate removal
-**Then**: Returns `True`
+- **Given**: `"Text with no markers"`
+- **When**: Validate removal
+- **Then**: Returns `True`
 
 **NEW code needed**:
+
 - `validate_removal(content: str) -> bool` function
 - Check for presence of `[RULE` substring
 - Return `False` if any markers found
 
 **Does NOT need**:
+
 - Complex validation
 - Error messages
 
 **Test code**:
+
 ```python
 def test_validate_removal_clean():
     content = "Text with no markers"
@@ -465,14 +519,16 @@ def test_validate_removal_clean():
 
 #### Test 13: Validate detects remaining markers
 
-**Given**: `"Text with [RULE:T1] marker still present"`
-**When**: Validate removal
-**Then**: Returns `False`
+- **Given**: `"Text with [RULE:T1] marker still present"`
+- **When**: Validate removal
+- **Then**: Returns `False`
 
 **NEW code needed**:
+
 - Detection of incomplete removal
 
 **Test code**:
+
 ```python
 def test_validate_removal_has_markers():
     content = "Text with [RULE:T1] marker still present"
@@ -480,7 +536,8 @@ def test_validate_removal_has_markers():
     assert result is False
 ```
 
-**CHECKPOINT 6**: Run `just test tests/test_rule_counter.py` (all 13 tests) → awaiting approval
+**CHECKPOINT 6**: Run `just test tests/test_rule_counter.py` (all 13 tests) → awaiting
+approval
 
 ---
 
@@ -490,6 +547,7 @@ def test_validate_removal_has_markers():
 
 **Given**: File `agents/modules/gen/checkpoint-obedience.weak.opus.md` (from Phase 1.1)
 **When**:
+
 1. Read file → $content
 2. Count rules → $counts
 3. Calculate distribution → $distribution
@@ -497,15 +555,18 @@ def test_validate_removal_has_markers():
 5. Validate removal → $is_clean
 
 **Then**:
+
 - $counts['total'] is 12-16
 - $distribution is close to `{'T1': 20.0, 'T2': 60.0, 'T3': 20.0}`
 - $is_clean is `True`
 
 **NEW code needed**:
+
 - Integration of all functions
 - File I/O
 
 **Test code**:
+
 ```python
 def test_full_workflow():
     # Load generated variant from Phase 1.1
@@ -531,7 +592,8 @@ def test_full_workflow():
     assert is_clean is True
 ```
 
-**CHECKPOINT 7**: Run `just test tests/test_rule_counter.py` (all 14 tests) → awaiting approval
+**CHECKPOINT 7**: Run `just test tests/test_rule_counter.py` (all 14 tests) → awaiting
+approval
 
 ---
 
@@ -543,7 +605,8 @@ def test_full_workflow():
 
 1. Run `ls -la agents/modules/` → verify `src/` and `gen/` exist
 2. Run `ls -la agents/modules/src/` → verify 14 `.semantic.md` files exist
-3. Run `ls -la agents/modules/gen/` → verify contains Sonnet and Opus variants from Phase 1.1
+3. Run `ls -la agents/modules/gen/` → verify contains Sonnet and Opus variants from
+   Phase 1.1
 
 **CHECKPOINT 8**: Directory structure verified → Phase 1 complete
 
@@ -562,7 +625,8 @@ def test_full_workflow():
   - `calculate_distribution(counts: dict) -> dict`
   - `remove_markers(content: str) -> str`
   - `validate_removal(content: str) -> bool`
-- [ ] Directory structure verified: `agents/modules/src/` and `agents/modules/gen/` exist
+- [ ] Directory structure verified: `agents/modules/src/` and `agents/modules/gen/`
+      exist
 
 ---
 

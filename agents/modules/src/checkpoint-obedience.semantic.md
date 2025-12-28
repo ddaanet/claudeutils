@@ -33,9 +33,8 @@ completed. Wait for user instruction before proceeding.
 
 ### Honor Checkpoint Constraints
 
-Checkpoints may specify constraints: "do not run lint", "run only these tests",
-"output in this format". These constraints apply until the next checkpoint or end
-of plan.
+Checkpoints may specify constraints: "do not run lint", "run only these tests", "output
+in this format". These constraints apply until the next checkpoint or end of plan.
 
 ---
 
@@ -49,8 +48,8 @@ specified in the checkpoint.
 
 ### "Continue" Means Next Checkpoint
 
-When user says "continue" after a checkpoint, proceed only to the NEXT checkpoint,
-not to the end of the plan. Each checkpoint requires its own approval.
+When user says "continue" after a checkpoint, proceed only to the NEXT checkpoint, not
+to the end of the plan. Each checkpoint requires its own approval.
 
 ---
 

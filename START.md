@@ -4,15 +4,18 @@
 
 **Status:** Design complete, ready for Phase 1 (tooling implementation)
 
-**Goal:** Transform monolithic agent role files into composable module system with semantic
-sources and generated variants (strong/standard/weak). Target: ≤150 total rules.
+**Goal:** Transform monolithic agent role files into composable module system with
+semantic sources and generated variants (strong/standard/weak). Target: ≤150 total
+rules.
 
 ### What's Done
 
-- ✅ **Design decisions** - All Opus reviews complete (tier markers, config location, dev workflow)
+- ✅ **Design decisions** - All Opus reviews complete (tier markers, config location,
+  dev workflow)
 - ✅ **Module extraction** - 14 semantic sources in `agents/modules/src/*.semantic.md`
 - ✅ **Module inventory** - `agents/modules/MODULE_INVENTORY.md`
-- ✅ **Directory structure** - `agents/roles/` for configs, `.next.md` pattern for safe development
+- ✅ **Directory structure** - `agents/roles/` for configs, `.next.md` pattern for safe
+  development
 - ✅ **Implementation plan** - Detailed Phase 1 plan ready for Haiku execution
 
 ### What's Next
@@ -20,6 +23,7 @@ sources and generated variants (strong/standard/weak). Target: ≤150 total rule
 **NEXT:** Phase 1.1 - Test expansion quality (Sonnet vs Opus comparison)
 
 Then:
+
 1. **Phase 1.2: Rule Counter** - Build script to count `[RULE:Tn]` markers
 2. **Phase 2: Variant Generator** - Generate variants from semantic sources
 3. **Phase 3: Role Composer** - Compose role files from module variants
@@ -27,14 +31,14 @@ Then:
 
 ### Key Files to Read
 
-| File | Purpose |
-|------|---------|
-| `plans/PLAN_PHASE1_MODULE_SYSTEM.md` | Detailed Phase 1 plan for Haiku (ready to execute) |
-| `plans/plan-module-system-outline.md` | Full 8-phase implementation plan |
-| `plans/opus-review-module-tiering.md` | Tier marker design decisions |
-| `plans/design-question-role-config-location.md` | Config location decision (agents/roles/) |
-| `plans/DESIGN_MODULE_SYSTEM.md` | Complete design specification |
-| `agents/modules/MODULE_INVENTORY.md` | Summary of 14 extracted modules |
+| File                                            | Purpose                                            |
+| ----------------------------------------------- | -------------------------------------------------- |
+| `plans/PLAN_PHASE1_MODULE_SYSTEM.md`            | Detailed Phase 1 plan for Haiku (ready to execute) |
+| `plans/plan-module-system-outline.md`           | Full 8-phase implementation plan                   |
+| `plans/opus-review-module-tiering.md`           | Tier marker design decisions                       |
+| `plans/design-question-role-config-location.md` | Config location decision (agents/roles/)           |
+| `plans/DESIGN_MODULE_SYSTEM.md`                 | Complete design specification                      |
+| `agents/modules/MODULE_INVENTORY.md`            | Summary of 14 extracted modules                    |
 
 ### Key Design Decisions (from Opus Reviews)
 

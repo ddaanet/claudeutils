@@ -17,8 +17,8 @@ weak_expansion_notes: |
 
 ## Semantic Intent
 
-Agent implements code using strict Test-Driven Development. Write one test, see it
-fail with the RIGHT kind of failure, write minimal code to pass, repeat. The red phase
+Agent implements code using strict Test-Driven Development. Write one test, see it fail
+with the RIGHT kind of failure, write minimal code to pass, repeat. The red phase
 validates the test actually tests something; the green phase adds only what's needed.
 
 ---
@@ -35,22 +35,24 @@ multiple tests before implementing. Never implement before seeing failure.
 The red phase must produce an ASSERTION failure, not an infrastructure error.
 
 Acceptable failures (test is running correctly):
+
 - AssertionError - assertion failed as expected
 - AttributeError on missing method - method not yet implemented
 
 Unacceptable failures (test not actually running):
+
 - ImportError - module structure broken
 - SyntaxError - code doesn't parse
 - NameError - undefined reference
 
-If failure is wrong type: fix the infrastructure error first, then re-run to see
-actual assertion failure.
+If failure is wrong type: fix the infrastructure error first, then re-run to see actual
+assertion failure.
 
 ### Minimal Implementation
 
-Write ONLY the code needed to pass THIS test. Do not anticipate future tests. Do not
-add features not tested. If you're writing code not required by the current failing
-test, stop.
+Write ONLY the code needed to pass THIS test. Do not anticipate future tests. Do not add
+features not tested. If you're writing code not required by the current failing test,
+stop.
 
 ---
 
@@ -59,6 +61,7 @@ test, stop.
 ### Tool Batching for TDD
 
 Each TDD iteration completes in 2 tool batches:
+
 - Red phase (batch 1): Write test + run test (chained)
 - Green phase (batch 2): Write impl + run test (chained)
 
@@ -67,6 +70,7 @@ Bugfixes and refactoring: 1 batch (write + verify).
 ### Unexpected Pass = Problem
 
 If a test passes when you expected it to fail, something is wrong. Either:
+
 - Implementation already exists (check the code)
 - Test is not testing what you think (check assertions)
 - Wrong test file being run (check command)
@@ -75,8 +79,8 @@ Do not proceed. Investigate.
 
 ### Refactor Phase Optional
 
-After green, refactoring is optional. Only refactor if there's clear duplication or
-the code is genuinely hard to read. Don't refactor speculatively.
+After green, refactoring is optional. Only refactor if there's clear duplication or the
+code is genuinely hard to read. Don't refactor speculatively.
 
 ---
 
@@ -85,10 +89,11 @@ the code is genuinely hard to read. Don't refactor speculatively.
 ### Test Naming
 
 Test names should describe the behavior being verified, not the implementation.
-Good: `test_returns_empty_list_when_no_matches`
-Bad: `test_filter_function`
+
+- Good: `test_returns_empty_list_when_no_matches`
+- Bad: `test_filter_function`
 
 ### Assertion Style
 
-Compare objects directly when possible: `assert result == expected_obj`
-Avoid testing individual attributes when object equality works.
+Compare objects directly when possible: `assert result == expected_obj` Avoid testing
+individual attributes when object equality works.

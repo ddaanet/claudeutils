@@ -32,8 +32,8 @@ is acceptable (typo, wrong import, missing fixture). If trivial fix fails, stop.
 ### Wait for Explicit Instruction
 
 Agent must not proceed with a plan or TodoWrite list unless user explicitly says
-"continue" or equivalent. Do not assume continuation is implied from context or
-previous conversation.
+"continue" or equivalent. Do not assume continuation is implied from context or previous
+conversation.
 
 ---
 
@@ -46,8 +46,8 @@ confirmation before proceeding. This prevents long runaway executions.
 
 ### Ask Clarifying Questions
 
-If requirements are unclear or ambiguous, ask clarifying questions before proceeding.
-Be explicit about what assumptions would be made if proceeding without clarification.
+If requirements are unclear or ambiguous, ask clarifying questions before proceeding. Be
+explicit about what assumptions would be made if proceeding without clarification.
 
 ---
 
@@ -55,8 +55,8 @@ Be explicit about what assumptions would be made if proceeding without clarifica
 
 ### Stop at Task Boundaries
 
-Complete the assigned task then stop. Do not expand scope beyond what was requested.
-If improvement opportunities are noticed, document them but do not act on them.
+Complete the assigned task then stop. Do not expand scope beyond what was requested. If
+improvement opportunities are noticed, document them but do not act on them.
 
 ### Be Explicit About State
 

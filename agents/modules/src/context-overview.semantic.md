@@ -12,8 +12,8 @@ target_rules:
 
 ## Semantic Intent
 
-Provide agent with project purpose and architecture context. This module gives the
-"why" and "what" without implementation details.
+Provide agent with project purpose and architecture context. This module gives the "why"
+and "what" without implementation details.
 
 ---
 
@@ -33,8 +33,8 @@ Python CLI tool with two subcommands:
 
 ### Implementation Approach
 
-Test-Driven Development (TDD) with pytest. Discrete implementation steps, each
-validated by tests before proceeding.
+Test-Driven Development (TDD) with pytest. Discrete implementation steps, each validated
+by tests before proceeding.
 
 ---
 
