@@ -199,16 +199,14 @@ Composer automatically includes tool modules where `requires_tools ⊆ enabled_t
 ### 1. `agents/modules/src/tools/read-edit.tool.md`
 
 ```markdown
-# Read/Edit Tool Rules
-
 ---
-
 semantic_type: tool_conditional
 requires_tools: [Read, Edit, Write]
 target_rules:
-weak: 6-8
-
+  weak: 6-8
 ---
+
+# Read/Edit Tool Rules
 
 ## Critical (Tier 1)
 
@@ -238,16 +236,14 @@ failures.
 ### 2. `agents/modules/src/tools/bash.tool.md`
 
 ```markdown
-# Bash Tool Rules
-
 ---
-
 semantic_type: tool_conditional
 requires_tools: [Bash]
 target_rules:
-weak: 4-6
-
+  weak: 4-6
 ---
+
+# Bash Tool Rules
 
 ## Critical (Tier 1)
 
@@ -265,16 +261,14 @@ available. Do not use sed/awk when Edit available.
 ### 3. `agents/modules/src/tools/task-agent.tool.md`
 
 ```markdown
-# Task/Agent Delegation Rules
-
 ---
-
 semantic_type: tool_conditional
 requires_tools: [Task]
 target_rules:
-weak: 4-6
-
+  weak: 4-6
 ---
+
+# Task/Agent Delegation Rules
 
 ## Critical (Tier 1)
 
@@ -299,16 +293,14 @@ multi-step exploration manually.
 ### 4. `agents/modules/src/tools/webfetch.tool.md`
 
 ```markdown
-# WebFetch Tool Rules
-
 ---
-
 semantic_type: tool_conditional
 requires_tools: [WebFetch]
 target_rules:
-weak: 2-4
-
+  weak: 2-4
 ---
+
+# WebFetch Tool Rules
 
 ## Important (Tier 2)
 
@@ -321,16 +313,14 @@ not assume original content was fetched.
 ### 5. `agents/modules/src/tools/todowrite.tool.md`
 
 ```markdown
-# TodoWrite Tool Rules
-
 ---
-
 semantic_type: tool_conditional
 requires_tools: [TodoWrite]
 target_rules:
-weak: 2-4
-
+  weak: 2-4
 ---
+
+# TodoWrite Tool Rules
 
 ## Important (Tier 2)
 
@@ -541,14 +531,14 @@ AskUser NOT for code role - if unexpected, stop and handoff.
 ### read-edit.tool.md (REVISED - no Bash requirement)
 
 ```markdown
-# Read/Edit Tool Rules
-
 ---
 semantic_type: tool_conditional
 requires_tools: [Read, Edit, Write]
 target_rules:
   weak: 6-8
 ---
+
+# Read/Edit Tool Rules
 
 ## Critical (Tier 1)
 
@@ -585,14 +575,14 @@ context is already updated. But if making MORE edits to same files, read first.
 ### bash.tool.md (REVISED - consolidated)
 
 ```markdown
-# Bash Tool Rules
-
 ---
 semantic_type: tool_conditional
 requires_tools: [Bash]
 target_rules:
   weak: 6-8
 ---
+
+# Bash Tool Rules
 
 ## Critical (Tier 1)
 
@@ -623,16 +613,14 @@ side effects: builds, tests, git operations.
 ### todowrite.tool.md (REVISED - Expanded)
 
 ```markdown
-# TodoWrite Tool Rules
-
 ---
-
 semantic_type: tool_conditional
 requires_tools: [TodoWrite]
 target_rules:
-weak: 8-12
-
+  weak: 8-12
 ---
+
+# TodoWrite Tool Rules
 
 ## Critical (Tier 1)
 
@@ -688,16 +676,14 @@ next item...
 ### askuser.tool.md (NEW)
 
 ```markdown
-# AskUserQuestion Tool Rules
-
 ---
-
 semantic_type: tool_conditional
 requires_tools: [AskUserQuestion]
 target_rules:
-weak: 3-4
-
+  weak: 3-4
 ---
+
+# AskUserQuestion Tool Rules
 
 ## Important (Tier 2)
 
