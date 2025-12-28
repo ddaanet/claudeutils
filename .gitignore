@@ -2,3 +2,4 @@ list/
 __pycache__/
 /tmp-*
 *.scratch.*
+/.vscode/

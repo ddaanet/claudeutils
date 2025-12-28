@@ -52,50 +52,50 @@ claude --disallowed-tools "Task,TaskOutput,Glob,Grep,Read,Bash,Edit,Write,Notebo
 
 ```json
 {
-    "permissions": {
-        "deny": [
-            "Task",
-            "TaskOutput",
-            "Glob",
-            "Grep",
-            "Read",
-            "Bash",
-            "Edit",
-            "Write",
-            "NotebookEdit",
-            "KillShell",
-            "ExitPlanMode",
-            "EnterPlanMode",
-            "TodoWrite",
-            "WebFetch",
-            "WebSearch",
-            "AskUserQuestion",
-            "Skill"
-       ]
-    }
+  "permissions": {
+    "deny": [
+      "Task",
+      "TaskOutput",
+      "Glob",
+      "Grep",
+      "Read",
+      "Bash",
+      "Edit",
+      "Write",
+      "NotebookEdit",
+      "KillShell",
+      "ExitPlanMode",
+      "EnterPlanMode",
+      "TodoWrite",
+      "WebFetch",
+      "WebSearch",
+      "AskUserQuestion",
+      "Skill"
+    ]
+  }
 }
 ```
 
 ## Design and planning
 
 ```shell
-claude --disallowed-tools "NotebookEdit,ExitPlanMode,EnterPlanMode,WebFetch,WebSearch,mcp__plugin_context7_context7__resolve-library-id,mcp__plugin_context7_context7__get-library-docs,Skill"
+claude --disallowed-tools "NotebookEdit,ExitPlanMode,EnterPlanMode,WebFetch,WebSearch,Skill"
 ```
 
 ```json
 {
-    "permissions": {
-        "deny": [
-            "NotebookEdit",
-            "ExitPlanMode",
-            "EnterPlanMode",
-            "WebFetch",
-            "WebSearch",
-            "mcp__plugin_context7_context7__resolve-library-id",
-            "mcp__plugin_context7_context7__get-library-docs",
-            "Skill",
-        ]
-    }
+  "permissions": {
+    "deny": [
+      "NotebookEdit",
+      "ExitPlanMode",
+      "EnterPlanMode",
+      "WebFetch",
+      "WebSearch",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__get-library-docs",
+      "Skill"
+    ]
+  }
 }
 ```
 
@@ -103,40 +103,48 @@ claude --disallowed-tools "NotebookEdit,ExitPlanMode,EnterPlanMode,WebFetch,WebS
 
 ```json
 {
-    "permissions": {
-        "deny": [
-            "Task",
-            "TaskOutput",
-            "Bash",
-            "ExitPlanMode",
-            "NotebookEdit",
-            "WebFetch",
-            "TodoWrite",
-            "WebSearch",
-            "KillShell",
-            "AskUserQuestion",
-            "Skill",
-            "EnterPlanMode"
-        ]
-    }
+  "permissions": {
+    "deny": [
+      "Task",
+      "TaskOutput",
+      "Bash",
+      "ExitPlanMode",
+      "NotebookEdit",
+      "WebFetch",
+      "TodoWrite",
+      "WebSearch",
+      "KillShell",
+      "AskUserQuestion",
+      "Skill",
+      "EnterPlanMode"
+    ]
+  }
 }
 ```
 
 ## Code role
 
+```shell
+claude --disallowed-tools  "Task,TaskOutput,NotebookEdit,KillShell,ExitPlanMode,EnterPlanMode,TodoWrite,WebFetch,WebSearch,AskUserQuestion,Skill"
+```
+
 ```json
 {
-    "permissions": {
-        "deny": [
-            "Task",
-            "TaskOutput",
-            "ExitPlanMode",
-            "NotebookEdit",
-            "KillShell",
-            "Skill",
-            "EnterPlanMode"
-        ]
-    }
+  "permissions": {
+    "deny": [
+      "Task",
+      "TaskOutput",
+      "NotebookEdit",
+      "KillShell",
+      "ExitPlanMode",
+      "EnterPlanMode",
+      "TodoWrite",
+      "WebFetch",
+      "WebSearch",
+      "AskUserQuestion",
+      "Skill"
+    ]
+  }
 }
 ```
 

@@ -39,6 +39,8 @@ from standard procedures.
 
 ## Token Count Tool
 
+**Status:** IN PROGRESS - See `plans/plan-token-counter.md`
+
 **Goal:** Count tokens in prompt files using Anthropic API token counting endpoint.
 
 **Priority:** HIGH - Should implement before agent composition to provide feedback on
@@ -51,12 +53,11 @@ module design. Enables:
 **Implementation:**
 
 - CLI subcommand: `uv run claudeutils tokens <file>`
-- Use Anthropic API `count_tokens` endpoint
+- Use Anthropic Python SDK for token counting
 - Support globbing: `uv run claudeutils tokens agents/modules/**/*.md`
-- Output: per-file counts + total
+- Output: per-file counts + total (text and JSON formats)
 
-**Open question:** Requires Anthropic API key. Document setup or bundle with existing
-key management?
+**API Key:** Uses `ANTHROPIC_API_KEY` environment variable (SDK default)
 
 ## Generate Claude Agents from Role Description
 

@@ -399,3 +399,72 @@ while allowing variation in endings
 
 **Rationale:** Rule extraction needs higher signal-to-noise; context-specific feedback
 isn't generalizable
+
+## Token Counting
+
+### Model as First Positional Argument
+
+**Decision:** Model is first positional argument in CLI, required parameter in functions
+
+**Rationale:** Token counts vary by model; explicit model choice ensures accurate counts
+
+**CLI Usage:** `uv run claudeutils tokens sonnet file.md`
+
+**Implementation:** `count_tokens_for_file(path: Path, model: str)`
+
+**Supported models:** haiku, sonnet, opus (short aliases preferred)
+
+### Anthropic API Integration
+
+**Decision:** Use official Anthropic SDK with default environment variable handling
+
+**Rationale:** SDK handles API details, retries, error types; avoid custom HTTP logic
+
+**Implementation:** `tokens.py` module
+
+**API Key:** `ANTHROPIC_API_KEY` environment variable (SDK default)
+
+### Empty File Optimization
+
+**Decision:** Return 0 for empty files without API call
+
+**Rationale:** Avoid unnecessary API calls; empty content always has 0 tokens across all
+models
+
+**Performance:** Reduces API usage for module development workflows
+
+### No Glob Expansion (Initial Release)
+
+**Decision:** Defer glob pattern expansion to future release
+
+**Rationale:** Simplify initial implementation; users can use shell expansion if needed
+(e.g., `uv run claudeutils tokens *.md --model sonnet`)
+
+**Future:** May add built-in glob support in later version
+
+### Token Output Format
+
+**Decision:** Human-readable text by default, JSON with `--json` flag
+
+**Text format:**
+
+```
+path/to/file1.md: 150 tokens
+path/to/file2.md: 200 tokens
+Total: 350 tokens
+```
+
+**JSON format:**
+
+```json
+{
+  "files": [
+    {"path": "path/to/file1.md", "count": 150},
+    {"path": "path/to/file2.md", "count": 200}
+  ],
+  "total": 350
+}
+```
+
+**Rationale:** Matches existing CLI patterns (analyze, rules); text for humans, JSON for
+scripting
