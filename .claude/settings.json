@@ -31,7 +31,7 @@
     "code-review@claude-plugins-official": false,
     "commit-commands@claude-plugins-official": false,
     "explanatory-output-style@claude-plugins-official": false,
-    "context7@claude-plugins-official": true,
+    "context7@claude-plugins-official": false,
     "feature-dev@claude-plugins-official": false,
     "hookify@claude-plugins-official": false
   }
