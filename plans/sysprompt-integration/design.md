@@ -38,21 +38,28 @@ by:
 
 ### System Tool Descriptions
 
-Instructions exist not only in the system prompt but also in **tool descriptions**
-injected when tools are enabled. Source files in `claude-code-system-prompts`:
+**Architecture:** Tool descriptions are NOT part of the system prompt. They're included
+in the tool description message whenever that tool is enabled. Source files:
 
 ```
-system-prompts/tool-description-*.md
+claude-code-system-prompts/system-prompts/tool-description-*.md
 ```
+
+**Implications:**
+
+- System prompt size is more manageable than initially estimated
+- Tool descriptions add context overhead per-enabled-tool
+- A command-based MCP could provide shell execution without Bash tool's full description
+  overhead (see ROADMAP.md)
+- System tools don't offer another shell escape hatch - likely intentional for
+  sandboxing
 
 **Key considerations:**
 
 - **Not all tools in plain Claude Code**: Computer, ReadFile are IDE/extension-only.
 - **Dynamic injection**: `tool-description-task-async-return-note.md` is NOT in initial
   prompt (injected later).
-- **Large tool descriptions**:
-  `tool-description-bash-git-commit-and-pr-creation-instructions.md` is substantial -
-  included whenever Bash tool enabled.
+- **Large tool descriptions**: See "Tool Description Size Analysis" below.
 
 **Budgeting implications:**
 
@@ -62,6 +69,29 @@ Role budgets must account for both scenarios:
    description overhead.
 2. **Default interactive sessions**: All system tools enabled, full tool description
    load.
+
+#### Tool Description Size Analysis
+
+| Tool            | Lines | Key Content                                  |
+| --------------- | ----- | -------------------------------------------- |
+| todowrite       | 189   | When to use, when NOT, 8 examples, states    |
+| bash-git-commit | 95    | Safety protocol (8 rules), commit/PR flows   |
+| enterplanmode   | 92    | When to use, when NOT, examples              |
+| task            | 78    | Agent types, usage notes, examples           |
+| bash            | 65    | Specialized tools preference, command chains |
+| Smaller tools   | 6-22  | glob, edit, write, askuser, etc.             |
+| **Total**       | ~966  |                                              |
+
+**bash-git-commit detail** (25+ instructions):
+
+- Git Safety Protocol (8 rules): never update config, never destructive commands, amend
+  conditions (3 sub-conditions), never skip hooks
+- Commit Workflow (4 numbered steps with sub-bullets)
+- PR Workflow (3 numbered steps with HEREDOC examples)
+- Important Notes (5 additional constraints)
+
+Justifies separating bash.tool.md (file I/O preferences) from bash-git.tool.md
+(commit/PR).
 
 ### Related Plans
 
@@ -74,21 +104,21 @@ Role budgets must account for both scenarios:
 
 Created `agents/modules/src/sysprompt-reference/` with 13 reference files:
 
-| File                                    | Content                                | Integration Target         |
-| --------------------------------------- | -------------------------------------- | -------------------------- |
-| `identity.sysprompt.md`                 | CLI context, output format             | Core                       |
-| `security.sysprompt.md`                 | URL restrictions, OWASP                | Code roles                 |
-| `professional-objectivity.sysprompt.md` | Technical accuracy                     | Conversational roles       |
-| `planning-no-timelines.sysprompt.md`    | No time estimates                      | Planning roles             |
-| `todowrite.sysprompt.md`                | Task tracking with examples            | todowrite.tool.md          |
-| `askuser.sysprompt.md`                  | Question framing                       | askuser.tool.md            |
-| `user-hooks.sysprompt.md`               | Hook handling                          | Deferred (research needed) |
-| `doing-tasks.sysprompt.md`              | Over-engineering, read-before-modify   | Code roles                 |
-| `system-reminders.sysprompt.md`         | System reminder handling               | Core                       |
-| `tool-policy.sysprompt.md`              | Parallel/sequential, specialized tools | Tool modules               |
-| `tone-style.sysprompt.md`               | Emoji, conciseness                     | Core                       |
-| `help-feedback.sysprompt.md`            | Help commands                          | Interactive-only (skip)    |
-| `documentation-lookup.sysprompt.md`     | Self-documentation                     | Interactive-only (skip)    |
+| File                                    | Content                                | Integration Target      |
+| --------------------------------------- | -------------------------------------- | ----------------------- |
+| `identity.sysprompt.md`                 | CLI context, output format             | Core                    |
+| `security.sysprompt.md`                 | URL restrictions, OWASP                | Code roles              |
+| `professional-objectivity.sysprompt.md` | Technical accuracy                     | Conversational roles    |
+| `planning-no-timelines.sysprompt.md`    | No time estimates                      | Planning roles          |
+| `todowrite.sysprompt.md`                | Task tracking with examples            | todowrite.tool.md       |
+| `askuser.sysprompt.md`                  | Question framing                       | askuser.tool.md         |
+| `user-hooks.sysprompt.md`               | Hook handling                          | Skip (interactive-only) |
+| `doing-tasks.sysprompt.md`              | Over-engineering, read-before-modify   | Code roles              |
+| `system-reminders.sysprompt.md`         | System reminder handling               | Core                    |
+| `tool-policy.sysprompt.md`              | Parallel/sequential, specialized tools | Tool modules            |
+| `tone-style.sysprompt.md`               | Emoji, conciseness                     | Core                    |
+| `help-feedback.sysprompt.md`            | Help commands                          | Interactive-only (skip) |
+| `documentation-lookup.sysprompt.md`     | Self-documentation                     | Interactive-only (skip) |
 
 See `CATALOG.md` in that directory for scope analysis and integration notes.
 
@@ -200,14 +230,90 @@ not present may be oversight or expectation that agent naturally processes them.
 
 ---
 
+## Research Completed
+
+### User Hooks
+
+**Decision:** Skip for module system (interactive-only).
+
+| Context                    | Hooks Available | Evidence                               |
+| -------------------------- | --------------- | -------------------------------------- |
+| Interactive CLI            | Yes             | Main system prompt line 111            |
+| Task agent (subagent)      | No              | agent-prompt-task-tool.md has no hooks |
+| Orchestrated (custom sysp) | Depends         | Only if explicitly included            |
+
+Hook events: PreToolUse, PostToolUse, UserPromptSubmit, Notification, Stop,
+SubagentStop, SessionStart/End. SubagentStop fires in main agent context only.
+
+### Instruction Count
+
+**Finding:** The ~50 estimate counted "sections" not constraints. Actual constraint
+count is 200-300+ depending on definition. See "Pending Research: Rule Definition"
+below.
+
+Per IFScale research, Claude-sonnet exhibits "linear decay" starting around 100-150
+instructions. This validates our tiering approach (T1/T2/T3) to reduce constraint
+density.
+
+---
+
 ## Pending Research
 
-| Topic                     | Notes                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------- |
-| User hooks                | Verify hook availability per execution context                                          |
-| Tool description analysis | Extract instructions from tool-description-*.md files                                   |
-| Instruction count         | Verify system prompt + tool descriptions ≈ 50 total (validates extraction completeness) |
-| bash-git-commit scope     | Analyze large bash-git-commit-and-pr-creation instructions                              |
+### 1. Token Counter Tool (Prerequisite)
+
+**Status:** ROADMAP.md - HIGH priority, implement before agent composition.
+
+Required to validate prompt size assumptions and measure impact of:
+
+- System prompt vs tool descriptions
+- Tier variants (T1-only vs T1+T2+T3)
+- MCP overhead vs system tool overhead
+
+### 2. Rule Definition for Budgeting
+
+**Problem:** We budget "rules" but haven't defined what counts as one.
+
+| Definition Candidate | Example                          | Implication        |
+| -------------------- | -------------------------------- | ------------------ |
+| Section heading      | "# Git Safety Protocol"          | ~50 total (wrong)  |
+| Bullet point         | "- NEVER update git config"      | ~200+ total        |
+| Atomic constraint    | Each NEVER/ALWAYS/MUST statement | ~300+ total        |
+| IFScale-style        | "Include keyword X in output"    | N/A (too specific) |
+| Conditional judgment | "If X, then Y" (RuleBench)       | ~100-150 total     |
+
+**Tasks:**
+
+1. Review IFScale benchmark methodology - what counts as "instruction"?
+2. Review RuleBench - what makes a well-formed vs poorly-formed rule?
+3. Propose rule counting guidelines for our module system
+4. Re-count existing modules using new definition
+
+### 3. Rule Formulation Guidelines
+
+**Problem:** Different model classes have different adherence patterns.
+
+**IFScale findings:**
+
+| Model Class | Decay Pattern   | Performance at 500 instructions |
+| ----------- | --------------- | ------------------------------- |
+| Reasoning   | Threshold decay | 62-69% (o3, gemini-2.5-pro)     |
+| Claude-4    | Linear decay    | 43-45% (sonnet, opus)           |
+| Smaller     | Exponential     | 7-15%                           |
+
+**RuleBench findings:**
+
+- Natural language rules outperform formal logic
+- Irrelevant/distractor rules hurt performance significantly
+- Counterfactual rules (conflicting with training) cause degradation
+
+**Tasks:**
+
+1. Develop empirically-grounded rule formulation guidelines (based on RuleBench,
+   IFScale)
+2. Test opus-class agents: baseline vs with-guidelines
+3. Test sonnet-class agents: baseline vs with-guidelines
+4. Compare results across model classes
+5. Determine if weak/strong tiers should map to formulation style, not just rule count
 
 ---
 
@@ -312,3 +418,75 @@ AskUser NOT for code or execute roles - if unexpected, stop and handoff.
 
 - Config schema `enabled_tools` field
 - Composer tool module selection logic
+
+---
+
+## Research Reference
+
+### Sources
+
+**LLM Instruction/Rule Following:**
+
+- [IFScale: How Many Instructions Can LLMs Follow at Once?](https://arxiv.org/html/2507.11538v1)
+  - NeurIPS 2025 submission
+  - Benchmark: keyword inclusion constraints, scales 10-500 instructions
+  - Key finding: Claude-sonnet linear decay, reasoning models threshold decay
+
+- [RuleBench: Beyond Instruction Following](https://arxiv.org/html/2407.08440v1)
+  - Distinguishes "instruction" (direct behavioral guideline) from "rule" (abstract
+    policy requiring conditional judgment)
+  - Key finding: natural language > formal logic, irrelevant rules hurt performance
+
+- [InFoBench](https://arxiv.org/html/2401.03601v1) - Decomposed Requirements Following
+  Ratio
+
+- [RuLES Benchmark](https://github.com/normster/llm_rules) - Simple rule following
+  evaluation
+
+**Claude Code:**
+
+- [Hooks Reference](https://code.claude.com/docs/en/hooks)
+- [How to Configure Hooks](https://claude.com/blog/how-to-configure-hooks)
+- System prompts: `../claude-code-system-prompts/` (v2.0.75)
+
+### Key Definitions
+
+**Instruction (IFScale):** A constraint requiring specific output (e.g., "include
+keyword X"). Exact match required.
+
+**Rule (RuleBench):** Abstract policy requiring conditional judgment. Formalized as σ⊢φ
+where triggering appropriate response depends on context.
+
+**Linear decay:** Steady, predictable decline in adherence as instruction count
+increases. Observed in Claude-sonnet-4, gpt-4.1.
+
+**Threshold decay:** Near-perfect performance until critical density (~150
+instructions), then decline. Observed in reasoning models (o3, gemini-2.5-pro).
+
+---
+
+## Handoff Notes
+
+### For Token Counter Planning
+
+- See ROADMAP.md "Token Count Tool" section
+- Primary use case: measure module/prompt sizes in tokens
+- Required measurements:
+  - System prompt (main) token count
+  - Per-tool-description token counts
+  - Composed role prompts at different tier levels
+  - MCP tool definition overhead (for comparison)
+
+### For Rule Definition Research
+
+- Start with IFScale and RuleBench papers (links above)
+- Goal: define what counts as a "rule" for budgeting purposes
+- Output: counting guidelines + re-count of existing modules
+- Consider: is "rule" the right abstraction, or should we budget tokens/instructions?
+
+### For Rule Formulation Research
+
+- Build on RuleBench findings (natural language > formal, no irrelevant rules)
+- Design experiment: same rules, different formulations
+- Test opus and sonnet separately, compare with/without guidelines
+- Output: formulation guidelines for module authors

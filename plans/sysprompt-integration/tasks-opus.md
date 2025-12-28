@@ -5,39 +5,63 @@ preliminary module content to refine.
 
 ---
 
-## Research Tasks
+## Research Tasks (Completed)
 
-### 1. Tool Description Analysis
+### 1. Tool Description Analysis ✓
 
-Extract instructions from
-`claude-code-system-prompts/system-prompts/tool-description-*.md`:
+**Completed.** See design.md "Tool Description Size Analysis".
 
-- Count instructions per tool description
-- Identify which tools are Claude Code CLI vs IDE-only (Computer, ReadFile)
-- Note dynamic injections (task-async-return-note)
-- Special attention to `bash-git-commit-and-pr-creation-instructions.md` (large)
+- Total ~966 lines across all tool descriptions
+- Largest: todowrite (189), bash-git-commit (95), enterplanmode (92)
+- Architecture note: tool descriptions are in tool message, NOT system prompt
 
-**Output**: Instruction inventory with counts and categorization.
+### 2. Instruction Count Reality Check ✓
 
-### 2. Instruction Count Reality Check
+**Completed.** The ~50 estimate was wrong - counted sections not constraints.
 
-Verify total instructions across:
+- Actual: 200-300+ constraints depending on definition
+- IFScale research: Claude-sonnet linear decay starts at 100-150 instructions
+- This validates tiering approach (T1/T2/T3)
 
-- System prompt (main)
-- Tool descriptions (for default interactive session with all tools)
+### 3. User Hooks Research ✓
 
-**Expected**: ≈50 instructions total. Validates extraction completeness.
+**Completed.** See design.md "Research Completed: User Hooks".
 
-### 3. User Hooks Research
+- Decision: Skip for module system (interactive-only)
+- Task agents have no hook awareness
+- SubagentStop fires in main agent context only
 
-Determine hook availability per execution context:
+---
 
-- Interactive CLI
-- Task agent (sub-agent)
-- Orchestrated agents (custom system prompt)
+## New Research Tasks (Pending)
 
-**Output**: Decision on whether to include hooks in module system or mark
-interactive-only.
+### A. Token Counter Tool
+
+**Priority:** HIGH - prerequisite for other research.
+
+See ROADMAP.md. Implement before continuing module work.
+
+### B. Rule Definition for Budgeting
+
+See design.md "Pending Research: Rule Definition for Budgeting".
+
+**Tasks:**
+
+1. Review IFScale benchmark methodology
+2. Review RuleBench rule definition
+3. Propose counting guidelines for our modules
+4. Re-count existing modules
+
+### C. Rule Formulation Guidelines
+
+See design.md "Pending Research: Rule Formulation Guidelines".
+
+**Tasks:**
+
+1. Develop empirically-grounded formulation guidelines
+2. Test opus-class: baseline vs with-guidelines
+3. Test sonnet-class: baseline vs with-guidelines
+4. Compare and document
 
 ---
 
@@ -94,6 +118,7 @@ Check no role exceeds target budget (typically 35 rules for weak).
 
 Ensure no instruction from source material was missed:
 
-- [ ] All 13 sysprompt-reference files mapped to modules
+- [x] All 13 sysprompt-reference files mapped to modules (see design.md table)
 - [ ] Tool description instructions captured in tool modules
-- [ ] Interactive-only patterns explicitly marked as skipped
+- [x] Interactive-only patterns explicitly marked as skipped (hooks, help-feedback,
+      documentation-lookup)

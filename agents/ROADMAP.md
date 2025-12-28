@@ -2,26 +2,6 @@
 
 Future enhancement ideas for claudeutils.
 
-## user-prompt MCP Tool Support
-
-**Goal:** Extract user feedback from `user_prompt` tool results in session files.
-
-**Reference:** https://github.com/nazar256/user-prompt-mcp
-
-**Status:** Pending - MCP not yet installed, sample data unavailable.
-
-**How it works:**
-
-- The `user_prompt` MCP tool allows Claude to request input from the user
-- Tool invocations and results appear in the session JSONL files (like any other tool)
-- Extract user responses from `tool_result` entries where tool name is `user_prompt`
-
-**Implementation scope:**
-
-- Detect `user_prompt` tool uses in session entries
-- Extract user responses from corresponding tool results
-- Classify as a new FeedbackType (e.g., `MCP_PROMPT`)
-
 ## Session Summary Extraction
 
 **Goal:** Extract a summary of a session for process compliance analysis.
@@ -56,3 +36,73 @@ from standard procedures.
 - `--since` / `--until` - Date range filtering
 - `--agent` - Filter by agent ID
 - `--exclude-trivial` - Hide filtered-out trivial messages in output
+
+## Token Count Tool
+
+**Goal:** Count tokens in prompt files using Anthropic API token counting endpoint.
+
+**Priority:** HIGH - Should implement before agent composition to provide feedback on
+module design. Enables:
+
+- Validate prompt size assumptions during module development
+- Compare composed prompts against context limits
+- Measure impact of tier variants on token budget
+
+**Implementation:**
+
+- CLI subcommand: `uv run claudeutils tokens <file>`
+- Use Anthropic API `count_tokens` endpoint
+- Support globbing: `uv run claudeutils tokens agents/modules/**/*.md`
+- Output: per-file counts + total
+
+**Open question:** Requires Anthropic API key. Document setup or bundle with existing
+key management?
+
+## Generate Claude Agents from Role Description
+
+**Goal:** Generate complete agent wrapper files from high-level role descriptions.
+
+**Input:** Natural language description of agent purpose, capabilities, constraints.
+
+**Output:**
+
+- Role YAML config (target_class, rule_budget, modules, enabled_tools)
+- Composed system prompt
+- Optional: Claude Code wrapper script
+
+**Use case:** Rapid prototyping of new agent types without manual module composition.
+
+## Command-Based MCP for Shell Execution
+
+**Goal:** Evaluate MCP as lightweight alternative to Bash tool for simple shell
+commands.
+
+**Context:** Tool descriptions are included per-enabled-tool, not in system prompt. The
+Bash tool description is ~65 lines + ~95 lines for git commit/PR instructions. A
+command-based MCP could provide shell execution without this overhead.
+
+**Research questions:**
+
+- What is the token overhead of MCP tool definitions vs system tool descriptions?
+- Can an MCP provide sandboxed execution equivalent to Bash tool?
+- Use case: `just *` commands, simple build/test invocations
+
+**Tradeoffs:**
+
+- MCPs are reputed to be token-heavy (need measurement)
+- System tools don't offer another shell escape hatch (likely intentional for
+  sandboxing)
+- MCP would need equivalent safety guarantees
+
+**Depends on:** Token Count Tool (for measurement)
+
+## Claude Wrapper Generator (plan-claude-wrapper.md)
+
+**Goal:** Create a plan for generating Claude Code wrapper configurations.
+
+**Scope:**
+
+- Analyze existing Claude Code wrapper patterns
+- Define wrapper template structure
+- Specify customization points (model, tools, hooks)
+- Integration with module composition system
