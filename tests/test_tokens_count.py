@@ -173,6 +173,76 @@ More text."""
         error_msg = str(exc_info.value).lower()
         assert "rate limit" in error_msg
 
+    def test_read_api_key_from_environment(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Read API key from environment.
+
+        Given: ANTHROPIC_API_KEY environment variable set
+        When: Anthropic client initialized
+        Then: Client uses environment variable value
+        """
+        # Create test file
+        test_file = tmp_path / "test.md"
+        test_file.write_text("Hello world")
+
+        # Set environment variable
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-12345")
+
+        # Mock Anthropic client
+        mock_client = Mock()
+        mock_response = Mock()
+        mock_response.input_tokens = 5
+        mock_client.messages.count_tokens.return_value = mock_response
+
+        # Patch the Anthropic client initialization
+        monkeypatch.setattr(
+            "claudeutils.tokens.Anthropic",
+            Mock(return_value=mock_client),
+        )
+
+        # Call function
+        result = count_tokens_for_file(test_file, "sonnet")
+
+        # Verify result - the Anthropic SDK was used
+        assert result == 5
+
+    def test_error_message_guides_user_to_set_api_key(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Error message guides user to set API key.
+
+        Given: No ANTHROPIC_API_KEY environment variable
+        When: Token counting attempted
+        Then: Error message includes "ANTHROPIC_API_KEY" and setup instructions
+        """
+        # Create test file
+        test_file = tmp_path / "test.md"
+        test_file.write_text("Hello world")
+
+        # Remove API key from environment
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+        # Mock Anthropic client that raises AuthenticationError
+        mock_client = Mock()
+        auth_error = AuthenticationError("Invalid API key", response=Mock(), body={})
+        mock_client.messages.count_tokens.side_effect = auth_error
+
+        # Patch the Anthropic client initialization
+        monkeypatch.setattr(
+            "claudeutils.tokens.Anthropic",
+            Mock(return_value=mock_client),
+        )
+
+        # Call function, should raise ApiAuthenticationError
+        with pytest.raises(ApiAuthenticationError) as exc_info:
+            count_tokens_for_file(test_file, "sonnet")
+
+        # Verify error message includes ANTHROPIC_API_KEY and setup instructions
+        error_msg = str(exc_info.value)
+        assert "ANTHROPIC_API_KEY" in error_msg
+        assert "set" in error_msg.lower()  # "Please set" guidance
+
 
 class TestCountTokensForFiles:
     """Tests for count_tokens_for_files function."""
