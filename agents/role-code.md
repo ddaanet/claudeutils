@@ -144,7 +144,7 @@ just role-code -k test_X  # Run specific test
 
 ### Dependencies
 
-Always use `uv` for package operations: `uv add package`, `uv sync`, `uv run command`.
+Always use `uv` for package operations: `uv add package`.
 
 ### File Organization
 

@@ -49,7 +49,6 @@ uv run claudeutils extract <prefix> -o X   # Extract to file X
 ```bash
 uv add <package>           # Add runtime dependency
 uv add --dev <package>     # Add development dependency
-uv sync                    # Sync dependencies from lockfile
 ```
 
 ---
