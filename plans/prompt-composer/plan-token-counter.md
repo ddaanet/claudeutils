@@ -30,6 +30,7 @@ uv run claudeutils tokens sonnet file.md --json   # JSON format
 ### Implementation Modules
 
 - `src/claudeutils/tokens.py` - Core token counting logic
+- `src/claudeutils/tokens_cli.py` - CLI handler for tokens subcommand
 - `tests/test_tokens_count.py` - Unit tests for count_tokens_for_file function
 - `tests/test_tokens_resolve.py` - Unit tests for resolve_model_alias function
 - `tests/test_tokens_integration.py` - End-to-end integration tests

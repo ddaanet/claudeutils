@@ -14,7 +14,7 @@ from claudeutils.filtering import categorize_feedback, filter_feedback
 from claudeutils.markdown import process_file
 from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
-from claudeutils.tokens import count_tokens_for_file
+from claudeutils.tokens_cli import handle_tokens
 
 
 def find_session_by_prefix(prefix: str, project_dir: str) -> str:
@@ -184,27 +184,6 @@ def handle_markdown() -> None:
         for error in errors:
             print(error, file=sys.stderr)
         sys.exit(1)
-
-
-def handle_tokens(model: str, files: list[str]) -> None:
-    """Handle the tokens subcommand.
-
-    Args:
-        model: Model to use for token counting
-        files: File paths to count tokens for
-    """
-    if not files:
-        print("Error: at least one file is required", file=sys.stderr)
-        sys.exit(1)
-
-    for filepath_str in files:
-        filepath = Path(filepath_str)
-        if not filepath.exists():
-            print(f"Error: {filepath_str} file not found", file=sys.stderr)
-            sys.exit(1)
-
-        count = count_tokens_for_file(filepath, model)
-        print(f"{filepath_str}: {count} tokens")
 
 
 def handle_rules(input_path: str, min_length: int, output_format: str) -> None:
