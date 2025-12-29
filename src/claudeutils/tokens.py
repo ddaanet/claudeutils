@@ -30,6 +30,13 @@ class CacheData(BaseModel):
     models: list[ModelInfo]
 
 
+class TokenCount(BaseModel):
+    """Token count for a single file."""
+
+    path: str
+    count: int
+
+
 def resolve_model_alias(model: str, client: Anthropic, cache_dir: Path) -> str:
     """Resolve model alias to full model ID.
 
@@ -130,3 +137,32 @@ def count_tokens_for_file(path: Path, model: str) -> int:
         raise ApiRateLimitError from e
 
     return response.input_tokens
+
+
+def count_tokens_for_files(paths: list[Path], model: str) -> list[TokenCount]:
+    """Count tokens in multiple files using Anthropic API.
+
+    Args:
+        paths: List of paths to count tokens for
+        model: Model to use for token counting
+
+    Returns:
+        List of TokenCount objects with per-file counts
+    """
+    results = []
+    for path in paths:
+        count = count_tokens_for_file(path, model)
+        results.append(TokenCount(path=str(path), count=count))
+    return results
+
+
+def calculate_total(results: list[TokenCount]) -> int:
+    """Calculate total tokens across multiple file results.
+
+    Args:
+        results: List of TokenCount objects
+
+    Returns:
+        Sum of all token counts
+    """
+    return sum(result.count for result in results)
