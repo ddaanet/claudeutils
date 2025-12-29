@@ -30,7 +30,9 @@ uv run claudeutils tokens sonnet file.md --json   # JSON format
 ### Implementation Modules
 
 - `src/claudeutils/tokens.py` - Core token counting logic
-- `tests/test_tokens.py` - Unit tests for token counting
+- `tests/test_tokens_count.py` - Unit tests for count_tokens_for_file function
+- `tests/test_tokens_resolve.py` - Unit tests for resolve_model_alias function
+- `tests/test_tokens_integration.py` - End-to-end integration tests
 - `tests/test_cli_tokens.py` - Integration tests for CLI
 - `cli.py` - Add `tokens` subcommand handler
 
@@ -80,7 +82,7 @@ initially
 
 ### Group 1: Core Token Counting (Unit Tests)
 
-**Module:** `tests/test_tokens.py`
+**Module:** `tests/test_tokens_count.py`
 
 #### Test 1.1: Count tokens for simple text
 
@@ -126,13 +128,13 @@ initially
 
 **Note:** FileNotFoundError is stdlib behavior, no explicit test needed.
 
-**Checkpoint 1:** Run `just test tests/test_tokens.py` - awaiting approval
+**Checkpoint 1:** Run `just test tests/test_tokens_count.py` - awaiting approval
 
 ---
 
 ### Group 2: Model Alias Resolution
 
-**Module:** `tests/test_tokens.py` (continued)
+**Module:** `tests/test_tokens_resolve.py`
 
 #### Test 2.1: Pass Anthropic aliases through unchanged
 
@@ -224,13 +226,14 @@ initially
 
 **Does NOT require:** Error handling for permission denied
 
-**Checkpoint 2:** Run `just test tests/test_tokens.py` - awaiting approval
+**Checkpoint 2:** Run `just test tests/test_tokens_resolve.py` - awaiting approval
 
 ---
 
 ### Group 3: API Error Handling
 
-**Module:** `tests/test_tokens.py` (continued)
+**Module:** `tests/test_tokens_count.py` and `tests/test_tokens_resolve.py` (mixed -
+tests for both functions)
 
 #### Test 3.1: Handle unknown model alias
 
@@ -286,13 +289,14 @@ initially
 
 **Does NOT require:** Retry/backoff logic
 
-**Checkpoint 3:** Run `just test tests/test_tokens.py` - awaiting approval
+**Checkpoint 3:** Run
+`just test tests/test_tokens_count.py tests/test_tokens_resolve.py` - awaiting approval
 
 ---
 
 ### Group 4: Multiple Files and Aggregation
 
-**Module:** `tests/test_tokens.py` (continued)
+**Module:** `tests/test_tokens_count.py`
 
 #### Test 4.1: Count tokens for multiple files
 
@@ -334,7 +338,7 @@ initially
 
 **Does NOT require:** Path normalization
 
-**Checkpoint 4:** Run `just test tests/test_tokens.py` - awaiting approval
+**Checkpoint 4:** Run `just test tests/test_tokens_count.py` - awaiting approval
 
 ---
 
@@ -472,7 +476,7 @@ test.md: 42 tokens
 
 ### Group 7: API Key Management
 
-**Module:** `tests/test_tokens.py` (continued)
+**Module:** `tests/test_tokens_count.py`
 
 #### Test 7.1: Read API key from environment
 

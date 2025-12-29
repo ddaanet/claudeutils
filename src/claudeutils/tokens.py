@@ -4,8 +4,14 @@ import logging
 from datetime import UTC, datetime
 from pathlib import Path
 
-from anthropic import Anthropic
+from anthropic import Anthropic, APIError, AuthenticationError, RateLimitError
 from pydantic import BaseModel
+
+from claudeutils.exceptions import (
+    ApiAuthenticationError,
+    ApiRateLimitError,
+    ModelResolutionError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +60,7 @@ def resolve_model_alias(model: str, client: Anthropic, cache_dir: Path) -> str:
                 models = cache_data.models
 
                 # Filter models containing the alias (case-insensitive)
-                matching_models = [
-                    m for m in models if model.lower() in m.id.lower()
-                ]
+                matching_models = [m for m in models if model.lower() in m.id.lower()]
 
                 if matching_models:
                     # Sort by created_at descending and return latest
@@ -70,7 +74,10 @@ def resolve_model_alias(model: str, client: Anthropic, cache_dir: Path) -> str:
                 )
 
     # Cache miss or expired - query API
-    models_response = client.models.list()
+    try:
+        models_response = client.models.list()
+    except APIError as e:
+        raise ModelResolutionError(model) from e
 
     # Convert API response to dict format
     models_list = [
@@ -83,9 +90,7 @@ def resolve_model_alias(model: str, client: Anthropic, cache_dir: Path) -> str:
 
     # Write cache
     cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_to_write = CacheData(
-        fetched_at=datetime.now(tz=UTC), models=models_list
-    )
+    cache_to_write = CacheData(fetched_at=datetime.now(tz=UTC), models=models_list)
     cache_file.write_text(cache_to_write.model_dump_json())
 
     # Filter for matching models
@@ -114,9 +119,14 @@ def count_tokens_for_file(path: Path, model: str) -> int:
         return 0
 
     client = Anthropic()
-    response = client.messages.count_tokens(
-        model=model,
-        messages=[{"role": "user", "content": content}],
-    )
+    try:
+        response = client.messages.count_tokens(
+            model=model,
+            messages=[{"role": "user", "content": content}],
+        )
+    except AuthenticationError as e:
+        raise ApiAuthenticationError from e
+    except RateLimitError as e:
+        raise ApiRateLimitError from e
 
     return response.input_tokens

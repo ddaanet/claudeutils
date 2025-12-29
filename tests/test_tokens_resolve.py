@@ -1,4 +1,4 @@
-"""Unit tests for token counting functionality."""
+"""Unit tests for resolve_model_alias function."""
 
 import json
 import os
@@ -8,103 +8,10 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
+from anthropic import APIError
 
-from claudeutils.tokens import count_tokens_for_file, resolve_model_alias
-
-
-class TestCountTokensForFile:
-    """Tests for count_tokens_for_file function."""
-
-    def test_count_tokens_for_simple_text(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Count tokens for a simple text file.
-
-        Given: File with content "Hello world", model="sonnet"
-        When: count_tokens_for_file(path, model) called
-        Then: Returns integer token count > 0
-        """
-        # Create test file
-        test_file = tmp_path / "test.md"
-        test_file.write_text("Hello world")
-
-        # Mock Anthropic client
-        mock_client = Mock()
-        mock_response = Mock()
-        mock_response.input_tokens = 5
-        mock_client.messages.count_tokens.return_value = mock_response
-
-        # Patch the Anthropic client initialization
-        monkeypatch.setattr(
-            "claudeutils.tokens.Anthropic",
-            Mock(return_value=mock_client),
-        )
-
-        # Call function
-        result = count_tokens_for_file(test_file, "sonnet")
-
-        # Verify
-        assert isinstance(result, int)
-        assert result > 0
-        assert result == 5
-
-    def test_count_tokens_for_markdown_with_code_blocks(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Count tokens for markdown file with code blocks.
-
-        Given: File with markdown content including code block, model="opus"
-        When: count_tokens_for_file(path, model) called
-        Then: Returns token count reflecting full content
-        """
-        # Create test file with markdown and code block
-        test_file = tmp_path / "test.md"
-        content = """# Title
-
-Some text here.
-
-```python
-def hello():
-    print("world")
-```
-
-More text."""
-        test_file.write_text(content)
-
-        # Mock Anthropic client
-        mock_client = Mock()
-        mock_response = Mock()
-        mock_response.input_tokens = 42
-        mock_client.messages.count_tokens.return_value = mock_response
-
-        # Patch the Anthropic client initialization
-        monkeypatch.setattr(
-            "claudeutils.tokens.Anthropic",
-            Mock(return_value=mock_client),
-        )
-
-        # Call function
-        result = count_tokens_for_file(test_file, "opus")
-
-        # Verify
-        assert isinstance(result, int)
-        assert result == 42
-
-    def test_handle_empty_file(self, tmp_path: Path) -> None:
-        """Handle empty files without API call.
-
-        Given: Empty file, model="haiku"
-        When: count_tokens_for_file(path, model) called
-        Then: Returns 0
-        """
-        # Create empty test file
-        test_file = tmp_path / "empty.md"
-        test_file.write_text("")
-
-        # Call function
-        result = count_tokens_for_file(test_file, "haiku")
-
-        assert result == 0
+from claudeutils.exceptions import ModelResolutionError
+from claudeutils.tokens import resolve_model_alias
 
 
 class TestResolveModelAlias:
@@ -323,3 +230,56 @@ class TestResolveModelAlias:
         # Verify cache file was written
         cache_file = cache_dir / "models_cache.json"
         assert cache_file.exists()
+
+    def test_handle_unknown_model_alias(self, tmp_path: Path) -> None:
+        """Handle unknown model alias.
+
+        Given: API returns models list, model="unknown-alias"
+        When: resolve_model_alias(model, client, cache_dir) called
+        Then: Returns "unknown-alias" unchanged (pass through to API)
+        """
+        # Setup: no cache file
+        cache_dir = tmp_path / "cache"
+
+        # Mock client with models list (no matching alias)
+        mock_client = Mock()
+        mock_models = [
+            Mock(
+                id="claude-sonnet-4-5-20250929",
+                created_at=datetime.fromisoformat("2025-09-29T00:00:00Z"),
+            ),
+        ]
+        mock_client.models.list.return_value = mock_models
+
+        # Call function with unknown alias
+        result = resolve_model_alias("unknown-alias", mock_client, cache_dir)
+
+        # Verify - should return original input unchanged
+        assert result == "unknown-alias"
+
+    def test_fail_when_models_api_error_prevents_resolution(
+        self, tmp_path: Path
+    ) -> None:
+        """Fail when models API error prevents resolution.
+
+        Given: client.models.list() raises API error, model="sonnet"
+        When: resolve_model_alias(model, client, cache_dir) called
+        Then: Raises ModelResolutionError with message explaining API unreachable
+        """
+        # Setup: no cache file
+        cache_dir = tmp_path / "cache"
+
+        # Mock client that raises API error
+        mock_client = Mock()
+        mock_client.models.list.side_effect = APIError(
+            "API Error", request=Mock(), body={}
+        )
+
+        # Call function with unversioned alias, should raise ModelResolutionError
+        with pytest.raises(ModelResolutionError) as exc_info:
+            resolve_model_alias("sonnet", mock_client, cache_dir)
+
+        # Verify error message explains the issue
+        error_msg = str(exc_info.value).lower()
+        assert "models api" in error_msg
+        assert "unreachable" in error_msg
