@@ -16,20 +16,19 @@ from claudeutils.tokens import (
 )
 
 
-def handle_tokens(model: str, files: list[str]) -> None:
+def handle_tokens(model: str, files: list[str], *, json_output: bool = False) -> None:
     """Handle the tokens subcommand.
 
     Args:
         model: Model to use for token counting
         files: File paths to count tokens for
+        json_output: Whether to output JSON format
     """
-    # Parse --json flag from files list
-    json_output = "--json" in files
-    file_paths = [f for f in files if f != "--json"]
-
-    if not file_paths:
+    if not files:
         print("Error: at least one file is required", file=sys.stderr)
         sys.exit(1)
+
+    file_paths = files
 
     for filepath_str in file_paths:
         filepath = Path(filepath_str)
@@ -56,7 +55,12 @@ def handle_tokens(model: str, files: list[str]) -> None:
         print(json.dumps(output))
     else:
         print(f"Using model: {resolved_model}")
+        results = []
         for filepath_str in file_paths:
             filepath = Path(filepath_str)
             count = count_tokens_for_file(filepath, resolved_model)
+            results.append(TokenCount(path=filepath_str, count=count))
             print(f"{filepath_str}: {count} tokens")
+        if len(results) > 1:
+            total = calculate_total(results)
+            print(f"Total: {total} tokens")

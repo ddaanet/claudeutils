@@ -89,3 +89,29 @@ def test_analyze_help_shows_stdin_usage() -> None:
     )
     help_text = result.stdout
     assert "stdin" in help_text, "Help text should mention 'stdin'"
+
+
+def test_tokens_help_is_complete_and_accurate() -> None:
+    """Test that tokens help text is complete and accurate.
+
+    When: claudeutils tokens --help is called
+    Then: Help contains model aliases, file arguments, json option, and examples
+    """
+    result = subprocess.run(
+        ["uv", "run", "claudeutils", "tokens", "--help"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    help_text = result.stdout
+    assert "Count tokens" in help_text, "Help text should mention 'Count tokens'"
+    assert "haiku" in help_text, "Help text should list 'haiku' model"
+    assert "sonnet" in help_text, "Help text should list 'sonnet' model"
+    assert "opus" in help_text, "Help text should list 'opus' model"
+    assert "FILE" in help_text, "Help text should mention 'FILE' argument"
+    assert "--json" in help_text, "Help text should mention '--json' option"
+    assert "ANTHROPIC_API_KEY" in help_text, (
+        "Help text should mention API key requirement"
+    )
+    assert "Requires" in help_text, "Help text should mention requirement"
+    assert "Examples:" in help_text, "Help text should include 'Examples:' section"

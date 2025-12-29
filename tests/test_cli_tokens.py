@@ -24,8 +24,9 @@ def test_cli_requires_model_argument(tmp_path: Path) -> None:
         text=True,
     )
 
-    assert result.returncode == 1
-    assert "model" in result.stderr.lower() or "required" in result.stderr.lower()
+    # argparse returns exit code 2 for missing required arguments
+    assert result.returncode == 2
+    assert "required" in result.stderr.lower()
 
 
 def test_cli_accepts_single_file(tmp_path: Path) -> None:
@@ -131,7 +132,7 @@ def test_cli_json_format_with_model_id(tmp_path: Path) -> None:
         old_stdout = sys.stdout
         sys.stdout = io.StringIO()
         try:
-            handle_tokens("haiku", [str(test_file), "--json"])
+            handle_tokens("haiku", [str(test_file)], json_output=True)
             output = sys.stdout.getvalue()
         finally:
             sys.stdout = old_stdout
@@ -160,7 +161,7 @@ def test_cli_json_format_with_multiple_files(tmp_path: Path) -> None:
         old_stdout = sys.stdout
         sys.stdout = io.StringIO()
         try:
-            handle_tokens("opus", [str(file1), str(file2), "--json"])
+            handle_tokens("opus", [str(file1), str(file2)], json_output=True)
             output = sys.stdout.getvalue()
         finally:
             sys.stdout = old_stdout

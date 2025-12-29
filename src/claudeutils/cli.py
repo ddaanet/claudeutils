@@ -339,10 +339,43 @@ Output is sorted chronologically.""",
         "--format", default="text", choices=["text", "json"], help="Output format"
     )
 
-    tokens_parser = subparsers.add_parser("tokens", help="Count tokens in files")
-    tokens_parser.add_argument("model", help="Model to use for token counting")
+    tokens_parser = subparsers.add_parser(
+        "tokens",
+        help=(
+            "Count tokens in files using Anthropic API. "
+            "Requires ANTHROPIC_API_KEY environment variable."
+        ),
+        description=(
+            "Count tokens in files using Anthropic API. "
+            "Requires ANTHROPIC_API_KEY environment variable."
+        ),
+        epilog=(
+            "Examples:\n"
+            "  uv run claudeutils tokens sonnet prompt.md\n"
+            "  uv run claudeutils tokens opus file1.md file2.md --json\n"
+            "  uv run claudeutils tokens claude-sonnet-4-5-20250929 prompt.md"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     tokens_parser.add_argument(
-        "files", nargs="*", help="File paths to count tokens for"
+        "model",
+        metavar="{haiku,sonnet,opus}",
+        help=(
+            "Model alias for token counting. Aliases automatically resolve to "
+            "the latest available model version. You may also provide a full "
+            "model ID like claude-sonnet-4-5. Token counts vary by model."
+        ),
+    )
+    tokens_parser.add_argument(
+        "files",
+        nargs="+",
+        metavar="FILE",
+        help="File path(s) to count tokens",
+    )
+    tokens_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output JSON format instead of text",
     )
 
     subparsers.add_parser("markdown", help="Process markdown files")
@@ -360,6 +393,6 @@ Output is sorted chronologically.""",
     elif args.command == "rules":
         handle_rules(args.input, args.min_length, args.format)
     elif args.command == "tokens":
-        handle_tokens(args.model, args.files)
+        handle_tokens(args.model, args.files, json_output=args.json)
     elif args.command == "markdown":
         handle_markdown()
