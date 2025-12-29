@@ -11,7 +11,6 @@ import pytest
 from claudeutils.cli import main
 
 
-@pytest.mark.xfail(reason="Requires CLI implementation and model alias resolution")
 def test_end_to_end_token_counting_with_alias_resolution(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
