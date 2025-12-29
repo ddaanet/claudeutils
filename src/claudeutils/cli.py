@@ -3,6 +3,7 @@
 # ruff: noqa: T201 - print statements are expected in CLI code
 import argparse
 import json
+import logging
 import re
 import sys
 from pathlib import Path
@@ -244,6 +245,12 @@ def handle_rules(input_path: str, min_length: int, output_format: str) -> None:
 
 def main() -> None:
     """Entry point for claudeutils CLI."""
+    # Configure logging to show warnings on terminal
+    logging.basicConfig(
+        level=logging.WARNING,
+        format="%(levelname)s: %(message)s",
+    )
+
     parser = argparse.ArgumentParser(
         description="Extract feedback from Claude Code sessions",
         epilog=(
