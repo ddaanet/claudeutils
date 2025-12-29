@@ -31,14 +31,14 @@ Then:
 
 ### Key Files to Read
 
-| File                                            | Purpose                                            |
-| ----------------------------------------------- | -------------------------------------------------- |
-| `plans/PLAN_PHASE1_MODULE_SYSTEM.md`            | Detailed Phase 1 plan for Haiku (ready to execute) |
-| `plans/plan-module-system-outline.md`           | Full 8-phase implementation plan                   |
-| `plans/opus-review-module-tiering.md`           | Tier marker design decisions                       |
-| `plans/design-question-role-config-location.md` | Config location decision (agents/roles/)           |
-| `plans/DESIGN_MODULE_SYSTEM.md`                 | Complete design specification                      |
-| `agents/modules/MODULE_INVENTORY.md`            | Summary of 14 extracted modules                    |
+| File                                                       | Purpose                                            |
+| ---------------------------------------------------------- | -------------------------------------------------- |
+| `plans/prompt-composer/plan-phase1.md`                     | Detailed Phase 1 plan for Haiku (ready to execute) |
+| `plans/prompt-composer/plan-outline.md`                    | Full 8-phase implementation plan                   |
+| `plans/prompt-composer/opus-review-tiering.md`             | Tier marker design decisions                       |
+| `plans/prompt-composer/design-question-config-location.md` | Config location decision (agents/roles/)           |
+| `plans/prompt-composer/design.md`                          | Complete design specification                      |
+| `agents/modules/MODULE_INVENTORY.md`                       | Summary of 14 extracted modules                    |
 
 ### Key Design Decisions (from Opus Reviews)
 

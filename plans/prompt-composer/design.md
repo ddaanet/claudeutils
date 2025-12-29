@@ -3,7 +3,7 @@
 - **Status**: Design decisions finalized, module extraction complete
 - **Last Updated**: 2025-12-26
 - **Design Authority**: Opus (claude-opus-4-5-20251101)
-- **Design Review**: plans/opus-review-module-tiering.md
+- **Design Review**: plans/prompt-composer/opus-review-tiering.md
 
 ---
 
@@ -465,7 +465,7 @@ After validation, .next.md renamed to .md and old files archived.
 
 ### TODO: Implementation Phases
 
-**See**: `plans/plan-module-system-outline.md` for detailed phase breakdown
+**See**: `plans/prompt-composer/plan-outline.md` for detailed phase breakdown
 
 1. Rule counter (Phase 1.2)
 2. Variant generator (Phase 3.1-3.2)
@@ -479,7 +479,7 @@ After validation, .next.md renamed to .md and old files archived.
 
 ## Resolved Design Questions
 
-See `plans/opus-review-module-tiering.md` and Opus agent (a8ddc9f) for detailed
+See `plans/prompt-composer/opus-review-tiering.md` and Opus agent (a8ddc9f) for detailed
 analysis.
 
 1. **Rule tiering**: Hybrid B+D - tier markers in variants, tier hints in sources

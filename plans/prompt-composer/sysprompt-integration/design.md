@@ -95,8 +95,8 @@ Justifies separating bash.tool.md (file I/O preferences) from bash-git.tool.md
 
 ### Related Plans
 
-- `plans/DESIGN_MODULE_SYSTEM.md` - Overall module system architecture
-- `plans/plan-module-system-outline.md` - Module system implementation phases
+- `plans/prompt-composer/design.md` - Overall module system architecture
+- `plans/prompt-composer/plan-outline.md` - Module system implementation phases
 
 ---
 

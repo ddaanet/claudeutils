@@ -9,8 +9,8 @@
 
 ## Prerequisites
 
-1. Read `plans/DESIGN_MODULE_SYSTEM.md` → understand marker-based counting
-2. Read `plans/opus-review-module-tiering.md` → understand tier markers
+1. Read `plans/prompt-composer/design.md` → understand marker-based counting
+2. Read `plans/prompt-composer/opus-review-tiering.md` → understand tier markers
 3. Read `agents/modules/src/checkpoint-obedience.semantic.md` → test module for Phase
    1.1
 
