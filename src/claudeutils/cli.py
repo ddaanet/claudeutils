@@ -14,6 +14,7 @@ from claudeutils.filtering import categorize_feedback, filter_feedback
 from claudeutils.markdown import process_file
 from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
+from claudeutils.tokens import count_tokens_for_file
 
 
 def find_session_by_prefix(prefix: str, project_dir: str) -> str:
@@ -185,6 +186,27 @@ def handle_markdown() -> None:
         sys.exit(1)
 
 
+def handle_tokens(model: str, files: list[str]) -> None:
+    """Handle the tokens subcommand.
+
+    Args:
+        model: Model to use for token counting
+        files: File paths to count tokens for
+    """
+    if not files:
+        print("Error: at least one file is required", file=sys.stderr)
+        sys.exit(1)
+
+    for filepath_str in files:
+        filepath = Path(filepath_str)
+        if not filepath.exists():
+            print(f"Error: {filepath_str} file not found", file=sys.stderr)
+            sys.exit(1)
+
+        count = count_tokens_for_file(filepath, model)
+        print(f"{filepath_str}: {count} tokens")
+
+
 def handle_rules(input_path: str, min_length: int, output_format: str) -> None:
     """Handle the rules subcommand.
 
@@ -338,6 +360,12 @@ Output is sorted chronologically.""",
         "--format", default="text", choices=["text", "json"], help="Output format"
     )
 
+    tokens_parser = subparsers.add_parser("tokens", help="Count tokens in files")
+    tokens_parser.add_argument("model", help="Model to use for token counting")
+    tokens_parser.add_argument(
+        "files", nargs="*", help="File paths to count tokens for"
+    )
+
     subparsers.add_parser("markdown", help="Process markdown files")
 
     args = parser.parse_args()
@@ -352,5 +380,7 @@ Output is sorted chronologically.""",
         handle_analyze(args.input, args.format)
     elif args.command == "rules":
         handle_rules(args.input, args.min_length, args.format)
+    elif args.command == "tokens":
+        handle_tokens(args.model, args.files)
     elif args.command == "markdown":
         handle_markdown()
