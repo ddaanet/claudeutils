@@ -24,10 +24,13 @@ rules.
 
 Then:
 
-1. **Phase 1.2: Rule Counter** - Build script to count `[RULE:Tn]` markers
+1. **Phase 1.2: Rule Counter** - Build script to count `[RULE:Tn]` markers in module
+   variants
 2. **Phase 2: Variant Generator** - Generate variants from semantic sources
 3. **Phase 3: Role Composer** - Compose role files from module variants
 4. **Phase 7: Testing & Cutover** - A/B test, then atomic rename via `make cutover`
+
+**Note:** Token counter for Anthropic API implemented (✅ `claudeutils tokens` command)
 
 ### Key Files to Read
 

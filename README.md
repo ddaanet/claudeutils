@@ -32,6 +32,35 @@ uv run claudeutils list --project /path/to/project
 uv run claudeutils extract abc123 --project /path/to/project
 ```
 
+### Token Counting
+
+Count tokens in files using the Anthropic API. Requires `ANTHROPIC_API_KEY` environment
+variable.
+
+```bash
+# Count tokens in a single file
+uv run claudeutils tokens sonnet prompt.md
+
+# Count tokens across multiple files
+uv run claudeutils tokens opus file1.md file2.md
+
+# JSON output format
+uv run claudeutils tokens haiku prompt.md --json
+
+# Use full model ID instead of alias
+uv run claudeutils tokens claude-sonnet-4-5-20250929 prompt.md
+```
+
+**Supported model aliases:**
+
+- `haiku` - Latest Claude Haiku model
+- `sonnet` - Latest Claude Sonnet model
+- `opus` - Latest Claude Opus model
+
+Aliases automatically resolve to the latest available model version (cached for 24
+hours). You can also use full model IDs like `claude-sonnet-4-5` or
+`claude-sonnet-4-5-20250929`.
+
 ### Feedback Processing Pipeline
 
 Process feedback in stages: collect → analyze → rules
@@ -73,6 +102,8 @@ chars), and deduplicates by content prefix.
 - **Prefix matching:** Extract sessions by partial UUID prefix (e.g., `e12d203f`)
 - **Recursive extraction:** Automatically processes sub-agent sessions
 - **Trivial filtering:** Filters out single-character responses and common keywords
+- **Token counting:** Count tokens in files using Anthropic API with automatic model
+  alias resolution
 - **Structured output:** JSON format with full metadata
 - **Type-safe:** Pydantic validation with strict mypy checking
 
@@ -116,18 +147,26 @@ src/claudeutils/
 ├── paths.py        # Path encoding utilities
 ├── parsing.py      # Content extraction
 ├── discovery.py    # Session/agent discovery
-└── extraction.py   # Recursive extraction
+├── extraction.py   # Recursive extraction
+├── tokens.py       # Token counting with Anthropic API
+├── tokens_cli.py   # Token counting CLI handler
+└── exceptions.py   # Custom exceptions
 
 tests/
 ├── test_cli_list.py
 ├── test_cli_extract_basic.py
 ├── test_cli_extract_output.py
+├── test_cli_tokens.py
+├── test_cli_help.py
 ├── test_discovery.py
 ├── test_parsing.py
 ├── test_paths.py
 ├── test_models.py
 ├── test_agent_files.py
-└── test_extraction.py
+├── test_extraction.py
+├── test_tokens_count.py
+├── test_tokens_resolve.py
+└── test_tokens_integration.py
 ```
 
 ## Implementation Notes
@@ -156,8 +195,9 @@ patterns.
 ## Requirements
 
 - Python 3.14+
-- Dependencies: pydantic>=2.0
+- Dependencies: pydantic>=2.0, anthropic, platformdirs
 - Dev dependencies: pytest, mypy, ruff
+- Optional: `ANTHROPIC_API_KEY` environment variable (required for token counting)
 
 ## License
 

@@ -125,6 +125,11 @@ uv run claudeutils extract <prefix>            # Extract feedback by session pre
 uv run claudeutils extract <prefix> -o out.json  # Extract to file
 uv run claudeutils list --project /path        # Use custom project directory
 
+# Token counting (requires ANTHROPIC_API_KEY)
+uv run claudeutils tokens sonnet file.md       # Count tokens in a file
+uv run claudeutils tokens opus file1 file2     # Count tokens across multiple files
+uv run claudeutils tokens haiku file.md --json # JSON output format
+
 # Development workflow
 just dev              # Format, check, and test
 just test ...         # Run pytest only, arguments are passed to pytest

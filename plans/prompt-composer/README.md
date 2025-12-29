@@ -26,7 +26,6 @@ target-appropriate wording (strong vs weak models).
 ### For Implementation
 
 - **`plan-phase1.md`** - Detailed Phase 1 plan (ready to execute)
-- **`plan-token-counter.md`** - Token counter implementation
 - **`sysprompt-integration/`** - System prompt pattern extraction
 
 ### For Decisions
@@ -55,11 +54,10 @@ target-appropriate wording (strong vs weak models).
 
 ### Implementation Plans
 
-| File                      | Phase | Purpose                             | Audience       |
-| ------------------------- | ----- | ----------------------------------- | -------------- |
-| **plan-outline.md**       | 0-8   | Full 8-phase roadmap                | Everyone       |
-| **plan-phase1.md**        | 1     | Detailed Phase 1 (TDD, checkpoints) | Haiku executor |
-| **plan-token-counter.md** | 1.2   | Token counter script implementation | Developer      |
+| File                | Phase | Purpose                             | Audience       |
+| ------------------- | ----- | ----------------------------------- | -------------- |
+| **plan-outline.md** | 0-8   | Full 8-phase roadmap                | Everyone       |
+| **plan-phase1.md**  | 1     | Detailed Phase 1 (TDD, checkpoints) | Haiku executor |
 
 ### Supporting Materials
 
@@ -86,14 +84,14 @@ Design complete ✅, Module extraction complete ✅, Implementation plan ready �
 - ✅ Module inventory documented
 - ✅ Directory structure defined
 - ✅ Phase 1 plan ready for Haiku
+- ✅ Token counter implemented (`claudeutils tokens` command)
 
 ### Next Steps
 
 1. **Phase 1.1**: Test expansion quality (Sonnet vs Opus comparison)
-2. **Phase 1.2**: Build rule counter script
-3. **Phase 2**: Variant generator implementation
-4. **Phase 3**: Role composer
-5. **Phases 4-8**: Integration, testing, cutover
+2. **Phase 2**: Variant generator implementation
+3. **Phase 3**: Role composer
+4. **Phases 4-8**: Integration, testing, cutover
 
 ---
 
@@ -188,7 +186,6 @@ plans/prompt-composer/
 ├── design-question-config-location.md (decision rationale)
 ├── plan-outline.md (8-phase roadmap)
 ├── plan-phase1.md (detailed Phase 1)
-├── plan-token-counter.md (token counter implementation)
 ├── existing-tools-research.md (tool research)
 └── sysprompt-integration/
     ├── design.md (system prompt patterns)

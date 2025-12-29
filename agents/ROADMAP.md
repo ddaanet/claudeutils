@@ -37,28 +37,6 @@ from standard procedures.
 - `--agent` - Filter by agent ID
 - `--exclude-trivial` - Hide filtered-out trivial messages in output
 
-## Token Count Tool
-
-**Status:** IN PROGRESS - See `plans/plan-token-counter.md`
-
-**Goal:** Count tokens in prompt files using Anthropic API token counting endpoint.
-
-**Priority:** HIGH - Should implement before agent composition to provide feedback on
-module design. Enables:
-
-- Validate prompt size assumptions during module development
-- Compare composed prompts against context limits
-- Measure impact of tier variants on token budget
-
-**Implementation:**
-
-- CLI subcommand: `uv run claudeutils tokens <file>`
-- Use Anthropic Python SDK for token counting
-- Support globbing: `uv run claudeutils tokens agents/modules/**/*.md`
-- Output: per-file counts + total (text and JSON formats)
-
-**API Key:** Uses `ANTHROPIC_API_KEY` environment variable (SDK default)
-
 ## Generate Claude Agents from Role Description
 
 **Goal:** Generate complete agent wrapper files from high-level role descriptions.
@@ -95,7 +73,7 @@ command-based MCP could provide shell execution without this overhead.
   sandboxing)
 - MCP would need equivalent safety guarantees
 
-**Depends on:** Token Count Tool (for measurement)
+**Measurement:** Use `claudeutils tokens` command to compare tool description overhead
 
 ## Claude Wrapper Generator (plan-claude-wrapper.md)
 

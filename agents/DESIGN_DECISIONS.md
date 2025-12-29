@@ -414,6 +414,46 @@ isn't generalizable
 
 **Supported models:** haiku, sonnet, opus (short aliases preferred)
 
+### Model Alias Support
+
+**Decision:** Hybrid approach - support Anthropic's official aliases directly, with
+runtime probing fallback for unversioned aliases
+
+**Rationale:**
+
+- Anthropic provides official aliases like `claude-sonnet-4-5` that auto-update to
+  latest snapshots
+- Power users can use full model IDs (`claude-sonnet-4-5-20250929`) or official aliases
+  (`claude-sonnet-4-5`)
+- Casual users can use simple aliases ("sonnet", "haiku", "opus") which resolve via
+  runtime probing
+- 24-hour cache avoids repeated API calls
+
+**Implementation:**
+
+1. **Pass-through**: If model starts with "claude-", use unchanged (no resolution
+   needed)
+2. **Unversioned alias resolution**: For simple aliases like "sonnet":
+   - Check cache first (24-hour TTL in user config directory)
+   - If cache miss/expired, query `client.models.list()` API
+   - Filter models where ID contains the alias (case-insensitive)
+   - Select latest by `created_at` timestamp
+   - Cache full model list with timestamp
+3. **Fallback**: If alias not found, pass through unchanged (API will error)
+4. **Cache location**: Platform-appropriate user cache directory via `platformdirs`
+
+**Cache format:**
+
+```json
+{
+  "fetched_at": "2025-12-29T10:30:00Z",
+  "models": [
+    {"id": "claude-sonnet-4-5-20250929", "created_at": "2025-09-29T00:00:00Z"},
+    ...
+  ]
+}
+```
+
 ### Anthropic API Integration
 
 **Decision:** Use official Anthropic SDK with default environment variable handling
@@ -444,11 +484,13 @@ models
 
 ### Token Output Format
 
-**Decision:** Human-readable text by default, JSON with `--json` flag
+**Decision:** Human-readable text by default, JSON with `--json` flag; include resolved
+model ID in all outputs
 
 **Text format:**
 
 ```
+Using model: claude-sonnet-4-5-20250929
 path/to/file1.md: 150 tokens
 path/to/file2.md: 200 tokens
 Total: 350 tokens
@@ -458,6 +500,7 @@ Total: 350 tokens
 
 ```json
 {
+  "model": "claude-sonnet-4-5-20250929",
   "files": [
     {"path": "path/to/file1.md", "count": 150},
     {"path": "path/to/file2.md", "count": 200}
@@ -466,5 +509,9 @@ Total: 350 tokens
 }
 ```
 
-**Rationale:** Matches existing CLI patterns (analyze, rules); text for humans, JSON for
-scripting
+**Rationale:**
+
+- Matches existing CLI patterns (analyze, rules); text for humans, JSON for scripting
+- Show resolved model ID so users know which exact model version was used
+- Critical for debugging and reproducibility (especially when using aliases that
+  auto-update)
