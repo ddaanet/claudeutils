@@ -91,7 +91,8 @@ linting rules.
 4. **Batch reads:** Read multiple files in one message when needed soon
 5. **Different files:** Edit in parallel when independent
 6. **Same file:** Edit sequentially, bottom-to-top when inserting
-7. **Refresh context:** Read modified files after write batches
+7. **Refresh context:** If you plan to modify a file again in the next iteration, Read
+   this file in the batch.
 
 ---
 
