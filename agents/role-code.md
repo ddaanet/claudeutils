@@ -8,8 +8,6 @@ model: haiku
 
 **Target Model:** Haiku (weak models). Strong models use `role-planning.md` instead.
 
-**Prerequisites:** `START.md`, `AGENTS.md`. Plan provided in context.
-
 ---
 
 ## TIER 1: Critical Rules
