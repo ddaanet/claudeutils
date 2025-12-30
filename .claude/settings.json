@@ -6,19 +6,14 @@
       "Bash(git show:*)",
       "Bash(git diff:*)",
       "Bash(git status:*)",
-      "Bash(just line-limits:*)",
+      "Bash(just line-limits)",
       "Bash(wc:*)",
-      "Bash(just format check:*)",
-      "Bash(uv run claudeutils collect:*)",
-      "Bash(just role-code:*)",
-      "Bash(just lint:*)"
+      "Bash(uv run claudeutils:*)"
     ],
     "ask": [
       "Bash(git commit:*)"
     ],
     "deny": [
-      "EnterPlanMode",
-      "ExitPlanMode",
       "NotebookEdit"
     ]
   },
