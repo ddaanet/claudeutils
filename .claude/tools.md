@@ -91,8 +91,6 @@ claude --disallowed-tools "NotebookEdit,ExitPlanMode,EnterPlanMode,WebFetch,WebS
       "EnterPlanMode",
       "WebFetch",
       "WebSearch",
-      "mcp__plugin_context7_context7__resolve-library-id",
-      "mcp__plugin_context7_context7__get-library-docs",
       "Skill"
     ]
   }
@@ -139,6 +137,25 @@ claude --disallowed-tools  "Task,TaskOutput,NotebookEdit,KillShell,ExitPlanMode,
       "ExitPlanMode",
       "EnterPlanMode",
       "TodoWrite",
+      "WebFetch",
+      "WebSearch",
+      "AskUserQuestion",
+      "Skill"
+    ]
+  }
+}
+```
+
+## Review role
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "NotebookEdit",
+      "KillShell",
+      "ExitPlanMode",
+      "EnterPlanMode",
       "WebFetch",
       "WebSearch",
       "AskUserQuestion",
