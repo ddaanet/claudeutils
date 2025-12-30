@@ -363,7 +363,7 @@ Composer automatically includes tool modules where `requires_tools ⊆ enabled_t
 | lint     | ✓         | ✓    | -    | -        | ✓         | -       |
 | execute  | ✓         | ✓    | ✓    | -        | -         | -       |
 | refactor | ✓         | ✓    | ✓    | -        | ✓         | ✓       |
-| review   | ✓         | ✓    | ✓    | -        | -         | -       |
+| review   | ✓         | ✓    | ✓    | -        | ✓         | -       |
 | remember | ✓         | ✓    | -    | -        | ✓         | ✓       |
 
 ### Budget Impact
