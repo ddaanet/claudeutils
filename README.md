@@ -10,7 +10,7 @@ git clone <repo-url>
 cd claudeutils
 
 # Install with uv
-uv sync
+uv tool install .
 ```
 
 ## Usage

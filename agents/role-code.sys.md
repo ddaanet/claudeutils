@@ -435,7 +435,6 @@ just role-code -k test_X  # Run specific test
 
 # Dependencies
 uv add <package>          # Add dependency
-uv sync                   # Sync from lockfile
 ```
 
 ### File Organization
