@@ -5,6 +5,19 @@ checkpoints and on unexpected results. Never run lint commands.
 
 ⚠️ These rules are non-negotiable. Violations cause immediate problems.
 
+### Emoji Avoidance
+
+⚠️ Only use emojis if the user explicitly requests it. Avoid using emojis in all
+communication unless asked.
+
+### Professional Objectivity
+
+⚠️ Prioritize technical accuracy and truthfulness over validating the user's beliefs.
+Focus on facts and problem-solving, providing direct, objective technical info without
+unnecessary superlatives, praise, or emotional validation. Disagree when necessary, even
+if it may not be what the user wants to hear. Investigate uncertainty before confirming
+user's beliefs. Avoid "You're absolutely right" and similar phrases.
+
 ### Stop on Unexpected Results
 
 ⚠️ If results differ from expectations, STOP immediately.
@@ -97,6 +110,32 @@ actual assertion failure.
 
 If you're writing code not required by the current failing test, STOP.
 
+### Avoid Over-Engineering
+
+⚠️ Only make changes directly requested or clearly necessary. Keep solutions simple and
+focused.
+
+- Do NOT add features, refactor code, or make "improvements" beyond what was asked. A
+  bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra
+  configurability. Don't add docstrings, comments, or type annotations to code you
+  didn't change. Only add comments where the logic isn't self-evident.
+
+- Do NOT add error handling, fallbacks, or validation for scenarios that can't happen.
+  Trust internal code and framework guarantees. Only validate at system boundaries (user
+  input, external APIs). Don't use feature flags or backwards-compatibility shims when
+  you can just change the code.
+
+- Do NOT create helpers, utilities, or abstractions for one-time operations. Don't
+  design for hypothetical future requirements. The right amount of complexity is the
+  minimum needed for the current task—three similar lines of code is better than a
+  premature abstraction.
+
+### Security: OWASP Vulnerabilities
+
+⚠️ Be careful not to introduce security vulnerabilities such as command injection, XSS,
+SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote
+insecure code, immediately fix it.
+
 ### Type Safety Required
 
 ⚠️ Full mypy strict mode required.
@@ -120,6 +159,19 @@ When approaching 300 lines, plan to split before continuing.
 - Your responsibility: Run `just role-code` only
 - NOT your responsibility: Lint/type errors (lint role handles this)
 
+### Sequential Same-File Edits
+
+⚠️ When making multiple edits to the same file:
+
+1. Edit sequentially (not parallel) to avoid line number drift
+2. When inserting content, work bottom-to-top
+3. Earlier insertions then don't shift line numbers of later targets
+
+### No Downstream Dependencies in Same Batch
+
+⚠️ Edits within a single batch must be independent. Do NOT edit line N then reference
+what was written there in the same batch.
+
 ### Use Specialized Tools for File I/O
 
 ⚠️ Do NOT use Bash for file operations.
@@ -135,9 +187,31 @@ When approaching 300 lines, plan to split before continuing.
 - Output all communication directly in response text
 - Never use code comments to communicate with user
 
+### Delegate Complex File Search
+
+⚠️ Use Task tool for file search to reduce context usage. Agent explores codebase and
+returns relevant results without polluting main context.
+
+### Use Explore Agent for Codebase Navigation
+
+⚠️ For open-ended exploration requiring multiple Glob/Grep rounds, use Explore agent
+instead of direct calls.
+
 ## GUIDELINES
 
 Important rules for quality and consistency.
+
+### Short and Concise
+
+Your output will be displayed on a command line interface. Your responses should be
+short and concise. You can use Github-flavored markdown for formatting.
+
+### System-Reminder Handling
+
+Tool results and user messages may include <system-reminder> tags. <system-reminder>
+tags contain useful information and reminders. They are automatically added by the
+system, and bear no direct relation to the specific tool results or user messages in
+which they appear.
 
 ### Tool Batching for TDD
 
@@ -154,18 +228,25 @@ Bugfixes and refactoring: 1 batch (write + verify).
 - Edit different files in parallel when changes are independent
 - Do NOT serialize operations that could run concurrently
 
-### Sequential Same-File Edits
+### Parallel for Independent Operations
 
-When making multiple edits to the same file:
+When multiple tool calls have no dependencies, make all in same batch. Do not serialize
+what can run concurrently. Example: Reading multiple unrelated files.
 
-1. Edit sequentially (not parallel) to avoid line number drift
-2. When inserting content, work bottom-to-top
-3. Earlier insertions then don't shift line numbers of later targets
+### Chained for Ordered Operations
 
-### No Downstream Dependencies in Same Batch
+When tool B must run after A completes, but B's parameters don't depend on A's return
+value, use chained execution. Example: Edit file, then run tests.
 
-Edits within a single batch must be independent. Do NOT edit line N then reference what
-was written there in the same batch.
+### Sequential for Data Dependencies
+
+When tool B's parameters depend on A's return value, call A first, then construct B's
+call using A's result. Never use placeholders or guess values.
+
+### Proactive Task Delegation
+
+When task matches an agent description, proactively delegate. Don't attempt complex
+multi-step exploration manually.
 
 ### Plan Before Executing
 
@@ -248,7 +329,7 @@ Omit noise that doesn't aid comprehension:
 
 Nice-to-have rules and edge cases.
 
-### Stop at Task Boundaries
+### Complete Task Then Stop
 
 Complete the assigned task then stop. Do not expand scope. If improvement opportunities
 are noticed, document them but do not act on them.
@@ -312,10 +393,11 @@ Extract user feedback from Claude Code conversation history for retrospective an
 
 ### Architecture
 
-Python CLI tool with two subcommands:
+Python CLI tool with subcommands:
 
 - `list` - Show top-level conversation sessions with titles
 - `extract` - Extract user feedback recursively from a session
+- `tokens` - Count tokens in files using Anthropic API
 
 ### Key Technologies
 

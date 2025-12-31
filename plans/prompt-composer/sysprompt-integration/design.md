@@ -490,3 +490,106 @@ instructions), then decline. Observed in reasoning models (o3, gemini-2.5-pro).
 - Design experiment: same rules, different formulations
 - Test opus and sonnet separately, compare with/without guidelines
 - Output: formulation guidelines for module authors
+
+---
+
+## Research: Custom Agent Prompt Composition
+
+- **Date:** 2025-12-31
+- **Agent:** a80df58 (claude-code-guide)
+- **Question:** Do custom agents in `.claude/agents/` automatically receive core rules
+  from Claude Code's system prompt?
+
+### Finding: NO Automatic Rule Injection
+
+Custom agents spawned via the Task tool **DO NOT** automatically receive core behavioral
+rules like:
+
+- Emoji avoidance
+- Professional objectivity
+- Tool batching patterns
+- Communication guidelines
+
+**Evidence:**
+
+From
+[Claude Code Subagents documentation](https://code.claude.com/docs/en/sub-agents.md):
+
+> Your subagent's system prompt goes here. This can be multiple paragraphs and should
+> clearly define the subagent's role, capabilities, and approach to solving problems.
+
+The documentation explicitly states that whatever you write in the agent file is
+**exactly** what the subagent gets.
+
+From
+[Agent SDK documentation](https://platform.claude.com/docs/en/agent-sdk/modifying-system-prompts.md):
+
+> The Agent SDK uses an **empty system prompt** by default for maximum flexibility.
+
+And:
+
+> Claude Code's system prompt includes: Tool usage instructions and available tools,
+> Code style and formatting guidelines, Response tone and verbosity settings, Security
+> and safety instructions
+>
+> **These are NOT passed to subagents.**
+
+### Architectural Difference
+
+**Main session:**
+
+- Modular, conditional system prompt
+- Environment-dependent rules
+- 40+ strings conditionally loaded
+
+**Custom agents:**
+
+- Only the `prompt` field from agent definition
+- Separate context window
+- No inherited rules or memory
+- Tools restricted to agent's `tools` field
+
+### Built-in vs Custom Agents
+
+**Built-in agents** (general-purpose, Explore, Plan):
+
+- Curated system prompts by Anthropic
+- Include tool-specific instructions
+- Designed for specific use cases
+
+**Custom agents:**
+
+- Get only what you define
+- Must explicitly include all desired behavioral rules
+- Don't inherit main session conventions
+
+### Implication for Subagent Generation
+
+**CRITICAL:** Custom agents in `.claude/agents/` must include ALL rules explicitly:
+
+```markdown
+---
+name: code-reviewer
+tools: Read, Grep, Glob
+---
+
+# Code Review Agent
+
+Follow these core rules:
+
+- Avoid emojis unless explicitly requested
+- Maintain professional objectivity
+- Be concise for CLI output
+- Use specialized tools (Read not cat, Edit not sed) [... rest of prompt with all needed
+  rules ...]
+```
+
+**Consequence:** Subagent prompts will be LARGER than role prompts, as they cannot rely
+on Claude Code's system prompt to provide foundation rules.
+
+### Sources
+
+- [Claude Code Subagents Documentation](https://code.claude.com/docs/en/sub-agents.md)
+- [Agent SDK Subagents](https://platform.claude.com/docs/en/agent-sdk/subagents.md)
+- [Modifying System Prompts - Agent SDK](https://platform.claude.com/docs/en/agent-sdk/modifying-system-prompts.md)
+- [Claude Code System Prompts Repository](https://github.com/Piebald-AI/claude-code-system-prompts)

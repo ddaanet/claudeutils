@@ -8,6 +8,23 @@ is complete, before commit.
 
 ## Critical Rules (Tier 1)
 
+### Emoji Avoidance
+
+Only use emojis if the user explicitly requests it. Avoid using emojis in all
+communication unless asked.
+
+### Professional Objectivity
+
+Prioritize technical accuracy and truthfulness over validating the user's beliefs. Focus
+on facts and problem-solving, providing direct, objective technical info without
+unnecessary superlatives, praise, or emotional validation. It is best for the user if
+Claude honestly applies the same rigorous standards to all ideas and disagrees when
+necessary, even if it may not be what the user wants to hear. Objective guidance and
+respectful correction are more valuable than false agreement. Whenever there is
+uncertainty, it's best to investigate to find the truth first rather than instinctively
+confirming the user's beliefs. Avoid using over-the-top validation or excessive praise
+when responding to users such as "You're absolutely right" or similar phrases.
+
 ### Stop on Unexpected Results
 
 If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP
@@ -63,6 +80,19 @@ Update status in real-time as you work.
 ---
 
 ## Important Rules (Tier 2)
+
+### Short and Concise
+
+Your output will be displayed on a command line interface. Your responses should be
+short and concise. You can use Github-flavored markdown for formatting, and will be
+rendered in a monospace font using the CommonMark specification.
+
+### System-Reminder Handling
+
+Tool results and user messages may include <system-reminder> tags. <system-reminder>
+tags contain useful information and reminders. They are automatically added by the
+system, and bear no direct relation to the specific tool results or user messages in
+which they appear.
 
 ### Request Validation at Boundaries
 
@@ -144,6 +174,31 @@ Your review should systematically examine these aspects:
 - Logic errors, off-by-one, boundary conditions
 - Null/None handling, error propagation
 - Concurrency issues if applicable
+
+### Security
+
+Check for OWASP vulnerabilities:
+
+- Command injection, XSS, SQL injection
+- Insecure input validation at system boundaries
+- Exposure of secrets or sensitive data
+- Unsafe deserialization
+- Missing authentication/authorization checks
+
+Flag any security issues immediately for correction.
+
+### Over-Engineering
+
+Check for unnecessary complexity:
+
+- Features or configurability not requested
+- Error handling for scenarios that can't happen
+- Premature abstractions for one-time operations
+- Helper functions that obscure simple operations
+- Feature flags or backwards-compatibility shims when code can just change
+
+The right amount of complexity is the minimum needed for current requirements—three
+similar lines of code is better than a premature abstraction.
 
 ### Algorithmic Complexity
 
@@ -282,15 +337,19 @@ implemented.
 
 ## Project Context
 
-**Project:** Claude Code Feedback Extractor
+**Project:** Claude Code Feedback Extractor (claudeutils)
 
 **Goal:** Extract user feedback from Claude Code conversation history for retrospective
 analysis.
 
-**Architecture:** Python CLI tool with two subcommands:
+**Architecture:** Python CLI tool with subcommands:
 
 1. `list` - Show top-level conversation sessions with titles
 2. `extract` - Extract user feedback recursively from a session
+3. `tokens` - Count tokens in files using Anthropic API
+
+**Implementation Approach:** Test-Driven Development (TDD) with pytest, implemented in
+discrete steps.
 
 **Key Technologies:**
 
@@ -333,3 +392,11 @@ uv run claudeutils list
 uv run claudeutils extract <prefix>
 uv run claudeutils tokens <model> <file>
 ```
+
+**File Reference:**
+
+- `START.md` - **Handoff entry point** (read this first on session reset)
+- `AGENTS.md` - Core rules and role/rule definitions
+- `agents/TEST_DATA.md` - Data types and sample entries for coding
+- `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions
+- `agents/ROADMAP.md` - Future enhancement ideas
