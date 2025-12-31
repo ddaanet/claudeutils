@@ -17,8 +17,8 @@ This plan addresses 23 issues identified in two review documents:
 **Scope**: Fix critical bugs, improve error handling, migrate tests to pytest-mock,
 reduce test duplication.
 
-**Workflow**: Each step includes test (if behavioral change) and implementation. Every
-step must pass test suite before proceeding.
+**Workflow**: Each step adds EXACTLY ONE test (or zero for refactoring). After EVERY
+implementation step, run `just test` to verify. No step may proceed until tests pass.
 
 ---
 
@@ -42,6 +42,8 @@ This prevents passing unresolved aliases to API calls (compile-time safety).
 
 **Test**: None (type annotations only, verified by mypy)
 
+**Verify**: Run `just check` (mypy validation)
+
 ---
 
 ### Step 1.2: Extract Cache TTL Constant
@@ -54,11 +56,13 @@ configuration. Replace hardcoded value with the constant.
 
 **Test**: None (refactoring, no behavior change)
 
+**Verify**: Run `just test`
+
 ---
 
 ## Phase 2: Bug Fixes
 
-### Step 2.1: Add Required Client Parameter to count_tokens_for_file
+### Step 2.1a: Verify Client Receives Resolved Model ID
 
 **Test (RED)**: `tests/test_tokens_count.py`
 
@@ -74,6 +78,25 @@ Add test `test_count_tokens_uses_resolved_model_id`:
 Use `assert_called_once_with` to verify API receives resolved model ID (not an alias
 like "sonnet").
 
+**Implementation (GREEN)**: `src/claudeutils/tokens.py`
+
+Modify `count_tokens_for_file` signature to accept required `client: Anthropic`
+parameter (no Optional, no default). Update all callers to provide client.
+
+Update `count_tokens_for_file` docstring: add client parameter to Args, add Raises
+section documenting ApiAuthenticationError and ApiRateLimitError.
+
+Update `src/claudeutils/tokens_cli.py` to pass client to `count_tokens_for_file` calls
+(uses existing client created on line 39).
+
+**Verify**: Run `just test` - test should pass
+
+---
+
+### Step 2.1b: Ensure Client Reuse Across Files
+
+**Test (RED)**: `tests/test_tokens_count.py`
+
 Add test `test_count_tokens_for_files_reuses_single_client`:
 
 - **Given**: Three test files with different content ("Hello", "World", "Test"), mock
@@ -84,17 +107,10 @@ Add test `test_count_tokens_for_files_reuses_single_client`:
 
 **Implementation (GREEN)**: `src/claudeutils/tokens.py`
 
-Modify `count_tokens_for_file` signature to accept required `client: Anthropic`
-parameter (no Optional, no default). Update all callers to provide client.
-
 Modify `count_tokens_for_files` to create Anthropic client once before loop, pass it to
 each `count_tokens_for_file` call.
 
-Update `count_tokens_for_file` docstring: add client parameter to Args, add Raises
-section documenting ApiAuthenticationError and ApiRateLimitError.
-
-Update `src/claudeutils/tokens_cli.py` to pass client to `count_tokens_for_file` calls
-(uses existing client created on line 39).
+**Verify**: Run `just test` - new test should pass
 
 ---
 
@@ -133,9 +149,11 @@ For example:
 Current implementation only handles unversioned aliases ("sonnet"). Must also handle
 versioned model IDs ("claude-sonnet-4-5").
 
+**Verify**: Run `just test` - test should pass
+
 ---
 
-### Step 2.3: Handle File Reading Errors with Specific Exception
+### Step 2.3a: Handle Unreadable File Errors
 
 **Test (RED)**: `tests/test_tokens_count.py`
 
@@ -146,13 +164,6 @@ Add test `test_count_tokens_unreadable_file_shows_reason`:
 - **Then**: Raises FileReadError with message containing "Failed to read", the file
   path, and "Permission denied" (or similar OS error text)
 
-Add test `test_count_tokens_binary_file_shows_decode_error`:
-
-- **Given**: Binary file (write PNG header bytes `b'\x89PNG'`), mock Anthropic client
-- **When**: `count_tokens_for_file` is called
-- **Then**: Raises FileReadError with message containing "Failed to read", file path,
-  and decode error description
-
 **Implementation (GREEN)**: `src/claudeutils/tokens.py`, `src/claudeutils/exceptions.py`
 
 In `exceptions.py`, define `FileReadError(ClaudeUtilsError)` subclass.
@@ -160,11 +171,34 @@ In `exceptions.py`, define `FileReadError(ClaudeUtilsError)` subclass.
 In `tokens.py`:
 
 - Import FileReadError from exceptions
-- Wrap `path.read_text()` in try/except catching UnicodeDecodeError, PermissionError,
-  OSError
+- Wrap `path.read_text()` in try/except catching PermissionError, OSError
 - Raise `FileReadError(f"Failed to read {path}: {e}") from e` (always use exception
   chaining)
 - Update docstring Raises section to include FileReadError
+
+**Verify**: Run `just test` - test should pass
+
+---
+
+### Step 2.3b: Handle Binary File Decode Errors
+
+**Test (RED)**: `tests/test_tokens_count.py`
+
+Add test `test_count_tokens_binary_file_shows_decode_error`:
+
+- **Given**: Binary file (write PNG header bytes `b'\x89PNG'`), mock Anthropic client
+- **When**: `count_tokens_for_file` is called
+- **Then**: Raises FileReadError with message containing "Failed to read", file path,
+  and decode error description
+
+**Implementation (GREEN)**: `src/claudeutils/tokens.py`
+
+In `tokens.py`:
+
+- Add UnicodeDecodeError to exception handler from step 2.3a
+- Exception handler now catches: UnicodeDecodeError, PermissionError, OSError
+
+**Verify**: Run `just test` - test should pass
 
 ---
 
@@ -190,6 +224,8 @@ CACHE_TTL_HOURS. This makes test 2.4a pass (expired by fetched_at) but keeps tes
 failing (mtime still checked).
 
 If expired, log debug message with age and fall through to API call.
+
+**Verify**: Run `just test` - new test should pass, test 2.4b will fail (expected)
 
 ---
 
@@ -222,9 +258,11 @@ Restructure cache reading with try/except/else:
 
 Remove any remaining references to `cache_file.stat().st_mtime` in TTL logic.
 
+**Verify**: Run `just test` - all tests should now pass
+
 ---
 
-### Step 2.5: Add CLI Exception Handling for Friendly Errors
+### Step 2.5a: Handle CLI Authentication Errors
 
 **Test (RED)**: `tests/test_cli_tokens.py`
 
@@ -236,36 +274,65 @@ Add test `test_cli_auth_error_shows_helpful_message`:
 - **Then**: Exits with code 1, stderr contains "Error: Authentication failed" and
   "Please set ANTHROPIC_API_KEY"
 
+Use pytest.raises(SystemExit) and capsys to verify exit code and stderr.
+
+**Implementation (GREEN)**: `src/claudeutils/tokens_cli.py`
+
+Wrap entire `handle_tokens` function body in try/except with handler:
+
+- `ApiAuthenticationError as e`: Print to stderr
+  `f"Error: Authentication failed. {e}"` + newline +
+  `"Please set ANTHROPIC_API_KEY environment variable."`, call `sys.exit(1)`
+
+Import ApiAuthenticationError from claudeutils.exceptions.
+
+**Verify**: Run `just test` - test should pass
+
+---
+
+### Step 2.5b: Handle CLI Rate Limit Errors
+
+**Test (RED)**: `tests/test_cli_tokens.py`
+
 Add test `test_cli_rate_limit_error_shows_message`:
 
 - **Given**: Mock Anthropic API to raise RateLimitError during token counting
 - **When**: `handle_tokens` is called
 - **Then**: Exit code 1, stderr contains "Error: Rate limit exceeded"
 
+**Implementation (GREEN)**: `src/claudeutils/tokens_cli.py`
+
+Add exception handler to try/except block from 2.5a:
+
+- `ApiRateLimitError as e`: Print to stderr `f"Error: Rate limit exceeded. {e}"`, call
+  `sys.exit(1)`
+
+Import ApiRateLimitError from claudeutils.exceptions.
+
+**Verify**: Run `just test` - test should pass
+
+---
+
+### Step 2.5c: Handle CLI File Read Errors
+
+**Test (RED)**: `tests/test_cli_tokens.py`
+
 Add test `test_cli_file_error_shows_message`:
 
-- **Given**: Mock to raise FileReadError (from step 2.3)
+- **Given**: Mock to raise FileReadError (from step 2.3a)
 - **When**: `handle_tokens` is called
 - **Then**: Exit code 1, stderr contains "Error:" followed by file error message
 
-Use pytest.raises(SystemExit) and capsys to verify exit code and stderr.
-
-Note: Lower-level error handling (raising ApiAuthenticationError) already exists in
-tokens.py. This step adds user-facing CLI error messages.
-
 **Implementation (GREEN)**: `src/claudeutils/tokens_cli.py`
 
-Wrap entire `handle_tokens` function body in try/except with handlers:
+Add catch-all exception handler to try/except block:
 
-- `ApiAuthenticationError as e`: Print to stderr
-  `f"Error: Authentication failed. {e}"` + newline +
-  `"Please set ANTHROPIC_API_KEY environment variable."`, call `sys.exit(1)`
-- `ApiRateLimitError as e`: Print to stderr `f"Error: Rate limit exceeded. {e}"`, call
-  `sys.exit(1)`
 - `ClaudeUtilsError as e`: Print to stderr `f"Error: {e}"`, call `sys.exit(1)` (catches
   FileReadError, ModelResolutionError as subclasses)
 
-Import exception types from claudeutils.exceptions.
+Import ClaudeUtilsError from claudeutils.exceptions.
+
+**Verify**: Run `just test` - test should pass
 
 ---
 
@@ -282,6 +349,8 @@ format based on `json_output` flag.
 Pass client parameter to all `count_tokens_for_file` calls (uses client from line 39).
 
 **Test**: None (refactoring covered by existing tests)
+
+**Verify**: Run `just test` - all tests should still pass
 
 ---
 
@@ -311,6 +380,8 @@ RateLimitError to catch `APIError`. Raise `ClaudeUtilsError(f"API error: {e}") f
 
 Note: `resolve_model_alias` already has APIError catch-all, no changes needed.
 
+**Verify**: Run `just test` - test should pass
+
 ---
 
 ### Step 3.2: Handle Cache Write Failures Gracefully
@@ -334,6 +405,8 @@ cache_file.write_text) in try/except catching OSError.
 On exception: Log warning `f"Failed to write cache at {cache_file}: {e}"`, continue
 execution On success: Log debug `f"Cached models list to {cache_file}"`
 
+**Verify**: Run `just test` - test should pass
+
 ---
 
 ### Step 3.3: Document Case-Insensitive Matching
@@ -346,6 +419,8 @@ Raises section documenting ModelResolutionError.
 
 **Test**: None (documentation only)
 
+**Verify**: Run `just check` (mypy validation)
+
 ---
 
 ## Phase 4: Test Migration
@@ -357,6 +432,8 @@ Run: `uv add --dev pytest-mock`
 Adds pytest-mock to dev dependencies, updates lockfile.
 
 **Test**: None (dependency installation)
+
+**Verify**: Run `just test` - existing tests should still pass
 
 ---
 
@@ -386,6 +463,8 @@ Create shared pytest fixtures:
 
 **Test**: None (fixture definitions)
 
+**Verify**: Run `just test` - existing tests should still pass
+
 ---
 
 ### Step 4.3: Migrate test_tokens_count.py
@@ -403,6 +482,8 @@ For each test:
 
 **Test**: None (refactoring)
 
+**Verify**: Run `just test` - all tests should still pass
+
 ---
 
 ### Step 4.4: Migrate test_tokens_resolve.py
@@ -415,6 +496,8 @@ Replace manual model mocking with `mock_models_api` fixture in all tests.
 
 **Test**: None (refactoring)
 
+**Verify**: Run `just test` - all tests should still pass
+
 ---
 
 ### Step 4.5: Migrate test_cli_tokens.py
@@ -426,6 +509,8 @@ Remove `from unittest.mock import patch`.
 Replace patch context managers with `mock_token_counting` fixture in all tests.
 
 **Test**: None (refactoring)
+
+**Verify**: Run `just test` - all tests should still pass
 
 ---
 
@@ -451,15 +536,19 @@ better than silent skip).
 
 **Test**: None (configuration)
 
+**Verify**: Run `just test` - all tests should still pass
+
 ---
 
 ## Phase 5: Verification
 
-### Step 5.1: Run Test Suite
+### Step 5.1: Run Complete Test Suite
 
 Run: `just test`
 
 All tests must pass. If failures, STOP and report.
+
+**Critical**: This is the final verification before completion.
 
 ### Step 5.2: Manual CLI Testing (Optional)
 
@@ -487,9 +576,10 @@ Expected: Friendly error messages, no tracebacks.
 
 **Workflow**:
 
-- Use `just role-code <module>` after changes to run relevant tests
-- Each step must pass tests before proceeding
-- If any step fails, STOP and report
+- After EVERY implementation step, run `just test` (explicit in each step)
+- Each step adds exactly ONE test (or zero for refactoring)
+- All tests MUST pass before proceeding to next step
+- If any step fails, STOP immediately and report
 
 **Key Points**:
 
