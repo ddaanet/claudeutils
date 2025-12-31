@@ -1,19 +1,26 @@
 {
   "permissions": {
     "allow": [
-      "Bash(just test:*)",
-      "Bash(git show:*)",
-      "Bash(git diff:*)",
-      "Bash(git status:*)",
-      "Bash(just line-limits)",
+      "Bash(just test)",
+      "Bash(just role-code:*)",
       "Bash(wc:*)",
       "Bash(uv run claudeutils:*)"
     ],
     "ask": [
-      "Bash(git commit:*)"
     ],
     "deny": [
-      "NotebookEdit"
+      "Bash(git commit:*)",
+      "Task",
+      "TaskOutput",
+      "NotebookEdit",
+      "KillShell",
+      "ExitPlanMode",
+      "EnterPlanMode",
+      "TodoWrite",
+      "WebFetch",
+      "WebSearch",
+      "AskUserQuestion",
+      "Skill"
     ]
   },
   "attribution": {
