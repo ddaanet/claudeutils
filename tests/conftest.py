@@ -1,8 +1,15 @@
 """Shared pytest fixtures for all tests."""
 
+from collections.abc import Callable
+from datetime import datetime
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
+from anthropic import Anthropic
+from pytest_mock import MockerFixture
+
+from claudeutils.tokens import ModelId
 
 
 # Project Directory Fixture
@@ -59,3 +66,127 @@ def temp_history_dir(
     )
 
     return tmp_path / "project", history_dir
+
+
+# Token Counter Fixtures
+
+
+@pytest.fixture
+def mock_anthropic_client(mocker: MockerFixture) -> Callable[..., Mock]:
+    """Create factory fixture for mocking Anthropic client.
+
+    Returns function accepting token_count (int, default 5) or side_effect
+    parameters. Creates mock with spec=Anthropic, patches
+    claudeutils.tokens.Anthropic.
+    """
+
+    def factory(
+        token_count: int = 5,
+        side_effect: object = None,
+    ) -> Mock:
+        """Create and return mock Anthropic client."""
+        mock_client = Mock(spec=Anthropic)
+        mock_response = Mock()
+
+        if side_effect is not None:
+            mock_client.messages.count_tokens.side_effect = side_effect
+        else:
+            mock_response.input_tokens = token_count
+            mock_client.messages.count_tokens.return_value = mock_response
+
+        mocker.patch(
+            "claudeutils.tokens.Anthropic", return_value=mock_client, autospec=True
+        )
+        return mock_client
+
+    return factory
+
+
+@pytest.fixture
+def test_markdown_file(tmp_path: Path) -> Callable[..., Path]:
+    """Factory fixture for creating test markdown files.
+
+    Returns function accepting content (str, default "Hello world") and filename
+    (str, default "test.md").
+    """
+
+    def factory(content: str = "Hello world", filename: str = "test.md") -> Path:
+        """Create and return test file path."""
+        test_file = tmp_path / filename
+        test_file.write_text(content)
+        return test_file
+
+    return factory
+
+
+@pytest.fixture
+def mock_models_api(mocker: MockerFixture) -> Callable[..., Mock]:
+    """Create factory fixture for mocking models API.
+
+    Returns function accepting models list (list of dicts with id/created_at) or
+    raise_error. Creates mock client with spec=Anthropic, mocks
+    client.models.list().
+    """
+
+    def factory(
+        models: list[dict[str, str]] | None = None,
+        raise_error: Exception | None = None,
+    ) -> Mock:
+        """Create and return mock Anthropic client with models API."""
+        if models is None:
+            models = [
+                {
+                    "id": "claude-sonnet-4-5-20250929",
+                    "created_at": "2025-09-29T00:00:00Z",
+                }
+            ]
+
+        mock_client = Mock(spec=Anthropic)
+
+        if raise_error is not None:
+            mock_client.models.list.side_effect = raise_error
+        else:
+            # Convert dict models to mock objects with id and created_at attributes
+            mock_models = []
+            for model_dict in models:
+                mock_model = Mock()
+                mock_model.id = model_dict["id"]
+                mock_model.created_at = datetime.fromisoformat(model_dict["created_at"])
+                mock_models.append(mock_model)
+            mock_client.models.list.return_value = mock_models
+
+        return mock_client
+
+    return factory
+
+
+@pytest.fixture
+def mock_token_counting(mocker: MockerFixture) -> Callable[..., None]:
+    """Create factory fixture for mocking token counting in CLI tests.
+
+    Accepts model_id (str) and counts (int or list). Patches resolve_model_alias
+    and count_tokens_for_file.
+    """
+
+    def factory(
+        model_id: str = "claude-sonnet-4-5-20250929", counts: int | list[int] = 5
+    ) -> None:
+        """Patch token counting functions for CLI tests."""
+        mocker.patch(
+            "claudeutils.tokens_cli.resolve_model_alias",
+            return_value=ModelId(model_id),
+        )
+
+        # Handle both single count and list of counts
+        if isinstance(counts, list):
+            mocker.patch(
+                "claudeutils.tokens_cli.count_tokens_for_file",
+                side_effect=counts,
+            )
+        else:
+            mocker.patch(
+                "claudeutils.tokens_cli.count_tokens_for_file",
+                return_value=counts,
+            )
+
+    return factory

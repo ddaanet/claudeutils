@@ -11,6 +11,7 @@ import pytest
 from claudeutils.cli import main
 
 
+@pytest.mark.e2e
 def test_end_to_end_token_counting_with_alias_resolution(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -29,6 +30,13 @@ def test_end_to_end_token_counting_with_alias_resolution(
     # Create test file
     fixture_file = tmp_path / "fixture.md"
     fixture_file.write_text("# Test\n\nHello world")
+
+    # Isolate cache to tmp_path
+    cache_dir = tmp_path / ".cache"
+    monkeypatch.setattr(
+        "platformdirs.user_cache_dir",
+        lambda appname: str(cache_dir),
+    )
 
     # Patch argv and call main
     monkeypatch.setattr(

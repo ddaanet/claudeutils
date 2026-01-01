@@ -33,3 +33,19 @@ class ModelResolutionError(ClaudeUtilsError):
             f"Models API is unreachable and cannot resolve alias '{alias}'. "
             "This is a transient failure. Please retry."
         )
+
+
+class ApiError(ClaudeUtilsError):
+    """Raised when a generic Anthropic API error occurs."""
+
+    def __init__(self, details: str) -> None:
+        """Initialize with API error details."""
+        super().__init__(f"API error: {details}")
+
+
+class FileReadError(ClaudeUtilsError):
+    """Raised when a file cannot be read."""
+
+    def __init__(self, path: str, reason: str) -> None:
+        """Initialize with file path and read failure reason."""
+        super().__init__(f"Failed to read {path}: {reason}")

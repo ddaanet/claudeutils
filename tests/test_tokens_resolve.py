@@ -3,7 +3,8 @@
 import json
 import os
 import time
-from datetime import datetime
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -17,26 +18,36 @@ from claudeutils.tokens import resolve_model_alias
 class TestResolveModelAlias:
     """Tests for resolve_model_alias function."""
 
-    def test_pass_anthropic_aliases_through_unchanged(self, tmp_path: Path) -> None:
-        """Pass Anthropic aliases through unchanged.
+    def test_pass_full_model_ids_through_unchanged(
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
+        """Pass full model IDs (with date suffix) through unchanged.
 
-        Given: model="claude-sonnet-4-5" (official Anthropic alias)
+        Given: model="claude-sonnet-4-5-20250929" (full model ID with date suffix)
         When: resolve_model_alias(model, client, cache_dir) called
         Then: Returns same ID unchanged (no API call, no cache check)
         """
-        # Setup
-        mock_client = Mock()
+        # Setup mock (won't be called)
         cache_dir = tmp_path / "cache"
+        mock_client = mock_models_api()
 
         # Call function
-        result = resolve_model_alias("claude-sonnet-4-5", mock_client, cache_dir)
+        result = resolve_model_alias(
+            "claude-sonnet-4-5-20250929", mock_client, cache_dir
+        )
 
         # Verify
-        assert result == "claude-sonnet-4-5"
+        assert result == "claude-sonnet-4-5-20250929"
         # Ensure no API calls were made
         mock_client.models.list.assert_not_called()
 
-    def test_resolve_unversioned_alias_from_fresh_cache(self, tmp_path: Path) -> None:
+    def test_resolve_unversioned_alias_from_fresh_cache(
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
         """Resolve unversioned alias from fresh cache.
 
         Given: Cache file exists with valid models list (created < 24h ago),
@@ -50,8 +61,11 @@ class TestResolveModelAlias:
         cache_dir.mkdir()
         cache_file = cache_dir / "models_cache.json"
 
+        # Use a timestamp from 1 hour ago (fresh)
+        fresh_time = (datetime.now(tz=UTC) - timedelta(hours=1)).isoformat()
+
         cache_data = {
-            "fetched_at": "2025-12-29T10:30:00Z",
+            "fetched_at": fresh_time,
             "models": [
                 {
                     "id": "claude-haiku-4-5-20251001",
@@ -65,8 +79,8 @@ class TestResolveModelAlias:
         }
         cache_file.write_text(json.dumps(cache_data))
 
-        # Mock client
-        mock_client = Mock()
+        # Setup mock (won't be called)
+        mock_client = mock_models_api()
 
         # Call function
         result = resolve_model_alias("haiku", mock_client, cache_dir)
@@ -76,7 +90,11 @@ class TestResolveModelAlias:
         # Ensure no API calls were made
         mock_client.models.list.assert_not_called()
 
-    def test_resolve_unversioned_alias_with_cache_miss(self, tmp_path: Path) -> None:
+    def test_resolve_unversioned_alias_with_cache_miss(
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
         """Resolve unversioned alias with cache miss.
 
         Given: No cache file exists, mock API returns models list, model="sonnet"
@@ -86,19 +104,18 @@ class TestResolveModelAlias:
         # Setup: no cache file
         cache_dir = tmp_path / "cache"
 
-        # Mock client with models list response
-        mock_client = Mock()
-        mock_models = [
-            Mock(
-                id="claude-sonnet-4-5-20250929",
-                created_at=datetime.fromisoformat("2025-09-29T00:00:00Z"),
-            ),
-            Mock(
-                id="claude-sonnet-4-5-20250915",
-                created_at=datetime.fromisoformat("2025-09-15T00:00:00Z"),
-            ),
+        # Setup mock with models list response
+        models = [
+            {
+                "id": "claude-sonnet-4-5-20250929",
+                "created_at": "2025-09-29T00:00:00Z",
+            },
+            {
+                "id": "claude-sonnet-4-5-20250915",
+                "created_at": "2025-09-15T00:00:00Z",
+            },
         ]
-        mock_client.models.list.return_value = mock_models
+        mock_client = mock_models_api(models=models)
 
         # Call function
         result = resolve_model_alias("sonnet", mock_client, cache_dir)
@@ -111,7 +128,11 @@ class TestResolveModelAlias:
         cache_file = cache_dir / "models_cache.json"
         assert cache_file.exists()
 
-    def test_resolve_with_expired_cache(self, tmp_path: Path) -> None:
+    def test_resolve_with_expired_cache(
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
         """Resolve with expired cache.
 
         Given: Cache file exists but created > 24h ago, model="opus"
@@ -140,15 +161,14 @@ class TestResolveModelAlias:
         cache_file.touch()
         os.utime(cache_file, (old_time, old_time))
 
-        # Mock client with new models
-        mock_client = Mock()
-        mock_models = [
-            Mock(
-                id="claude-opus-4-5-20251101",
-                created_at=datetime.fromisoformat("2025-11-01T00:00:00Z"),
-            ),
+        # Setup mock with new models
+        models = [
+            {
+                "id": "claude-opus-4-5-20251101",
+                "created_at": "2025-11-01T00:00:00Z",
+            },
         ]
-        mock_client.models.list.return_value = mock_models
+        mock_client = mock_models_api(models=models)
 
         # Call function
         result = resolve_model_alias("opus", mock_client, cache_dir)
@@ -159,7 +179,10 @@ class TestResolveModelAlias:
         mock_client.models.list.assert_called_once()
 
     def test_handle_corrupted_cache_file(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+        self,
+        tmp_path: Path,
+        caplog: pytest.LogCaptureFixture,
+        mock_models_api: Callable[..., Mock],
     ) -> None:
         """Handle corrupted cache file.
 
@@ -175,15 +198,14 @@ class TestResolveModelAlias:
         # Write invalid JSON
         cache_file.write_text("{invalid json}")
 
-        # Mock client with models
-        mock_client = Mock()
-        mock_models = [
-            Mock(
-                id="claude-haiku-4-5-20251001",
-                created_at=datetime.fromisoformat("2025-10-01T00:00:00Z"),
-            ),
+        # Setup mock with models
+        models = [
+            {
+                "id": "claude-haiku-4-5-20251001",
+                "created_at": "2025-10-01T00:00:00Z",
+            },
         ]
-        mock_client.models.list.return_value = mock_models
+        mock_client = mock_models_api(models=models)
 
         # Call function
         result = resolve_model_alias("haiku", mock_client, cache_dir)
@@ -200,7 +222,11 @@ class TestResolveModelAlias:
         cached = json.loads(cache_file.read_text())
         assert cached["models"][0]["id"] == "claude-haiku-4-5-20251001"
 
-    def test_create_cache_directory_if_missing(self, tmp_path: Path) -> None:
+    def test_create_cache_directory_if_missing(
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
         """Create cache directory if missing.
 
         Given: Cache directory does not exist, model="sonnet"
@@ -210,15 +236,14 @@ class TestResolveModelAlias:
         # Setup: cache directory doesn't exist
         cache_dir = tmp_path / "nonexistent" / "nested" / "cache"
 
-        # Mock client with models
-        mock_client = Mock()
-        mock_models = [
-            Mock(
-                id="claude-sonnet-4-5-20250929",
-                created_at=datetime.fromisoformat("2025-09-29T00:00:00Z"),
-            ),
+        # Setup mock with models
+        models = [
+            {
+                "id": "claude-sonnet-4-5-20250929",
+                "created_at": "2025-09-29T00:00:00Z",
+            },
         ]
-        mock_client.models.list.return_value = mock_models
+        mock_client = mock_models_api(models=models)
 
         # Call function
         result = resolve_model_alias("sonnet", mock_client, cache_dir)
@@ -231,7 +256,11 @@ class TestResolveModelAlias:
         cache_file = cache_dir / "models_cache.json"
         assert cache_file.exists()
 
-    def test_handle_unknown_model_alias(self, tmp_path: Path) -> None:
+    def test_handle_unknown_model_alias(
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
         """Handle unknown model alias.
 
         Given: API returns models list, model="unknown-alias"
@@ -241,15 +270,14 @@ class TestResolveModelAlias:
         # Setup: no cache file
         cache_dir = tmp_path / "cache"
 
-        # Mock client with models list (no matching alias)
-        mock_client = Mock()
-        mock_models = [
-            Mock(
-                id="claude-sonnet-4-5-20250929",
-                created_at=datetime.fromisoformat("2025-09-29T00:00:00Z"),
-            ),
+        # Setup mock with models list (no matching alias)
+        models = [
+            {
+                "id": "claude-sonnet-4-5-20250929",
+                "created_at": "2025-09-29T00:00:00Z",
+            },
         ]
-        mock_client.models.list.return_value = mock_models
+        mock_client = mock_models_api(models=models)
 
         # Call function with unknown alias
         result = resolve_model_alias("unknown-alias", mock_client, cache_dir)
@@ -258,7 +286,9 @@ class TestResolveModelAlias:
         assert result == "unknown-alias"
 
     def test_fail_when_models_api_error_prevents_resolution(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
     ) -> None:
         """Fail when models API error prevents resolution.
 
@@ -269,11 +299,9 @@ class TestResolveModelAlias:
         # Setup: no cache file
         cache_dir = tmp_path / "cache"
 
-        # Mock client that raises API error
-        mock_client = Mock()
-        mock_client.models.list.side_effect = APIError(
-            "API Error", request=Mock(), body={}
-        )
+        # Setup mock that raises API error
+        api_error = APIError("API Error", request=Mock(), body={})
+        mock_client = mock_models_api(raise_error=api_error)
 
         # Call function with unversioned alias, should raise ModelResolutionError
         with pytest.raises(ModelResolutionError) as exc_info:
@@ -283,3 +311,182 @@ class TestResolveModelAlias:
         error_msg = str(exc_info.value).lower()
         assert "models api" in error_msg
         assert "unreachable" in error_msg
+
+    def test_resolve_versioned_model_id_to_full_id(
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
+        """Resolve versioned model ID to full ID with date suffix.
+
+        Given: Mock client with models including "claude-sonnet-4-5-20250929"
+               and "claude-sonnet-4-5-20241022", cache directory
+        When: resolve_model_alias called with "claude-sonnet-4-5" (versioned
+        model ID without date)
+        Then: Returns "claude-sonnet-4-5-20250929" (latest 4-5 version with
+        full date suffix)
+        """
+        # Setup: no cache file
+        cache_dir = tmp_path / "cache"
+
+        # Setup mock with models list including different versions of sonnet
+        models = [
+            {
+                "id": "claude-sonnet-4-5-20250929",
+                "created_at": "2025-09-29T00:00:00Z",
+            },
+            {
+                "id": "claude-sonnet-4-5-20241022",
+                "created_at": "2024-10-22T00:00:00Z",
+            },
+            {
+                "id": "claude-opus-4-5-20250228",
+                "created_at": "2025-02-28T00:00:00Z",
+            },
+        ]
+        mock_client = mock_models_api(models=models)
+
+        # Call function with versioned model ID (no date suffix)
+        result = resolve_model_alias("claude-sonnet-4-5", mock_client, cache_dir)
+
+        # Verify - should return latest sonnet 4-5 model with date suffix
+        assert result == "claude-sonnet-4-5-20250929"
+        # Verify API was called
+        mock_client.models.list.assert_called_once()
+
+    def test_cache_expired_by_fetched_at_not_mtime(
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
+        """Cache expired by fetched_at timestamp, not file mtime.
+
+        Given: Cache file with `fetched_at` from 25 hours ago, file mtime
+        set to 1 hour ago
+        When: resolve_model_alias is called
+        Then: Cache treated as expired by fetched_at, API models.list()
+        called
+        """
+        # Setup: create cache file with old fetched_at
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        cache_file = cache_dir / "models_cache.json"
+
+        # Cache data with fetched_at from 25 hours ago (expired)
+        old_time = (datetime.now(tz=UTC) - timedelta(hours=25)).isoformat()
+        cache_data = {
+            "fetched_at": old_time,
+            "models": [
+                {
+                    "id": "claude-sonnet-4-5-20250929",
+                    "created_at": "2025-09-29T00:00:00Z",
+                },
+            ],
+        }
+        cache_file.write_text(json.dumps(cache_data))
+
+        # Set file mtime to 1 hour ago (recent)
+        recent_time = time.time() - (1 * 3600)
+        cache_file.touch()
+        os.utime(cache_file, (recent_time, recent_time))
+
+        # Setup mock with new models
+        models = [
+            {
+                "id": "claude-sonnet-4-5-20250929",
+                "created_at": "2025-09-29T00:00:00Z",
+            },
+        ]
+        mock_client = mock_models_api(models=models)
+
+        # Call function
+        result = resolve_model_alias("sonnet", mock_client, cache_dir)
+
+        # Verify - should have called API because fetched_at is expired
+        assert result == "claude-sonnet-4-5-20250929"
+        mock_client.models.list.assert_called_once()
+
+    def test_cache_valid_by_fetched_at_ignores_old_mtime(
+        self,
+        tmp_path: Path,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
+        """Cache valid by fetched_at, ignores old file mtime.
+
+        Given: Cache file with `fetched_at` from 1 hour ago, file mtime
+        set to 25 hours ago
+        When: resolve_model_alias is called
+        Then: Cached data used (valid by fetched_at), API models.list()
+        NOT called
+        """
+        # Setup: create cache file with recent fetched_at but old mtime
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        cache_file = cache_dir / "models_cache.json"
+
+        # Cache data with fetched_at from 1 hour ago (fresh)
+        fresh_time = (datetime.now(tz=UTC) - timedelta(hours=1)).isoformat()
+        cache_data = {
+            "fetched_at": fresh_time,
+            "models": [
+                {
+                    "id": "claude-sonnet-4-5-20250929",
+                    "created_at": "2025-09-29T00:00:00Z",
+                },
+            ],
+        }
+        cache_file.write_text(json.dumps(cache_data))
+
+        # Set file mtime to 25 hours ago (old)
+        old_mtime = time.time() - (25 * 3600)
+        cache_file.touch()
+        os.utime(cache_file, (old_mtime, old_mtime))
+
+        # Setup mock (should not be called)
+        mock_client = mock_models_api()
+
+        # Call function
+        result = resolve_model_alias("sonnet", mock_client, cache_dir)
+
+        # Verify - should use cached data and NOT call API
+        assert result == "claude-sonnet-4-5-20250929"
+        mock_client.models.list.assert_not_called()
+
+    def test_cache_write_failure_continues_successfully(
+        self,
+        tmp_path: Path,
+        caplog: pytest.LogCaptureFixture,
+        mock_models_api: Callable[..., Mock],
+    ) -> None:
+        """Handle cache write failures gracefully.
+
+        Given: Integration test with read-only cache directory, mock Anthropic API
+        When: resolve_model_alias is called (attempts cache write after API call)
+        Then: Returns correct model ID successfully (write failure is non-fatal)
+        """
+        # Setup: create read-only cache directory
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        cache_dir.chmod(0o444)  # Read-only
+
+        # Setup mock with models list
+        models = [
+            {
+                "id": "claude-sonnet-4-5-20250929",
+                "created_at": "2025-09-29T00:00:00Z",
+            },
+        ]
+        mock_client = mock_models_api(models=models)
+
+        # Call function - should succeed despite cache write failure
+        result = resolve_model_alias("sonnet", mock_client, cache_dir)
+
+        # Verify - should return model even though cache write failed
+        assert result == "claude-sonnet-4-5-20250929"
+        # Verify API was called
+        mock_client.models.list.assert_called_once()
+        # Verify warning was logged
+        assert "Failed to write cache" in caplog.text
+
+        # Cleanup: restore permissions so tmp_path can be cleaned up
+        cache_dir.chmod(0o755)
