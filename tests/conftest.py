@@ -190,3 +190,30 @@ def mock_token_counting(mocker: MockerFixture) -> Callable[..., None]:
             )
 
     return factory
+
+
+@pytest.fixture
+def api_key_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Remove ANTHROPIC_API_KEY from environment."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+
+@pytest.fixture
+def api_key_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Set ANTHROPIC_API_KEY to empty string."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+
+
+@pytest.fixture
+def cli_base_mocks(mocker: MockerFixture) -> dict[str, Mock]:
+    """Create base mocks for CLI token tests.
+
+    Returns dict with 'anthropic' and 'resolve' mocks. Does not mock
+    count_tokens_for_file to allow real file operations in some tests.
+    """
+    return {
+        "anthropic": mocker.patch("claudeutils.tokens_cli.Anthropic", autospec=True),
+        "resolve": mocker.patch(
+            "claudeutils.tokens_cli.resolve_model_alias", autospec=True
+        ),
+    }

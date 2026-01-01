@@ -2,6 +2,7 @@
 
 # ruff: noqa: T201 - print statements are expected in CLI code
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -30,17 +31,16 @@ def handle_tokens(model: str, files: list[str], *, json_output: bool = False) ->
         json_output: Whether to output JSON format
     """
     try:
+        # Check API key before SDK instantiation to avoid TypeError
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key or api_key.strip() == "":
+            raise ApiAuthenticationError  # noqa: TRY301 - intentional raise in try for consistent error handling
+
         if not files:
             print("Error: at least one file is required", file=sys.stderr)
             sys.exit(1)
 
         file_paths = files
-
-        for filepath_str in file_paths:
-            filepath = Path(filepath_str)
-            if not filepath.exists():
-                print(f"Error: {filepath_str} file not found", file=sys.stderr)
-                sys.exit(1)
 
         client = Anthropic()
         cache_dir = Path(platformdirs.user_cache_dir("claudeutils"))
@@ -67,9 +67,7 @@ def handle_tokens(model: str, files: list[str], *, json_output: bool = False) ->
             if len(results) > 1:
                 total = calculate_total(results)
                 print(f"Total: {total} tokens")
-    except (AuthenticationError, ApiAuthenticationError, TypeError) as e:
-        if isinstance(e, TypeError) and "authentication method" not in str(e).lower():
-            raise
+    except (AuthenticationError, ApiAuthenticationError) as e:
         print(f"Error: Authentication failed. {e}", file=sys.stderr)
         print("Please set ANTHROPIC_API_KEY environment variable.", file=sys.stderr)
         sys.exit(1)

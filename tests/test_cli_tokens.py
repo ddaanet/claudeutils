@@ -6,15 +6,13 @@ import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from anthropic import AuthenticationError
+from pytest_mock import MockerFixture
 
-from claudeutils.exceptions import (
-    ApiRateLimitError,
-    FileReadError,
-)
+from claudeutils.exceptions import ApiRateLimitError
 from claudeutils.tokens_cli import handle_tokens
 
 
@@ -57,19 +55,23 @@ def test_cli_accepts_single_file(
     assert "42" in output
 
 
-def test_cli_reports_missing_file(tmp_path: Path) -> None:
+def test_cli_reports_missing_file(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    cli_base_mocks: dict[str, Mock],
+) -> None:
     """Test that CLI reports missing file."""
     missing_file = tmp_path / "missing.md"
-    old_stderr = sys.stderr
-    sys.stderr = io.StringIO()
-    try:
-        with pytest.raises(SystemExit) as exc_info:
-            handle_tokens("haiku", [str(missing_file)])
-        assert exc_info.value.code == 1
-        error_output = sys.stderr.getvalue()
-        assert "missing.md" in error_output
-    finally:
-        sys.stderr = old_stderr
+
+    cli_base_mocks["anthropic"].return_value = Mock()
+    cli_base_mocks["resolve"].return_value = "claude-haiku-4-5-20251001"
+
+    with pytest.raises(SystemExit) as exc_info:
+        handle_tokens("haiku", [str(missing_file)])
+
+    assert exc_info.value.code == 1
+    captured = capsys.readouterr()
+    assert "missing.md" in captured.err or "Failed to read" in captured.err
 
 
 def test_cli_handles_multiple_files(
@@ -178,7 +180,7 @@ def test_cli_json_format_with_multiple_files(
 
 
 def test_cli_auth_error_shows_helpful_message(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], mocker: MockerFixture
 ) -> None:
     """Handle CLI authentication error with helpful message.
 
@@ -192,22 +194,25 @@ def test_cli_auth_error_shows_helpful_message(
     test_file.write_text("Hello world")
 
     # Mock Anthropic() to raise AuthenticationError
-    with patch("claudeutils.tokens_cli.Anthropic") as mock_anthropic_class:
-        mock_anthropic_class.side_effect = AuthenticationError(
-            "Invalid API key", response=Mock(), body={}
-        )
-        with pytest.raises(SystemExit) as exc_info:
-            handle_tokens("sonnet", [str(test_file)])
+    mock_anthropic_class = mocker.patch(
+        "claudeutils.tokens_cli.Anthropic", autospec=True
+    )
+    mock_anthropic_class.side_effect = AuthenticationError(
+        "Invalid API key", response=Mock(), body={}
+    )
+    with pytest.raises(SystemExit) as exc_info:
+        handle_tokens("sonnet", [str(test_file)])
 
-        assert exc_info.value.code == 1
-        captured = capsys.readouterr()
-        assert "Authentication failed" in captured.err
-        assert "ANTHROPIC_API_KEY" in captured.err
+    assert exc_info.value.code == 1
+    captured = capsys.readouterr()
+    assert "Authentication failed" in captured.err
+    assert "ANTHROPIC_API_KEY" in captured.err
 
 
 def test_cli_rate_limit_error_shows_message(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
+    mocker: MockerFixture,
 ) -> None:
     """Handle CLI rate limit error.
 
@@ -220,75 +225,150 @@ def test_cli_rate_limit_error_shows_message(
     test_file.write_text("Hello world")
 
     # Setup mocks with resolve returning model and count_tokens raising error
-    with (
-        patch("claudeutils.tokens_cli.resolve_model_alias") as mock_resolve,
-        patch("claudeutils.tokens_cli.count_tokens_for_file") as mock_count,
-    ):
-        mock_resolve.return_value = "claude-sonnet-4-5-20250929"
-        mock_count.side_effect = ApiRateLimitError()
-        with pytest.raises(SystemExit) as exc_info:
-            handle_tokens("sonnet", [str(test_file)])
+    mock_resolve = mocker.patch(
+        "claudeutils.tokens_cli.resolve_model_alias", autospec=True
+    )
+    mock_count = mocker.patch(
+        "claudeutils.tokens_cli.count_tokens_for_file", autospec=True
+    )
+    mock_resolve.return_value = "claude-sonnet-4-5-20250929"
+    mock_count.side_effect = ApiRateLimitError()
+    with pytest.raises(SystemExit) as exc_info:
+        handle_tokens("sonnet", [str(test_file)])
 
-        assert exc_info.value.code == 1
-        captured = capsys.readouterr()
-        assert "Rate limit exceeded" in captured.err
+    assert exc_info.value.code == 1
+    captured = capsys.readouterr()
+    assert "Rate limit exceeded" in captured.err
 
 
-def test_cli_file_error_shows_message(
+def test_cli_permission_error_propagates(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
+    cli_base_mocks: dict[str, Mock],
 ) -> None:
-    """Handle CLI file read error.
+    """Handle CLI permission error from unreadable file.
 
-    Given: Mock count_tokens_for_file to raise FileReadError
-    When: handle_tokens is called
-    Then: Exits with code 1, stderr contains "Error:" followed by file error message
+    Given: File with permissions 000 (unreadable), model="haiku"
+    When: handle_tokens("haiku", [unreadable_file]) called
+    Then: Raises SystemExit with code 1, stderr contains "Permission denied" or
+    "Failed to read"
     """
     # Setup
     test_file = tmp_path / "test.md"
     test_file.write_text("Hello world")
+    test_file.chmod(0o000)
 
-    # Setup mocks with resolve returning model and count_tokens raising error
-    with (
-        patch("claudeutils.tokens_cli.resolve_model_alias") as mock_resolve,
-        patch("claudeutils.tokens_cli.count_tokens_for_file") as mock_count,
-    ):
-        mock_resolve.return_value = "claude-sonnet-4-5-20250929"
-        mock_count.side_effect = FileReadError("/path/to/file", "Permission denied")
+    try:
+        cli_base_mocks["anthropic"].return_value = Mock()
+        cli_base_mocks["resolve"].return_value = "claude-haiku-4-5-20251001"
         with pytest.raises(SystemExit) as exc_info:
-            handle_tokens("sonnet", [str(test_file)])
+            handle_tokens("haiku", [str(test_file)])
 
         assert exc_info.value.code == 1
         captured = capsys.readouterr()
         assert "Error:" in captured.err
-        assert "Failed to read" in captured.err
+        # Check for either permission error or generic file read error
+        assert "Permission denied" in captured.err or "Failed to read" in captured.err
+    finally:
+        # Restore permissions for cleanup
+        test_file.chmod(0o644)
 
 
-def test_cli_handles_empty_api_key_error(
+def test_cli_decode_error_propagates(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
+    cli_base_mocks: dict[str, Mock],
 ) -> None:
-    """Handle SDK TypeError when API key is empty.
+    """Handle CLI decode error from binary file.
 
-    Given: Test file exists, Anthropic() raises TypeError with auth message
-    When: handle_tokens is called
-    Then: Exits with code 1, stderr has "Authentication failed" and
-    "ANTHROPIC_API_KEY"
+    Given: Binary file (PNG header), model="opus"
+    When: handle_tokens("opus", [binary_file]) called
+    Then: Raises SystemExit with code 1, stderr contains "Failed to read"
+    """
+    # Setup - create binary file with PNG header
+    binary_file = tmp_path / "test.png"
+    binary_file.write_bytes(b"\x89PNG\r\n\x1a\n")
+
+    cli_base_mocks["anthropic"].return_value = Mock()
+    cli_base_mocks["resolve"].return_value = "claude-opus-4-5-20251101"
+    with pytest.raises(SystemExit) as exc_info:
+        handle_tokens("opus", [str(binary_file)])
+
+    assert exc_info.value.code == 1
+    captured = capsys.readouterr()
+    assert "Error:" in captured.err
+    assert "Failed to read" in captured.err
+
+
+def test_cli_detects_empty_api_key_before_sdk(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    api_key_empty: None,
+    cli_base_mocks: dict[str, Mock],
+    mocker: MockerFixture,
+) -> None:
+    """CLI validates empty API key before SDK instantiation.
+
+    Given: Test file "test.md" with content "Hello", ANTHROPIC_API_KEY=""
+    When: handle_tokens("sonnet", [test_file]) called
+    Then: Raises SystemExit with code 1, stderr contains "Authentication failed"
+    and "ANTHROPIC_API_KEY"
     """
     # Setup
     test_file = tmp_path / "test.md"
-    test_file.write_text("Hello world")
+    test_file.write_text("Hello")
 
-    # Mock Anthropic() to raise TypeError (what SDK does with empty API key)
-    with patch("claudeutils.tokens_cli.Anthropic") as mock_anthropic_class:
-        mock_anthropic_class.side_effect = TypeError(
-            '"Could not resolve authentication method. Expected either '
-            'api_key or auth_token to be set."'
-        )
-        with pytest.raises(SystemExit) as exc_info:
-            handle_tokens("sonnet", [str(test_file)])
+    # Mock count_tokens_for_file - should NOT be called
+    mock_count = mocker.patch(
+        "claudeutils.tokens_cli.count_tokens_for_file", autospec=True
+    )
 
-        assert exc_info.value.code == 1
-        captured = capsys.readouterr()
-        assert "Authentication failed" in captured.err
-        assert "ANTHROPIC_API_KEY" in captured.err
+    with pytest.raises(SystemExit) as exc_info:
+        handle_tokens("sonnet", [str(test_file)])
+
+    assert exc_info.value.code == 1
+    captured = capsys.readouterr()
+    assert "Authentication failed" in captured.err
+    assert "ANTHROPIC_API_KEY" in captured.err
+
+    # Verify SDK was never called
+    assert not cli_base_mocks["anthropic"].called
+    assert not cli_base_mocks["resolve"].called
+    assert not mock_count.called
+
+
+def test_cli_detects_missing_api_key_before_sdk(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    api_key_unset: None,
+    cli_base_mocks: dict[str, Mock],
+    mocker: MockerFixture,
+) -> None:
+    """CLI validates missing API key before SDK instantiation.
+
+    Given: Test file "test.md" with content "Hello", ANTHROPIC_API_KEY not set
+    When: handle_tokens("haiku", [test_file]) called
+    Then: Raises SystemExit with code 1, stderr contains "Authentication failed"
+    and "ANTHROPIC_API_KEY"
+    """
+    # Setup
+    test_file = tmp_path / "test.md"
+    test_file.write_text("Hello")
+
+    # Mock count_tokens_for_file - should NOT be called
+    mock_count = mocker.patch(
+        "claudeutils.tokens_cli.count_tokens_for_file", autospec=True
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        handle_tokens("haiku", [str(test_file)])
+
+    assert exc_info.value.code == 1
+    captured = capsys.readouterr()
+    assert "Authentication failed" in captured.err
+    assert "ANTHROPIC_API_KEY" in captured.err
+
+    # Verify SDK was never called
+    assert not cli_base_mocks["anthropic"].called
+    assert not cli_base_mocks["resolve"].called
+    assert not mock_count.called
