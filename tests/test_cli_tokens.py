@@ -213,6 +213,7 @@ def test_cli_rate_limit_error_shows_message(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
     mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Handle CLI rate limit error.
 
@@ -223,6 +224,9 @@ def test_cli_rate_limit_error_shows_message(
     # Setup
     test_file = tmp_path / "test.md"
     test_file.write_text("Hello world")
+
+    # Set fake API key to pass authentication check
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
 
     # Setup mocks with resolve returning model and count_tokens raising error
     mock_resolve = mocker.patch(
@@ -304,7 +308,6 @@ def test_cli_detects_empty_api_key_before_sdk(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
     api_key_empty: None,
-    cli_base_mocks: dict[str, Mock],
     mocker: MockerFixture,
 ) -> None:
     """CLI validates empty API key before SDK instantiation.
@@ -318,7 +321,13 @@ def test_cli_detects_empty_api_key_before_sdk(
     test_file = tmp_path / "test.md"
     test_file.write_text("Hello")
 
-    # Mock count_tokens_for_file - should NOT be called
+    # Mock SDK components - should NOT be called
+    mock_anthropic = mocker.patch(
+        "claudeutils.tokens_cli.Anthropic", autospec=True
+    )
+    mock_resolve = mocker.patch(
+        "claudeutils.tokens_cli.resolve_model_alias", autospec=True
+    )
     mock_count = mocker.patch(
         "claudeutils.tokens_cli.count_tokens_for_file", autospec=True
     )
@@ -332,8 +341,8 @@ def test_cli_detects_empty_api_key_before_sdk(
     assert "ANTHROPIC_API_KEY" in captured.err
 
     # Verify SDK was never called
-    assert not cli_base_mocks["anthropic"].called
-    assert not cli_base_mocks["resolve"].called
+    assert not mock_anthropic.called
+    assert not mock_resolve.called
     assert not mock_count.called
 
 
@@ -341,7 +350,6 @@ def test_cli_detects_missing_api_key_before_sdk(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
     api_key_unset: None,
-    cli_base_mocks: dict[str, Mock],
     mocker: MockerFixture,
 ) -> None:
     """CLI validates missing API key before SDK instantiation.
@@ -355,7 +363,13 @@ def test_cli_detects_missing_api_key_before_sdk(
     test_file = tmp_path / "test.md"
     test_file.write_text("Hello")
 
-    # Mock count_tokens_for_file - should NOT be called
+    # Mock SDK components - should NOT be called
+    mock_anthropic = mocker.patch(
+        "claudeutils.tokens_cli.Anthropic", autospec=True
+    )
+    mock_resolve = mocker.patch(
+        "claudeutils.tokens_cli.resolve_model_alias", autospec=True
+    )
     mock_count = mocker.patch(
         "claudeutils.tokens_cli.count_tokens_for_file", autospec=True
     )
@@ -369,6 +383,6 @@ def test_cli_detects_missing_api_key_before_sdk(
     assert "ANTHROPIC_API_KEY" in captured.err
 
     # Verify SDK was never called
-    assert not cli_base_mocks["anthropic"].called
-    assert not cli_base_mocks["resolve"].called
+    assert not mock_anthropic.called
+    assert not mock_resolve.called
     assert not mock_count.called

@@ -12,6 +12,23 @@ from pytest_mock import MockerFixture
 from claudeutils.tokens import ModelId
 
 
+# API Key Management
+@pytest.fixture(autouse=True)
+def clear_api_key(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Clear ANTHROPIC_API_KEY for all tests except e2e tests.
+
+    This prevents tests from accidentally using real API keys and ensures
+    tests are properly mocked. E2e tests marked with @pytest.mark.e2e are
+    skipped to allow them to use real API credentials.
+    """
+    # Skip for e2e tests
+    if "e2e" in request.keywords:
+        return
+
+    # Clear the API key for all other tests
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+
 # Project Directory Fixture
 @pytest.fixture
 def temp_project_dir(
@@ -161,17 +178,20 @@ def mock_models_api(mocker: MockerFixture) -> Callable[..., Mock]:
 
 
 @pytest.fixture
-def mock_token_counting(mocker: MockerFixture) -> Callable[..., None]:
+def mock_token_counting(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """Create factory fixture for mocking token counting in CLI tests.
 
     Accepts model_id (str) and counts (int or list). Patches resolve_model_alias
-    and count_tokens_for_file.
+    and count_tokens_for_file, and sets a fake API key for authentication.
     """
 
     def factory(
         model_id: str = "claude-sonnet-4-5-20250929", counts: int | list[int] = 5
     ) -> None:
         """Patch token counting functions for CLI tests."""
+        # Set fake API key to pass authentication check
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
+
         mocker.patch(
             "claudeutils.tokens_cli.resolve_model_alias",
             return_value=ModelId(model_id),
@@ -205,12 +225,16 @@ def api_key_empty(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture
-def cli_base_mocks(mocker: MockerFixture) -> dict[str, Mock]:
+def cli_base_mocks(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch) -> dict[str, Mock]:
     """Create base mocks for CLI token tests.
 
     Returns dict with 'anthropic' and 'resolve' mocks. Does not mock
     count_tokens_for_file to allow real file operations in some tests.
+    Sets a fake API key for authentication.
     """
+    # Set fake API key to pass authentication check
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
+
     return {
         "anthropic": mocker.patch("claudeutils.tokens_cli.Anthropic", autospec=True),
         "resolve": mocker.patch(
