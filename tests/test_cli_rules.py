@@ -3,17 +3,13 @@
 import json
 from pathlib import Path
 
-import pytest
+from click.testing import CliRunner
 
-from claudeutils import cli
+from claudeutils.cli import cli
 from claudeutils.models import FeedbackItem, FeedbackType
-
-from . import pytest_helpers
 
 
 def test_rules_extracts_sorted_items(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
     """Rules command extracts items and sorts by timestamp."""
@@ -41,24 +37,17 @@ def test_rules_extracts_sorted_items(
     input_file = tmp_path / "feedback.json"
     input_file.write_text(json.dumps([item.model_dump(mode="json") for item in items]))
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "rules", "--input", str(input_file)],
-    )
+    runner = CliRunner()
+    result = runner.invoke(cli, ["rules", "--input", str(input_file)])
 
-    cli.main()
-
-    captured = capsys.readouterr()
     # Should output 3 items in sorted order (earliest first)
-    lines = captured.out.strip().split("\n")
+    lines = result.output.strip().split("\n")
     assert len(lines) >= 3
     # Check that items appear in chronological order
-    assert "1." in captured.out or "1 " in captured.out
+    assert "1." in result.output or "1 " in result.output
 
 
 def test_rules_deduplicates_by_prefix(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
     """Rules command deduplicates items by first 100 characters."""
@@ -101,16 +90,11 @@ def test_rules_deduplicates_by_prefix(
     input_file = tmp_path / "feedback.json"
     input_file.write_text(json.dumps([item.model_dump(mode="json") for item in items]))
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "rules", "--input", str(input_file)],
-    )
+    runner = CliRunner()
+    result = runner.invoke(cli, ["rules", "--input", str(input_file)])
 
-    cli.main()
-
-    captured = capsys.readouterr()
     # 4 items input, 3 after deduplication (first 2 share same prefix)
-    lines = [line for line in captured.out.strip().split("\n") if line]
+    lines = [line for line in result.output.strip().split("\n") if line]
     assert len(lines) == 3
     assert "1." in lines[0]
     assert "2." in lines[1]
@@ -118,8 +102,6 @@ def test_rules_deduplicates_by_prefix(
 
 
 def test_rules_applies_stricter_filters(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
     """Rules command applies stricter filtering rules."""
@@ -159,24 +141,17 @@ def test_rules_applies_stricter_filters(
     input_file = tmp_path / "feedback.json"
     input_file.write_text(json.dumps([item.model_dump(mode="json") for item in items]))
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "rules", "--input", str(input_file)],
-    )
+    runner = CliRunner()
+    result = runner.invoke(cli, ["rules", "--input", str(input_file)])
 
-    cli.main()
-
-    captured = capsys.readouterr()
     # Only 2 valid items should remain
-    lines = [line for line in captured.out.strip().split("\n") if line]
+    lines = [line for line in result.output.strip().split("\n") if line]
     assert len(lines) == 2
     assert "1." in lines[0]
     assert "2." in lines[1]
 
 
 def test_rules_custom_min_length(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
     """Rules command respects custom --min-length."""
@@ -204,23 +179,18 @@ def test_rules_custom_min_length(
     input_file = tmp_path / "feedback.json"
     input_file.write_text(json.dumps([item.model_dump(mode="json") for item in items]))
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "rules", "--input", str(input_file), "--min-length", "25"],
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ["rules", "--input", str(input_file), "--min-length", "25"]
     )
 
-    cli.main()
-
-    captured = capsys.readouterr()
     # Only 30-char item passes min-length of 25
-    lines = [line for line in captured.out.strip().split("\n") if line]
+    lines = [line for line in result.output.strip().split("\n") if line]
     assert len(lines) == 1
     assert "1." in lines[0]
 
 
 def test_rules_json_format(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
     """Rules command outputs JSON with --format json."""
@@ -242,15 +212,12 @@ def test_rules_json_format(
     input_file = tmp_path / "feedback.json"
     input_file.write_text(json.dumps([item.model_dump(mode="json") for item in items]))
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "rules", "--input", str(input_file), "--format", "json"],
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ["rules", "--input", str(input_file), "--format", "json"]
     )
 
-    cli.main()
-
-    captured = capsys.readouterr()
-    output = json.loads(captured.out)
+    output = json.loads(result.output)
     assert isinstance(output, list)
     assert len(output) == 2
     assert output[0]["index"] == 1

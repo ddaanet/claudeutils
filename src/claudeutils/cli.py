@@ -1,12 +1,13 @@
 """Command-line interface for claudeutils."""
 
 # ruff: noqa: T201 - print statements are expected in CLI code
-import argparse
 import json
 import logging
 import re
 import sys
 from pathlib import Path
+
+import click
 
 from claudeutils.discovery import list_top_level_sessions
 from claudeutils.extraction import extract_feedback_recursively
@@ -54,12 +55,29 @@ def find_session_by_prefix(prefix: str, project_dir: str) -> str:
     return matches[0]
 
 
-def handle_list(project: str) -> None:
-    """Handle the list subcommand.
+@click.group(
+    help="Extract feedback from Claude Code sessions",
+    epilog=(
+        "Pipeline: collect -> analyze -> rules. Use collect to gather all "
+        "feedback, analyze to filter and categorize, rules to extract "
+        "actionable items."
+    ),
+)
+def cli() -> None:
+    """Entry point for claudeutils CLI."""
+    # Configure logging to show warnings on terminal
+    logging.basicConfig(
+        level=logging.WARNING,
+        format="%(levelname)s: %(message)s",
+    )
 
-    Args:
-        project: Project directory path
-    """
+
+@cli.command("list", help="List top-level sessions")
+@click.option("--project", default=None, help="Project directory")
+def list_sessions(project: str | None) -> None:
+    """Handle the list subcommand."""
+    if project is None:
+        project = str(Path.cwd())
     sessions = list_top_level_sessions(project)
     if not sessions:
         print("No sessions found")
@@ -69,14 +87,14 @@ def handle_list(project: str) -> None:
             print(f"[{prefix}] {session.title}")
 
 
-def handle_extract(session_prefix: str, project: str, output: str | None) -> None:
-    """Handle the extract subcommand.
-
-    Args:
-        session_prefix: Session ID or prefix to extract from
-        project: Project directory path
-        output: Optional output file path
-    """
+@cli.command(help="Extract feedback from session")
+@click.argument("session_prefix")
+@click.option("--project", default=None, help="Project directory")
+@click.option("--output", help="Output file path")
+def extract(session_prefix: str, project: str | None, output: str | None) -> None:
+    """Handle the extract subcommand."""
+    if project is None:
+        project = str(Path.cwd())
     try:
         session_id = find_session_by_prefix(session_prefix, project)
     except ValueError as e:
@@ -91,13 +109,19 @@ def handle_extract(session_prefix: str, project: str, output: str | None) -> Non
         print(json_output)
 
 
-def handle_collect(project: str, output: str | None) -> None:
-    """Handle the collect subcommand.
-
-    Args:
-        project: Project directory path
-        output: Optional output file path
-    """
+@cli.command(
+    help="Batch collect feedback from all sessions",
+    epilog=(
+        "Extract feedback from all sessions recursively, including "
+        "sub-agents. Outputs JSON array of FeedbackItem objects."
+    ),
+)
+@click.option("--project", default=None, help="Project directory")
+@click.option("--output", help="Output file path")
+def collect(project: str | None, output: str | None) -> None:
+    """Handle the collect subcommand."""
+    if project is None:
+        project = str(Path.cwd())
     sessions = list_top_level_sessions(project)
     all_feedback = []
     for session in sessions:
@@ -118,13 +142,29 @@ def handle_collect(project: str, output: str | None) -> None:
         print(json_output)
 
 
-def handle_analyze(input_path: str, output_format: str) -> None:
-    """Handle the analyze subcommand.
+@cli.command(
+    help="Analyze feedback items",
+    epilog="""Categories:
+  instructions  - Directives (don't, never, always, must, should)
+  corrections   - Fixes (no, wrong, incorrect, fix, error)
+  process       - Workflow (plan, next step, before, after)
+  code_review   - Quality (review, refactor, improve, clarity)
+  preferences   - Other substantive feedback
 
-    Args:
-        input_path: Input JSON file path (or '-' for stdin)
-        output_format: Output format ('text' or 'json')
-    """
+Noise filtered: command output, bash stdout, system messages, short (<10 chars).""",
+)
+@click.option(
+    "--input", "input_path", required=True, help="Input JSON file, or '-' for stdin"
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["text", "json"]),
+    default="text",
+    help="Output format",
+)
+def analyze(input_path: str, output_format: str) -> None:
+    """Handle the analyze subcommand."""
     # Load feedback from file or stdin
     json_text = sys.stdin.read() if input_path == "-" else Path(input_path).read_text()
 
@@ -154,46 +194,34 @@ def handle_analyze(input_path: str, output_format: str) -> None:
             print(f"  {category}: {count}")
 
 
-def handle_markdown() -> None:
-    """Handle the markdown subcommand.
+@cli.command(
+    help="Extract rule-worthy feedback items",
+    epilog="""Applies stricter filters than analyze:
+  - Removes questions (starting with "How " or "claude code:")
+  - Removes long items (>1000 chars)
+  - Removes short items (<min-length, default 20 chars)
+  - Deduplicates by first 100 characters
 
-    Reads file paths from stdin, processes markdown structure fixes, and prints
-    modified file paths to stdout.
-    """
-    files = [line.strip() for line in sys.stdin if line.strip()]
-
-    # Validate all files first
-    errors: list[str] = []
-    valid_files: list[Path] = []
-    for filepath_str in files:
-        filepath = Path(filepath_str)
-        if filepath.suffix != ".md":
-            errors.append(f"Error: {filepath_str} is not a markdown file")
-        elif not filepath.exists():
-            errors.append(f"Error: {filepath_str} does not exist")
-        else:
-            valid_files.append(filepath)
-
-    # Process valid files
-    for filepath in valid_files:
-        if process_file(filepath):
-            print(str(filepath))
-
-    # Report all errors and exit with error code
-    if errors:
-        for error in errors:
-            print(error, file=sys.stderr)
-        sys.exit(1)
-
-
-def handle_rules(input_path: str, min_length: int, output_format: str) -> None:
-    """Handle the rules subcommand.
-
-    Args:
-        input_path: Input JSON file path (or '-' for stdin)
-        min_length: Minimum content length for rule-worthy items
-        output_format: Output format ('text' or 'json')
-    """
+Output is sorted chronologically.""",
+)
+@click.option(
+    "--input", "input_path", required=True, help="Input JSON file, or '-' for stdin"
+)
+@click.option(
+    "--min-length",
+    type=int,
+    default=20,
+    help="Minimum length for rule-worthy items (default: 20)",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["text", "json"]),
+    default="text",
+    help="Output format",
+)
+def rules(input_path: str, min_length: int, output_format: str) -> None:
+    """Handle the rules subcommand."""
     # Load feedback from file or stdin
     json_text = sys.stdin.read() if input_path == "-" else Path(input_path).read_text()
 
@@ -244,155 +272,61 @@ def handle_rules(input_path: str, min_length: int, output_format: str) -> None:
             print(f"{i}. {item.content}")
 
 
+@cli.command(
+    help=(
+        "Count tokens in files using Anthropic API. "
+        "Requires ANTHROPIC_API_KEY environment variable."
+    ),
+    epilog=(
+        "Examples:\n"
+        "  uv run claudeutils tokens sonnet prompt.md\n"
+        "  uv run claudeutils tokens opus file1.md file2.md --json\n"
+        "  uv run claudeutils tokens claude-sonnet-4-5-20250929 prompt.md"
+    ),
+)
+@click.argument("model", metavar="{haiku,sonnet,opus}")
+@click.argument("files", nargs=-1, required=True, metavar="FILE")
+@click.option(
+    "--json", "json_output", is_flag=True, help="Output JSON format instead of text"
+)
+def tokens(model: str, files: tuple[str, ...], *, json_output: bool) -> None:
+    """Handle the tokens subcommand."""
+    handle_tokens(model, list(files), json_output=json_output)
+
+
+@cli.command(help="Process markdown files")
+def markdown() -> None:
+    """Handle the markdown subcommand.
+
+    Reads file paths from stdin, processes markdown structure fixes, and prints
+    modified file paths to stdout.
+    """
+    files = [line.strip() for line in sys.stdin if line.strip()]
+
+    # Validate all files first
+    errors: list[str] = []
+    valid_files: list[Path] = []
+    for filepath_str in files:
+        filepath = Path(filepath_str)
+        if filepath.suffix != ".md":
+            errors.append(f"Error: {filepath_str} is not a markdown file")
+        elif not filepath.exists():
+            errors.append(f"Error: {filepath_str} does not exist")
+        else:
+            valid_files.append(filepath)
+
+    # Process valid files
+    for filepath in valid_files:
+        if process_file(filepath):
+            print(str(filepath))
+
+    # Report all errors and exit with error code
+    if errors:
+        for error in errors:
+            print(error, file=sys.stderr)
+        sys.exit(1)
+
+
 def main() -> None:
     """Entry point for claudeutils CLI."""
-    # Configure logging to show warnings on terminal
-    logging.basicConfig(
-        level=logging.WARNING,
-        format="%(levelname)s: %(message)s",
-    )
-
-    parser = argparse.ArgumentParser(
-        description="Extract feedback from Claude Code sessions",
-        epilog=(
-            "Pipeline: collect -> analyze -> rules. Use collect to gather all "
-            "feedback, analyze to filter and categorize, rules to extract "
-            "actionable items."
-        ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    list_parser = subparsers.add_parser("list", help="List top-level sessions")
-    list_parser.add_argument(
-        "--project", default=str(Path.cwd()), help="Project directory"
-    )
-
-    extract_parser = subparsers.add_parser(
-        "extract", help="Extract feedback from session"
-    )
-    extract_parser.add_argument("session_prefix", help="Session ID or prefix")
-    extract_parser.add_argument(
-        "--project", default=str(Path.cwd()), help="Project directory"
-    )
-    extract_parser.add_argument("--output", help="Output file path")
-
-    collect_parser = subparsers.add_parser(
-        "collect",
-        help="Batch collect feedback from all sessions",
-        description=(
-            "Extract feedback from all sessions recursively, including "
-            "sub-agents. Outputs JSON array of FeedbackItem objects."
-        ),
-    )
-    collect_parser.add_argument(
-        "--project", default=str(Path.cwd()), help="Project directory"
-    )
-    collect_parser.add_argument("--output", help="Output file path")
-
-    analyze_parser = subparsers.add_parser(
-        "analyze",
-        help="Analyze feedback items",
-        description="""Filter noise and categorize feedback items.
-
-Categories:
-  instructions  - Directives (don't, never, always, must, should)
-  corrections   - Fixes (no, wrong, incorrect, fix, error)
-  process       - Workflow (plan, next step, before, after)
-  code_review   - Quality (review, refactor, improve, clarity)
-  preferences   - Other substantive feedback
-
-Noise filtered: command output, bash stdout, system messages, short (<10 chars).""",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    analyze_parser.add_argument(
-        "--input", required=True, help="Input JSON file, or '-' for stdin"
-    )
-    analyze_parser.add_argument(
-        "--format", default="text", choices=["text", "json"], help="Output format"
-    )
-
-    rules_parser = subparsers.add_parser(
-        "rules",
-        help="Extract rule-worthy feedback items",
-        description="""Extract actionable, rule-worthy feedback items.
-
-Applies stricter filters than analyze:
-  - Removes questions (starting with "How " or "claude code:")
-  - Removes long items (>1000 chars)
-  - Removes short items (<min-length, default 20 chars)
-  - Deduplicates by first 100 characters
-
-Output is sorted chronologically.""",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    rules_parser.add_argument(
-        "--input", required=True, help="Input JSON file, or '-' for stdin"
-    )
-    rules_parser.add_argument(
-        "--min-length",
-        type=int,
-        default=20,
-        help="Minimum length for rule-worthy items (default: 20)",
-    )
-    rules_parser.add_argument(
-        "--format", default="text", choices=["text", "json"], help="Output format"
-    )
-
-    tokens_parser = subparsers.add_parser(
-        "tokens",
-        help=(
-            "Count tokens in files using Anthropic API. "
-            "Requires ANTHROPIC_API_KEY environment variable."
-        ),
-        description=(
-            "Count tokens in files using Anthropic API. "
-            "Requires ANTHROPIC_API_KEY environment variable."
-        ),
-        epilog=(
-            "Examples:\n"
-            "  uv run claudeutils tokens sonnet prompt.md\n"
-            "  uv run claudeutils tokens opus file1.md file2.md --json\n"
-            "  uv run claudeutils tokens claude-sonnet-4-5-20250929 prompt.md"
-        ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    tokens_parser.add_argument(
-        "model",
-        metavar="{haiku,sonnet,opus}",
-        help=(
-            "Model alias for token counting. Aliases automatically resolve to "
-            "the latest available model version. You may also provide a full "
-            "model ID like claude-sonnet-4-5. Token counts vary by model."
-        ),
-    )
-    tokens_parser.add_argument(
-        "files",
-        nargs="+",
-        metavar="FILE",
-        help="File path(s) to count tokens",
-    )
-    tokens_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Output JSON format instead of text",
-    )
-
-    subparsers.add_parser("markdown", help="Process markdown files")
-
-    args = parser.parse_args()
-
-    if args.command == "list":
-        handle_list(args.project)
-    elif args.command == "extract":
-        handle_extract(args.session_prefix, args.project, args.output)
-    elif args.command == "collect":
-        handle_collect(args.project, args.output)
-    elif args.command == "analyze":
-        handle_analyze(args.input, args.format)
-    elif args.command == "rules":
-        handle_rules(args.input, args.min_length, args.format)
-    elif args.command == "tokens":
-        handle_tokens(args.model, args.files, json_output=args.json)
-    elif args.command == "markdown":
-        handle_markdown()
+    cli()

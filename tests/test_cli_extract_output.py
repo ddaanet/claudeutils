@@ -4,8 +4,9 @@ import json
 from pathlib import Path
 
 import pytest
+from click.testing import CliRunner
 
-from claudeutils import cli
+from claudeutils.cli import cli
 from claudeutils.models import FeedbackItem, FeedbackType
 
 from . import pytest_helpers
@@ -14,7 +15,6 @@ from . import pytest_helpers
 def test_extract_json_format_valid(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Extract outputs valid JSON that can be parsed."""
     project_dir = tmp_path / "project"
@@ -43,23 +43,24 @@ def test_extract_json_format_valid(
     def mock_extract(sid: str, proj: str) -> list[FeedbackItem]:
         return feedback_items
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "a1234567"],
-        cwd=str(project_dir),
-        history_dir=history_dir,
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        pytest_helpers.make_mock_history_dir(history_dir),
     )
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
+    monkeypatch.chdir(project_dir)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["extract", "a1234567"])
 
-    pytest_helpers.assert_json_output(capsys, expected_length=2)
+    output = json.loads(result.output)
+    assert isinstance(output, list)
+    assert len(output) == 2
 
 
 def test_extract_json_includes_all_fields(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Extract JSON output includes all fields."""
     project_dir = tmp_path / "project"
@@ -83,18 +84,17 @@ def test_extract_json_includes_all_fields(
     def mock_extract(sid: str, proj: str) -> list[FeedbackItem]:
         return [feedback_item]
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "b1234567"],
-        cwd=str(project_dir),
-        history_dir=history_dir,
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        pytest_helpers.make_mock_history_dir(history_dir),
     )
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
+    monkeypatch.chdir(project_dir)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["extract", "b1234567"])
 
-    captured = capsys.readouterr()
-    output = json.loads(captured.out)
+    output = json.loads(result.output)
     assert len(output) == 1
     item = output[0]
     assert item["timestamp"] == "2025-12-16T08:43:43.872Z"
@@ -109,7 +109,6 @@ def test_extract_json_includes_all_fields(
 def test_extract_recursive_integration(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Extract recursively integrates through CLI."""
     project_dir = tmp_path / "project"
@@ -146,18 +145,17 @@ def test_extract_recursive_integration(
     def mock_extract(sid: str, proj: str) -> list[FeedbackItem]:
         return feedback_items
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "c1234567"],
-        cwd=str(project_dir),
-        history_dir=history_dir,
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        pytest_helpers.make_mock_history_dir(history_dir),
     )
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
+    monkeypatch.chdir(project_dir)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["extract", "c1234567"])
 
-    captured = capsys.readouterr()
-    output = json.loads(captured.out)
+    output = json.loads(result.output)
     # Should have all 3 feedback items from recursive extraction
     assert len(output) == 3
     assert output[0]["content"] == "Main session feedback"

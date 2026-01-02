@@ -1,8 +1,8 @@
 # Review: Token Counter Error Handling Consistency
 
-**Date**: 2026-01-01
-**Plan**: plan-error-handling-consistency.md
-**Status**: ✅ Complete
+- **Date**: 2026-01-01
+- **Plan**: plan-error-handling-consistency.md
+- **Status**: ✅ Complete
 
 ---
 
@@ -227,6 +227,7 @@ Both versions work identically. Current version is acceptable.
 5. ✅ Added `noqa: TRY301` comment for intentional raise in try block
 
 **Final Status**:
+
 - All plan requirements met
 - All 154 tests pass
 - Linting passes (ruff, mypy)

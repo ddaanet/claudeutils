@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "anthropic>=0.75.0",
+    "click>=8.3.1",
     "platformdirs>=4.5.1",
     "pydantic>=2.0",
 ]
@@ -78,6 +79,7 @@ ignore = [
     "ARG",      # Unused function arguments
     # "FBT",    # Ignore boolean traps in test parameters
     "SLF001",   # Private member accessed
+    "TRY003",   # Avoid specifying long messages outside the exception class
 ]
 
 [tool.ruff.lint.pydocstyle]

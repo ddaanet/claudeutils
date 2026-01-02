@@ -1,20 +1,16 @@
 """Tests for CLI analyze command."""
 
-import io
 import json
 from pathlib import Path
 
 import pytest
+from click.testing import CliRunner
 
-from claudeutils import cli
+from claudeutils.cli import cli
 from claudeutils.models import FeedbackItem, FeedbackType
-
-from . import pytest_helpers
 
 
 def test_analyze_counts_and_categorizes(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
     """Analyze counts feedback items and categorizes them."""
@@ -54,21 +50,14 @@ def test_analyze_counts_and_categorizes(
     input_file = tmp_path / "feedback.json"
     input_file.write_text(json.dumps([item.model_dump(mode="json") for item in items]))
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "analyze", "--input", str(input_file)],
-    )
+    runner = CliRunner()
+    result = runner.invoke(cli, ["analyze", "--input", str(input_file)])
 
-    cli.main()
-
-    captured = capsys.readouterr()
-    assert "total:" in captured.out or "Total:" in captured.out
-    assert "filtered:" in captured.out or "Filtered:" in captured.out
+    assert "total:" in result.output or "Total:" in result.output
+    assert "filtered:" in result.output or "Filtered:" in result.output
 
 
 def test_analyze_filters_noise(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
     """Analyze filters out noise items correctly."""
@@ -126,22 +115,16 @@ def test_analyze_filters_noise(
     input_file = tmp_path / "feedback.json"
     input_file.write_text(json.dumps([item.model_dump(mode="json") for item in items]))
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "analyze", "--input", str(input_file)],
-    )
+    runner = CliRunner()
+    result = runner.invoke(cli, ["analyze", "--input", str(input_file)])
 
-    cli.main()
-
-    captured = capsys.readouterr()
     # Total: 8, Filtered: 4 (removed 4 noise items)
-    assert "total: 8" in captured.out
-    assert "filtered: 4" in captured.out
+    assert "total: 8" in result.output
+    assert "filtered: 4" in result.output
 
 
 def test_analyze_from_stdin(
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Analyze reads from stdin when given - as input."""
     items = [
@@ -166,25 +149,16 @@ def test_analyze_from_stdin(
     ]
 
     json_input = json.dumps([item.model_dump(mode="json") for item in items])
-    stdin_mock = io.StringIO(json_input)
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "analyze", "--input", "-"],
-    )
-    monkeypatch.setattr("sys.stdin", stdin_mock)
+    runner = CliRunner()
+    result = runner.invoke(cli, ["analyze", "--input", "-"], input=json_input)
 
-    cli.main()
-
-    captured = capsys.readouterr()
     # Total: 3, Filtered: 3 (no noise)
-    assert "total: 3" in captured.out
-    assert "filtered: 3" in captured.out
+    assert "total: 3" in result.output
+    assert "filtered: 3" in result.output
 
 
 def test_analyze_json_format(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
     """Analyze outputs JSON format with --format json."""
@@ -218,15 +192,12 @@ def test_analyze_json_format(
     input_file = tmp_path / "feedback.json"
     input_file.write_text(json.dumps([item.model_dump(mode="json") for item in items]))
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "analyze", "--input", str(input_file), "--format", "json"],
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, ["analyze", "--input", str(input_file), "--format", "json"]
     )
 
-    cli.main()
-
-    captured = capsys.readouterr()
-    output = json.loads(captured.out)
+    output = json.loads(result.output)
     assert output["total"] == 4
     assert output["filtered"] == 4
     assert "categories" in output

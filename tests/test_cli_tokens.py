@@ -28,9 +28,10 @@ def test_cli_requires_model_argument(tmp_path: Path) -> None:
         text=True,
     )
 
-    # argparse returns exit code 2 for missing required arguments
+    # Click returns exit code 2 for missing required arguments
     assert result.returncode == 2
-    assert "required" in result.stderr.lower()
+    # Click says "missing argument" instead of "required argument"
+    assert "missing" in result.stderr.lower() or "required" in result.stderr.lower()
 
 
 def test_cli_accepts_single_file(
@@ -322,9 +323,7 @@ def test_cli_detects_empty_api_key_before_sdk(
     test_file.write_text("Hello")
 
     # Mock SDK components - should NOT be called
-    mock_anthropic = mocker.patch(
-        "claudeutils.tokens_cli.Anthropic", autospec=True
-    )
+    mock_anthropic = mocker.patch("claudeutils.tokens_cli.Anthropic", autospec=True)
     mock_resolve = mocker.patch(
         "claudeutils.tokens_cli.resolve_model_alias", autospec=True
     )
@@ -364,9 +363,7 @@ def test_cli_detects_missing_api_key_before_sdk(
     test_file.write_text("Hello")
 
     # Mock SDK components - should NOT be called
-    mock_anthropic = mocker.patch(
-        "claudeutils.tokens_cli.Anthropic", autospec=True
-    )
+    mock_anthropic = mocker.patch("claudeutils.tokens_cli.Anthropic", autospec=True)
     mock_resolve = mocker.patch(
         "claudeutils.tokens_cli.resolve_model_alias", autospec=True
     )

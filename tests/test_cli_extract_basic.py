@@ -4,18 +4,15 @@ import json
 from pathlib import Path
 
 import pytest
+from click.testing import CliRunner
 
-from claudeutils import cli
+from claudeutils.cli import cli
 from claudeutils.models import FeedbackItem, FeedbackType
 
 from . import pytest_helpers
 
 
-def test_extract_command_basic(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-    tmp_path: Path,
-) -> None:
+def test_extract_command_basic(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Extract command outputs JSON array to stdout."""
     project_dir = tmp_path / "project"
     project_dir.mkdir()
@@ -35,15 +32,19 @@ def test_extract_command_basic(
     def mock_extract(sid: str, proj: str) -> list[FeedbackItem]:
         return [feedback_item]
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "e12d203f"],
-        cwd=str(project_dir),
-        history_dir=history_dir,
-    )
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
-    cli.main()
-    pytest_helpers.assert_json_output(capsys, expected_length=1)
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        lambda p: history_dir,
+    )
+    monkeypatch.chdir(project_dir)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["extract", "e12d203f"])
+
+    output = json.loads(result.output)
+    assert isinstance(output, list)
+    assert len(output) == 1
 
 
 def test_extract_with_output_flag(
@@ -62,13 +63,10 @@ def test_extract_with_output_flag(
 
     output_file = tmp_path / "feedback.json"
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "e12d203f", "--output", str(output_file)],
-    )
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
 
-    cli.main()
+    runner = CliRunner()
+    runner.invoke(cli, ["extract", "e12d203f", "--output", str(output_file)])
 
     # Verify file was written with valid JSON
     content = output_file.read_text()
@@ -93,22 +91,20 @@ def test_extract_with_project_flag(
         called_with.append((sid, proj))
         return []
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "abc123", "--project", "/custom/path"],
-        history_dir=history_dir,
-    )
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        lambda p: history_dir,
+    )
 
-    cli.main()
+    runner = CliRunner()
+    runner.invoke(cli, ["extract", "abc123", "--project", "/custom/path"])
 
     assert called_with == [(session_id, "/custom/path")]
 
 
 def test_extract_full_session_id(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """Extract with full session ID finds and extracts from session."""
     project_dir = tmp_path / "project"
@@ -134,23 +130,22 @@ def test_extract_full_session_id(
     def mock_extract(sid: str, proj: str) -> list[FeedbackItem]:
         return [feedback_item]
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "e12d203f-ca65-44f0-9976-cb10b74514c1"],
-        cwd=str(project_dir),
-        history_dir=history_dir,
-    )
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        lambda p: history_dir,
+    )
+    monkeypatch.chdir(project_dir)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["extract", "e12d203f-ca65-44f0-9976-cb10b74514c1"])
 
-    pytest_helpers.assert_json_output(capsys, expected_length=1)
+    output = json.loads(result.output)
+    assert len(output) == 1
 
 
 def test_extract_partial_prefix(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """Extract with partial prefix finds matching session."""
     project_dir = tmp_path / "project"
@@ -179,15 +174,15 @@ def test_extract_partial_prefix(
         called_with.append(sid)
         return [feedback_item]
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "e12d203f"],
-        cwd=str(project_dir),
-        history_dir=history_dir,
-    )
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        lambda p: history_dir,
+    )
+    monkeypatch.chdir(project_dir)
 
-    cli.main()
+    runner = CliRunner()
+    runner.invoke(cli, ["extract", "e12d203f"])
 
     # Should call extract with full session ID, not the prefix
     assert called_with == [session_id]
@@ -208,17 +203,16 @@ def test_extract_ambiguous_prefix(
     (history_dir / f"{session_id1}.jsonl").write_text('{"test": 1}\n')
     (history_dir / f"{session_id2}.jsonl").write_text('{"test": 2}\n')
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "e12d203f"],
-        cwd=str(project_dir),
-        history_dir=history_dir,
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        lambda p: history_dir,
     )
+    monkeypatch.chdir(project_dir)
 
-    with pytest.raises(SystemExit) as exc_info:
-        cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["extract", "e12d203f"])
 
-    assert exc_info.value.code == 1
+    assert result.exit_code == 1
 
 
 def test_extract_no_matching_session(
@@ -233,14 +227,13 @@ def test_extract_no_matching_session(
     session_id = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
     (history_dir / f"{session_id}.jsonl").write_text('{"test": 1}\n')
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "extract", "zzzzzzz"],
-        cwd=str(project_dir),
-        history_dir=history_dir,
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        lambda p: history_dir,
     )
+    monkeypatch.chdir(project_dir)
 
-    with pytest.raises(SystemExit) as exc_info:
-        cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["extract", "zzzzzzz"])
 
-    assert exc_info.value.code == 1
+    assert result.exit_code == 1

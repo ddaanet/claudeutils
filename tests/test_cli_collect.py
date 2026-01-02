@@ -4,15 +4,14 @@ import json
 from pathlib import Path
 
 import pytest
+from click.testing import CliRunner
 
-from claudeutils import cli
+from claudeutils.cli import cli
 from claudeutils.models import FeedbackItem, FeedbackType, SessionInfo
-
-from . import pytest_helpers
 
 
 def test_collect_single_session_with_feedback(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Collect extracts feedback from single session."""
     feedback_item = FeedbackItem(
@@ -34,18 +33,20 @@ def test_collect_single_session_with_feedback(
     def mock_extract(session_id: str, project_dir: str) -> list[FeedbackItem]:
         return [feedback_item]
 
-    pytest_helpers.setup_cli_mocks(monkeypatch, ["claudeutils", "collect"])
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["collect"])
 
-    output = pytest_helpers.assert_json_output(capsys, expected_length=1)
+    output = json.loads(result.output)
+    assert isinstance(output, list)
+    assert len(output) == 1
     assert output[0]["content"] == "This is feedback"
 
 
 def test_collect_multiple_sessions(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Collect aggregates feedback from multiple sessions."""
     feedback_1 = FeedbackItem(
@@ -95,20 +96,22 @@ def test_collect_multiple_sessions(
     def mock_extract(session_id: str, project_dir: str) -> list[FeedbackItem]:
         return feedback_by_session.get(session_id, [])
 
-    pytest_helpers.setup_cli_mocks(monkeypatch, ["claudeutils", "collect"])
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["collect"])
 
-    output = pytest_helpers.assert_json_output(capsys, expected_length=3)
+    output = json.loads(result.output)
+    assert isinstance(output, list)
+    assert len(output) == 3
     assert output[0]["content"] == "Feedback from session 1"
     assert output[1]["content"] == "Feedback from session 2"
     assert output[2]["content"] == "Feedback from session 3"
 
 
 def test_collect_with_subagents(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Collect includes feedback from nested sub-agents."""
     # Main session has 2 feedback items
@@ -153,13 +156,15 @@ def test_collect_with_subagents(
         # extract_feedback_recursively returns main + subagent feedback
         return [main_1, main_2, sub_1, sub_2]
 
-    pytest_helpers.setup_cli_mocks(monkeypatch, ["claudeutils", "collect"])
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["collect"])
 
-    output = pytest_helpers.assert_json_output(capsys, expected_length=4)
+    output = json.loads(result.output)
+    assert isinstance(output, list)
+    assert len(output) == 4
     assert output[0]["content"] == "Main feedback 1"
     assert output[1]["content"] == "Main feedback 2"
     assert output[2]["content"] == "Subagent feedback 1"
@@ -168,7 +173,6 @@ def test_collect_with_subagents(
 
 def test_collect_skips_malformed_session(
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Collect skips malformed sessions and logs warning."""
     valid_feedback = FeedbackItem(
@@ -196,25 +200,37 @@ def test_collect_skips_malformed_session(
         if session_id == "session1":
             return [valid_feedback]
         # Simulate extraction error for malformed session
-        raise ValueError("Malformed data")  # noqa: TRY003 - test mock error
+        raise ValueError("Malformed data")
 
-    pytest_helpers.setup_cli_mocks(monkeypatch, ["claudeutils", "collect"])
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["collect"])
 
-    # Check both stdout and stderr in one capture
-    captured = capsys.readouterr()
-    output = json.loads(captured.out)
-    assert len(output) == 1
-    assert output[0]["content"] == "Valid feedback"
-    assert "Warning" in captured.err
+    # The warning message is on one line, JSON output is on another
+    # Try to extract just the JSON part by finding the [ character
+    output_lines = result.output.split("\n")
+    json_output = None
+    for line in output_lines:
+        if line.strip().startswith("["):
+            json_output = line
+            break
+
+    if json_output:
+        output = json.loads(json_output)
+        assert len(output) == 1
+        assert output[0]["content"] == "Valid feedback"
+    else:
+        # If no JSON found, this is an error
+        raise AssertionError(f"Could not find JSON in output: {result.output}")
+
+    # Check for warning in the output
+    assert "Warning" in result.output or "warning" in result.output.lower()
 
 
 def test_collect_output_to_file(
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
     """Collect writes JSON to file with --output flag."""
@@ -238,14 +254,11 @@ def test_collect_output_to_file(
     def mock_extract(session_id: str, project_dir: str) -> list[FeedbackItem]:
         return [feedback_item]
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "collect", "--output", str(output_file)],
-    )
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["collect", "--output", str(output_file)])
 
     # Verify file was written
     assert output_file.exists()
@@ -254,5 +267,4 @@ def test_collect_output_to_file(
     assert output[0]["content"] == "Test feedback"
 
     # Verify nothing printed to stdout
-    captured = capsys.readouterr()
-    assert captured.out == ""
+    assert result.output == ""

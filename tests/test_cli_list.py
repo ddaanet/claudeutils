@@ -3,21 +3,17 @@
 from pathlib import Path
 
 import pytest
+from click.testing import CliRunner
 
-from claudeutils import cli
+from claudeutils.cli import cli
 from claudeutils.models import SessionInfo
 
-from . import pytest_helpers
 
-
-def test_cli_no_args_shows_usage(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cli_no_args_shows_usage() -> None:
     """CLI invoked with no arguments exits with code 2."""
-    monkeypatch.setattr("sys.argv", ["claudeutils"])
-
-    with pytest.raises(SystemExit) as exc_info:
-        cli.main()
-
-    assert exc_info.value.code == 2
+    runner = CliRunner()
+    result = runner.invoke(cli, [])
+    assert result.exit_code == 2
 
 
 def test_list_command_default_project(
@@ -33,14 +29,11 @@ def test_list_command_default_project(
     project_dir = tmp_path / "test-project"
     project_dir.mkdir()
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "list"],
-        cwd=str(project_dir),
-    )
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
+    monkeypatch.chdir(project_dir)
 
-    cli.main()
+    runner = CliRunner()
+    runner.invoke(cli, ["list"])
 
     assert called_with == [str(project_dir)]
 
@@ -53,20 +46,15 @@ def test_list_command_with_project_flag(monkeypatch: pytest.MonkeyPatch) -> None
         called_with.append(project_dir)
         return []
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "list", "--project", "/custom/path"],
-    )
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
-    cli.main()
+    runner = CliRunner()
+    runner.invoke(cli, ["list", "--project", "/custom/path"])
 
     assert called_with == ["/custom/path"]
 
 
-def test_list_output_format(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_list_output_format(monkeypatch: pytest.MonkeyPatch) -> None:
     """List output is formatted as [prefix] title."""
 
     def mock_list(project_dir: str) -> list[SessionInfo]:
@@ -78,21 +66,15 @@ def test_list_output_format(
             )
         ]
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "list"],
-    )
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["list"])
 
-    captured = capsys.readouterr()
-    assert captured.out == "[e12d203f] Design a python script\n"
+    assert result.output == "[e12d203f] Design a python script\n"
 
 
-def test_list_sorted_by_timestamp(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_list_sorted_by_timestamp(monkeypatch: pytest.MonkeyPatch) -> None:
     """List shows sessions in sorted order (most recent first)."""
 
     def mock_list(project_dir: str) -> list[SessionInfo]:
@@ -114,24 +96,18 @@ def test_list_sorted_by_timestamp(
             ),
         ]
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "list"],
-    )
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["list"])
 
-    captured = capsys.readouterr()
-    lines = captured.out.strip().split("\n")
+    lines = result.output.strip().split("\n")
     assert "Third session" in lines[0]
     assert "Second session" in lines[1]
     assert "First session" in lines[2]
 
 
-def test_list_long_title_truncated(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_list_long_title_truncated(monkeypatch: pytest.MonkeyPatch) -> None:
     """Long titles are truncated to 80 characters with ellipsis."""
     # format_title() truncates to 80 chars and adds ...
     # So a 77-char title + ... = 80 chars
@@ -149,55 +125,39 @@ def test_list_long_title_truncated(
             )
         ]
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "list"],
-    )
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["list"])
 
-    captured = capsys.readouterr()
     # Output ends with ... (truncated by format_title in list_top_level_sessions)
-    assert captured.out.endswith("...\n")
+    assert result.output.endswith("...\n")
 
 
-def test_list_no_sessions_message(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_list_no_sessions_message(monkeypatch: pytest.MonkeyPatch) -> None:
     """Empty sessions list prints 'No sessions found'."""
 
     def mock_list(project_dir: str) -> list[SessionInfo]:
         return []
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "list"],
-    )
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["list"])
 
-    captured = capsys.readouterr()
-    assert captured.out == "No sessions found\n"
+    assert result.output == "No sessions found\n"
 
 
-def test_list_nonexistent_project_error(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_list_nonexistent_project_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """Nonexistent project gracefully returns 'No sessions found'."""
 
     def mock_list(project_dir: str) -> list[SessionInfo]:
         # Simulates what list_top_level_sessions does for nonexistent dirs
         return []
 
-    pytest_helpers.setup_cli_mocks(
-        monkeypatch,
-        ["claudeutils", "list", "--project", "/nonexistent/path"],
-    )
     monkeypatch.setattr("claudeutils.cli.list_top_level_sessions", mock_list)
 
-    cli.main()
+    runner = CliRunner()
+    result = runner.invoke(cli, ["list", "--project", "/nonexistent/path"])
 
-    captured = capsys.readouterr()
-    assert captured.out == "No sessions found\n"
+    assert result.output == "No sessions found\n"
