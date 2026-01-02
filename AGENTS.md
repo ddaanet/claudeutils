@@ -131,8 +131,9 @@ uv run claudeutils tokens opus file1 file2     # Count tokens across multiple fi
 uv run claudeutils tokens haiku file.md --json # JSON output format
 
 # Development workflow
-just dev              # Format, check, and test
+just dev              # Format, check, and test (e2e tests skipped)
 just test ...         # Run pytest only, arguments are passed to pytest
+just test -m e2e      # Run e2e tests (requires ANTHROPIC_API_KEY)
 just check            # Run ruff + mypy only
 just format           # Auto-format code
 
