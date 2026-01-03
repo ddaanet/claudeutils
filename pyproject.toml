@@ -1,6 +1,6 @@
 [project]
 name = "claudeutils"
-version = "0.0.1"
+version = "0.0.2"
 description = "Tools for managing Claude Code conversations and projects"
 readme = "README.md"
 requires-python = ">=3.14"
