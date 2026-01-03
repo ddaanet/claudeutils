@@ -1,7 +1,7 @@
 [project]
 name = "claudeutils"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.0"
+description = "Tools for managing Claude Code conversations and projects"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
@@ -10,6 +10,10 @@ dependencies = [
     "platformdirs>=4.5.1",
     "pydantic>=2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/ddaanet/claudeutils"
+Repository = "https://github.com/ddaanet/claudeutils"
 
 [project.scripts]
 claudeutils = "claudeutils.cli:main"
