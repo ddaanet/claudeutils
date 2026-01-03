@@ -55,6 +55,7 @@ def find_session_by_prefix(prefix: str, project_dir: str) -> str:
     return matches[0]
 
 
+@click.version_option(package_name="claudeutils", message="%(package)s %(version)s")
 @click.group(
     help="Extract feedback from Claude Code sessions",
     epilog=(

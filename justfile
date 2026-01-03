@@ -108,7 +108,7 @@ release bump='patch': _fail_if_claudecode dev
 [private]
 _bash-defs := '''
 COMMAND="''' + style('command') + '''"
-ERROR="{{ style('error') }}"
+ERROR="''' + style('error') + '''"
 GREEN=$'\033[32m'
 NORMAL="''' + NORMAL + '''"
 safe () { "$@" || status=false; }
