@@ -1,97 +1,137 @@
 # Handoff Entry Point
 
-## Current Task: CLI Migration to Click
+## Current Task: Markdown Cleanup Features
 
-**Status:** Test suite optimized, ready for migration
-
-**Goal:** Migrate argparse-based CLI to click framework for cleaner code, better
-maintainability, and improved test harness.
-
-### What's Done
-
-- ✅ **Test suite optimization** - Converted 11 subprocess tests to direct `main()`
-  calls (2.76s → 0.94s, 66% faster)
-- ✅ **Performance analysis** - Identified subprocess overhead as primary slowness
-  factor
-- ✅ **Smoke test coverage** - Retained 3 subprocess tests to validate entry point
-- ✅ **Test quality** - Improved stack traces and debugging experience
-
-### What's Next
-
-**NEXT:** Migrate CLI from argparse to click
-
-Benefits of click migration:
-
-- **Cleaner code:** Reduce `cli.py` from 152 lines of boilerplate to ~60 lines
-- **Better testing:** Use `click.testing.CliRunner` for elegant test harness
-- **Industry standard:** More maintainable, familiar to Python developers
-- **Decorator-based:** More Pythonic than argparse's imperative style
-
-Implementation approach:
-
-1. Install click: `uv add click`
-2. Convert `cli.py` to click decorators (command groups, options, arguments)
-3. Update tests to use `CliRunner` instead of monkeypatch pattern
-4. Run test suite to verify (expect ~0.94s performance maintained)
-5. Optional: Consider `rich-click` for pretty help (low priority for pipeline CLI)
-
-Estimated effort: 2-3 hours
-
-Current CLI structure to migrate:
-
-- Main parser with subparsers (list, extract, collect, analyze, rules, tokens, markdown)
-- 7 command handlers in `cli.py`
-- 1 command handler in `tokens_cli.py`
-- Argparse custom help formatting and epilogs
-
-Key files:
-
-- `src/claudeutils/cli.py` - Main CLI entry point (399 lines)
-- `src/claudeutils/tokens_cli.py` - Tokens command handler (80 lines)
-- `tests/test_cli_*.py` - CLI test suite (58 tests)
+- **Status:** Plans complete, ready for TDD implementation
+- **Orchestrator:** Sonnet
+- **Task Coders:** Haiku
 
 ---
 
-## Previous Task: Module System Implementation
-
-**Status:** Paused (design complete, ready for Phase 1)
-
-**Goal:** Transform monolithic agent role files into composable module system with
-semantic sources and generated variants (strong/standard/weak). Target: ≤150 total
-rules.
-
 ### What's Done
 
-- ✅ **Design decisions** - All Opus reviews complete (tier markers, config location,
-  dev workflow)
-- ✅ **Module extraction** - 14 semantic sources in `agents/modules/src/*.semantic.md`
-- ✅ **Module inventory** - `agents/modules/MODULE_INVENTORY.md`
-- ✅ **Directory structure** - `agents/roles/` for configs, `.next.md` pattern for safe
-  development
-- ✅ **Implementation plan** - Detailed Phase 1 plan ready for Haiku execution
+- ✅ **Feature planning** - Three features designed with TDD cycles
+- ✅ **User clarifications** - All edge cases and patterns validated
+- ✅ **Implementation plans** - Detailed plans in `plans/markdown/`
+- ✅ **Documentation plan** - Module and README updates specified
 
-### What's Next (When Resuming)
+---
 
-**NEXT:** Phase 1.1 - Test expansion quality (Sonnet vs Opus comparison)
+### What's Next
 
-Then:
+**NEXT:** Implement Feature 1 (Checklist Detection) using TDD
 
-1. **Phase 1.2: Rule Counter** - Build script to count `[RULE:Tn]` markers in module
-   variants
-2. **Phase 2: Variant Generator** - Generate variants from semantic sources
-3. **Phase 3: Role Composer** - Compose role files from module variants
-4. **Phase 7: Testing & Cutover** - A/B test, then atomic rename via `make cutover`
+**Workflow:**
 
-### Key Files to Read
+1. Read `plans/markdown/feature-1-checklist-detection.md`
+2. Follow TDD cycles: red test → minimal code → green test
+3. Use Haiku for code implementation
+4. After Feature 1 complete, move to Feature 2
+5. After Feature 2 complete, move to Feature 3
+6. Finally, apply documentation updates
 
-| File                                                       | Purpose                                            |
-| ---------------------------------------------------------- | -------------------------------------------------- |
-| `plans/prompt-composer/plan-phase1.md`                     | Detailed Phase 1 plan for Haiku (ready to execute) |
-| `plans/prompt-composer/plan-outline.md`                    | Full 8-phase implementation plan                   |
-| `plans/prompt-composer/opus-review-tiering.md`             | Tier marker design decisions                       |
-| `plans/prompt-composer/design-question-config-location.md` | Config location decision (agents/roles/)           |
-| `plans/prompt-composer/design.md`                          | Complete design specification                      |
-| `agents/modules/MODULE_INVENTORY.md`                       | Summary of 14 extracted modules                    |
+**Implementation order:**
+
+1. Feature 1: Extend `fix_warning_lines` (6 TDD cycles)
+2. Feature 2: New `fix_markdown_code_blocks` (4 TDD cycles)
+3. Feature 3: New `fix_metadata_list_indentation` (6 TDD cycles)
+4. Documentation updates (module docstrings, README)
+5. Agent documentation (TEST_DATA.md, DESIGN_DECISIONS.md)
+
+---
+
+### Key Context Files
+
+| File                                               | Purpose                              |
+| -------------------------------------------------- | ------------------------------------ |
+| `session.md`                                       | Current session notes and decisions  |
+| `plans/markdown/overview.md`                       | Overall context and success criteria |
+| `plans/markdown/feature-1-checklist-detection.md`  | Feature 1 TDD plan                   |
+| `plans/markdown/feature-2-code-block-nesting.md`   | Feature 2 TDD plan                   |
+| `plans/markdown/feature-3-metadata-list-indent.md` | Feature 3 TDD plan                   |
+| `plans/markdown/documentation-updates.md`          | Documentation update plan            |
+| `plans/markdown/agent-documentation.md`            | Agent docs update plan               |
+
+---
+
+### Implementation Files
+
+- **Source:** `src/claudeutils/markdown.py`
+- **Tests:** `tests/test_markdown.py`
+
+---
+
+### TDD Approach
+
+**Critical:** Follow strict red-green-refactor cycle:
+
+1. **Red:** Write ONE failing test for next increment
+2. **Green:** Write MINIMAL code to pass that test
+3. **Verify:** Run test, ensure it passes
+4. **Iterate:** Move to next test
+
+**Don't:**
+
+- Write multiple tests at once
+- Implement more than the current test requires
+- Skip running tests after each change
+
+**Do:**
+
+- Keep changes minimal
+- Run tests frequently (`just test tests/test_markdown.py`)
+- Follow the test order in the plan
+
+---
+
+### Features Summary
+
+**Feature 1: Checklist Detection**
+
+- Extend `fix_warning_lines` to handle ANY consistent non-markup prefix
+- Examples: `✅ Task`, `❌ Failed`, `[TODO] Item`
+- 6 TDD cycles in plan
+
+**Feature 2: Code Block Nesting**
+
+- Nest `` ```markdown `` blocks containing inner `` ``` `` fences using `` ```` ``
+- Error out if inner fences in non-markdown blocks
+- 4 TDD cycles in plan
+
+**Feature 3: Metadata List Indentation**
+
+- Convert `**Label:**` + list → `- **Label:**` with 2-space indented list
+- Handles both `:**` and `**:` patterns
+- 6 TDD cycles in plan
+
+---
+
+### Success Criteria
+
+- [ ] All new tests pass
+- [ ] All existing tests pass (no regressions)
+- [ ] Code follows existing patterns
+- [ ] Module documentation updated (docstrings, README)
+- [ ] Agent documentation updated (TEST_DATA.md, DESIGN_DECISIONS.md)
+- [ ] Pipeline integration verified
+
+---
+
+### Commands
+
+```bash
+# Run markdown tests
+just test tests/test_markdown.py
+
+# Run specific test
+just test tests/test_markdown.py::test_name
+
+# Run all tests
+just test
+
+# Format and check
+just dev
+```
 
 ---
 
