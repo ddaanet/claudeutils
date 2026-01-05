@@ -1,35 +1,45 @@
 #!/usr/bin/env just --justfile
-# Use direct venv pytest when in Claude Code sandbox (uv run crashes on system config access)
+
+# Use direct venv binaries when in Claude Code sandbox (uv run crashes on system config
+# access)
 
 [private]
-_pytest := if env_var_or_default("CLAUDECODE", "") != "" { ".venv/bin/pytest" } else { "uv run pytest" }
+sandboxed := shell('[ -w /tmp ] && echo "0" || echo "1"')
+_sync := if sandboxed == "1" { '' } else { 'uv sync' }
+_pytest := if sandboxed == "1" { '.venv/bin/pytest' } else { "uv run pytest" }
+_ruff := if sandboxed == "1" { '.venv/bin/ruff' } else { "uv run ruff" }
+_mypy := if sandboxed == "1" { '.venv/bin/mypy' } else { "uv run mypy" }
+_claudeutils := if sandboxed == "1" { '.venv/bin/claudeutils' } else { "uv run claudeutils" }
 
 help:
-    @uv run just --list --unsorted
+    just --list --unsorted
 
 # Run all checks (format, check, test, line-limits)
 [no-exit-message]
 dev: format check test line-limits
 
-# Run tests quietly
+# Run tests
 [no-exit-message]
 test *ARGS:
-    {{ _pytest }} -q {{ ARGS }}
+    {{ _sync }}
+    {{ _pytest }} {{ ARGS }}
 
 # Format, check with complexity disabled, test
 [no-exit-message]
 lint: format
-    uv run ruff check -q --ignore=C901
+    {{ _sync }}
+    {{ _ruff }} check -q --ignore=C901
     docformatter -c src tests
-    uv run mypy
-    {{ _pytest }} -q
+    {{ _mypy }}
+    {{ _pytest }}
 
 # Check code style
 [no-exit-message]
 check:
-    uv run ruff check -q
+    {{ _sync }}
+    {{ _ruff }} check -q
     docformatter -c src tests
-    uv run mypy
+    {{ _mypy }}
 
 # Check file line limits
 [no-exit-message]
@@ -40,6 +50,7 @@ line-limits:
 [group('roles')]
 [no-exit-message]
 role-code *ARGS:
+    {{ _sync }}
     {{ _pytest }} {{ ARGS }}
 
 # Role: lint - format and verify all checks pass (no complexity)
@@ -55,20 +66,21 @@ role-refactor: dev
 # Format code
 format:
     #!/usr/bin/env bash -euo pipefail
+    {{ _sync }}
     tmpfile=$(mktemp tmp-fmt-XXXXXX)
     trap "rm $tmpfile" EXIT
     patch-and-print() {
         patch "$@" | sed -Ene "/^patching file '/s/^[^']+'([^']+)'/\\1/p"
     }
-    uv run ruff check -q --fix-only --diff | patch-and-print >> "$tmpfile" || true
-    uv run ruff format -q --diff | patch-and-print >> "$tmpfile" || true
+    {{ _ruff }} check -q --fix-only --diff | patch-and-print >> "$tmpfile" || true
+    {{ _ruff }} format -q --diff | patch-and-print >> "$tmpfile" || true
     # docformatter --diff applies the change *and* outputs the diff, so we need to
     # reverse the patch (-R) and dry run (-C), and it prefixes the path with before and
     # after (-p1 ignores the first component of the path). Hence `patch -RCp1`.
     docformatter --diff src tests | patch-and-print -RCp1 >> "$tmpfile" || true
 
     git ls-files | grep '\.md$' | grep -v '/TEST_DATA\.md$' \
-    | uv run claudeutils markdown >> "$tmpfile"
+    | {{ _claudeutils }} markdown >> "$tmpfile"
     dprint -c .dprint.json check --list-different \
     | sed "s|^$(pwd)/||g" >> "$tmpfile" || true
     dprint -c .dprint.json fmt -L warn
@@ -109,7 +121,6 @@ release bump='patch': _fail_if_claudecode dev
     echo "${GREEN}Release $tag complete${NORMAL}"
 
 # Bash definitions
-
 [private]
 _bash-defs := '''
 COMMAND="''' + style('command') + '''"
