@@ -20,13 +20,13 @@ This file tracks:
 
 ---
 
-## Current Status: Phase 3 Complete ✅ → Implementation Complete 🎉
+## Current Status: Phases 1-3 Complete ✅ → Phases 4-5 Pending ⏳
 
 - **Branch:** markdown
 - **Issue:** List detection corrupts content in non-markdown fenced blocks
 - **Plan:** `plans/markdown-fence-aware-processing.md`
 - **Progress:** Phases 1-3 complete (segment parser fully integrated)
-- **Result:** Core issue resolved. Phase 4 tests invalidated by segment protection.
+- **Next:** Phase 4 (backtick space preservation) + Phase 5 (exception validation)
 
 ### What's Done
 
@@ -52,22 +52,25 @@ This file tracks:
 **Commits:**
 - `5a5ad93` - Segment parsing foundation (Phases 1-2)
 - `d13a397` - YAML prolog detection
-- (new) - Phase 3 integration implementation
+- `a1c5fa9` - Phase 3 integration implementation
+- `64b0cd9` - Plan update: restore Phases 4-5, mark 1-3 complete
 
 ### What's NOT Done
 
-**Phase 4 (Backtick Space Preservation):** Skipped
-- Segment protection already prevents false positives on protected content
-- Backtick space quoting tests don't align with implementation needs
+**Phase 4 (Backtick Space Preservation):** Pending
+- Make leading/trailing spaces in inline code explicit
+- `` `blah ` `` → `` `"blah "` `` (trailing space visible)
+- `` ` | ` `` → `` `" | "` `` (spaces explicit)
+- Prevents ambiguity when documenting strings with whitespace
 
 **Phase 5 (Exception Handling):** Pending
-- Verify inner fence detection still works
+- Verify inner fence detection still works after segment changes
 - Verify markdown block nesting still works
 
 ### Next Steps
 
-**Immediate:** Commit Phase 3 integration
-**Then:** Evaluate Phase 5 tests or declare complete
+**Immediate:** Implement Phase 4 - backtick space preservation (5 tests)
+**Then:** Phase 5 validation (2 tests)
 
 ---
 
