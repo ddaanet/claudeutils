@@ -33,6 +33,11 @@ Usage:
 import re
 from pathlib import Path
 
+from claudeutils.exceptions import (
+    MarkdownInnerFenceError,
+    MarkdownProcessingError,
+)
+
 
 def fix_dunder_references(line: str) -> str:
     """Wrap __name__.py in backticks within headings."""
@@ -385,7 +390,7 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
                         f"(language: {language}, line: {i + 1}). "
                         f"This will cause dprint formatting to fail."
                     )
-                    raise ValueError(msg)
+                    raise MarkdownInnerFenceError(msg)
             else:
                 result.extend(block_lines)
 
@@ -433,7 +438,10 @@ def process_file(filepath: Path) -> bool:
     """Process a markdown file, returning True if modified."""
     with filepath.open(encoding="utf-8") as f:
         original_lines = f.readlines()
-    lines = process_lines(original_lines)
+    try:
+        lines = process_lines(original_lines)
+    except MarkdownInnerFenceError as e:
+        raise MarkdownProcessingError(str(filepath), e) from e
     if lines == original_lines:
         return False
     with filepath.open("w", encoding="utf-8") as f:

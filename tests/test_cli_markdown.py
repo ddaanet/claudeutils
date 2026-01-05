@@ -147,3 +147,53 @@ def test_markdown_batch_processes_all_valid_files_despite_errors(
     assert valid1.read_text() == "## About `__init__.py`\n"
     assert valid2.read_text() == "## About `__name__.py`\n"
     assert valid3.read_text() == "## About `__main__.py`\n"
+
+
+def test_markdown_reports_multiple_processing_errors(
+    tmp_path: Path,
+) -> None:
+    """Test: markdown command reports all processing errors together."""
+    error1 = tmp_path / "error1.md"
+    error2 = tmp_path / "error2.md"
+    valid = tmp_path / "valid.md"
+
+    # Create files with inner fence errors (non-markdown blocks with inner fences)
+    error1.write_text(
+        "```python\n"
+        "def foo():\n"
+        '    """\n'
+        "    Example:\n"
+        "    ```\n"
+        "    code\n"
+        "    ```\n"
+        '    """\n'
+        "```\n"
+    )
+
+    error2.write_text("```bash\n# Example\n```\ninner content\n```\n```\n")
+
+    valid.write_text("## About __init__.py\n")
+
+    input_text = f"{error1}\n{error2}\n{valid}\n"
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["markdown"], input=input_text)
+
+    # Should exit with error code
+    assert result.exit_code == 1
+
+    # Should still process the valid file
+    assert str(valid) in result.output
+    assert valid.read_text() == "## About `__init__.py`\n"
+
+    # Should report all errors together at the end
+    output_lines = result.output.strip().split("\n")
+    error_lines = [line for line in output_lines if "error" in line.lower() or "inner fence" in line.lower()]
+
+    # Should have at least 2 error messages (one for each failed file)
+    assert len(error_lines) >= 2
+
+    # Both error files should be mentioned in the error output
+    error_text = "\n".join(error_lines)
+    assert str(error1) in error_text
+    assert str(error2) in error_text

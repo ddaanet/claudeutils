@@ -49,3 +49,16 @@ class FileReadError(ClaudeUtilsError):
     def __init__(self, path: str, reason: str) -> None:
         """Initialize with file path and read failure reason."""
         super().__init__(f"Failed to read {path}: {reason}")
+
+
+class MarkdownProcessingError(ClaudeUtilsError):
+    """Raised when markdown processing fails."""
+
+    def __init__(self, filepath: str, error: Exception) -> None:
+        """Initialize with file path and underlying error, preserving chain."""
+        super().__init__(f"{filepath}: {error}")
+        self.__cause__ = error
+
+
+class MarkdownInnerFenceError(ClaudeUtilsError):
+    """Raised when inner fence is detected in non-markdown block."""
