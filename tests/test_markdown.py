@@ -7,6 +7,7 @@ import pytest
 from claudeutils.exceptions import MarkdownInnerFenceError
 from claudeutils.markdown import (
     escape_inline_backticks,
+    fix_backtick_spaces,
     fix_markdown_code_blocks,
     fix_metadata_blocks,
     fix_metadata_list_indentation,
@@ -612,5 +613,127 @@ def test_segment_aware_processing_skips_nested_markdown_in_python() -> None:
         "```\n",
     ]
     expected = input_lines.copy()
+    result = process_lines(input_lines)
+    assert result == expected
+
+
+def test_fix_backtick_spaces_quotes_trailing_space() -> None:
+    """Test 13: Quote backticks with trailing space.
+
+    When inline code has trailing whitespace, it's ambiguous in documentation.
+    Quote the content to make the space explicit.
+    """
+    input_line = "`blah ` text\n"
+    expected = '`"blah "` text\n'
+    result = fix_backtick_spaces([input_line])
+    assert result == [expected]
+
+
+def test_fix_backtick_spaces_quotes_leading_space() -> None:
+    """Test 14: Quote backticks with leading space.
+
+    When inline code has leading whitespace, quote it to make it explicit.
+    """
+    input_line = "` blah` text\n"
+    expected = '`" blah"` text\n'
+    result = fix_backtick_spaces([input_line])
+    assert result == [expected]
+
+
+def test_fix_backtick_spaces_quotes_both_spaces() -> None:
+    """Test 15: Quote backticks with both leading and trailing space.
+
+    When inline code has both leading and trailing whitespace, quote both.
+    """
+    input_line = "` | ` text\n"
+    expected = '`" | "` text\n'
+    result = fix_backtick_spaces([input_line])
+    assert result == [expected]
+
+
+def test_fix_backtick_spaces_skips_code_without_spaces() -> None:
+    """Test 16: Skip backticks without leading/trailing spaces.
+
+    Backticks without whitespace should remain unchanged.
+    """
+    input_line = "`code` text\n"
+    expected = "`code` text\n"
+    result = fix_backtick_spaces([input_line])
+    assert result == [expected]
+
+
+def test_fix_backtick_spaces_via_segment_processing() -> None:
+    """Test 17: Apply via segment-aware processing.
+
+    When content is mixed (plain text + ```python block):
+    - Plain text backticks with spaces should be quoted
+    - Content inside ```python block should be unchanged
+    """
+    input_lines = [
+        "This code ` has spaces ` in it.\n",
+        "\n",
+        "```python\n",
+        "# This ` has spaces ` but should not be quoted\n",
+        "text = '` also ` spaces'\n",
+        "```\n",
+    ]
+    expected = [
+        'This code `" has spaces "` in it.\n',
+        "\n",
+        "```python\n",
+        "# This ` has spaces ` but should not be quoted\n",
+        "text = '` also ` spaces'\n",
+        "```\n",
+    ]
+    result = process_lines(input_lines)
+    assert result == expected
+
+
+def test_inner_fence_detection_in_python_block() -> None:
+    """Test 18: Inner fence detection still works after segment changes.
+
+    Verify that `fix_markdown_code_blocks` still detects and errors on
+    inner fences in non-markdown blocks (unchanged behavior).
+    """
+    input_lines = [
+        "```python\n",
+        "def foo():\n",
+        '    """\n',
+        "    Example:\n",
+        "    ```\n",
+        "    code\n",
+        "    ```\n",
+        '    """\n',
+        "```\n",
+    ]
+
+    with pytest.raises(
+        MarkdownInnerFenceError, match="Inner fence detected in non-markdown block"
+    ):
+        process_lines(input_lines)
+
+
+def test_inner_fence_detection_in_markdown_block() -> None:
+    """Test 19: Inner fence detection in ```markdown block.
+
+    Verify that markdown blocks with inner fences still nest correctly
+    (converts outer fence from ``` to ````).
+    """
+    input_lines = [
+        "```markdown\n",
+        "# Example\n",
+        "```python\n",
+        "code\n",
+        "```\n",
+        "```\n",
+    ]
+    expected = [
+        "````markdown\n",
+        "# Example\n",
+        "```python\n",
+        "code\n",
+        "```\n",
+        "````\n",
+    ]
     result = process_lines(input_lines)
     assert result == expected
