@@ -109,31 +109,78 @@ def fix_numbered_list_spacing(lines: list[str]) -> list[str]:
 
 
 def fix_warning_lines(lines: list[str]) -> list[str]:
-    """Convert consecutive ⚠️ or Option X: lines to list items."""
+    """Convert consecutive lines with consistent non-markup prefix to list items."""
     result = []
     i = 0
-    option_pattern = r"^Option [A-Z]: "
 
-    def is_listable_line(line: str) -> bool:
+    def extract_prefix(line: str) -> str | None:
+        """Extract non-markup prefix from line.
+
+        Returns None if line is empty, is already a list item, or has no clear prefix.
+        Returns prefix string (e.g., "✅", "[TODO]", "NOTE:") if found.
+        """
         stripped = line.strip()
-        return stripped.startswith("⚠️ ") or bool(re.match(option_pattern, stripped))
+        if not stripped:
+            return None
+        if re.match(r'^[-*]|^\d+\.', stripped):
+            return None
+
+        match = re.match(r'^(\S+(?:\s|:))', stripped)
+        if match:
+            prefix = match.group(1).rstrip()
+            return prefix
+        return None
+
+    def is_similar_prefix(p1: str | None, p2: str | None) -> bool:
+        """Check if two prefixes are similar (same type: emoji, bracket, colon)."""
+        if p1 is None or p2 is None:
+            return False
+        if p1 == p2:
+            return True
+
+        def is_emoji_prefix(prefix: str) -> bool:
+            return bool(re.match(r'^[^\w\s\[\(\{\-\*]', prefix))
+
+        def is_bracket_prefix(prefix: str) -> bool:
+            return prefix.startswith('[')
+
+        def is_colon_prefix(prefix: str) -> bool:
+            return prefix.endswith(':')
+
+        if is_emoji_prefix(p1) and is_emoji_prefix(p2):
+            return True
+        if is_bracket_prefix(p1) and is_bracket_prefix(p2):
+            return True
+        if is_colon_prefix(p1) and is_colon_prefix(p2):
+            return True
+
+        return False
 
     while i < len(lines):
         line = lines[i]
-        if is_listable_line(line):
-            warning_lines = [line]
+        prefix = extract_prefix(line)
+
+        if prefix:
+            prefixed_lines = [line]
             j = i + 1
-            while j < len(lines) and is_listable_line(lines[j]):
-                warning_lines.append(lines[j])
-                j += 1
-            if len(warning_lines) >= 2:
-                for warn_line in warning_lines:
-                    stripped = warn_line.strip()
+            while j < len(lines):
+                next_prefix = extract_prefix(lines[j])
+                if is_similar_prefix(prefix, next_prefix):
+                    prefixed_lines.append(lines[j])
+                    j += 1
+                else:
+                    break
+
+            if len(prefixed_lines) >= 2:
+                for pline in prefixed_lines:
+                    stripped = pline.strip()
                     result.append(f"- {stripped}\n")
                 i = j
                 continue
+
         result.append(line)
         i += 1
+
     return result
 
 
