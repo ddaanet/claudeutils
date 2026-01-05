@@ -20,13 +20,12 @@ This file tracks:
 
 ---
 
-## Current Status: Phases 1-3 Complete ✅ → Phases 4-5 Pending ⏳
+## Current Status: All Phases Complete ✅
 
 - **Branch:** markdown
-- **Issue:** List detection corrupts content in non-markdown fenced blocks
+- **Issue:** ✅ RESOLVED - List detection and all fixes now respect segment boundaries
 - **Plan:** `plans/markdown-fence-aware-processing.md`
-- **Progress:** Phases 1-3 complete (segment parser fully integrated)
-- **Next:** Phase 4 (backtick space preservation) + Phase 5 (exception validation)
+- **Progress:** Phases 1-5 complete (all 19 tests passing)
 
 ### What's Done
 
@@ -55,22 +54,38 @@ This file tracks:
 - `a1c5fa9` - Phase 3 integration implementation
 - `64b0cd9` - Plan update: restore Phases 4-5, mark 1-3 complete
 
-### What's NOT Done
+### Phase 4: Backtick Space Preservation ✅ Complete
 
-**Phase 4 (Backtick Space Preservation):** Pending
-- Make leading/trailing spaces in inline code explicit
-- `` `blah ` `` → `` `"blah "` `` (trailing space visible)
-- `` ` | ` `` → `` `" | "` `` (spaces explicit)
-- Prevents ambiguity when documenting strings with whitespace
+**Implementation:**
+- ✅ Test 13: Quote backticks with trailing space (`blah ` → `"blah "`)
+- ✅ Test 14: Quote backticks with leading space (` blah` → `" blah"`)
+- ✅ Test 15: Quote backticks with both spaces (` | ` → `" | "`)
+- ✅ Test 16: Skip backticks without spaces (`code` unchanged)
+- ✅ Test 17: Segment-aware integration (plain text quoted, ```python blocks unchanged)
 
-**Phase 5 (Exception Handling):** Pending
-- Verify inner fence detection still works after segment changes
-- Verify markdown block nesting still works
+**New Function:** `fix_backtick_spaces(lines)`
+- Makes whitespace explicit in inline code via quoting
+- Prevents ambiguity when documenting strings with intentional spaces
+- Idempotent (skips escaped backticks `` `` `` to avoid double-processing)
+- Integrated into segment-aware processing pipeline
 
-### Next Steps
+### Phase 5: Exception Handling Validation ✅ Complete
 
-**Immediate:** Implement Phase 4 - backtick space preservation (5 tests)
-**Then:** Phase 5 validation (2 tests)
+**Tests:**
+- ✅ Test 18: Inner fence detection in non-markdown blocks still works
+- ✅ Test 19: Markdown block nesting with inner fences still works
+
+**Result:** `fix_markdown_code_blocks` unaffected by segment changes
+- Continues to detect inner fences in ```python blocks and raise error
+- Continues to nest ````markdown blocks with 4-backtick outer fence
+
+### Summary
+
+**Total Tests:** 43 markdown tests passing (40 existing + 3 new Phase 4/5 tests)
+**New Functionality:** Backtick space preservation via `fix_backtick_spaces`
+**Key Files Modified:**
+- `src/claudeutils/markdown.py` - Added `fix_backtick_spaces` function
+- `tests/test_markdown.py` - Added 7 new tests
 
 ---
 

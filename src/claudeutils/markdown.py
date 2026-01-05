@@ -494,6 +494,40 @@ def fix_nested_lists(lines: list[str]) -> list[str]:
     return result
 
 
+def fix_backtick_spaces(lines: list[str]) -> list[str]:
+    """Quote content in backticks when it has leading/trailing spaces.
+
+    Makes whitespace explicit in inline code, preventing ambiguity when
+    documenting strings with intentional leading/trailing spaces.
+
+    Examples:
+        `` `blah ` `` → `` `"blah "` `` (trailing space now visible)
+        `` ` blah` `` → `` `" blah"` `` (leading space now visible)
+        `` `code` `` → `` `code` `` (unchanged if no spaces)
+
+    Skips escaped backticks (`` `` ``) to avoid processing them twice.
+    """
+    result = []
+    for line in lines:
+        # Skip if line contains escaped backticks - don't process twice
+        if "`` " in line or " ``" in line:
+            result.append(line)
+            continue
+
+        # Find all backtick pairs and check for leading/trailing spaces
+        def replace_backticks(match: re.Match[str]) -> str:
+            content = match.group(1)
+            # Check if content has leading or trailing space
+            if content and (content[0] == " " or content[-1] == " "):
+                return f'`"{content}"`'
+            return f"`{content}`"
+
+        # Match backtick pairs with content inside
+        modified = re.sub(r"`([^`]*)`", replace_backticks, line)
+        result.append(modified)
+    return result
+
+
 def fix_metadata_list_indentation(lines: list[str]) -> list[str]:
     """Convert metadata labels to list items and indent following lists.
 
@@ -688,6 +722,7 @@ def process_lines(lines: list[str]) -> list[str]:
     segments = apply_fix_to_segments(segments, fix_nested_lists)
     segments = apply_fix_to_segments(segments, fix_metadata_list_indentation)
     segments = apply_fix_to_segments(segments, fix_numbered_list_spacing)
+    segments = apply_fix_to_segments(segments, fix_backtick_spaces)
 
     # Flatten segments back to lines
     result = flatten_segments(segments)
