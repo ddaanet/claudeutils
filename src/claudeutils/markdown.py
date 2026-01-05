@@ -33,10 +33,121 @@ Usage:
 import re
 from pathlib import Path
 
+from pydantic import BaseModel
+
 from claudeutils.exceptions import (
     MarkdownInnerFenceError,
     MarkdownProcessingError,
 )
+
+
+class Segment(BaseModel):
+    """A segment of markdown document (processable or protected)."""
+
+    processable: bool
+    language: str | None
+    lines: list[str]
+    start_line: int
+
+
+def parse_segments(lines: list[str]) -> list[Segment]:
+    """Parse document into segments (processable vs protected)."""
+    if not lines:
+        return []
+
+    segments: list[Segment] = []
+    i = 0
+
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        # Check if this is a fence opening
+        if stripped.startswith("```"):
+            # Count opening backticks
+            backtick_count = 0
+            for char in stripped:
+                if char == "`":
+                    backtick_count += 1
+                else:
+                    break
+
+            # Extract language
+            language = stripped[backtick_count:].strip() or None
+            fence_lines = [line]
+            i += 1
+
+            # Find closing fence, handling nested blocks
+            # Use a stack to track nested fence opening (language tags)
+            fence_stack: list[tuple[int, str | None]] = [(backtick_count, language)]
+
+            while i < len(lines) and fence_stack:
+                current_stripped = lines[i].strip()
+                fence_lines.append(lines[i])
+
+                # Count backticks if this is a fence line
+                if current_stripped.startswith("```"):
+                    backtick_in_line = 0
+                    for char in current_stripped:
+                        if char == "`":
+                            backtick_in_line += 1
+                        else:
+                            break
+
+                    # Extract language
+                    language_in_line = (
+                        current_stripped[backtick_in_line:].strip() or None
+                    )
+
+                    # Check if this is a fence with matching backtick count
+                    if backtick_in_line == backtick_count:
+                        if language_in_line:
+                            # Fence with language - this is an opening
+                            fence_stack.append((backtick_in_line, language_in_line))
+                        else:
+                            # Bare fence - closes the most recent opening
+                            fence_stack.pop()
+                            if not fence_stack:
+                                # This closes our main fence
+                                i += 1
+                                break
+                i += 1
+
+            # Extract the original language from the first fence line
+            open_lang = (
+                stripped[backtick_count:].strip() or None
+            )  # Ensure we use original
+            # Markdown blocks are processable, others are protected
+            processable = open_lang == "markdown"
+            segments.append(
+                Segment(
+                    processable=processable,
+                    language=open_lang,
+                    lines=fence_lines,
+                    start_line=i - len(fence_lines),
+                )
+            )
+        else:
+            # Collect plain text until next fence
+            text_lines = []
+            while i < len(lines):
+                stripped = lines[i].strip()
+                if stripped.startswith("```"):
+                    break
+                text_lines.append(lines[i])
+                i += 1
+
+            if text_lines:
+                segments.append(
+                    Segment(
+                        processable=True,
+                        language=None,
+                        lines=text_lines,
+                        start_line=i - len(text_lines),
+                    )
+                )
+
+    return segments
 
 
 def fix_dunder_references(line: str) -> str:
@@ -203,10 +314,10 @@ def fix_warning_lines(lines: list[str]) -> list[str]:
         stripped = line.strip()
         if not stripped:
             return None
-        if re.match(r'^[-*]|^\d+\.', stripped):
+        if re.match(r"^[-*]|^\d+\.", stripped):
             return None
 
-        match = re.match(r'^(\S+(?:\s|:))', stripped)
+        match = re.match(r"^(\S+(?:\s|:))", stripped)
         if match:
             return match.group(1).rstrip()
         return None
@@ -219,13 +330,13 @@ def fix_warning_lines(lines: list[str]) -> list[str]:
             return True
 
         def is_emoji_prefix(prefix: str) -> bool:
-            return bool(re.match(r'^[^\w\s\[\(\{\-\*]', prefix))
+            return bool(re.match(r"^[^\w\s\[\(\{\-\*]", prefix))
 
         def is_bracket_prefix(prefix: str) -> bool:
-            return prefix.startswith('[')
+            return prefix.startswith("[")
 
         def is_colon_prefix(prefix: str) -> bool:
-            return prefix.endswith(':')
+            return prefix.endswith(":")
 
         return (
             (is_emoji_prefix(p1) and is_emoji_prefix(p2))
@@ -387,10 +498,7 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
                                 if check_line == "```":
                                     found_matching_close = True
                                     break
-                                if (
-                                    check_line.startswith("```")
-                                    and len(check_line) > 3
-                                ):
+                                if check_line.startswith("```") and len(check_line) > 3:
                                     # Opening fence before close - stop looking
                                     break
 
@@ -401,8 +509,7 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
                             else:
                                 # This is the outer closing fence
                                 has_inner = any(
-                                    "```" in lines[k]
-                                    for k in range(i + 1, j)
+                                    "```" in lines[k] for k in range(i + 1, j)
                                 )
                                 if j > i + 1 and has_inner:
                                     has_inner_fence = True
