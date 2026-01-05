@@ -20,54 +20,51 @@ This file tracks:
 
 ---
 
-## Current Status: Bug Fix Planned 🔧
+## Current Status: Segment Parser Complete ✅ → Integration Next 🔧
 
 - **Branch:** markdown
 - **Issue:** List detection corrupts content in non-markdown fenced blocks
-- **Plan:** `plans/markdown-fence-aware-processing.md` (written 2026-01-05)
-- **Next:** Execute plan in code role session
+- **Plan:** `plans/markdown-fence-aware-processing.md`
+- **Progress:** Phases 1-2 complete (parser implemented, not integrated)
+- **Next:** Phase 3 - Wire segment parser into process_lines()
 
-### The Problem
+### What's Done
 
-Discovered critical bug: ALL processing functions (not just list detection) operate on raw line lists without block context. This causes:
+**Segment Parser Implementation (`parse_segments`):**
+- ✅ Detects and classifies all fence types (```python, ```markdown, ```bash, etc.)
+- ✅ Stack-based nested fence handling (```markdown inside ```python stays protected)
+- ✅ YAML prolog detection (---...--- with key: value patterns)
+- ✅ Distinguishes YAML prologs from ruler separators (--- surrounded by blanks)
+- ✅ Returns Segment objects with `processable`, `language`, `lines`, `start_line`
 
-- Dictionary keys in ```python blocks → converted to list items
-- Table rows → converted to list items
-- YAML lists → further corrupted
-- Any content with colons/prefixes inside ANY fenced block → corrupted
+**Tests:** 12/12 passing in `tests/test_segments.py`
 
-**Example:**
-```python
-# Input: dict in ```python block
-config = {"name": "test", "version": "1.0"}
+**Commits:**
+- `5a5ad93` - Segment parsing foundation (Phases 1-2)
+- `d13a397` - YAML prolog detection
 
-# Current output: BROKEN
-config = {
-- "name": "test",      # ❌
-- "version": "1.0"     # ❌
-}
-```
+### What's NOT Done
 
-### The Solution
+**⚠️ Critical:** Segment parser exists but is **not wired into the processing pipeline**
 
-Implement segment-aware architecture:
-1. Parse document into segments (processable vs protected)
-2. Apply fixes ONLY to: plain text + ````markdown` blocks
-3. Protect: ```python, ```yaml, ```bash, ``` (bare), all other fenced blocks
+- `process_lines()` still calls fix functions directly on all lines
+- All fixes still apply to content inside fenced blocks
+- `just dev` still fails with list detection false triggers
+- No tests yet verify fixes skip protected segments
 
-**Plan:** 5 phases, 19 tests, checkpoints after each phase
+### Next Steps
 
----
+**Phase 3: Segment Integration (4 tests)**
+1. Create `apply_fix_to_segments(segments, fix_fn)` wrapper
+2. Update `process_lines()` to use segment-aware processing
+3. Test: fixes apply to plain text, skip ```python blocks
+4. Test: fixes skip YAML prolog sections
+5. Test: fixes skip bare ``` blocks
+6. Full integration test with complete pipeline
 
-## Pending Tasks
-
-**Immediate:** Execute `plans/markdown-fence-aware-processing.md`
-
-1. Phase 1: Segment parser foundation (5 tests)
-2. Phase 2: Mixed content parsing (3 tests)
-3. Phase 3: Segment integration (4 tests)
-4. Phase 4: Backtick space preservation (5 tests)
-5. Phase 5: Exception handling (2 tests)
+**Remaining Phases:**
+- Phase 4: Backtick space preservation (5 tests)
+- Phase 5: Exception handling (2 tests)
 
 ---
 
