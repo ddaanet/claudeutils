@@ -515,3 +515,164 @@ Total: 350 tokens
 - Show resolved model ID so users know which exact model version was used
 - Critical for debugging and reproducibility (especially when using aliases that
   auto-update)
+
+## Markdown Cleanup Architecture
+
+- **Decision Date:** 2026-01-04
+- **Context:** Extend markdown preprocessor for Claude output patterns
+
+### Problem
+
+Claude generates markdown-like output that isn't always valid markdown:
+
+1. Consecutive lines with emoji/symbol prefixes that should be lists
+2. Code blocks with improper fence nesting
+3. Metadata labels followed by lists needing indentation
+
+These patterns break dprint formatting or produce suboptimal output.
+
+### Solution
+
+**Preprocessor approach:**
+
+- Run markdown.py fixes BEFORE dprint formatting
+- Fix structural issues while preserving content
+- Error out on invalid patterns (prevent silent failures)
+
+**Pipeline:**
+
+```
+Claude output → markdown.py (structure) → dprint (style) → final output
+```
+
+### Design Decisions
+
+#### 1. Extend vs. New Functions
+
+**Decision:** Extend `fix_warning_lines` for checklist detection, create new functions
+for code blocks and metadata indentation.
+
+**Rationale:**
+
+- Checklist detection is conceptually similar to existing warning line handling
+- Code block nesting is fundamentally different (block-based vs. line-based)
+- Metadata list indentation is a new pattern distinct from metadata blocks
+
+**Alternatives considered:**
+
+- Create all new functions → More code duplication
+- Single mega-function → Harder to test and maintain
+
+#### 2. Error on Invalid Patterns
+
+**Decision:** Error out when inner fences detected in non-markdown blocks.
+
+**Rationale:**
+
+- Prevents dprint formatting failures downstream
+- Makes issues visible immediately (fail fast)
+- Invalid patterns indicate malformed Claude output that needs fixing
+
+**Alternatives considered:**
+
+- Silent skip → Hides problems, dprint fails later
+- Auto-fix → Risk of corrupting code content
+
+#### 3. Processing Order
+
+**Decision:**
+
+```python
+1. fix_dunder_references        # Line-based
+2. fix_metadata_blocks          # Line-based
+3. fix_warning_lines            # Line-based (extended)
+4. fix_nested_lists             # Line-based
+5. fix_metadata_list_indentation # Line-based (new)
+6. fix_numbered_list_spacing    # Spacing (after structure)
+7. fix_markdown_code_blocks     # Block-based (last)
+```
+
+**Rationale:**
+
+- Line-based fixes before block-based (avoid interference)
+- Spacing fixes after structural changes
+- Code block nesting last (operates on complete structure)
+
+**Alternatives considered:**
+
+- Random order → Some fixes would break others
+- All new fixes at end → Spacing issues with numbered lists
+
+#### 4. Prefix Detection Strategy
+
+**Decision:** Generic prefix detection (any consistent non-markup prefix), not
+hard-coded patterns.
+
+**Rationale:**
+
+- Handles current patterns (✅, ❌, [TODO], etc.)
+- Adapts to new patterns Claude might generate
+- Reduces maintenance (no pattern list to update)
+
+**Alternatives considered:**
+
+- Whitelist specific prefixes → Brittle, needs updates
+- No grouping logic → Each pattern needs separate fix
+
+#### 5. Indentation Amount
+
+**Decision:** 2 spaces for nested lists.
+
+**Rationale:**
+
+- Standard markdown convention
+- Matches dprint default formatting
+- Consistent with existing codebase style
+
+**Alternatives considered:**
+
+- 3 spaces → Not standard
+- 4 spaces → Too much nesting, harder to read
+
+### Future Direction
+
+**Evolution to dprint plugin:**
+
+Current preprocessor is a separate step. Ideally, this should be a dprint plugin that
+runs during formatting. Benefits:
+
+- Single-pass processing
+- Better integration with dprint configuration
+- Cleaner toolchain
+
+**Migration path:**
+
+1. Keep preprocessor functional (backwards compatibility)
+2. Develop dprint plugin with same logic
+3. Test plugin thoroughly
+4. Deprecate preprocessor, migrate users
+5. Remove preprocessor once plugin is stable
+
+### Testing Strategy
+
+**TDD approach:**
+
+- Red test → minimal code → green test
+- Each feature: 4-6 test cycles
+- Integration tests verify no conflicts
+- Edge cases documented and tested
+
+**Test coverage:**
+
+- Valid patterns (should convert)
+- Invalid patterns (should skip or error)
+- Edge cases (empty blocks, unclosed fences, etc.)
+- Integration (multiple fixes together)
+
+### Success Metrics
+
+- All new tests pass
+- All existing tests pass (no regressions)
+- Code follows existing patterns
+- Clear error messages for invalid input
+- Documentation complete and accurate

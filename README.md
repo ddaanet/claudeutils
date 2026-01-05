@@ -61,6 +61,39 @@ Aliases automatically resolve to the latest available model version (cached for 
 hours). You can also use full model IDs like `claude-sonnet-4-5` or
 `claude-sonnet-4-5-20250929`.
 
+## Markdown Preprocessor
+
+The `markdown` command preprocesses Claude-generated markdown output before dprint
+formatting:
+
+```bash
+# Process files from git status
+git status --short | cut -c4- | uv run claudeutils markdown
+
+# Or pipe file paths directly
+echo "output.md" | uv run claudeutils markdown
+```
+
+**What it fixes:**
+
+- Consecutive emoji/symbol prefixed lines → proper lists
+- Nested code blocks in ```markdown fences
+- Metadata labels with following lists → indented nested lists
+- Numbered list spacing issues
+- And more...
+
+**Processing Pipeline:**
+
+```
+Claude output → markdown.py → dprint → final output
+```
+
+The preprocessor handles structural issues that Claude commonly produces but aren't
+valid markdown. After preprocessing, dprint applies consistent formatting.
+
+**Note:** This is currently a standalone tool but should eventually evolve into a dprint
+plugin for better integration.
+
 ### Feedback Processing Pipeline
 
 Process feedback in stages: collect → analyze → rules
