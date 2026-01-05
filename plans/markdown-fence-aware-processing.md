@@ -5,7 +5,7 @@
 ### Current Problem
 
 **Broken list detection triggers on ALL content:**
-- Processes lines inside ```yaml, ```python, ```bash blocks
+- Processes lines inside ```python, ```bash, ```javascript blocks
 - Converts dictionary keys to list items: `"name": "test"` → `- "name": "test"`
 - Converts table rows to list items: `| Build | Done |` → `- | Build | Done |`
 
@@ -16,8 +16,9 @@
 **Processing rules:**
 - **MUST** process content outside any fenced blocks
 - **MUST** process content inside ````markdown` blocks only
-- **MUST NOT** process content inside ```python, ```yaml, ```bash, ``` (bare), etc.
+- **MUST NOT** process content inside ```python, ```bash, ```javascript, ``` (bare), etc.
 - **MUST NOT** process markdown blocks nested inside non-markdown blocks
+- **MUST NOT** process content inside YAML prolog sections (---...---)
 
 **Backtick space preservation:**
 - `` `blah ` `` → `` `"blah "` ``
@@ -143,8 +144,8 @@ lines = [
 **Given:**
 ```python
 lines = [
-    "```yaml\n",
-    "key: value\n",
+    "```bash\n",
+    "echo hello\n",
     "```\n",
     "```python\n",
     "x = 1\n",
@@ -185,15 +186,16 @@ lines = [
 - Inside ```python: unchanged
 **NEW:** `apply_fix_to_segments(segments, fix_fn)` wrapper
 
-#### Test 10: Skip all fixes in ```yaml block
-**Given:** YAML list content
-```yaml
-tasks:
-- build: Build
-- test: Test
+#### Test 10: Skip all fixes in YAML prolog block
+**Given:** YAML prolog content
+```
+---
+title: Document
+tasks: [ build, test ]
+---
 ```
 **When:** `process_lines(lines)` (full pipeline)
-**Then:** YAML content completely unchanged
+**Then:** YAML prolog content completely unchanged
 **NEW:** Full integration test, validates no false triggers
 
 #### Test 11: Skip all fixes in bare ``` block
@@ -283,14 +285,14 @@ class Segment(BaseModel):
 
 ### Segment Types
 - **Processable:** Plain text, ```markdown blocks
-- **Protected:** All other fenced blocks (```python, ```yaml, ``` bare, etc.)
+- **Protected:** All other fenced blocks (```python, ```bash, ``` bare, etc.), YAML prolog sections
 
 ---
 
 ## Success Criteria
 
 1. ✅ All existing tests continue passing
-2. ✅ Lists not detected inside ```yaml, ```python, ```bash, ``` (bare) blocks
+2. ✅ Lists not detected inside ```python, ```bash, ```javascript, ``` (bare) blocks, or YAML prolog sections
 3. ✅ All fixes skip content inside protected blocks
 4. ✅ Backtick space preservation works correctly
 5. ✅ Inner fence detection/fixing still works for ```markdown blocks
