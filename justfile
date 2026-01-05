@@ -1,4 +1,8 @@
 #!/usr/bin/env just --justfile
+# Use direct venv pytest when in Claude Code sandbox (uv run crashes on system config access)
+
+[private]
+_pytest := if env_var_or_default("CLAUDECODE", "") != "" { ".venv/bin/pytest" } else { "uv run pytest" }
 
 help:
     @uv run just --list --unsorted
@@ -10,7 +14,7 @@ dev: format check test line-limits
 # Run tests quietly
 [no-exit-message]
 test *ARGS:
-    uv run pytest -q {{ ARGS }}
+    {{ _pytest }} -q {{ ARGS }}
 
 # Format, check with complexity disabled, test
 [no-exit-message]
@@ -18,7 +22,7 @@ lint: format
     uv run ruff check -q --ignore=C901
     docformatter -c src tests
     uv run mypy
-    uv run pytest -q
+    {{ _pytest }} -q
 
 # Check code style
 [no-exit-message]
@@ -36,7 +40,7 @@ line-limits:
 [group('roles')]
 [no-exit-message]
 role-code *ARGS:
-    uv run pytest {{ ARGS }}
+    {{ _pytest }} {{ ARGS }}
 
 # Role: lint - format and verify all checks pass (no complexity)
 [group('roles')]
@@ -105,6 +109,7 @@ release bump='patch': _fail_if_claudecode dev
     echo "${GREEN}Release $tag complete${NORMAL}"
 
 # Bash definitions
+
 [private]
 _bash-defs := '''
 COMMAND="''' + style('command') + '''"
@@ -127,4 +132,3 @@ _fail_if_claudecode:
         echo -e '{{ style("error") }}⛔️ Denied: Protected recipe{{ NORMAL }}'
         exit 1
     fi
-
