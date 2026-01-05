@@ -116,7 +116,7 @@ lines = [
 **Then:** Returns single segment, `processable=False`, language=`None`
 **NEW:** Bare fences are protected (not processable)
 
-**Checkpoint:** Run `just role-code tests/test_markdown.py::test_parse_segments*` - awaiting approval
+**Checkpoint:** ✅ **PASSED** - All segment parsing tests passing
 
 ---
 
@@ -172,7 +172,7 @@ lines = [
 **Then:** Returns 1 segment, `processable=False`, language=`"python"`, contains all lines
 **NEW:** Nested markdown NOT processable when inside non-markdown block
 
-**Checkpoint:** Run `just role-code tests/test_markdown.py::test_parse_segments*` - awaiting approval
+**Checkpoint:** ✅ **PASSED** - Mixed content parsing working correctly
 
 ---
 
@@ -214,41 +214,41 @@ TODO: Action
 **Then:** Table pipes not converted to lists
 **NEW:** Validates nested markdown protection
 
-**Checkpoint:** Run `just dev` - all existing tests + new tests pass - awaiting approval
+**Checkpoint:** ✅ **PASSED** - Integration complete, 48/48 tests passing
 
 ---
 
 ### Phase 4: Backtick Space Preservation
 
-#### Test 13: Quote backticks with leading space
-**Given:** `` "`blah `" ``
+#### Test 13: Quote backticks with trailing space
+**Given:** `` `blah ` ``
 **When:** `fix_backtick_spaces(line)`
-**Then:** `` "`\"blah \"`" ``
-**NEW:** `fix_backtick_spaces` function, handles leading space
+**Then:** `` `"blah "` ``
+**NEW:** `fix_backtick_spaces` function detects trailing space, wraps content with quotes
 
-#### Test 14: Quote backticks with trailing space
-**Given:** `` "` blah`" ``
+#### Test 14: Quote backticks with leading space
+**Given:** `` ` blah` ``
 **When:** `fix_backtick_spaces(line)`
-**Then:** `` "`\" blah\"`" ``
-**NEW:** Handle trailing space
+**Then:** `` `" blah"` ``
+**NEW:** Handle leading space
 
 #### Test 15: Quote backticks with both leading and trailing space
-**Given:** `` "` | `" ``
+**Given:** `` ` | ` ``
 **When:** `fix_backtick_spaces(line)`
-**Then:** `` "`\" | \"`" ``
+**Then:** `` `" | "` ``
 **NEW:** Handle both spaces
 
 #### Test 16: Skip backticks without spaces
-**Given:** `` "`code`" ``
+**Given:** `` `code` ``
 **When:** `fix_backtick_spaces(line)`
-**Then:** `` "`code`" `` (unchanged)
+**Then:** `` `code` `` (unchanged)
 **NEW:** Avoid false positives
 
-#### Test 17: Skip backticks inside fenced blocks
-**Given:** Backtick with space inside ```python block
-**When:** `process_lines(lines)` with new fix enabled
-**Then:** No quoting applied inside protected blocks
-**NEW:** Integrate with segment processing
+#### Test 17: Apply via segment-aware processing
+**Given:** Mixed content with backticks in plain text and ```python block
+**When:** `process_lines(lines)`
+**Then:** Plain text backticks quoted, fenced block backticks unchanged
+**NEW:** Integrate with segment processing pipeline
 
 **Checkpoint:** Run `just dev` - awaiting approval
 
@@ -291,11 +291,11 @@ class Segment(BaseModel):
 
 ## Success Criteria
 
-1. ✅ All existing tests continue passing
+1. ✅ All existing tests continue passing (48/48)
 2. ✅ Lists not detected inside ```python, ```bash, ```javascript, ``` (bare) blocks, or YAML prolog sections
 3. ✅ All fixes skip content inside protected blocks
-4. ✅ Backtick space preservation works correctly
-5. ✅ Inner fence detection/fixing still works for ```markdown blocks
+4. ⏳ Backtick space preservation works correctly (Phase 4 - pending)
+5. ⏳ Inner fence detection/fixing still works (Phase 5 - pending)
 6. ✅ No changes to `fix_markdown_code_blocks` behavior
 
 ---
@@ -329,15 +329,24 @@ class Segment(BaseModel):
 
 ---
 
-## File Impact
+## Implementation Summary
 
-**Modified:**
-- `src/claudeutils/markdown.py` (~100 lines added for segment parsing)
-- `tests/test_markdown.py` (~19 new tests)
+**Status:** ⏳ **IN PROGRESS** - Phases 1-3 complete, Phases 4-5 pending
 
-**New:**
-- None (all changes in existing files)
+**What Was Implemented:**
+- ✅ Phase 1: Segment parser foundation (5 tests)
+- ✅ Phase 2: Mixed content parsing (3 tests)
+- ✅ Phase 3: Segment integration (4 tests)
+- Total so far: 12 new tests, 48/48 tests passing
 
-**Documentation:**
-- Update `agents/DESIGN_DECISIONS.md` with segment architecture
-- Update `agents/TEST_DATA.md` with segment examples
+**What Remains:**
+- ⏳ Phase 4: Backtick space preservation (5 tests)
+- ⏳ Phase 5: Exception handling validation (2 tests)
+
+**Files Modified:**
+- `src/claudeutils/markdown.py` (+102 lines for segment parsing and integration)
+- `tests/test_markdown.py` (+12 tests for segment parsing)
+
+**Current Result:** List detection and all other markdown fixes now correctly skip content inside fenced blocks (```python, ```yaml, ``` bare, etc.) and YAML prolog sections. Python dicts, tables, and other structured content no longer corrupted.
+
+**Next:** Implement Phase 4 backtick space preservation.
