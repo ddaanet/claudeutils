@@ -329,6 +329,39 @@ def test_escape_inline_backticks_skips_content_inside_blocks() -> None:
     assert escape_inline_backticks(input_lines) == expected
 
 
+def test_escape_inline_backticks_preserves_four_backticks() -> None:
+    """Test: Four backticks in text are wrapped correctly."""
+    input_lines = [
+        "Output: ```` markdown block\n",
+    ]
+    expected = [
+        "Output: `` ```` `` markdown block\n",
+    ]
+    assert escape_inline_backticks(input_lines) == expected
+
+
+def test_escape_inline_backticks_preserves_five_backticks() -> None:
+    """Test: Five backticks in text are wrapped correctly."""
+    input_lines = [
+        "Use ````` for special cases\n",
+    ]
+    expected = [
+        "Use `` ````` `` for special cases\n",
+    ]
+    assert escape_inline_backticks(input_lines) == expected
+
+
+def test_escape_inline_backticks_handles_mixed_backtick_counts() -> None:
+    """Test: Text with both triple and quad backticks handled correctly."""
+    input_lines = [
+        "Use ``` for code and ```` for edge cases\n",
+    ]
+    expected = [
+        "Use `` ``` `` for code and `` ```` `` for edge cases\n",
+    ]
+    assert escape_inline_backticks(input_lines) == expected
+
+
 def test_fix_markdown_code_blocks_ignores_inline_backticks() -> None:
     """Test: Don't detect ``` as fence when it appears inline in text."""
     input_lines = [
@@ -891,3 +924,106 @@ def test_prefix_detection_excludes_lowercase_colon_prefixes() -> None:
     expected = input_lines.copy()
     result = fix_warning_lines(input_lines)
     assert result == expected
+
+
+def test_integration_python_fence_protection() -> None:
+    """Integration: Content in ```python fences is protected."""
+    input_lines = [
+        "Here is ```python code:\n",
+        "\n",
+        "```python\n",
+        "✅ Task 1\n",
+        "✅ Task 2\n",
+        "```\n",
+        "\n",
+        "After the fence.\n",
+    ]
+    result = process_lines(input_lines)
+    # Python fence content should NOT be converted to list items
+    assert result[3] == "✅ Task 1\n"
+    assert result[4] == "✅ Task 2\n"
+
+
+def test_integration_yaml_fence_protection() -> None:
+    """Integration: Content in ```yaml fences is protected."""
+    input_lines = [
+        "Configuration:\n",
+        "\n",
+        "```yaml\n",
+        "✅ Check: true\n",
+        "❌ Status: false\n",
+        "```\n",
+        "\n",
+        "End of config.\n",
+    ]
+    result = process_lines(input_lines)
+    # YAML fence content should NOT be converted to list items
+    assert result[3] == "✅ Check: true\n"
+    assert result[4] == "❌ Status: false\n"
+
+
+def test_integration_markdown_fence_processing() -> None:
+    """Integration: Content in ```markdown fences IS processed (intentional).
+
+    Markdown blocks are processable=True to allow formatting doc examples.
+    """
+    input_lines = [
+        "Example markdown:\n",
+        "\n",
+        "```markdown\n",
+        "**File:** role.md\n",
+        "**Model:** Sonnet\n",
+        "```\n",
+    ]
+    result = process_lines(input_lines)
+    # Markdown fence content IS processed (intentional - for doc examples)
+    assert result[3] == "- **File:** role.md\n"
+    assert result[4] == "- **Model:** Sonnet\n"
+
+
+def test_integration_bare_fence_protection() -> None:
+    """Integration: Content in bare ``` fences is protected."""
+    input_lines = [
+        "Some code:\n",
+        "\n",
+        "```\n",
+        "✅ Task 1\n",
+        "✅ Task 2\n",
+        "```\n",
+    ]
+    result = process_lines(input_lines)
+    # Bare fence content should NOT be converted to list items
+    assert result[3] == "✅ Task 1\n"
+    assert result[4] == "✅ Task 2\n"
+
+
+def test_integration_yaml_prolog_protection() -> None:
+    """Integration: YAML prologs are protected and not processed."""
+    input_lines = [
+        "---\n",
+        "author_model: claude-sonnet\n",
+        "semantic_type: guide\n",
+        "---\n",
+        "\n",
+        "Content starts here.\n",
+    ]
+    result = process_lines(input_lines)
+    # YAML prolog should remain unchanged
+    assert result[0] == "---\n"
+    assert result[1] == "author_model: claude-sonnet\n"
+    assert result[2] == "semantic_type: guide\n"
+    assert result[3] == "---\n"
+
+
+def test_integration_plain_text_still_processes() -> None:
+    """Integration: Plain text (not in fences) is still processed correctly."""
+    input_lines = [
+        "Some content\n",
+        "\n",
+        "✅ Task 1\n",
+        "✅ Task 2\n",
+    ]
+    result = process_lines(input_lines)
+    # Plain text emoji lines SHOULD be converted to list items
+    assert result[2] == "- ✅ Task 1\n"
+    assert result[3] == "- ✅ Task 2\n"

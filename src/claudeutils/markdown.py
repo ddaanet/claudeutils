@@ -297,9 +297,9 @@ def escape_inline_backticks(lines: list[str]) -> list[str]:
             result.append(line)
             continue
 
-        # Escape inline triple backticks (with or without language)
-        # Negative lookbehind ensures we don't re-escape already escaped ones
-        escaped_line = re.sub(r"(?<!`` )```(\w*)", r"`` ```\1 ``", line)
+        # Escape inline backtick sequences (3 or more) when not part of a fence
+        # Negative lookbehind/lookahead prevents matching already-wrapped sequences
+        escaped_line = re.sub(r"(?<!`` )(`{3,})(\w*)(?! ``)", r"`` \1\2 ``", line)
         result.append(escaped_line)
 
     return result
