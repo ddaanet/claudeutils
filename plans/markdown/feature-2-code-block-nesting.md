@@ -24,9 +24,9 @@ code
 ```
 ````
 
-The inner ``` fence closes the outer block prematurely, breaking the structure.
+The inner `` ``` `` fence closes the outer block prematurely, breaking the structure.
 
-**Solution:** Use ```` (4 backticks) for outer fence when inner ``` fences detected:
+**Solution:** Use `` ```` `` (4 backticks) for outer fence when inner `` ``` `` fences detected:
 
 `````
 ````markdown
@@ -81,7 +81,7 @@ Sonnet: Resume haiku agent with Cycle N+1 requirements
 
 ---
 
-### Cycle 1: Detect ```markdown block with inner fence
+### Cycle 1: Detect `` ```markdown `` block with inner fence
 
 **Test:**
 
@@ -165,7 +165,7 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
 
 ---
 
-### Cycle 2: Leave ```markdown without inner fence unchanged
+### Cycle 2: Leave `` ```markdown `` without inner fence unchanged
 
 **Test:**
 
@@ -288,7 +288,7 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
 
 ---
 
-### Cycle 4: Handle multiple ```markdown blocks in same file
+### Cycle 4: Handle multiple `` ```markdown `` blocks in same file
 
 **Test:**
 
@@ -445,5 +445,5 @@ Fix: Remove inner ``` fences from the python block, or escape them properly.
 
 - This fix runs LAST in the pipeline to avoid interfering with line-based fixes
 - Error cases are important - prevent silent dprint failures
-- Only ```markdown blocks should use nesting; other blocks should error
+- Only `` ```markdown `` blocks should use nesting; other blocks should error
 - Keep implementation simple - detect, validate, nest or error

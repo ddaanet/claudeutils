@@ -50,7 +50,7 @@ if re.match(r"^\w+:\s", current_stripped):
     critical:
       - item
   ```
-- Line `  critical:` (indented) is stripped to `critical:`, doesn't match pattern
+- Line `"  critical:"` (indented) is stripped to `critical:`, doesn't match pattern
 - Even if pattern fixed, indented content won't trigger `has_key_value = True`
 
 ### Evidence From Diff
@@ -65,10 +65,11 @@ if re.match(r"^\w+:\s", current_stripped):
 ```
 
 **Analysis:**
+
 1. YAML prolog `---` to next `---` not recognized
 2. Content falls through to plain text processing
 3. `extract_prefix()` sees `tier_structure:` and `critical:` as colon-prefixed lines
-4. Both lines converted to list items with `- ` prefix
+4. Both lines converted to list items with `"- "` prefix
 5. YAML structure completely broken
 
 ### Correct Fix
@@ -110,7 +111,7 @@ The pattern `r"^(\S+(?:\s|:))"` means: "Match one or more non-whitespace charact
 
 This matches:
 - ✅ **Intended:** `✅ Task` → prefix `✅`
-- ✅ **Intended:** `[TODO]` → prefix `[TODO]` (but pattern doesn't actually match this - `]` is not ` ` or `:`)
+- ✅ **Intended:** `[TODO]` → prefix `[TODO]` (but pattern doesn't actually match this - `]` is not `" "` or `:`)
 - ❌ **Regular prose:** `Task agent` → prefix `Task`
 - ❌ **YAML keys:** `tier_structure:` → prefix `tier_structure:`
 - ❌ **Block quotes:** `> Your` → prefix `>`
@@ -131,6 +132,7 @@ This matches:
 ```
 
 **Analysis:**
+
 1. Line 1 starts with "Task agent"
 2. Line 2 starts with "Task agent"
 3. `extract_prefix()` extracts "Task " from both lines (word + space)
@@ -164,6 +166,7 @@ if p1 == p2:
 Both lines have prefix "Task " (exact match), so they're considered similar! The categorization (emoji, bracket, colon) is only for cross-prefix matching.
 
 So the logic is:
+
 1. Extract prefix "Task " from line 1
 2. Extract prefix "Task " from line 2
 3. `p1 == p2` → TRUE → similar
@@ -180,7 +183,8 @@ This confirms the prefix detection is way too broad.
 ```
 
 **Analysis:**
-1. Both lines start with `> ` (block quote marker)
+
+1. Both lines start with `"> "` (block quote marker)
 2. `extract_prefix()` extracts `>` (non-whitespace followed by space)
 3. Both have same prefix `>` → similar
 4. Converted to list items, breaking block quote formatting
@@ -199,7 +203,8 @@ This confirms the prefix detection is way too broad.
 ```
 
 **Analysis:**
-1. Lines start with `├─ ` (tree branch symbol)
+
+1. Lines start with `"├─ "` (tree branch symbol)
 2. `extract_prefix()` extracts `├─` (non-whitespace followed by space)
 3. All have same prefix `├─` → similar
 4. Converted to list items, breaking tree structure
@@ -219,7 +224,7 @@ This confirms the prefix detection is way too broad.
 - Tree diagrams: `├─ item`, `└─ item`, `│  item`
 - YAML keys: `tier_structure:`, `author_model:`
 - Section-like headers: `Implementation:`, `Strategy:`
-- Indented content: `  ├─ item`
+- Indented content: `"  ├─ item"`
 
 **Implementation Strategy:**
 
@@ -286,6 +291,7 @@ def extract_prefix(line: str) -> str | None:
 ```
 
 **Key Changes:**
+
 1. Explicit exclusions for block quotes, tree symbols, section headers
 2. Only match emojis (specific character class)
 3. Only match brackets (explicit pattern)
@@ -322,10 +328,12 @@ These exclusions are working, but the YAML and prose issues remain.
   - Only these segments are processed by `fix_warning_lines()` and other fixes
 
 **Why Bugs Happen:**
+
 1. YAML prolog detection fails → YAML becomes plain text → gets mangled
 2. Prefix detection too broad → plain markdown text gets mangled
 
 **Fix Strategy:**
+
 1. Fix segment detection (Phase 5) → protect more content correctly
 2. Fix prefix detection (Phase 6) → defensive, handle edge cases
 
@@ -503,6 +511,7 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 ### Phase 4: Integration Testing
 
 **Process:**
+
 1. Revert corrupted files: `git checkout HEAD -- .`
 2. Run unit tests: `just test tests/test_markdown.py`
 3. Run formatter: `just format`
@@ -548,11 +557,13 @@ If fixes cause issues:
 ## Summary
 
 **Root Causes:**
+
 1. YAML prolog pattern too restrictive (requires trailing space)
 2. Prefix detection pattern too permissive (matches everything)
 3. Cascading failures from #1 → #2
 
 **Fix Strategy:**
+
 1. Loosen YAML pattern (accept keys without values)
 2. Tighten prefix pattern (explicit inclusions, explicit exclusions)
 3. Comprehensive testing
