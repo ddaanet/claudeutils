@@ -53,6 +53,7 @@ This file tracks:
 - `d13a397` - YAML prolog detection
 - `a1c5fa9` - Phase 3 integration implementation
 - `64b0cd9` - Plan update: restore Phases 4-5, mark 1-3 complete
+- `d977b7b` - Implement Phases 4-5: Backtick space preservation and exception validation
 
 ### Phase 4: Backtick Space Preservation ✅ Complete
 
