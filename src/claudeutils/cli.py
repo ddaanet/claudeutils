@@ -10,6 +10,7 @@ from pathlib import Path
 import click
 
 from claudeutils.discovery import list_top_level_sessions
+from claudeutils.exceptions import ClaudeUtilsError
 from claudeutils.extraction import extract_feedback_recursively
 from claudeutils.filtering import categorize_feedback, filter_feedback
 from claudeutils.markdown import process_file
@@ -318,8 +319,11 @@ def markdown() -> None:
 
     # Process valid files
     for filepath in valid_files:
-        if process_file(filepath):
-            print(str(filepath))
+        try:
+            if process_file(filepath):
+                print(str(filepath))
+        except ClaudeUtilsError as e:
+            errors.append(str(e))
 
     # Report all errors and exit with error code
     if errors:

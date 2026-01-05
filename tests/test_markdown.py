@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from claudeutils.exceptions import MarkdownInnerFenceError
 from claudeutils.markdown import (
     fix_markdown_code_blocks,
     fix_metadata_blocks,
@@ -232,7 +233,7 @@ def test_fix_markdown_code_blocks_errors_on_inner_fence_in_python() -> None:
         "```\n",
     ]
 
-    with pytest.raises(ValueError, match="Inner fence detected in non-markdown block"):
+    with pytest.raises(MarkdownInnerFenceError, match="Inner fence detected in non-markdown block"):
         fix_markdown_code_blocks(input_lines)
 
 
