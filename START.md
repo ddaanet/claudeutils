@@ -1,81 +1,88 @@
 # Handoff Entry Point
 
-## Current Status: Markdown Segment Processing - Complete ✅
+## Current Status: Formatter Bug Fixes - Ready to Implement
 
 - **Branch:** markdown
-- **Issue:** ✅ RESOLVED - List detection now respects segment boundaries
-- **Plan:** `plans/markdown-fence-aware-processing.md`
-- **Progress:** Phases 1-5 complete ✅ (19 tests: 5+3+4+5+2)
+- **Issue:** `just format` corrupting markdown files (27 files affected)
+- **Plan:** `plans/markdown/fix-warning-lines-tables.md`
+- **Progress:** Analysis complete, fix plan ready
 
-### What's Done
+### The Problem
 
-**Core Issue Resolved:** Segment-aware processing prevents false positives in fenced blocks.
+Running `just format` corrupts markdown:
+- Tables converted to lists (`| Header |` → `- | Header |`)
+- Single labels converted to list items (`**Label:**` → `- **Label:**`)
+- 27 files affected: AGENTS.md, START.md, session.md, MODULE_INVENTORY.md, etc.
 
-- ✅ Phase 1: Segment parser foundation (5 tests)
-- ✅ Phase 2: Mixed content parsing (3 tests)
-- ✅ Phase 3: Segment integration (4 tests)
-- ✅ 12 new tests, 48/48 passing
+### Root Causes
 
-**Result:** List detection and all fixes now skip content in ```python, ```yaml, ``` (bare), and YAML prolog sections. Python dicts, tables, and structured content no longer corrupted.
+1. **fix_warning_lines()** treats table pipes `| ` as prefixes
+2. **fix_metadata_list_indentation()** converts single `**Label:**` to list items (wrong)
+3. **Bold labels processed twice** by multiple functions
 
-### What's Next
+### The Fix (3 Phases)
 
-The markdown preprocessing pipeline is now complete. All phases have been implemented and tested:
+**Phase 1: Table Detection** - Skip table rows in `fix_warning_lines()`
+**Phase 2: Disable Metadata List Indentation** - Comment out function call
+**Phase 3: Bold Label Exclusion** - Skip `**Label:**` in `fix_warning_lines()`
 
-- ✅ Phase 1: Segment parser foundation (5 tests)
-- ✅ Phase 2: Mixed content parsing (3 tests)
-- ✅ Phase 3: Segment integration (4 tests)
-- ✅ Phase 4: Backtick space preservation (5 tests)
-- ✅ Phase 5: Exception handling validation (2 tests)
+### User Requirements
 
-**Next Steps:** Prepare PR and merge to main branch.
+- Metadata list (2+ `**Label:**` lines) → convert to list items ✅
+- Single `**Label:**` line → do NOT convert ❌
+- Tables → remain as tables ✅
+- Indentation → consistent at same level ✅
+
+### Next Steps
+
+Execute plan: `plans/markdown/fix-warning-lines-tables.md`
+
+```bash
+# Implement fixes
+just role-code
+
+# Verify
+just format && git diff  # Should show no unwanted changes
+```
 
 ---
 
 ## What Was Completed (2026-01-05)
 
-### Markdown Preprocessor Features
+### Markdown Segment Processing - Complete ✅
 
-Implemented three major features plus bonus improvements:
+Implemented segment-aware markdown processing to prevent false positives in fenced blocks:
 
-1. **Generic prefix detection** - Extended fix_warning_lines to handle any consistent
-   non-markup prefix (emoji, brackets, colons)
-2. **Code block nesting** - Handle inner fences in ```markdown blocks using ````
-3. **Metadata list indentation** - Convert labels to list items with proper nesting
-4. **Inline backtick escaping** - Wrap `` ```language `` to prevent fence ambiguity
-5. **Custom exception handling** - MarkdownProcessingError and MarkdownInnerFenceError
+1. **Segment parser** - Classify content (fenced blocks, YAML prologs, plain text)
+2. **Stack-based nesting** - Handle `` ```markdown `` inside `` ```python ``
+3. **Segment integration** - Apply fixes only to processable segments
+4. **Backtick space preservation** - Quote spaces in inline code
+5. **Exception handling** - MarkdownProcessingError and MarkdownInnerFenceError
 
-### Documentation
+### Results
 
-- ✅ Module docstrings explaining preprocessor purpose and pipeline
-- ✅ README section with usage examples and what it fixes
-- ✅ Function docstrings for all key functions
-- ✅ TEST_DATA.md with input/output transformations
-- ✅ DESIGN_DECISIONS.md with architecture rationale
-
-### Test Coverage
-
-- 40 total tests passing (32 markdown + 8 CLI)
-- All features validated through TDD
-- Exception handling and error reporting tested
+- 48/48 tests passing (40 markdown + 8 segments)
+- Content in `` ```python ``, `` ```yaml ``, bare `` ``` `` blocks protected
+- Python dicts, tables, structured content no longer corrupted by fixes
+- All fixes respect segment boundaries
 
 ---
 
 ## Key Files
 
-| File                        | Purpose                                 |
-| --------------------------- | --------------------------------------- |
-| `session.md`                | Current session notes (short-term only) |
-| `AGENTS.md`                 | Core agent rules and role definitions   |
-| `agents/TEST_DATA.md`       | Data types and sample entries           |
-| `agents/DESIGN_DECISIONS.md` | Architectural and implementation decisions |
-| `agents/ROADMAP.md`         | Future enhancement ideas                |
+| File                             | Purpose                                        |
+| -------------------------------- | ---------------------------------------------- |
+| `session.md`                     | Current session notes (short-term only)        |
+| `AGENTS.md`                      | Core agent rules and role definitions          |
+| `agents/TEST_DATA.md`            | Data types and sample entries                  |
+| `agents/DESIGN_DECISIONS.md`     | Architectural and implementation decisions     |
+| `plans/markdown/fix-warning-lines-tables.md` | Current fix plan for formatter bugs |
 
 ---
 
 ## Next Steps
 
-**Immediate:** Execute `plans/markdown-fence-aware-processing.md`
+**Immediate:** Execute `plans/markdown/fix-warning-lines-tables.md`
 
 ```bash
 # Load code role and execute plan
@@ -83,11 +90,15 @@ just role-code
 ```
 
 **Plan structure:**
-- Phase 1: Segment parser foundation (5 tests)
-- Phase 2: Mixed content parsing (3 tests)
-- Phase 3: Segment integration (4 tests)
-- Phase 4: Backtick space preservation (5 tests)
-- Phase 5: Exception handling (2 tests)
+- Phase 1: Table detection (skip table rows in fix_warning_lines)
+- Phase 2: Disable metadata list indentation (single labels stay as-is)
+- Phase 3: Bold label exclusion (avoid duplicate processing)
+- Phase 4: Tighten prefix patterns (optional)
+
+**Success criteria:**
+- Tables remain as tables after `just format`
+- Single `**Label:**` lines not converted to list items
+- 48/48 tests pass
 
 ---
 

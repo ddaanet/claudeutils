@@ -20,87 +20,95 @@ This file tracks:
 
 ---
 
-## Current Status: All Phases Complete ✅
+## Current Status: Formatter Bugs - Analysis Complete, Ready to Implement
 
 - **Branch:** markdown
-- **Issue:** ✅ RESOLVED - List detection and all fixes now respect segment boundaries
-- **Plan:** `plans/markdown-fence-aware-processing.md`
-- **Progress:** Phases 1-5 complete (all 19 tests passing)
+- **Issue:** `just format` corrupting markdown (tables → lists, single labels → list items)
+- **Plan:** `plans/markdown/fix-warning-lines-tables.md`
+- **Progress:** Root cause analysis complete, fix plan ready
 
-### What's Done
+### Problems Identified
 
-**Segment Parser Implementation (`parse_segments`):**
-- ✅ Detects and classifies all fence types (```python, ```markdown, ```bash, etc.)
-- ✅ Stack-based nested fence handling (```markdown inside ```python stays protected)
-- ✅ YAML prolog detection (---...--- with key: value patterns)
-- ✅ Distinguishes YAML prologs from ruler separators (--- surrounded by blanks)
-- ✅ Returns Segment objects with `processable`, `language`, `lines`, `start_line`
+**Issue:** After running `just format`, 27 files corrupted with unwanted transformations
 
-**Segment Integration (Phase 3):**
-- ✅ `flatten_segments()` helper to reconstruct document from segments
-- ✅ `apply_fix_to_segments()` wrapper applies fixes to processable segments only
-- ✅ Updated `process_lines()` to use segment-aware processing pipeline
-- ✅ All existing fixes now respect segment boundaries
-- ✅ Test 9: Fixes apply to plain text, skip ```python blocks
-- ✅ Test 10: YAML prolog content fully protected
-- ✅ Test 11: Bare ``` blocks protected
-- ✅ Test 12: Content in non-markdown blocks protected
+**Root causes:**
+1. **Tables → Lists** - `fix_warning_lines()` treats `| ` as a prefix pattern
+   ```markdown
+   | Role     | File          |     - | Role     | File          |
+   | -------- | ------------- |  →  - | -------- | ------------- |
+   ```
 
-**Tests:** 48/48 passing (40 markdown + 8 segments)
+2. **Single Labels → List Items** - `fix_metadata_list_indentation()` incorrectly converts
+   ```markdown
+   **Commits:**                    - **Commits:**
+   - item 1                 →        - item 1
+   ```
+   User requirement: "Single line with label does not make a metadata list"
 
-**Commits:**
-- `5a5ad93` - Segment parsing foundation (Phases 1-2)
-- `d13a397` - YAML prolog detection
-- `a1c5fa9` - Phase 3 integration implementation
-- `64b0cd9` - Plan update: restore Phases 4-5, mark 1-3 complete
-- `d977b7b` - Implement Phases 4-5: Backtick space preservation and exception validation
+3. **Bold Labels Processed Twice** - Both `fix_warning_lines()` and `fix_metadata_blocks()` try to handle `**Label:**` patterns
 
-### Phase 4: Backtick Space Preservation ✅ Complete
+### Solution Strategy
 
-**Implementation:**
-- ✅ Test 13: Quote backticks with trailing space (`blah ` → `"blah "`)
-- ✅ Test 14: Quote backticks with leading space (` blah` → `" blah"`)
-- ✅ Test 15: Quote backticks with both spaces (` | ` → `" | "`)
-- ✅ Test 16: Skip backticks without spaces (`code` unchanged)
-- ✅ Test 17: Segment-aware integration (plain text quoted, ```python blocks unchanged)
+**Phase 1: Table Detection** (HIGHEST PRIORITY)
+- Update `extract_prefix()` to detect and skip table rows
+- Pattern: starts with `|` AND contains 2+ pipe chars
+- Prevents 27 files from corruption
 
-**New Function:** `fix_backtick_spaces(lines)`
-- Makes whitespace explicit in inline code via quoting
-- Prevents ambiguity when documenting strings with intentional spaces
-- Idempotent (skips escaped backticks `` `` `` to avoid double-processing)
-- Integrated into segment-aware processing pipeline
+**Phase 2: Disable Metadata List Indentation**
+- Comment out `fix_metadata_list_indentation()` call in `process_lines()`
+- Function incorrectly converts single `**Label:**` to list items
+- Keep `fix_metadata_blocks()` - correctly handles 2+ consecutive labels
+- Users control list indentation manually
 
-### Phase 5: Exception Handling Validation ✅ Complete
+**Phase 3: Bold Label Exclusion**
+- Skip `**Label:**` patterns in `fix_warning_lines()`
+- Already handled by `fix_metadata_blocks()`
 
-**Tests:**
-- ✅ Test 18: Inner fence detection in non-markdown blocks still works
-- ✅ Test 19: Markdown block nesting with inner fences still works
+**Phase 4: Tighten Prefix Patterns** (Optional, if needed)
 
-**Result:** `fix_markdown_code_blocks` unaffected by segment changes
-- Continues to detect inner fences in ```python blocks and raise error
-- Continues to nest ````markdown blocks with 4-backtick outer fence
+### Requirements (User Clarified)
 
-### Summary
+- Metadata list = 2+ consecutive `**Label:**` lines → convert to list items ✅
+- Single `**Label:**` line → do NOT convert ❌
+- Lists following metadata lists → can be indented ✅
+- Indentation consistent at same level (no progressive increase) ✅
+- Tables → must remain as tables ✅
 
-**Total Tests:** 43 markdown tests passing (40 existing + 3 new Phase 4/5 tests)
-**New Functionality:** Backtick space preservation via `fix_backtick_spaces`
-**Key Files Modified:**
-- `src/claudeutils/markdown.py` - Added `fix_backtick_spaces` function
-- `tests/test_markdown.py` - Added 7 new tests
+### Files Affected
+
+- 27 markdown files with unwanted changes after `just format`
+- Most affected: `AGENTS.md`, `START.md`, `session.md`, `agents/modules/MODULE_INVENTORY.md`
+
+### Next Steps
+
+Execute `plans/markdown/fix-warning-lines-tables.md`:
+1. Add table detection to `fix_warning_lines()`
+2. Disable `fix_metadata_list_indentation()`
+3. Add bold label exclusion
+4. Add tests for each fix
+5. Verify: `just format` produces no unwanted changes
 
 ---
 
 ## Previous Work (2026-01-05)
 
-### Markdown Preprocessor Features Implemented
+### Markdown Segment Processing - Complete ✅
 
-1. ✅ Generic prefix detection in fix_warning_lines
-2. ✅ Code block nesting with inner fence handling
-3. ✅ Metadata list indentation
-4. ✅ Inline backtick escaping
-5. ✅ Custom exception handling
+**Issue resolved:** List detection and all fixes now respect segment boundaries
 
-**Note:** All features work correctly on plain text, but need segment-aware protection for fenced blocks
+- ✅ Phase 1-5: Segment parser implementation (19 tests)
+- ✅ Segment-aware processing pipeline
+- ✅ YAML prolog detection
+- ✅ Backtick space preservation
+- ✅ Exception handling validation
+
+**Result:** 48/48 tests passing. Content in fenced blocks (```python, ```yaml, etc.) no longer corrupted.
+
+**Commits:**
+- `5a5ad93` - Segment parsing foundation
+- `d13a397` - YAML prolog detection
+- `a1c5fa9` - Phase 3 integration
+- `d977b7b` - Phases 4-5 complete
 
 ---
 
