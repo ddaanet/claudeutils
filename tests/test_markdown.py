@@ -94,3 +94,90 @@ def test_process_file_returns_false_when_unchanged(tmp_path: Path) -> None:
     result = process_file(filepath)
     assert result is False
     assert filepath.read_text() == content
+
+
+def test_fix_warning_lines_handles_checkmark_emoji() -> None:
+    """Test: fix_warning_lines converts consecutive ✅ lines to list."""
+    from claudeutils.markdown import fix_warning_lines
+    input_lines = [
+        "✅ Issue #1: XPASS tests visible\n",
+        "✅ Issue #2: Setup failures captured\n",
+    ]
+    expected = [
+        "- ✅ Issue #1: XPASS tests visible\n",
+        "- ✅ Issue #2: Setup failures captured\n",
+    ]
+    assert fix_warning_lines(input_lines) == expected
+
+
+def test_fix_warning_lines_handles_cross_emoji() -> None:
+    """Test: fix_warning_lines converts consecutive ❌ lines to list."""
+    from claudeutils.markdown import fix_warning_lines
+    input_lines = [
+        "❌ Failed test 1\n",
+        "❌ Failed test 2\n",
+    ]
+    expected = [
+        "- ❌ Failed test 1\n",
+        "- ❌ Failed test 2\n",
+    ]
+    assert fix_warning_lines(input_lines) == expected
+
+
+def test_fix_warning_lines_handles_mixed_emoji_prefix() -> None:
+    """Test: fix_warning_lines converts mixed ✅/❌ lines to list."""
+    from claudeutils.markdown import fix_warning_lines
+    input_lines = [
+        "✅ Issue #1: XPASS tests visible\n",
+        "✅ Issue #2: Setup failures captured\n",
+        "❌ Issue #3: Not fixed yet\n",
+    ]
+    expected = [
+        "- ✅ Issue #1: XPASS tests visible\n",
+        "- ✅ Issue #2: Setup failures captured\n",
+        "- ❌ Issue #3: Not fixed yet\n",
+    ]
+    assert fix_warning_lines(input_lines) == expected
+
+
+def test_fix_warning_lines_skips_existing_lists() -> None:
+    """Test: fix_warning_lines skips lines already formatted as lists."""
+    from claudeutils.markdown import fix_warning_lines
+    input_lines = [
+        "- ✅ Issue #1: Already a list\n",
+        "- ✅ Issue #2: Already a list\n",
+    ]
+    expected = input_lines.copy()
+    assert fix_warning_lines(input_lines) == expected
+
+
+def test_fix_warning_lines_skips_single_line() -> None:
+    """Test: fix_warning_lines skips single line with emoji prefix."""
+    from claudeutils.markdown import fix_warning_lines
+    input_lines = [
+        "✅ Only one line\n",
+        "\n",
+        "Some other content\n",
+    ]
+    expected = input_lines.copy()
+    assert fix_warning_lines(input_lines) == expected
+
+
+def test_fix_warning_lines_handles_bracket_and_colon_prefix() -> None:
+    """Test: fix_warning_lines handles [TODO] and NOTE: patterns."""
+    from claudeutils.markdown import fix_warning_lines
+    input_lines = [
+        "[TODO] Implement feature X\n",
+        "[TODO] Write tests\n",
+        "\n",
+        "NOTE: This is important\n",
+        "NOTE: Remember this\n",
+    ]
+    expected = [
+        "- [TODO] Implement feature X\n",
+        "- [TODO] Write tests\n",
+        "\n",
+        "- NOTE: This is important\n",
+        "- NOTE: Remember this\n",
+    ]
+    assert fix_warning_lines(input_lines) == expected
