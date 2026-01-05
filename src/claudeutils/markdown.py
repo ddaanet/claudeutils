@@ -201,6 +201,56 @@ def fix_nested_lists(lines: list[str]) -> list[str]:
     return result
 
 
+def fix_metadata_list_indentation(lines: list[str]) -> list[str]:
+    """Convert metadata labels to list items and indent following lists.
+
+    When a **Label:** or **Label**: line (without content) is followed by
+    a list, convert the label to a list item and indent the following list
+    by 2 spaces.
+    """
+    result: list[str] = []
+    i = 0
+    label_pattern = r"^\*\*[^*]+:\*\*\s*$|^\*\*[^*]+\*\*:\s*$"
+
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        indent = line[: len(line) - len(line.lstrip())]
+
+        if re.match(label_pattern, stripped):
+            if i + 1 < len(lines):
+                next_line = lines[i + 1]
+                next_stripped = next_line.strip()
+
+                if re.match(r"^[-*]|^\d+\.", next_stripped):
+                    result.append(f"{indent}- {stripped}\n")
+
+                    j = i + 1
+                    while j < len(lines):
+                        list_line = lines[j]
+                        list_stripped = list_line.strip()
+
+                        if list_stripped == "":
+                            result.append(list_line)
+                            j += 1
+                            break
+
+                        if not re.match(r"^[-*]|^\d+\.", list_stripped):
+                            break
+
+                        list_indent = list_line[: len(list_line) - len(list_line.lstrip())]
+                        result.append(f"{list_indent}  {list_stripped}\n")
+                        j += 1
+
+                    i = j
+                    continue
+
+        result.append(line)
+        i += 1
+
+    return result
+
+
 def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
     """Nest ```markdown blocks that contain inner ``` fences.
 
@@ -295,6 +345,7 @@ def process_lines(lines: list[str]) -> list[str]:
     lines = fix_metadata_blocks(lines)
     lines = fix_warning_lines(lines)
     lines = fix_nested_lists(lines)
+    lines = fix_metadata_list_indentation(lines)
     lines = fix_numbered_list_spacing(lines)
     lines = fix_markdown_code_blocks(lines)
     return lines

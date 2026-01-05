@@ -67,9 +67,8 @@ def test_process_lines_fixes_numbered_list_spacing() -> None:
         "4. Batch reads\n",
     ]
     expected = [
-        "**Execution phase:**\n",
-        "\n",
-        "4. Batch reads\n",
+        "- **Execution phase:**\n",
+        "  4. Batch reads\n",
     ]
     assert process_lines(input_lines) == expected
 
@@ -272,3 +271,127 @@ def test_fix_markdown_code_blocks_handles_multiple_blocks() -> None:
         "```\n",
     ]
     assert fix_markdown_code_blocks(input_lines) == expected
+
+
+def test_fix_metadata_list_indentation_basic_case() -> None:
+    """Test: Convert metadata label to list item and indent following list."""
+    from claudeutils.markdown import fix_metadata_list_indentation
+    input_lines = [
+        "**Plan Files:**\n",
+        "- `plans/phase-1.md`\n",
+        "- `plans/phase-2.md`\n",
+        "\n",
+    ]
+    expected = [
+        "- **Plan Files:**\n",
+        "  - `plans/phase-1.md`\n",
+        "  - `plans/phase-2.md`\n",
+        "\n",
+    ]
+    assert fix_metadata_list_indentation(input_lines) == expected
+
+
+def test_fix_metadata_list_indentation_colon_outside() -> None:
+    """Test: Handle **Label**: pattern (colon outside bold)."""
+    from claudeutils.markdown import fix_metadata_list_indentation
+    input_lines = [
+        "**Implementation Date**:\n",
+        "- 2026-01-04\n",
+        "\n",
+    ]
+    expected = [
+        "- **Implementation Date**:\n",
+        "  - 2026-01-04\n",
+        "\n",
+    ]
+    assert fix_metadata_list_indentation(input_lines) == expected
+
+
+def test_fix_metadata_list_indentation_skips_label_with_content() -> None:
+    """Test: Skip metadata label with content on same line."""
+    from claudeutils.markdown import fix_metadata_list_indentation
+    input_lines = [
+        "**File:** `role.md`\n",
+        "- item1\n",
+        "- item2\n",
+    ]
+    expected = input_lines.copy()
+    assert fix_metadata_list_indentation(input_lines) == expected
+
+
+def test_fix_metadata_list_indentation_handles_numbered_lists() -> None:
+    """Test: Indent numbered lists following metadata label."""
+    from claudeutils.markdown import fix_metadata_list_indentation
+    input_lines = [
+        "**Steps:**\n",
+        "1. First step\n",
+        "2. Second step\n",
+        "\n",
+    ]
+    expected = [
+        "- **Steps:**\n",
+        "  1. First step\n",
+        "  2. Second step\n",
+        "\n",
+    ]
+    assert fix_metadata_list_indentation(input_lines) == expected
+
+
+def test_fix_metadata_list_indentation_adds_to_existing_indent() -> None:
+    """Test: Add 2 spaces to list items that already have indentation."""
+    from claudeutils.markdown import fix_metadata_list_indentation
+    input_lines = [
+        "  **Nested Label:**\n",
+        "  - item1\n",
+        "    - nested item\n",
+        "\n",
+    ]
+    expected = [
+        "  - **Nested Label:**\n",
+        "    - item1\n",
+        "      - nested item\n",
+        "\n",
+    ]
+    assert fix_metadata_list_indentation(input_lines) == expected
+
+
+def test_fix_metadata_list_indentation_stops_at_non_list() -> None:
+    """Test: Stop indenting at non-list content."""
+    from claudeutils.markdown import fix_metadata_list_indentation
+    input_lines = [
+        "**Items:**\n",
+        "- item1\n",
+        "- item2\n",
+        "Regular paragraph\n",
+    ]
+    expected = [
+        "- **Items:**\n",
+        "  - item1\n",
+        "  - item2\n",
+        "Regular paragraph\n",
+    ]
+    assert fix_metadata_list_indentation(input_lines) == expected
+
+
+def test_metadata_list_indentation_works_with_metadata_blocks() -> None:
+    """Test: Both fixes work together without conflict."""
+    from claudeutils.markdown import fix_metadata_blocks, fix_metadata_list_indentation
+    input_lines = [
+        "**File:** `role.md`\n",
+        "**Model:** Sonnet\n",
+        "\n",
+        "**Plan Files:**\n",
+        "- `plans/phase-1.md`\n",
+        "- `plans/phase-2.md`\n",
+    ]
+    expected = [
+        "- **File:** `role.md`\n",
+        "- **Model:** Sonnet\n",
+        "\n",
+        "- **Plan Files:**\n",
+        "  - `plans/phase-1.md`\n",
+        "  - `plans/phase-2.md`\n",
+    ]
+    lines = fix_metadata_blocks(input_lines)
+    lines = fix_metadata_list_indentation(lines)
+    assert lines == expected
