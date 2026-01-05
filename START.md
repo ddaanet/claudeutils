@@ -1,10 +1,41 @@
 # Handoff Entry Point
 
-## Current Status: Markdown Work Complete ✅
+## Current Status: Markdown Bug Fix Planned 🔧
 
 - **Branch:** markdown
-- **All features implemented, tested, and documented**
-- **Status:** Ready for merge or new work
+- **Issue:** List detection triggers on ALL fenced blocks (yaml, python, tables)
+- **Plan:** `plans/markdown-fence-aware-processing.md`
+- **Next:** Execute plan in code role session
+
+### The Bug
+
+Processing functions apply to ALL content, including inside fenced blocks:
+
+```python
+# Input: ```python block with dict
+config = {
+    "name": "test",
+    "version": "1.0"
+}
+
+# Current output: BROKEN
+config = {
+- "name": "test",      # ❌ Converted to list item
+- "version": "1.0"     # ❌ Converted to list item
+}
+```
+
+Tables, YAML lists, and other structured content also corrupted.
+
+### The Fix
+
+Implement segment-aware processing:
+- Parse document into segments (processable vs protected)
+- Apply fixes ONLY to: plain text + ````markdown` blocks
+- Protect ALL other blocks: ```python, ```yaml, ```bash, ``` (bare), etc.
+
+**Implementation:** 5 phases, 19 tests, ~100 LOC
+**Checkpoint:** After each phase for validation
 
 ---
 
@@ -49,22 +80,21 @@ Implemented three major features plus bonus improvements:
 
 ---
 
-## Next Steps (User Direction Needed)
+## Next Steps
 
-**Option 1:** Merge markdown branch to main
+**Immediate:** Execute `plans/markdown-fence-aware-processing.md`
 
-- Review and merge completed work
-- Update version if needed
+```bash
+# Load code role and execute plan
+just role-code
+```
 
-**Option 2:** Start new feature
-
-- Review plans in `plans/` directory
-- Choose next feature to implement
-
-**Option 3:** Other project work
-
-- Bug fixes, refactoring, or maintenance
-- New feature planning
+**Plan structure:**
+- Phase 1: Segment parser foundation (5 tests)
+- Phase 2: Mixed content parsing (3 tests)
+- Phase 3: Segment integration (4 tests)
+- Phase 4: Backtick space preservation (5 tests)
+- Phase 5: Exception handling (2 tests)
 
 ---
 

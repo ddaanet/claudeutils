@@ -20,59 +20,68 @@ This file tracks:
 
 ---
 
-## Current Status: Markdown Work Complete ✅
+## Current Status: Bug Fix Planned 🔧
 
 - **Branch:** markdown
-- **All features implemented and documented**
-- **Ready for:** Merge to main or new feature work
+- **Issue:** List detection corrupts content in non-markdown fenced blocks
+- **Plan:** `plans/markdown-fence-aware-processing.md` (written 2026-01-05)
+- **Next:** Execute plan in code role session
 
-### Recent Commits (2026-01-05)
+### The Problem
 
+Discovered critical bug: ALL processing functions (not just list detection) operate on raw line lists without block context. This causes:
+
+- Dictionary keys in ```python blocks → converted to list items
+- Table rows → converted to list items
+- YAML lists → further corrupted
+- Any content with colons/prefixes inside ANY fenced block → corrupted
+
+**Example:**
+```python
+# Input: dict in ```python block
+config = {"name": "test", "version": "1.0"}
+
+# Current output: BROKEN
+config = {
+- "name": "test",      # ❌
+- "version": "1.0"     # ❌
+}
 ```
-82c3aab Add inline backtick escaping to prevent triple-backtick ambiguity
-829b1df Add custom exception handling for markdown processing
-0d794bd Document markdown cleanup features and architecture
-8690025 Convert metadata labels to list items with proper nesting
-8a94c0f Add markdown code block nesting for inner fences
-29637ef Extend fix_warning_lines to detect any consistent prefix
-```
 
-### What Was Completed
+### The Solution
 
-**Features (All TDD cycles complete):**
+Implement segment-aware architecture:
+1. Parse document into segments (processable vs protected)
+2. Apply fixes ONLY to: plain text + ````markdown` blocks
+3. Protect: ```python, ```yaml, ```bash, ``` (bare), all other fenced blocks
 
-1. ✅ Feature 1: Generic prefix detection in fix_warning_lines
-2. ✅ Feature 2: Code block nesting with inner fence handling
-3. ✅ Feature 3: Metadata list indentation
-4. ✅ Inline backtick escaping (bonus feature)
-5. ✅ Custom exception handling (MarkdownProcessingError, MarkdownInnerFenceError)
-
-**Documentation:**
-
-- ✅ Module docstring explaining preprocessor purpose
-- ✅ Function docstrings for all key functions
-- ✅ README section with usage examples
-- ✅ Pipeline comments documenting processing order
-- ✅ TEST_DATA.md with input/output examples
-- ✅ DESIGN_DECISIONS.md with architecture rationale
-
-**Test Coverage:**
-
-- 32 markdown tests passing
-- 8 CLI markdown tests passing
-- All features validated with TDD
+**Plan:** 5 phases, 19 tests, checkpoints after each phase
 
 ---
 
 ## Pending Tasks
 
-None currently - all markdown work complete.
+**Immediate:** Execute `plans/markdown-fence-aware-processing.md`
 
-**Possible next steps (user direction needed):**
+1. Phase 1: Segment parser foundation (5 tests)
+2. Phase 2: Mixed content parsing (3 tests)
+3. Phase 3: Segment integration (4 tests)
+4. Phase 4: Backtick space preservation (5 tests)
+5. Phase 5: Exception handling (2 tests)
 
-- Merge markdown branch to main
-- Start new feature from plans/ directory
-- Other project work
+---
+
+## Previous Work (2026-01-05)
+
+### Markdown Preprocessor Features Implemented
+
+1. ✅ Generic prefix detection in fix_warning_lines
+2. ✅ Code block nesting with inner fence handling
+3. ✅ Metadata list indentation
+4. ✅ Inline backtick escaping
+5. ✅ Custom exception handling
+
+**Note:** All features work correctly on plain text, but need segment-aware protection for fenced blocks
 
 ---
 
