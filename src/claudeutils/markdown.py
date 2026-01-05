@@ -299,11 +299,12 @@ def escape_inline_backticks(lines: list[str]) -> list[str]:
 
 
 def fix_metadata_blocks(lines: list[str]) -> list[str]:
-    """Convert consecutive **Label:** lines to list items."""
+    """Convert consecutive **Label:** lines to list items and indent following
+    lists."""
     result = []
     i = 0
-    # Match both **Label:** and **Label**: patterns
-    pattern = r"^\*\*[A-Za-z][^*]+:\*\* |^\*\*[A-Za-z][^*]+\*\*: "
+    # Match both **Label:** and **Label**: patterns (with optional content after)
+    pattern = r"^\*\*[A-Za-z][^*]+:\*\*|^\*\*[A-Za-z][^*]+\*\*:"
     while i < len(lines):
         line = lines[i]
         if re.match(pattern, line.strip()):
@@ -330,6 +331,23 @@ def fix_metadata_blocks(lines: list[str]) -> list[str]:
                 # Preserve blank line
                 if found_blank:
                     result.append("\n")
+
+                # Indent following list items (if any)
+                while j < len(lines):
+                    list_line = lines[j]
+                    list_stripped = list_line.strip()
+
+                    if list_stripped == "":
+                        result.append(list_line)
+                        j += 1
+                        break
+
+                    if not re.match(r"^[-*] |^\d+\. ", list_stripped):
+                        break
+
+                    result.append(f"  {list_stripped}\n")
+                    j += 1
+
                 i = j
                 continue
         result.append(line)
@@ -420,6 +438,10 @@ def fix_warning_lines(lines: list[str]) -> list[str]:
         if not stripped:
             return None
         if re.match(r"^[-*]|^\d+\.", stripped):
+            return None
+
+        # Skip table rows (start with | and contain 2+ pipes)
+        if stripped.startswith("|") and stripped.count("|") >= 2:
             return None
 
         match = re.match(r"^(\S+(?:\s|:))", stripped)
@@ -720,7 +742,8 @@ def process_lines(lines: list[str]) -> list[str]:
     segments = apply_fix_to_segments(segments, fix_metadata_blocks)
     segments = apply_fix_to_segments(segments, fix_warning_lines)
     segments = apply_fix_to_segments(segments, fix_nested_lists)
-    segments = apply_fix_to_segments(segments, fix_metadata_list_indentation)
+    # Disabled: fix_metadata_blocks now handles list indentation after metadata blocks
+    # segments = apply_fix_to_segments(segments, fix_metadata_list_indentation)
     segments = apply_fix_to_segments(segments, fix_numbered_list_spacing)
     segments = apply_fix_to_segments(segments, fix_backtick_spaces)
 

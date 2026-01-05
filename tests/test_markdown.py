@@ -73,12 +73,18 @@ def test_process_lines_fixes_nested_lists() -> None:
 
 
 def test_process_lines_fixes_numbered_list_spacing() -> None:
-    """Test: process_lines fixes numbered list spacing."""
+    """Test: 2+ consecutive metadata labels trigger list conversion and indentation.
+
+    When 2+ consecutive **Label:** lines appear (with space after colon),
+    they form a metadata list and following numbered list is indented.
+    """
     input_lines = [
+        "**Label:** content\n",
         "**Execution phase:**\n",
         "4. Batch reads\n",
     ]
     expected = [
+        "- **Label:** content\n",
         "- **Execution phase:**\n",
         "  4. Batch reads\n",
     ]
@@ -493,7 +499,7 @@ def test_process_lines_is_idempotent() -> None:
 
 
 def test_metadata_list_indentation_works_with_metadata_blocks() -> None:
-    """Test: Both fixes work together without conflict."""
+    """Test: 2+ labels converted and following list indented, single label not converted."""
     input_lines = [
         "**File:** `role.md`\n",
         "**Model:** Sonnet\n",
@@ -506,12 +512,11 @@ def test_metadata_list_indentation_works_with_metadata_blocks() -> None:
         "- **File:** `role.md`\n",
         "- **Model:** Sonnet\n",
         "\n",
-        "- **Plan Files:**\n",
-        "  - `plans/phase-1.md`\n",
-        "  - `plans/phase-2.md`\n",
+        "**Plan Files:**\n",
+        "- `plans/phase-1.md`\n",
+        "- `plans/phase-2.md`\n",
     ]
     lines = fix_metadata_blocks(input_lines)
-    lines = fix_metadata_list_indentation(lines)
     assert lines == expected
 
 
@@ -735,5 +740,33 @@ def test_inner_fence_detection_in_markdown_block() -> None:
         "```\n",
         "````\n",
     ]
+    result = process_lines(input_lines)
+    assert result == expected
+
+
+def test_fix_warning_lines_skips_table_rows() -> None:
+    """Test: Tables should not be converted to lists by fix_warning_lines."""
+    input_lines = [
+        "| Header 1 | Header 2 |\n",
+        "| -------- | -------- |\n",
+        "| Value 1  | Value 2  |\n",
+        "\n",
+    ]
+    result = fix_warning_lines(input_lines)
+    assert result == input_lines
+
+
+def test_single_bold_label_not_converted_to_list() -> None:
+    """Test: Single **Label:** line should NOT be converted to list item.
+
+    User requirement: Single label line ≠ metadata list.
+    Only 2+ consecutive labels are converted.
+    """
+    input_lines = [
+        "**Commits:**\n",
+        "- item 1\n",
+        "\n",
+    ]
+    expected = input_lines.copy()
     result = process_lines(input_lines)
     assert result == expected
