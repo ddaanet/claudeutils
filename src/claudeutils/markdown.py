@@ -62,6 +62,62 @@ def parse_segments(lines: list[str]) -> list[Segment]:
         line = lines[i]
         stripped = line.strip()
 
+        # Check if this is a YAML prolog section
+        if stripped == "---":
+            # Look ahead to see if this is a YAML prolog
+            # Must have closing ---, no blank lines INSIDE, and at least one key: value
+            # The next line after opening --- must NOT be blank (no intervening blank line)
+            prolog_lines = [line]
+            j = i + 1
+            has_key_value = False
+            has_blank_line_inside = False
+            found_closing = False
+            is_valid_prolog = False
+
+            # Check if next line exists and is not blank (immediate content required)
+            if j < len(lines) and lines[j].strip():
+                # Has content immediately after opening ---
+                while j < len(lines):
+                    current_line = lines[j]
+                    current_stripped = current_line.strip()
+
+                    # Check for blank line inside the prolog
+                    if not current_stripped:
+                        has_blank_line_inside = True
+                        break
+
+                    # Check for closing ---
+                    if current_stripped == "---":
+                        prolog_lines.append(current_line)
+                        found_closing = True
+                        j += 1
+                        break
+
+                    # Check for key: value pattern (identifier-colon-space)
+                    if re.match(r"^\w+:\s", current_stripped):
+                        has_key_value = True
+
+                    prolog_lines.append(current_line)
+                    j += 1
+
+                # Is this a valid YAML prolog?
+                if found_closing and has_key_value and not has_blank_line_inside:
+                    is_valid_prolog = True
+
+            if is_valid_prolog:
+                # Valid YAML prolog section
+                segments.append(
+                    Segment(
+                        processable=False,
+                        language="yaml-prolog",
+                        lines=prolog_lines,
+                        start_line=i,
+                    )
+                )
+                i = j
+                continue
+            # Not a valid prolog, fall through to collect as plain text
+
         # Check if this is a fence opening
         if stripped.startswith("```"):
             # Count opening backticks
@@ -128,11 +184,22 @@ def parse_segments(lines: list[str]) -> list[Segment]:
                 )
             )
         else:
-            # Collect plain text until next fence
+            # Collect plain text until next fence or potential YAML prolog
             text_lines = []
+            start_i = i
             while i < len(lines):
                 stripped = lines[i].strip()
-                if stripped.startswith("```"):
+                # Break on fence markers (but collect at least one line first)
+                if text_lines and stripped.startswith("```"):
+                    break
+                # Only break on "---" if it could be a valid YAML prolog
+                # (has non-blank content immediately after) and we've collected at least one line
+                if (
+                    text_lines
+                    and stripped == "---"
+                    and i + 1 < len(lines)
+                    and lines[i + 1].strip()
+                ):
                     break
                 text_lines.append(lines[i])
                 i += 1
@@ -143,7 +210,7 @@ def parse_segments(lines: list[str]) -> list[Segment]:
                         processable=True,
                         language=None,
                         lines=text_lines,
-                        start_line=i - len(text_lines),
+                        start_line=start_i,
                     )
                 )
 
