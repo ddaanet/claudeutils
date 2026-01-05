@@ -512,3 +512,105 @@ def test_metadata_list_indentation_works_with_metadata_blocks() -> None:
     lines = fix_metadata_blocks(input_lines)
     lines = fix_metadata_list_indentation(lines)
     assert lines == expected
+
+
+def test_segment_aware_processing_applies_fix_to_plain_text() -> None:
+    """Test 9: Fix applies to plain text, skips protected blocks.
+
+    When content is mixed (plain text + ```python block):
+    - Plain text with metadata should be converted to lists
+    - Content inside ```python block should be unchanged
+    """
+    input_lines = [
+        "**File:** test.py\n",
+        "**Model:** Sonnet\n",
+        "\n",
+        "```python\n",
+        "config = {\n",
+        '    "name": "test",\n',
+        '    "version": "1.0"\n',
+        "}\n",
+        "```\n",
+    ]
+    expected = [
+        "- **File:** test.py\n",
+        "- **Model:** Sonnet\n",
+        "\n",
+        "```python\n",
+        "config = {\n",
+        '    "name": "test",\n',
+        '    "version": "1.0"\n',
+        "}\n",
+        "```\n",
+    ]
+    result = process_lines(input_lines)
+    assert result == expected
+
+
+def test_segment_aware_processing_skips_yaml_prolog() -> None:
+    """Test 10: YAML prolog block content is completely unchanged.
+
+    YAML prologs contain structured data that should not be processed.
+    All fixes must skip content inside ---...--- prolog sections.
+    """
+    input_lines = [
+        "---\n",
+        "title: Document\n",
+        "tasks: [ build, test ]\n",
+        "---\n",
+        "\n",
+        "**File:** result.md\n",
+        "**Model:** Sonnet\n",
+    ]
+    expected = [
+        "---\n",
+        "title: Document\n",
+        "tasks: [ build, test ]\n",
+        "---\n",
+        "\n",
+        "- **File:** result.md\n",
+        "- **Model:** Sonnet\n",
+    ]
+    result = process_lines(input_lines)
+    assert result == expected
+
+
+def test_segment_aware_processing_skips_bare_fence_blocks() -> None:
+    """Test 11: Bare ``` block content is completely unchanged.
+
+    Bare code blocks (no language) should not have fixes applied.
+    This prevents false positives from colon/bracket-prefixed content.
+    """
+    input_lines = [
+        "```\n",
+        "NOTE: Important\n",
+        "TODO: Action item\n",
+        "```\n",
+    ]
+    expected = input_lines.copy()
+    result = process_lines(input_lines)
+    assert result == expected
+
+
+def test_segment_aware_processing_skips_nested_markdown_in_python() -> None:
+    """Test 12: Content in non-markdown blocks is fully protected.
+
+    When content appears inside ```python block,
+    all processing-sensitive patterns are protected.
+    This prevents false positives from pipes, colons, and other patterns.
+    """
+    input_lines = [
+        "```python\n",
+        "config = {\n",
+        "    # Table format example:\n",
+        "    # | Column | Value |\n",
+        "    # | ------ | ----- |\n",
+        "    # | Build  | Done  |\n",
+        "    # | Test   | Pass  |\n",
+        "    'name': 'test'\n",
+        "}\n",
+        "```\n",
+    ]
+    expected = input_lines.copy()
+    result = process_lines(input_lines)
+    assert result == expected
