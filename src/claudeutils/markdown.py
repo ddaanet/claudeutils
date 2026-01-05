@@ -1,4 +1,34 @@
-"""Fix markdown structure before reformatting."""
+r"""Preprocessor for Claude markdown-like output.
+
+This module fixes structural issues in Claude-generated markdown before
+dprint formatting. It handles patterns that Claude commonly produces but
+aren't valid markdown, such as:
+
+- Consecutive lines with emoji/symbol prefixes needing list formatting
+- Code blocks with improper fence nesting
+- Metadata labels followed by lists needing indentation
+- Other structural patterns from Claude output
+
+Processing Pipeline:
+    Claude output → markdown.py fixes → dprint formatting
+
+Future Direction:
+    This should eventually evolve into a dprint plugin for better integration.
+
+Usage:
+    # Process single file
+    from pathlib import Path
+    from claudeutils.markdown import process_file
+
+    filepath = Path("output.md")
+    modified = process_file(filepath)  # Returns True if file was changed
+
+    # Process lines in memory
+    from claudeutils.markdown import process_lines
+
+    lines = ["**File:** test.md\n", "**Model:** Sonnet\n"]
+    fixed_lines = process_lines(lines)
+"""
 
 import re
 from pathlib import Path
@@ -109,15 +139,26 @@ def fix_numbered_list_spacing(lines: list[str]) -> list[str]:
 
 
 def fix_warning_lines(lines: list[str]) -> list[str]:
-    """Convert consecutive lines with consistent non-markup prefix to list items."""
+    """Convert to list items lines with consistent non-markup prefixes.
+
+    Claude often generates consecutive lines with emoji or symbol prefixes
+    that should be formatted as lists. This detects patterns like:
+    - ✅ Task completed
+    - ❌ Task failed
+    - ⚠️ Warning message
+    - [TODO] Action item
+
+    Only converts groups of 2+ lines with similar prefix patterns.
+    Skips lines already formatted as lists (-, *, numbered).
+    """
     result = []
     i = 0
 
     def extract_prefix(line: str) -> str | None:
         """Extract non-markup prefix from line.
 
-        Returns None if line is empty, is already a list item, or has no clear prefix.
-        Returns prefix string (e.g., "✅", "[TODO]", "NOTE:") if found.
+        Returns None if line is empty, is already a list item, or has no clear
+        prefix. Returns prefix string (e.g., "✅", "[TODO]", "NOTE:") if found.
         """
         stripped = line.strip()
         if not stripped:
@@ -127,12 +168,11 @@ def fix_warning_lines(lines: list[str]) -> list[str]:
 
         match = re.match(r'^(\S+(?:\s|:))', stripped)
         if match:
-            prefix = match.group(1).rstrip()
-            return prefix
+            return match.group(1).rstrip()
         return None
 
     def is_similar_prefix(p1: str | None, p2: str | None) -> bool:
-        """Check if two prefixes are similar (same type: emoji, bracket, colon)."""
+        """Check if two prefixes are similar (emoji, bracket, colon types)."""
         if p1 is None or p2 is None:
             return False
         if p1 == p2:
@@ -147,14 +187,11 @@ def fix_warning_lines(lines: list[str]) -> list[str]:
         def is_colon_prefix(prefix: str) -> bool:
             return prefix.endswith(':')
 
-        if is_emoji_prefix(p1) and is_emoji_prefix(p2):
-            return True
-        if is_bracket_prefix(p1) and is_bracket_prefix(p2):
-            return True
-        if is_colon_prefix(p1) and is_colon_prefix(p2):
-            return True
-
-        return False
+        return (
+            (is_emoji_prefix(p1) and is_emoji_prefix(p2))
+            or (is_bracket_prefix(p1) and is_bracket_prefix(p2))
+            or (is_colon_prefix(p1) and is_colon_prefix(p2))
+        )
 
     while i < len(lines):
         line = lines[i]
@@ -204,9 +241,16 @@ def fix_nested_lists(lines: list[str]) -> list[str]:
 def fix_metadata_list_indentation(lines: list[str]) -> list[str]:
     """Convert metadata labels to list items and indent following lists.
 
-    When a **Label:** or **Label**: line (without content) is followed by
-    a list, convert the label to a list item and indent the following list
-    by 2 spaces.
+    Claude generates metadata labels like **Plan Files:** followed by lists.
+    This converts the label to a list item and indents the following list
+    by 2 spaces to create proper nested list structure.
+
+    Example:
+        **Plan Files:**          →    - **Plan Files:**
+        - phase-1.md                    - phase-1.md
+        - phase-2.md                    - phase-2.md
+
+    Works with both **Label:** and **Label**: patterns.
     """
     result: list[str] = []
     i = 0
@@ -217,33 +261,33 @@ def fix_metadata_list_indentation(lines: list[str]) -> list[str]:
         stripped = line.strip()
         indent = line[: len(line) - len(line.lstrip())]
 
-        if re.match(label_pattern, stripped):
-            if i + 1 < len(lines):
-                next_line = lines[i + 1]
-                next_stripped = next_line.strip()
+        if (
+            re.match(label_pattern, stripped)
+            and i + 1 < len(lines)
+            and re.match(r"^[-*]|^\d+\.", lines[i + 1].strip())
+        ):
+            result.append(f"{indent}- {stripped}\n")
 
-                if re.match(r"^[-*]|^\d+\.", next_stripped):
-                    result.append(f"{indent}- {stripped}\n")
+            j = i + 1
+            while j < len(lines):
+                list_line = lines[j]
+                list_stripped = list_line.strip()
 
-                    j = i + 1
-                    while j < len(lines):
-                        list_line = lines[j]
-                        list_stripped = list_line.strip()
+                if list_stripped == "":
+                    result.append(list_line)
+                    j += 1
+                    break
 
-                        if list_stripped == "":
-                            result.append(list_line)
-                            j += 1
-                            break
+                if not re.match(r"^[-*]|^\d+\.", list_stripped):
+                    break
 
-                        if not re.match(r"^[-*]|^\d+\.", list_stripped):
-                            break
+                indent_len = len(list_line) - len(list_line.lstrip())
+                list_indent = list_line[:indent_len]
+                result.append(f"{list_indent}  {list_stripped}\n")
+                j += 1
 
-                        list_indent = list_line[: len(list_line) - len(list_line.lstrip())]
-                        result.append(f"{list_indent}  {list_stripped}\n")
-                        j += 1
-
-                    i = j
-                    continue
+            i = j
+            continue
 
         result.append(line)
         i += 1
@@ -254,9 +298,16 @@ def fix_metadata_list_indentation(lines: list[str]) -> list[str]:
 def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
     """Nest ```markdown blocks that contain inner ``` fences.
 
+    Claude sometimes generates ```markdown blocks containing code examples
+    with their own ``` fences. This uses ```` (4 backticks) for the outer
+    fence to properly nest the content.
+
     Raises:
-        ValueError: If inner fence detected in non-markdown code block
-                    (prevents dprint formatting failures)
+        ValueError: If inner fence detected in non-markdown code block.
+                    This prevents dprint formatting failures downstream.
+
+    Note: Only processes ```markdown blocks. Other language blocks with
+          inner fences will error out to prevent silent formatting issues.
     """
     result = []
     i = 0
@@ -296,7 +347,10 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
                                 if check_line == "```":
                                     found_matching_close = True
                                     break
-                                elif check_line.startswith("```") and len(check_line) > 3:
+                                if (
+                                    check_line.startswith("```")
+                                    and len(check_line) > 3
+                                ):
                                     # Opening fence before close - stop looking
                                     break
 
@@ -306,7 +360,11 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
                                 has_inner_fence = True
                             else:
                                 # This is the outer closing fence
-                                if j > i + 1 and any("```" in lines[k] for k in range(i + 1, j)):
+                                has_inner = any(
+                                    "```" in lines[k]
+                                    for k in range(i + 1, j)
+                                )
+                                if j > i + 1 and has_inner:
                                     has_inner_fence = True
                                 break
 
@@ -322,11 +380,12 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
                     result.extend(block_lines[1:-1])
                     result.append("````\n")
                 else:
-                    raise ValueError(
+                    msg = (
                         f"Inner fence detected in non-markdown block "
                         f"(language: {language}, line: {i + 1}). "
                         f"This will cause dprint formatting to fail."
                     )
+                    raise ValueError(msg)
             else:
                 result.extend(block_lines)
 
@@ -339,16 +398,35 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
     return result
 
 
+# ============================================================================
+# Processing Pipeline
+# ============================================================================
+#
+# This module applies multiple fixes in a specific order to handle
+# Claude-generated markdown patterns:
+#
+# 1. fix_dunder_references    - Wrap `__init__.py` in backticks
+# 2. fix_metadata_blocks      - Convert consecutive **Label:** to lists
+# 3. fix_warning_lines        - Convert emoji/symbol prefixed lines to lists
+# 4. fix_nested_lists         - Convert lettered items (a., b.) to numbered
+# 5. fix_metadata_list_indentation - Indent lists after metadata labels
+# 6. fix_numbered_list_spacing - Add proper blank lines around numbered lists
+# 7. fix_markdown_code_blocks - Nest markdown blocks with inner fences
+#
+# Order matters: Line-based fixes run before block-based fixes to avoid
+# interference. Spacing fixes run near the end after structure is correct.
+#
+
+
 def process_lines(lines: list[str]) -> list[str]:
     """Apply all markdown structure fixes to lines."""
-    lines = [fix_dunder_references(line) for line in lines]
-    lines = fix_metadata_blocks(lines)
-    lines = fix_warning_lines(lines)
-    lines = fix_nested_lists(lines)
-    lines = fix_metadata_list_indentation(lines)
-    lines = fix_numbered_list_spacing(lines)
-    lines = fix_markdown_code_blocks(lines)
-    return lines
+    result = [fix_dunder_references(line) for line in lines]
+    result = fix_metadata_blocks(result)
+    result = fix_warning_lines(result)
+    result = fix_nested_lists(result)
+    result = fix_metadata_list_indentation(result)
+    result = fix_numbered_list_spacing(result)
+    return fix_markdown_code_blocks(result)
 
 
 def process_file(filepath: Path) -> bool:

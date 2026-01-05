@@ -102,3 +102,107 @@ SAMPLE_INTERRUPTION = {
     "sessionId": "e12d203f-ca65-44f0-9976-cb10b74514c1"
 }
 ```
+
+---
+
+## Markdown Cleanup Examples
+
+The markdown module preprocesses Claude-generated markdown output before dprint
+formatting. These examples show common patterns and transformations.
+
+### Checklist Detection
+
+**Input:**
+
+```
+✅ Issue #1: XPASS tests visible
+✅ Issue #2: Setup failures captured
+❌ Issue #3: Not fixed yet
+```
+
+**Output:**
+
+```
+- ✅ Issue #1: XPASS tests visible
+- ✅ Issue #2: Setup failures captured
+- ❌ Issue #3: Not fixed yet
+```
+
+### Code Block Nesting
+
+**Input:**
+
+````
+```markdown
+# Example
+```python
+code
+```
+```
+````
+
+**Output:**
+
+`````
+````markdown
+# Example
+```python
+code
+```
+````
+`````
+
+**Error Case (Invalid):**
+
+````
+```python
+def foo():
+    """
+    Example:
+    ```
+    code
+    ```
+    """
+```
+
+Error: Inner fence detected in non-markdown block (prevents dprint failure)
+````
+
+### Metadata List Indentation
+
+**Input:**
+
+```
+**Plan Files:**
+- `plans/phase-1.md`
+- `plans/phase-2.md`
+```
+
+**Output:**
+
+```
+- **Plan Files:**
+  - `plans/phase-1.md`
+  - `plans/phase-2.md`
+```
+
+---
+
+### Pipeline Flow
+
+```
+Claude generates markdown
+  ↓
+markdown.py preprocessor (fix structure)
+  ├─ fix_dunder_references
+  ├─ fix_metadata_blocks
+  ├─ fix_warning_lines (extended)
+  ├─ fix_nested_lists
+  ├─ fix_metadata_list_indentation (new)
+  ├─ fix_numbered_list_spacing
+  └─ fix_markdown_code_blocks (new)
+  ↓
+dprint formatter (consistent style)
+  ↓
+Final markdown output
+```

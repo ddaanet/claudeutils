@@ -2,7 +2,16 @@
 
 from pathlib import Path
 
-from claudeutils.markdown import process_file, process_lines
+import pytest
+
+from claudeutils.markdown import (
+    fix_markdown_code_blocks,
+    fix_metadata_blocks,
+    fix_metadata_list_indentation,
+    fix_warning_lines,
+    process_file,
+    process_lines,
+)
 
 
 def test_import_process_lines() -> None:
@@ -97,7 +106,6 @@ def test_process_file_returns_false_when_unchanged(tmp_path: Path) -> None:
 
 def test_fix_warning_lines_handles_checkmark_emoji() -> None:
     """Test: fix_warning_lines converts consecutive ✅ lines to list."""
-    from claudeutils.markdown import fix_warning_lines
     input_lines = [
         "✅ Issue #1: XPASS tests visible\n",
         "✅ Issue #2: Setup failures captured\n",
@@ -111,7 +119,6 @@ def test_fix_warning_lines_handles_checkmark_emoji() -> None:
 
 def test_fix_warning_lines_handles_cross_emoji() -> None:
     """Test: fix_warning_lines converts consecutive ❌ lines to list."""
-    from claudeutils.markdown import fix_warning_lines
     input_lines = [
         "❌ Failed test 1\n",
         "❌ Failed test 2\n",
@@ -125,7 +132,6 @@ def test_fix_warning_lines_handles_cross_emoji() -> None:
 
 def test_fix_warning_lines_handles_mixed_emoji_prefix() -> None:
     """Test: fix_warning_lines converts mixed ✅/❌ lines to list."""
-    from claudeutils.markdown import fix_warning_lines
     input_lines = [
         "✅ Issue #1: XPASS tests visible\n",
         "✅ Issue #2: Setup failures captured\n",
@@ -141,7 +147,6 @@ def test_fix_warning_lines_handles_mixed_emoji_prefix() -> None:
 
 def test_fix_warning_lines_skips_existing_lists() -> None:
     """Test: fix_warning_lines skips lines already formatted as lists."""
-    from claudeutils.markdown import fix_warning_lines
     input_lines = [
         "- ✅ Issue #1: Already a list\n",
         "- ✅ Issue #2: Already a list\n",
@@ -152,7 +157,6 @@ def test_fix_warning_lines_skips_existing_lists() -> None:
 
 def test_fix_warning_lines_skips_single_line() -> None:
     """Test: fix_warning_lines skips single line with emoji prefix."""
-    from claudeutils.markdown import fix_warning_lines
     input_lines = [
         "✅ Only one line\n",
         "\n",
@@ -164,7 +168,6 @@ def test_fix_warning_lines_skips_single_line() -> None:
 
 def test_fix_warning_lines_handles_bracket_and_colon_prefix() -> None:
     """Test: fix_warning_lines handles [TODO] and NOTE: patterns."""
-    from claudeutils.markdown import fix_warning_lines
     input_lines = [
         "[TODO] Implement feature X\n",
         "[TODO] Write tests\n",
@@ -184,7 +187,6 @@ def test_fix_warning_lines_handles_bracket_and_colon_prefix() -> None:
 
 def test_fix_markdown_code_blocks_nests_when_inner_fence_detected() -> None:
     """Test: Nest ```markdown block containing inner ``` fence."""
-    from claudeutils.markdown import fix_markdown_code_blocks
     input_lines = [
         "```markdown\n",
         "# Example\n",
@@ -206,7 +208,6 @@ def test_fix_markdown_code_blocks_nests_when_inner_fence_detected() -> None:
 
 def test_fix_markdown_code_blocks_no_change_without_inner_fence() -> None:
     """Test: Leave ```markdown block without inner fence unchanged."""
-    from claudeutils.markdown import fix_markdown_code_blocks
     input_lines = [
         "```markdown\n",
         "# Simple Example\n",
@@ -219,8 +220,6 @@ def test_fix_markdown_code_blocks_no_change_without_inner_fence() -> None:
 
 def test_fix_markdown_code_blocks_errors_on_inner_fence_in_python() -> None:
     """Test: Error when ```python block contains inner fence."""
-    import pytest
-    from claudeutils.markdown import fix_markdown_code_blocks
     input_lines = [
         "```python\n",
         'def foo():\n',
@@ -239,7 +238,6 @@ def test_fix_markdown_code_blocks_errors_on_inner_fence_in_python() -> None:
 
 def test_fix_markdown_code_blocks_handles_multiple_blocks() -> None:
     """Test: Handle multiple ```markdown blocks correctly."""
-    from claudeutils.markdown import fix_markdown_code_blocks
     input_lines = [
         "# Doc\n",
         "\n",
@@ -275,7 +273,6 @@ def test_fix_markdown_code_blocks_handles_multiple_blocks() -> None:
 
 def test_fix_metadata_list_indentation_basic_case() -> None:
     """Test: Convert metadata label to list item and indent following list."""
-    from claudeutils.markdown import fix_metadata_list_indentation
     input_lines = [
         "**Plan Files:**\n",
         "- `plans/phase-1.md`\n",
@@ -293,7 +290,6 @@ def test_fix_metadata_list_indentation_basic_case() -> None:
 
 def test_fix_metadata_list_indentation_colon_outside() -> None:
     """Test: Handle **Label**: pattern (colon outside bold)."""
-    from claudeutils.markdown import fix_metadata_list_indentation
     input_lines = [
         "**Implementation Date**:\n",
         "- 2026-01-04\n",
@@ -309,7 +305,6 @@ def test_fix_metadata_list_indentation_colon_outside() -> None:
 
 def test_fix_metadata_list_indentation_skips_label_with_content() -> None:
     """Test: Skip metadata label with content on same line."""
-    from claudeutils.markdown import fix_metadata_list_indentation
     input_lines = [
         "**File:** `role.md`\n",
         "- item1\n",
@@ -321,7 +316,6 @@ def test_fix_metadata_list_indentation_skips_label_with_content() -> None:
 
 def test_fix_metadata_list_indentation_handles_numbered_lists() -> None:
     """Test: Indent numbered lists following metadata label."""
-    from claudeutils.markdown import fix_metadata_list_indentation
     input_lines = [
         "**Steps:**\n",
         "1. First step\n",
@@ -339,7 +333,6 @@ def test_fix_metadata_list_indentation_handles_numbered_lists() -> None:
 
 def test_fix_metadata_list_indentation_adds_to_existing_indent() -> None:
     """Test: Add 2 spaces to list items that already have indentation."""
-    from claudeutils.markdown import fix_metadata_list_indentation
     input_lines = [
         "  **Nested Label:**\n",
         "  - item1\n",
@@ -357,7 +350,6 @@ def test_fix_metadata_list_indentation_adds_to_existing_indent() -> None:
 
 def test_fix_metadata_list_indentation_stops_at_non_list() -> None:
     """Test: Stop indenting at non-list content."""
-    from claudeutils.markdown import fix_metadata_list_indentation
     input_lines = [
         "**Items:**\n",
         "- item1\n",
@@ -375,7 +367,6 @@ def test_fix_metadata_list_indentation_stops_at_non_list() -> None:
 
 def test_metadata_list_indentation_works_with_metadata_blocks() -> None:
     """Test: Both fixes work together without conflict."""
-    from claudeutils.markdown import fix_metadata_blocks, fix_metadata_list_indentation
     input_lines = [
         "**File:** `role.md`\n",
         "**Model:** Sonnet\n",
