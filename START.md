@@ -1,163 +1,93 @@
 # Handoff Entry Point
 
-## Current Task: Markdown Cleanup Features
+## Current Status: Markdown Work Complete ✅
 
-- **Status:** Plans complete, ready for TDD implementation
-- **Orchestrator:** Sonnet
-- **Task Coders:** Haiku
-
----
-
-### What's Done
-
-- ✅ **Feature planning** - Three features designed with TDD cycles
-- ✅ **User clarifications** - All edge cases and patterns validated
-- ✅ **Implementation plans** - Detailed plans in `plans/markdown/`
-- ✅ **Documentation plan** - Module and README updates specified
+- **Branch:** markdown
+- **All features implemented, tested, and documented**
+- **Status:** Ready for merge or new work
 
 ---
 
-### What's Next
+## What Was Completed (2026-01-05)
 
-**NEXT:** Implement Feature 1 (Checklist Detection) using TDD
+### Markdown Preprocessor Features
 
-**Workflow:**
+Implemented three major features plus bonus improvements:
 
-1. Read `plans/markdown/feature-1-checklist-detection.md`
-2. Follow TDD cycles: red test → minimal code → green test
-3. Use Haiku for code implementation
-4. After Feature 1 complete, move to Feature 2
-5. After Feature 2 complete, move to Feature 3
-6. Finally, apply documentation updates
+1. **Generic prefix detection** - Extended fix_warning_lines to handle any consistent
+   non-markup prefix (emoji, brackets, colons)
+2. **Code block nesting** - Handle inner fences in ```markdown blocks using ````
+3. **Metadata list indentation** - Convert labels to list items with proper nesting
+4. **Inline backtick escaping** - Wrap `` ```language `` to prevent fence ambiguity
+5. **Custom exception handling** - MarkdownProcessingError and MarkdownInnerFenceError
 
-**Implementation order:**
+### Documentation
 
-1. Feature 1: Extend `fix_warning_lines` (6 TDD cycles)
-2. Feature 2: New `fix_markdown_code_blocks` (4 TDD cycles)
-3. Feature 3: New `fix_metadata_list_indentation` (6 TDD cycles)
-4. Documentation updates (module docstrings, README)
-5. Agent documentation (TEST_DATA.md, DESIGN_DECISIONS.md)
+- ✅ Module docstrings explaining preprocessor purpose and pipeline
+- ✅ README section with usage examples and what it fixes
+- ✅ Function docstrings for all key functions
+- ✅ TEST_DATA.md with input/output transformations
+- ✅ DESIGN_DECISIONS.md with architecture rationale
 
----
+### Test Coverage
 
-### Key Context Files
-
-| File                                               | Purpose                              |
-| -------------------------------------------------- | ------------------------------------ |
-| `session.md`                                       | Current session notes and decisions  |
-| `plans/markdown/overview.md`                       | Overall context and success criteria |
-| `plans/markdown/feature-1-checklist-detection.md`  | Feature 1 TDD plan                   |
-| `plans/markdown/feature-2-code-block-nesting.md`   | Feature 2 TDD plan                   |
-| `plans/markdown/feature-3-metadata-list-indent.md` | Feature 3 TDD plan                   |
-| `plans/markdown/documentation-updates.md`          | Documentation update plan            |
-| `plans/markdown/agent-documentation.md`            | Agent docs update plan               |
+- 40 total tests passing (32 markdown + 8 CLI)
+- All features validated through TDD
+- Exception handling and error reporting tested
 
 ---
 
-### Implementation Files
+## Key Files
 
-- **Source:** `src/claudeutils/markdown.py`
-- **Tests:** `tests/test_markdown.py`
-
----
-
-### TDD Approach
-
-**Critical:** Follow strict red-green-refactor cycle:
-
-1. **Red:** Write ONE failing test for next increment
-2. **Green:** Write MINIMAL code to pass that test
-3. **Verify:** Run test, ensure it passes
-4. **Iterate:** Move to next test
-
-**Don't:**
-
-- Write multiple tests at once
-- Implement more than the current test requires
-- Skip running tests after each change
-
-**Do:**
-
-- Keep changes minimal
-- Run tests frequently (`just test tests/test_markdown.py`)
-- Follow the test order in the plan
+| File                        | Purpose                                 |
+| --------------------------- | --------------------------------------- |
+| `session.md`                | Current session notes (short-term only) |
+| `AGENTS.md`                 | Core agent rules and role definitions   |
+| `agents/TEST_DATA.md`       | Data types and sample entries           |
+| `agents/DESIGN_DECISIONS.md` | Architectural and implementation decisions |
+| `agents/ROADMAP.md`         | Future enhancement ideas                |
 
 ---
 
-### Features Summary
+## Next Steps (User Direction Needed)
 
-**Feature 1: Checklist Detection**
+**Option 1:** Merge markdown branch to main
 
-- Extend `fix_warning_lines` to handle ANY consistent non-markup prefix
-- Examples: `✅ Task`, `❌ Failed`, `[TODO] Item`
-- 6 TDD cycles in plan
+- Review and merge completed work
+- Update version if needed
 
-**Feature 2: Code Block Nesting**
+**Option 2:** Start new feature
 
-- Nest `` ```markdown `` blocks containing inner `` ``` `` fences using `` ```` ``
-- Error out if inner fences in non-markdown blocks
-- 4 TDD cycles in plan
+- Review plans in `plans/` directory
+- Choose next feature to implement
 
-**Feature 3: Metadata List Indentation**
+**Option 3:** Other project work
 
-- Convert `**Label:**` + list → `- **Label:**` with 2-space indented list
-- Handles both `:**` and `**:` patterns
-- 6 TDD cycles in plan
+- Bug fixes, refactoring, or maintenance
+- New feature planning
 
 ---
 
-### Success Criteria
-
-- [ ] All new tests pass
-- [ ] All existing tests pass (no regressions)
-- [ ] Code follows existing patterns
-- [ ] Module documentation updated (docstrings, README)
-- [ ] Agent documentation updated (TEST_DATA.md, DESIGN_DECISIONS.md)
-- [ ] Pipeline integration verified
-
----
-
-### Commands
+## Quick Reference
 
 ```bash
-# Run markdown tests
-just test tests/test_markdown.py
+# Development workflow
+just dev              # Format, check, and test
+just test            # Run pytest
+just check           # Run ruff + mypy
+just format          # Auto-format code
 
-# Run specific test
-just test tests/test_markdown.py::test_name
+# Tool usage
+uv run claudeutils list                    # List sessions
+uv run claudeutils extract <prefix>        # Extract feedback
+uv run claudeutils markdown               # Process markdown files
+uv run claudeutils tokens sonnet file.md  # Count tokens
 
-# Run all tests
-just test
-
-# Format and check
-just dev
+# Git workflow
+git status           # Check staged changes
+git log --oneline -10  # Recent commits
 ```
 
 ---
 
-## Core Context
-
-1. `AGENTS.md` - Project overview, user preferences, role/rule definitions
-2. `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions
-3. `agents/TEST_DATA.md` - Data types and sample entries
-
-## Roles (Load at Session Start)
-
-- `agents/role-planning.md` - Design test specifications (opus/sonnet)
-- `agents/role-code.md` - TDD implementation (haiku)
-- `agents/role-lint.md` - Fix lint/type errors (haiku)
-- `agents/role-refactor.md` - Plan refactoring (sonnet)
-- `agents/role-execute.md` - Execute planned changes (haiku)
-- `agents/role-review.md` - Code review and cleanup (sonnet)
-- `agents/role-remember.md` - Update agent documentation (opus)
-
-## Rules (Load Before Action)
-
-- `agents/rules-commit.md` - **Read before any `git commit`**
-- `agents/rules-handoff.md` - Read before ending a session
-
-## Quick Reference
-
-See `README.md` for usage examples and development commands.
-
-Run `just dev` to verify all tests pass.
+**Note:** See `AGENTS.md` for detailed agent instructions, roles, and rules.
