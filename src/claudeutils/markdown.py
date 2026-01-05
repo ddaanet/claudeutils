@@ -50,6 +50,44 @@ class Segment(BaseModel):
     start_line: int
 
 
+def flatten_segments(segments: list[Segment]) -> list[str]:
+    """Flatten segments back into a list of lines."""
+    result: list[str] = []
+    for segment in segments:
+        result.extend(segment.lines)
+    return result
+
+
+def apply_fix_to_segments(
+    segments: list[Segment],
+    fix_fn: callable[..., list[str]],  # type: ignore[type-arg]
+) -> list[Segment]:
+    """Apply a fix function to processable segments only.
+
+    Args:
+        segments: List of segments to process
+        fix_fn: Function that takes list[str] and returns list[str]
+
+    Returns:
+        New list of segments with fix applied to processable ones only
+    """
+    result = []
+    for segment in segments:
+        if segment.processable:
+            fixed_lines = fix_fn(segment.lines)
+            result.append(
+                Segment(
+                    processable=segment.processable,
+                    language=segment.language,
+                    lines=fixed_lines,
+                    start_line=segment.start_line,
+                )
+            )
+        else:
+            result.append(segment)
+    return result
+
+
 def parse_segments(lines: list[str]) -> list[Segment]:
     """Parse document into segments (processable vs protected)."""
     if not lines:
@@ -637,13 +675,24 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
 
 def process_lines(lines: list[str]) -> list[str]:
     """Apply all markdown structure fixes to lines."""
-    result = escape_inline_backticks(lines)
-    result = [fix_dunder_references(line) for line in result]
-    result = fix_metadata_blocks(result)
-    result = fix_warning_lines(result)
-    result = fix_nested_lists(result)
-    result = fix_metadata_list_indentation(result)
-    result = fix_numbered_list_spacing(result)
+    # Parse document into segments (processable vs protected)
+    segments = parse_segments(lines)
+
+    # Apply fixes to processable segments only
+    segments = apply_fix_to_segments(segments, escape_inline_backticks)
+    segments = apply_fix_to_segments(
+        segments, lambda ls: [fix_dunder_references(line) for line in ls]
+    )
+    segments = apply_fix_to_segments(segments, fix_metadata_blocks)
+    segments = apply_fix_to_segments(segments, fix_warning_lines)
+    segments = apply_fix_to_segments(segments, fix_nested_lists)
+    segments = apply_fix_to_segments(segments, fix_metadata_list_indentation)
+    segments = apply_fix_to_segments(segments, fix_numbered_list_spacing)
+
+    # Flatten segments back to lines
+    result = flatten_segments(segments)
+
+    # fix_markdown_code_blocks runs on flattened output (needs full document view)
     return fix_markdown_code_blocks(result)
 
 
