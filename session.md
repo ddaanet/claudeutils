@@ -20,73 +20,86 @@ This file tracks:
 
 ---
 
-## Current Status: Formatter Bugs - Analysis Complete, Ready to Implement
+## Current Status: Formatter Bugs - Phases 1-2 Complete ✅
 
 - **Branch:** markdown
 - **Issue:** `just format` corrupting markdown (tables → lists, single labels → list items)
 - **Plan:** `plans/markdown/fix-warning-lines-tables.md`
-- **Progress:** Root cause analysis complete, fix plan ready
+- **Progress:** Phases 1-2 implemented and tested, Phase 3 pending
 
-### Problems Identified
+### Completed: Phase 1 - Table Detection ✅
 
-**Issue:** After running `just format`, 27 files corrupted with unwanted transformations
+**Implementation:**
+- Added check in `extract_prefix()` (lines 425-427): `if stripped.startswith("|") and stripped.count("|") >= 2: return None`
+- Tables with pipe characters now skipped during prefix detection
 
-**Root causes:**
-1. **Tables → Lists** - `fix_warning_lines()` treats `| ` as a prefix pattern
-   ```markdown
-   | Role     | File          |     - | Role     | File          |
-   | -------- | ------------- |  →  - | -------- | ------------- |
-   ```
+**Test:** `test_fix_warning_lines_skips_table_rows`
+- Input: Table with headers, separator, data rows
+- Expected: Tables unchanged by `fix_warning_lines()`
+- Status: Passing ✅
 
-2. **Single Labels → List Items** - `fix_metadata_list_indentation()` incorrectly converts
-   ```markdown
-   **Commits:**                    - **Commits:**
-   - item 1                 →        - item 1
-   ```
-   User requirement: "Single line with label does not make a metadata list"
+### Completed: Phase 2 - Metadata List Indentation ✅
 
-3. **Bold Labels Processed Twice** - Both `fix_warning_lines()` and `fix_metadata_blocks()` try to handle `**Label:**` patterns
+**Problem:** `fix_metadata_list_indentation()` converted single `**Label:**` to list items (incorrect per user requirement)
 
-### Solution Strategy
+**Solution:** Merged functionality into `fix_metadata_blocks()` and disabled original function
 
-**Phase 1: Table Detection** (HIGHEST PRIORITY)
-- Update `extract_prefix()` to detect and skip table rows
-- Pattern: starts with `|` AND contains 2+ pipe chars
-- Prevents 27 files from corruption
+**Implementation:**
+1. Updated pattern in `fix_metadata_blocks()` (line 306):
+   - Old: `r"^\*\*[A-Za-z][^*]+:\*\* |^\*\*[A-Za-z][^*]+\*\*: "` (required trailing space)
+   - New: `r"^\*\*[A-Za-z][^*]+:\*\*|^\*\*[A-Za-z][^*]+\*\*:"` (matches with/without content)
 
-**Phase 2: Disable Metadata List Indentation**
-- Comment out `fix_metadata_list_indentation()` call in `process_lines()`
-- Function incorrectly converts single `**Label:**` to list items
-- Keep `fix_metadata_blocks()` - correctly handles 2+ consecutive labels
-- Users control list indentation manually
+2. Added list indentation logic (lines 334-348):
+   - After converting 2+ metadata labels to list items
+   - Scan following lines for list items (`^[-*] |^\d+\. `)
+   - Indent by 2 spaces
 
-**Phase 3: Bold Label Exclusion**
-- Skip `**Label:**` patterns in `fix_warning_lines()`
-- Already handled by `fix_metadata_blocks()`
+3. Fixed pattern matching (line 344):
+   - `r"^[-*] |^\d+\. "` (requires space after marker)
+   - Prevents matching `**Label:**` as list item
 
-**Phase 4: Tighten Prefix Patterns** (Optional, if needed)
+4. Disabled `fix_metadata_list_indentation()` (line 744-745)
 
-### Requirements (User Clarified)
+**Tests:**
+- `test_single_bold_label_not_converted_to_list` - Single label stays unchanged ✅
+- `test_process_lines_fixes_numbered_list_spacing` - 2+ labels → list with indentation ✅
+- `test_metadata_list_indentation_works_with_metadata_blocks` - Updated expectations ✅
 
-- Metadata list = 2+ consecutive `**Label:**` lines → convert to list items ✅
-- Single `**Label:**` line → do NOT convert ❌
-- Lists following metadata lists → can be indented ✅
-- Indentation consistent at same level (no progressive increase) ✅
-- Tables → must remain as tables ✅
+### Results
 
-### Files Affected
+**Tests:** 45/45 markdown tests passing
+- Table detection working
+- Single labels NOT converted (per requirement)
+- 2+ consecutive labels converted with proper indentation
+- All existing tests still passing
 
-- 27 markdown files with unwanted changes after `just format`
-- Most affected: `AGENTS.md`, `START.md`, `session.md`, `agents/modules/MODULE_INVENTORY.md`
+**Behavior:**
+```markdown
+# Before (unwanted)
+| Header |     →    - | Header |
+**Label:**    →    - **Label:**
 
-### Next Steps
+# After (correct)
+| Header |     →    | Header |        (unchanged)
+**Label:**    →    **Label:**        (unchanged)
 
-Execute `plans/markdown/fix-warning-lines-tables.md`:
-1. Add table detection to `fix_warning_lines()`
-2. Disable `fix_metadata_list_indentation()`
-3. Add bold label exclusion
-4. Add tests for each fix
-5. Verify: `just format` produces no unwanted changes
+**Label1:**   →    - **Label1:**     (2+ labels → list)
+**Label2:**   →    - **Label2:**
+- item        →      - item          (indented)
+```
+
+### Remaining: Phase 3 - Bold Label Exclusion (Optional)
+
+**Purpose:** Prevent `**Label:**` from matching in `fix_warning_lines()` prefix detection
+
+**Status:** Not yet implemented. May not be necessary - current tests all passing.
+
+**Decision point:** Test on actual files to see if Phase 3 is needed.
+
+### Files Modified
+
+- `src/claudeutils/markdown.py` (lines 306, 425-427, 334-348, 744-745)
+- `tests/test_markdown.py` (2 new tests, 2 updated tests)
 
 ---
 
