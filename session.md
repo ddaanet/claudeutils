@@ -20,12 +20,68 @@ This file tracks:
 
 ---
 
-## Current Status: Formatter Bugs - Phases 1-2 Complete ✅
+## Current Status: Root Cause Analysis Complete - Phases 4-5 Ready for Implementation
 
 - **Branch:** markdown
-- **Issue:** `just format` corrupting markdown (tables → lists, single labels → list items)
+- **Issue:** `just format` corrupting 27 markdown files
 - **Plan:** `plans/markdown/fix-warning-lines-tables.md`
-- **Progress:** Phases 1-2 implemented and tested, Phase 3 pending
+- **Analysis:** `plans/markdown/root-cause-analysis.md`
+- **Progress:** Phases 1-3 complete ✅, NEW critical bugs found ❌, Phases 4-5 designed
+
+### Current Session (2026-01-05): Root Cause Analysis ✅
+
+**Situation:** Phases 1-2 complete, tests passing, but `just format` STILL corrupts 27 files
+
+**Actions:**
+1. Ran `just format` and captured diff to `format.diff`
+2. Examined diff to identify corruption patterns
+3. Identified TWO critical bugs in existing code
+4. Reverted all changes: `git checkout HEAD -- .`
+5. Created comprehensive root cause analysis document
+6. Updated implementation plan with Phases 4-5
+
+**Root Causes Identified:**
+
+**Bug #1: YAML Prolog Detection Broken** (`markdown.py:135`)
+- Pattern `r"^\w+:\s"` too restrictive (requires space, no digits, no hyphens)
+- Doesn't match nested keys: `tier_structure:`, `critical:`
+- Doesn't match keys with digits: `option_2:`, `key123:`
+- Doesn't match keys with hyphens: `semantic-type:`, `author-model:`
+- YAML not recognized → processed as plain text → mangled by prefix detection
+- **Fix:** Change to `r"^[a-zA-Z_][\w-]*:"` (allows keys without values, supports underscores/hyphens/digits after first char)
+
+**Bug #2: Prefix Detection Over-Aggressive** (`markdown.py:447`)
+- Pattern `r"^(\S+(?:\s|:))"` too broad (matches everything)
+- Matches regular prose: "Task agent prompt..."
+- Matches block quotes: `> Your subagent's...`
+- Matches tree diagrams: `├─ fix_dunder_references`
+- **Fix:** Complete rewrite - only match emoji symbols, `[TODO]` brackets, `NOTE:` uppercase+colon
+
+**Files Created:**
+- `plans/markdown/root-cause-analysis.md` - Complete technical analysis with evidence, implementation code, tests
+
+**Files Updated:**
+- `plans/markdown/fix-warning-lines-tables.md` - Added Phases 4-5 with complete implementation code
+- `START.md` - Updated status and next steps
+- `session.md` - This file
+
+**Next Steps:**
+- Implement Phase 4: Change `markdown.py:135` from `r"^\w+:\s"` to `r"^[a-zA-Z_][\w-]*:"`
+- Implement Phase 5: Rewrite `extract_prefix()` function (`markdown.py:431-450`)
+- Add 7 new test cases (2 segment parser + 5 prefix detection)
+- Run integration tests: `just format` should produce minimal/no diffs
+
+**Pattern Details:**
+- `r"^[a-zA-Z_][\w-]*:"` means:
+  - First char: letter or underscore (not digit, not hyphen)
+  - Remaining: letters, digits, underscores, OR hyphens
+  - Must end with colon (no space required)
+
+---
+
+## Previous Session (2026-01-05): Phases 1-3 Complete ✅
+
+**Issue:** `just format` corrupting markdown (tables → lists, single labels → list items)
 
 ### Completed: Phase 1 - Table Detection ✅
 

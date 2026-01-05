@@ -1,57 +1,85 @@
 # Handoff Entry Point
 
-## Current Status: Formatter Bug Fixes - Phases 1-2 Complete
+## Current Status: Root Cause Analysis Complete - NEW Critical Bugs Found
 
 - **Branch:** markdown
 - **Issue:** `just format` corrupting markdown files (27 files affected)
+- **Root Cause:** YAML prolog detection broken + prefix detection over-aggressive
 - **Plan:** `plans/markdown/fix-warning-lines-tables.md`
-- **Progress:** Phases 1-2 implemented and tested ✅
+- **Analysis:** `plans/markdown/root-cause-analysis.md`
+- **Progress:** Phases 1-3 complete ✅, Phases 4-5 required ❌
 
-### Completed Work
+### What Happened
 
-**Phase 1: Table Detection** ✅
-- Added table detection in `extract_prefix()` (lines 425-427)
-- Tables with `|` prefix and 2+ pipes now skipped
-- Test: `test_fix_warning_lines_skips_table_rows` passing
+**Phases 1-3: Complete** ✅
+- Phase 1: Table detection working
+- Phase 2: Single label conversion fixed
+- Phase 3: Bold label exclusion working
+- Result: 45/45 tests passing
 
-**Phase 2: Metadata List Indentation** ✅
-- Merged functionality into `fix_metadata_blocks()` (lines 301-354)
-- Pattern updated to match labels with/without content: `^\*\*[A-Za-z][^*]+:\*\*|^\*\*[A-Za-z][^*]+\*\*:`
-- Following lists automatically indented after 2+ metadata labels
-- Disabled `fix_metadata_list_indentation()` (line 744)
-- Test: `test_single_bold_label_not_converted_to_list` passing
+**BUT:** Running `just format` STILL corrupts 27 files! ❌
 
-### Results
+### NEW Critical Bugs Discovered (2026-01-05)
 
-- All 45/45 markdown tests passing
-- Tables remain as tables (no `- |` prefixes)
-- Single `**Label:**` lines NOT converted to list items
-- 2+ consecutive `**Label:**` lines converted to list with indented following lists
-- Fix is idempotent (multiple runs produce same output)
+After Phases 1-3, examined actual diff from `just format` and found TWO critical bugs:
 
-### User Requirements Met
+**Bug #1: YAML Prolog Detection Broken** (`markdown.py:135`)
+- Pattern `r"^\w+:\s"` requires space after colon
+- Doesn't match YAML keys without values: `tier_structure:`, `critical:`
+- Doesn't match keys with digits: `option_2:`, `key123:`
+- Doesn't match keys with hyphens: `semantic-type:`, `author-model:`
+- YAML sections not recognized → fall through to plain text → get mangled
+- **Example corruption:**
+  ```diff
+  ---
+  -tier_structure:
+  -  critical:
+  +- tier_structure:
+  +- critical:
+      - item
+  ```
 
-- Metadata list (2+ `**Label:**` lines) → convert to list items ✅
-- Single `**Label:**` line → do NOT convert ✅
-- Tables → remain as tables ✅
-- Lists after metadata lists → indented ✅
-- Indentation → consistent at same level ✅
+**Bug #2: Prefix Detection Over-Aggressive** (`markdown.py:447`)
+- Pattern `r"^(\S+(?:\s|:))"` matches ANY non-whitespace + space/colon
+- Matches regular prose: "Task agent" → converted to list ❌
+- Matches block quotes: `> text` → converted to list ❌
+- Matches tree diagrams: `├─ item` → converted to list ❌
+- **Example corruption:**
+  ```diff
+  -Task agent prompt is a minimal replacement.
+  -Task agent are effectively "interactive-only".
+  +- Task agent prompt is a minimal replacement.
+  +- Task agent are effectively "interactive-only".
+  ```
 
-### Remaining Work
+### Required Work
 
-**Phase 3: Bold Label Exclusion** (Optional)
-- Skip `**Label:**` patterns in `fix_warning_lines()`
-- May prevent edge cases where single labels match prefix patterns
+**Phase 4: Fix YAML Prolog Detection** (CRITICAL)
+- Location: `markdown.py:135`
+- Change: `r"^\w+:\s"` → `r"^[a-zA-Z_][\w-]*:"`
+- Effect: YAML content protected (processable=False), never mangled
+- Supports: underscores, hyphens, digits (not as first char)
+- Tests: 2 new segment parser tests
 
-### Verification
+**Phase 5: Rewrite `extract_prefix()`** (CRITICAL)
+- Location: `markdown.py:431-450`
+- Change: Complete rewrite - only match emoji, `[TODO]`, `NOTE:` uppercase
+- Effect: Defensive - even if content not in fenced blocks, don't mangle
+- Tests: 5 new prefix detection tests
 
-```bash
-# Run tests
-just test tests/test_markdown.py  # 45/45 passing
+### Documentation
 
-# Test formatting (when ready)
-just format && git diff  # Should show minimal changes
-```
+**Root Cause Analysis:** `plans/markdown/root-cause-analysis.md`
+- Detailed technical analysis with evidence from diff
+- Complete implementation code for both fixes
+- Test requirements and expected behavior
+- Risk assessment and rollback plan
+
+**Implementation Plan:** `plans/markdown/fix-warning-lines-tables.md`
+- Updated with Phases 4-5 complete code
+- 7 new test cases ready to implement
+- Integration testing steps
+- Success criteria validation
 
 ---
 
@@ -90,23 +118,35 @@ Implemented segment-aware markdown processing to prevent false positives in fenc
 
 ## Next Steps
 
-**Immediate:** Execute `plans/markdown/fix-warning-lines-tables.md`
+**Immediate:** Implement Phases 4-5
 
+**Phase 4: Fix YAML Prolog Detection**
 ```bash
-# Load code role and execute plan
-just role-code
+# Edit markdown.py:135
+# Change: r"^\w+:\s" → r"^[a-zA-Z_][\w]*:"
+# Add 2 segment parser tests
+just test tests/test_markdown.py
 ```
 
-**Plan structure:**
-- Phase 1: Table detection (skip table rows in fix_warning_lines)
-- Phase 2: Disable metadata list indentation (single labels stay as-is)
-- Phase 3: Bold label exclusion (avoid duplicate processing)
-- Phase 4: Tighten prefix patterns (optional)
+**Phase 5: Rewrite `extract_prefix()`**
+```bash
+# Replace markdown.py:431-450 with conservative implementation
+# Add 5 prefix detection tests
+just test tests/test_markdown.py
+```
+
+**Integration Testing**
+```bash
+just format           # Should produce minimal/no diffs
+git diff              # Verify 27 files no longer corrupted
+```
 
 **Success criteria:**
-- Tables remain as tables after `just format`
-- Single `**Label:**` lines not converted to list items
-- 48/48 tests pass
+- YAML prologs recognized (processable=False)
+- Regular prose NOT converted to lists
+- Emoji/bracket prefixes STILL work
+- All 55 tests pass (48 existing + 7 new)
+- `just format` produces minimal/no changes on 27 files
 
 ---
 
