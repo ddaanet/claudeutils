@@ -375,7 +375,7 @@ constraints when resuming work.
 
 **Generated weak variant**:
 
-```markdown
+````markdown
 # checkpoint-obedience.weak.md
 
 [RULE:T1] ⚠️ STOP at every checkpoint marker in the plan [RULE:T1] ⚠️ DO NOT proceed
@@ -449,7 +449,7 @@ agents/
 
 Note: .next.md files used during development to avoid overwriting existing roles.
 After validation, .next.md renamed to .md and old files archived.
-```
+````
 
 ### TODO: Script Requirements
 

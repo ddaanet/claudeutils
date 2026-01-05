@@ -21,6 +21,7 @@ The markdown preprocessor uses a **segment parser** to protect certain content f
 - **Markdown blocks:** Content in `` ```markdown `` fences (special case)
 
 ### How Fixes Work
+
 1. `parse_segments()` divides document into protected vs processable segments
 2. Fixes like `fix_warning_lines()` only run on processable segments
 3. Protected content is completely untouched
@@ -114,6 +115,7 @@ When both bugs combine:
 **Objective:** Prevent table rows from being processed as prefixed lines
 
 **Implementation:**
+
 1. Add table row detection to `extract_prefix()`:
    - Check if line matches table pattern: starts with `|` AND contains 2+ `|` chars
    - Return `None` for table rows (skip them)
@@ -141,7 +143,7 @@ def test_tables_unchanged():
 **Objective:** Stop converting single `**Label:**` lines to list items
 
 **Current behavior (unwanted):**
-```markdown
+```text
 **Commits:**                   - **Commits:**
 - item 1              →          - item 1
 - item 2                           - item 2
@@ -149,7 +151,7 @@ def test_tables_unchanged():
 Single label is converted to list item (wrong - not a metadata list)
 
 **Desired behavior:**
-```markdown
+```text
 **File:** role.md              **File:** role.md
 **Model:** Sonnet      →       **Model:** Sonnet
 
@@ -161,6 +163,7 @@ Single label is converted to list item (wrong - not a metadata list)
 
 **Implementation:**
 Modify `fix_metadata_list_indentation()` to:
+
 1. Detect if previous content is a metadata list (list items starting with `- **` pattern)
 2. Only indent following list if it comes after a metadata list
 3. Do NOT convert single `**Label:**` lines to list items
@@ -187,6 +190,7 @@ Modify `fix_metadata_list_indentation()` to:
 **Objective:** Prevent `**Label:**` patterns from being processed by `fix_warning_lines()` (already handled by `fix_metadata_blocks`)
 
 **Implementation:**
+
 1. Add bold label detection to `extract_prefix()`:
    - Check if line matches: `r"^\*\*[A-Za-z][^*]+:\*\*"` or `r"^\*\*[^*]+\*\*:"`
    - Return `None` for these patterns
@@ -371,6 +375,7 @@ def extract_prefix(line: str) -> str | None:
 ```
 
 **Key Changes:**
+
 1. **Explicit exclusions:**
    - Block quotes: `> text`
    - Tree symbols: `├─`, `└─`, `│`
@@ -450,6 +455,7 @@ def test_emoji_prefixes_still_work():
 ## Implementation Order
 
 ### Completed ✅
+
 1. **Phase 1: Add table detection** → DONE ✅
 2. **Phase 2: Disable metadata list indentation** → DONE ✅
 3. **Phase 3: Add bold label exclusion** → DONE ✅
