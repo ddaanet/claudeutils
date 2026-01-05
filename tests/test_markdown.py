@@ -770,3 +770,124 @@ def test_single_bold_label_not_converted_to_list() -> None:
     expected = input_lines.copy()
     result = process_lines(input_lines)
     assert result == expected
+
+
+def test_yaml_prolog_recognizes_keys_without_spaces() -> None:
+    r"""Test: YAML prolog keys without trailing spaces are recognized.
+
+    Phase 4: Fix YAML Prolog Detection
+    Bug: Pattern r"^\w+:\s" requires space after colon
+    Fix: Pattern r"^[a-zA-Z_][\w-]*:" allows keys without values
+
+    Verify that nested YAML keys like "tier_structure:" and "critical:"
+    (with no trailing space) are recognized as valid YAML prolog content.
+    """
+    input_lines = [
+        "---\n",
+        "tier_structure:\n",
+        "  critical:\n",
+        "    - item\n",
+        "---\n",
+        "Content here\n",
+    ]
+    # YAML prolog should not be processed by fix_warning_lines
+    # So the keys should NOT be converted to list items
+    expected = input_lines.copy()
+    result = process_lines(input_lines)
+    assert result == expected
+
+
+def test_yaml_prolog_recognizes_keys_with_hyphens() -> None:
+    """Test: YAML prolog keys with hyphens are recognized.
+
+    Pattern should support keys like "author-model:", "semantic-type:"
+    """
+    input_lines = [
+        "---\n",
+        "author-model: claude-3-5-sonnet\n",
+        "semantic-type: configuration\n",
+        "---\n",
+        "Content\n",
+    ]
+    expected = input_lines.copy()
+    result = process_lines(input_lines)
+    assert result == expected
+
+
+def test_prefix_detection_excludes_regular_prose() -> None:
+    r"""Test: Regular prose should NOT be converted to list items.
+
+    Phase 5: Rewrite extract_prefix()
+    Bug: Pattern r"^(\S+(?:\s|:))" matches regular text like "Task agent"
+    Fix: Only match emojis, brackets, and uppercase word+colon
+
+    Lines starting with regular words should NOT be converted to lists,
+    even if they appear in pairs.
+    """
+    input_lines = [
+        "Task agent prompt is a replacement.\n",
+        "Task agent are interactive-only.\n",
+    ]
+    expected = input_lines.copy()
+    result = fix_warning_lines(input_lines)
+    assert result == expected
+
+
+def test_prefix_detection_excludes_block_quotes() -> None:
+    """Test: Block quotes should NOT be converted to lists.
+
+    Lines starting with > should be protected.
+    """
+    input_lines = [
+        "> Your subagent's system prompt goes here.\n",
+        "> This can be multiple paragraphs.\n",
+    ]
+    expected = input_lines.copy()
+    result = fix_warning_lines(input_lines)
+    assert result == expected
+
+
+def test_prefix_detection_excludes_tree_diagrams() -> None:
+    """Test: Tree diagram symbols should NOT be converted to lists.
+
+    Lines with tree branch symbols (├, └, │) should be protected.
+    """
+    input_lines = [
+        "  ├─ fix_dunder_references\n",
+        "  ├─ fix_metadata_blocks\n",
+    ]
+    expected = input_lines.copy()
+    result = fix_warning_lines(input_lines)
+    assert result == expected
+
+
+def test_prefix_detection_preserves_uppercase_colon_prefixes() -> None:
+    """Test: Uppercase word + colon prefixes (NOTE:, WARNING:) are still detected.
+
+    These legitimate prefixes should still convert to lists when 2+.
+    """
+    input_lines = [
+        "NOTE: This is important\n",
+        "NOTE: Another note\n",
+    ]
+    expected = [
+        "- NOTE: This is important\n",
+        "- NOTE: Another note\n",
+    ]
+    result = fix_warning_lines(input_lines)
+    assert result == expected
+
+
+def test_prefix_detection_excludes_lowercase_colon_prefixes() -> None:
+    """Test: Lowercase word + colon should NOT be converted.
+
+    Only UPPERCASE word + colon are valid prefixes (NOTE:, WARNING:, etc.)
+    Lowercase like "Implementation:" should not be treated as prefix.
+    """
+    input_lines = [
+        "Implementation: Start here\n",
+        "Implementation: Then that\n",
+    ]
+    expected = input_lines.copy()
+    result = fix_warning_lines(input_lines)
+    assert result == expected

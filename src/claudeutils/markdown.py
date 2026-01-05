@@ -131,8 +131,10 @@ def parse_segments(lines: list[str]) -> list[Segment]:
                         j += 1
                         break
 
-                    # Check for key: value pattern (identifier-colon-space)
-                    if re.match(r"^\w+:\s", current_stripped):
+                    # Check for key: value pattern
+                    # Accepts: "key: value", "key:", "key_name:", "key-name:", "key123:"
+                    # Pattern allows underscores, hyphens, and digits except as first character
+                    if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
                         has_key_value = True
 
                     prolog_lines.append(current_line)
@@ -433,6 +435,17 @@ def fix_warning_lines(lines: list[str]) -> list[str]:
 
         Returns None if line is empty, is already a list item, or has no clear
         prefix. Returns prefix string (e.g., "✅", "[TODO]", "NOTE:") if found.
+
+        ONLY matches:
+        - Emoji-like symbols (non-alphanumeric at start)
+        - Bracketed text [like this]
+        - Uppercase words ending with colon (NOTE:, WARNING:, TODO:)
+
+        Explicitly excludes:
+        - Regular prose (lowercase words)
+        - Block quotes (>)
+        - Tree diagrams (├, └, │)
+        - YAML keys or section headers (lowercase word + colon)
         """
         stripped = line.strip()
         if not stripped:
@@ -444,9 +457,33 @@ def fix_warning_lines(lines: list[str]) -> list[str]:
         if stripped.startswith("|") and stripped.count("|") >= 2:
             return None
 
-        match = re.match(r"^(\S+(?:\s|:))", stripped)
-        if match:
-            return match.group(1).rstrip()
+        # Skip block quotes (start with >)
+        if stripped.startswith(">"):
+            return None
+
+        # Skip tree diagram symbols
+        if any(sym in stripped[:3] for sym in ["├", "└", "│"]):
+            return None
+
+        # Match emoji-like prefixes (non-alphanumeric, non-whitespace at start)
+        # Exclude: [ ( { - * | > ` (these have special meanings)
+        emoji_match = re.match(r"^([^\w\s\[\(\{\-\*\|>`]+)(\s|$)", stripped)
+        if emoji_match:
+            return emoji_match.group(1)
+
+        # Match bracketed prefixes [like this]
+        bracket_match = re.match(r"^(\[[^\]]+\])(\s|$)", stripped)
+        if bracket_match:
+            return bracket_match.group(1)
+
+        # Match ONLY uppercase word + colon at start (followed by space)
+        # NOTE: This, WARNING: That, TODO: Item
+        # But NOT lowercase: Implementation:, description:
+        colon_match = re.match(r"^([A-Z][A-Z0-9_]*:)\s", stripped)
+        if colon_match:
+            return colon_match.group(1)
+
+        # No valid prefix found
         return None
 
     def is_similar_prefix(p1: str | None, p2: str | None) -> bool:
