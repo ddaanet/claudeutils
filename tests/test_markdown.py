@@ -6,6 +6,7 @@ import pytest
 
 from claudeutils.exceptions import MarkdownInnerFenceError
 from claudeutils.markdown import (
+    escape_inline_backticks,
     fix_markdown_code_blocks,
     fix_metadata_blocks,
     fix_metadata_list_indentation,
@@ -223,18 +224,117 @@ def test_fix_markdown_code_blocks_errors_on_inner_fence_in_python() -> None:
     """Test: Error when ```python block contains inner fence."""
     input_lines = [
         "```python\n",
-        'def foo():\n',
+        "def foo():\n",
         '    """\n',
-        '    Example:\n',
-        '    ```\n',
-        '    code\n',
-        '    ```\n',
+        "    Example:\n",
+        "    ```\n",
+        "    code\n",
+        "    ```\n",
         '    """\n',
         "```\n",
     ]
 
-    with pytest.raises(MarkdownInnerFenceError, match="Inner fence detected in non-markdown block"):
+    with pytest.raises(
+        MarkdownInnerFenceError, match="Inner fence detected in non-markdown block"
+    ):
         fix_markdown_code_blocks(input_lines)
+
+
+def test_escape_inline_backticks_wraps_language_references() -> None:
+    """Test: Escape ```language when it appears inline in text."""
+    input_lines = [
+        "Text about ```markdown blocks\n",
+        "\n",
+        "More text with ```python and ```javascript references\n",
+    ]
+    expected = [
+        "Text about `` ```markdown `` blocks\n",
+        "\n",
+        "More text with `` ```python `` and `` ```javascript `` references\n",
+    ]
+    assert escape_inline_backticks(input_lines) == expected
+
+
+def test_escape_inline_backticks_wraps_standalone_triple_backticks() -> None:
+    """Test: Escape ``` without language when it appears inline."""
+    input_lines = [
+        "Text mentioning ``` fences\n",
+        "\n",
+        "Use ``` to create code blocks\n",
+    ]
+    expected = [
+        "Text mentioning `` ``` `` fences\n",
+        "\n",
+        "Use `` ``` `` to create code blocks\n",
+    ]
+    assert escape_inline_backticks(input_lines) == expected
+
+
+def test_escape_inline_backticks_preserves_real_fences() -> None:
+    """Test: Don't escape ``` when it's a real fence at line start."""
+    input_lines = [
+        "```bash\n",
+        "echo hello\n",
+        "```\n",
+    ]
+    # Should not modify - these are real fences
+    assert escape_inline_backticks(input_lines) == input_lines
+
+
+def test_escape_inline_backticks_is_idempotent() -> None:
+    """Test: Running escape multiple times produces the same result."""
+    input_lines = [
+        "Text about ```markdown blocks\n",
+        "\n",
+        "Use ``` to create code blocks\n",
+        "More text with ```python and ```javascript references\n",
+    ]
+
+    # First run
+    result1 = escape_inline_backticks(input_lines)
+
+    # Second run should produce identical result
+    result2 = escape_inline_backticks(result1)
+
+    assert result1 == result2
+
+
+def test_escape_inline_backticks_skips_content_inside_blocks() -> None:
+    """Test: Don't escape ``` inside code blocks."""
+    input_lines = [
+        "Text with ```python reference\n",
+        "\n",
+        "```markdown\n",
+        "Example showing ```bash usage\n",
+        "```\n",
+        "\n",
+        "More ```javascript outside\n",
+    ]
+    expected = [
+        "Text with `` ```python `` reference\n",
+        "\n",
+        "```markdown\n",
+        "Example showing ```bash usage\n",
+        "```\n",
+        "\n",
+        "More `` ```javascript `` outside\n",
+    ]
+    assert escape_inline_backticks(input_lines) == expected
+
+
+def test_fix_markdown_code_blocks_ignores_inline_backticks() -> None:
+    """Test: Don't detect ``` as fence when it appears inline in text."""
+    input_lines = [
+        "Text about `` ```markdown `` blocks\n",
+        "\n",
+        "```bash\n",
+        "echo hello\n",
+        "```\n",
+        "\n",
+        "More text with `` ```python `` and `` ```javascript `` references\n",
+    ]
+    # Should not raise an error or modify the content
+    assert fix_markdown_code_blocks(input_lines) == input_lines
 
 
 def test_fix_markdown_code_blocks_handles_multiple_blocks() -> None:
@@ -364,6 +464,31 @@ def test_fix_metadata_list_indentation_stops_at_non_list() -> None:
         "Regular paragraph\n",
     ]
     assert fix_metadata_list_indentation(input_lines) == expected
+
+
+def test_process_lines_is_idempotent() -> None:
+    """Test: Running process_lines multiple times produces the same result."""
+    input_lines = [
+        "## About __init__.py\n",
+        "\n",
+        "Text mentioning ```python and ```bash code.\n",
+        "\n",
+        "**File:** test.py\n",
+        "**Model:** Sonnet\n",
+        "\n",
+        "```bash\n",
+        "echo hello\n",
+        "```\n",
+    ]
+
+    # First run
+    result1 = process_lines(input_lines)
+
+    # Second run
+    result2 = process_lines(result1)
+
+    # Should be identical (idempotent)
+    assert result1 == result2
 
 
 def test_metadata_list_indentation_works_with_metadata_blocks() -> None:

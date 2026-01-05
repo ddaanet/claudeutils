@@ -188,7 +188,11 @@ def test_markdown_reports_multiple_processing_errors(
 
     # Should report all errors together at the end
     output_lines = result.output.strip().split("\n")
-    error_lines = [line for line in output_lines if "error" in line.lower() or "inner fence" in line.lower()]
+    error_lines = [
+        line
+        for line in output_lines
+        if "error" in line.lower() or "inner fence" in line.lower()
+    ]
 
     # Should have at least 2 error messages (one for each failed file)
     assert len(error_lines) >= 2

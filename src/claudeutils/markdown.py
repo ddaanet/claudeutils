@@ -47,6 +47,41 @@ def fix_dunder_references(line: str) -> str:
     return line
 
 
+def escape_inline_backticks(lines: list[str]) -> list[str]:
+    """Escape triple backticks when they appear inline in text.
+
+    Wraps ```language and ``` with double backticks (`` ``` ``) to prevent
+    them from being interpreted as code fence markers by markdown parsers.
+
+    - Skips lines that start with ``` (real code fences)
+    - Skips content inside code blocks
+    - Idempotent: won't re-escape already escaped backticks
+    """
+    result = []
+    in_code_block = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Track code block state
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            result.append(line)
+            continue
+
+        # Skip lines inside code blocks
+        if in_code_block:
+            result.append(line)
+            continue
+
+        # Escape inline triple backticks (with or without language)
+        # Negative lookbehind ensures we don't re-escape already escaped ones
+        escaped_line = re.sub(r"(?<!`` )```(\w*)", r"`` ```\1 ``", line)
+        result.append(escaped_line)
+
+    return result
+
+
 def fix_metadata_blocks(lines: list[str]) -> list[str]:
     """Convert consecutive **Label:** lines to list items."""
     result = []
@@ -410,22 +445,26 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
 # This module applies multiple fixes in a specific order to handle
 # Claude-generated markdown patterns:
 #
-# 1. fix_dunder_references    - Wrap `__init__.py` in backticks
-# 2. fix_metadata_blocks      - Convert consecutive **Label:** to lists
-# 3. fix_warning_lines        - Convert emoji/symbol prefixed lines to lists
-# 4. fix_nested_lists         - Convert lettered items (a., b.) to numbered
-# 5. fix_metadata_list_indentation - Indent lists after metadata labels
-# 6. fix_numbered_list_spacing - Add proper blank lines around numbered lists
-# 7. fix_markdown_code_blocks - Nest markdown blocks with inner fences
+# 1. escape_inline_backticks  - Escape ``` in inline text to prevent ambiguity
+# 2. fix_dunder_references    - Wrap `__init__.py` in backticks
+# 3. fix_metadata_blocks      - Convert consecutive **Label:** to lists
+# 4. fix_warning_lines        - Convert emoji/symbol prefixed lines to lists
+# 5. fix_nested_lists         - Convert lettered items (a., b.) to numbered
+# 6. fix_metadata_list_indentation - Indent lists after metadata labels
+# 7. fix_numbered_list_spacing - Add proper blank lines around numbered lists
+# 8. fix_markdown_code_blocks - Nest markdown blocks with inner fences
 #
 # Order matters: Line-based fixes run before block-based fixes to avoid
 # interference. Spacing fixes run near the end after structure is correct.
+# escape_inline_backticks runs first to prevent ``` in text from being
+# confused with code fences.
 #
 
 
 def process_lines(lines: list[str]) -> list[str]:
     """Apply all markdown structure fixes to lines."""
-    result = [fix_dunder_references(line) for line in lines]
+    result = escape_inline_backticks(lines)
+    result = [fix_dunder_references(line) for line in result]
     result = fix_metadata_blocks(result)
     result = fix_warning_lines(result)
     result = fix_nested_lists(result)
