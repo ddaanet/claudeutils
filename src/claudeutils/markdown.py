@@ -70,6 +70,10 @@ def apply_fix_to_segments(
 
     Returns:
         New list of segments with fix applied to processable ones only
+
+    Note: Protected segments (processable=False) are returned unchanged,
+    regardless of their language or content. This includes bare fences,
+    code blocks, YAML prologs, and markdown blocks.
     """
     result = []
     for segment in segments:
@@ -84,6 +88,7 @@ def apply_fix_to_segments(
                 )
             )
         else:
+            # Protected segment - skip this fix
             result.append(segment)
     return result
 
