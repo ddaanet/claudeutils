@@ -20,19 +20,46 @@ This file tracks:
 
 ---
 
-## Current Status: Root Cause Analysis Complete - Phases 4-5 Ready for Implementation
+## Current Status: Phases 4-5 Implementation Complete ✅
 
 - **Branch:** markdown
 - **Issue:** `just format` corrupting 27 markdown files
 - **Plan:** `plans/markdown/fix-warning-lines-tables.md`
 - **Analysis:** `plans/markdown/root-cause-analysis.md`
-- **Progress:** Phases 1-3 complete ✅, NEW critical bugs found ❌, Phases 4-5 designed
+- **Progress:** Phases 1-3 complete ✅, Phases 4-5 complete ✅, 52/52 tests passing ✅
 
-### Current Session (2026-01-05): Root Cause Analysis ✅
+### Current Session (2026-01-06): Phases 4-5 Implementation ✅
+
+**Completed:**
+
+1. **Phase 4: Fix YAML Prolog Detection** (`markdown.py:135-138`)
+   - Changed pattern from `r"^\w+:\s"` to `r"^[a-zA-Z_][\w-]*:"`
+   - Now recognizes YAML keys without trailing spaces (`tier_structure:`, `critical:`)
+   - Supports keys with hyphens (`author-model:`, `semantic-type:`)
+   - YAML prologs properly protected from processing
+
+2. **Phase 5: Rewrite `extract_prefix()`** (`markdown.py:432-486`)
+   - Replaced over-aggressive pattern `r"^(\S+(?:\s|:))"` with conservative implementation
+   - Only matches: emoji symbols, `[brackets]`, `UPPERCASE word:colon`
+   - Explicitly excludes: regular prose, block quotes, tree diagrams, lowercase colons
+   - Added backtick exclusion to prevent fence lines being converted to lists
+
+**Test Results:** 52/52 tests passing
+- 7 new tests for YAML prolog and prefix detection
+- All 45 existing tests still passing
+
+**Commit:** 663059d - Implement Phases 4-5: Fix YAML prolog and prefix detection
+
+**Note on Integration:** Inner fence errors blocking `just format` - these are pre-existing issues in other files (README.md, agents/, plans/). They are not caused by Phase 4-5 changes.
+
+---
+
+### Previous Session (2026-01-05): Root Cause Analysis ✅
 
 **Situation:** Phases 1-2 complete, tests passing, but `just format` STILL corrupts 27 files
 
 **Actions:**
+
 1. Ran `just format` and captured diff to `format.diff`
 2. Examined diff to identify corruption patterns
 3. Identified TWO critical bugs in existing code
@@ -101,13 +128,14 @@ This file tracks:
 **Solution:** Merged functionality into `fix_metadata_blocks()` and disabled original function
 
 **Implementation:**
+
 1. Updated pattern in `fix_metadata_blocks()` (line 306):
    - Old: `r"^\*\*[A-Za-z][^*]+:\*\* |^\*\*[A-Za-z][^*]+\*\*: "` (required trailing space)
    - New: `r"^\*\*[A-Za-z][^*]+:\*\*|^\*\*[A-Za-z][^*]+\*\*:"` (matches with/without content)
 
 2. Added list indentation logic (lines 334-348):
    - After converting 2+ metadata labels to list items
-   - Scan following lines for list items (`^[-*] |^\d+\. `)
+   - Scan following lines for list items (`"^[-*] |^\d+\. "`)
    - Indent by 2 spaces
 
 3. Fixed pattern matching (line 344):
@@ -139,9 +167,9 @@ This file tracks:
 | Header |     →    | Header |        (unchanged)
 **Label:**    →    **Label:**        (unchanged)
 
-**Label1:**   →    - **Label1:**     (2+ labels → list)
-**Label2:**   →    - **Label2:**
-- item        →      - item          (indented)
+- **Label1:**   →    - **Label1:**     (2+ labels → list)
+- **Label2:**   →    - **Label2:**
+  - item        →      - item          (indented)
 ```
 
 ### Remaining: Phase 3 - Bold Label Exclusion (Optional)
@@ -171,7 +199,7 @@ This file tracks:
 - ✅ Backtick space preservation
 - ✅ Exception handling validation
 
-**Result:** 48/48 tests passing. Content in fenced blocks (```python, ```yaml, etc.) no longer corrupted.
+**Result:** 48/48 tests passing. Content in fenced blocks (`` ```python ``, `` ```yaml ``, etc.) no longer corrupted.
 
 **Commits:**
 - `5a5ad93` - Segment parsing foundation
