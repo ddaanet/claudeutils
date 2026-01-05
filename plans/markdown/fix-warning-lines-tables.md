@@ -460,11 +460,29 @@ def test_emoji_prefixes_still_work():
 2. **Phase 2: Disable metadata list indentation** → DONE ✅
 3. **Phase 3: Add bold label exclusion** → DONE ✅
 
-### New Work Required ❌
-4. **Phase 4: Fix YAML prolog detection** (CRITICAL - prevents cascading failures)
-5. **Phase 5: Rewrite `extract_prefix()`** (CRITICAL - stops over-aggressive matching)
-6. **Add unit tests** (validates all fixes)
-7. **Integration testing** (verify 27 files no longer corrupted)
+### Previously Required (Now Complete) ✅
+
+4. **Phase 4: Fix YAML prolog detection** → DONE ✅ (commit 663059d)
+5. **Phase 5: Rewrite `extract_prefix()`** → DONE ✅ (commit 663059d)
+
+### New Critical Issues Discovered ❌
+
+**Status:** Despite Phases 4-5 being implemented, `just format` still corrupts 2 files. Root cause analysis reveals one critical segment parser bug.
+
+**See:** `plans/markdown/segmentation-bugs-analysis.md` for complete investigation.
+
+**Clarifications:**
+- ✅ ```markdown blocks being processed is INTENTIONAL (for formatting doc snippets in plans)
+- ✅ Inline code with spaces being quoted is REQUIRED (dprint strips spaces, quotes preserve them)
+- ❌ Bare fences NOT protecting content is the ONLY real bug
+
+**New Phases:**
+
+6. ~~**Phase 6: Fix Markdown Block Processing**~~ → ✅ NOT NEEDED (intentional feature)
+7. **Phase 7: Debug Bare Fence Protection** (CRITICAL - bare fences not protecting content)
+8. **Phase 8: Add Integration Tests** (CRITICAL - validates end-to-end protection)
+9. **Phase 9: Fix Incorrect Backtick Escaping in Docs** (depends on Phase 10)
+10. **Phase 10: Fix escape_inline_backticks() Regex** (CRITICAL - corrupts 4+ backtick sequences)
 
 ## Testing Strategy
 
@@ -495,10 +513,115 @@ def test_emoji_prefixes_still_work():
 3. Check diff: `git diff` (should be minimal/none)
 4. Spot check: AGENTS.md, START.md, session.md remain clean
 
+## Phase 9: Fix Incorrect Backtick Escaping in Documentation
+
+**Depends on:** Phase 10 must be completed first
+
+**File:** `plans/markdown/feature-2-code-block-nesting.md:48`
+
+**Problem:**
+```markdown
+   - Output: ````markdown block (4 backticks)
+```
+This starts a 4-backtick code fence, which is invalid markdown.
+
+**Fix:**
+```markdown
+   - Output: `` ````markdown `` block (4 backticks)
+```
+
+**Why Phase 10 is required:**
+- Current `escape_inline_backticks()` regex would re-corrupt this fix
+- The regex matches first 3 backticks in ````  and converts to `` ``` ```markdown (broken!)
+- Must fix the regex first, then apply doc fix
+
+**Impact:** Documentation fix only, no code changes needed after Phase 10
+
+## Phase 10: Fix escape_inline_backticks() Regex Bug ⚠️ CRITICAL
+
+**Location:** `src/claudeutils/markdown.py:297`
+
+**Bug discovered:** 2026-01-06 - Regex corrupts 4+ backtick sequences in inline code
+
+**Current code (broken):**
+```python
+escaped_line = re.sub(r"(?<!`` )```(\w*)", r"`` ```\1 ``", line)
+```
+
+**Problem:**
+```python
+Input:  "- Output: ````markdown block"
+Output: "- Output: `` ``` ```markdown block"
+#                        ^^^^^^^^^ BROKEN - fence start mid-line!
+```
+
+The regex matches the FIRST 3 backticks in ````  because:
+1. Looks for exactly 3 backticks: ` ``` `
+2. Negative lookbehind `(?<!`` )` only checks for "`` " (2 backticks + space)
+3. In ```` there's no space before, so it matches
+4. Creates malformed `` ``` ```markdown (inline code + fence start)
+
+**Fix (Option A - Recommended):**
+```python
+# Use negative lookahead and lookbehind to match ONLY standalone ```
+escaped_line = re.sub(r"(?<!`)`{3}(\w*)(?!`)", r"`` ```\1 ``", line)
+```
+
+**Why this works:**
+- `(?<!`)` - no backtick immediately before
+- `{3}` - exactly 3 backticks
+- `(?!`)` - no backtick immediately after
+- Only matches ``` when not part of ````
+
+**Fix (Option B - Alternative):**
+```python
+# Better negative lookbehind without space requirement
+escaped_line = re.sub(r"(?<!``)```(\w*)", r"`` ```\1 ``", line)
+```
+
+**Test cases needed:**
+```python
+def test_escape_preserves_4plus_backticks():
+    """Don't escape 4+ backticks already in inline code."""
+    lines = ["Text `` ````markdown `` more\n"]
+    result = escape_inline_backticks(lines)
+    assert result[0] == lines[0]
+
+def test_escape_handles_triple_backticks():
+    """Still escape standalone triple backticks."""
+    lines = ["See ```python code\n"]
+    result = escape_inline_backticks(lines)
+    assert result[0] == "See `` ```python `` code\n"
+
+def test_escape_handles_bare_4_backticks():
+    """Don't escape bare 4-backtick sequences (invalid markdown)."""
+    lines = ["Output: ````markdown block\n"]
+    result = escape_inline_backticks(lines)
+    # Should remain unchanged - it's invalid markdown
+    assert result[0] == lines[0]
+```
+
+**Impact:** HIGH - Fixes active corruption of documentation with 4+ backticks
+
 ## Files to Modify
 
+### Phases 1-5 (COMPLETE ✅)
 - `src/claudeutils/markdown.py` - Update `extract_prefix()` and `is_similar_prefix()`
 - `tests/test_markdown.py` - Add table and bold label test cases
+
+### Phase 7 (CRITICAL ❌)
+- `src/claudeutils/markdown.py` - Debug and fix bare fence protection
+- Add debug logging to identify where protection fails
+
+### Phase 8 (CRITICAL ❌)
+- `tests/test_markdown.py` - Add integration tests for fence protection
+
+### Phase 9 (DEPENDS ON PHASE 10 ⚠️)
+- `plans/markdown/feature-2-code-block-nesting.md` - Fix backtick escaping on line 48
+
+### Phase 10 (CRITICAL ❌)
+- `src/claudeutils/markdown.py` - Fix escape_inline_backticks() regex (line 297)
+- `tests/test_markdown.py` - Add tests for 4+ backtick handling
 
 ## Success Criteria
 
@@ -521,10 +644,12 @@ def test_emoji_prefixes_still_work():
 - ❌ Section headers NOT converted to lists: `Implementation:`, `Strategy:`
 - ✅ Legitimate emoji/bracket prefixed lines STILL converted to lists: `✅ Task`, `[TODO] Item`
 
-### Final Validation (REQUIRED)
-- ❌ All unit tests pass (48 existing + 6 new = 54 total)
-- ❌ Running `just format` produces minimal/NO changes on 27 previously corrupted files
-- ❌ AGENTS.md, START.md, session.md remain clean after formatting
+### Final Validation (UPDATED)
+- ✅ 52/52 tests passing (Phases 1-5 complete)
+- ❌ **Phase 7 (CRITICAL):** Bare fence protection not working - 2 files corrupted
+- ❌ **Phase 8 (CRITICAL):** Integration tests needed to validate end-to-end protection
+- ❌ **Phase 10 (CRITICAL):** escape_inline_backticks() regex corrupts 4+ backtick sequences
+- ⚠️ **Phase 9 (BLOCKED):** Doc fix requires Phase 10 to be completed first
 
 ## Key Decision: Disable fix_metadata_list_indentation
 

@@ -20,15 +20,80 @@ This file tracks:
 
 ---
 
-## Current Status: Phases 4-5 Implementation Complete ✅
+## Current Status: Segmentation Bugs Analysis Complete - 3 Critical Bugs Found
 
 - **Branch:** markdown
-- **Issue:** `just format` corrupting 27 markdown files
+- **Issue:** `just format` corrupting 2 markdown files (after Phases 1-5 implementation)
 - **Plan:** `plans/markdown/fix-warning-lines-tables.md`
-- **Analysis:** `plans/markdown/root-cause-analysis.md`
-- **Progress:** Phases 1-3 complete ✅, Phases 4-5 complete ✅, 52/52 tests passing ✅
+- **Analysis:** `plans/markdown/segmentation-bugs-analysis.md`
+- **Progress:** Phases 1-5 complete ✅, Phases 7-8-10 required ❌
 
-### Current Session (2026-01-06): Phases 4-5 Implementation ✅
+### Current Session (2026-01-06): Segmentation Bugs Investigation ✅
+
+**Situation:** Phases 4-5 complete with 52/52 tests passing, BUT `just format` still corrupts 2 files!
+
+**Actions Taken:**
+
+1. **Examined modified files** - Used `git diff` to analyze what formatter changed
+2. **Identified corruption patterns** - Separated real bugs from correct changes
+3. **Clarified features with user:**
+   - ✅ `` ```markdown `` blocks processable → INTENTIONAL (format doc snippets in plans)
+   - ✅ Inline code with spaces quoted → REQUIRED (dprint strips spaces, quotes preserve them)
+   - ❌ Bare fences not protecting → REAL BUG
+   - ❌ 4+ backticks corrupted → REAL BUG (regex issue)
+
+4. **Discovered Bug #5 via testing:**
+   - Tested `escape_inline_backticks()` regex with 4-backtick sequences
+   - Found regex corrupts ````markdown → `` ``` ```markdown (broken!)
+   - Root cause: `(?<!`` )` only checks for "2 backticks + space", misses ```` without space
+
+**Bugs Found:**
+
+**Bug #2: Bare Fence Protection Failure** ⚠️ CRITICAL
+- Content inside bare ` ``` ` fences being converted to lists
+- Test expects `processable=False` but protection failing
+- **File affected:** `plans/markdown/agent-documentation.md`
+- **Example:** `✅ Task 1` → `- ✅ Task 1` inside bare fence
+- **Phase 7:** Debug segment parser protection
+
+**Bug #5: escape_inline_backticks() Regex Breaks 4+ Backticks** ⚠️ CRITICAL
+- **Location:** `markdown.py:297`
+- **Pattern:** `r"(?<!`` )```(\w*)"` matches first 3 in ````
+- **Test evidence:** ````markdown → `` ``` ```markdown (creates fence mid-line!)
+- **Blocks:** Phase 9 (can't fix docs until regex fixed)
+- **Phase 10:** Fix regex with `r"(?<!`)`{3}(\w*)(?!`)"` (Option A)
+
+**Bug #4: Backtick Escaping in Docs**
+- **File:** `plans/markdown/feature-2-code-block-nesting.md:48`
+- **Current:** ````markdown block (starts 4-backtick fence - broken)
+- **Should be:** `` ````markdown `` block (inline code)
+- **Phase 9:** Fix after Phase 10 complete
+
+**Documents Created:**
+- `plans/markdown/segmentation-bugs-analysis.md` - Complete investigation (471 lines)
+  - Evidence from git diffs and regex testing
+  - User clarifications on intentional vs buggy behavior
+  - Phases 7-10 implementation plans with test cases
+
+**Documents Updated:**
+- `plans/markdown/fix-warning-lines-tables.md` - Added Phases 7-10 (763 lines)
+- `START.md` - Updated with current status and Bug #2/#5 details
+- `session.md` - This file
+
+**Files Analyzed:**
+- 7 modified files examined
+- 2 with real corruption (agent-documentation.md, fix-warning-lines-tables.md)
+- 5 with correct changes (backtick escaping, blank lines, etc.)
+
+**Next Steps:**
+1. **Phase 7:** Debug bare fence protection (add logging, find where failing)
+2. **Phase 10:** Fix escape_inline_backticks() regex (enable Phase 9)
+3. **Phase 8:** Add integration tests (validate all fences protected)
+4. **Phase 9:** Fix doc backtick escaping (after Phase 10)
+
+---
+
+### Previous Session (2026-01-06 earlier): Phases 4-5 Implementation ✅
 
 **Completed:**
 
@@ -49,8 +114,6 @@ This file tracks:
 - All 45 existing tests still passing
 
 **Commit:** 663059d - Implement Phases 4-5: Fix YAML prolog and prefix detection
-
-**Note on Integration:** Inner fence errors blocking `just format` - these are pre-existing issues in other files (README.md, agents/, plans/). They are not caused by Phase 4-5 changes.
 
 ---
 

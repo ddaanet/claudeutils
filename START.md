@@ -1,85 +1,108 @@
 # Handoff Entry Point
 
-## Current Status: Root Cause Analysis Complete - NEW Critical Bugs Found
+## Current Status: Segmentation Bugs Analysis Complete - 3 Critical Bugs Found
 
 - **Branch:** markdown
-- **Issue:** `just format` corrupting markdown files (27 files affected)
-- **Root Cause:** YAML prolog detection broken + prefix detection over-aggressive
+- **Issue:** `just format` corrupting 2 markdown files after Phases 1-5 implementation
+- **Root Cause:** Bare fence protection failure + escape_inline_backticks() regex bug
 - **Plan:** `plans/markdown/fix-warning-lines-tables.md`
-- **Analysis:** `plans/markdown/root-cause-analysis.md`
-- **Progress:** Phases 1-3 complete ✅, Phases 4-5 required ❌
+- **Analysis:** `plans/markdown/segmentation-bugs-analysis.md`
+- **Progress:** Phases 1-5 complete ✅, Phases 7-8-10 required ❌
 
 ### What Happened
 
-**Phases 1-3: Complete** ✅
+**Phases 1-5: Complete** ✅ (2026-01-05)
 - Phase 1: Table detection working
 - Phase 2: Single label conversion fixed
 - Phase 3: Bold label exclusion working
-- Result: 45/45 tests passing
+- Phase 4: YAML prolog detection fixed (commit 663059d)
+- Phase 5: `extract_prefix()` rewritten (commit 663059d)
+- Result: 52/52 tests passing
 
-**BUT:** Running `just format` STILL corrupts 27 files! ❌
+**BUT:** Running `just format` STILL corrupts 2 files! ❌
 
-### NEW Critical Bugs Discovered (2026-01-05)
+### NEW Critical Bugs Discovered (2026-01-06)
 
-After Phases 1-3, examined actual diff from `just format` and found TWO critical bugs:
+After Phases 1-5, examined diffs from `just format` and found THREE critical bugs:
 
-**Bug #1: YAML Prolog Detection Broken** (`markdown.py:135`)
-- Pattern `r"^\w+:\s"` requires space after colon
-- Doesn't match YAML keys without values: `tier_structure:`, `critical:`
-- Doesn't match keys with digits: `option_2:`, `key123:`
-- Doesn't match keys with hyphens: `semantic-type:`, `author-model:`
-- YAML sections not recognized → fall through to plain text → get mangled
+**Bug #2: Bare Fence Protection Failure** ⚠️ CRITICAL
+- Content inside bare ` ``` ` fences being processed when it should be protected
+- Test expects `processable=False` but content is being converted to lists
 - **Example corruption:**
   ```diff
-  ---
-  -tier_structure:
-  -  critical:
-  +- tier_structure:
-  +- critical:
-      - item
+   ```
+  -✅ Issue #1: XPASS tests visible
+  -✅ Issue #2: Setup failures captured
+  +- ✅ Issue #1: XPASS tests visible
+  +- ✅ Issue #2: Setup failures captured
+   ```
   ```
+- **Files affected:** `plans/markdown/agent-documentation.md`
+- **Investigation needed:** Debug why segment parser protection failing
 
-**Bug #2: Prefix Detection Over-Aggressive** (`markdown.py:447`)
-- Pattern `r"^(\S+(?:\s|:))"` matches ANY non-whitespace + space/colon
-- Matches regular prose: "Task agent" → converted to list ❌
-- Matches block quotes: `> text` → converted to list ❌
-- Matches tree diagrams: `├─ item` → converted to list ❌
+**Bug #5: escape_inline_backticks() Regex Breaks 4+ Backticks** ⚠️ CRITICAL
+- Location: `markdown.py:297`
+- Pattern `r"(?<!`` )```(\w*)"` matches first 3 backticks in ````
 - **Example corruption:**
-  ```diff
-  -Task agent prompt is a minimal replacement.
-  -Task agent are effectively "interactive-only".
-  +- Task agent prompt is a minimal replacement.
-  +- Task agent are effectively "interactive-only".
+  ```python
+  Input:  "Output: ````markdown block"
+  Output: "Output: `` ``` ```markdown block"
+  #                    ^^^^^^^^^ BROKEN - fence start mid-line!
   ```
+- **Why:** Negative lookbehind only checks for "`` " (2 backticks + space)
+- **Impact:** Corrupts any docs trying to display 4+ backticks inline
+- **Blocks:** Phase 9 (doc fix) can't be applied until regex fixed
 
-### Required Work
+**Clarifications:**
+- ✅ Bug #1: ```markdown blocks processable → INTENTIONAL (format doc snippets)
+- ✅ Bug #3: Inline code with spaces quoted → REQUIRED (dprint strips spaces)
+- ⚠️ Bug #4: Backtick escaping in docs → Can't fix without fixing Bug #5 first
 
-**Phase 4: Fix YAML Prolog Detection** (CRITICAL)
-- Location: `markdown.py:135`
-- Change: `r"^\w+:\s"` → `r"^[a-zA-Z_][\w-]*:"`
-- Effect: YAML content protected (processable=False), never mangled
-- Supports: underscores, hyphens, digits (not as first char)
-- Tests: 2 new segment parser tests
+### Required Work (Priority Order)
 
-**Phase 5: Rewrite `extract_prefix()`** (CRITICAL)
-- Location: `markdown.py:431-450`
-- Change: Complete rewrite - only match emoji, `[TODO]`, `NOTE:` uppercase
-- Effect: Defensive - even if content not in fenced blocks, don't mangle
-- Tests: 5 new prefix detection tests
+**Phase 7: Debug Bare Fence Protection** ⚠️ CRITICAL
+- **Problem:** Content in bare ``` fences being processed (should be protected)
+- **Investigation:** Add debug logging to `parse_segments()` and `apply_fix_to_segments()`
+- **Test:** Integration test verifying bare fences actually protect content
+- **Impact:** 1 file corrupted (`agent-documentation.md`)
+
+**Phase 10: Fix escape_inline_backticks() Regex** ⚠️ CRITICAL
+- **Location:** `markdown.py:297`
+- **Current:** `r"(?<!`` )```(\w*)"` (matches first 3 in ````)
+- **Fix Option A:** `r"(?<!`)`{3}(\w*)(?!`)"` (only standalone ```)
+- **Fix Option B:** `r"(?<!``)```(\w*)"` (better negative lookbehind)
+- **Tests:** 3 new tests for 4+ backtick handling
+- **Impact:** Blocks Phase 9, corrupts 4+ backtick sequences
+
+**Phase 8: Add Integration Tests** ⚠️ CRITICAL
+- **Purpose:** Validate end-to-end protection works
+- **Tests:** Python/YAML/markdown/bare fences unchanged, plain text processed
+- **Status:** Required for validation
+
+**Phase 9: Fix Incorrect Backtick Escaping in Docs** (BLOCKED by Phase 10)
+- **File:** `plans/markdown/feature-2-code-block-nesting.md:48`
+- **Change:** ````markdown block → `` ````markdown `` block
+- **Why blocked:** Current regex would re-corrupt this fix
+- **Impact:** Low priority, documentation only
 
 ### Documentation
 
-**Root Cause Analysis:** `plans/markdown/root-cause-analysis.md`
-- Detailed technical analysis with evidence from diff
-- Complete implementation code for both fixes
-- Test requirements and expected behavior
-- Risk assessment and rollback plan
+**Segmentation Bugs Analysis:** `plans/markdown/segmentation-bugs-analysis.md` (NEW)
+- Complete investigation of post-Phase-5 corruption
+- Evidence with git diffs and test output showing regex bug
+- User clarifications on intentional features vs bugs
+- Phases 7-10 implementation details with test cases
+
+**Root Cause Analysis:** `plans/markdown/root-cause-analysis.md` (COMPLETE)
+- Original analysis that led to Phases 4-5
+- YAML prolog and prefix detection bugs
+- Implemented in commit 663059d
 
 **Implementation Plan:** `plans/markdown/fix-warning-lines-tables.md`
-- Updated with Phases 4-5 complete code
-- 7 new test cases ready to implement
-- Integration testing steps
-- Success criteria validation
+- Phases 1-5: Complete ✅
+- Phases 7, 8, 10: Required ❌
+- Phase 9: Blocked (depends on Phase 10)
+- Complete test cases and success criteria
 
 ---
 
@@ -95,12 +118,15 @@ Implemented segment-aware markdown processing to prevent false positives in fenc
 4. **Backtick space preservation** - Quote spaces in inline code
 5. **Exception handling** - MarkdownProcessingError and MarkdownInnerFenceError
 
-### Results
+### Results (Updated 2026-01-06)
 
-- 48/48 tests passing (40 markdown + 8 segments)
-- Content in `` ```python ``, `` ```yaml ``, bare `` ``` `` blocks protected
-- Python dicts, tables, structured content no longer corrupted by fixes
-- All fixes respect segment boundaries
+- 52/52 tests passing (Phases 1-5 complete)
+- Content in `` ```python ``, `` ```yaml `` blocks protected ✅
+- YAML prologs with underscores/hyphens/digits recognized ✅
+- Regular prose no longer converted to lists ✅
+- **Remaining issues:**
+  - Bare ``` fences NOT protecting content ❌ (Bug #2)
+  - 4+ backticks corrupted by escape regex ❌ (Bug #5)
 
 ---
 
@@ -118,35 +144,50 @@ Implemented segment-aware markdown processing to prevent false positives in fenc
 
 ## Next Steps
 
-**Immediate:** Implement Phases 4-5
+**Immediate:** Implement Phases 7, 10, 8 (in order)
 
-**Phase 4: Fix YAML Prolog Detection**
+**Phase 7: Debug Bare Fence Protection** ⚠️ CRITICAL
 ```bash
-# Edit markdown.py:135
-# Change: r"^\w+:\s" → r"^[a-zA-Z_][\w]*:"
-# Add 2 segment parser tests
+# Add debug logging to markdown.py parse_segments()
+# Add integration test for bare fence protection
+# Run formatter on test file and examine logs
+# Identify where protection is failing
 just test tests/test_markdown.py
 ```
 
-**Phase 5: Rewrite `extract_prefix()`**
+**Phase 10: Fix escape_inline_backticks() Regex** ⚠️ CRITICAL
 ```bash
-# Replace markdown.py:431-450 with conservative implementation
-# Add 5 prefix detection tests
+# Edit markdown.py:297
+# Change: r"(?<!`` )```(\w*)" → r"(?<!`)`{3}(\w*)(?!`)"
+# Add 3 tests for 4+ backtick handling
 just test tests/test_markdown.py
+```
+
+**Phase 8: Add Integration Tests**
+```bash
+# Add end-to-end tests for all fence types
+# Verify Python/YAML/markdown/bare fences protected
+# Verify plain text still processed
+just test tests/test_markdown.py
+```
+
+**Phase 9: Fix Doc Backtick Escaping** (after Phase 10)
+```bash
+# Edit plans/markdown/feature-2-code-block-nesting.md:48
+# Change: ````markdown block → `` ````markdown `` block
 ```
 
 **Integration Testing**
 ```bash
 just format           # Should produce minimal/no diffs
-git diff              # Verify 27 files no longer corrupted
+git diff              # Verify 2 remaining files no longer corrupted
 ```
 
 **Success criteria:**
-- YAML prologs recognized (processable=False)
-- Regular prose NOT converted to lists
-- Emoji/bracket prefixes STILL work
-- All 55 tests pass (48 existing + 7 new)
-- `just format` produces minimal/no changes on 27 files
+- Bare fences protect content (processable=False)
+- 4+ backticks in inline code not corrupted
+- All integration tests pass
+- `just format` produces minimal/no changes
 
 ---
 
