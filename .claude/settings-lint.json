@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(just lint)",
+      "Bash(just test:*)",
+      "Bash(wc:*)",
+      "Bash(uv run claudeutils:*)"
+    ],
+    "ask": [
+    ],
+    "deny": [
+      "Bash(git commit:*)",
+      "Task",
+      "TaskOutput",
+      "NotebookEdit",
+      "KillShell",
+      "ExitPlanMode",
+      "EnterPlanMode",
+      "TodoWrite",
+      "WebFetch",
+      "WebSearch",
+      "AskUserQuestion",
+      "Skill"
+    ]
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "enabledPlugins": {}
+}
