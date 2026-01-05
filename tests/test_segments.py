@@ -1,6 +1,6 @@
 """Tests for segment parsing functionality."""
 
-from claudeutils.markdown import parse_segments
+from claudeutils.markdown import parse_segments, process_lines
 
 
 def test_parse_segments_empty_input() -> None:
@@ -177,3 +177,52 @@ def test_parse_segments_yaml_prolog_mid_document() -> None:
     assert result[1].lines == lines[3:7]
     assert result[2].processable is True
     assert result[2].lines == ["Content after\n"]
+
+
+def test_bare_fence_protection_integration() -> None:
+    """Test: process_lines protects emoji-prefixed content inside bare fences.
+
+    This integration test verifies Phase 7: Bare Fence Protection.
+    Content with emoji prefixes inside bare ``` fences should NOT be
+    converted to list items.
+    """
+    lines = [
+        "## Checklist Detection\n",
+        "\n",
+        "**Input:**\n",
+        "\n",
+        "```\n",
+        "✅ Issue #1: XPASS tests visible\n",
+        "✅ Issue #2: Setup failures captured\n",
+        "❌ Issue #3: Not fixed yet\n",
+        "```\n",
+        "\n",
+        "**Output:**\n",
+        "\n",
+        "Plain text here\n",
+    ]
+    result = process_lines(lines)
+
+    # Find the bare fence content in the result
+    fence_start = None
+    fence_end = None
+    for i, line in enumerate(result):
+        if line.strip() == "```":
+            if fence_start is None:
+                fence_start = i
+            else:
+                fence_end = i
+                break
+
+    # Verify fence markers are found
+    assert fence_start is not None, "Opening fence not found"
+    assert fence_end is not None, "Closing fence not found"
+
+    # Verify content inside bare fence was NOT converted to list items
+    content_inside_fence = result[fence_start + 1 : fence_end]
+    assert len(content_inside_fence) == 3, (
+        f"Expected 3 lines inside fence, got {len(content_inside_fence)}"
+    )
+    assert content_inside_fence[0] == "✅ Issue #1: XPASS tests visible\n"
+    assert content_inside_fence[1] == "✅ Issue #2: Setup failures captured\n"
+    assert content_inside_fence[2] == "❌ Issue #3: Not fixed yet\n"
