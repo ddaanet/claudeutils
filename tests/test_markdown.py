@@ -181,3 +181,94 @@ def test_fix_warning_lines_handles_bracket_and_colon_prefix() -> None:
         "- NOTE: Remember this\n",
     ]
     assert fix_warning_lines(input_lines) == expected
+
+
+def test_fix_markdown_code_blocks_nests_when_inner_fence_detected() -> None:
+    """Test: Nest ```markdown block containing inner ``` fence."""
+    from claudeutils.markdown import fix_markdown_code_blocks
+    input_lines = [
+        "```markdown\n",
+        "# Example\n",
+        "```python\n",
+        "code\n",
+        "```\n",
+        "```\n",
+    ]
+    expected = [
+        "````markdown\n",
+        "# Example\n",
+        "```python\n",
+        "code\n",
+        "```\n",
+        "````\n",
+    ]
+    assert fix_markdown_code_blocks(input_lines) == expected
+
+
+def test_fix_markdown_code_blocks_no_change_without_inner_fence() -> None:
+    """Test: Leave ```markdown block without inner fence unchanged."""
+    from claudeutils.markdown import fix_markdown_code_blocks
+    input_lines = [
+        "```markdown\n",
+        "# Simple Example\n",
+        "No inner fences here\n",
+        "```\n",
+    ]
+    expected = input_lines.copy()
+    assert fix_markdown_code_blocks(input_lines) == expected
+
+
+def test_fix_markdown_code_blocks_errors_on_inner_fence_in_python() -> None:
+    """Test: Error when ```python block contains inner fence."""
+    import pytest
+    from claudeutils.markdown import fix_markdown_code_blocks
+    input_lines = [
+        "```python\n",
+        'def foo():\n',
+        '    """\n',
+        '    Example:\n',
+        '    ```\n',
+        '    code\n',
+        '    ```\n',
+        '    """\n',
+        "```\n",
+    ]
+
+    with pytest.raises(ValueError, match="Inner fence detected in non-markdown block"):
+        fix_markdown_code_blocks(input_lines)
+
+
+def test_fix_markdown_code_blocks_handles_multiple_blocks() -> None:
+    """Test: Handle multiple ```markdown blocks correctly."""
+    from claudeutils.markdown import fix_markdown_code_blocks
+    input_lines = [
+        "# Doc\n",
+        "\n",
+        "```markdown\n",
+        "```python\n",
+        "code\n",
+        "```\n",
+        "```\n",
+        "\n",
+        "Some text\n",
+        "\n",
+        "```markdown\n",
+        "No inner fence\n",
+        "```\n",
+    ]
+    expected = [
+        "# Doc\n",
+        "\n",
+        "````markdown\n",
+        "```python\n",
+        "code\n",
+        "```\n",
+        "````\n",
+        "\n",
+        "Some text\n",
+        "\n",
+        "```markdown\n",
+        "No inner fence\n",
+        "```\n",
+    ]
+    assert fix_markdown_code_blocks(input_lines) == expected
