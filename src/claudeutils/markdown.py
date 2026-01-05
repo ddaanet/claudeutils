@@ -201,13 +201,103 @@ def fix_nested_lists(lines: list[str]) -> list[str]:
     return result
 
 
+def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
+    """Nest ```markdown blocks that contain inner ``` fences.
+
+    Raises:
+        ValueError: If inner fence detected in non-markdown code block
+                    (prevents dprint formatting failures)
+    """
+    result = []
+    i = 0
+
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        if stripped.startswith("```") and len(stripped) > 3:
+            language = stripped[3:]
+            is_markdown = language == "markdown"
+
+            block_lines = [line]
+            j = i + 1
+            fence_depth = 0
+            has_inner_fence = False
+
+            while j < len(lines):
+                block_line = lines[j]
+                block_lines.append(block_line)
+                block_stripped = block_line.strip()
+
+                if block_stripped.startswith("```"):
+                    if len(block_stripped) > 3:
+                        fence_depth += 1
+                        has_inner_fence = True
+                    elif block_stripped == "```":
+                        if fence_depth > 0:
+                            fence_depth -= 1
+                            has_inner_fence = True
+                        else:
+                            # At fence_depth==0: is this inner opening or outer closing?
+                            # Look ahead for matching closing fence
+                            found_matching_close = False
+                            for k in range(j + 1, len(lines)):
+                                check_line = lines[k].strip()
+                                if check_line == "```":
+                                    found_matching_close = True
+                                    break
+                                elif check_line.startswith("```") and len(check_line) > 3:
+                                    # Opening fence before close - stop looking
+                                    break
+
+                            if found_matching_close:
+                                # This is an inner opening fence
+                                fence_depth += 1
+                                has_inner_fence = True
+                            else:
+                                # This is the outer closing fence
+                                if j > i + 1 and any("```" in lines[k] for k in range(i + 1, j)):
+                                    has_inner_fence = True
+                                break
+
+                j += 1
+            else:
+                result.extend(block_lines)
+                i = j
+                continue
+
+            if has_inner_fence:
+                if is_markdown:
+                    result.append("````markdown\n")
+                    result.extend(block_lines[1:-1])
+                    result.append("````\n")
+                else:
+                    raise ValueError(
+                        f"Inner fence detected in non-markdown block "
+                        f"(language: {language}, line: {i + 1}). "
+                        f"This will cause dprint formatting to fail."
+                    )
+            else:
+                result.extend(block_lines)
+
+            i = j + 1
+            continue
+
+        result.append(line)
+        i += 1
+
+    return result
+
+
 def process_lines(lines: list[str]) -> list[str]:
     """Apply all markdown structure fixes to lines."""
     lines = [fix_dunder_references(line) for line in lines]
     lines = fix_metadata_blocks(lines)
     lines = fix_warning_lines(lines)
     lines = fix_nested_lists(lines)
-    return fix_numbered_list_spacing(lines)
+    lines = fix_numbered_list_spacing(lines)
+    lines = fix_markdown_code_blocks(lines)
+    return lines
 
 
 def process_file(filepath: Path) -> bool:
