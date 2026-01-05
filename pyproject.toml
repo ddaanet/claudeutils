@@ -24,6 +24,7 @@ dev = [
     "ruff>=0.14.9",
     "pytest>=7.0",
     "pytest-mock>=3.15.1",
+    "pytest-markdown-report>=0.0.2",
 ]
 
 [build-system]
