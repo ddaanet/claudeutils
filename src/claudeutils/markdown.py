@@ -220,14 +220,52 @@ def parse_segments(lines: list[str]) -> list[Segment]:
             )  # Ensure we use original
             # Markdown blocks are processable, others are protected
             processable = open_lang == "markdown"
-            segments.append(
-                Segment(
-                    processable=processable,
-                    language=open_lang,
-                    lines=fence_lines,
-                    start_line=i - len(fence_lines),
+
+            # Recursive parsing for markdown blocks
+            if processable and len(fence_lines) > 2:
+                # Extract inner content (exclude opening and closing fence lines)
+                inner_content = fence_lines[1:-1]
+                inner_start_line = (i - len(fence_lines)) + 1
+
+                # Recursively parse inner content
+                inner_segments = parse_segments(inner_content)
+
+                # Adjust start_line for each nested segment
+                for seg in inner_segments:
+                    seg.start_line += inner_start_line
+
+                # Add opening fence as segment
+                segments.append(
+                    Segment(
+                        processable=True,
+                        language=open_lang,
+                        lines=[fence_lines[0]],
+                        start_line=i - len(fence_lines),
+                    )
                 )
-            )
+
+                # Add recursively parsed segments
+                segments.extend(inner_segments)
+
+                # Add closing fence as segment
+                segments.append(
+                    Segment(
+                        processable=True,
+                        language=open_lang,
+                        lines=[fence_lines[-1]],
+                        start_line=i - 1,
+                    )
+                )
+            else:
+                # Non-markdown blocks or empty markdown blocks - no recursion
+                segments.append(
+                    Segment(
+                        processable=processable,
+                        language=open_lang,
+                        lines=fence_lines,
+                        start_line=i - len(fence_lines),
+                    )
+                )
         else:
             # Collect plain text until next fence or potential YAML prolog
             text_lines = []
@@ -298,8 +336,18 @@ def escape_inline_backticks(lines: list[str]) -> list[str]:
             continue
 
         # Escape inline backtick sequences (3 or more) when not part of a fence
-        # Negative lookbehind/lookahead prevents matching already-wrapped sequences
-        escaped_line = re.sub(r"(?<!`` )(`{3,})(\w*)(?! ``)", r"`` \1\2 ``", line)
+        # Use alternation to explicitly handle already-escaped vs unescaped sequences
+        # Group 1: already escaped pattern `` ...content... ``
+        # Groups 2-3: unescaped backticks and optional language
+        pattern = r"`` (`{3,}\w*) ``|(`{3,})(\w*)"
+
+        def replacer(m):
+            if m.group(1):  # Already escaped - keep unchanged
+                return m.group(0)
+            # Unescaped - wrap it
+            return f"`` {m.group(2)}{m.group(3)} ``"
+
+        escaped_line = re.sub(pattern, replacer, line)
         result.append(escaped_line)
 
     return result
