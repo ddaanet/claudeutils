@@ -109,6 +109,7 @@ disallow_incomplete_defs = false
 
 [tool.pytest.ini_options]
 strict = true
+testpaths = ["tests"]
 addopts = "--no-header --tb=short -m 'not e2e'"
 markers = [
     "e2e: end-to-end tests requiring API credentials",
