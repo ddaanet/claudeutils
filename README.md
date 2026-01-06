@@ -77,7 +77,7 @@ echo "output.md" | uv run claudeutils markdown
 **What it fixes:**
 
 - Consecutive emoji/symbol prefixed lines → proper lists
-- Nested code blocks in ```markdown fences
+- Nested code blocks in `` ```markdown `` fences
 - Metadata labels with following lists → indented nested lists
 - Numbered list spacing issues
 - And more...

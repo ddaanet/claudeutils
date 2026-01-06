@@ -545,14 +545,14 @@ approval
 
 #### Test 14: Full workflow from file
 
-**Given**: File `agents/modules/gen/checkpoint-obedience.weak.opus.md` (from Phase 1.1)
-**When**:
-
-1. Read file → $content
-2. Count rules → $counts
-3. Calculate distribution → $distribution
-4. Remove markers → $clean_content
-5. Validate removal → $is_clean
+- **Given**: File `agents/modules/gen/checkpoint-obedience.weak.opus.md` (from Phase
+  1.1)
+- **When**:
+  1. Read file → $content
+  2. Count rules → $counts
+  3. Calculate distribution → $distribution
+  4. Remove markers → $clean_content
+  5. Validate removal → $is_clean
 
 **Then**:
 

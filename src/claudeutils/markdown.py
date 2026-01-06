@@ -35,11 +35,6 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from claudeutils.exceptions import (
-    MarkdownInnerFenceError,
-    MarkdownProcessingError,
-)
-
 
 class Segment(BaseModel):
     """A segment of markdown document (processable or protected)."""
@@ -822,12 +817,9 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
     with their own ``` fences. This uses ```` (4 backticks) for the outer
     fence to properly nest the content.
 
-    Raises:
-        ValueError: If inner fence detected in non-markdown code block.
-                    This prevents dprint formatting failures downstream.
-
     Note: Only processes ```markdown blocks. Other language blocks with
-          inner fences will error out to prevent silent formatting issues.
+          inner fences are left as-is, since inline backtick escaping
+          handles them correctly.
     """
     result = []
     i = 0
@@ -890,19 +882,13 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
                 i = j
                 continue
 
-            if has_inner_fence:
-                if is_markdown:
-                    result.append("````markdown\n")
-                    result.extend(block_lines[1:-1])
-                    result.append("````\n")
-                else:
-                    msg = (
-                        f"Inner fence detected in non-markdown block "
-                        f"(language: {language}, line: {i + 1}). "
-                        f"This will cause dprint formatting to fail."
-                    )
-                    raise MarkdownInnerFenceError(msg)
+            if has_inner_fence and is_markdown:
+                # Upgrade markdown blocks with inner fences to use ````
+                result.append("````markdown\n")
+                result.extend(block_lines[1:-1])
+                result.append("````\n")
             else:
+                # Pass through as-is (inline backtick escaping handles inner fences)
                 result.extend(block_lines)
 
             i = j + 1
@@ -966,10 +952,7 @@ def process_file(filepath: Path) -> bool:
     """Process a markdown file, returning True if modified."""
     with filepath.open(encoding="utf-8") as f:
         original_lines = f.readlines()
-    try:
-        lines = process_lines(original_lines)
-    except MarkdownInnerFenceError as e:
-        raise MarkdownProcessingError(str(filepath), e) from e
+    lines = process_lines(original_lines)
     if lines == original_lines:
         return False
     with filepath.open("w", encoding="utf-8") as f:

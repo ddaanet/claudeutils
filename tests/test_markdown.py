@@ -2,9 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
-from claudeutils.exceptions import MarkdownInnerFenceError
 from claudeutils.markdown import (
     escape_inline_backticks,
     fix_backtick_spaces,
@@ -227,8 +224,8 @@ def test_fix_markdown_code_blocks_no_change_without_inner_fence() -> None:
     assert fix_markdown_code_blocks(input_lines) == expected
 
 
-def test_fix_markdown_code_blocks_errors_on_inner_fence_in_python() -> None:
-    """Test: Error when ```python block contains inner fence."""
+def test_fix_markdown_code_blocks_passes_through_inner_fence_in_python() -> None:
+    """Test: ```python block with inner fence is passed through unchanged."""
     input_lines = [
         "```python\n",
         "def foo():\n",
@@ -240,11 +237,8 @@ def test_fix_markdown_code_blocks_errors_on_inner_fence_in_python() -> None:
         '    """\n',
         "```\n",
     ]
-
-    with pytest.raises(
-        MarkdownInnerFenceError, match="Inner fence detected in non-markdown block"
-    ):
-        fix_markdown_code_blocks(input_lines)
+    expected = input_lines.copy()
+    assert fix_markdown_code_blocks(input_lines) == expected
 
 
 def test_escape_inline_backticks_wraps_language_references() -> None:
@@ -751,11 +745,11 @@ def test_fix_backtick_spaces_via_segment_processing() -> None:
     assert result == expected
 
 
-def test_inner_fence_detection_in_python_block() -> None:
-    """Test 18: Inner fence detection still works after segment changes.
+def test_inner_fence_in_python_block_passed_through() -> None:
+    """Test 18: Inner fence in non-markdown block is passed through.
 
-    Verify that `fix_markdown_code_blocks` still detects and errors on
-    inner fences in non-markdown blocks (unchanged behavior).
+    Verify that `process_lines` passes through inner fences in non-markdown
+    blocks unchanged. Inline backtick escaping handles fence markers in text.
     """
     input_lines = [
         "```python\n",
@@ -768,11 +762,9 @@ def test_inner_fence_detection_in_python_block() -> None:
         '    """\n',
         "```\n",
     ]
-
-    with pytest.raises(
-        MarkdownInnerFenceError, match="Inner fence detected in non-markdown block"
-    ):
-        process_lines(input_lines)
+    expected = input_lines.copy()
+    result = process_lines(input_lines)
+    assert result == expected
 
 
 def test_inner_fence_detection_in_markdown_block() -> None:
