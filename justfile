@@ -79,7 +79,12 @@ format:
     # after (-p1 ignores the first component of the path). Hence `patch -RCp1`.
     docformatter --diff src tests | patch-and-print -RCp1 >> "$tmpfile" || true
 
-    git ls-files | grep '\.md$' | grep -v '/TEST_DATA\.md$' \
+    git ls-files '*.md' \
+        $(jq -r '.excludes[] |
+            if endswith("/") then ":(exclude,glob)" + . + "**"
+            else ":(exclude,glob)" + .
+            end' < .dprint.json) \
+    | xargs -r grep -L "<!-- dprint-ignore-file -->" \
     | {{ _claudeutils }} markdown >> "$tmpfile"
     dprint -c .dprint.json check --list-different \
     | sed "s|^$(pwd)/||g" >> "$tmpfile" || true

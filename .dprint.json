@@ -5,7 +5,8 @@
     "emphasisKind": "asterisks"
   },
   "excludes": [
-    "agents/TEST_DATA.md"
+    "session.md",
+    "plans/markdown/debug/"
   ],
   "plugins": [
     "https://plugins.dprint.dev/markdown-0.20.0.wasm"
