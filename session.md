@@ -20,51 +20,61 @@ This file tracks:
 
 ---
 
-## Current Status: Three Confirmed Bugs ❌
+## Current Status: Implementation Plan Ready ✅
 
 - **Branch:** markdown
-- **Tests:** 62/62 passing, but missing critical test coverage
-- **Impact:** Running formatter corrupts 2 files with 3 distinct bugs
+- **Three bugs identified** from live formatter run on agent-documentation.md
+- **Root cause found:** Bare fences not recursively parsed inside ```markdown blocks
+- **Implementation plan:** `plans/markdown/implementation-bug-fixes.md`
 
-### Current Session (2026-01-06 final): Confirmed Bugs from Live Formatter Run
+### Session (2026-01-06 final): Bug Investigation Complete → Implementation Starting
 
-**Ran formatter, found 3 real bugs:**
+**Bugs Found & Root Causes:**
 
-1. **Bug #1: Bare Fence Protection Failure** ❌ (agent-documentation.md:36-42)
-   - **Input:** Bare ``` fence containing emoji-prefixed lines:
-     ```
-     ✅ Issue #1: XPASS tests visible
-     ✅ Issue #2: Setup failures captured
-     ❌ Issue #3: Not fixed yet
-     ```
-   - **Output:** Incorrectly converted to list items:
-     ```
-     - ✅ Issue #1: XPASS tests visible
-     - ✅ Issue #2: Setup failures captured
-     - ❌ Issue #3: Not fixed yet
-     ```
-   - **Contradicts Phase 7 findings** that claimed bare fence protection was working
-   - **Root Cause:** Need to re-investigate - tests pass but real files fail
+1. **Bug #1: Bare Fence Protection Failure** (agent-documentation.md:36-42)
+   - Bare ``` fence inside ``````markdown block NOT protected
+   - Emoji lines converted to list items (incorrect)
 
-2. **Bug #2: Unwanted Blank Line Insertion** ❌ (agent-documentation.md:205)
-   - **Input:** ```python fence immediately followed by code
-   - **Output:** Blank line inserted after fence opening
-   - **Impact:** Modifies code block boundaries when it shouldn't
+2. **Bug #2: Unwanted Blank Line Insertion** (agent-documentation.md:205)
+   - ```python inside ``````markdown block gets blank line after opening
+   - Same root cause as Bug #1
 
-3. **Bug #3: Idempotency Corruption** ❌ (feature-2-code-block-nesting.md:48)
-   - **Input:** `` ````markdown `` (4 backticks)
-   - **Output:** `` ``` ```markdow ``n `` (corrupted!)
-   - **Root Cause:** Regex `(?<!`` )(`{3,})(\w*)(?! ``)` matches INSIDE already-escaped sequences
-   - **Progressive corruption:** Each pass splits the language identifier further
+3. **Bug #3: Idempotency Corruption** (feature-2-code-block-nesting.md:48)
+   - Regex `(?<!`` )(`{3,})(\w*)(?! ``)` matches inside escaped sequences
+   - `` ````markdown `` → `` ``` ```markdow ``n `` on second pass
 
-**Test Results:** 62/62 tests passing, BUT tests don't catch these real-world bugs
+**Root Cause Analysis:**
+- `parse_segments()` does NOT recursively parse fences inside ```markdown blocks
+- Result: Inner fences treated as regular text, not protected segments
+- Both bugs solved by implementing recursive parsing
 
-**Next Steps (Priority Order):**
+**Implementation Strategy:**
 
-1. **Investigate Bug #1** - Why does bare fence protection fail on real files but pass in tests?
-2. **Fix Bug #3** - Redesign regex to be truly idempotent
-3. **Fix Bug #2** - Stop inserting blank lines in code blocks
-4. **Add integration tests** - Test with actual file content, not just unit tests
+**Phase 1:** Fix Bug #3 (idempotency) - Simple regex change
+- Update regex: `(?<!`` )` → `(?<!`)` (reject any preceding backtick, not just "`` ")
+- Add test: 4-backtick idempotency
+
+**Phase 2:** Fix Bug #1 & #2 (recursive parsing) - Core logic change
+- Extend `parse_segments()` to recursively parse content within ```markdown blocks
+- Create sub-segments where inner fences protected
+- Add tests for nested bare fence and nested code blocks
+- Add integration test with real agent-documentation.md structure
+
+**Phase 3:** Verification
+- Run full test suite (66 tests: 62 existing + 4 new)
+- Run formatter on repo to verify no corruption
+
+**Checkpoints:**
+1. After Phase 1 - All escape_inline_backticks tests pass
+2. After Phase 2 checkpoint 2 - Nested fence tests pass
+3. After Phase 2 checkpoint 3 - Integration test passes
+4. Final - Full suite + formatter verification
+
+**Test Coverage:**
+- New idempotency test: 4-backtick case
+- New nested bare fence test: protection inside ```markdown
+- New nested code block test: no blank line insertion
+- New integration test: real agent-documentation.md structure
 
 ---
 
