@@ -1,6 +1,5 @@
 """Command-line interface for claudeutils."""
 
-# ruff: noqa: T201 - print statements are expected in CLI code
 import json
 import logging
 import re

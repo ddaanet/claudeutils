@@ -1,6 +1,5 @@
 """CLI handler for tokens subcommand."""
 
-# ruff: noqa: T201 - print statements are expected in CLI code
 import json
 import os
 import sys
