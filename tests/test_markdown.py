@@ -1143,3 +1143,102 @@ def test_integration_nested_fences_in_markdown_block() -> None:
     assert content_inside_fence[0] == "✅ Issue #1: XPASS tests visible\n"
     assert content_inside_fence[1] == "✅ Issue #2: Setup failures captured\n"
     assert content_inside_fence[2] == "❌ Issue #3: Not fixed yet\n"
+
+
+# Integration tests for inline code span protection
+
+
+def test_escape_inline_backticks_preserves_single_backtick_spans() -> None:
+    """Test: Single backtick spans not corrupted by escaping."""
+    input_lines = ["Single `backtick` text\n"]
+    result = escape_inline_backticks(input_lines)
+    assert result == ["Single `backtick` text\n"]
+
+
+def test_escape_inline_backticks_preserves_double_backtick_spans() -> None:
+    """Test: Double backtick spans not corrupted by escaping."""
+    input_lines = ["Double ``backtick`` text\n"]
+    result = escape_inline_backticks(input_lines)
+    assert result == ["Double ``backtick`` text\n"]
+
+
+def test_escape_inline_backticks_preserves_double_containing_single() -> None:
+    """Test: Double backtick spans containing single backtick preserved."""
+    input_lines = ["Double ``Backtick ` char`` text\n"]
+    result = escape_inline_backticks(input_lines)
+    assert result == ["Double ``Backtick ` char`` text\n"]
+
+
+def test_escape_inline_backticks_preserves_multiple_spans() -> None:
+    """Test: Multiple inline code spans on same line preserved."""
+    input_lines = ["First `span1` and second `span2` here\n"]
+    result = escape_inline_backticks(input_lines)
+    assert result == ["First `span1` and second `span2` here\n"]
+
+
+def test_escape_inline_backticks_preserves_mixed_delimiters() -> None:
+    """Test: Mixed single and double backtick spans preserved."""
+    input_lines = ["Single `a` and double ``b`` text\n"]
+    result = escape_inline_backticks(input_lines)
+    assert result == ["Single `a` and double ``b`` text\n"]
+
+
+def test_escape_inline_backticks_escapes_bare_triple_outside_spans() -> None:
+    """Test: Bare triple backticks outside spans are escaped."""
+    input_lines = ["Text with ```python outside\n"]
+    result = escape_inline_backticks(input_lines)
+    assert result == ["Text with `` ```python `` outside\n"]
+
+
+def test_escape_inline_backticks_mixed_bare_and_inline() -> None:
+    """Test: Escapes bare fences but preserves inline code spans."""
+    input_lines = ["Use `code` but escape ```python here\n"]
+    result = escape_inline_backticks(input_lines)
+    assert result == ["Use `code` but escape `` ```python `` here\n"]
+
+
+def test_escape_inline_backticks_preserves_quoted_doc_example() -> None:
+    """Test: Documentation example with inline code preserved."""
+    input_lines = ['Given: `"````markdown\\n"` (4 backticks with language)\n']
+    result = escape_inline_backticks(input_lines)
+    # Single-backtick span containing 4 backticks and text - preserved
+    assert result == ['Given: `"````markdown\\n"` (4 backticks with language)\n']
+
+
+def test_escape_inline_backticks_adjacent_spans() -> None:
+    """Test: Adjacent inline code spans handled correctly."""
+    input_lines = ["`first``second`text\n"]
+    result = escape_inline_backticks(input_lines)
+    # `first` is valid span, ``second` has mismatched delimiters (2 opening, 1 closing)
+    # Should preserve the valid `first` span
+    assert "`first`" in result[0]
+
+
+def test_escape_inline_backticks_empty_span() -> None:
+    """Test: Empty inline code spans preserved."""
+    input_lines = ["Empty `` span\n"]
+    result = escape_inline_backticks(input_lines)
+    assert result == ["Empty `` span\n"]
+
+
+def test_escape_inline_backticks_span_at_boundaries() -> None:
+    """Test: Spans at start/end of line preserved."""
+    input_lines = ["`start` middle `end`\n"]
+    result = escape_inline_backticks(input_lines)
+    assert result == ["`start` middle `end`\n"]
+
+
+def test_escape_inline_backticks_unclosed_not_corrupted() -> None:
+    """Test: Unclosed backticks handled gracefully."""
+    input_lines = ["Unclosed `backtick and ```python\n"]
+    result = escape_inline_backticks(input_lines)
+    # Unclosed ` is not a span, so ```python should be escaped
+    assert "`` ```python ``" in result[0]
+
+
+def test_escape_inline_backticks_preserves_one_four_one_with_spaces() -> None:
+    """Test: Explicit single-backtick span with four backticks inside."""
+    input_lines = ["Use ` ```` ` for blocks\n"]
+    result = escape_inline_backticks(input_lines)
+    # Single-backtick span with spaces - should be preserved
+    assert result == ["Use ` ```` ` for blocks\n"]
