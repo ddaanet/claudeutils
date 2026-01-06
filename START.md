@@ -12,6 +12,7 @@
 ### What Happened
 
 **Phases 1-5: Complete** ✅ (2026-01-05)
+
 - Phase 1: Table detection working
 - Phase 2: Single label conversion fixed
 - Phase 3: Bold label exclusion working
@@ -41,14 +42,15 @@ After Phases 1-5, examined diffs from `just format` and found THREE critical bug
 - **Investigation needed:** Debug why segment parser protection failing
 
 **Bug #5: escape_inline_backticks() Regex Breaks 4+ Backticks** ⚠️ CRITICAL
+
 - Location: `markdown.py:297`
 - Pattern `r"(?<!`` )```(\w*)"` matches first 3 backticks in ````
 - **Example corruption:**
-  ```python
+  `````python
   Input:  "Output: ````markdown block"
   Output: "Output: `` ``` ```markdown block"
   #                    ^^^^^^^^^ BROKEN - fence start mid-line!
-  ```
+  `````
 - **Why:** Negative lookbehind only checks for "`` " (2 backticks + space)
 - **Impact:** Corrupts any docs trying to display 4+ backticks inline
 - **Blocks:** Phase 9 (doc fix) can't be applied until regex fixed
@@ -63,6 +65,8 @@ After Phases 1-5, examined diffs from `just format` and found THREE critical bug
 **Phase 7: Debug Bare Fence Protection** ⚠️ CRITICAL
 - **Problem:** Content in bare ``` fences being processed (should be protected)
 - **Investigation:** Add debug logging to `parse_segments()` and `apply_fix_to_segments()`
+- **Investigation:** Add debug logging to `parse_segments()` and
+  `apply_fix_to_segments()`
 - **Test:** Integration test verifying bare fences actually protect content
 - **Impact:** 1 file corrupted (`agent-documentation.md`)
 
@@ -75,11 +79,13 @@ After Phases 1-5, examined diffs from `just format` and found THREE critical bug
 - **Impact:** Blocks Phase 9, corrupts 4+ backtick sequences
 
 **Phase 8: Add Integration Tests** ⚠️ CRITICAL
+
 - **Purpose:** Validate end-to-end protection works
 - **Tests:** Python/YAML/markdown/bare fences unchanged, plain text processed
 - **Status:** Required for validation
 
 **Phase 9: Fix Incorrect Backtick Escaping in Docs** (BLOCKED by Phase 10)
+
 - **File:** `plans/markdown/feature-2-code-block-nesting.md:48`
 - **Change:** ````markdown block → `` ````markdown `` block
 - **Why blocked:** Current regex would re-corrupt this fix
@@ -88,17 +94,20 @@ After Phases 1-5, examined diffs from `just format` and found THREE critical bug
 ### Documentation
 
 **Segmentation Bugs Analysis:** `plans/markdown/segmentation-bugs-analysis.md` (NEW)
+
 - Complete investigation of post-Phase-5 corruption
 - Evidence with git diffs and test output showing regex bug
 - User clarifications on intentional features vs bugs
 - Phases 7-10 implementation details with test cases
 
 **Root Cause Analysis:** `plans/markdown/root-cause-analysis.md` (COMPLETE)
+
 - Original analysis that led to Phases 4-5
 - YAML prolog and prefix detection bugs
 - Implemented in commit 663059d
 
 **Implementation Plan:** `plans/markdown/fix-warning-lines-tables.md`
+
 - Phases 1-5: Complete ✅
 - Phases 7, 8, 10: Required ❌
 - Phase 9: Blocked (depends on Phase 10)
@@ -110,7 +119,8 @@ After Phases 1-5, examined diffs from `just format` and found THREE critical bug
 
 ### Markdown Segment Processing - Complete ✅
 
-Implemented segment-aware markdown processing to prevent false positives in fenced blocks:
+Implemented segment-aware markdown processing to prevent false positives in fenced
+blocks:
 
 1. **Segment parser** - Classify content (fenced blocks, YAML prologs, plain text)
 2. **Stack-based nesting** - Handle `` ```markdown `` inside `` ```python ``
@@ -132,13 +142,13 @@ Implemented segment-aware markdown processing to prevent false positives in fenc
 
 ## Key Files
 
-| File                             | Purpose                                        |
-| -------------------------------- | ---------------------------------------------- |
-| `session.md`                     | Current session notes (short-term only)        |
-| `AGENTS.md`                      | Core agent rules and role definitions          |
-| `agents/TEST_DATA.md`            | Data types and sample entries                  |
-| `agents/DESIGN_DECISIONS.md`     | Architectural and implementation decisions     |
-| `plans/markdown/fix-warning-lines-tables.md` | Current fix plan for formatter bugs |
+| File                                         | Purpose                                    |
+| -------------------------------------------- | ------------------------------------------ |
+| `session.md`                                 | Current session notes (short-term only)    |
+| `AGENTS.md`                                  | Core agent rules and role definitions      |
+| `agents/TEST_DATA.md`                        | Data types and sample entries              |
+| `agents/DESIGN_DECISIONS.md`                 | Architectural and implementation decisions |
+| `plans/markdown/fix-warning-lines-tables.md` | Current fix plan for formatter bugs        |
 
 ---
 
@@ -147,6 +157,7 @@ Implemented segment-aware markdown processing to prevent false positives in fenc
 **Immediate:** Implement Phases 7, 10, 8 (in order)
 
 **Phase 7: Debug Bare Fence Protection** ⚠️ CRITICAL
+
 ```bash
 # Add debug logging to markdown.py parse_segments()
 # Add integration test for bare fence protection
@@ -156,14 +167,16 @@ just test tests/test_markdown.py
 ```
 
 **Phase 10: Fix escape_inline_backticks() Regex** ⚠️ CRITICAL
-```bash
+
+````bash
 # Edit markdown.py:297
 # Change: r"(?<!`` )```(\w*)" → r"(?<!`)`{3}(\w*)(?!`)"
 # Add 3 tests for 4+ backtick handling
 just test tests/test_markdown.py
-```
+````
 
 **Phase 8: Add Integration Tests**
+
 ```bash
 # Add end-to-end tests for all fence types
 # Verify Python/YAML/markdown/bare fences protected
@@ -172,18 +185,21 @@ just test tests/test_markdown.py
 ```
 
 **Phase 9: Fix Doc Backtick Escaping** (after Phase 10)
-```bash
+
+`````bash
 # Edit plans/markdown/feature-2-code-block-nesting.md:48
 # Change: ````markdown block → `` ````markdown `` block
-```
+`````
 
 **Integration Testing**
+
 ```bash
 just format           # Should produce minimal/no diffs
 git diff              # Verify 2 remaining files no longer corrupted
 ```
 
 **Success criteria:**
+
 - Bare fences protect content (processable=False)
 - 4+ backticks in inline code not corrupted
 - All integration tests pass

@@ -9,11 +9,13 @@
 - Converts dictionary keys to list items: `"name": "test"` → `- "name": "test"`
 - Converts table rows to list items: `| Build | Done |` → `- | Build | Done |`
 
-**Root cause:** All processing functions operate on raw line lists without block context.
+**Root cause:** All processing functions operate on raw line lists without block
+context.
 
 ### Requirements
 
 **Processing rules:**
+
 - **MUST** process content outside any fenced blocks
 - **MUST** process content inside ````markdown` blocks only
 - **MUST NOT** process content inside ```python, ```bash, ```javascript, ``` (bare), etc.
@@ -21,11 +23,13 @@
 - **MUST NOT** process content inside YAML prolog sections (---...---)
 
 **Backtick space preservation:**
+
 - `` `blah ` `` → `` `"blah "` ``
 - `` ` | ` `` → `` `" | "` ``
 - Preserves semantic correctness for string discourse
 
 **Scope:** ALL fixes affected (not just list detection):
+
 - `fix_dunder_references`
 - `fix_metadata_blocks`
 - `fix_warning_lines`
@@ -34,13 +38,15 @@
 - `fix_numbered_list_spacing`
 - `escape_inline_backticks`
 
-**Exception:** `fix_markdown_code_blocks` still must detect/fix inner fences in any block.
+**Exception:** `fix_markdown_code_blocks` still must detect/fix inner fences in any
+block.
 
 ---
 
 ## Architecture Change
 
 ### Current: Line-by-line processing
+
 ```python
 def process_lines(lines: list[str]) -> list[str]:
     result = fix_metadata_blocks(lines)  # Processes ALL lines
@@ -49,6 +55,7 @@ def process_lines(lines: list[str]) -> list[str]:
 ```
 
 ### New: Segment-aware processing
+
 ```python
 def process_lines(lines: list[str]) -> list[str]:
     segments = parse_segments(lines)     # Classify: processable vs protected
@@ -66,29 +73,34 @@ def process_lines(lines: list[str]) -> list[str]:
 ### Phase 1: Segment Parser (Foundation)
 
 #### Test 1: Parse empty input
-**Given:** `[]`
-**When:** `parse_segments([])`
-**Then:** Returns `[]`
-**NEW:** Basic `parse_segments` function returning empty list
+
+- **Given:** `[]`
+- **When:** `parse_segments([])`
+- **Then:** Returns `[]`
+- **NEW:** Basic `parse_segments` function returning empty list
 
 #### Test 2: Parse plain text (no fences)
-**Given:** `["Line 1\n", "Line 2\n"]`
-**When:** `parse_segments(lines)`
-**Then:** Returns single segment, `processable=True`, contains both lines
-**NEW:** Segment classification for non-fenced content
 
-#### Test 3: Parse ```python block
+- **Given:** `["Line 1\n", "Line 2\n"]`
+- **When:** `parse_segments(lines)`
+- **Then:** Returns single segment, `processable=True`, contains both lines
+- **NEW:** Segment classification for non-fenced content
+
+#### Test 3: Parse `` ```python `` block
+
 **Given:**
-```python
+
+````python
 lines = [
     "```python\n",
     "x = 1\n",
     "```\n"
 ]
-```
-**When:** `parse_segments(lines)`
-**Then:** Returns single segment, `processable=False`, language=`"python"`
-**NEW:** Detect fenced block boundaries, classify as protected
+````
+
+- **When:** `parse_segments(lines)`
+- **Then:** Returns single segment, `processable=False`, language=`"python"`
+- **NEW:** Detect fenced block boundaries, classify as protected
 
 #### Test 4: Parse ```markdown block
 **Given:**
@@ -104,17 +116,20 @@ lines = [
 **NEW:** Special case for markdown blocks (processable)
 
 #### Test 5: Parse bare ``` block (no language)
+
 **Given:**
-```python
+
+````python
 lines = [
     "```\n",
     "raw text\n",
     "```\n"
 ]
-```
-**When:** `parse_segments(lines)`
-**Then:** Returns single segment, `processable=False`, language=`None`
-**NEW:** Bare fences are protected (not processable)
+````
+
+- **When:** `parse_segments(lines)`
+- **Then:** Returns single segment, `processable=False`, language=`None`
+- **NEW:** Bare fences are protected (not processable)
 
 **Checkpoint:** ✅ **PASSED** - All segment parsing tests passing
 
@@ -123,8 +138,10 @@ lines = [
 ### Phase 2: Mixed Content Parsing
 
 #### Test 6: Parse text before and after fence
+
 **Given:**
-```python
+
+````python
 lines = [
     "Text before\n",
     "```python\n",
@@ -132,8 +149,8 @@ lines = [
     "```\n",
     "Text after\n"
 ]
-```
-**When:** `parse_segments(lines)`
+````
+
 **Then:** Returns 3 segments:
 1. `processable=True`, lines=`["Text before\n"]`
 2. `processable=False`, language=`"python"`, lines=`["```python\n", "code\n", "```\n"]`
@@ -141,8 +158,10 @@ lines = [
 **NEW:** Multi-segment parsing with state machine
 
 #### Test 7: Parse consecutive fenced blocks
+
 **Given:**
-```python
+
+````python
 lines = [
     "```bash\n",
     "echo hello\n",
@@ -151,14 +170,15 @@ lines = [
     "x = 1\n",
     "```\n"
 ]
-```
-**When:** `parse_segments(lines)`
-**Then:** Returns 2 segments, both `processable=False`, different languages
-**NEW:** State transitions between blocks
+````
 
-#### Test 8: Parse nested ```markdown inside ```python
+- **When:** `parse_segments(lines)`
+- **Then:** Returns 2 segments, both `processable=False`, different languages
+- **NEW:** State transitions between blocks
+
 **Given:**
-```python
+
+````python
 lines = [
     "```python\n",
     "# docstring with example:\n",
@@ -167,10 +187,12 @@ lines = [
     "```\n",
     "```\n"  # closes python block
 ]
-```
-**When:** `parse_segments(lines)`
-**Then:** Returns 1 segment, `processable=False`, language=`"python"`, contains all lines
-**NEW:** Nested markdown NOT processable when inside non-markdown block
+````
+
+- **When:** `parse_segments(lines)`
+- **Then:** Returns 1 segment, `processable=False`, language=`"python"`, contains all
+  lines
+- **NEW:** Nested markdown NOT processable when inside non-markdown block
 
 **Checkpoint:** ✅ **PASSED** - Mixed content parsing working correctly
 
@@ -187,7 +209,9 @@ lines = [
 **NEW:** `apply_fix_to_segments(segments, fix_fn)` wrapper
 
 #### Test 10: Skip all fixes in YAML prolog block
+
 **Given:** YAML prolog content
+
 ```
 ---
 title: Document
@@ -204,9 +228,10 @@ tasks: [ build, test ]
 NOTE: Important
 TODO: Action
 ```
-**When:** `process_lines(lines)`
-**Then:** Raw content unchanged (no list conversion)
-**NEW:** Validates bare blocks protected
+
+- **When:** `process_lines(lines)`
+- **Then:** Raw content unchanged (no list conversion)
+- **NEW:** Validates bare blocks protected
 
 #### Test 12: Skip all fixes in table rows
 **Given:** Table inside ```markdown block nested in ```python block
@@ -227,22 +252,25 @@ TODO: Action
 **NEW:** `fix_backtick_spaces` function detects trailing space, wraps content with quotes
 
 #### Test 14: Quote backticks with leading space
-**Given:** `` ` blah` ``
-**When:** `fix_backtick_spaces(line)`
-**Then:** `` `" blah"` ``
-**NEW:** Handle leading space
+
+- **Given:** `` ` blah` ``
+- **When:** `fix_backtick_spaces(line)`
+- **Then:** `` `" blah"` ``
+- **NEW:** Handle leading space
 
 #### Test 15: Quote backticks with both leading and trailing space
-**Given:** `` ` | ` ``
-**When:** `fix_backtick_spaces(line)`
-**Then:** `` `" | "` ``
-**NEW:** Handle both spaces
+
+- **Given:** `` ` | ` ``
+- **When:** `fix_backtick_spaces(line)`
+- **Then:** `` `" | "` ``
+- **NEW:** Handle both spaces
 
 #### Test 16: Skip backticks without spaces
-**Given:** `` `code` ``
-**When:** `fix_backtick_spaces(line)`
-**Then:** `` `code` `` (unchanged)
-**NEW:** Avoid false positives
+
+- **Given:** `` `code` ``
+- **When:** `fix_backtick_spaces(line)`
+- **Then:** `` `code` `` (unchanged)
+- **NEW:** Avoid false positives
 
 #### Test 17: Apply via segment-aware processing
 **Given:** Mixed content with backticks in plain text and ```python block
@@ -275,6 +303,7 @@ TODO: Action
 ## Data Structures
 
 ### Segment Model
+
 ```python
 class Segment(BaseModel):
     processable: bool
@@ -292,7 +321,8 @@ class Segment(BaseModel):
 ## Success Criteria
 
 1. ✅ All existing tests continue passing (48/48)
-2. ✅ Lists not detected inside ```python, ```bash, ```javascript, ``` (bare) blocks, or YAML prolog sections
+2. ✅ Lists not detected inside `` ```python ``, `` ```bash ``, `` ```javascript ``,
+   `` ``` `` (bare) blocks, or YAML prolog sections
 3. ✅ All fixes skip content inside protected blocks
 4. ⏳ Backtick space preservation works correctly (Phase 4 - pending)
 5. ⏳ Inner fence detection/fixing still works (Phase 5 - pending)
@@ -315,17 +345,18 @@ class Segment(BaseModel):
 
 ## Design Decisions
 
-**Decision:** Segment parser runs first, then fixes operate on segments
-**Rationale:** Clean separation of concerns, testable in isolation
+- **Decision:** Segment parser runs first, then fixes operate on segments
+- **Rationale:** Clean separation of concerns, testable in isolation
 
-**Decision:** Segment model includes `start_line` for error reporting
-**Rationale:** Preserves line numbers for `MarkdownInnerFenceError` context
+- **Decision:** Segment model includes `start_line` for error reporting
+- **Rationale:** Preserves line numbers for `MarkdownInnerFenceError` context
 
-**Decision:** `fix_markdown_code_blocks` operates on flattened output
-**Rationale:** It needs full document view to detect/fix nesting, runs after other fixes
+- **Decision:** `fix_markdown_code_blocks` operates on flattened output
+- **Rationale:** It needs full document view to detect/fix nesting, runs after other
+  fixes
 
-**Decision:** Backtick space quoting is separate fix function
-**Rationale:** New concern, add to pipeline rather than modify existing functions
+- **Decision:** Backtick space quoting is separate fix function
+- **Rationale:** New concern, add to pipeline rather than modify existing functions
 
 ---
 
@@ -334,16 +365,19 @@ class Segment(BaseModel):
 **Status:** ⏳ **IN PROGRESS** - Phases 1-3 complete, Phases 4-5 pending
 
 **What Was Implemented:**
+
 - ✅ Phase 1: Segment parser foundation (5 tests)
 - ✅ Phase 2: Mixed content parsing (3 tests)
 - ✅ Phase 3: Segment integration (4 tests)
 - Total so far: 12 new tests, 48/48 tests passing
 
 **What Remains:**
+
 - ⏳ Phase 4: Backtick space preservation (5 tests)
 - ⏳ Phase 5: Exception handling validation (2 tests)
 
 **Files Modified:**
+
 - `src/claudeutils/markdown.py` (+102 lines for segment parsing and integration)
 - `tests/test_markdown.py` (+12 tests for segment parsing)
 

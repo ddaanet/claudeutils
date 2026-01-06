@@ -26,7 +26,8 @@ code
 
 The inner `` ``` `` fence closes the outer block prematurely, breaking the structure.
 
-**Solution:** Use `` ```` `` (4 backticks) for outer fence when inner `` ``` `` fences detected:
+**Solution:** Use `` ```` `` (4 backticks) for outer fence when inner `` ``` `` fences
+detected:
 
 `````
 ````markdown

@@ -7,7 +7,9 @@
 
 ## Executive Summary
 
-The segment parser is **fundamentally broken** - it's not protecting content inside code fences as designed. Multiple critical bugs allow formatter functions to corrupt protected content.
+The segment parser is **fundamentally broken** - it's not protecting content inside code
+fences as designed. Multiple critical bugs allow formatter functions to corrupt
+protected content.
 
 ## Critical Bugs Identified
 
@@ -16,28 +18,31 @@ The segment parser is **fundamentally broken** - it's not protecting content ins
 **Location:** `markdown.py:217`
 
 **Code:**
+
 ```python
 processable = open_lang == "markdown"
 ```
 
 **Problem:**
+
 - `` ```markdown `` blocks are intentionally marked as `processable=True`
 - This causes ALL fixes to run on content inside `` ```markdown `` fences
 - Documentation examples and test cases get corrupted
 
-**Evidence:**
-In `plans/markdown/fix-warning-lines-tables.md:152-162`, content inside a `` ```markdown `` fence:
+**Evidence:** In `plans/markdown/fix-warning-lines-tables.md:152-162`, content inside a
+`` ```markdown `` fence:
 
-```diff
+````diff
  **Desired behavior:**
  ```markdown
 -**File:** role.md              **File:** role.md
 -**Model:** Sonnet      →       **Model:** Sonnet
 +- **File:** role.md              **File:** role.md
 +- **Model:** Sonnet      →       **Model:** Sonnet
-```
+````
 
-The lines `**File:** role.md` and `**Model:** Sonnet` are being converted to list items by `fix_metadata_blocks()`, even though they're inside a ```markdown fence.
+The lines `**File:** role.md` and `**Model:** Sonnet` are being converted to list items
+by `fix_metadata_blocks()`, even though they're inside a ```markdown fence.
 
 **Impact:** HIGH - Corrupts all documentation with markdown examples
 
@@ -46,15 +51,16 @@ The lines `**File:** role.md` and `**Model:** Sonnet` are being converted to lis
 **Location:** Unknown - segment parser logic issue
 
 **Test Says:**
-```python
+
+````python
 def test_parse_segments_bare_fence_block() -> None:
     """Test: parse_segments detects bare ``` block as protected."""
     # ...
     assert result[0].processable is False
-```
+````
 
-**Reality:**
-In `plans/markdown/agent-documentation.md:36-42`, content inside bare ``` fence:
+**Reality:** In `plans/markdown/agent-documentation.md:36-42`, content inside bare ```
+fence:
 
 ```diff
  **Input:**
@@ -78,28 +84,32 @@ The emoji-prefixed lines are being converted to list items by `fix_warning_lines
 **Location:** `markdown.py:785`, `markdown.py:556-587`
 
 **Problem:**
+
 - `fix_backtick_spaces()` adds quotes around inline code with leading/trailing spaces
-- Function is applied via `apply_fix_to_segments()` which should only process processable segments
+- Function is applied via `apply_fix_to_segments()` which should only process
+  processable segments
 - But quotes are appearing in content that should be protected
 
-**Evidence:**
-In `plans/markdown/root-cause-analysis.md:53`:
+**Evidence:** In `plans/markdown/root-cause-analysis.md:53`:
 
 ```diff
 -- Line `  critical:` (indented) is stripped to `critical:`, doesn't match pattern
 +- Line `"  critical:"` (indented) is stripped to `critical:`, doesn't match pattern
 ```
 
-The inline code `` `  critical:` `` (with leading spaces) is being quoted as `` `"  critical:"` ``.
+The inline code `` `  critical:` `` (with leading spaces) is being quoted as
+`` `"  critical:"` ``.
 
-**Note:** User said "not all changes incorrect, many are correct fixes recently implemented" - so `fix_backtick_spaces` is intentional and working as designed when applied to the RIGHT segments. The bug is that it's being applied to the WRONG segments.
+**Note:** User said "not all changes incorrect, many are correct fixes recently
+implemented" - so `fix_backtick_spaces` is intentional and working as designed when
+applied to the RIGHT segments. The bug is that it's being applied to the WRONG segments.
 
-**Impact:** MEDIUM - Adds visual noise, but may be working as intended for processable text
+**Impact:** MEDIUM - Adds visual noise, but may be working as intended for processable
+text
 
 ### Bug #4: Missing Blank Line Additions
 
-**Evidence:**
-Multiple locations show blank lines being added after headers:
+**Evidence:** Multiple locations show blank lines being added after headers:
 
 ```diff
  ### How Fixes Work
@@ -113,7 +123,8 @@ Multiple locations show blank lines being added after headers:
  1. Add table row detection
 ```
 
-This appears to be `fix_numbered_list_spacing()` adding blank lines before numbered lists.
+This appears to be `fix_numbered_list_spacing()` adding blank lines before numbered
+lists.
 
 **Impact:** LOW - Cosmetic, improves formatting but may be unexpected
 
@@ -122,16 +133,19 @@ This appears to be `fix_numbered_list_spacing()` adding blank lines before numbe
 ### Design Flaw: Processable Markdown Blocks
 
 The original design (commit 5a5ad93) states:
+
 > "Markdown blocks marked processable, all others protected."
 
 This was intentional but **wrong**. The reasoning was likely: "If someone writes ```markdown, they want it formatted like markdown."
 
 **Why This is Wrong:**
+
 1. Documentation often contains ```markdown examples showing *before* state
 2. Test data uses ```markdown to show expected unformatted output
 3. Code fences are for **display**, not **processing**
 
 **Correct Behavior:**
+
 - ALL code fences should be protected, including ```markdown
 - Only plain text segments should be processable
 - If you want to format markdown inside a block, extract it first
@@ -139,6 +153,7 @@ This was intentional but **wrong**. The reasoning was likely: "If someone writes
 ### Segment Parser Logic Issues
 
 The segment parser appears to have correct logic for bare fences:
+
 - Test expects bare ``` fences to be protected (`processable=False`)
 - Code in `parse_segments()` treats bare fences (language=None) as protected
 
@@ -210,31 +225,36 @@ Analysis of each file:
    - ✅ CORRECT: Added `r` prefix for raw strings in regex docstrings
 
 **Summary:**
+
 - **Real corruption:** 2 files (agent-documentation.md, fix-warning-lines-tables.md)
 - **Working as designed:** 5 files (most changes are correct)
-- **Core issue:** Content inside code fences (bare and ```markdown) being processed when it should be protected
+- **Core issue:** Content inside code fences (bare and ```markdown) being processed when
+  it should be protected
 
 ### Corruption Patterns
 
-| Pattern | Function | Should Skip | Actually Skips? |
-|---------|----------|-------------|-----------------|
-| Content in ` ```markdown ` | All fixes | ✅ Yes | ❌ No - marked processable |
-| Content in bare ` ``` ` | All fixes | ✅ Yes | ❌ No - unknown bug |
-| Inline code with spaces | `fix_backtick_spaces` | ✅ Yes (if in fence) | ❌ No |
-| Before numbered lists | `fix_numbered_list_spacing` | ⚠️ Maybe | ✅ Yes - working as designed |
+| Pattern                      | Function                    | Should Skip          | Actually Skips?              |
+| ---------------------------- | --------------------------- | -------------------- | ---------------------------- |
+| Content in `` ```markdown `` | All fixes                   | ✅ Yes               | ❌ No - marked processable   |
+| Content in bare `` ``` ``    | All fixes                   | ✅ Yes               | ❌ No - unknown bug          |
+| Inline code with spaces      | `fix_backtick_spaces`       | ✅ Yes (if in fence) | ❌ No                        |
+| Before numbered lists        | `fix_numbered_list_spacing` | ⚠️ Maybe              | ✅ Yes - working as designed |
 
 ## Clarifications from User
 
 ### ```markdown Blocks Being Processable: ✅ INTENTIONAL FEATURE
+
 - **Not a bug** - This is by design
 - **Purpose:** Correctly format documentation snippets included in rule files and plans
 - **Example use case:** Plans containing markdown examples that should be formatted
 - **Conclusion:** Keep `processable = open_lang == "markdown"` as-is
 
 ### Quoting Spaces in Inline Code: ✅ REQUIRED FEATURE
+
 - **Not a bug** - This is necessary for disambiguation
 - **Reason:** dprint strips inner spaces in ` text `, making them invisible
-- **Solution:** `fix_backtick_spaces()` adds quotes: `` `  text  ` `` → `` `"  text  "` ``
+- **Solution:** `fix_backtick_spaces()` adds quotes: `` `  text  ` `` →
+  `` `"  text  "` ``
 - **Conclusion:** Keep this behavior, it prevents data loss
 
 ## New Bugs Discovered
@@ -257,7 +277,8 @@ This starts a 4-backtick code fence, which is invalid/broken markdown.
 
 Where `` ````markdown `` renders as ````markdown in inline code.
 
-**CommonMark Rule:** To display N consecutive backticks in inline code, use N+1 backticks as delimiters.
+**CommonMark Rule:** To display N consecutive backticks in inline code, use N+1
+backticks as delimiters.
 
 **Status:** Initially thought to be pre-existing, but further investigation reveals...
 
@@ -266,14 +287,17 @@ Where `` ````markdown `` renders as ````markdown in inline code.
 **Location:** `markdown.py:297`
 
 **Code:**
-```python
-escaped_line = re.sub(r"(?<!`` )```(\w*)", r"`` ```\1 ``", line)
-```
 
-**Problem:** The regex matches the FIRST 3 backticks in any sequence of 4+ backticks and wraps them incorrectly.
+````python
+escaped_line = re.sub(r"(?<!`` )```(\w*)", r"`` ```\1 ``", line)
+````
+
+**Problem:** The regex matches the FIRST 3 backticks in any sequence of 4+ backticks and
+wraps them incorrectly.
 
 **Evidence:**
-```python
+
+`````python
 # Test with the regex:
 Input:  "- Output: ````markdown block"
 Output: "- Output: `` ``` ```markdown block"
@@ -281,7 +305,7 @@ Output: "- Output: `` ``` ```markdown block"
 
 Input:  "- Output: `` ````markdown `` block"  # Attempted fix
 Output: "- Output: `` ``` ```markdown `` `` block"  # Also broken!
-```
+`````
 
 **Why it happens:**
 1. Regex looks for 3 consecutive backticks: ` ``` `
@@ -291,20 +315,25 @@ Output: "- Output: `` ``` ```markdown `` `` block"  # Also broken!
 5. Creates: `` ``` ` + ```markdown (broken - starts a code fence!)
 
 **Correct behavior needed:**
+
 - 3 backticks: `` ``` `` → should match (escape triple backticks)
 - 4 backticks: `` ```` `` → should NOT match (already in inline code)
 - Bare ````markdown → should NOT be escaped (it's invalid markdown to begin with)
 
-**Impact:** HIGH - Actively corrupts any documentation trying to display 4+ backticks in inline code
+**Impact:** HIGH - Actively corrupts any documentation trying to display 4+ backticks in
+inline code
 
-**Root cause of Bug #4:** The doc bug in feature-2-code-block-nesting.md:48 exists because any attempt to fix it properly gets re-broken by this regex!
+**Root cause of Bug #4:** The doc bug in feature-2-code-block-nesting.md:48 exists
+because any attempt to fix it properly gets re-broken by this regex!
 
 ## Recommended Fixes
 
 ### Phase 6: Fix Markdown Block Processing ~~⚠️ CRITICAL~~ ✅ NOT NEEDED
+
 **Status:** User confirms this is intentional - keep as-is
 
 **Change:**
+
 ```python
 # markdown.py:217
 # OLD:
@@ -315,7 +344,8 @@ processable = False  # ALL fences are protected
 ```
 
 **Update Tests:**
-```python
+
+````python
 # test_segments.py:33-43
 def test_parse_segments_markdown_block() -> None:
 -    """Test: parse_segments detects ```markdown block as processable."""
@@ -323,20 +353,23 @@ def test_parse_segments_markdown_block() -> None:
     # ...
 -    assert result[0].processable is True
 +    assert result[0].processable is False
-```
+````
 
-**Impact:** This will break the intentional "process markdown blocks" feature. Need to verify no code depends on this.
+**Impact:** This will break the intentional "process markdown blocks" feature. Need to
+verify no code depends on this.
 
 ### Phase 7: Debug Bare Fence Protection ⚠️ CRITICAL (ONLY REAL BUG)
 
 **Investigation needed:**
+
 1. Add debug logging to `parse_segments()` showing what segments are created
 2. Add debug logging to `apply_fix_to_segments()` showing what's being processed
 3. Run formatter on test file and examine logs
 4. Identify where protection is failing
 
 **Test to write:**
-```python
+
+````python
 def test_bare_fence_protection_integration():
     """Integration test: Verify bare fences actually protect content."""
     lines = [
@@ -348,11 +381,12 @@ def test_bare_fence_protection_integration():
     result = process_lines(lines)
     assert result[1] == "✅ Task 1\n"  # Not converted to list
     assert result[2] == "✅ Task 2\n"
-```
+````
 
 ### Phase 8: Add Integration Tests ⚠️ CRITICAL
 
 Add end-to-end tests that verify:
+
 1. Content in ```python fences is unchanged
 2. Content in ```markdown fences is unchanged
 3. Content in bare ``` fences is unchanged
@@ -360,7 +394,8 @@ Add end-to-end tests that verify:
 5. Plain text IS processed correctly
 
 **Test to write:**
-```python
+
+````python
 def test_bare_fence_protection_integration():
     """Integration test: Verify bare fences actually protect content."""
     lines = [
@@ -372,14 +407,14 @@ def test_bare_fence_protection_integration():
     result = process_lines(lines)
     assert result[1] == "✅ Task 1\n"  # Not converted to list
     assert result[2] == "✅ Task 2\n"
-```
+````
 
 ### Phase 9: Fix Incorrect Backtick Escaping in Documentation
 
 **Depends on:** Phase 10 (must fix regex first)
 
 **Change:**
-```markdown
+```
 # plans/markdown/feature-2-code-block-nesting.md:48
 # OLD:
    - Output: ````markdown block (4 backticks)
@@ -397,33 +432,36 @@ def test_bare_fence_protection_integration():
 **Location:** `markdown.py:297`
 
 **Current regex (broken):**
-```python
+
+````python
 escaped_line = re.sub(r"(?<!`` )```(\w*)", r"`` ```\1 ``", line)
-```
+````
 
 **Problem:** Matches first 3 backticks in 4+ backtick sequences, corrupting them.
 
 **Fix strategy:**
+
 1. **Option A - Stricter negative lookbehind:** Check for any backtick before the match
-   ```python
+   ````python
    escaped_line = re.sub(r"(?<!`)`{3}(\w*)(?!`)", r"`` ```\1 ``", line)
-   ```
+   ````
    - `(?<!`)` ensures no backtick before
    - `{3}` matches exactly 3 backticks
    - `(?!`)` ensures no backtick after
    - This only matches standalone ```
 
 2. **Option B - Skip already-escaped:** Better negative lookbehind
-   ```python
+   ````python
    escaped_line = re.sub(r"(?<!``)```(\w*)", r"`` ```\1 ``", line)
-   ```
+   ````
    - `(?<!``)` checks for any 2 backticks before (whether or not there's a space)
    - Simpler but might miss edge cases
 
 **Recommended:** Option A with negative lookahead for precision
 
 **Test cases needed:**
-```python
+
+`````python
 def test_escape_inline_backticks_handles_4plus():
     """Test: 4+ backticks in inline code not corrupted."""
     lines = ["Text `` ````markdown `` more text\n"]
@@ -441,31 +479,39 @@ def test_escape_inline_backticks_bare_4_backticks():
     lines = ["Output: ````markdown block\n"]
     result = escape_inline_backticks(lines)
     assert result[0] == lines[0]  # Invalid markdown, leave as-is
-```
+`````
 
 **Impact:** HIGH - Fixes corruption of 4+ backtick sequences, enables Phase 9
 
 ## Revised Summary
 
 **Real Bugs Found:** 3
+
 1. ~~Bug #1: ```markdown blocks processable~~ → ✅ INTENTIONAL FEATURE
 2. **Bug #2: Bare fences not protecting content** → ❌ CRITICAL, NEEDS FIX (Phase 7)
 3. ~~Bug #3: Inline code with spaces quoted~~ → ✅ REQUIRED FEATURE
-4. **Bug #4: Incorrect backtick escaping in docs** → ⚠️ Can't be fixed without fixing Bug #5
-5. **Bug #5: escape_inline_backticks() regex bug** → ❌ CRITICAL, breaks 4+ backtick sequences (Phase 10)
+4. **Bug #4: Incorrect backtick escaping in docs** → ⚠️ Can't be fixed without fixing
+   Bug #5
+5. **Bug #5: escape_inline_backticks() regex bug** → ❌ CRITICAL, breaks 4+ backtick
+   sequences (Phase 10)
 
 **Files with Real Corruption:** 2
+
 - `plans/markdown/agent-documentation.md` - Bare fence content → lists (Bug #2)
-- `plans/markdown/fix-warning-lines-tables.md` - ```markdown fence content → lists (INTENTIONAL)
+- `plans/markdown/fix-warning-lines-tables.md` - ```markdown fence content → lists
+  (INTENTIONAL)
 
 **Core Issues:**
+
 - **Bug #2:** Bare fence protection failure - CRITICAL
-- **Bug #5:** Regex in escape_inline_backticks() corrupts 4+ backtick sequences - CRITICAL
+- **Bug #5:** Regex in escape_inline_backticks() corrupts 4+ backtick sequences -
+  CRITICAL
 
 ## Next Steps
 
 1. ~~Update `plans/markdown/fix-warning-lines-tables.md`~~ → ✅ Done
 2. **Implement Phase 7:** Debug and fix bare fence protection (CRITICAL)
 3. **Implement Phase 8:** Add integration tests (CRITICAL)
-4. **Implement Phase 10:** Fix escape_inline_backticks() regex (CRITICAL - blocks Phase 9)
+4. **Implement Phase 10:** Fix escape_inline_backticks() regex (CRITICAL - blocks
+   Phase 9)
 5. **Implement Phase 9:** Fix backtick escaping in documentation (depends on Phase 10)

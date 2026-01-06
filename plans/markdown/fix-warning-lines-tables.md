@@ -1,6 +1,7 @@
 # Fix Plan: Prevent Table and Metadata List Corruption
 
-**Status Update (2026-01-05):** Phases 1-2 complete ✅, but NEW CRITICAL ISSUES discovered ❌
+**Status Update (2026-01-05):** Phases 1-2 complete ✅, but NEW CRITICAL ISSUES
+discovered ❌
 
 **See:** `plans/markdown/root-cause-analysis.md` for detailed technical analysis
 
@@ -8,15 +9,18 @@
 
 ## Protection Model: How Segments Work
 
-The markdown preprocessor uses a **segment parser** to protect certain content from processing:
+The markdown preprocessor uses a **segment parser** to protect certain content from
+processing:
 
 ### Protected Segments (processable=False)
+
 - **YAML prologs:** Content between `---` and `---` at document start
 - **Fenced code blocks:** Content between `` ``` `` (except `` ```markdown ``)
   - Examples: `` ```python ``, `` ```yaml ``, `` ```bash ``, bare `` ``` ``
   - ASCII diagrams, YAML examples, code snippets should be in these blocks
 
 ### Processable Segments (processable=True)
+
 - **Plain markdown text:** Everything outside protected segments
 - **Markdown blocks:** Content in `` ```markdown `` fences (special case)
 
@@ -27,20 +31,25 @@ The markdown preprocessor uses a **segment parser** to protect certain content f
 3. Protected content is completely untouched
 
 ### The Bug
+
 When YAML prolog detection fails:
+
 - YAML content not recognized as protected segment
 - Falls through to plain text (processable)
 - `fix_warning_lines()` sees `tier_structure:` as a prefix
 - Converts to `- tier_structure:` → YAML broken ❌
 
 When `extract_prefix()` is too aggressive:
+
 - Plain markdown text matches prefix patterns
 - Regular prose converted to lists → formatting broken ❌
 
 ### The Fix Strategy
+
 **Two-pronged approach: robust segment parsing + defensive prefix detection**
 
-1. **Phase 4:** Fix YAML prolog detection (PRIMARY) → protect YAML/code content correctly
+1. **Phase 4:** Fix YAML prolog detection (PRIMARY) → protect YAML/code content
+   correctly
    - Change pattern from `r"^\w+:\s"` to `r"^[a-zA-Z_][\w]*:"`
    - Allows keys without values: `tier_structure:`, `critical:`
    - Allows digits after first char: `key123:`, `option_2:`
@@ -57,7 +66,8 @@ When `extract_prefix()` is too aggressive:
 ## Phases 1-2 Status: COMPLETE ✅
 
 1. **Tables converted to lists** → FIXED ✅ (added table detection to `extract_prefix`)
-2. **Single labels converted to list items** → FIXED ✅ (disabled `fix_metadata_list_indentation`)
+2. **Single labels converted to list items** → FIXED ✅ (disabled
+   `fix_metadata_list_indentation`)
 3. **Bold labels processed twice** → FIXED ✅ (merged into `fix_metadata_blocks`)
 
 **Result:** 45/45 tests passing, table/label issues resolved
@@ -69,24 +79,32 @@ When `extract_prefix()` is too aggressive:
 Running `just format` after Phases 1-2 STILL corrupts 27 files with TWO CRITICAL BUGS:
 
 ### Bug #1: YAML Prolog Detection Broken
+
 - **Location:** `markdown.py:135`
 - **Current:** Pattern `r"^\w+:\s"` requires space after colon
 - **Problem:** Doesn't match YAML keys without values: `tier_structure:`, `critical:`
 - **Problem:** Doesn't match keys with digits: `option_2:`, `key123:`
 - **Problem:** Doesn't match keys with hyphens: `semantic-type:`, `author-model:`
 - **Impact:** YAML sections not recognized, content falls through to prefix detection
-- **Fix:** Change pattern to `r"^[a-zA-Z_][\w-]*:"` (allows keys without values, supports underscores/hyphens/digits after first char)
+- **Fix:** Change pattern to `r"^[a-zA-Z_][\w-]*:"` (allows keys without values,
+  supports underscores/hyphens/digits after first char)
 
 ### Bug #2: Prefix Detection Over-Aggressive
+
 - **Location:** `markdown.py:447`
 - **Current:** Pattern `r"^(\S+(?:\s|:))"` matches ANY non-whitespace + space/colon
-- **Problem:** Matches regular prose ("Task agent"), block quotes ("> text"), tree diagrams ("├─"), section headers ("Implementation:")
+- **Problem:** Matches regular prose ("Task agent"), block quotes ("> text"), tree
+  diagrams ("├─"), section headers ("Implementation:")
 - **Impact:** Plain markdown converted to lists, breaking formatting
-- **Fix:** Complete rewrite - only match emoji symbols, bracket prefixes `[TODO]`, uppercase word+colon `NOTE:`
+- **Fix:** Complete rewrite - only match emoji symbols, bracket prefixes `[TODO]`,
+  uppercase word+colon `NOTE:`
 
 ### Bug #3: Cascading Failures
+
 When both bugs combine:
-- YAML not recognized → content processed as plain text → prefix matches YAML keys → YAML broken
+
+- YAML not recognized → content processed as plain text → prefix matches YAML keys →
+  YAML broken
 - Tree diagrams not in fenced blocks → prefix matches symbols → diagrams broken
 - Regular prose → prefix matches common words → document structure broken
 
@@ -96,16 +114,21 @@ When both bugs combine:
 
 ## Original Problems (Phases 1-2: FIXED ✅)
 
-1. **Tables converted to lists**: `fix_warning_lines()` treats table rows as prefixed lines
-2. **Single labels converted to list items**: `fix_metadata_list_indentation()` incorrectly treats single `**Label:**` as a metadata list
-3. **Bold labels processed twice**: Both `fix_warning_lines()` and other functions try to process `**Label:**` patterns
+1. **Tables converted to lists**: `fix_warning_lines()` treats table rows as prefixed
+   lines
+2. **Single labels converted to list items**: `fix_metadata_list_indentation()`
+   incorrectly treats single `**Label:**` as a metadata list
+3. **Bold labels processed twice**: Both `fix_warning_lines()` and other functions try
+   to process `**Label:**` patterns
 
 ## User Requirements (Clarified)
 
-- **Metadata list** = 2+ consecutive `**Label:**` lines → convert to list items ✅ (keep `fix_metadata_blocks`)
+- **Metadata list** = 2+ consecutive `**Label:**` lines → convert to list items ✅ (keep
+  `fix_metadata_blocks`)
 - **Single `**Label:**` line** ≠ metadata list → do NOT convert to list item ❌
 - **List following metadata list** → should be indented ✅
-- **Indentation must be consistent** → all items at same nesting level have same indent (not progressive) ✅
+- **Indentation must be consistent** → all items at same nesting level have same indent
+  (not progressive) ✅
 - **Tables** → must remain as tables ✅
 
 ## Solution Strategy
@@ -125,6 +148,7 @@ When both bugs combine:
    - Also return `None` to skip
 
 **Test cases to add:**
+
 ```python
 def test_tables_unchanged():
     """Tables should not be converted to lists."""
@@ -143,14 +167,17 @@ def test_tables_unchanged():
 **Objective:** Stop converting single `**Label:**` lines to list items
 
 **Current behavior (unwanted):**
+
 ```text
 **Commits:**                   - **Commits:**
 - item 1              →          - item 1
 - item 2                           - item 2
 ```
+
 Single label is converted to list item (wrong - not a metadata list)
 
 **Desired behavior:**
+
 ```text
 **File:** role.md              **File:** role.md
 **Model:** Sonnet      →       **Model:** Sonnet
@@ -161,14 +188,15 @@ Single label is converted to list item (wrong - not a metadata list)
 - item 2                         - item 2
 ```
 
-**Implementation:**
-Modify `fix_metadata_list_indentation()` to:
+**Implementation:** Modify `fix_metadata_list_indentation()` to:
 
-1. Detect if previous content is a metadata list (list items starting with `- **` pattern)
+1. Detect if previous content is a metadata list (list items starting with `- **`
+   pattern)
 2. Only indent following list if it comes after a metadata list
 3. Do NOT convert single `**Label:**` lines to list items
 
 **Alternative simpler approach:**
+
 - Disable `fix_metadata_list_indentation` completely
 - Let `fix_metadata_blocks` handle 2+ labels (converts to list)
 - User can manually indent lists when needed
@@ -177,17 +205,22 @@ Modify `fix_metadata_list_indentation()` to:
 **Recommended: Disable completely** (simpler, avoids bugs)
 
 **Why disable:**
-- Function converts single labels to list items (wrong - user says "single line with label does not make a metadata list")
+
+- Function converts single labels to list items (wrong - user says "single line with
+  label does not make a metadata list")
 - Indentation logic could cause progressive indent increase (user concern)
 - Simpler to let users control indentation manually
 
 **Changes needed:**
-- Comment out line 723 in `markdown.py`: `segments = apply_fix_to_segments(segments, fix_metadata_list_indentation)`
+
+- Comment out line 723 in `markdown.py`:
+  `segments = apply_fix_to_segments(segments, fix_metadata_list_indentation)`
 - Update test expectations
 
 ### Phase 3: Bold Label Exclusion (from fix_warning_lines)
 
-**Objective:** Prevent `**Label:**` patterns from being processed by `fix_warning_lines()` (already handled by `fix_metadata_blocks`)
+**Objective:** Prevent `**Label:**` patterns from being processed by
+`fix_warning_lines()` (already handled by `fix_metadata_blocks`)
 
 **Implementation:**
 
@@ -196,6 +229,7 @@ Modify `fix_metadata_list_indentation()` to:
    - Return `None` for these patterns
 
 **Test cases to add:**
+
 ```python
 def test_bold_labels_unchanged():
     """Bold labels should not be converted to lists by fix_warning_lines."""
@@ -215,6 +249,7 @@ def test_bold_labels_unchanged():
 **Location:** `src/claudeutils/markdown.py:135`
 
 **Current Code:**
+
 ```python
 # Check for key: value pattern (identifier-colon-space)
 if re.match(r"^\w+:\s", current_stripped):
@@ -222,12 +257,14 @@ if re.match(r"^\w+:\s", current_stripped):
 ```
 
 **Problem:**
+
 - Pattern requires space after colon: `key: value`
 - Doesn't match keys without values: `tier_structure:`, `critical:`
 - YAML nested structures not recognized
 - Content falls through to plain text processing
 
 **New Code:**
+
 ```python
 # Check for key: value pattern or standalone key
 # Accepts: "key: value", "key:", "key_name:", "key-name:", "key123:" (but not "123key:")
@@ -237,15 +274,21 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 ```
 
 **Changes:**
+
 - Remove `\s` requirement (allow keys without values)
 - Explicit first char: `[a-zA-Z_]` (letter or underscore)
-- Remaining chars: `[\w-]*` (zero or more word chars OR hyphens: letters, digits, underscores, hyphens)
-- Matches: `tier_structure:`, `author_model:`, `semantic_type:`, `_private:`, `key123:`, `option_2:`, `semantic-type:`, `author-model:`
-- Rejects: `123key:` (digit first - invalid YAML key), `-key:` (hyphen first - invalid YAML key)
+- Remaining chars: `[\w-]*` (zero or more word chars OR hyphens: letters, digits,
+  underscores, hyphens)
+- Matches: `tier_structure:`, `author_model:`, `semantic_type:`, `_private:`, `key123:`,
+  `option_2:`, `semantic-type:`, `author-model:`
+- Rejects: `123key:` (digit first - invalid YAML key), `-key:` (hyphen first - invalid
+  YAML key)
 
-**Note:** `\w` in Python regex = `[a-zA-Z0-9_]` (letters, digits, underscore), so `[\w-]` adds hyphen support
+**Note:** `\w` in Python regex = `[a-zA-Z0-9_]` (letters, digits, underscore), so
+`[\w-]` adds hyphen support
 
 **Test Cases:**
+
 ```python
 def test_yaml_prolog_with_underscores():
     """YAML keys with underscores should be recognized."""
@@ -282,7 +325,9 @@ def test_yaml_prolog_nested_keys():
     # They won't be processed by fix_warning_lines()
 ```
 
-**Key Point:** YAML content between `---` delimiters is a protected segment. The bug is that prolog detection fails, causing YAML to fall through to plain text processing where `fix_warning_lines()` mangles it.
+**Key Point:** YAML content between `---` delimiters is a protected segment. The bug is
+that prolog detection fails, causing YAML to fall through to plain text processing where
+`fix_warning_lines()` mangles it.
 
 ---
 
@@ -293,6 +338,7 @@ def test_yaml_prolog_nested_keys():
 **Location:** `src/claudeutils/markdown.py:431-450`
 
 **Current Code:**
+
 ```python
 def extract_prefix(line: str) -> str | None:
     stripped = line.strip()
@@ -312,6 +358,7 @@ def extract_prefix(line: str) -> str | None:
 ```
 
 **New Code:** (Complete replacement)
+
 ```python
 def extract_prefix(line: str) -> str | None:
     """Extract non-markup prefix from line.
@@ -382,7 +429,8 @@ def extract_prefix(line: str) -> str | None:
    - Lines ending with `:` (section headers, YAML keys)
 
 2. **Only match specific patterns:**
-   - Emoji: `r"^([^\w\s\[\(\{\-\*\|>]+)(\s|$)"` (non-word, non-whitespace, not special chars)
+   - Emoji: `r"^([^\w\s\[\(\{\-\*\|>]+)(\s|$)"` (non-word, non-whitespace, not special
+     chars)
    - Brackets: `r"^(\[[^\]]+\])(\s|$)"` (explicit bracket matching)
    - Uppercase colon: `r"^([A-Z][A-Z0-9_]*:)\s"` (NOTE:, TODO:, WARNING: only)
 
@@ -393,6 +441,7 @@ def extract_prefix(line: str) -> str | None:
    - Lowercase word + colon: "author_model:"
 
 **Test Cases:**
+
 ```python
 def test_prose_not_converted_to_list():
     """Regular prose should not be converted to list items."""
@@ -467,34 +516,43 @@ def test_emoji_prefixes_still_work():
 
 ### New Critical Issues Discovered ❌
 
-**Status:** Despite Phases 4-5 being implemented, `just format` still corrupts 2 files. Root cause analysis reveals one critical segment parser bug.
+**Status:** Despite Phases 4-5 being implemented, `just format` still corrupts 2 files.
+Root cause analysis reveals one critical segment parser bug.
 
 **See:** `plans/markdown/segmentation-bugs-analysis.md` for complete investigation.
 
 **Clarifications:**
-- ✅ ```markdown blocks being processed is INTENTIONAL (for formatting doc snippets in plans)
-- ✅ Inline code with spaces being quoted is REQUIRED (dprint strips spaces, quotes preserve them)
+
+- ✅ `` ```markdown `` blocks being processed is INTENTIONAL (for formatting doc
+  snippets in plans)
+- ✅ Inline code with spaces being quoted is REQUIRED (dprint strips spaces, quotes
+  preserve them)
 - ❌ Bare fences NOT protecting content is the ONLY real bug
 
 **New Phases:**
 
 6. ~~**Phase 6: Fix Markdown Block Processing**~~ → ✅ NOT NEEDED (intentional feature)
-7. **Phase 7: Debug Bare Fence Protection** (CRITICAL - bare fences not protecting content)
+7. **Phase 7: Debug Bare Fence Protection** (CRITICAL - bare fences not protecting
+   content)
 8. **Phase 8: Add Integration Tests** (CRITICAL - validates end-to-end protection)
 9. **Phase 9: Fix Incorrect Backtick Escaping in Docs** (depends on Phase 10)
-10. **Phase 10: Fix escape_inline_backticks() Regex** (CRITICAL - corrupts 4+ backtick sequences)
+10. **Phase 10: Fix escape_inline_backticks() Regex** (CRITICAL - corrupts 4+ backtick
+    sequences)
 
 ## Testing Strategy
 
 ### Unit Tests by Category
 
 **Segment Parser Tests (Phase 4):**
-- `test_yaml_prolog_with_underscores` - YAML keys like `author_model:`, `key123:` recognized
+
+- `test_yaml_prolog_with_underscores` - YAML keys like `author_model:`, `key123:`
+  recognized
 - `test_yaml_prolog_nested_keys` - YAML nested keys like `tier_structure:` recognized
 - Tests that YAML content is protected (processable=False)
 - **Primary defense:** If this works, YAML never reaches `fix_warning_lines()`
 
 **Prefix Detection Tests (Phase 5):**
+
 - `test_prose_not_converted` - Regular prose NOT converted to lists
 - `test_block_quotes_not_converted` - Block quotes NOT converted to lists
 - `test_tree_diagrams_not_converted` - Tree diagrams NOT converted
@@ -503,6 +561,7 @@ def test_emoji_prefixes_still_work():
 - **Secondary defense:** Even if content not in fenced blocks, don't mangle it
 
 **Key Distinction:**
+
 - Phase 4 (segment parser): PRIMARY - protects content from processing
 - Phase 5 (prefix detection): DEFENSIVE - handles edge cases in plain text
 
@@ -531,6 +590,7 @@ This starts a 4-backtick code fence, which is invalid markdown.
 ```
 
 **Why Phase 10 is required:**
+
 - Current `escape_inline_backticks()` regex would re-corrupt this fix
 - The regex matches first 3 backticks in ````  and converts to `` ``` ```markdown (broken!)
 - Must fix the regex first, then apply doc fix
@@ -544,16 +604,20 @@ This starts a 4-backtick code fence, which is invalid markdown.
 **Bug discovered:** 2026-01-06 - Regex corrupts 4+ backtick sequences in inline code
 
 **Current code (broken):**
-```python
+
+````python
 escaped_line = re.sub(r"(?<!`` )```(\w*)", r"`` ```\1 ``", line)
-```
+````
 
 **Problem:**
-```python
+
+`````python
 Input:  "- Output: ````markdown block"
 Output: "- Output: `` ``` ```markdown block"
 #                        ^^^^^^^^^ BROKEN - fence start mid-line!
-```
+`````
+
+The regex matches the FIRST 3 backticks in `` ```` `` because:
 
 The regex matches the FIRST 3 backticks in ````  because:
 1. Looks for exactly 3 backticks: ` ``` `
@@ -562,25 +626,29 @@ The regex matches the FIRST 3 backticks in ````  because:
 4. Creates malformed `` ``` ```markdown (inline code + fence start)
 
 **Fix (Option A - Recommended):**
-```python
+
+````python
 # Use negative lookahead and lookbehind to match ONLY standalone ```
 escaped_line = re.sub(r"(?<!`)`{3}(\w*)(?!`)", r"`` ```\1 ``", line)
-```
+````
 
 **Why this works:**
+
 - `(?<!`)` - no backtick immediately before
 - `{3}` - exactly 3 backticks
 - `(?!`)` - no backtick immediately after
-- Only matches ``` when not part of ````
+- Only matches `` ``` `` when not part of `` ```` ``
 
 **Fix (Option B - Alternative):**
-```python
+
+````python
 # Better negative lookbehind without space requirement
 escaped_line = re.sub(r"(?<!``)```(\w*)", r"`` ```\1 ``", line)
-```
+````
 
 **Test cases needed:**
-```python
+
+`````python
 def test_escape_preserves_4plus_backticks():
     """Don't escape 4+ backticks already in inline code."""
     lines = ["Text `` ````markdown `` more\n"]
@@ -599,63 +667,79 @@ def test_escape_handles_bare_4_backticks():
     result = escape_inline_backticks(lines)
     # Should remain unchanged - it's invalid markdown
     assert result[0] == lines[0]
-```
+`````
 
 **Impact:** HIGH - Fixes active corruption of documentation with 4+ backticks
 
 ## Files to Modify
 
 ### Phases 1-5 (COMPLETE ✅)
+
 - `src/claudeutils/markdown.py` - Update `extract_prefix()` and `is_similar_prefix()`
 - `tests/test_markdown.py` - Add table and bold label test cases
 
 ### Phase 7 (CRITICAL ❌)
+
 - `src/claudeutils/markdown.py` - Debug and fix bare fence protection
 - Add debug logging to identify where protection fails
 
 ### Phase 8 (CRITICAL ❌)
+
 - `tests/test_markdown.py` - Add integration tests for fence protection
 
 ### Phase 9 (DEPENDS ON PHASE 10 ⚠️)
+
 - `plans/markdown/feature-2-code-block-nesting.md` - Fix backtick escaping on line 48
 
 ### Phase 10 (CRITICAL ❌)
+
 - `src/claudeutils/markdown.py` - Fix escape_inline_backticks() regex (line 297)
 - `tests/test_markdown.py` - Add tests for 4+ backtick handling
 
 ## Success Criteria
 
 ### Phases 1-3 (COMPLETE ✅)
+
 - ✅ Tables remain as tables (no `- |` prefixes)
 - ✅ Single `**Label:**` lines stay as-is (not converted to list items)
 - ✅ Multiple consecutive `**Label:**` lines converted to list (metadata blocks)
 - ✅ List indentation is consistent at each nesting level (no progressive increase)
 
 ### Phases 4-5 (NEW - REQUIRED ❌)
+
 **Phase 4 (Segment Parser):**
-- ❌ YAML prologs with underscores recognized: `author_model:`, `semantic_type:`, `key123:`
+
+- ❌ YAML prologs with underscores recognized: `author_model:`, `semantic_type:`,
+  `key123:`
 - ❌ YAML prologs with nested keys recognized: `tier_structure:`, `critical:`
 - ❌ YAML content protected (processable=False), never reaches fixes
 
 **Phase 5 (Prefix Detection):**
+
 - ❌ Regular prose NOT converted to lists: "Task agent prompt..."
 - ❌ Block quotes NOT converted to lists: `> Your subagent's...`
 - ❌ Tree diagrams NOT converted to lists: `├─ fix_dunder_references`
 - ❌ Section headers NOT converted to lists: `Implementation:`, `Strategy:`
-- ✅ Legitimate emoji/bracket prefixed lines STILL converted to lists: `✅ Task`, `[TODO] Item`
+- ✅ Legitimate emoji/bracket prefixed lines STILL converted to lists: `✅ Task`,
+  `[TODO] Item`
 
 ### Final Validation (UPDATED)
+
 - ✅ 52/52 tests passing (Phases 1-5 complete)
 - ❌ **Phase 7 (CRITICAL):** Bare fence protection not working - 2 files corrupted
 - ❌ **Phase 8 (CRITICAL):** Integration tests needed to validate end-to-end protection
-- ❌ **Phase 10 (CRITICAL):** escape_inline_backticks() regex corrupts 4+ backtick sequences
+- ❌ **Phase 10 (CRITICAL):** escape_inline_backticks() regex corrupts 4+ backtick
+  sequences
 - ⚠️ **Phase 9 (BLOCKED):** Doc fix requires Phase 10 to be completed first
 
 ## Key Decision: Disable fix_metadata_list_indentation
 
-**Reason:** Single `**Label:**` line ≠ metadata list, should not be converted to list item
+**Reason:** Single `**Label:**` line ≠ metadata list, should not be converted to list
+item
 
-**Action:** Comment out the function call in `process_lines()`. Keep function code for potential future enhancement (e.g., only indent lists after actual metadata lists, not single labels).
+**Action:** Comment out the function call in `process_lines()`. Keep function code for
+potential future enhancement (e.g., only indent lists after actual metadata lists, not
+single labels).
 
 ## Implementation Details
 
@@ -732,6 +816,7 @@ After implementing fixes:
 ## Affected Files Count
 
 Running `just format` before fixes affected 27 files:
+
 - AGENTS.md
 - START.md
 - session.md

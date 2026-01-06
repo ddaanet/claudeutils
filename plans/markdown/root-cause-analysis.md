@@ -4,9 +4,12 @@
 
 Three critical bugs in the markdown preprocessor are causing widespread file corruption:
 
-1. **YAML Prolog Detection Failure** - Pattern requires trailing space, doesn't match nested structures
-2. **Catastrophically Over-Aggressive Prefix Detection** - Matches regular prose, YAML keys, block quotes
-3. **Secondary Effects** - YAML content falls through to prefix detection, creating cascading failures
+1. **YAML Prolog Detection Failure** - Pattern requires trailing space, doesn't match
+   nested structures
+2. **Catastrophically Over-Aggressive Prefix Detection** - Matches regular prose, YAML
+   keys, block quotes
+3. **Secondary Effects** - YAML content falls through to prefix detection, creating
+   cascading failures
 
 **Impact:** 27 files corrupted when running `just format`
 
@@ -15,9 +18,11 @@ Three critical bugs in the markdown preprocessor are causing widespread file cor
 ## Bug #1: YAML Prolog Detection Failure
 
 ### Location
+
 `src/claudeutils/markdown.py:135-136`
 
 ### Current Implementation
+
 ```python
 # Check for key: value pattern (identifier-colon-space)
 if re.match(r"^\w+:\s", current_stripped):
@@ -27,6 +32,7 @@ if re.match(r"^\w+:\s", current_stripped):
 ### Problems
 
 **Problem 1A: Pattern requires trailing space**
+
 - Pattern: `r"^\w+:\s"` requires whitespace after colon
 - YAML keys without values (nested structures) don't match:
   ```yaml
@@ -37,12 +43,16 @@ if re.match(r"^\w+:\s", current_stripped):
 - Result: `has_key_value` stays False, prolog not recognized
 
 **Problem 1B: Pattern doesn't match user requirements**
-- User says: "must accept underscore in any position and digits in any position except first"
+
+- User says: "must accept underscore in any position and digits in any position except
+  first"
 - `\w+` matches `[a-zA-Z0-9_]` (includes underscore, digits)
 - BUT digits can't be first character in `\w+` if we want to be strict
-- Should be: `r"^[a-zA-Z_][a-zA-Z0-9_]*:"` (explicit: letter or underscore first, then any combo)
+- Should be: `r"^[a-zA-Z_][a-zA-Z0-9_]*:"` (explicit: letter or underscore first, then
+  any combo)
 
 **Problem 1C: Indented nested YAML content**
+
 - YAML sections like:
   ```yaml
   ---
@@ -83,10 +93,12 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 ```
 
 **Changes:**
+
 - Remove `\s` requirement (allow keys without values)
 - Explicit first char: `[a-zA-Z_]` (letter or underscore, no digits/hyphens)
 - Remaining chars: `[\w-]*` (zero or more: letters, digits, underscores, hyphens)
-- Matches: `tier_structure:`, `author_model:`, `semantic_type:`, `_private:`, `semantic-type:`, `key123:`, etc.
+- Matches: `tier_structure:`, `author_model:`, `semantic_type:`, `_private:`,
+  `semantic-type:`, `key123:`, etc.
 - Rejects: `123key:` (digit first), `-key:` (hyphen first), `@key:` (special char), etc.
 
 ---
@@ -94,9 +106,11 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 ## Bug #2: Catastrophically Over-Aggressive Prefix Detection
 
 ### Location
+
 `src/claudeutils/markdown.py:447`
 
 ### Current Implementation
+
 ```python
 match = re.match(r"^(\S+(?:\s|:))", stripped)
 if match:
@@ -107,21 +121,26 @@ if match:
 
 **Pattern matches EVERYTHING**
 
-The pattern `r"^(\S+(?:\s|:))"` means: "Match one or more non-whitespace characters followed by a space OR colon"
+The pattern `r"^(\S+(?:\s|:))"` means: "Match one or more non-whitespace characters
+followed by a space OR colon"
 
 This matches:
+
 - ✅ **Intended:** `✅ Task` → prefix `✅`
-- ✅ **Intended:** `[TODO]` → prefix `[TODO]` (but pattern doesn't actually match this - `]` is not `" "` or `:`)
+- ✅ **Intended:** `[TODO]` → prefix `[TODO]` (but pattern doesn't actually match this -
+  `]` is not `" "` or `:`)
 - ❌ **Regular prose:** `Task agent` → prefix `Task`
 - ❌ **YAML keys:** `tier_structure:` → prefix `tier_structure:`
 - ❌ **Block quotes:** `> Your` → prefix `>`
 - ❌ **Tree diagrams:** `├─ fix` → prefix `├─`
 - ❌ **Section headers:** `Use Read` → prefix `Use`
-- ❌ **Bold text:** `**Label:**` → prefix `**Label:**` (caught by other checks, but still problematic)
+- ❌ **Bold text:** `**Label:**` → prefix `**Label:**` (caught by other checks, but
+  still problematic)
 
 ### Evidence From Diff
 
 **Example 1: Regular Prose Converted to List**
+
 ```diff
  ## Scope Analysis: Main Prompt vs Task Agent
 
@@ -136,16 +155,19 @@ This matches:
 1. Line 1 starts with "Task agent"
 2. Line 2 starts with "Task agent"
 3. `extract_prefix()` extracts "Task " from both lines (word + space)
-4. `is_similar_prefix()` sees both end with `:` (FALSE) → checks if both are colon-prefix (TRUE - both end with implicit word boundary)
+4. `is_similar_prefix()` sees both end with `:` (FALSE) → checks if both are
+   colon-prefix (TRUE - both end with implicit word boundary)
 5. Wait, let me re-check the logic...
 
 Actually, looking at `is_colon_prefix()` at line 466:
+
 ```python
 def is_colon_prefix(prefix: str) -> bool:
     return prefix.endswith(":")
 ```
 
-The prefix "Task " doesn't end with ":", so it wouldn't match colon-prefix. Let me check the other matchers:
+The prefix "Task " doesn't end with ":", so it wouldn't match colon-prefix. Let me check
+the other matchers:
 
 ```python
 def is_emoji_prefix(prefix: str) -> bool:
@@ -158,12 +180,14 @@ def is_bracket_prefix(prefix: str) -> bool:
 "Task " doesn't match emoji or bracket either. So how are they being grouped?
 
 Oh! At line 456-457:
+
 ```python
 if p1 == p2:
     return True
 ```
 
-Both lines have prefix "Task " (exact match), so they're considered similar! The categorization (emoji, bracket, colon) is only for cross-prefix matching.
+Both lines have prefix "Task " (exact match), so they're considered similar! The
+categorization (emoji, bracket, colon) is only for cross-prefix matching.
 
 So the logic is:
 
@@ -175,6 +199,7 @@ So the logic is:
 This confirms the prefix detection is way too broad.
 
 **Example 2: Block Quotes Converted to Lists**
+
 ```diff
 -> Your subagent's system prompt goes here. This can be multiple paragraphs and should
 -> clearly define the subagent's role, capabilities, and approach to solving problems.
@@ -190,6 +215,7 @@ This confirms the prefix detection is way too broad.
 4. Converted to list items, breaking block quote formatting
 
 **Example 3: Tree Diagrams Converted to Lists**
+
 ```diff
  Claude generates markdown
    ↓
@@ -211,14 +237,17 @@ This confirms the prefix detection is way too broad.
 
 ### Correct Fix Strategy
 
-**Principle:** Only match patterns that Claude ACTUALLY generates as pseudo-lists, not valid markdown or prose
+**Principle:** Only match patterns that Claude ACTUALLY generates as pseudo-lists, not
+valid markdown or prose
 
 **Patterns to Match (Intended):**
+
 - Emoji prefixes: `✅ Task`, `❌ Failed`, `⚠️ Warning`
 - Bracket prefixes: `[TODO] Item`, `[NOTE] Something`
 - Maybe uppercase word + colon: `NOTE: Something`, `WARNING: Issue`
 
 **Patterns to EXCLUDE (Not prefixes):**
+
 - Regular prose: `Task agent`, `Use Read`
 - Block quotes: `> quote text`
 - Tree diagrams: `├─ item`, `└─ item`, `│  item`
@@ -307,6 +336,7 @@ def extract_prefix(line: str) -> str | None:
 **Example: Bold Labels Excluded**
 
 Phases 1-2 already added exclusions for:
+
 - Tables: Lines starting with `|` and containing 2+ `|` chars (line 444-445)
 - Bold labels: `**Label:**` patterns (handled by `fix_metadata_blocks`)
 
@@ -342,6 +372,7 @@ These exclusions are working, but the YAML and prose issues remain.
 ### Unit Tests Needed
 
 **Test 1: YAML Prolog with Underscores (Segment Parser)**
+
 ```python
 def test_yaml_prolog_with_underscores():
     """YAML keys with underscores should be recognized."""
@@ -359,6 +390,7 @@ def test_yaml_prolog_with_underscores():
 ```
 
 **Test 2: YAML Prolog with Nested Keys (Segment Parser)**
+
 ```python
 def test_yaml_prolog_nested_keys():
     """YAML keys without values (nested structures) should be recognized."""
@@ -381,6 +413,7 @@ def test_yaml_prolog_nested_keys():
 ```
 
 **Test 3: Regular Prose Not Converted (Prefix Detection)**
+
 ```python
 def test_prose_not_converted_to_list():
     """Regular prose should not be converted to list items.
@@ -397,6 +430,7 @@ def test_prose_not_converted_to_list():
 ```
 
 **Test 4: Block Quotes Not Converted (Prefix Detection)**
+
 ```python
 def test_block_quotes_not_converted():
     """Block quotes should not be converted to list items.
@@ -413,6 +447,7 @@ def test_block_quotes_not_converted():
 ```
 
 **Test 5: Tree Diagrams Not Converted (Defensive)**
+
 ```python
 def test_tree_diagrams_not_converted():
     """Tree diagrams should not be converted to list items.
@@ -429,9 +464,12 @@ def test_tree_diagrams_not_converted():
     assert result == lines  # No changes
 ```
 
-**Note:** Tree diagrams and ASCII art SHOULD be in fenced code blocks (protected segments). This test is defensive - it ensures that if they somehow appear in plain text, they won't be mangled. The real fix is to ensure content is properly segmented.
+**Note:** Tree diagrams and ASCII art SHOULD be in fenced code blocks (protected
+segments). This test is defensive - it ensures that if they somehow appear in plain
+text, they won't be mangled. The real fix is to ensure content is properly segmented.
 
 **Test 6: Emoji Prefixes Still Work**
+
 ```python
 def test_emoji_prefixes_converted():
     """Emoji-prefixed lines should still be converted to lists."""
@@ -455,6 +493,7 @@ def test_emoji_prefixes_converted():
 **File:** `src/claudeutils/markdown.py:135`
 
 **Change:**
+
 ```python
 # OLD:
 if re.match(r"^\w+:\s", current_stripped):
@@ -466,6 +505,7 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 ```
 
 **Impact:**
+
 - Fixes YAML keys with underscores: `author_model:`, `semantic_type:`
 - Fixes YAML keys with hyphens: `semantic-type:`, `author-model:`
 - Fixes YAML keys with digits: `key123:`, `option_2:`
@@ -483,6 +523,7 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 **Replace entire `extract_prefix()` function with conservative implementation**
 
 **Impact:**
+
 - Stops matching regular prose ("Task agent")
 - Stops matching block quotes ("> text")
 - Stops matching tree diagrams ("├─ item")
@@ -500,6 +541,7 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 **Add 6 new tests** (see Test Requirements above)
 
 **Impact:**
+
 - Validates YAML prolog detection
 - Validates prefix exclusions
 - Validates emoji prefixes still work
@@ -519,6 +561,7 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 5. Verify: Should show minimal or NO changes to 27 previously corrupted files
 
 **Success Criteria:**
+
 - All unit tests pass
 - `just format` produces minimal/no diffs on AGENTS.md, START.md, session.md
 - Tables remain as tables
@@ -531,14 +574,17 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 ## Risk Assessment
 
 **High Risk:**
+
 - `extract_prefix()` rewrite could break existing functionality
 - Need comprehensive testing of emoji/bracket prefix detection
 
 **Medium Risk:**
+
 - YAML prolog pattern change could have edge cases
 - Need to test with various YAML structures
 
 **Low Risk:**
+
 - Unit tests are additive, no risk to functionality
 
 ---
