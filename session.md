@@ -20,60 +20,51 @@ This file tracks:
 
 ---
 
-## Current Status: Critical Bug Found - Idempotency Failure ❌
+## Current Status: Three Confirmed Bugs ❌
 
 - **Branch:** markdown
-- **Issue:** `escape_inline_backticks()` NOT idempotent - corrupts on multiple passes
-- **Tests:** 62/62 passing, but don't test idempotency
-- **Impact:** Running `just format` multiple times progressively corrupts files
-- **Root Cause:** Regex `(?<!`` )(`{3,})(\w*)(?! ``)` matches inside already-escaped sequences
+- **Tests:** 62/62 passing, but missing critical test coverage
+- **Impact:** Running formatter corrupts 2 files with 3 distinct bugs
 
-### Current Session (2026-01-06 final): Investigation - Found Critical Idempotency Bug ❌
+### Current Session (2026-01-06 final): Confirmed Bugs from Live Formatter Run
 
-**Investigation Findings:**
+**Ran formatter, found 3 real bugs:**
 
-1. **Phases 7-9 Actually Working** ✅
-   - Bare fence protection: Working correctly (verified with integration tests)
-   - Integration tests: All 62/62 tests passing
-   - Doc backtick escaping: Applied correctly
-   - **However:** Changes to `agent-documentation.md` are correct behavior (emoji lines in markdown blocks SHOULD be formatted)
+1. **Bug #1: Bare Fence Protection Failure** ❌ (agent-documentation.md:36-42)
+   - **Input:** Bare ``` fence containing emoji-prefixed lines:
+     ```
+     ✅ Issue #1: XPASS tests visible
+     ✅ Issue #2: Setup failures captured
+     ❌ Issue #3: Not fixed yet
+     ```
+   - **Output:** Incorrectly converted to list items:
+     ```
+     - ✅ Issue #1: XPASS tests visible
+     - ✅ Issue #2: Setup failures captured
+     - ❌ Issue #3: Not fixed yet
+     ```
+   - **Contradicts Phase 7 findings** that claimed bare fence protection was working
+   - **Root Cause:** Need to re-investigate - tests pass but real files fail
 
-2. **Critical Bug Discovered: Phase 10 Incomplete** ❌
-   - **Bug:** `escape_inline_backticks()` is NOT idempotent
-   - **Evidence:**
-     - Pass 1: `````markdown → `` `````markdown `` ✓
-     - Pass 2: `` `````markdown `` → `` ``` ````markdow``n `` ❌
-     - Pass 3: Continues corrupting (splits "markdown" into "markdo" + "w")
+2. **Bug #2: Unwanted Blank Line Insertion** ❌ (agent-documentation.md:205)
+   - **Input:** ```python fence immediately followed by code
+   - **Output:** Blank line inserted after fence opening
+   - **Impact:** Modifies code block boundaries when it shouldn't
+
+3. **Bug #3: Idempotency Corruption** ❌ (feature-2-code-block-nesting.md:48)
+   - **Input:** `` ````markdown `` (4 backticks)
+   - **Output:** `` ``` ```markdow ``n `` (corrupted!)
    - **Root Cause:** Regex `(?<!`` )(`{3,})(\w*)(?! ``)` matches INSIDE already-escaped sequences
-     - After wrapping: `` `````markdown ``
-     - Regex matches starting from 2nd backtick: ````markdow
-     - Lookbehind checks 2 chars back, finds `` ` (not "`` "), so passes
-     - Corrupts by wrapping again: `` ``` ````markdow``n ``
+   - **Progressive corruption:** Each pass splits the language identifier further
 
-3. **Band-Aid Fix Attempted** ⚠️
-   - Added check: `if re.search(r"`` `{3,}", line): skip`
-   - This works but is unsatisfying - patches symptom, not cause
-   - Proper fix: Regex itself should be idempotent
-
-**Remaining Issues:**
-
-1. **Idempotency:** Regex needs proper fix, not workaround
-2. **Backtick quoting:** Files still being modified on format (session.md, agent-documentation.md)
-3. **Bare fence semantics:** Unclear if bare fences in markdown blocks should be protected
-4. **Test coverage:** No idempotency tests exist
-
-**Test Results:** 62/62 markdown tests passing (but missing idempotency test)
+**Test Results:** 62/62 tests passing, BUT tests don't catch these real-world bugs
 
 **Next Steps (Priority Order):**
 
-1. **Fix idempotency properly** - Redesign regex pattern to be truly idempotent
-2. **Add idempotency test** - Test that multiple passes produce identical output
-3. **Clarify bare fence semantics** - Decide if bare fences in markdown blocks should be protected
-4. **Review backtick escaping strategy** - Current approach may be too aggressive
-
-**Files Modified During Investigation:**
-- Created `plans/markdown/debug/test_*.py` - Debug scripts showing idempotency failure
-- No actual code changes committed
+1. **Investigate Bug #1** - Why does bare fence protection fail on real files but pass in tests?
+2. **Fix Bug #3** - Redesign regex to be truly idempotent
+3. **Fix Bug #2** - Stop inserting blank lines in code blocks
+4. **Add integration tests** - Test with actual file content, not just unit tests
 
 ---
 
