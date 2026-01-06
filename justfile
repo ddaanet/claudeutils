@@ -5,7 +5,7 @@
 
 [private]
 sandboxed := shell('[ -w /tmp ] && echo "0" || echo "1"')
-_sync := if sandboxed == "1" { '' } else { 'uv sync' }
+_sync := if sandboxed == "1" { '' } else { 'uv sync -q' }
 _pytest := if sandboxed == "1" { '.venv/bin/pytest' } else { "uv run pytest" }
 _ruff := if sandboxed == "1" { '.venv/bin/ruff' } else { "uv run ruff" }
 _mypy := if sandboxed == "1" { '.venv/bin/mypy' } else { "uv run mypy" }
@@ -21,25 +21,40 @@ dev: format check test line-limits
 # Run tests
 [no-exit-message]
 test *ARGS:
+    #!/usr/bin/env bash -euo pipefail
+    {{ _bash-defs }}
     {{ _sync }}
     {{ _pytest }} {{ ARGS }}
 
 # Format, check with complexity disabled, test
 [no-exit-message]
 lint: format
+    #!/usr/bin/env bash -euo pipefail
+    {{ _bash-defs }}
     {{ _sync }}
-    {{ _ruff }} check -q --ignore=C901
-    docformatter -c src tests
-    {{ _mypy }}
-    {{ _pytest }}
+    show "# ruff check"
+    safe {{ _ruff }} check -q --ignore=C901
+    show "# docformatter -c"
+    safe docformatter -c src tests
+    show "# mypy"
+    safe {{ _mypy }}
+    show "# pytest"
+    safe {{ _pytest }} -q
+    end-safe
 
 # Check code style
 [no-exit-message]
 check:
+    #!/usr/bin/env bash -euo pipefail
+    {{ _bash-defs }}
     {{ _sync }}
-    {{ _ruff }} check -q
-    docformatter -c src tests
-    {{ _mypy }}
+    show "# ruff check"
+    safe {{ _ruff }} check -q
+    show "# docformatter -c"
+    safe docformatter -c src tests
+    show "# mypy"
+    safe {{ _mypy }}
+    end-safe
 
 # Check file line limits
 [no-exit-message]
@@ -49,9 +64,7 @@ line-limits:
 # Role: code - verify tests pass
 [group('roles')]
 [no-exit-message]
-role-code *ARGS:
-    {{ _sync }}
-    {{ _pytest }} {{ ARGS }}
+role-code *ARGS: (test ARGS)
 
 # Role: lint - format and verify all checks pass (no complexity)
 [group('roles')]
