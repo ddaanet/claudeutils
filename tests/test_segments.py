@@ -31,16 +31,23 @@ def test_parse_segments_python_block() -> None:
 
 
 def test_parse_segments_markdown_block() -> None:
-    """Test: parse_segments detects ```markdown block as processable."""
+    """Test: parse_segments recursively parses ```markdown block content."""
     lines = [
         "```markdown\n",
         "# Title\n",
         "```\n",
     ]
     result = parse_segments(lines)
-    assert len(result) == 1
+    # With recursive parsing: [opening fence, inner content, closing fence]
+    assert len(result) == 3
     assert result[0].processable is True
     assert result[0].language == "markdown"
+    assert result[0].lines == ["```markdown\n"]
+    assert result[1].processable is True
+    assert result[1].lines == ["# Title\n"]
+    assert result[2].processable is True
+    assert result[2].language == "markdown"
+    assert result[2].lines == ["```\n"]
 
 
 def test_parse_segments_bare_fence_block() -> None:
@@ -226,3 +233,46 @@ def test_bare_fence_protection_integration() -> None:
     assert content_inside_fence[0] == "✅ Issue #1: XPASS tests visible\n"
     assert content_inside_fence[1] == "✅ Issue #2: Setup failures captured\n"
     assert content_inside_fence[2] == "❌ Issue #3: Not fixed yet\n"
+
+
+def test_parse_segments_nested_bare_fence_in_markdown() -> None:
+    """Test: parse_segments with nested bare fence inside ```markdown block.
+
+    When a bare ``` fence appears inside a ```markdown block, recursive parsing
+    should detect it and create nested segments where the inner bare fence is
+    marked as processable=False (protected).
+    """
+    lines = [
+        "````markdown\n",
+        "\n",
+        "```\n",
+        "✅ Issue\n",
+        "```\n",
+        "\n",
+        "````\n",
+    ]
+    result = parse_segments(lines)
+
+    # With recursive parsing, we should have multiple segments:
+    # 1. Opening fence line (``````markdown)
+    # 2. Plain text before inner fence (\n)
+    # 3. Inner bare fence (protected)
+    # 4. Plain text after inner fence (\n)
+    # 5. Closing fence line (```````)
+
+    # Minimum: Should have more than 1 segment if recursively parsed
+    assert len(result) > 1, (
+        f"Expected multiple segments from recursive parsing, got {len(result)}"
+    )
+
+    # Find the inner bare fence segment
+    bare_fence_segment = None
+    for seg in result:
+        if seg.language is None and "✅ Issue\n" in seg.lines:
+            bare_fence_segment = seg
+            break
+
+    assert bare_fence_segment is not None, "Inner bare fence segment not found"
+    assert bare_fence_segment.processable is False, (
+        "Inner bare fence should be protected"
+    )

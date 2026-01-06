@@ -20,14 +20,54 @@ This file tracks:
 
 ---
 
-## Current Status: Implementation Plan Ready ✅
+## Current Status: Bugs #1/#2/#3 Fixed ✅
 
 - **Branch:** markdown
-- **Three bugs identified** from live formatter run on agent-documentation.md
-- **Root cause found:** Bare fences not recursively parsed inside ```markdown blocks
-- **Implementation plan:** `plans/markdown/implementation-bug-fixes.md`
+- **Implementation:** Complete - all 3 bugs fixed with TDD
+- **Tests:** 78/78 markdown & segment tests passing (4 new tests added)
+- **Verification:** Target files clean - no formatter corruption
 
-### Session (2026-01-06 final): Bug Investigation Complete → Implementation Starting
+### Session (2026-01-06 final): Implementation Complete ✅
+
+**What Was Implemented:**
+
+**Phase 1: Bug #3 - Idempotency Fix**
+- Added `test_escape_inline_backticks_four_backticks_idempotent()`
+- Input: `"Use a ````markdown block to include ``` blocks.\n"`
+- Expected: First pass wraps both, second pass identical
+- Fix: Changed `escape_inline_backticks()` regex from lookbehind/lookahead to alternation
+- Pattern: `r"`` (`{3,}\w*) ``|(`{3,})(\w*)"` with replacer function
+- Explicitly matches already-escaped sequences first, skips them
+- Result: All 9 escape tests passing, fully idempotent
+
+**Phase 2: Bug #1 & #2 - Recursive Parsing**
+- Added `test_parse_segments_nested_bare_fence_in_markdown()` - checks for multiple segments
+- Added `test_nested_python_block_in_markdown_no_blank_line()` - verifies no blank line inserted
+- Added `test_integration_nested_fences_in_markdown_block()` - emoji lines not converted to lists
+- Updated `test_parse_segments_markdown_block()` - expects 3 segments from recursion
+- Fix: Implemented recursive parsing in `parse_segments()` (lines 224-268)
+  - When `language == "markdown"` and block has content:
+    - Extract inner content (exclude fence lines)
+    - Recursively parse inner content
+    - Adjust line numbers for nested segments
+    - Return: [opening_fence, *nested_segments, closing_fence]
+- Result: Inner bare fences protected, no blank line insertion, emoji lines preserved
+
+**Phase 3: Verification**
+- All 78 markdown & segment tests passing
+- Target files have no diffs: `plans/markdown/agent-documentation.md`, `plans/markdown/feature-2-code-block-nesting.md`
+- Formatter verification clean
+
+**Files Modified:**
+- `src/claudeutils/markdown.py`: `escape_inline_backticks()` (lines 300-313), `parse_segments()` (lines 224-268)
+- `tests/test_markdown.py`: +3 tests (lines 365-386, 1054-1141)
+- `tests/test_segments.py`: +1 test (lines 238-278), updated 1 test (lines 33-50)
+
+**Next Steps:** Ready for commit
+
+---
+
+### Session (2026-01-06 earlier): Bug Investigation Complete → Implementation Plan Ready
 
 **Bugs Found & Root Causes:**
 

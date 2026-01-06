@@ -362,6 +362,30 @@ def test_escape_inline_backticks_handles_mixed_backtick_counts() -> None:
     assert escape_inline_backticks(input_lines) == expected
 
 
+def test_escape_inline_backticks_four_backticks_idempotent() -> None:
+    """Test: Escape backticks is idempotent with mixed 4-backtick and 3-backtick inline.
+
+    Regression test for bug where having both ````markdown and ``` on the same
+    line would cause non-idempotent behavior on second pass.
+    """
+    input_lines = [
+        "Use a ````markdown block to include ``` blocks.\n",
+    ]
+
+    # First run - should wrap both sequences
+    result1 = escape_inline_backticks(input_lines)
+    expected_first = [
+        "Use a `` ````markdown `` block to include `` ``` `` blocks.\n",
+    ]
+    assert result1 == expected_first, (
+        f"First pass incorrect:\nGot: {result1}\nExpected: {expected_first}"
+    )
+
+    # Second run should produce identical result (must be idempotent)
+    result2 = escape_inline_backticks(result1)
+    assert result1 == result2, f"Not idempotent:\nPass 1: {result1}\nPass 2: {result2}"
+
+
 def test_fix_markdown_code_blocks_ignores_inline_backticks() -> None:
     """Test: Don't detect ``` as fence when it appears inline in text."""
     input_lines = [
@@ -1027,3 +1051,95 @@ def test_integration_plain_text_still_processes() -> None:
     # Plain text emoji lines SHOULD be converted to list items
     assert result[2] == "- ✅ Task 1\n"
     assert result[3] == "- ✅ Task 2\n"
+
+
+def test_nested_python_block_in_markdown_no_blank_line() -> None:
+    """Test: Nested ```python block inside ```markdown doesn't get blank line.
+
+    When ```python block appears inside ```markdown block, fix_markdown_code_blocks
+    should NOT insert a blank line after the ```python fence (Bug #2 regression test).
+    Requires recursive parsing to work correctly.
+    """
+    input_lines = [
+        "````markdown\n",
+        "# Example\n",
+        "\n",
+        "```python\n",
+        "code_here\n",
+        "```\n",
+        "\n",
+        "````\n",
+    ]
+
+    # Process the lines
+    result = process_lines(input_lines)
+
+    # Find the ```python fence in the output
+    python_fence_idx = None
+    for i, line in enumerate(result):
+        if line.strip() == "```python":
+            python_fence_idx = i
+            break
+
+    assert python_fence_idx is not None, "```python fence not found"
+
+    # Verify next line is NOT blank (Bug #2 would insert a blank line here)
+    assert python_fence_idx + 1 < len(result), "No line after python fence"
+    next_line = result[python_fence_idx + 1]
+    assert next_line.strip() != "", (
+        f"Unexpected blank line after ```python fence: {next_line!r}"
+    )
+    assert next_line == "code_here\n", f"Expected code line, got: {next_line!r}"
+
+
+def test_integration_nested_fences_in_markdown_block() -> None:
+    """Integration test: Bare ``` fence inside ````markdown block.
+
+    Tests Bug #1 fix: Bare ``` fences inside ````markdown blocks should be
+    protected from processing. Emoji lines inside the bare fence should NOT
+    be converted to list items.
+    """
+    input_lines = [
+        "````markdown\n",
+        "## Markdown Cleanup Examples\n",
+        "\n",
+        "### Checklist Detection\n",
+        "\n",
+        "**Input:**\n",
+        "\n",
+        "```\n",
+        "✅ Issue #1: XPASS tests visible\n",
+        "✅ Issue #2: Setup failures captured\n",
+        "❌ Issue #3: Not fixed yet\n",
+        "```\n",
+        "\n",
+        "````\n",
+    ]
+
+    result = process_lines(input_lines)
+
+    # Find the bare fence content
+    bare_fence_start = None
+    bare_fence_end = None
+    for i, line in enumerate(result):
+        stripped = line.strip()
+        if stripped == "```":
+            if bare_fence_start is None:
+                bare_fence_start = i
+            else:
+                bare_fence_end = i
+                break
+
+    assert bare_fence_start is not None, "Opening bare fence not found"
+    assert bare_fence_end is not None, "Closing bare fence not found"
+
+    # Verify emoji lines inside bare fence were NOT converted to list items
+    content_inside_fence = result[bare_fence_start + 1 : bare_fence_end]
+    assert len(content_inside_fence) == 3, (
+        f"Expected 3 lines, got {len(content_inside_fence)}"
+    )
+
+    # These lines should be unchanged (not prefixed with "- ")
+    assert content_inside_fence[0] == "✅ Issue #1: XPASS tests visible\n"
+    assert content_inside_fence[1] == "✅ Issue #2: Setup failures captured\n"
+    assert content_inside_fence[2] == "❌ Issue #3: Not fixed yet\n"
