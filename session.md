@@ -20,38 +20,60 @@ This file tracks:
 
 ---
 
-## Current Status: Phases 1-10 Complete - All Critical Fixes Implemented ✅
+## Current Status: Critical Bug Found - Idempotency Failure ❌
 
 - **Branch:** markdown
-- **Issue:** `just format` corrupting 2 markdown files (RESOLVED)
-- **Plan:** `plans/markdown/fix-warning-lines-tables.md`
-- **Analysis:** `plans/markdown/segmentation-bugs-analysis.md`
-- **Progress:** Phases 1-5, 7, 8, 9, 10 complete ✅ Phase 6 N/A (optional)
+- **Issue:** `escape_inline_backticks()` NOT idempotent - corrupts on multiple passes
+- **Tests:** 62/62 passing, but don't test idempotency
+- **Impact:** Running `just format` multiple times progressively corrupts files
+- **Root Cause:** Regex `(?<!`` )(`{3,})(\w*)(?! ``)` matches inside already-escaped sequences
 
-### Current Session (2026-01-06 continued): Phases 8-10 Implementation ✅
+### Current Session (2026-01-06 final): Investigation - Found Critical Idempotency Bug ❌
 
-**Completed:**
+**Investigation Findings:**
 
-1. **Phase 10: Fix escape_inline_backticks() Regex** ✅
-   - Changed pattern from `` r"(?<!`` )```(\w*)" `` to `` r"(?<!`` )(`{3,})(\w*)(?! ``)" ``
-   - Now correctly handles 4+ backticks without corruption
-   - Added 3 new tests for multi-backtick sequences
-   - All 55 markdown tests passing
+1. **Phases 7-9 Actually Working** ✅
+   - Bare fence protection: Working correctly (verified with integration tests)
+   - Integration tests: All 62/62 tests passing
+   - Doc backtick escaping: Applied correctly
+   - **However:** Changes to `agent-documentation.md` are correct behavior (emoji lines in markdown blocks SHOULD be formatted)
 
-2. **Phase 8: Add Integration Tests** ✅
-   - Added 6 comprehensive end-to-end tests
-   - Verified python/yaml/bare fences protect content
-   - Confirmed markdown blocks processable (intentional)
-   - Validated YAML prologs protected
-   - Checked plain text still processes correctly
-   - All 61 markdown tests passing
+2. **Critical Bug Discovered: Phase 10 Incomplete** ❌
+   - **Bug:** `escape_inline_backticks()` is NOT idempotent
+   - **Evidence:**
+     - Pass 1: `````markdown → `` `````markdown `` ✓
+     - Pass 2: `` `````markdown `` → `` ``` ````markdow``n `` ❌
+     - Pass 3: Continues corrupting (splits "markdown" into "markdo" + "w")
+   - **Root Cause:** Regex `(?<!`` )(`{3,})(\w*)(?! ``)` matches INSIDE already-escaped sequences
+     - After wrapping: `` `````markdown ``
+     - Regex matches starting from 2nd backtick: ````markdow
+     - Lookbehind checks 2 chars back, finds `` ` (not "`` "), so passes
+     - Corrupts by wrapping again: `` ``` ````markdow``n ``
 
-3. **Phase 9: Fix Doc Backtick Escaping** ✅
-   - Updated `plans/markdown/feature-2-code-block-nesting.md:48`
-   - Changed: `````markdown block → `` ```` `` markdown block`
-   - Documentation now correctly displays 4 backticks with escaping
+3. **Band-Aid Fix Attempted** ⚠️
+   - Added check: `if re.search(r"`` `{3,}", line): skip`
+   - This works but is unsatisfying - patches symptom, not cause
+   - Proper fix: Regex itself should be idempotent
 
-**Test Results:** 61/61 markdown tests passing
+**Remaining Issues:**
+
+1. **Idempotency:** Regex needs proper fix, not workaround
+2. **Backtick quoting:** Files still being modified on format (session.md, agent-documentation.md)
+3. **Bare fence semantics:** Unclear if bare fences in markdown blocks should be protected
+4. **Test coverage:** No idempotency tests exist
+
+**Test Results:** 62/62 markdown tests passing (but missing idempotency test)
+
+**Next Steps (Priority Order):**
+
+1. **Fix idempotency properly** - Redesign regex pattern to be truly idempotent
+2. **Add idempotency test** - Test that multiple passes produce identical output
+3. **Clarify bare fence semantics** - Decide if bare fences in markdown blocks should be protected
+4. **Review backtick escaping strategy** - Current approach may be too aggressive
+
+**Files Modified During Investigation:**
+- Created `plans/markdown/debug/test_*.py` - Debug scripts showing idempotency failure
+- No actual code changes committed
 
 ---
 
