@@ -1,5 +1,7 @@
 # Test Data Reference
 
+<!-- dprint-ignore-file -->
+
 Code-relevant details extracted from PLAN.md for TDD implementation.
 
 ---
