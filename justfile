@@ -79,6 +79,8 @@ role-refactor: dev
 # Format code
 format:
     #!/usr/bin/env bash -euo pipefail
+    {{ _bash-defs }}
+    which -s dprint || fail "dprint is not installed"
     {{ _sync }}
     tmpfile=$(mktemp tmp-fmt-XXXXXX)
     trap "rm $tmpfile" EXIT
@@ -149,7 +151,7 @@ safe () { "$@" || status=false; }
 end-safe () { ${status:-true}; }
 show () { echo "$COMMAND$*$NORMAL"; }
 visible () { show "$@"; "$@"; }
-fail () { echo "${ERROR}$*${NORMAL}"; exit 1; }
+fail () { echo "${ERROR}$*${NORMAL}" >&2; exit 1; }
 '''
 
 # Fail if CLAUDECODE is set
