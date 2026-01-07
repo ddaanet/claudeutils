@@ -215,6 +215,29 @@ Built with Test-Driven Development (TDD) across 5 implementation steps:
 See `agents/DESIGN_DECISIONS.md` for architectural decisions and implementation
 patterns.
 
+## Architecture
+
+**Goal:** Foundational tools to support Claude-based development processes.
+
+**Current Features:**
+- Feedback extraction from Claude Code conversation history
+- Markdown formatting for CommonMark compliance
+- Agent rules management and system prompt generation
+- Token counting utilities
+
+**Extensible:** New tools added as needed to support Claude workflows.
+
+**Key Technologies:**
+- Python 3.14+ with full type annotations (mypy strict)
+- Pydantic for data validation and serialization
+- pytest for testing with TDD workflow
+- uv for dependency management
+- ruff for linting
+- just for task running
+
+**Development Approach:** Test-Driven Development (TDD) with discrete implementation
+steps.
+
 ## Documentation
 
 - `agents/context.md` - Current work context and handoff information
