@@ -267,7 +267,7 @@ See: `plans/markdown/documentation-updates.md`
 See: `plans/markdown/agent-documentation.md`
 
 - Update `agents/TEST_DATA.md` with markdown cleanup examples
-- Update `agents/DESIGN_DECISIONS.md` with design rationale
+- Update `agents/design-decisions.md` with design rationale
 - Document pipeline architecture and error handling decisions
 
 ---
@@ -292,4 +292,4 @@ See: `plans/markdown/agent-documentation.md`
 6. Complete TDD cycles for Feature 3
 7. Final integration test
 8. Documentation updates (module docstrings, README)
-9. Agent documentation updates (TEST_DATA.md, DESIGN_DECISIONS.md)
+9. Agent documentation updates (TEST_DATA.md, design-decisions.md)

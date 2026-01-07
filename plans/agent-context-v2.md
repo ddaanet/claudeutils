@@ -102,7 +102,7 @@ Search all `.md` files for:
 - `session.md` → Update to `agents/context.md`
 
 Likely locations:
-- agents/DESIGN_DECISIONS.md
+- agents/design-decisions.md
 - agents/modules/MODULE_INVENTORY.md
 - plans/**/*.md
 
@@ -199,12 +199,12 @@ Current focus: [Extract from old context]
 ## Navigation
 - **Role-specific rules:** See agents/role-*.md
 - **Current work state:** Read agents/context.md
-- **Project decisions:** See agents/DESIGN_DECISIONS.md
+- **Project decisions:** See agents/design-decisions.md
 ```
 
 **Extract and move:**
 - Project architecture → Appropriate role files
-- Data models → Keep pointer, details in DESIGN_DECISIONS.md
+- Data models → Keep pointer, details in design-decisions.md
 - Command reference → Keep minimal version or move
 
 **Checkpoint:** `wc -l AGENTS.md` ≤ 60 (target 50, buffer 10)
@@ -235,7 +235,7 @@ grep -r "session\.md" --include="*.md" .
 
 # Update each file found
 # Common locations:
-# - agents/DESIGN_DECISIONS.md
+# - agents/design-decisions.md
 # - agents/modules/MODULE_INVENTORY.md
 # - plans/markdown/*.md
 # - plans/prompt-composer/*.md

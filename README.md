@@ -212,7 +212,7 @@ Built with Test-Driven Development (TDD) across 5 implementation steps:
 4. **Recursive sub-agent processing** - Handle nested agent sessions
 5. **CLI subcommands** - User-facing interface with argparse
 
-See `agents/DESIGN_DECISIONS.md` for architectural decisions and implementation
+See `agents/design-decisions.md` for architectural decisions and implementation
 patterns.
 
 ## Architecture
@@ -242,7 +242,7 @@ steps.
 
 - `agents/context.md` - Current work context and handoff information
 - `AGENTS.md` - Project overview and coding standards
-- `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions
+- `agents/design-decisions.md` - Architectural and implementation decisions
 - `agents/TEST_DATA.md` - Data types and sample entries
 - `agents/ROADMAP.md` - Future enhancement ideas
 - `agents/code.md` - TDD implementation guidelines (skill)

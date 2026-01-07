@@ -106,5 +106,5 @@ better than prose.
 
 ## Artifacts
 
-- Document design decisions in `agents/DESIGN_DECISIONS.md`
+- Document design decisions in `agents/design-decisions.md`
 - Keep modules under 300 lines (hard limit: 400)
