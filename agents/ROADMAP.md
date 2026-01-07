@@ -2,6 +2,28 @@
 
 Future enhancement ideas for claudeutils.
 
+## Markdown Formatter Survey (Priority)
+
+**Goal:** Find a suitable markdown formatter to replace dprint.
+
+**Context:** Manual testing shows dprint has serious markdown handling issues that make
+it unsuitable for this project. Need to evaluate alternatives.
+
+**Requirements:**
+
+- Handles CommonMark/GFM correctly
+- Idempotent (running multiple times produces identical output)
+- Configurable formatting rules
+- Preserves code blocks and inline code accurately
+- Handles nested fenced blocks correctly
+- Preserves "---" lines as is (horizontal rules)
+- Preserves embedded YAML documents surrounded by "---" lines (frontmatter)
+- Supports in-file ignore directives (e.g., <!-- prettier-ignore -->)
+
+**Candidates to evaluate:** prettier, markdownlint-cli2, remark-cli, others
+
+**Deliverable:** Comparison document with recommendation
+
 ## Session Summary Extraction
 
 **Goal:** Extract a summary of a session for process compliance analysis.
