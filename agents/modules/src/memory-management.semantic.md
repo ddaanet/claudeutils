@@ -15,8 +15,8 @@ importance, budgeted for token efficiency, and updated based on session learning
 
 ### Rule Budgeting
 
-Target: AGENTS.md (~40 rules) + role file, total <= 150 rules. Fewer is better. Budget
-is a hard constraint.
+Target: AGENTS.md (~10 rules fallback) + role file (~100 rules) ≤ 150 total. Fewer is better.
+Budget is a hard constraint.
 
 ### Tiering for Position Bias
 
@@ -47,8 +47,7 @@ Update after:
 
 ### What to Update
 
-Update: AGENTS.md, START.md, role files, rule files. Do NOT update: README.md, test
-files, plan files.
+Update: AGENTS.md (fallback rules only), agents/context.md (current state), role files, rule files. Do NOT update: README.md, tests, plans.
 
 ---
 

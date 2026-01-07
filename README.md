@@ -217,7 +217,7 @@ patterns.
 
 ## Documentation
 
-- `START.md` - Quick start guide for contributors
+- `agents/context.md` - Current work context and handoff information
 - `AGENTS.md` - Project overview and coding standards
 - `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions
 - `agents/TEST_DATA.md` - Data types and sample entries
