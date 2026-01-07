@@ -1,7 +1,7 @@
 # Agent Documentation Updates
 
 - **Feature:** Update agent documentation with markdown cleanup context
-- **Files:** `agents/TEST_DATA.md`, `agents/DESIGN_DECISIONS.md`
+- **Files:** `agents/TEST_DATA.md`, `agents/design-decisions.md`
 - **Model:** Haiku (task coder)
 
 ---
@@ -131,7 +131,7 @@ Final markdown output
 
 ---
 
-### 2. DESIGN_DECISIONS.md
+### 2. design-decisions.md
 
 **Add new section: Markdown Cleanup Architecture**
 
@@ -314,7 +314,7 @@ runs during formatting. Benefits:
 
 ---
 
-### Step 2: Update DESIGN_DECISIONS.md
+### Step 2: Update design-decisions.md
 
 **Task:** Add "Markdown Cleanup Architecture" section
 
@@ -335,7 +335,7 @@ runs during formatting. Benefits:
 **Manual review:**
 
 - Examples in TEST_DATA.md are accurate
-- Design decisions in DESIGN_DECISIONS.md are complete
+- Design decisions in design-decisions.md are complete
 - All rationale clearly explained
 - Future direction documented
 

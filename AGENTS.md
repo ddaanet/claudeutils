@@ -2,7 +2,7 @@
 
 **Role-specific instructions:** See `agents/role-*.md` for specialized behaviors.
 **Current work state:** Read `agents/context.md` for active tasks and decisions.
-**Architecture decisions:** See `agents/DESIGN_DECISIONS.md` for technical rationale.
+**Architecture decisions:** See `agents/design-decisions.md` for technical rationale.
 
 ---
 

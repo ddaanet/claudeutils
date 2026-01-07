@@ -219,7 +219,7 @@ agents/
 .
 ├── agents/              # Agent instruction files
 │   ├── AGENTS.md
-│   ├── DESIGN_DECISIONS.md
+│   ├── design-decisions.md
 │   ├── role-*.md
 │   └── rules-*.md
 ├── plans/               # Planning documents
