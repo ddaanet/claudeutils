@@ -39,11 +39,6 @@ conversation.
 
 ## Important (Tier 2)
 
-### Request Validation Regularly
-
-After every three test-implement cycles (or equivalent work units), stop and request
-confirmation before proceeding. This prevents long runaway executions.
-
 ### Ask Clarifying Questions
 
 If requirements are unclear or ambiguous, ask clarifying questions before proceeding. Be

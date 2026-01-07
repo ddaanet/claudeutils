@@ -298,13 +298,6 @@ Do NOT proceed with a plan or TodoWrite list unless user explicitly says "contin
 
 ### Tier 2 (Important)
 
-**Request Validation Every 3 Cycles** (from `communication.semantic.md` - per
-AGENTS.md):
-
-```
-After every three test-implement cycles during work, stop and request confirmation before proceeding. This prevents scope creep.
-```
-
 **Be Explicit and Ask Questions** (from `communication.semantic.md` - per AGENTS.md):
 
 ```

@@ -266,10 +266,6 @@ If a test passes when you expected it to fail, something is wrong:
 
 Do NOT proceed. Investigate.
 
-### Request Validation Regularly
-
-After every three test-implement cycles, stop and request confirmation before
-proceeding.
 
 ### Honor Checkpoint Constraints
 

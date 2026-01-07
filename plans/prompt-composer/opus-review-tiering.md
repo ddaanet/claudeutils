@@ -60,7 +60,7 @@ must wait for explicit instruction before proceeding with plans.
 
 ## Important (Tier 2)
 
-Request validation every 3 test-implement cycles. Ask clarifying questions if
+Batch independent tool calls for efficiency. Ask clarifying questions if
 requirements unclear.
 
 ## Preferred (Tier 3)
@@ -78,8 +78,8 @@ Complete assigned task then stop (no scope creep).
 - [RULE:T1] ⚠️ WAIT for explicit instruction before proceeding
 - [RULE:T1] DO NOT assume "continue" is implied
 
-- [RULE:T2] Request validation every 3 test-implement cycles
-- [RULE:T2] Stop and ask: "Completed 3 cycles - ready for next?"
+- [RULE:T2] Batch independent tool calls for efficiency
+- [RULE:T2] Parallelize reads/edits when files are independent
 - [RULE:T2] Ask clarifying questions if requirements are unclear
 - [RULE:T2] Be explicit about assumptions
 

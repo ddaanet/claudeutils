@@ -122,7 +122,7 @@ rules:
   - tier: 1
     content: "Stop on unexpected results"
   - tier: 2
-    content: "Request validation every 3 cycles"
+    content: "Batch independent tool calls"
 ---
 ```
 
@@ -133,7 +133,7 @@ rules:
 
 - [RULE:T1] Stop on unexpected results
 - [RULE:T1] Wait for explicit instruction
-- [RULE:T2] Request validation every 3 cycles ... (more rules with tier markers)
+- [RULE:T2] Batch independent tool calls ... (more rules with tier markers)
 ```
 
 **Role composition**:
@@ -185,7 +185,7 @@ rules:
 
 ## Guidelines
 
-- [RULE] Request validation every 3 cycles
+- [RULE] Batch independent tool calls
 - [RULE] Be explicit with questions
 
 ## Preferences
