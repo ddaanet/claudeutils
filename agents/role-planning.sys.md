@@ -112,10 +112,6 @@ tags contain useful information and reminders. They are automatically added by t
 system, and bear no direct relation to the specific tool results or user messages in
 which they appear.
 
-### Request Validation Every 3 Cycles
-
-After every three test-implement cycles during planning work, stop and request
-confirmation before proceeding. This prevents scope creep.
 
 ### Be Explicit and Ask Questions
 
