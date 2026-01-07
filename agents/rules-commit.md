@@ -117,17 +117,44 @@ git commit -m "..."   # Commit with concise message
 
 ### Multi-line Commit Messages
 
-For longer messages, use a heredoc:
+Pass multi-line messages using the `-m` flag with escaped newlines:
 
 ```bash
-git commit -m "$(cat <<'EOF'
-Short summary line
+git commit -m "Short summary line
 
 Longer explanation of why this change was made and what
-design decisions were involved.
-EOF
-)"
+design decisions were involved."
 ```
+
+### Message Body Structure
+
+Structure the body using paragraphs or lists for clarity:
+
+**Use paragraphs for related points:**
+
+```
+Add feedback analysis pipeline
+
+Implements three stages: collect extracts all feedback from sessions,
+analyze filters noise and categorizes by type, and rules identifies
+actionable items for system prompts.
+
+Each stage can work standalone or piped together for end-to-end
+processing.
+```
+
+**Use lists for multiple distinct items:**
+
+```
+Fix markdown formatter edge cases
+
+- Protect inline code spans with 1-2 backticks
+- Escape fence marker sequences (3+ backticks)
+- Implement CommonMark-compliant backtick matching
+- Skip unmatched backtick strings per atomicity rules
+```
+
+🚫 **Avoid:** One big compact paragraph that's hard to scan.
 
 ---
 
