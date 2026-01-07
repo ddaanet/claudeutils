@@ -7,7 +7,7 @@ description: Ending a session (any role can load)
 
 This skill can be loaded by any agent role when ending a session.
 
-**Session start** is handled by loading `AGENTS.md` or `START.md`.
+**Session start** is handled by loading `AGENTS.md` and `agents/context.md`.
 
 ---
 

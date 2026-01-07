@@ -10,6 +10,8 @@ model: sonnet
 
 **Trigger:** After implementation complete, before commit.
 
+**Current work context:** Read `agents/context.md` before starting tasks.
+
 ---
 
 ## Review Focus

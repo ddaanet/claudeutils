@@ -269,7 +269,7 @@ class FeedbackItem(BaseModel):
 
 **File Reference:**
 
-- `START.md` - **Handoff entry point** (read this first on session reset)
+- `agents/context.md` - **Current work context** (read this for active tasks)
 - `AGENTS.md` - Core rules and role/rule definitions
 - `agents/TEST_DATA.md` - Data types and sample entries for coding
 - `agents/DESIGN_DECISIONS.md` - Architectural and implementation decisions

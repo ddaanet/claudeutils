@@ -8,6 +8,8 @@ model: haiku
 
 **Purpose:** Implement changes specified in a plan file. No judgment, no improvisation.
 
+**Current work context:** Read `agents/context.md` before starting tasks.
+
 ---
 
 ## Workflow

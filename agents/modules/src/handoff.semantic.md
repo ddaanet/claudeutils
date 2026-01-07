@@ -39,7 +39,7 @@ Document:
 
 - Design decisions and rationale
 - User feedback and preferences
-- Blockers or questions for next session
+- Blockers or questions for next agent (document in agents/context.md#Blockers)
 - Current status and next steps
 
 Do NOT document:
