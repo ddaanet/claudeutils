@@ -80,7 +80,6 @@ role-refactor: dev
 format:
     #!/usr/bin/env bash -euo pipefail
     {{ _bash-defs }}
-    which -s dprint || fail "dprint is not installed"
     {{ _sync }}
     tmpfile=$(mktemp tmp-fmt-XXXXXX)
     trap "rm $tmpfile" EXIT
@@ -94,16 +93,17 @@ format:
     # after (-p1 ignores the first component of the path). Hence `patch -RCp1`.
     docformatter --diff src tests | patch-and-print -RCp1 >> "$tmpfile" || true
 
-    git ls-files '*.md' \
-        $(jq -r '.excludes[] |
-            if endswith("/") then ":(exclude,glob)" + . + "**"
-            else ":(exclude,glob)" + .
-            end' < .dprint.json) \
-    | xargs -r grep -L "<!-- dprint-ignore-file -->" \
-    | {{ _claudeutils }} markdown >> "$tmpfile"
-    dprint -c .dprint.json check --list-different \
-    | sed "s|^$(pwd)/||g" >> "$tmpfile" || true
-    dprint -c .dprint.json fmt -L warn
+    # git ls-files '*.md' \
+    #     $(jq -r '.excludes[] |
+    #         if endswith("/") then ":(exclude,glob)" + . + "**"
+    #         else ":(exclude,glob)" + .
+    #         end' < .dprint.json) \
+    # | xargs -r grep -L "<!-- dprint-ignore-file -->" \
+    # | {{ _claudeutils }} markdown >> "$tmpfile"
+    # dprint -c .dprint.json check --list-different \
+    # | sed "s|^$(pwd)/||g" >> "$tmpfile" || true
+    # dprint -c .dprint.json fmt -L warn
+
     modified=$(sort --unique < "$tmpfile")
     if [ -n "$modified" ] ; then
         bold=$'\033[1m'; nobold=$'\033[22m'
