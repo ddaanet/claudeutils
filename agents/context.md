@@ -1,6 +1,6 @@
 # Context
 
-**Archive:** Previous context archived to [2026-01-07-context.md](archive/2026-01-07-context.md)
+**Archive:** Previous context archived to [2026-01-07-bug4-complete.md](archive/2026-01-07-bug4-complete.md)
 
 ---
 
@@ -8,76 +8,119 @@
 
 **Branch:** `markdown`
 
-**Current work:** Bug #4 - Inline Code Span Protection ✅ COMPLETE
+**Current work:** Markdown Formatter Migration - Ready for Implementation
 
-- **Status:** Fixed and committed (482eacf)
-- **Issue:** Formatter corrupted valid inline code spans containing backticks
-- **Root Cause:** `escape_inline_backticks()` didn't respect inline code span boundaries
-- **Solution:** Implemented proper CommonMark inline span parser
-- **Tests:** 22/22 inline backtick tests passing
+**Status:** Survey complete, ready to implement remark-cli migration
 
-**Key Implementation:**
-- Only protect 1-2 backtick delimited spans (typical inline code)
-- Do NOT protect 3+ backtick spans (fence markers, should be escaped)
-- Algorithm: `find_inline_code_spans()` parses CommonMark-compliant backtick matching
+### Formatter Survey Results
 
-**Files Modified:**
-- `src/claudeutils/markdown.py`: lines 311-374 (CommonMark parser)
-- `tests/test_markdown.py`: removed 2 invalid tests, kept 13 valid integration tests
+**Survey completed:** 2026-01-07 (3 parallel research agents + practical testing)
+
+**Candidates evaluated:**
+1. **Prettier** - Popular formatter, but has idempotency bugs and YAML frontmatter issues
+2. **markdownlint-cli2** - Linter only, not a formatter (ruled out)
+3. **remark-cli** - ✅ **RECOMMENDED** - 100% CommonMark compliant, idempotent, highly configurable
+
+**Deliverable:** `plans/formatter-comparison.md` (comprehensive 350+ line analysis)
+
+**Test results:**
+- Test corpus created: `tmp/test-remark.md` (12 test sections, 150+ lines)
+- Prettier: Idempotent on corpus, but has documented bugs in production
+- remark-cli: Idempotent on corpus, handles all edge cases correctly
+
+**Dependencies installed:**
+```bash
+# Already in node_modules
+remark-cli
+remark-gfm
+remark-frontmatter
+remark-preset-lint-consistent
+```
 
 ---
 
 ## Handoff
 
-**Ready for verification:** Bug #4 fix complete, all tests passing.
+**Ready for implementation:** remark-cli migration
 
-**Previous bugs (all fixed):**
-- Bug #1: Bare Fence Protection - recursive parsing implemented ✅
-- Bug #2: Unwanted Blank Line Insertion - fixed with recursive parsing ✅
-- Bug #3: Idempotency Corruption - regex alternation pattern implemented ✅
+**Implementation tasks (for haiku):**
 
-**Verification steps:**
-```bash
-just dev              # Run full test suite
-just format           # Verify no corruption on target files
-git diff              # Should show minimal/no changes
+1. **Create `.remarkrc.json` config** (configuration provided in comparison doc)
+2. **Update `package.json` scripts:**
+   - Add `format:md` script for formatting
+   - Add `format:md:check` script for CI
+3. **Create `.remarkignore`** (exclude node_modules, vendor, etc.)
+4. **Test formatting on project markdown files:**
+   - Run `remark . -o --quiet`
+   - Verify `git diff` shows acceptable changes
+   - Ensure no corruption of nested code blocks, YAML frontmatter, inline code
+5. **Update justfile** (if dprint used there)
+6. **Optional: Remove dprint** (if present and no longer needed)
+7. **Commit migration** with clear commit message
+
+**Reference documents:**
+- `plans/formatter-comparison.md` - Full analysis and migration path
+- `tmp/.remarkrc.json` - Example config (tested)
+- `tmp/test-remark.md` - Formatted test corpus
+
+**Key configuration (from comparison doc):**
+```json
+{
+  "settings": {
+    "bullet": "*",
+    "fence": "`",
+    "fences": true,
+    "rule": "*",
+    "emphasis": "*",
+    "strong": "*",
+    "incrementListMarker": true,
+    "listItemIndent": "one"
+  },
+  "plugins": [
+    "remark-gfm",
+    "remark-frontmatter",
+    "remark-preset-lint-consistent"
+  ]
+}
 ```
 
-**Target files for verification:**
-- `plans/markdown/agent-documentation.md`
-- `plans/markdown/feature-2-code-block-nesting.md`
+**Critical verification steps:**
+- Check agents/*.md files preserve structure
+- Check AGENTS.md table formatting
+- Check nested code blocks in any docs
+- Verify YAML frontmatter unchanged (if any files have it)
+
+**Previous work (archived):**
+- Bug #4: Inline Code Span Protection - Fixed and committed (482eacf) ✅
+- Bugs #1-#3: All fixed and verified ✅
 
 ---
 
 ## Recent Decisions
 
-**2026-01-06: Inline Code Span Protection Strategy**
+**2026-01-07: Markdown Formatter Selection**
+- **Decision:** Migrate to remark-cli for markdown formatting
+- **Rationale:**
+  - Prettier has documented idempotency bugs (empty sub-bullets, mid-word underscores, unstable lists)
+  - Prettier has YAML frontmatter issues (strips comments, wraps long lists incorrectly)
+  - markdownlint-cli2 is a linter, not a formatter
+  - remark-cli: 100% CommonMark compliant, idempotent, highly configurable
+- **Testing:** Both Prettier and remark-cli tested with comprehensive corpus, both passed
+- **Production concerns:** Prettier's known bugs in production scenarios outweigh test success
+- **Configuration:** 17+ formatting options in remark vs 2 in Prettier (better control)
+- **Next step:** Implement migration (tasks documented in Handoff section)
+
+**2026-01-06: Inline Code Span Protection Strategy** (archived to Bug #4)
 - Protect only 1-2 backtick spans (`` `code` ``, ``` ``code`` ```)
 - Escape 3+ backtick spans (`````python`, treated as fence markers)
 - Rationale: Matches intent to escape potential fence markers while preserving actual inline code
 
-**2026-01-06: CommonMark Compliance**
-- Backtick strings are atomic (cannot be split)
-- Match opening/closing delimiters of EXACT same length only
-- No fallback to shorter delimiters (violated atomicity)
-- Algorithm: count full backtick string, find exact match, skip if no match
-
-**2026-01-06: Bugs #1/#2/#3 Root Cause**
+**2026-01-06: Bugs #1/#2/#3 Root Cause** (archived)
 - All three bugs caused by missing recursive parsing in `parse_segments()`
-- Inner fences inside ```markdown blocks were treated as plain text
 - Solution: Recursive parsing for ```markdown blocks (lines 224-268)
-
-**2026-01-05: Prefix Detection Over-Aggressive**
-- Pattern `r"^(\\S+(?:\\s|:))"` too broad, matched regular prose
-- Rewrote `extract_prefix()` to only match: emoji symbols, `[brackets]`, `UPPERCASE:`
-- Added backtick exclusion to prevent fence lines → list conversion
-
-**2026-01-05: YAML Prolog Detection Broken**
-- Pattern `r"^\\w+:\\s"` too restrictive (required trailing space)
-- Changed to `r"^[a-zA-Z_][\\w-]*:"` (supports keys without values, hyphens, digits)
 
 ---
 
 ## Blockers
 
-**None currently.** Bug #4 complete, ready for verification.
+**None currently.** Survey complete, ready for migration implementation.
