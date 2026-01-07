@@ -49,18 +49,18 @@ Commit messages NEVER include:
 
 ### Message Format
 
-Short summary line (imperative mood), blank line, longer explanation if needed.
+Short summary line (imperative mood), blank line, then body if needed.
 
-For multi-line messages, use heredoc:
+Pass multi-line messages with `-m` and escaped newlines (no heredocs due to sandbox
+restrictions).
 
-```bash
-git commit -m "$(cat <<'EOF'
-Short summary line
+### Body Structure
 
-Longer explanation of why this change was made.
-EOF
-)"
-```
+Structure message body using paragraphs or lists, not one big compact paragraph:
+
+- **Paragraphs:** Group related points with blank lines between groups
+- **Lists:** Use for multiple distinct items (bullet or numbered)
+- **Avoid:** Single dense paragraph that's hard to scan
 
 ### Pre-Commit Verification
 
