@@ -43,12 +43,29 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **For haiku execution tasks:**
 
-1. Specify output file path in task prompt (e.g., `/tmp/claude/execution-report.md`)
+1. Specify output file path in task prompt (e.g., `tmp/execution-report.md` or `agents/reports/task-name.md`)
 2. Instruct agent to write detailed output to that file
 3. Agent returns only: filename (success) or error message (failure)
 4. Use second agent to read report and provide distilled summary to user
 
 **Goal:** Prevent orchestrator context pollution with verbose task output. Orchestrator sees only success/failure + summary, not full execution logs.
+
+**Note:** Use `agents/` or `tmp/` directories in project for report files.
+
+### Task Agent Tool Usage
+
+**Rule:** Task agents must use specialized tools, not Bash one-liners.
+
+**When delegating tasks, remind agents to:**
+
+- Use **LS** instead of `ls`
+- Use **Grep** instead of `grep` or `rg`
+- Use **Glob** instead of `find`
+- Use **Read** instead of `cat`, `head`, `tail`
+- Use **Write** instead of `echo >` or `cat <<EOF`
+- Use **Edit** instead of `sed`, `awk`
+
+**Critical:** Always include this reminder in task prompts to prevent bash tool misuse.
 
 ---
 
