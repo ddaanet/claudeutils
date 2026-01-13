@@ -41,6 +41,12 @@ remark-preset-lint-consistent
 
 ## Handoff
 
+**⚠️ STOP: Do not execute tasks below unless user explicitly requests it.**
+
+These tasks are documented for context and planning. Wait for explicit instruction ("continue", "proceed", "start", etc.) before delegating or executing.
+
+---
+
 **Next priority:** Markdown formatter migration (remark-cli)
 
 **Implementation tasks (for haiku):**
