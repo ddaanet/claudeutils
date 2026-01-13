@@ -37,6 +37,19 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **Critical:** Never use opus for straightforward execution tasks (file creation, edits, running commands). This wastes cost and time.
 
+### Quiet Execution Pattern
+
+**Rule:** Execution agents report to files, not to orchestrator context.
+
+**For haiku execution tasks:**
+
+1. Specify output file path in task prompt (e.g., `/tmp/claude/execution-report.md`)
+2. Instruct agent to write detailed output to that file
+3. Agent returns only: filename (success) or error message (failure)
+4. Use second agent to read report and provide distilled summary to user
+
+**Goal:** Prevent orchestrator context pollution with verbose task output. Orchestrator sees only success/failure + summary, not full execution logs.
+
 ---
 
 ## Tool Batching
