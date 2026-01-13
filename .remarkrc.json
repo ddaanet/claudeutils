@@ -1,0 +1,12 @@
+{
+  "settings": {
+    "bullet": "-",
+    "rule": "-",
+    "incrementListMarker": true
+  },
+  "plugins": [
+    "remark-gfm",
+    "remark-frontmatter",
+    "remark-preset-lint-consistent"
+  ]
+}
