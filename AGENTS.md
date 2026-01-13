@@ -1,6 +1,7 @@
 # Agent Instructions
 
 **Role-specific instructions:** See `agents/role-*.md` for specialized behaviors.
+**Skill commands:** See `skills/skill-*.md` for on-demand actions.
 **Current work state:** Read `agents/context.md` for active tasks and decisions.
 **Architecture decisions:** See `agents/design-decisions.md` for technical rationale.
 
@@ -12,6 +13,29 @@
 2. **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
 3. **Be explicit** - Ask clarifying questions if requirements unclear
 4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
+
+---
+
+## Delegation Principle
+
+**Delegate everything.** The orchestrator (main agent) coordinates work but does not implement directly:
+
+1. **Break down** complex requests into discrete tasks
+2. **Assign** each task to a specialized agent (role) or invoke a skill
+3. **Monitor** progress and handle exceptions
+4. **Synthesize** results for the user
+
+Specialized agents focus on their domain; the orchestrator maintains context and flow.
+
+### Model Selection for Delegation
+
+**Rule:** Match model cost to task complexity.
+
+- **Haiku:** Execution, implementation, simple edits, file operations
+- **Sonnet:** Default for most work, balanced capability
+- **Opus:** Architecture, planning, complex design decisions only
+
+**Critical:** Never use opus for straightforward execution tasks (file creation, edits, running commands). This wastes cost and time.
 
 ---
 
@@ -30,9 +54,9 @@
 
 ---
 
-## Roles and Rules
+## Roles, Rules, and Skills
 
-**Roles** define agent behavior modes. **Rules** apply during specific actions.
+**Roles** define agent behavior modes. **Rules** apply during specific actions. **Skills** are on-demand operations.
 
 ### Roles
 
@@ -53,4 +77,13 @@
 | commit  | `agents/rules-commit.md`  | Before any `git commit` |
 | handoff | `agents/rules-handoff.md` | Before ending a session |
 
-**Loading:** Read the role file at session start. Read rule files before the triggering action.
+### Skills (On-Demand)
+
+| Skill | File                    | Trigger  | Purpose                        |
+| ----- | ----------------------- | -------- | ------------------------------ |
+| shelf | `skills/skill-shelf.md` | `/shelf` | Archive context to todo, reset |
+
+**Loading:**
+- **Roles:** Read at session start
+- **Rules:** Read before the triggering action
+- **Skills:** Read when user invokes the trigger command

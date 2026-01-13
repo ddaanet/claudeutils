@@ -10,7 +10,7 @@
 
 **Current work:** Markdown Formatter Migration - Ready for Implementation
 
-**Status:** Survey complete, ready to implement remark-cli migration
+**Status:** Survey complete, shelf skill implemented, ready to implement remark-cli migration
 
 ### Formatter Survey Results
 
@@ -41,7 +41,7 @@ remark-preset-lint-consistent
 
 ## Handoff
 
-**Ready for implementation:** remark-cli migration
+**Next priority:** Markdown formatter migration (remark-cli)
 
 **Implementation tasks (for haiku):**
 
@@ -118,6 +118,15 @@ remark-preset-lint-consistent
 **2026-01-06: Bugs #1/#2/#3 Root Cause** (archived)
 - All three bugs caused by missing recursive parsing in `parse_segments()`
 - Solution: Recursive parsing for ```markdown blocks (lines 224-268)
+
+**2026-01-13: Model Selection for Delegation**
+- **Decision:** Use haiku for execution tasks, opus only for architecture/planning
+- **Rationale:**
+  - Orchestrator made expensive mistake using opus for simple file operations
+  - Cost impact: Session cost $4.46+ due to wrong model selection
+  - Haiku is sufficient for straightforward execution tasks like file operations
+  - Opus should be reserved for complex planning and architectural decisions
+- **Implementation:** Update delegation principle in AGENTS.md to reflect this rule
 
 ---
 
