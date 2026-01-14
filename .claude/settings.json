@@ -4,13 +4,11 @@
       "Bash(just test:*)",
       "Bash(git show:*)",
       "Bash(git diff:*)",
+      "Bash(git commit:*)",
       "Bash(git status:*)",
       "Bash(just line-limits)",
       "Bash(wc:*)",
       "Bash(uv run claudeutils:*)"
-    ],
-    "ask": [
-      "Bash(git commit:*)"
     ],
     "deny": [
       "NotebookEdit"
