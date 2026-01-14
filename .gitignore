@@ -1,8 +1,14 @@
-list/
-__pycache__/
-/tmp-*
-*.scratch.*
-/.vscode/
-/.envrc
+# Transient work files
 /scratch/
 /tmp/
+
+# For secrets only. Other env variables are in .envrc
+/.env
+
+# Python build stuff
+list/
+__pycache__/
+
+# IDE cruft
+/.vscode/
+
