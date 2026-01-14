@@ -26,8 +26,7 @@ code
 
 The inner `` ``` `` fence closes the outer block prematurely, breaking the structure.
 
-**Solution:** Use `` ```` `` (4 backticks) for outer fence when inner `` ``` `` fences
-detected:
+**Solution:** Use `` ```` `` (4 backticks) for outer fence when inner `` ``` `` fences detected:
 
 `````
 ````markdown
@@ -46,7 +45,7 @@ code
 
 1. **Nest `` ```markdown `` blocks with inner fences:**
    - Input: `` ```markdown `` block containing `` ``` ``
-   - Output: ````markdown block (4 backticks)
+   - Output: `` ````markdown `` block (4 backticks)
 
 ### Error Cases
 
