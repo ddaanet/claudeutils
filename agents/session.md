@@ -4,13 +4,19 @@
 
 **Branch:** unification
 
-**Task:** Plan Splitting & Agent Documentation Updates
+**Task:** Commit Management & Organization
 
-**Status:** Complete, ready to commit
+**Status:** Complete
 
 ## Progress Summary
 
-**This Session - Plan Splitting & Documentation:**
+**This Session - Commit Management:**
+- Investigated origin of `agents/` files (AGENTS.md generation system)
+- Organized all untracked files into 9 logical commits
+- Reordered commits chronologically for clear history
+- All work committed, working tree clean
+
+**Previous Session - Plan Splitting & Documentation:**
 - Created generic `split-execution-plan.py` script with auto-detection for Phase/Step formats
 - Split consolidation plan into 7 phase files + context file for efficient delegation
 - Updated AGENTS.md with critical sandbox constraints:
@@ -21,12 +27,9 @@
   - Split plan: `plans/unification/phases/{consolidation-context.md,phase1-7.md,README.md}`
   - Agent rules: `AGENTS.md` (Task Agent Tool Usage section)
 
-**Previous Session - Consolidation Plan:**
-- Explored 3 projects: emojipack (shell compose), tuick (Python build.py), pytest-md (manual + skills)
-- Analyzed generation tooling, config files, and reusable content
-- Created comprehensive 7-phase consolidation plan: `plans/unification/consolidation-plan.md`
-- Decided: Python module in claudeutils (not shell in agent-core)
-- Identified 35 files to copy, reusable skills, config patterns
+**Earlier Sessions:**
+- **Consolidation Plan:** Explored 3 projects, created 7-phase plan, identified 35 files to copy
+- **Phase 1 Execution:** Attempted stepwise delegation, discovered gaps requiring fixes
 
 ## Handoff to Next Session
 
@@ -49,8 +52,19 @@
 - Target repos: `claudeutils`, `agent-core`
 - Work area: `scratch/consolidation/` (to be created in Phase 1)
 
+**Commit History (9 commits on unification branch):**
+1. fa74554 - Agent composition system documentation
+2. 2a279c6 - Consolidation and Phase 1 fix plans
+3. 21b3bba - Generic execution plan splitter script
+4. b13711d - Split consolidation plan files for delegation
+5. 2c8ebca - Phase 1 execution steps and context
+6. fbb8cec - Phase 1 execution and review reports
+7. 002a5ff - Document sandbox constraints in AGENTS.md
+8. 0d62bed - Fix session file reference in handoff rules
+9. c73d05f - Session handoff (plan splitting documentation)
+
 **Next Action:**
-Execute consolidation plan Phase 1, or ask user to specify starting phase
+Execute consolidation plan Phase 1 fixes, or ask user for direction
 
 ## Decisions
 
@@ -87,5 +101,5 @@ Execute consolidation plan Phase 1, or ask user to specify starting phase
 ## Blockers
 
 Phase 1 gaps must be fixed before Phase 2:
-- Git submodule integration missing
-- Uncommitted changes in claudeutils
+- Git submodule integration missing (agent-core not added as submodule)
+- Uncommitted changes in claudeutils (now resolved - all work committed)
