@@ -14,8 +14,6 @@
 3. **Be explicit** - Ask clarifying questions if requirements unclear
 4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
 
----
-
 ## Delegation Principle
 
 **Delegate everything.** The orchestrator (main agent) coordinates work but does not implement directly:
@@ -50,7 +48,7 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **Goal:** Prevent orchestrator context pollution with verbose task output. Orchestrator sees only success/failure + summary, not full execution logs.
 
-**Note:** Use `agents/` or `tmp/` directories in project for report files.
+**Note:** Use `agents/` or `tmp/` directories in project for report files. Always use project-local `tmp/` (not system `/tmp/`).
 
 ### Task Agent Tool Usage
 
@@ -64,10 +62,10 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 - Use **Read** instead of `cat`, `head`, `tail`
 - Use **Write** instead of `echo >` or `cat <<EOF`
 - Use **Edit** instead of `sed`, `awk`
+- **NEVER use heredocs** (`<<EOF`) in bash commands - sandbox blocks them
+- Use **tmp/** in project directory for temp files, NOT `/tmp/`
 
 **Critical:** Always include this reminder in task prompts to prevent bash tool misuse.
-
----
 
 ## Tool Batching
 
@@ -117,3 +115,65 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 - **Roles:** Read at session start
 - **Rules:** Read before the triggering action
 - **Skills:** Read when user invokes the trigger command
+
+# Hashtag Conventions
+
+Semantic markers for agent communication and task tracking:
+
+## Core Hashtags
+
+### #stop
+**Indicates a hard stop point**
+- Used when encountering unexpected results
+- Signals that continuation requires human review
+- Example: "Validation failed #stop - unclear how to proceed"
+
+### #delegate
+**Indicates task handoff**
+- Used when delegating to another agent
+- Includes handoff protocol and acceptance criteria
+- Example: "#delegate to specialized agent for code review"
+
+### #tools
+**Indicates tool usage guidance**
+- Used when explaining or constraining tool selection
+- Helps maintain consistency across tasks
+- Example: "#tools use Grep instead of shell grep"
+
+### #quiet
+**Indicates minimal output preferred**
+- Used for routine operations with expected results
+- Reduces unnecessary verbosity
+- Example: "Running tests #quiet"
+
+## Usage Patterns
+
+### In Task Descriptions
+```
+"Run validation checks #tools - use Bash for git, Grep for searching"
+```
+
+### In Status Updates
+```
+"Tests passed #quiet - proceeding to next step"
+```
+
+### In Handoffs
+```
+"Implement feature #delegate to specialized agent with requirement X"
+```
+
+### In Unexpected States
+```
+"Configuration not found #stop - cannot determine next action"
+```
+
+## Implementation Notes
+
+- Hashtags are semantic markers, not strict constraints
+- Used in agent-to-agent communication
+- Help with task routing and escalation
+- Enable consistent behavior across projects
+
+See communication.md for broader communication guidelines.
+
