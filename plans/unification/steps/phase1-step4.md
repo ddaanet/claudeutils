@@ -11,7 +11,7 @@
 **Fragments to Create** (design.md:273-283):
 
 #### 4a. communication.md
-**Content from**: AGENTS.md:10-16 (Communication Rules)
+**Content from**: CLAUDE.md:10-16 (Communication Rules)
 - Stop on unexpected results
 - Wait for explicit instruction
 - Be explicit (ask clarifying questions)
@@ -20,15 +20,15 @@
 **Technical Note**: This is a direct extraction, verbatim.
 
 #### 4b. delegation.md
-**Content from**: AGENTS.md:19-52 (Delegation Principle, Model Selection, Quiet Execution)
+**Content from**: CLAUDE.md:19-52 (Delegation Principle, Model Selection, Quiet Execution)
 - Delegation principle (orchestrator coordinates, doesn't implement)
 - Model selection rules (Haiku/Sonnet/Opus)
 - Quiet execution pattern (write to files, not context)
 
-**Technical Note**: Includes examples from current AGENTS.md
+**Technical Note**: Includes examples from current CLAUDE.md
 
 #### 4c. tool-preferences.md
-**Content from**: AGENTS.md:56-68 (Task Agent Tool Usage)
+**Content from**: CLAUDE.md:56-68 (Task Agent Tool Usage)
 - Use specialized tools instead of Bash
 - Specific mapping: LS, Grep, Glob, Read, Write, Edit
 - Critical reminder about including in task prompts

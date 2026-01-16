@@ -458,18 +458,18 @@ All critical validations completed without requiring tool execution:
 
 ### Completed Steps
 - ✓ Step 1: Design and plan extraction
-- ✓ Step 2: Extract fragments from AGENTS.md
+- ✓ Step 2: Extract fragments from CLAUDE.md
 - ✓ Step 3: Validate and review with Sonnet
 - ✓ Step 4: Extract rule fragments
 - ✓ Step 5: Create AGENTS-framework.md fragment
-- ✓ Step 6: Implement template-based AGENTS.md generation
+- ✓ Step 6: Implement template-based CLAUDE.md generation
 - ✓ Step 7: Test composition in test repository
 - ✓ Step 8: Test justfile import mechanism
 
 ### Overall Status
 **PHASE 1 COMPLETE**: Foundation for rules unification system established
 - [x] Shared fragments extracted and functional
-- [x] Composition system (AGENTS.md) working
+- [x] Composition system (CLAUDE.md) working
 - [x] Justfile import mechanism verified
 - [x] Integration architecture validated
 - [x] Test repository successfully integrating both systems
@@ -498,7 +498,7 @@ The justfile import mechanism has been thoroughly tested and validated:
 ✓ Architecture ready for production submodule integration
 
 The test repository (emojipack) now successfully demonstrates the complete unification system:
-- Shared AGENTS.md fragments (from Step 7)
+- Shared CLAUDE.md fragments (from Step 7)
 - Shared justfile recipes (from Step 8)
 - Local project customizations maintained
 - Path design enables both absolute (testing) and relative (submodule) imports

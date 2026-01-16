@@ -8,7 +8,7 @@
 
 ## Overview
 
-Phase 1 establishes the foundation for the rules unification system by creating the `agent-core` repository, extracting shared fragments, and implementing template-based generation for AGENTS.md. This phase will be tested in one scratch repository before broader rollout.
+Phase 1 establishes the foundation for the rules unification system by creating the `agent-core` repository, extracting shared fragments, and implementing template-based generation for CLAUDE.md. This phase will be tested in one scratch repository before broader rollout.
 
 ---
 
@@ -16,7 +16,7 @@ Phase 1 establishes the foundation for the rules unification system by creating 
 
 - [ ] claudeutils repository on `unification` branch
 - [ ] Access to scratch repositories for testing (emojipack or pytest-md)
-- [ ] Current AGENTS.md variants available for extraction
+- [ ] Current CLAUDE.md variants available for extraction
 
 ---
 
@@ -165,7 +165,7 @@ Repeat same algorithm for mypy.toml.
 **Fragments to Create** (design.md:273-283):
 
 #### 4a. communication.md
-**Content from**: AGENTS.md:10-16 (Communication Rules)
+**Content from**: CLAUDE.md:10-16 (Communication Rules)
 - Stop on unexpected results
 - Wait for explicit instruction
 - Be explicit (ask clarifying questions)
@@ -174,15 +174,15 @@ Repeat same algorithm for mypy.toml.
 **Technical Note**: This is a direct extraction, verbatim.
 
 #### 4b. delegation.md
-**Content from**: AGENTS.md:19-52 (Delegation Principle, Model Selection, Quiet Execution)
+**Content from**: CLAUDE.md:19-52 (Delegation Principle, Model Selection, Quiet Execution)
 - Delegation principle (orchestrator coordinates, doesn't implement)
 - Model selection rules (Haiku/Sonnet/Opus)
 - Quiet execution pattern (write to files, not context)
 
-**Technical Note**: Includes examples from current AGENTS.md
+**Technical Note**: Includes examples from current CLAUDE.md
 
 #### 4c. tool-preferences.md
-**Content from**: AGENTS.md:56-68 (Task Agent Tool Usage)
+**Content from**: CLAUDE.md:56-68 (Task Agent Tool Usage)
 - Use specialized tools instead of Bash
 - Specific mapping: LS, Grep, Glob, Read, Write, Edit
 - Critical reminder about including in task prompts
@@ -214,10 +214,10 @@ Repeat same algorithm for mypy.toml.
 
 ### Step 5: Create AGENTS-framework.md Fragment
 
-**Objective**: Extract the structural/framework parts of AGENTS.md that are consistent across projects.
+**Objective**: Extract the structural/framework parts of CLAUDE.md that are consistent across projects.
 
 **Content to Include**:
-- Header explaining purpose of AGENTS.md
+- Header explaining purpose of CLAUDE.md
 - Roles table (design.md:93-101)
 - Rules table (design.md:105-107)
 - Skills table (design.md:112-114)
@@ -228,10 +228,10 @@ Repeat same algorithm for mypy.toml.
 **Content Boundary:**
 
 Include in AGENTS-framework.md:
-- File header explaining AGENTS.md purpose (current AGENTS.md:1-7)
+- File header explaining CLAUDE.md purpose (current CLAUDE.md:1-7)
 - Section structure (## Communication Rules, ## Delegation Principle, etc. headers only)
-- Roles/Rules/Skills tables (AGENTS.md:91-114)
-- Loading mechanism (AGENTS.md:116-120)
+- Roles/Rules/Skills tables (CLAUDE.md:91-114)
+- Loading mechanism (CLAUDE.md:116-120)
 
 Exclude from AGENTS-framework.md:
 - Specific communication rules (goes in communication.md)
@@ -243,20 +243,20 @@ Result: Framework provides structure and tables; fragments provide rule content.
 
 **Actions**:
 1. Create `agent-core/fragments/AGENTS-framework.md`
-2. Extract structural content from existing AGENTS.md (headers, tables)
+2. Extract structural content from existing CLAUDE.md (headers, tables)
 3. Structure as complete markdown document (no composition markers needed)
 4. Will be concatenated with other fragments in Step 6
 
 **Validation**:
 - [ ] Framework is project-agnostic
 - [ ] Framework contains structure/tables but not rule content
-- [ ] Tables match current AGENTS.md format
+- [ ] Tables match current CLAUDE.md format
 
 ---
 
-### Step 6: Implement Template-Based AGENTS.md Generation
+### Step 6: Implement Template-Based CLAUDE.md Generation
 
-**Objective**: Create simple composition script to generate AGENTS.md from fragments.
+**Objective**: Create simple composition script to generate CLAUDE.md from fragments.
 
 **Approach**: Start with bash script (simple concatenation), can evolve to Python if needed.
 
@@ -280,14 +280,14 @@ fragments:
   - *core/tool-preferences.md
   - *core/hashtags.md
 
-output: AGENTS.md
+output: CLAUDE.md
 ```
 
 **Generation Script** (simple version):
 ```bash
 #!/bin/bash
 # agents/compose.sh
-# Generates AGENTS.md from fragments defined in compose.yaml
+# Generates CLAUDE.md from fragments defined in compose.yaml
 
 FRAGMENTS=(
   "agent-core/fragments/AGENTS-framework.md"
@@ -297,7 +297,7 @@ FRAGMENTS=(
   "agent-core/fragments/hashtags.md"
 )
 
-OUTPUT="AGENTS.md"
+OUTPUT="CLAUDE.md"
 
 # Clear output
 > "$OUTPUT"
@@ -321,12 +321,12 @@ echo "Generated $OUTPUT from ${#FRAGMENTS[@]} fragments"
 2. Create `agents/compose.sh` generation script
 3. Make script executable
 4. Add to justfile: `generate-agents: agents/compose.sh`
-5. Run generation and compare with existing AGENTS.md
+5. Run generation and compare with existing CLAUDE.md
 6. Document usage in agents/README.md (if it doesn't exist, create it)
 
 **Validation**:
 - [ ] Script runs without errors
-- [ ] Generated AGENTS.md is valid markdown
+- [ ] Generated CLAUDE.md is valid markdown
 - [ ] Content matches expected composition
 - [ ] Generation is repeatable (same input → same output)
 
@@ -357,14 +357,14 @@ echo "Generated $OUTPUT from ${#FRAGMENTS[@]} fragments"
 4. Copy composition script and compose.yaml from claudeutils
 5. Update paths in compose.yaml to reference `agent-core/fragments/`
 6. Run generation: `agents/compose.sh`
-7. Review generated AGENTS.md
-8. Commit: "Add agent-core submodule and generate AGENTS.md"
+7. Review generated CLAUDE.md
+8. Commit: "Add agent-core submodule and generate CLAUDE.md"
 
 **Validation**:
 - [ ] Submodule added successfully
 - [ ] `.gitmodules` file created
 - [ ] Generation script works with submodule paths
-- [ ] Generated AGENTS.md is usable
+- [ ] Generated CLAUDE.md is usable
 
 ---
 
@@ -433,7 +433,7 @@ echo "Generated $OUTPUT from ${#FRAGMENTS[@]} fragments"
 - Contribution guidelines (for backporting improvements)
 
 #### agents/README.md (in consumer projects)
-- How to compose AGENTS.md
+- How to compose CLAUDE.md
 - How to update from upstream (submodule pull)
 - Local customization guidelines
 - Regeneration workflow
@@ -493,10 +493,10 @@ Phase 1 is complete when:
 
 - [ ] agent-core repository exists with documented structure
 - [ ] Shared fragments extracted (justfile, ruff, mypy, rule fragments)
-- [ ] Template-based AGENTS.md generation works
+- [ ] Template-based CLAUDE.md generation works
 - [ ] One test repository (emojipack or pytest-md) successfully:
   - [ ] Has agent-core as submodule
-  - [ ] Generates AGENTS.md from fragments
+  - [ ] Generates CLAUDE.md from fragments
   - [ ] Imports justfile recipes
   - [ ] Uses extracted tool configs
 - [ ] Documentation explains usage and customization
@@ -515,7 +515,7 @@ Phase 1 is complete when:
 
 **Context files for reference**:
 - plans/unification/design.md (this document provides full context)
-- Current AGENTS.md (claudeutils/AGENTS.md)
+- Current CLAUDE.md (claudeutils/CLAUDE.md)
 - Current justfile (claudeutils/justfile)
 - Current pyproject.toml (claudeutils/pyproject.toml)
 
@@ -542,7 +542,7 @@ This plan will result in:
 - agents/compose.yaml (new)
 - agents/compose.sh (new)
 - agents/README.md (new)
-- AGENTS.md (regenerated)
+- CLAUDE.md (regenerated)
 - justfile (add import statement)
 
 **Reports**:
@@ -616,6 +616,6 @@ When reviewing this plan:
 ## References
 
 - plans/unification/design.md — Full design context
-- AGENTS.md — Current agent instruction format (line references throughout)
+- CLAUDE.md — Current agent instruction format (line references throughout)
 - claudeutils/justfile — Source for recipe extraction
 - claudeutils/pyproject.toml — Source for config extraction

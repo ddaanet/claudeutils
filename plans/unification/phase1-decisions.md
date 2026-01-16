@@ -51,10 +51,10 @@ done
 **Fix Applied**: Added explicit content boundary specification to Step 5.
 
 **Include in AGENTS-framework.md**:
-- File header explaining AGENTS.md purpose (current AGENTS.md:1-7)
+- File header explaining CLAUDE.md purpose (current CLAUDE.md:1-7)
 - Section structure (## headers only, not content)
-- Roles/Rules/Skills tables (AGENTS.md:91-114)
-- Loading mechanism (AGENTS.md:116-120)
+- Roles/Rules/Skills tables (CLAUDE.md:91-114)
+- Loading mechanism (CLAUDE.md:116-120)
 
 **Exclude from AGENTS-framework.md**:
 - Specific communication rules → communication.md
@@ -143,9 +143,9 @@ target-version = "py312"  # Present in all projects
 
 These recommendations are deferred to later phases or execution time:
 
-### 1. Generated AGENTS.md Comparison Criteria
+### 1. Generated CLAUDE.md Comparison Criteria
 
-**Issue**: Step 6 says "compare with existing AGENTS.md" without defining acceptable differences.
+**Issue**: Step 6 says "compare with existing CLAUDE.md" without defining acceptable differences.
 
 **Recommendation** (from review):
 - Structure should match (same sections in same order)
@@ -243,7 +243,7 @@ All technical decisions made during planning phase:
 | **Framework content** | Structure/tables only, no rule content | Prevents duplication with fragments | This document, Fix #2 |
 | **Error handling** | Explicit protocol with stop conditions | Robust execution, clear decision points | This document, Fix #3 |
 | **Submodule URL** | Local path `/Users/david/code/agent-core` | Testing phase, can change to GitHub URL later | execution-plan.md:323 |
-| **AGENTS.md comparison** | Document differences, don't require exact match | Extraction, not reproduction | This document, Postponed #1 |
+| **CLAUDE.md comparison** | Document differences, don't require exact match | Extraction, not reproduction | This document, Postponed #1 |
 
 ---
 
@@ -305,7 +305,7 @@ Constraints that guided decision-making:
 
 **Success Criteria**: Test repository must successfully:
 - Add submodule
-- Generate AGENTS.md
+- Generate CLAUDE.md
 - Import justfile recipes
 - Use extracted configs
 
@@ -396,9 +396,9 @@ Phase 1 is complete when:
 ### Test Repository Integration
 
 - [ ] agent-core added as submodule to test repo
-- [ ] AGENTS.md generated from fragments (100+ lines)
-- [ ] Generated AGENTS.md is valid markdown
-- [ ] Generated AGENTS.md contains all fragment contents
+- [ ] CLAUDE.md generated from fragments (100+ lines)
+- [ ] Generated CLAUDE.md is valid markdown
+- [ ] Generated CLAUDE.md contains all fragment contents
 - [ ] justfile imports agent-core recipes
 - [ ] `just --list` shows 5+ imported recipes
 - [ ] Imported recipes execute without errors
@@ -459,7 +459,7 @@ Phase 1 is complete when:
 **Required Context**:
 - plans/unification/design.md ✅
 - plans/unification/phase1-execution-plan.md ✅
-- AGENTS.md (current format) ✅
+- CLAUDE.md (current format) ✅
 - justfile (for extraction) ✅
 - pyproject.toml (for extraction) ✅
 
@@ -499,7 +499,7 @@ After Haiku completes Phase 1:
 
 1. Review execution report (plans/unification/reports/phase1-execution.md)
 2. Verify success criteria met
-3. Test generated artifacts (AGENTS.md, justfile imports, configs)
+3. Test generated artifacts (CLAUDE.md, justfile imports, configs)
 4. Document any unexpected issues or learnings
 
 ### Phase 2 Planning
@@ -587,7 +587,7 @@ Key "why" decisions for future reference:
 **Rationale**:
 - pyproject.toml composition is complex (section merging, list extension, override semantics)
 - justfile has native `import` (easy)
-- AGENTS.md is full-file composition (simple concatenation)
+- CLAUDE.md is full-file composition (simple concatenation)
 - pyproject.toml needs sophisticated merging logic
 - Phase 1 goal: prove concept, not solve all problems
 - prompt-composer may provide better solution
@@ -602,7 +602,7 @@ Key "why" decisions for future reference:
 - **Execution Plan**: plans/unification/phase1-execution-plan.md
 - **Detailed Review**: plans/unification/reports/phase1-plan-review.md
 - **Design Session**: Session reset on 2025-01-14 (per git log 9576b68)
-- **AGENTS.md Format**: Current AGENTS.md in repository root
+- **CLAUDE.md Format**: Current CLAUDE.md in repository root
 - **Related Work**: plans/prompt-composer/design.md (future integration)
 
 ---

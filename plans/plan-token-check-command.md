@@ -147,7 +147,7 @@ exit 0
  just format           # Auto-format code
 ```
 
-**Update AGENTS.md (if needed):**
+**Update CLAUDE.md (if needed):**
 
 - Add note about token checking for context awareness
 - Reference empirical token/line ratio data
@@ -251,7 +251,7 @@ No JSON, no color-coding, no fancy features. Just the data.
 
 - New script: `scripts/check_token_limits.sh`
 - Modified: `justfile`
-- Updated: `README.md`, possibly `AGENTS.md`
+- Updated: `README.md`, possibly `CLAUDE.md`
 
 ### Dependencies
 

@@ -4,9 +4,9 @@
 
 ---
 
-### Step 6: Implement Template-Based AGENTS.md Generation
+### Step 6: Implement Template-Based CLAUDE.md Generation
 
-**Objective**: Create simple composition script to generate AGENTS.md from fragments.
+**Objective**: Create simple composition script to generate CLAUDE.md from fragments.
 
 **Approach**: Start with bash script (simple concatenation), can evolve to Python if needed.
 
@@ -30,14 +30,14 @@ fragments:
   - *core/tool-preferences.md
   - *core/hashtags.md
 
-output: AGENTS.md
+output: CLAUDE.md
 ```
 
 **Generation Script** (simple version):
 ```bash
 #!/bin/bash
 # agents/compose.sh
-# Generates AGENTS.md from fragments defined in compose.yaml
+# Generates CLAUDE.md from fragments defined in compose.yaml
 
 FRAGMENTS=(
   "agent-core/fragments/AGENTS-framework.md"
@@ -47,7 +47,7 @@ FRAGMENTS=(
   "agent-core/fragments/hashtags.md"
 )
 
-OUTPUT="AGENTS.md"
+OUTPUT="CLAUDE.md"
 
 # Clear output
 > "$OUTPUT"
@@ -71,12 +71,12 @@ echo "Generated $OUTPUT from ${#FRAGMENTS[@]} fragments"
 2. Create `agents/compose.sh` generation script
 3. Make script executable
 4. Add to justfile: `generate-agents: agents/compose.sh`
-5. Run generation and compare with existing AGENTS.md
+5. Run generation and compare with existing CLAUDE.md
 6. Document usage in agents/README.md (if it doesn't exist, create it)
 
 **Validation**:
 - [ ] Script runs without errors
-- [ ] Generated AGENTS.md is valid markdown
+- [ ] Generated CLAUDE.md is valid markdown
 - [ ] Content matches expected composition
 - [ ] Generation is repeatable (same input → same output)
 

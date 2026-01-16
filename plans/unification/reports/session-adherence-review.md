@@ -13,7 +13,7 @@
 
 The orchestration session successfully completed Phase 1 Steps 4-10 with strong adherence to:
 - User instructions (7 direct commands)
-- AGENTS.md framework rules
+- CLAUDE.md framework rules
 - Communication protocols
 - Delegation patterns
 - Context management requirements
@@ -55,7 +55,7 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 **Status**: ✅ FOLLOWED
 **Evidence**:
 - Immediately resumed executor with explicit instruction
-- Prompt: "Replace existing fragments with verbatim AGENTS.md extractions per Step 4 instructions"
+- Prompt: "Replace existing fragments with verbatim CLAUDE.md extractions per Step 4 instructions"
 - Executor replaced all 4 fragments as specified
 - Validation confirmed fragments match step requirements
 
@@ -102,9 +102,9 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 
 ---
 
-## AGENTS.md Framework Adherence
+## CLAUDE.md Framework Adherence
 
-### Communication Rules (AGENTS.md:10-16)
+### Communication Rules (CLAUDE.md:10-16)
 
 #### Rule 1: "Stop on unexpected results"
 **Status**: ✅ FOLLOWED
@@ -142,7 +142,7 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 - Executors returned only: "execution: [filepath] [SUCCESS/FAILED]"
 - Reviews completed then stopped
 
-### Delegation Principle (AGENTS.md:19-28)
+### Delegation Principle (CLAUDE.md:19-28)
 
 #### Pattern: "Orchestrator coordinates, doesn't implement"
 **Status**: ✅ FOLLOWED
@@ -161,7 +161,7 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 - Reviewer agents spawned: 11 (Steps 1-10 + sonnet review)
 - Total agents: 21
 
-### Model Selection for Delegation (AGENTS.md:30-38)
+### Model Selection for Delegation (CLAUDE.md:30-38)
 
 #### Rule: "Match model cost to task complexity"
 **Status**: ✅ FOLLOWED
@@ -173,7 +173,7 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 
 **No opus usage**: Correct, as no complex design decisions required during execution
 
-### Quiet Execution Pattern (AGENTS.md:40-52)
+### Quiet Execution Pattern (CLAUDE.md:40-52)
 
 #### Rule: "Execution agents report to files, not orchestrator context"
 **Status**: ✅ FOLLOWED
@@ -191,12 +191,12 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 - With quiet pattern: ~5-20 lines per step in context = 50-200 lines
 - Reduction: 90-95% context savings
 
-### Task Agent Tool Usage (AGENTS.md:56-68)
+### Task Agent Tool Usage (CLAUDE.md:56-68)
 
 #### Rule: "Use specialized tools, not Bash one-liners"
 **Status**: ✅ FOLLOWED (by orchestrator)
 **Evidence**:
-- Read tool: Used for AGENTS.md, session.md, execution reports
+- Read tool: Used for CLAUDE.md, session.md, execution reports
 - Edit tool: Used for session.md updates (2 edits)
 - Write tool: Used for this report
 - No bash commands for file operations by orchestrator
@@ -221,7 +221,7 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 - Average per step: ~5,500 tokens (very efficient)
 
 **Context Breakdown**:
-- Initial load (AGENTS.md, session.md): ~3K tokens
+- Initial load (CLAUDE.md, session.md): ~3K tokens
 - 10 executor spawns: ~20K tokens
 - 11 reviewer spawns: ~15K tokens
 - User interactions: ~5K tokens
@@ -349,7 +349,7 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 - Instructions followed: 7 (100%)
 - Instructions clarified: 1 (Step 4 - appropriate)
 
-### AGENTS.md Rule Compliance
+### CLAUDE.md Rule Compliance
 - Communication Rules: 4/4 followed (100%)
 - Delegation Principle: Applied throughout
 - Model Selection: Correct for all 21 agents
@@ -398,7 +398,7 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 3. **TodoWrite in orchestration** - Consider if explicit task list would improve transparency (current: step sequence sufficient)
 
 ### For Documentation
-1. **Document agent resume limitation** in AGENTS.md or execution context
+1. **Document agent resume limitation** in CLAUDE.md or execution context
 2. **Codify context-saving pattern** as best practice for multi-step orchestration
 3. **Add orchestration examples** showing quiet execution + context management
 
@@ -410,7 +410,7 @@ The orchestration session successfully completed Phase 1 Steps 4-10 with strong 
 
 The orchestration session demonstrated:
 - **100% user instruction compliance** (7/7 instructions followed correctly)
-- **Strong AGENTS.md framework adherence** (all core rules applied)
+- **Strong CLAUDE.md framework adherence** (all core rules applied)
 - **Effective context management** (critical instruction followed immediately)
 - **Successful adaptation** (agent resume failure handled gracefully)
 - **Complete deliverables** (Phase 1 Steps 4-10 executed, reviewed, committed)

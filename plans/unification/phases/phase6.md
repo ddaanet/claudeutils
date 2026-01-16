@@ -37,11 +37,11 @@ roles/high-level-planner.md: $(ROLEDEF_PLANNER_HIGH) $(CORE) $(PLANNING)
 
 ### 6.3 pytest-md Migration
 
-**Current**: Manual AGENTS.md
+**Current**: Manual CLAUDE.md
 **Target**: Generated from fragments + local project rules
 
 1. Create `pytest-md/agents/` directory
-2. Fragment AGENTS.md:
+2. Fragment CLAUDE.md:
    - Keep project-specific sections in `agents/src/pytest-md-rules.md`
    - Reference agent-core fragments for reusable content
 3. Create `agents/compose.yaml`

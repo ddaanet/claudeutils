@@ -21,7 +21,7 @@ scratch/consolidation/
       *.md                    # 17 fragment files
 
   pytest-md/
-    AGENTS.md                 # /Users/david/code/pytest-md/AGENTS.md
+    CLAUDE.md                 # /Users/david/code/pytest-md/CLAUDE.md
     skills/                   # /Users/david/code/pytest-md/.claude/skills/
       commit/SKILL.md
       execute-tdd/SKILL.md

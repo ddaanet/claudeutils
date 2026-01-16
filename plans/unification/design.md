@@ -13,7 +13,7 @@
 Multiple projects share common patterns for:
 - justfile recipes and bash helpers
 - pyproject.toml settings (ruff, mypy, docformatter)
-- Agent behavior files (AGENTS.md, roles, skills, rules)
+- Agent behavior files (CLAUDE.md, roles, skills, rules)
 
 Currently these are copy-pasted with drift. Goal: unified source with controlled local customization.
 
@@ -99,7 +99,7 @@ tmp/
 
 agent-core/                    # Git submodule (at project root)
 
-AGENTS.md                      # Entry point (at project root, generated)
+CLAUDE.md                      # Entry point (at project root, generated)
 ```
 
 **State files versioned** (not gitignored):
@@ -154,7 +154,7 @@ agents:
 - Fragment updates propagate automatically
 - Local customization is explicit
 
-### 4. AGENTS.md Generation
+### 4. CLAUDE.md Generation
 
 **Decision**: Template-based generation to handle project variation.
 
@@ -162,15 +162,15 @@ agents:
 # Simple implementation (Phase 1)
 cat agent-core/fragments/base.md \
     local/project-rules.md \
-    agent-core/fragments/footer.md > AGENTS.md
+    agent-core/fragments/footer.md > CLAUDE.md
 
 # Or with variables
-cat agents/templates/AGENTS.md.tmpl | envsubst > AGENTS.md
+cat agents/templates/CLAUDE.md.tmpl | envsubst > CLAUDE.md
 ```
 
 **Template variables**: `$PROJECT_TYPE`, `$TEST_COMMAND`, `$BUILD_SYSTEM`
 
-Skills and agents are hand-generated initially; template system handles AGENTS.md divergence.
+Skills and agents are hand-generated initially; template system handles CLAUDE.md divergence.
 
 ### 5. Sync Mechanism
 
@@ -360,7 +360,7 @@ Not blocking current design - minimal impact on structure.
 2. Extract justfile-base.just with shared recipes
 3. Extract ruff.toml, mypy.toml fragments
 4. Extract shared rule fragments (communication, delegation, tool-preferences, hashtags)
-5. Template-based AGENTS.md generation
+5. Template-based CLAUDE.md generation
 6. Test in one scratch repo
 
 ### Phase 2: Agent Definitions
@@ -406,7 +406,7 @@ Selected: Local template + fragments.
 | State files | Versioned (not gitignored) | Rollback, reproducible experiments |
 | Report locations | `plans/<name>/reports/`, `tmp/reports/` | Cross-session vs ephemeral |
 | Composition model | Local template + shared fragments | No drift concept, explicit customization |
-| AGENTS.md | Template-based generation | Handle project variation |
+| CLAUDE.md | Template-based generation | Handle project variation |
 | Agent definition format | YAML frontmatter + markdown | Simple, flexible |
 | Sync mechanism | Git history, no timestamps | Leverage existing tooling |
 | Backporting | Manual, per-file | Human judgment, appropriate for scale |
@@ -420,7 +420,7 @@ Selected: Local template + fragments.
 
 ## Rule Drift Analysis
 
-Analysis of AGENTS.md variants across projects (claudeutils, home, rules) identified:
+Analysis of CLAUDE.md variants across projects (claudeutils, home, rules) identified:
 
 **Preserved rules** (present in 2+ versions):
 - Delegate to specialized agents
@@ -462,7 +462,7 @@ Analysis of AGENTS.md variants across projects (claudeutils, home, rules) identi
 - `agent-core` repo created (can be local first, GitHub later)
 - Shared fragments extracted: justfile-base.just, ruff.toml, mypy.toml
 - Rule fragments: communication.md, delegation.md, tool-preferences.md, hashtags.md
-- Template-based AGENTS.md generation working in one test repo
+- Template-based CLAUDE.md generation working in one test repo
 
 **Phase 2 deliverables:**
 - QuietExplore agent definition (.claude/agents/quiet-explore.md)
@@ -488,7 +488,7 @@ Analysis of AGENTS.md variants across projects (claudeutils, home, rules) identi
 
 **Source material locations:**
 - Base Explore agent prompt: ../claude-code-system-prompts/system-prompts/
-- Existing AGENTS.md variants: claudeutils/, home/, rules/
+- Existing CLAUDE.md variants: claudeutils/, home/, rules/
 - Tool preferences: system prompt fragment and Bash tool description in Claude Code
 
 ---
@@ -496,6 +496,6 @@ Analysis of AGENTS.md variants across projects (claudeutils, home, rules) identi
 ## References
 
 - plans/prompt-composer/design.md - Generation pipeline, rule tiering (future)
-- AGENTS.md - Current agent instruction format
+- CLAUDE.md - Current agent instruction format
 - scratch/ repos - Test cases (box-api, emojipack, pytest-md, home, dprint-testing, markdown-debug)
 - ../claude-code-system-prompts/system-prompts/agent-prompt-explore.md - Base Explore agent

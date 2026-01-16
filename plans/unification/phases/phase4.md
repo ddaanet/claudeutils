@@ -45,7 +45,7 @@ agent-core/fragments/
   roles-rules-skills.md
   hashtags.md
 
-  # NEW from pytest-md AGENTS.md:
+  # NEW from pytest-md CLAUDE.md:
   context-management.md          # Session.md protocol, handoff patterns
   documentation-organization.md  # File naming conventions, directory structure
   orchestration-patterns.md      # Opus orchestration, sub-agent usage, model selection

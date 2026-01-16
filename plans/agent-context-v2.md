@@ -12,14 +12,14 @@
 
 | File | Lines | Updates | Contains |
 |------|-------|---------|----------|
-| AGENTS.md | ~50 | Monthly | Fallback rules, pointers |
+| CLAUDE.md | ~50 | Monthly | Fallback rules, pointers |
 | agents/context.md | ≤100 | 12-15×/day | State, handoff, decisions, blockers |
 | agents/role-*.md | Varies | Weekly | Domain rules + context.md pointer |
 | START.md | **DELETE** | — | Consolidated into context.md |
 
 ### Key Decisions
 
-1. **AGENTS.md:** Slim to ~50 lines (rules + pointers only)
+1. **CLAUDE.md:** Slim to ~50 lines (rules + pointers only)
 2. **agents/context.md:** 100 line hard cap, 4-section structure
 3. **START.md:** Eliminate - merge into context.md handoff section
 4. **Flushing:** Archive to `agents/archive/{date}-context.md` when >100 lines
@@ -27,7 +27,7 @@
 ### Agent Boot Sequence
 
 ```
-Role file exists? → Read agents/role-{role}.md : Read AGENTS.md
+Role file exists? → Read agents/role-{role}.md : Read CLAUDE.md
 → Always read agents/context.md
 → Execute task
 → Update agents/context.md before exit
@@ -40,7 +40,7 @@ Role file exists? → Read agents/role-{role}.md : Read AGENTS.md
 ### Critical Updates (Order Matters)
 
 1. **agents/modules/src/memory-management.semantic.md**
-   - Line 18: Update AGENTS.md size estimate (~50 rules)
+   - Line 18: Update CLAUDE.md size estimate (~50 rules)
    - Line 50: Change `START.md` → `agents/context.md`, clarify scope
    - **Why critical:** Instructs agents what files to update
 
@@ -49,7 +49,7 @@ Role file exists? → Read agents/role-{role}.md : Read AGENTS.md
    - Line 24: Update completion file guidance if needed
    - **Why critical:** Defines handoff protocol
 
-3. **AGENTS.md**
+3. **CLAUDE.md**
    - Strip to ~50 lines: core rules + pointers only
    - Add pointer: "Read agents/context.md for current state"
    - Remove: project architecture, current status
@@ -70,7 +70,7 @@ Role file exists? → Read agents/role-{role}.md : Read AGENTS.md
 
 All 7 files in `agents/role-*.md`:
 - Add after frontmatter: "Read agents/context.md for current state."
-- Verify no duplication of AGENTS.md fallback rules
+- Verify no duplication of CLAUDE.md fallback rules
 
 Files:
 - agents/role-planning.md
@@ -131,14 +131,14 @@ git add agents/archive/2026-01-07-context.md
 
 **Line 18 - Change:**
 ```diff
--Target: AGENTS.md (~40 rules) + role file, total <= 150 rules. Fewer is better. Budget...
-+Target: AGENTS.md (~10 rules fallback) + role file (~100 rules) ≤ 150 total. Fewer is better.
+-Target: CLAUDE.md (~40 rules) + role file, total <= 150 rules. Fewer is better. Budget...
++Target: CLAUDE.md (~10 rules fallback) + role file (~100 rules) ≤ 150 total. Fewer is better.
 ```
 
 **Line 50 - Change:**
 ```diff
--Update: AGENTS.md, START.md, role files, rule files. Do NOT update: README.md, test...
-+Update: AGENTS.md (fallback rules only), agents/context.md (current state), role files, rule files. Do NOT update: README.md, tests, plans.
+-Update: CLAUDE.md, START.md, role files, rule files. Do NOT update: README.md, test...
++Update: CLAUDE.md (fallback rules only), agents/context.md (current state), role files, rule files. Do NOT update: README.md, tests, plans.
 ```
 
 **File:** `agents/modules/src/handoff.semantic.md`
@@ -181,7 +181,7 @@ Current focus: [Extract from old context]
 
 **Checkpoint:** `wc -l agents/context.md` returns ≤100
 
-### Phase 5: Slim AGENTS.md
+### Phase 5: Slim CLAUDE.md
 
 **Target structure:**
 ```markdown
@@ -207,7 +207,7 @@ Current focus: [Extract from old context]
 - Data models → Keep pointer, details in design-decisions.md
 - Command reference → Keep minimal version or move
 
-**Checkpoint:** `wc -l AGENTS.md` ≤ 60 (target 50, buffer 10)
+**Checkpoint:** `wc -l CLAUDE.md` ≤ 60 (target 50, buffer 10)
 
 ### Phase 6: Delete START.md
 ```bash
@@ -252,7 +252,7 @@ grep -r "session\.md" --include="*.md" .
 **Verify structure:**
 ```bash
 # File sizes
-wc -l AGENTS.md                    # Should be ~50
+wc -l CLAUDE.md                    # Should be ~50
 wc -l agents/context.md            # Should be ≤100
 ls START.md 2>/dev/null            # Should fail
 
@@ -276,7 +276,7 @@ grep -r "session\.md" --include="*.md" agents/ plans/
 git add -A
 git commit -m "Restructure agent context architecture (v2)
 
-- Slim AGENTS.md to ~50 lines (fallback rules + pointers only)
+- Slim CLAUDE.md to ~50 lines (fallback rules + pointers only)
 - Restructure agents/context.md with 4-section template (≤100 lines)
 - Delete START.md (consolidated into context.md#Handoff)
 - Create agents/archive/ for flushed context
@@ -284,7 +284,7 @@ git commit -m "Restructure agent context architecture (v2)
 - Update module sources (memory-management, handoff)
 - Update all documentation references
 
-Architecture: Role file OR AGENTS.md → context.md → execute"
+Architecture: Role file OR CLAUDE.md → context.md → execute"
 ```
 
 **Checkpoint:** Clean git status
@@ -296,7 +296,7 @@ Architecture: Role file OR AGENTS.md → context.md → execute"
 - [ ] agents/archive/ directory exists with .gitkeep
 - [ ] agents/archive/2026-01-07-context.md exists (backup)
 - [ ] agents/context.md is ≤100 lines with 4-section structure
-- [ ] AGENTS.md is ~50 lines (fallback rules only)
+- [ ] CLAUDE.md is ~50 lines (fallback rules only)
 - [ ] START.md deleted
 - [ ] All 7 role files reference context.md
 - [ ] memory-management.semantic.md updated (lines 18, 50)
@@ -312,7 +312,7 @@ If issues discovered during migration:
 
 ```bash
 # Restore from git
-git checkout HEAD -- AGENTS.md agents/context.md START.md
+git checkout HEAD -- CLAUDE.md agents/context.md START.md
 git checkout HEAD -- agents/role-*.md
 git checkout HEAD -- agents/modules/src/memory-management.semantic.md
 git checkout HEAD -- agents/modules/src/handoff.semantic.md
@@ -329,7 +329,7 @@ git reset --hard HEAD
 ## Post-Migration
 
 **Next session agents should:**
-1. Read appropriate role file OR AGENTS.md (fallback)
+1. Read appropriate role file OR CLAUDE.md (fallback)
 2. Read agents/context.md (always)
 3. Start work
 
@@ -339,7 +339,7 @@ git reset --hard HEAD
 - If exceeded: Archive entire file, start fresh with template
 - Archive naming: `agents/archive/YYYY-MM-DD-context.md`
 
-**AGENTS.md maintenance:**
+**CLAUDE.md maintenance:**
 - Update only when core behavioral rules change
 - Frequency: Monthly or less
 - Keep ≤50 lines
@@ -359,7 +359,7 @@ git reset --hard HEAD
 
 ## Success Criteria
 
-- ✅ AGENTS.md is concise reference (~50 lines)
+- ✅ CLAUDE.md is concise reference (~50 lines)
 - ✅ agents/context.md has clear structure (≤100 lines)
 - ✅ START.md eliminated (no duplication)
 - ✅ All role files point to context.md

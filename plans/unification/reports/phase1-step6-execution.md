@@ -1,6 +1,6 @@
 # Phase 1: Step 6 Execution Report
 
-**Step**: Implement Template-Based AGENTS.md Generation
+**Step**: Implement Template-Based CLAUDE.md Generation
 **Status**: COMPLETED
 **Date**: 2026-01-15
 **Executor**: Haiku
@@ -13,7 +13,7 @@
 - Step instructions: phase1-step6.md
 - Shared context: phase1-execution-context.md
 - Source material: agent-core/fragments/
-- Output: /Users/david/code/claudeutils/AGENTS.md (177 lines)
+- Output: /Users/david/code/claudeutils/CLAUDE.md (177 lines)
 
 ### Prerequisites Verification
 - [x] agent-core directory exists at /Users/david/code/agent-core
@@ -42,7 +42,7 @@ fragments:
   - *core/roles-rules-skills.md
   - *core/hashtags.md
 
-output: AGENTS.md
+output: CLAUDE.md
 ```
 
 **Purpose**: Defines composition order and source locations for fragments.
@@ -72,19 +72,19 @@ output: AGENTS.md
 Two new fragments were created to complete the composition:
 
 #### tool-batching.md
-- **Source**: AGENTS.md:72-83 (Tool Batching section)
+- **Source**: CLAUDE.md:72-83 (Tool Batching section)
 - **Location**: /Users/david/code/agent-core/fragments/tool-batching.md
 - **Content**: Planning and execution phases for tool batching
 
 #### roles-rules-skills.md
-- **Source**: AGENTS.md:87-119 (Roles, Rules, and Skills section)
+- **Source**: CLAUDE.md:87-119 (Roles, Rules, and Skills section)
 - **Location**: /Users/david/code/agent-core/fragments/roles-rules-skills.md
 - **Content**: Complete tables for 7 roles, 2 rules, 1 skill, and loading mechanism
 
-### 4. Generated AGENTS.md
+### 4. Generated CLAUDE.md
 **Result**: Successfully generated from 6 fragments
 
-**File**: /Users/david/code/claudeutils/AGENTS.md
+**File**: /Users/david/code/claudeutils/CLAUDE.md
 **Line Count**: 177 lines
 **Status**: Valid markdown
 
@@ -117,14 +117,14 @@ Two new fragments were created to complete the composition:
 
 ### Requirement 1: Script runs without errors
 **Status**: PASS
-- Script executed successfully: "Generated AGENTS.md from 6 fragments"
+- Script executed successfully: "Generated CLAUDE.md from 6 fragments"
 - No missing fragment errors
 - Proper error handling in place
 - Exit code: 0 (success)
 
-### Requirement 2: Generated AGENTS.md is valid markdown
+### Requirement 2: Generated CLAUDE.md is valid markdown
 **Status**: PASS
-- File exists at /Users/david/code/claudeutils/AGENTS.md
+- File exists at /Users/david/code/claudeutils/CLAUDE.md
 - 177 lines of valid markdown
 - All section headers properly formatted (## and ###)
 - No syntax errors detected
@@ -200,7 +200,7 @@ All expected sections present with correct nesting.
 - **Working directory**: /Users/david/code/claudeutils
 - **Script location**: agents/compose.sh
 - **Fragment paths**: ../agent-core/fragments/ (relative paths)
-- **Output location**: AGENTS.md (project root)
+- **Output location**: CLAUDE.md (project root)
 
 ### Design Decisions Made
 
@@ -217,8 +217,8 @@ All expected sections present with correct nesting.
    - Note: Fragment exists in agent-core for reference/reuse in other projects
 
 3. **New Fragments Created**:
-   - tool-batching.md: Extracted from AGENTS.md:72-83
-   - roles-rules-skills.md: Extracted from AGENTS.md:87-119
+   - tool-batching.md: Extracted from CLAUDE.md:72-83
+   - roles-rules-skills.md: Extracted from CLAUDE.md:87-119
    - Rationale: Simplify composition and improve fragment modularity
 
 4. **Script Approach**:
@@ -242,7 +242,7 @@ The script is positioned for future CI/CD integration:
 - Runs without dependencies (only bash + cat)
 - Clear error reporting
 - Exit code indicates success/failure
-- Can validate generated AGENTS.md syntax
+- Can validate generated CLAUDE.md syntax
 
 ### With submodule system
 Fragment sources managed via git submodule:
@@ -262,7 +262,7 @@ Fragment sources managed via git submodule:
 5. ../agent-core/fragments/roles-rules-skills.md - New fragment
 
 **Modified**:
-1. /Users/david/code/claudeutils/AGENTS.md - Generated output (177 lines)
+1. /Users/david/code/claudeutils/CLAUDE.md - Generated output (177 lines)
 
 **Permissions**:
 - compose.sh: Executable (755)
@@ -273,7 +273,7 @@ Fragment sources managed via git submodule:
 ## Validation Checklist
 
 - [x] Script runs without errors
-- [x] Generated AGENTS.md is valid markdown
+- [x] Generated CLAUDE.md is valid markdown
 - [x] Content matches expected composition
 - [x] Generation is repeatable
 - [x] All fragments present in output
@@ -292,11 +292,11 @@ Fragment sources managed via git submodule:
 Phase 1, Step 6 completes the foundation for rules unification:
 
 ✓ Step 1: Design and plan extraction (completed)
-✓ Step 2: Extract fragments from AGENTS.md (completed)
+✓ Step 2: Extract fragments from CLAUDE.md (completed)
 ✓ Step 3: Validate and review with Sonnet (completed)
 ✓ Step 4: Extract rule fragments (completed)
 ✓ Step 5: Create AGENTS-framework.md fragment (completed)
-✓ Step 6: Implement template-based AGENTS.md generation (completed)
+✓ Step 6: Implement template-based CLAUDE.md generation (completed)
 
 **Foundation Status**: READY FOR TESTING
 
@@ -306,12 +306,12 @@ The system is now ready for Phase 1, Step 7 (Test Repository Integration) where 
 
 ## Step 6 Execution: COMPLETE
 
-Template-based AGENTS.md generation system successfully implemented with:
+Template-based CLAUDE.md generation system successfully implemented with:
 - compose.yaml configuration file
 - compose.sh generation script (bash, hardcoded fragments)
 - agents/README.md documentation
 - New fragments: tool-batching.md, roles-rules-skills.md
-- Generated AGENTS.md: 177 lines, valid markdown, repeatable
+- Generated CLAUDE.md: 177 lines, valid markdown, repeatable
 
 System is production-ready for Phase 1 completion and Phase 2 testing.
 

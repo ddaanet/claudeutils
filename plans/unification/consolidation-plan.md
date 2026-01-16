@@ -12,7 +12,7 @@
 Three projects have agent-related infrastructure that needs consolidation:
 - **emojipack**: Shell-based composition (compose.sh/compose.yaml)
 - **tuick**: Python-based composition (build.py + Makefile)
-- **pytest-md**: Manual AGENTS.md, 7 reusable skills
+- **pytest-md**: Manual CLAUDE.md, 7 reusable skills
 
 Per design document (plans/unification/design.md):
 - Shared content goes in agent-core (git submodule)
@@ -50,7 +50,7 @@ scratch/consolidation/
       *.md                    # 17 fragment files
 
   pytest-md/
-    AGENTS.md                 # /Users/david/code/pytest-md/AGENTS.md
+    CLAUDE.md                 # /Users/david/code/pytest-md/CLAUDE.md
     skills/                   # /Users/david/code/pytest-md/.claude/skills/
       commit/SKILL.md
       execute-tdd/SKILL.md
@@ -96,7 +96,7 @@ diff -u scratch/consolidation/configs/justfile-* \
 # Identify common ruff/mypy settings (already analyzed by explore agent)
 ```
 
-### 2.3 Analyze pytest-md AGENTS.md Fragmentation
+### 2.3 Analyze pytest-md CLAUDE.md Fragmentation
 
 Create `scratch/consolidation/analysis/pytest-md-fragmentation.md`:
 - Section 1 (Commands/Environment) → stays in pytest-md (project-specific)
@@ -122,7 +122,7 @@ Location: `src/claudeutils/compose.py`
 - Decorator injection (title + separators)
 - YAML config parsing (read compose.yaml)
 - Multiple output modes:
-  - `agents` mode: AGENTS.md generation
+  - `agents` mode: CLAUDE.md generation
   - `role` mode: Role file generation with headers
   - `skill` mode: (future) Skill template generation
 
@@ -140,7 +140,7 @@ claudeutils = "claudeutils.cli:main"
 
 **Usage patterns**:
 ```bash
-# Simple AGENTS.md generation
+# Simple CLAUDE.md generation
 claudeutils compose agents/compose.yaml
 
 # Role generation (tuick pattern)
@@ -165,7 +165,7 @@ fragments:
   - core/delegation.md
   - src/project-specific.md
 
-output: AGENTS.md
+output: CLAUDE.md
 ```
 
 ---
@@ -211,7 +211,7 @@ agent-core/fragments/
   roles-rules-skills.md
   hashtags.md
 
-  # NEW from pytest-md AGENTS.md:
+  # NEW from pytest-md CLAUDE.md:
   context-management.md          # Session.md protocol, handoff patterns
   documentation-organization.md  # File naming conventions, directory structure
   orchestration-patterns.md      # Opus orchestration, sub-agent usage, model selection
@@ -304,11 +304,11 @@ roles/high-level-planner.md: $(ROLEDEF_PLANNER_HIGH) $(CORE) $(PLANNING)
 
 ### 6.3 pytest-md Migration
 
-**Current**: Manual AGENTS.md
+**Current**: Manual CLAUDE.md
 **Target**: Generated from fragments + local project rules
 
 1. Create `pytest-md/agents/` directory
-2. Fragment AGENTS.md:
+2. Fragment CLAUDE.md:
    - Keep project-specific sections in `agents/src/pytest-md-rules.md`
    - Reference agent-core fragments for reusable content
 3. Create `agents/compose.yaml`
@@ -322,11 +322,11 @@ roles/high-level-planner.md: $(ROLEDEF_PLANNER_HIGH) $(CORE) $(PLANNING)
 
 For each project:
 ```bash
-# Generate AGENTS.md
+# Generate CLAUDE.md
 claudeutils compose agents/compose.yaml
 
 # Verify output matches expected structure
-diff AGENTS.md.expected AGENTS.md
+diff CLAUDE.md.expected CLAUDE.md
 ```
 
 ### 7.2 Config Validation
@@ -358,7 +358,7 @@ For pytest-md skills:
 **Source Files for Extraction**:
 - /Users/david/code/tuick/agents/build.py - Composition logic (73 lines)
 - /Users/david/code/emojipack/agents/compose.yaml - YAML config pattern
-- /Users/david/code/pytest-md/AGENTS.md - Content to fragment (153 lines)
+- /Users/david/code/pytest-md/CLAUDE.md - Content to fragment (153 lines)
 - /Users/david/code/pytest-md/.claude/skills/ - 7 skills to integrate
 
 **Target Files for Updates**:
@@ -390,7 +390,7 @@ For pytest-md skills:
 - [ ] agent-core updated with skills/, configs/, new fragments
 - [ ] claudeutils compose module implemented and working
 - [ ] All three projects validated with unified tooling
-- [ ] Generated AGENTS.md matches expected output for each project
+- [ ] Generated CLAUDE.md matches expected output for each project
 
 ---
 

@@ -22,11 +22,11 @@
 
 ### Step 2: Update compose.sh paths
 - Change `../agent-core/fragments/` → `agent-core/fragments/`
-- Regenerate AGENTS.md
+- Regenerate CLAUDE.md
 - Verify output unchanged
 
 ### Step 3: Commit all claudeutils changes
-- Stage modified files: AGENTS.md, agents/session.md, agents/rules-handoff.md
+- Stage modified files: CLAUDE.md, agents/session.md, agents/rules-handoff.md
 - Stage new files: agents/compose.sh, agents/compose.yaml, agents/README.md
 - Stage submodule: agent-core, .gitmodules
 - Commit with descriptive message
@@ -34,7 +34,7 @@
 ### Step 4: Validate
 - Fresh clone test (or `git submodule update --init`)
 - Run compose.sh from fresh state
-- Verify AGENTS.md generates correctly
+- Verify CLAUDE.md generates correctly
 
 ---
 

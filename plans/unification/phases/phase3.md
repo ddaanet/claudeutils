@@ -18,7 +18,7 @@ Location: `src/claudeutils/compose.py`
 - Decorator injection (title + separators)
 - YAML config parsing (read compose.yaml)
 - Multiple output modes:
-  - `agents` mode: AGENTS.md generation
+  - `agents` mode: CLAUDE.md generation
   - `role` mode: Role file generation with headers
   - `skill` mode: (future) Skill template generation
 
@@ -36,7 +36,7 @@ claudeutils = "claudeutils.cli:main"
 
 **Usage patterns**:
 ```bash
-# Simple AGENTS.md generation
+# Simple CLAUDE.md generation
 claudeutils compose agents/compose.yaml
 
 # Role generation (tuick pattern)
@@ -61,7 +61,7 @@ fragments:
   - core/delegation.md
   - src/project-specific.md
 
-output: AGENTS.md
+output: CLAUDE.md
 ```
 
 ---

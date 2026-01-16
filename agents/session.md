@@ -12,12 +12,12 @@
 
 **This Session - Documentation Updates:**
 - Standardized plan execution report location to `plans/*/reports/`
-- Updated AGENTS.md quiet execution pattern with flexible naming guidance
+- Updated CLAUDE.md quiet execution pattern with flexible naming guidance
 - Fixed session.md and phases/README.md to remove obsolete `scratch/consolidation/` references
 - Commit: 53b6e22 "Standardize plan execution report location"
 
 **Previous Session - Commit Management:**
-- Investigated origin of `agents/` files (AGENTS.md generation system)
+- Investigated origin of `agents/` files (CLAUDE.md generation system)
 - Organized all untracked files into 9 logical commits
 - Reordered commits chronologically for clear history
 - All work committed, working tree clean
@@ -25,13 +25,13 @@
 **Previous Session - Plan Splitting & Documentation:**
 - Created generic `split-execution-plan.py` script with auto-detection for Phase/Step formats
 - Split consolidation plan into 7 phase files + context file for efficient delegation
-- Updated AGENTS.md with critical sandbox constraints:
+- Updated CLAUDE.md with critical sandbox constraints:
   - Never use heredocs (sandbox blocked)
   - Use project-local `tmp/` (not system `/tmp/`)
 - Documentation locations:
   - Script: `plans/unification/scripts/split-execution-plan.py`
   - Split plan: `plans/unification/phases/{consolidation-context.md,phase1-7.md,README.md}`
-  - Agent rules: `AGENTS.md` (Task Agent Tool Usage section)
+  - Agent rules: `CLAUDE.md` (Task Agent Tool Usage section)
 
 **Earlier Sessions:**
 - **Consolidation Plan:** Explored 3 projects, created 7-phase plan, identified 35 files to copy
@@ -65,7 +65,7 @@
 4. b13711d - Split consolidation plan files for delegation
 5. 2c8ebca - Phase 1 execution steps and context
 6. fbb8cec - Phase 1 execution and review reports
-7. 002a5ff - Document sandbox constraints in AGENTS.md
+7. 002a5ff - Document sandbox constraints in CLAUDE.md
 8. 0d62bed - Fix session file reference in handoff rules
 9. c73d05f - Session handoff (plan splitting documentation)
 10. 53b6e22 - Standardize plan execution report location
@@ -103,7 +103,7 @@ Execute consolidation plan Phase 1 fixes, or ask user for direction
 **New Constraints Discovered:**
 - Sandbox blocks heredocs in bash (`<<EOF` syntax)
 - Must use project-local `tmp/` not system `/tmp/`
-- These are now documented in AGENTS.md Task Agent Tool Usage section
+- These are now documented in CLAUDE.md Task Agent Tool Usage section
 
 ## Blockers
 

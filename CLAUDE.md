@@ -14,6 +14,16 @@
 3. **Be explicit** - Ask clarifying questions if requirements unclear
 4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
 
+## Session Management
+
+### Load Rule (#load)
+
+When asked to "#load" or "load", read the session context files:
+- `agents/session.md` - Current work state, handoff context, decisions, blockers
+- `agents/context.md` - Active multi-step task context (if exists)
+
+Do not search for these files; read them directly at these paths.
+
 ## Delegation Principle
 
 **Delegate everything.** The orchestrator (main agent) coordinates work but does not implement directly:

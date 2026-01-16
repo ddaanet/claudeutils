@@ -8,7 +8,7 @@
 
 ## Overview
 
-Phase 1 establishes the foundation for the rules unification system by creating the `agent-core` repository, extracting shared fragments, and implementing template-based generation for AGENTS.md. This phase will be tested in one scratch repository before broader rollout.
+Phase 1 establishes the foundation for the rules unification system by creating the `agent-core` repository, extracting shared fragments, and implementing template-based generation for CLAUDE.md. This phase will be tested in one scratch repository before broader rollout.
 
 ---
 
@@ -16,7 +16,7 @@ Phase 1 establishes the foundation for the rules unification system by creating 
 
 - [ ] claudeutils repository on `unification` branch
 - [ ] Access to scratch repositories for testing (emojipack or pytest-md)
-- [ ] Current AGENTS.md variants available for extraction
+- [ ] Current CLAUDE.md variants available for extraction
 
 ---
 
@@ -74,10 +74,10 @@ Phase 1 is complete when:
 
 - [ ] agent-core repository exists with documented structure
 - [ ] Shared fragments extracted (justfile, ruff, mypy, rule fragments)
-- [ ] Template-based AGENTS.md generation works
+- [ ] Template-based CLAUDE.md generation works
 - [ ] One test repository (emojipack or pytest-md) successfully:
   - [ ] Has agent-core as submodule
-  - [ ] Generates AGENTS.md from fragments
+  - [ ] Generates CLAUDE.md from fragments
   - [ ] Imports justfile recipes
   - [ ] Uses extracted tool configs
 - [ ] Documentation explains usage and customization
@@ -96,7 +96,7 @@ Phase 1 is complete when:
 
 **Context files for reference**:
 - plans/unification/design.md (this document provides full context)
-- Current AGENTS.md (claudeutils/AGENTS.md)
+- Current CLAUDE.md (claudeutils/CLAUDE.md)
 - Current justfile (claudeutils/justfile)
 - Current pyproject.toml (claudeutils/pyproject.toml)
 
@@ -123,7 +123,7 @@ This plan will result in:
 - agents/compose.yaml (new)
 - agents/compose.sh (new)
 - agents/README.md (new)
-- AGENTS.md (regenerated)
+- CLAUDE.md (regenerated)
 - justfile (add import statement)
 
 **Reports**:
@@ -201,7 +201,7 @@ When reviewing this plan:
 ## References
 
 - plans/unification/design.md — Full design context
-- AGENTS.md — Current agent instruction format (line references throughout)
+- CLAUDE.md — Current agent instruction format (line references throughout)
 - claudeutils/justfile — Source for recipe extraction
 - claudeutils/pyproject.toml — Source for config extraction
 

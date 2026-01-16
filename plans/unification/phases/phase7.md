@@ -10,11 +10,11 @@
 
 For each project:
 ```bash
-# Generate AGENTS.md
+# Generate CLAUDE.md
 claudeutils compose agents/compose.yaml
 
 # Verify output matches expected structure
-diff AGENTS.md.expected AGENTS.md
+diff CLAUDE.md.expected CLAUDE.md
 ```
 
 ### 7.2 Config Validation

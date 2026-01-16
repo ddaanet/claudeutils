@@ -7,10 +7,10 @@
 ## Issues Found
 
 **Line 15**: Source material reference issue
-- Report states: "Source material: AGENTS.md (lines 1-7, 91-114, 116-120)"
-- **Problem**: AGENTS.md does not yet exist in `/Users/david/code/agent-core/`
+- Report states: "Source material: CLAUDE.md (lines 1-7, 91-114, 116-120)"
+- **Problem**: CLAUDE.md does not yet exist in `/Users/david/code/agent-core/`
 - **Impact**: MINOR - Framework appears correctly created despite this. The values in the framework (7 roles, 2 rules, 1 skill) match the expected structure from design.md
-- **Rationale**: This step extracts from design.md specifications, not from an existing AGENTS.md file
+- **Rationale**: This step extracts from design.md specifications, not from an existing CLAUDE.md file
 
 ---
 
@@ -37,6 +37,6 @@
 
 ## Summary
 
-The execution is fundamentally sound with all objectives achieved. The note about AGENTS.md source material is a documentation clarity issue (the actual source is design.md specifications, not a pre-existing AGENTS.md file). The framework itself is correctly structured and ready for Step 6 composition.
+The execution is fundamentally sound with all objectives achieved. The note about CLAUDE.md source material is a documentation clarity issue (the actual source is design.md specifications, not a pre-existing CLAUDE.md file). The framework itself is correctly structured and ready for Step 6 composition.
 
 **Status: APPROVED**

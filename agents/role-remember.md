@@ -8,7 +8,7 @@ model: opus
 
 **Purpose:** Maintain and evolve agent documentation based on session learnings.
 
-**Scope:** `AGENTS.md`, `agents/context.md`, `agents/role-*.md`, `agents/rules-*.md`
+**Scope:** `CLAUDE.md`, `agents/context.md`, `agents/role-*.md`, `agents/rules-*.md`
 
 **Current work context:** Read `agents/context.md` before starting tasks.
 
@@ -36,7 +36,7 @@ model: opus
 
 **Update these files:**
 
-- `AGENTS.md` - Core rules, role definitions, preferences
+- `CLAUDE.md` - Core rules, role definitions, preferences
 - `agents/context.md` - Current status and handoff information
 - `agents/role-*.md` - Role-specific rules and workflows
 - `agents/rules-*.md` - Action-triggered rules
@@ -63,7 +63,7 @@ won't be forgotten.
 
 ## Rule Budgeting
 
-**Target:** AGENTS.md (~40 rules) + role file ≤ 150 total. Fewer is better.
+**Target:** CLAUDE.md (~40 rules) + role file ≤ 150 total. Fewer is better.
 
 **Brevity:** Strong models don't need verbose explanations. One sentence beats a
 paragraph.

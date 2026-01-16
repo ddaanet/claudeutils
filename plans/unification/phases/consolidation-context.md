@@ -12,7 +12,7 @@
 Three projects have agent-related infrastructure that needs consolidation:
 - **emojipack**: Shell-based composition (compose.sh/compose.yaml)
 - **tuick**: Python-based composition (build.py + Makefile)
-- **pytest-md**: Manual AGENTS.md, 7 reusable skills
+- **pytest-md**: Manual CLAUDE.md, 7 reusable skills
 
 Per design document (plans/unification/design.md):
 - Shared content goes in agent-core (git submodule)
@@ -51,7 +51,7 @@ Each step file references this context and should be executed with both files in
 **Source Files for Extraction**:
 - /Users/david/code/tuick/agents/build.py - Composition logic (73 lines)
 - /Users/david/code/emojipack/agents/compose.yaml - YAML config pattern
-- /Users/david/code/pytest-md/AGENTS.md - Content to fragment (153 lines)
+- /Users/david/code/pytest-md/CLAUDE.md - Content to fragment (153 lines)
 - /Users/david/code/pytest-md/.claude/skills/ - 7 skills to integrate
 
 **Target Files for Updates**:
@@ -83,7 +83,7 @@ Each step file references this context and should be executed with both files in
 - [ ] agent-core updated with skills/, configs/, new fragments
 - [ ] claudeutils compose module implemented and working
 - [ ] All three projects validated with unified tooling
-- [ ] Generated AGENTS.md matches expected output for each project
+- [ ] Generated CLAUDE.md matches expected output for each project
 
 ---
 

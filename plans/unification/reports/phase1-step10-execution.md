@@ -233,7 +233,7 @@ establishing clear patterns for agent instruction composition and execution.
 - [x] References to other documents accurate
 
 ### Phase 1 Completion
-- [x] All composition patterns documented (AGENTS.md, justfile, pyproject.toml)
+- [x] All composition patterns documented (CLAUDE.md, justfile, pyproject.toml)
 - [x] Shared fragments extracted and functional
 - [x] Integration architecture validated
 - [x] Test repository successfully using all patterns
@@ -245,11 +245,11 @@ establishing clear patterns for agent instruction composition and execution.
 
 ### Completed Steps (1-9)
 1. ✓ Design and plan extraction
-2. ✓ Extract fragments from AGENTS.md
+2. ✓ Extract fragments from CLAUDE.md
 3. ✓ Validate and review with Sonnet
 4. ✓ Extract rule fragments
 5. ✓ Create AGENTS-framework.md fragment
-6. ✓ Implement template-based AGENTS.md generation
+6. ✓ Implement template-based CLAUDE.md generation
 7. ✓ Test composition in test repository
 8. ✓ Test justfile import mechanism
 9. ✓ Document integration patterns (pyproject.toml)
@@ -268,7 +268,7 @@ establishing clear patterns for agent instruction composition and execution.
 - Ready for: Phase 2 rollout to additional projects
 
 **Test Repository**: /Users/david/code/emojipack
-- AGENTS.md: Generated from fragments (template-based)
+- CLAUDE.md: Generated from fragments (template-based)
 - justfile: Importing from agent-core (native just import)
 - pyproject.toml: Ruff and mypy configuration integrated
 - All composition patterns validated and working
@@ -374,7 +374,7 @@ Agent-core repository has been fully committed with all enhancements:
 ✓ Documentation hierarchy enables discovery and learning
 ✓ Changes successfully committed with hash e5c3ba3
 
-**Phase 1 Foundation**: Fully established and committed with all composition patterns proven and documented across three integration mechanisms (AGENTS.md generation, justfile import, pyproject.toml integration).
+**Phase 1 Foundation**: Fully established and committed with all composition patterns proven and documented across three integration mechanisms (CLAUDE.md generation, justfile import, pyproject.toml integration).
 
 **Repository State**:
 - Location: /Users/david/code/agent-core

@@ -563,7 +563,7 @@ if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
 **Success Criteria:**
 
 - All unit tests pass
-- `just format` produces minimal/no diffs on AGENTS.md, START.md, session.md
+- `just format` produces minimal/no diffs on CLAUDE.md, START.md, session.md
 - Tables remain as tables
 - Block quotes remain as block quotes
 - YAML prologs protected

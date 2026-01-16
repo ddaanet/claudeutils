@@ -38,7 +38,7 @@ The Phase 1 execution plan is **well-structured and executable by Haiku**. It co
 | 2. Extract justfile-base.just | Step 2 (lines 65-99) | ✅ Complete |
 | 3. Extract ruff.toml, mypy.toml | Step 3 (lines 102-144) | ✅ Complete |
 | 4. Extract shared rule fragments | Step 4 (lines 147-198) | ✅ Complete |
-| 5. Template-based AGENTS.md generation | Step 6 (lines 227-306) | ✅ Complete |
+| 5. Template-based CLAUDE.md generation | Step 6 (lines 227-306) | ✅ Complete |
 | 6. Test in one scratch repo | Steps 7-9 (lines 309-388) | ✅ Complete |
 
 **Additional Coverage Beyond Requirements:**
@@ -67,16 +67,16 @@ The Phase 1 execution plan is **well-structured and executable by Haiku**. It co
 
 ### 2.1 Fragment Source References (Step 4)
 
-**Issue**: Plan references line numbers in AGENTS.md for content extraction but current AGENTS.md may not match those exact lines.
+**Issue**: Plan references line numbers in CLAUDE.md for content extraction but current CLAUDE.md may not match those exact lines.
 
 **Example** (line 154):
 ```
-Content from: AGENTS.md:10-16 (Communication Rules)
+Content from: CLAUDE.md:10-16 (Communication Rules)
 ```
 
 **Recommendation**: Add instruction to use semantic matching rather than exact lines:
 ```
-Content: Communication Rules section from current AGENTS.md
+Content: Communication Rules section from current CLAUDE.md
 Expected headers: "Stop on unexpected results", "Wait for explicit instruction", etc.
 ```
 
@@ -198,9 +198,9 @@ Post-extraction validation:
 **Recommendation**: Clarify content boundary:
 ```
 AGENTS-framework.md Contains:
-- File header explaining purpose (from AGENTS.md:1-7)
-- Roles/Rules/Skills table definitions (AGENTS.md:87-120)
-- Loading mechanism explanation (AGENTS.md:116-120)
+- File header explaining purpose (from CLAUDE.md:1-7)
+- Roles/Rules/Skills table definitions (CLAUDE.md:87-120)
+- Loading mechanism explanation (CLAUDE.md:116-120)
 
 AGENTS-framework.md Excludes:
 - Specific communication rules (goes in communication.md)
@@ -272,9 +272,9 @@ Submodule Validation:
 
 **Impact**: Low - Current validation sufficient, but specific checks reduce ambiguity.
 
-### 4.3 Generated AGENTS.md Comparison (Step 6, line 295)
+### 4.3 Generated CLAUDE.md Comparison (Step 6, line 295)
 
-**Quote**: "Run generation and compare with existing AGENTS.md"
+**Quote**: "Run generation and compare with existing CLAUDE.md"
 
 **Missing**: Criteria for acceptable differences
 
@@ -302,7 +302,7 @@ Action: Document differences in execution report, do not require exact match
 agent-core/README.md Minimum Content:
 - One-paragraph purpose statement
 - Directory tree with one-line descriptions
-- Usage example: how to add submodule + generate AGENTS.md
+- Usage example: how to add submodule + generate CLAUDE.md
 - Link to design document for full context
 
 agents/README.md Minimum Content:
@@ -321,9 +321,9 @@ agents/README.md Minimum Content:
 ```
 Measurable Outcomes:
 - [ ] agent-core repository has 8+ files (fragments + README)
-- [ ] Test repository generates AGENTS.md with 100+ lines
+- [ ] Test repository generates CLAUDE.md with 100+ lines
 - [ ] justfile import shows 5+ imported recipes in `just --list`
-- [ ] Generated AGENTS.md contains all 4 fragment contents (grep verification)
+- [ ] Generated CLAUDE.md contains all 4 fragment contents (grep verification)
 ```
 
 **Impact**: Low - Current criteria adequate, metrics add confidence.
@@ -354,7 +354,7 @@ Measurable Outcomes:
    - Prevents arbitrary judgment calls
 
 5. **Add comparison criteria** (Section 4.3)
-   - What differences are acceptable in generated AGENTS.md
+   - What differences are acceptable in generated CLAUDE.md
    - Prevents false failure reports
 
 6. **Add tool requirements check** (Section 3.3)
@@ -449,7 +449,7 @@ After:  pytest ${TEST_DIR:-tests}
 
 **Recommendation**: See Section 3.2 for boundary definition.
 
-### Step 6: Implement Template-Based AGENTS.md Generation ✅
+### Step 6: Implement Template-Based CLAUDE.md Generation ✅
 
 **Assessment**: Excellent detailed implementation with working script.
 
@@ -535,7 +535,7 @@ All 5 open questions have clear recommendations. Assessment:
 | Submodule path conflicts | Low | High | Check before init, clear error reporting |
 | Fragment content overlap | Medium | Medium | Define framework boundary (Priority 1 rec) |
 | Missing tool dependencies | Low | Low | Add tool check (Priority 2 rec) |
-| Generated AGENTS.md validation ambiguity | Medium | Medium | Add comparison criteria (Priority 2 rec) |
+| Generated CLAUDE.md validation ambiguity | Medium | Medium | Add comparison criteria (Priority 2 rec) |
 | justfile import syntax error | Low | Medium | Test with simple recipe first |
 | Composition mechanism confusion | Medium | High | Clarify markers vs concatenation (Priority 1 rec) |
 
@@ -602,10 +602,10 @@ The plan is well-crafted and demonstrates strong understanding of both the desig
 **Content Boundary:**
 
 Include in AGENTS-framework.md:
-- File header explaining AGENTS.md purpose (current AGENTS.md:1-7)
+- File header explaining CLAUDE.md purpose (current CLAUDE.md:1-7)
 - Section structure (## Communication Rules, ## Delegation Principle, etc. headers only)
-- Roles/Rules/Skills tables (AGENTS.md:91-114)
-- Loading mechanism (AGENTS.md:116-120)
+- Roles/Rules/Skills tables (CLAUDE.md:91-114)
+- Loading mechanism (CLAUDE.md:116-120)
 
 Exclude from AGENTS-framework.md:
 - Specific communication rules (goes in communication.md)

@@ -464,11 +464,11 @@ All critical validations completed using TOML parser:
 
 ### Completed Steps
 - ✓ Step 1: Design and plan extraction
-- ✓ Step 2: Extract fragments from AGENTS.md
+- ✓ Step 2: Extract fragments from CLAUDE.md
 - ✓ Step 3: Validate and review with Sonnet
 - ✓ Step 4: Extract rule fragments
 - ✓ Step 5: Create AGENTS-framework.md fragment
-- ✓ Step 6: Implement template-based AGENTS.md generation
+- ✓ Step 6: Implement template-based CLAUDE.md generation
 - ✓ Step 7: Test composition in test repository
 - ✓ Step 8: Test justfile import mechanism
 - ✓ Step 9: Document Integration Patterns (pyproject.toml)
@@ -477,7 +477,7 @@ All critical validations completed using TOML parser:
 
 | Component | Type | Integration Method | Status |
 |---|---|---|---|
-| AGENTS.md | Template-based | Fragment composition (generate) | ✓ Tested |
+| CLAUDE.md | Template-based | Fragment composition (generate) | ✓ Tested |
 | justfile | Import-based | Native just import statement | ✓ Tested |
 | ruff.toml | Configuration | Manual copy with comment | ✓ Tested |
 | mypy.toml | Configuration | Manual copy with comment | ✓ Tested |
@@ -546,7 +546,7 @@ The pyproject.toml configuration integration pattern has been established and te
 ✓ Manual copy-with-comment pattern enables transparent auditing
 
 The test repository (emojipack) now demonstrates all three composition patterns:
-1. AGENTS.md template-based generation (Step 6-7)
+1. CLAUDE.md template-based generation (Step 6-7)
 2. justfile import mechanism (Step 8)
 3. pyproject.toml configuration integration (Step 9)
 

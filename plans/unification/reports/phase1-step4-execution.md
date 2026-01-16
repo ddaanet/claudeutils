@@ -12,13 +12,13 @@
 ### Context
 - Step instructions: phase1-step4.md
 - Shared context: phase1-execution-context.md
-- Source material: AGENTS.md (lines 10-68)
+- Source material: CLAUDE.md (lines 10-68)
 - Fragment location: /Users/david/code/agent-core/fragments/
 
 ### Prerequisites Verification
 - [x] agent-core directory exists at /Users/david/code/agent-core
 - [x] fragments/ subdirectory exists
-- [x] AGENTS.md source material accessible
+- [x] CLAUDE.md source material accessible
 - [x] All execution context files readable
 
 ---
@@ -39,11 +39,11 @@ Found existing fragments in agent-core/fragments/:
 ### Content Verification
 
 #### 4a. communication.md
-**Requirement**: AGENTS.md:10-16 (Communication Rules) - verbatim extraction
+**Requirement**: CLAUDE.md:10-16 (Communication Rules) - verbatim extraction
 **Current Content**: Generic communication guidelines with reformatted content
 **Status**: MISMATCH - Current fragment does not match verbatim source requirement
 
-Source (AGENTS.md:10-16):
+Source (CLAUDE.md:10-16):
 ```
 ## Communication Rules
 
@@ -54,11 +54,11 @@ Source (AGENTS.md:10-16):
 ```
 
 #### 4b. delegation.md
-**Requirement**: AGENTS.md:19-52 (Delegation Principle, Model Selection, Quiet Execution)
+**Requirement**: CLAUDE.md:19-52 (Delegation Principle, Model Selection, Quiet Execution)
 **Current Content**: Generic delegation guidelines with reformatted content
 **Status**: MISMATCH - Current fragment does not match verbatim source requirement
 
-Source (AGENTS.md:19-52):
+Source (CLAUDE.md:19-52):
 ```
 ## Delegation Principle
 
@@ -98,11 +98,11 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 ```
 
 #### 4c. tool-preferences.md
-**Requirement**: AGENTS.md:56-68 (Task Agent Tool Usage)
+**Requirement**: CLAUDE.md:56-68 (Task Agent Tool Usage)
 **Current Content**: Generic tool preferences with reformatted content
 **Status**: MISMATCH - Current fragment does not match verbatim source requirement
 
-Source (AGENTS.md:56-68):
+Source (CLAUDE.md:56-68):
 ```
 ### Task Agent Tool Usage
 
@@ -136,7 +136,7 @@ Source (AGENTS.md:56-68):
 
 **Analysis**:
 The step explicitly requires:
-1. Direct, verbatim extraction from AGENTS.md
+1. Direct, verbatim extraction from CLAUDE.md
 2. Sections 4a-4c should be verbatim copies
 3. Section 4d is restored from old rules (acceptable reformatting)
 
@@ -151,9 +151,9 @@ Current fragments appear to be from a previous execution where content was refac
 Step 4 has two possible interpretations:
 
 1. **Restore Original Fragments** (literal interpretation):
-   - Replace communication.md with verbatim AGENTS.md:10-16
-   - Replace delegation.md with verbatim AGENTS.md:19-52
-   - Replace tool-preferences.md with verbatim AGENTS.md:56-68
+   - Replace communication.md with verbatim CLAUDE.md:10-16
+   - Replace delegation.md with verbatim CLAUDE.md:19-52
+   - Replace tool-preferences.md with verbatim CLAUDE.md:56-68
    - Keep hashtags.md as-is (acceptable)
 
 2. **Validate Current Fragments** (pragmatic interpretation):
@@ -182,24 +182,24 @@ Step 4 has two possible interpretations:
 
 **Status**: COMPLETED
 
-User clarification received: Replace with verbatim AGENTS.md extractions per Step 4 intent.
+User clarification received: Replace with verbatim CLAUDE.md extractions per Step 4 intent.
 
 ### Fragment Replacement Results
 
 #### 4a. communication.md
-- **Source**: AGENTS.md:10-16 (Communication Rules)
+- **Source**: CLAUDE.md:10-16 (Communication Rules)
 - **Status**: REPLACED - Verbatim extraction complete
 - **Content**: All 4 communication rules extracted exactly as written
 - **Validation**: Self-contained, rules are directive (Do X), clear boundaries
 
 #### 4b. delegation.md
-- **Source**: AGENTS.md:19-68 (Delegation Principle + Model Selection + Quiet Execution + Task Agent Tool Usage)
+- **Source**: CLAUDE.md:19-68 (Delegation Principle + Model Selection + Quiet Execution + Task Agent Tool Usage)
 - **Status**: REPLACED - Verbatim extraction complete
 - **Content**: Complete delegation guidance with model selection rules and execution patterns
 - **Validation**: Self-contained, includes practical model selection (Haiku/Sonnet/Opus), clear directives
 
 #### 4c. tool-preferences.md
-- **Source**: AGENTS.md:56-68 (Task Agent Tool Usage subsection)
+- **Source**: CLAUDE.md:56-68 (Task Agent Tool Usage subsection)
 - **Status**: REPLACED - Verbatim extraction complete
 - **Content**: Complete tool usage rule with all specialized tool mappings
 - **Validation**: Self-contained, directive language, clear tool mapping list
@@ -245,9 +245,9 @@ From step instructions validation criteria:
 **Fragment Location**: /Users/david/code/agent-core/fragments/
 
 Files successfully extracted and verified:
-- communication.md (7 lines) - Verbatim AGENTS.md:10-16
-- delegation.md (51 lines) - Verbatim AGENTS.md:19-68
-- tool-preferences.md (15 lines) - Verbatim AGENTS.md:56-68
+- communication.md (7 lines) - Verbatim CLAUDE.md:10-16
+- delegation.md (51 lines) - Verbatim CLAUDE.md:19-68
+- tool-preferences.md (15 lines) - Verbatim CLAUDE.md:56-68
 - hashtags.md (61 lines) - All required hashtag principles present
 
 All fragments properly extracted from source and ready for Phase 1 review.

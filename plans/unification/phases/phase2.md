@@ -27,7 +27,7 @@ diff -u scratch/consolidation/configs/justfile-* \
 # Identify common ruff/mypy settings (already analyzed by explore agent)
 ```
 
-### 2.3 Analyze pytest-md AGENTS.md Fragmentation
+### 2.3 Analyze pytest-md CLAUDE.md Fragmentation
 
 Create `scratch/consolidation/analysis/pytest-md-fragmentation.md`:
 - Section 1 (Commands/Environment) → stays in pytest-md (project-specific)

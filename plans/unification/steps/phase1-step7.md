@@ -25,14 +25,14 @@
 4. Copy composition script and compose.yaml from claudeutils
 5. Update paths in compose.yaml to reference `agent-core/fragments/`
 6. Run generation: `agents/compose.sh`
-7. Review generated AGENTS.md
-8. Commit: "Add agent-core submodule and generate AGENTS.md"
+7. Review generated CLAUDE.md
+8. Commit: "Add agent-core submodule and generate CLAUDE.md"
 
 **Validation**:
 - [ ] Submodule added successfully
 - [ ] `.gitmodules` file created
 - [ ] Generation script works with submodule paths
-- [ ] Generated AGENTS.md is usable
+- [ ] Generated CLAUDE.md is usable
 
 ---
 

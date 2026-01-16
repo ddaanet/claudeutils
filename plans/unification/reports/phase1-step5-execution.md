@@ -12,13 +12,13 @@
 ### Context
 - Step instructions: phase1-step5.md
 - Shared context: phase1-execution-context.md
-- Source material: AGENTS.md (lines 1-7, 91-114, 116-120)
+- Source material: CLAUDE.md (lines 1-7, 91-114, 116-120)
 - Framework location: /Users/david/code/agent-core/fragments/AGENTS-framework.md
 
 ### Prerequisites Verification
 - [x] agent-core directory exists at /Users/david/code/agent-core
 - [x] fragments/ subdirectory exists
-- [x] AGENTS.md source material accessible
+- [x] CLAUDE.md source material accessible
 - [x] Previous fragments (communication.md, delegation.md, tool-preferences.md) in place
 
 ---
@@ -26,11 +26,11 @@
 ## Fragment Creation Details
 
 ### Objective Achieved
-Successfully created AGENTS-framework.md that provides the structural scaffold for AGENTS.md composition while keeping rule content separated into individual fragments.
+Successfully created AGENTS-framework.md that provides the structural scaffold for CLAUDE.md composition while keeping rule content separated into individual fragments.
 
 ### Content Structure
 
-#### 1. File Header (AGENTS.md:1-7)
+#### 1. File Header (CLAUDE.md:1-7)
 Extracted exactly as written:
 ```
 # Agent Instructions
@@ -47,11 +47,11 @@ Extracted exactly as written:
 Included markdown section headers for where fragment content will be inserted:
 - `## Communication Rules` (placeholder: "[Content from communication.md]")
 - `## Delegation Principle` (placeholder: "[Content from delegation.md]")
-- `## Tool Batching` (existing AGENTS.md section)
+- `## Tool Batching` (existing CLAUDE.md section)
 
 **Purpose**: Structure shows composition boundaries; actual rule content stays in separate fragments for reusability.
 
-#### 3. Roles/Rules/Skills Tables (AGENTS.md:91-114)
+#### 3. Roles/Rules/Skills Tables (CLAUDE.md:91-114)
 Extracted complete framework with three tables:
 
 **Roles Table** (7 roles):
@@ -67,7 +67,7 @@ Extracted complete framework with three tables:
 
 **Purpose**: Provides consistent structure for agent behavior modes, action triggers, and on-demand operations.
 
-#### 4. Loading Mechanism (AGENTS.md:116-120)
+#### 4. Loading Mechanism (CLAUDE.md:116-120)
 Extracted loading instructions:
 ```
 **Loading:**
@@ -83,7 +83,7 @@ Extracted loading instructions:
 ## Content Boundaries: Correct Separation
 
 ### Included in Framework
-- Header explaining AGENTS.md purpose ✓
+- Header explaining CLAUDE.md purpose ✓
 - Section structure (headers only) ✓
 - Roles/Rules/Skills tables ✓
 - Loading mechanism ✓
@@ -116,11 +116,11 @@ Extracted loading instructions:
 - Framework file: 61 lines (structural)
 - Combined fragments: 6 + 50 + 14 + 60 = 130 lines (rule content)
 
-### Requirement 3: Tables match current AGENTS.md format
+### Requirement 3: Tables match current CLAUDE.md format
 **Status**: PASS
-- Roles table: Exact match of AGENTS.md:93-101 (7 rows)
-- Rules table: Exact match of AGENTS.md:105-108 (2 rows)
-- Skills table: Exact match of AGENTS.md:112-114 (1 row)
+- Roles table: Exact match of CLAUDE.md:93-101 (7 rows)
+- Rules table: Exact match of CLAUDE.md:105-108 (2 rows)
+- Skills table: Exact match of CLAUDE.md:112-114 (1 row)
 - Column formatting: Markdown pipe tables preserved
 - Content: Every role, rule, skill file reference accurate
 
@@ -150,7 +150,7 @@ AGENTS-framework.md (61 lines)
 1. Keep framework header (lines 1-8)
 2. Replace "[Content from communication.md]" with actual communication.md content
 3. Replace "[Content from delegation.md]" with actual delegation.md content
-4. Keep Tool Batching section (AGENTS.md:72-83 to be added)
+4. Keep Tool Batching section (CLAUDE.md:72-83 to be added)
 5. Keep Roles/Rules/Skills section (lines 28-60)
 
 ---
@@ -165,9 +165,9 @@ AGENTS-framework.md (61 lines)
 
 ### Design Decisions Made
 1. **Placeholder style**: Used markdown comment format `[Content from X.md]` for clarity on composition points
-2. **Table preservation**: Maintained exact AGENTS.md table formatting for consistency
-3. **Loading section**: Included as-is from AGENTS.md (fundamental to framework understanding)
-4. **Tool Batching**: Placeholder included; to be filled in Step 6 from AGENTS.md:72-83
+2. **Table preservation**: Maintained exact CLAUDE.md table formatting for consistency
+3. **Loading section**: Included as-is from CLAUDE.md (fundamental to framework understanding)
+4. **Tool Batching**: Placeholder included; to be filled in Step 6 from CLAUDE.md:72-83
 
 ### Future Composition
 The framework is structured for simple concatenation in Step 6:
@@ -182,7 +182,7 @@ The framework is structured for simple concatenation in Step 6:
 
 - [x] Framework is project-agnostic
 - [x] Framework contains structure/tables but not rule content
-- [x] Tables match current AGENTS.md format
+- [x] Tables match current CLAUDE.md format
 - [x] File header extracted correctly
 - [x] All roles (7) included with correct file references
 - [x] All rules (2) included with correct file references
@@ -198,7 +198,7 @@ The framework is structured for simple concatenation in Step 6:
 ## Step 5 Execution: COMPLETE
 
 The AGENTS-framework.md fragment has been successfully created with:
-- Structural scaffold for AGENTS.md
+- Structural scaffold for CLAUDE.md
 - Header navigation (lines 1-7)
 - Three complete reference tables (Roles, Rules, Skills)
 - Loading mechanism (lines 57-60)

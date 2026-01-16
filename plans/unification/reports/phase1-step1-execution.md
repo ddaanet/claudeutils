@@ -295,7 +295,7 @@ Required fragments (lines 109-117):
 Phase 1 success criteria (partial - Step 1 only):
 - [x] agent-core repository exists ✓
 - [ ] Shared fragments extracted (Step 2)
-- [ ] Template-based AGENTS.md generation works (Step 3-4)
+- [ ] Template-based CLAUDE.md generation works (Step 3-4)
 - [ ] Test repository integration (Steps 7-9)
 
 Step 1 specific success criteria:
@@ -310,7 +310,7 @@ Step 1 specific success criteria:
 Step 1 is complete and ready for Step 2 (Fragment Extraction). The agent-core repository structure provides the foundation for:
 
 1. **Phase 1, Step 2**: Extract shared fragments from claudeutils
-2. **Phase 1, Step 3**: Implement AGENTS.md generation
+2. **Phase 1, Step 3**: Implement CLAUDE.md generation
 3. **Phase 1, Step 7-9**: Test in scratch repository
 
 All prerequisites for subsequent steps are now in place.

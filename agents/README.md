@@ -4,15 +4,15 @@ This directory contains agent-related configuration and documentation.
 
 ## Overview
 
-The `AGENTS.md` file in the project root provides comprehensive instructions for how agents should behave within this project. It covers communication rules, delegation patterns, tool usage, and role definitions.
+The `CLAUDE.md` file in the project root provides comprehensive instructions for how agents should behave within this project. It covers communication rules, delegation patterns, tool usage, and role definitions.
 
 ## Composition and Generation
 
-`AGENTS.md` is generated from shared fragments stored in the `agent-core` repository. This allows consistent agent instructions to be shared across multiple projects while remaining customizable per project.
+`CLAUDE.md` is generated from shared fragments stored in the `agent-core` repository. This allows consistent agent instructions to be shared across multiple projects while remaining customizable per project.
 
 ### Source Fragments
 
-The generated `AGENTS.md` is composed from the following fragments (in order):
+The generated `CLAUDE.md` is composed from the following fragments (in order):
 
 1. **AGENTS-framework.md** - File header and navigation links
 2. **communication.md** - Core communication rules
@@ -27,7 +27,7 @@ All fragments are sourced from `agent-core/fragments/`.
 
 **File**: `agents/compose.sh`
 
-**Purpose**: Concatenates fragments to generate `AGENTS.md`
+**Purpose**: Concatenates fragments to generate `CLAUDE.md`
 
 **Usage**:
 ```bash
@@ -42,7 +42,7 @@ bash agents/compose.sh
 
 To customize agent instructions for this project:
 
-1. **Add project-specific sections**: Edit `AGENTS.md` directly for local customization
+1. **Add project-specific sections**: Edit `CLAUDE.md` directly for local customization
 2. **Modify fragment order**: Update `compose.sh` fragment array and re-run generation
 3. **Override shared rules**: Add project-specific rules before the composition step
 4. **Document changes**: Keep this README updated with any project-specific patterns
@@ -58,7 +58,7 @@ generate-agents:
 
 ## Version Control
 
-- **AGENTS.md**: Tracked in git (generated file, but committed for visibility)
+- **CLAUDE.md**: Tracked in git (generated file, but committed for visibility)
 - **compose.yaml**: Tracked in git (composition configuration)
 - **compose.sh**: Tracked in git (generation script)
 - **agent-core/**: Added as git submodule
@@ -69,13 +69,13 @@ Potential improvements for future phases:
 
 - YAML parser for compose.yaml in compose.sh
 - Template variables for project-specific customization
-- Validation schema for generated AGENTS.md
+- Validation schema for generated CLAUDE.md
 - CI/CD integration to validate composition on commit
 - Fragment composition at import time (eliminating need to regenerate)
 
 ## Related Files
 
-- `AGENTS.md` - Generated agent instructions (project root)
+- `CLAUDE.md` - Generated agent instructions (project root)
 - `compose.yaml` - Composition configuration
 - `compose.sh` - Generation script
 - `role-*.md` - Specialized role definitions

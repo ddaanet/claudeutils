@@ -18,7 +18,7 @@
 - Contribution guidelines (for backporting improvements)
 
 #### agents/README.md (in consumer projects)
-- How to compose AGENTS.md
+- How to compose CLAUDE.md
 - How to update from upstream (submodule pull)
 - Local customization guidelines
 - Regeneration workflow
