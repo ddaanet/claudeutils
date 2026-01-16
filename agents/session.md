@@ -4,13 +4,19 @@
 
 **Branch:** unification
 
-**Task:** Commit Management & Organization
+**Task:** Documentation Updates - Report Location Standards
 
 **Status:** Complete
 
 ## Progress Summary
 
-**This Session - Commit Management:**
+**This Session - Documentation Updates:**
+- Standardized plan execution report location to `plans/*/reports/`
+- Updated AGENTS.md quiet execution pattern with flexible naming guidance
+- Fixed session.md and phases/README.md to remove obsolete `scratch/consolidation/` references
+- Commit: 53b6e22 "Standardize plan execution report location"
+
+**Previous Session - Commit Management:**
 - Investigated origin of `agents/` files (AGENTS.md generation system)
 - Organized all untracked files into 9 logical commits
 - Reordered commits chronologically for clear history
@@ -42,7 +48,7 @@
 
 **Execution Pattern (per README.md in phases/):**
 1. Provide `consolidation-context.md` + `phase{N}.md` to executor
-2. Executor writes report to `scratch/consolidation/reports/phase{N}-execution.md`
+2. Executor writes report to `plans/unification/reports/`
 3. Executor returns terse: `done: <summary>` or `blocked: <reason>`
 4. Review via diff-based analysis (not verbose logs)
 
@@ -50,9 +56,9 @@
 - Design doc: `plans/unification/design.md`
 - Source projects: `/Users/david/code/{tuick,emojipack,pytest-md}`
 - Target repos: `claudeutils`, `agent-core`
-- Work area: `scratch/consolidation/` (to be created in Phase 1)
+- Reports: `plans/unification/reports/`
 
-**Commit History (9 commits on unification branch):**
+**Commit History (10 commits on unification branch):**
 1. fa74554 - Agent composition system documentation
 2. 2a279c6 - Consolidation and Phase 1 fix plans
 3. 21b3bba - Generic execution plan splitter script
@@ -62,6 +68,7 @@
 7. 002a5ff - Document sandbox constraints in AGENTS.md
 8. 0d62bed - Fix session file reference in handoff rules
 9. c73d05f - Session handoff (plan splitting documentation)
+10. 53b6e22 - Standardize plan execution report location
 
 **Next Action:**
 Execute consolidation plan Phase 1 fixes, or ask user for direction

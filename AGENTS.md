@@ -39,16 +39,16 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **Rule:** Execution agents report to files, not to orchestrator context.
 
-**For haiku execution tasks:**
+**For execution tasks:**
 
-1. Specify output file path in task prompt (e.g., `tmp/execution-report.md` or `agents/reports/task-name.md`)
+1. Specify output file path in task prompt (typically `plans/<plan-name>/reports/<report-name>.md`)
 2. Instruct agent to write detailed output to that file
 3. Agent returns only: filename (success) or error message (failure)
 4. Use second agent to read report and provide distilled summary to user
 
 **Goal:** Prevent orchestrator context pollution with verbose task output. Orchestrator sees only success/failure + summary, not full execution logs.
 
-**Note:** Use `agents/` or `tmp/` directories in project for report files. Always use project-local `tmp/` (not system `/tmp/`).
+**Note:** For plan execution, use `plans/*/reports/` directory. For ad-hoc work, use project-local `tmp/` (not system `/tmp/`). Report naming varies with delegation pattern.
 
 ### Task Agent Tool Usage
 

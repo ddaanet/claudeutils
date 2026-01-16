@@ -21,7 +21,7 @@
 For each phase execution:
 1. Provide both `consolidation-context.md` and `phase{N}.md` to the executor
 2. Executor reads context first, then executes phase
-3. Executor writes results to execution report (scratch/consolidation/reports/)
+3. Executor writes results to execution report (`plans/unification/reports/`)
 4. Review before proceeding to next phase
 
 ## Orchestration Pattern
@@ -30,7 +30,7 @@ For each phase execution:
 Haiku Executor:
   Input: consolidation-context.md + phase{N}.md
   Output: Terse return ("done: <summary>" or "blocked: <reason>")
-  Reports: Written to scratch/consolidation/reports/phase{N}-execution.md
+  Reports: Written to plans/unification/reports/ (naming varies with approach)
 
 Review Agent (if needed):
   Input: context + execution report
