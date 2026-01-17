@@ -4,90 +4,49 @@
 
 **Branch:** unification
 
-**Task:** Fix Phase 1 Blocker - Git Submodule Integration
+**Task:** Phase 2 - Analysis Phase
 
-**Status:** In Progress (delegated to opus)
+**Status:** Ready to start
 
 ## Progress Summary
 
-**This Session - Blocker Investigation:**
-- Loaded session context, reviewed design.md and consolidation-plan.md
-- Delegated haiku to read Phase 1 execution reports sequentially
-- Phase 1 execution summary: `plans/unification/reports/phase1-execution-summary.md`
-  - All 10 steps completed successfully
-  - agent-core created at `/Users/david/code/agent-core` (4 commits, latest: e5c3ba3)
-  - Critical gap: agent-core NOT added as git submodule to claudeutils
-- Attempted submodule integration but git file:// protocol blocked by security
-- User added `/Users/david/code/agent-core` as additional working directory
-- Delegated to opus to complete git submodule integration
+**This Session:**
+- Resolved Phase 1 blocker: git submodule integration
+  - `file://` protocol blocked system-wide, workaround: `git -c protocol.file.allow=always`
+  - Commit: `62bbf88` - Add agent-core as git submodule
+- Added rule to CLAUDE.md: always use /commit skill
+- Verified Phase 2 readiness (all checks passed)
+  - Report: `tmp/phase2-readiness.md`
+  - agent-core has 12 fragment files
+  - Phase 2 plan documented and actionable
 
-**Previous Session - Documentation Updates:**
-- Standardized plan execution report location to `plans/*/reports/`
-- Updated CLAUDE.md quiet execution pattern with flexible naming guidance
-- Fixed session.md and phases/README.md to remove obsolete `scratch/consolidation/` references
-- Commit: 53b6e22 "Standardize plan execution report location"
-
-**Previous Session - Commit Management:**
-- Investigated origin of `agents/` files (CLAUDE.md generation system)
-- Organized all untracked files into 9 logical commits
-- Reordered commits chronologically for clear history
-- All work committed, working tree clean
-
-**Previous Session - Plan Splitting & Documentation:**
-- Created generic `split-execution-plan.py` script with auto-detection for Phase/Step formats
-- Split consolidation plan into 7 phase files + context file for efficient delegation
-- Updated CLAUDE.md with critical sandbox constraints:
-  - Never use heredocs (sandbox blocked)
-  - Use project-local `tmp/` (not system `/tmp/`)
-- Documentation locations:
-  - Script: `plans/unification/scripts/split-execution-plan.py`
-  - Split plan: `plans/unification/phases/{consolidation-context.md,phase1-7.md,README.md}`
-  - Agent rules: `CLAUDE.md` (Task Agent Tool Usage section)
-
-**Earlier Sessions:**
-- **Consolidation Plan:** Explored 3 projects, created 7-phase plan, identified 35 files to copy
-- **Phase 1 Execution:** Attempted stepwise delegation, discovered gaps requiring fixes
+**Previous Sessions:**
+- Phase 1 completed: agent-core repo created with fragments
+- Consolidation plan split into 7 phase files for delegation
+- Sandbox constraints documented (no heredocs, use project tmp/)
 
 ## Handoff to Next Session
 
-**Ready to Execute Consolidation Plan.**
+**Phase 2 Ready.**
 
-**Plan files:**
-- Master plan: `plans/unification/consolidation-plan.md` (410 lines)
-- Split for delegation: `plans/unification/phases/` (context + 7 phase files)
-- Use split files for efficient delegation (saves orchestrator output)
+**Key files:**
+- Phase 2 plan: `plans/unification/phases/phase2.md`
+- Context: `plans/unification/phases/consolidation-context.md`
+- Readiness report: `tmp/phase2-readiness.md`
 
-**Execution Pattern (per README.md in phases/):**
-1. Provide `consolidation-context.md` + `phase{N}.md` to executor
-2. Executor writes report to `plans/unification/reports/`
-3. Executor returns terse: `done: <summary>` or `blocked: <reason>`
-4. Review via diff-based analysis (not verbose logs)
+**Phase 2 scope (from plan):**
+- Compare compose scripts (tuick build.py vs emojipack compose.sh)
+- Analyze config files across projects
+- Fragment pytest-md CLAUDE.md for reuse
 
-**Key Files for Execution:**
-- Design doc: `plans/unification/design.md`
-- Source projects: `/Users/david/code/{tuick,emojipack,pytest-md}`
-- Target repos: `claudeutils`, `agent-core`
-- Reports: `plans/unification/reports/`
+**Execution pattern:**
+- Delegate with context + phase file
+- Reports to `plans/unification/reports/`
+- Terse returns only
 
-**Commit History (10 commits on unification branch):**
-1. fa74554 - Agent composition system documentation
-2. 2a279c6 - Consolidation and Phase 1 fix plans
-3. 21b3bba - Generic execution plan splitter script
-4. b13711d - Split consolidation plan files for delegation
-5. 2c8ebca - Phase 1 execution steps and context
-6. fbb8cec - Phase 1 execution and review reports
-7. 002a5ff - Document sandbox constraints in CLAUDE.md
-8. 0d62bed - Fix session file reference in handoff rules
-9. c73d05f - Session handoff (plan splitting documentation)
-10. 53b6e22 - Standardize plan execution report location
+## Blockers
 
-**Next Action:**
-Fix git submodule integration (delegated to opus):
-1. Configure git: `git config --local protocol.file.allow always`
-2. Add submodule: `git submodule add file:///Users/david/code/agent-core agent-core`
-3. Verify .gitmodules and agent-core/ directory created
-4. Commit submodule integration
-5. Then proceed with Phase 2 or next consolidation tasks
+None.
 
 ## Decisions
 

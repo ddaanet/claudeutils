@@ -13,6 +13,7 @@
 2. **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
 3. **Be explicit** - Ask clarifying questions if requirements unclear
 4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
+5. **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly
 
 ## Error Handling
 
