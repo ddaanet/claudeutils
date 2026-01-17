@@ -14,6 +14,16 @@
 3. **Be explicit** - Ask clarifying questions if requirements unclear
 4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
 
+## Error Handling
+
+**Errors should never pass silently.**
+
+- Do not swallow errors or suppress error output
+- Errors provide important diagnostic information
+- Report all errors explicitly to the user
+- Never use error suppression patterns (e.g., `|| true`, `2>/dev/null`, ignoring exit codes)
+- If a command fails, surface the failure - don't hide it
+
 ## Session Management
 
 ### Load Rule (#load)
