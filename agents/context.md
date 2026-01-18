@@ -24,8 +24,9 @@ Implement and validate the task agent execution pattern through a proof-of-conce
 - No duplication between files
 
 **Deliverables (Option A):**
-- `agent-core/agents/agent-task-baseline.md` - Base task agent template
+- `agent-core/agents/task-execute.md` - Base task agent template
 - `agent-core/pattern-weak-orchestrator.md` - Weak orchestrator pattern (POC)
+- `.claude/agents/phase2-task.md` - Phase 2 plan-specific agent
 - Phase 2 step execution using pattern (validation)
 
 ## Architecture
@@ -38,14 +39,22 @@ Implement and validate the task agent execution pattern through a proof-of-conce
 
 **Implementation:**
 1. Create baseline task agent (extract from current Task tool)
-2. Append plan context to create plan-specific agent
-3. For each step: Append step-specific section, invoke agent
-4. Fresh agent per step (no noise accumulation)
+2. Planning agent creates plan-specific agent file (baseline + plan context)
+3. Store in plan directory: `.claude/agents/<plan-name>-task.md`
+4. For each step: Load plan-specific agent, append step reference, invoke
+5. Fresh agent invocation per step (no noise accumulation)
+
+**Creation responsibility:**
+- Planning agent (medium-strength, sonnet-level) creates plan-specific agent during plan phase
+- NOT weak orchestrator's job (too complex for haiku-level)
+- Plan-specific agent must exist before execution begins
 
 **Benefits:**
 - Context caching (plan context reused across steps)
 - Clean execution (no transcript bloat)
 - Quiet pattern compatible (reports to files, terse returns)
+- Reviewable (agent prompt visible in plan directory)
+- Versionable (agent evolves with plan)
 
 ### Pattern: Weak Orchestrator
 

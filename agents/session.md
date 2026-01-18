@@ -51,24 +51,50 @@
   - Rule: ≤25 lines → execute directly with Bash, don't delegate to agent
   - Examples: File operations (mv, cp, ln, mkdir) should never be delegated
   - Lesson: Skills migration should have been simple bash script, not haiku delegation
+- Created task-execute baseline agent (proper Claude Code agent)
+  - Location: `/Users/david/code/agent-core/agents/task-execute.md`
+  - Symlinked in: `.claude/agents/task-execute.md`
+  - Name decided: task-execute (verb form, clear execution role)
+  - Frontmatter: name, description with examples, model: inherit, color: blue, tools
+  - Content: agent-task-baseline.md system prompt with proper agent structure
+- Created build-plan-agent.sh script
+  - Location: `plans/unification/build-plan-agent.sh`
+  - Purpose: Combine baseline agent + plan context → plan-specific agent
+  - Reduces token churn (uses cat/sed instead of Read/Write)
+  - Prototype for reusable agent generation script
+  - Usage: `./build-plan-agent.sh <plan-name> <agent-name> <plan-context-file> <output-dir>`
+- Created phase2-task agent
+  - Location: `.claude/agents/phase2-task.md`
+  - Built using: `build-plan-agent.sh phase2 phase2-task plans/unification/phase2-execution-plan.md .claude/agents`
+  - Content: task-execute baseline + full Phase 2 execution plan
+  - Model: inherit, Color: cyan
+- Updated weak orchestrator pattern: Planning agent creates plan-specific agents
+- Updated context.md: Document creation responsibility (planning agent, not orchestrator)
 
 ## Handoff to Weak Orchestrator
 
 **Task:** Execute Phase 2 using weak orchestrator pattern
 
+**Prerequisites completed:**
+- ✅ Plan-specific agent created: `.claude/agents/phase2-task.md`
+- ✅ Weak orchestrator pattern updated: Planning agent creates plan-specific agents
+
 **Action items:**
 1. Delegate Step 2.1 to haiku task agent
-   - Step file: `plans/unification/steps/phase2-step1.md`
+   - Agent: phase2-task
+   - Step file: `plans/unification/steps/phase2-step1.md` (user prompt reference)
    - Model: haiku
    - Return: `done: <summary>` or `error: <description>`
 
 2. Delegate Step 2.2 to haiku task agent
-   - Step file: `plans/unification/steps/phase2-step2.md`
+   - Agent: phase2-task
+   - Step file: `plans/unification/steps/phase2-step2.md` (user prompt reference)
    - Model: haiku
    - Return: `done: <summary>` or `error: <description>`
 
 3. Delegate Step 2.3 to sonnet task agent
-   - Step file: `plans/unification/steps/phase2-step3.md`
+   - Agent: phase2-task
+   - Step file: `plans/unification/steps/phase2-step3.md` (user prompt reference)
    - Model: sonnet
    - Return: `done: <summary>` or `error: <description>`
 
@@ -76,15 +102,16 @@
    - Write to: `plans/unification/reports/phase2-lessons-learned.md`
    - Include: What worked, what didn't, pattern refinements needed
    - Validate hypotheses:
-     - Can haiku execute simple steps reliably?
+     - Can haiku execute simple steps reliably with plan-specific agent?
      - Does sonnet handle semantic analysis steps?
      - Is error escalation clear and effective?
      - Does quiet execution + terse return work for orchestration?
+     - Does plan-specific agent provide sufficient context?
 
 **Execution constraints:**
 - Steps 1-3 can run in parallel (all independent per plan metadata)
 - Use quiet execution pattern (reports to files, terse returns)
-- Fresh agent per step (no context accumulation)
+- Fresh agent invocation per step (no context accumulation)
 - Stop on unexpected results (#stop pattern)
 - On error: Escalate per plan's error escalation rules (haiku → sonnet → user)
 

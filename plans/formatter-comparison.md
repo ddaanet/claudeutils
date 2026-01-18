@@ -401,7 +401,7 @@ markdownlint-cli2 is an excellent linting tool but not a formatter replacement.
 * GFM specification
 * Community feedback and comparison articles
 
-**Test corpus:** `/tmp/claude/test-corpus.md` (12 test sections, 150+ lines)
+**Test corpus:** `tmp/test-corpus.md` (12 test sections, 150+ lines)
 
 **Verification:**
 * Prettier: 3 formatting runs, idempotent on test corpus
