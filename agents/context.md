@@ -1,48 +1,149 @@
-# Context: Rules Unification Project
+# Context: Task Agent Pattern Implementation (Option A - MVP)
 
 <!--
 Purpose: Task-related, relatively stable, cross-session context
-- Key documents and their locations
-- Architecture decisions and references
-- Source/target repository locations
-- NOT for: Active tasks, current state, session progress (use session.md instead)
+This session implements the minimal viable pattern for plan-specific task agents.
+Full session plan reviewed and scoped down from 12 tasks to focused MVP.
 -->
+
+## Objective
+
+Implement and validate the task agent execution pattern through a proof-of-concept, then apply to Phase 2 unification work.
+
+**Approach:** Practice before documentation - build working pattern first, document after validation.
 
 ## Key Documents
 
-**Design:**
-- `plans/unification/design.md` - Architecture decisions, repository model, composition patterns
+**Session Plan:**
+- `tmp/session-plan-task-agents.md` - Original 12-task plan (reviewed by sonnet)
+- `tmp/session-context-scope.md` - session.md vs context.md scope definition (by opus)
 
-**Plans:**
-- `plans/unification/consolidation-plan.md` - Master plan (7 phases, 410 lines)
-- `plans/unification/phases/` - Split plan for delegation (context + phase files)
+**Scope Definition:**
+- session.md: Volatile handoff context (current work, progress, blockers)
+- context.md: Stable reference (documents, architecture, paths)
+- No duplication between files
 
-**Reports:**
-- `plans/unification/reports/` - Execution reports and summaries
+**Deliverables (Option A):**
+- `agent-core/agents/agent-task-baseline.md` - Base task agent template
+- `agent-core/pattern-weak-orchestrator.md` - Weak orchestrator pattern (POC)
+- Phase 2 step execution using pattern (validation)
 
 ## Architecture
 
-**Separation model:**
-- `agent-core` - Shared fragments (consumed as git submodule)
-- `claudeutils` - Generation tooling (Python module, dev dependency)
-- Client projects consume via: `claudeutils compose <config>`
+### Pattern: Plan-Specific Agent
 
-**agent-core structure:**
-```
-agent-core/
-  fragments/     # Shared rule fragments (communication, delegation, etc)
-  configs/       # Shared tool configs (justfile, ruff, mypy)
-  skills/        # Reusable skills
-  composer/      # Generation scripts (future)
-```
+**Problem:** Context overhead prevents agent-per-step delegation pattern.
 
-## Source Projects
+**Solution:** Cache plan context in specialized agent system prompt.
 
-- `/Users/david/code/tuick` - Python composition (build.py)
-- `/Users/david/code/emojipack` - Shell composition (compose.sh)
-- `/Users/david/code/pytest-md` - Skills and CLAUDE.md fragments
+**Implementation:**
+1. Create baseline task agent (extract from current Task tool)
+2. Append plan context to create plan-specific agent
+3. For each step: Append step-specific section, invoke agent
+4. Fresh agent per step (no noise accumulation)
 
-## Target Repositories
+**Benefits:**
+- Context caching (plan context reused across steps)
+- Clean execution (no transcript bloat)
+- Quiet pattern compatible (reports to files, terse returns)
 
-- `claudeutils` - `/Users/david/code/claudeutils`
-- `agent-core` - `/Users/david/code/agent-core`
+### Pattern: Weak Orchestrator
+
+**Role:** Execute plan steps, escalate on error (haiku-level complexity).
+
+**Behavior:**
+- Read plan step
+- Invoke plan-specific agent with step reference
+- On success: Continue to next step
+- On simple error: Delegate to sonnet for diagnostic/fix
+- On complex error: Abort, provide context, request opus plan update
+
+**Key characteristic:** Delegation-only, no judgment calls.
+
+### Pattern: Quiet Execution
+
+**Agents write detailed output to files, return only:**
+- Success: Filename
+- Failure: Error message + diagnostic info
+
+**Benefits:**
+- Orchestrator context stays lean
+- Detailed logs available for debugging
+- Token-efficient delegation
+
+## Design Decisions
+
+### Why Option A (MVP) Over Full Implementation
+
+**Original scope:** 12 tasks, 50-70 agent calls, 750k-1.5M tokens (3-5 handoffs).
+
+**Problems identified by review (sonnet):**
+1. Circular dependency: Documenting patterns before validating
+2. No proof-of-concept or integration testing
+3. Scope unrealistic for single session
+4. Missing acceptance criteria for pattern docs
+
+**Option A rationale:**
+- Validate pattern on real work (Phase 2) before documenting
+- Immediate value (Phase 2 continues) vs. speculative documentation
+- Risk mitigation: Practice reveals issues before investment
+- Foundation for Session 2 (informed documentation)
+
+### Why Baseline Agent First
+
+**Current Task tool behavior:**
+- Assumes large codebase → verbose search/analysis directives
+- Emphasizes thoroughness, exploration, detailed reporting
+- Includes emoji directives
+- Mixed execution + research responsibilities
+
+**Baseline agent modifications:**
+- Remove codebase size assumptions
+- Remove search/analyze/explore language (plan-time concerns)
+- Remove detailed report requirements
+- Remove emoji directive
+- Focus role: Execute plan, stop on missing info or unexpected results
+- Output: Brief report (success) or diagnostic info (error)
+
+**Usage:**
+- Baseline = reusable foundation
+- Specialization = append plan context (plan-specific agent)
+- Further specialization = append step reference (step execution)
+
+### Why Weak Orchestrator POC
+
+**Testing hypothesis:**
+- Can haiku execute plan steps reliably with plan-specific agents?
+- Does error escalation pattern work (haiku → sonnet → opus)?
+- Is quiet execution + terse return sufficient for orchestration?
+
+**Validation approach:**
+- Document pattern first (design artifact)
+- Execute Phase 2 step using pattern
+- Capture lessons learned
+- Refine pattern based on results
+
+## Deferred Work
+
+**See:** `agents/todo.md` section "Deferred from Task Agent Pattern Session"
+
+**Includes:**
+- Context monitoring skill (100k/125k thresholds)
+- Additional pattern docs (plan-specific agent, phase planning, ad-hoc scripting)
+- Tooling (plan splitter spec, agent creation script)
+- Phase 2 full plan (weak orchestrator applied across all steps)
+
+**Rationale for deferral:** Validate core pattern first before investing in infrastructure.
+
+## Source Materials
+
+**Current Task tool system prompt:** Extract from tool descriptions, basis for baseline agent.
+
+**Existing patterns:**
+- `/shelve` skill: Just implemented (progressive disclosure, template separation)
+- `/commit` skill: Example of proper Claude Code skill structure
+- `skills/skill-shelf.md`: Older pattern, reference only
+
+**Related projects:**
+- agent-core: `/Users/david/code/agent-core` (git submodule in claudeutils)
+- Target for pattern documentation and baseline agent
