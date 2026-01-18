@@ -52,39 +52,51 @@
   - Examples: File operations (mv, cp, ln, mkdir) should never be delegated
   - Lesson: Skills migration should have been simple bash script, not haiku delegation
 
-## Handoff to Sonnet Orchestrator
+## Handoff to Weak Orchestrator
 
-**Remaining work (Option A scope):**
+**Task:** Execute Phase 2 using weak orchestrator pattern
 
-1. **Execute Phase 2 using weak orchestrator pattern** (NEXT)
-   - Execute steps from `plans/unification/phase2-execution-plan.md`
-   - Steps can run in parallel (all independent)
-   - Execution models:
-     - Step 2.1 (compare compose): Haiku
-     - Step 2.2 (compare justfiles): Haiku
-     - Step 2.3 (analyze pytest-md): Sonnet
-   - Apply patterns:
-     - Quiet execution (reports to files, terse returns)
-     - Fresh agent per step (no context accumulation)
-     - Error escalation (haiku → sonnet → user)
-   - Capture lessons learned for pattern refinement
+**Action items:**
+1. Delegate Step 2.1 to haiku task agent
+   - Step file: `plans/unification/steps/phase2-step1.md`
+   - Model: haiku
+   - Return: `done: <summary>` or `error: <description>`
+
+2. Delegate Step 2.2 to haiku task agent
+   - Step file: `plans/unification/steps/phase2-step2.md`
+   - Model: haiku
+   - Return: `done: <summary>` or `error: <description>`
+
+3. Delegate Step 2.3 to sonnet task agent
+   - Step file: `plans/unification/steps/phase2-step3.md`
+   - Model: sonnet
+   - Return: `done: <summary>` or `error: <description>`
+
+4. After all steps complete: Document lessons learned
+   - Write to: `plans/unification/reports/phase2-lessons-learned.md`
+   - Include: What worked, what didn't, pattern refinements needed
    - Validate hypotheses:
      - Can haiku execute simple steps reliably?
      - Does sonnet handle semantic analysis steps?
      - Is error escalation clear and effective?
      - Does quiet execution + terse return work for orchestration?
 
-**Execution approach:**
-- Read step file + main plan for each step
-- Delegate to Task with appropriate model
-- Monitor for errors, escalate as needed
+**Execution constraints:**
+- Steps 1-3 can run in parallel (all independent per plan metadata)
+- Use quiet execution pattern (reports to files, terse returns)
+- Fresh agent per step (no context accumulation)
 - Stop on unexpected results (#stop pattern)
-- Document lessons learned in report
+- On error: Escalate per plan's error escalation rules (haiku → sonnet → user)
 
-**Key files for Phase 2 execution:**
-- Main plan: `plans/unification/phase2-execution-plan.md` (all decisions, metadata, validation)
-- Step files: `plans/unification/steps/phase2-step{1,2,3}.md` (individual step execution)
-- Review: `plans/unification/reports/phase2-plan-review.md` (what was fixed)
+**Success criteria:**
+- All 3 steps return `done` (not `error`)
+- All execution reports written to expected paths
+- All analysis artifacts created per step success criteria
+- Lessons learned document written
+
+**Reference files:**
+- Main plan: `plans/unification/phase2-execution-plan.md` (contains all decisions, metadata, validation criteria)
+- Plan review: `plans/unification/reports/phase2-plan-review.md` (what was fixed in revision)
 - Context: `agents/context.md` (Option A plan and rationale)
 - Design: `plans/unification/design.md` (architecture decisions)
 
