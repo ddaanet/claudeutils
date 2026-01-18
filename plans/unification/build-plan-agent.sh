@@ -11,6 +11,9 @@
 # 2. Plan-specific context appended as additional sections
 #
 # The resulting agent can be used for executing plan steps with full plan context.
+#
+# IMPORTANT: Agents must be actual files in .claude/agents/, not symlinks.
+# Claude Code scans .claude/agents/ at startup and doesn't follow symlinks.
 
 set -e
 

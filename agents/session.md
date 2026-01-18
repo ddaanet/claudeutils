@@ -52,11 +52,12 @@
   - Examples: File operations (mv, cp, ln, mkdir) should never be delegated
   - Lesson: Skills migration should have been simple bash script, not haiku delegation
 - Created task-execute baseline agent (proper Claude Code agent)
-  - Location: `/Users/david/code/agent-core/agents/task-execute.md`
-  - Symlinked in: `.claude/agents/task-execute.md`
-  - Name decided: task-execute (verb form, clear execution role)
+  - Source: `/Users/david/code/agent-core/agents/task-execute.md`
+  - Copied to: `.claude/agents/task-execute.md` (agents must be actual files, not symlinks)
+  - Name: task-execute (verb form, clear execution role)
   - Frontmatter: name, description with examples, model: inherit, color: blue, tools
   - Content: agent-task-baseline.md system prompt with proper agent structure
+  - Discovery: Claude Code scans `.claude/agents/` at startup, doesn't follow symlinks
 - Created build-plan-agent.sh script
   - Location: `plans/unification/build-plan-agent.sh`
   - Purpose: Combine baseline agent + plan context → plan-specific agent
