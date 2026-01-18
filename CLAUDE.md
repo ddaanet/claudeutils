@@ -95,6 +95,40 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **Note:** For plan execution, use `plans/*/reports/` directory. For ad-hoc work, use project-local `tmp/` (not system `/tmp/`). Report naming varies with delegation pattern.
 
+### Commit Agent Delegation Pattern
+
+**Rule:** When delegating commits, orchestrator analyzes changes and drafts message, agent executes.
+
+**Orchestrator (sonnet) responsibilities:**
+1. Run `git diff HEAD` to review changes
+2. Analyze what changed and why
+3. Draft commit message following format (imperative, 50-72 chars, bullet details)
+4. Delegate to commit agent with literal message
+
+**Delegation format:**
+```
+Invoke commit agent with prompt:
+"Commit with message: '<exact commit message>'"
+```
+
+**Agent (haiku) returns:**
+- Success: `<commit-hash>` (e.g., "abc123f")
+- Failure: `Error: <diagnostic info>`
+
+**Benefits:**
+- Keeps orchestrator context lean (~20 tokens vs ~1000+)
+- Commit analysis doesn't pollute step execution context
+- Git command output stays in agent transcript
+- Aligns with quiet execution pattern
+
+**Example:**
+```
+Orchestrator analyzes: "Added 3 files, changed authentication logic"
+Orchestrator drafts: "Add OAuth2 authentication\n\n- Add login endpoint\n- Add token validation\n- Add refresh token logic"
+Orchestrator delegates: commit agent with literal message
+Agent returns: "a7f38c2"
+```
+
 ### Task Agent Tool Usage
 
 **Rule:** Task agents must use specialized tools, not Bash one-liners.
