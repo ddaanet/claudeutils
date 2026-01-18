@@ -6,7 +6,7 @@
 
 **Task:** Implement MVP task agent pattern (Option A)
 
-**Status:** Infrastructure complete, ready for baseline agent creation
+**Status:** Infrastructure complete, ready for pattern validation
 
 ## Progress Summary
 
@@ -25,27 +25,29 @@
   - Updated `agents/todo.md` with references
 - Populated new context.md with Option A plan
 - Added deferred tasks to todo.md
+- Created baseline task agent (agent-core commit 1543cc2)
+  - Location: `agent-core/agents/agent-task-baseline.md`
+  - 4KB, execution-focused, removed search/analysis language
+- Created weak orchestrator pattern doc (agent-core commit 1543cc2)
+  - Location: `agent-core/pattern-weak-orchestrator.md`
+  - 9KB, documents delegation and error escalation pattern
+- Committed infrastructure work (claudeutils commit 0ddcd2f)
+  - 8 files: /shelve skill, shelved archives, updated context/session/todo
 
 ## Handoff to Sonnet Orchestrator
 
 **Remaining work (Option A scope):**
 
-1. **Delegate baseline task agent creation**
-   - Extract from current Task tool system prompt
-   - Remove: codebase assumptions, search/analyze language, detailed reports, emoji
-   - Focus: Execute plan, stop on missing info/unexpected results
-   - Output to: `agent-core/agents/agent-task-baseline.md`
-   - Model: Sonnet (requires judgment for extraction/modification)
-
-2. **Delegate weak orchestrator pattern POC**
-   - Document pattern as design artifact
-   - Output to: `agent-core/pattern-weak-orchestrator.md`
-   - Model: Sonnet (design work)
-
-3. **Execute Phase 2 step using pattern validation**
+1. **Execute Phase 2 step using pattern validation** (NEXT)
    - Apply patterns to real work (Phase 2 unification)
+   - Create plan-specific agent (baseline + Phase 2 context)
+   - Use weak orchestrator pattern (delegation, error escalation)
+   - Apply quiet execution (reports to files, terse returns)
    - Capture lessons learned
-   - Validate hypotheses from context.md
+   - Validate hypotheses from context.md:
+     - Can haiku execute plan steps reliably with plan-specific agents?
+     - Does error escalation pattern work (haiku → sonnet → opus)?
+     - Is quiet execution + terse return sufficient for orchestration?
    - Model: As needed per pattern (likely haiku for orchestration, sonnet for steps)
 
 **Execution notes:**
@@ -87,12 +89,17 @@ None currently.
 
 ## Next Steps
 
-1. Delegate baseline agent creation to sonnet
-2. Delegate weak orchestrator pattern doc to sonnet
-3. Execute Phase 2 step with pattern, capture lessons
+**Next session:**
+1. Execute Phase 2 step with pattern validation
+2. Capture lessons learned from execution
+3. Refine patterns based on validation results
 
-**Success criteria:**
-- Baseline agent exists in agent-core
-- Weak orchestrator pattern documented
-- Phase 2 step executed using pattern
-- Lessons learned captured for pattern refinement
+**Success criteria (Option A completion):**
+- ✅ Baseline agent exists in agent-core
+- ✅ Weak orchestrator pattern documented
+- ⏳ Phase 2 step executed using pattern
+- ⏳ Lessons learned captured for pattern refinement
+
+**After validation:**
+- Session 2 can proceed with informed pattern documentation (deferred tasks in todo.md)
+- Or continue Phase 2 unification work using validated patterns
