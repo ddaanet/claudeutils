@@ -74,7 +74,7 @@ cat > "$OUTPUT_FILE" << FRONTMATTER_EOF
 ---
 name: $AGENT_NAME
 description: Execute $PLAN_NAME steps from the plan with full plan context.
-model: inherit
+model: haiku
 color: cyan
 tools: ["Read", "Write", "Bash", "Grep", "Glob"]
 ---

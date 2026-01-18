@@ -1,7 +1,7 @@
 ---
 name: phase2-task
 description: Execute phase2 steps from the plan with full plan context.
-model: inherit
+model: haiku
 color: cyan
 tools: ["Read", "Write", "Bash", "Grep", "Glob"]
 ---

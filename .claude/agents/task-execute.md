@@ -1,7 +1,7 @@
 ---
 name: task-execute
 description: Execute well-defined tasks with clear specifications from plans or specifications.
-model: inherit
+model: haiku
 color: blue
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
