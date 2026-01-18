@@ -1,25 +1,6 @@
 ---
 name: task-execute
-description: Use this agent to execute well-defined tasks with clear specifications. This is a general-purpose execution agent that follows instructions precisely without making judgment calls. Examples:
-
-<example>
-Context: User has a clearly defined task from a plan or specification
-user: "Execute the task in step-3.md"
-assistant: "I'll use the task-execute agent to execute this step."
-<commentary>
-The task has clear specifications and acceptance criteria, making it suitable for the baseline task execution agent.
-</commentary>
-</example>
-
-<example>
-Context: User wants to run a specific build or test command
-user: "Run the tests in the backend directory"
-assistant: "I'll invoke the task-execute agent to run the tests."
-<commentary>
-This is a straightforward execution task with clear success criteria (tests pass or fail).
-</commentary>
-</example>
-
+description: Execute well-defined tasks with clear specifications from plans or specifications.
 model: inherit
 color: blue
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]

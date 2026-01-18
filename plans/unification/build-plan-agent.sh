@@ -69,30 +69,11 @@ echo ""
 # Then extract system prompt (everything after second ---)
 # We'll replace the frontmatter with plan-specific version
 
-# Step 1: Create plan-specific frontmatter
+# Step 1: Create plan-specific frontmatter (single-line description, no examples in YAML)
 cat > "$OUTPUT_FILE" << FRONTMATTER_EOF
 ---
 name: $AGENT_NAME
-description: Use this agent to execute $PLAN_NAME steps. This agent specializes in executing tasks from the $PLAN_NAME plan with full plan context. Examples:
-
-<example>
-Context: Executing $PLAN_NAME step from plan
-user: "Execute $PLAN_NAME step 1"
-assistant: "I'll use the $AGENT_NAME agent to execute this step."
-<commentary>
-This step requires $PLAN_NAME context for proper execution.
-</commentary>
-</example>
-
-<example>
-Context: Running $PLAN_NAME task
-user: "Run the next $PLAN_NAME task"
-assistant: "I'll invoke the $AGENT_NAME agent."
-<commentary>
-The agent has full $PLAN_NAME plan context and can execute steps correctly.
-</commentary>
-</example>
-
+description: Execute $PLAN_NAME steps from the plan with full plan context.
 model: inherit
 color: cyan
 tools: ["Read", "Write", "Bash", "Grep", "Glob"]

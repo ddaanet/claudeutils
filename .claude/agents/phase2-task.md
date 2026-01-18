@@ -1,25 +1,6 @@
 ---
 name: phase2-task
-description: Use this agent to execute phase2 steps. This agent specializes in executing tasks from the phase2 plan with full plan context. Examples:
-
-<example>
-Context: Executing phase2 step from plan
-user: "Execute phase2 step 1"
-assistant: "I'll use the phase2-task agent to execute this step."
-<commentary>
-This step requires phase2 context for proper execution.
-</commentary>
-</example>
-
-<example>
-Context: Running phase2 task
-user: "Run the next phase2 task"
-assistant: "I'll invoke the phase2-task agent."
-<commentary>
-The agent has full phase2 plan context and can execute steps correctly.
-</commentary>
-</example>
-
+description: Execute phase2 steps from the plan with full plan context.
 model: inherit
 color: cyan
 tools: ["Read", "Write", "Bash", "Grep", "Glob"]
