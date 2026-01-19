@@ -34,7 +34,8 @@ Execute Phase 3 using the formalized weak orchestrator pattern, or continue with
 - Output: `scratch/consolidation/design/compose-api.md`
 
 **Agent Core Pattern:**
-- Skills and agents copied from agent-core to .claude/ (Claude Code doesn't follow symlinks)
+- Skills and agents copied from agent-core to .claude/ (copying is safest, though skills can be symlinked)
+- Agents MUST be copied (Claude Code doesn't follow agent symlinks)
 - Sync command: `cd agent-core && just sync-to-parent`
 
 **Recent Commits:**

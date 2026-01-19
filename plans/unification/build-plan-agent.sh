@@ -12,8 +12,8 @@
 #
 # The resulting agent can be used for executing plan steps with full plan context.
 #
-# IMPORTANT: Agents and skills must be actual files in .claude/, not symlinks.
-# Claude Code scans .claude/agents/ and .claude/skills/ at startup and doesn't follow symlinks.
+# IMPORTANT: Agents must be actual files in .claude/agents/, not symlinks.
+# Claude Code doesn't follow symlinks for agents (skills can be symlinked but copying is safer).
 
 set -e
 
