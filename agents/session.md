@@ -1,50 +1,51 @@
 # Session Handoff: 2026-01-19
 
-**Status:** Phase 3 execution plan complete and ready for execution
+**Status:** Oneshot workflow design complete, ready for planning
 
 ## Completed This Session
-- Created Phase 3 execution plan using 4-point planning process (5 design steps)
-- Plan reviewed by sonnet and assessed as READY
-- Split plan into isolated execution contexts (phase3-steps/)
-- Documented mandatory splitting principle in task-plan skill
-- Removed obsolete Roles/Rules/Skills section from CLAUDE.md
-- Added handoff skill from pytest-md to agent-core
-- Created sync-to-parent recipe in agent-core justfile
-- Tested and validated skill sync from agent-core to .claude/
+- Design discussion for plan-to-execution automation
+- Defined oneshot workflow (6 stages: discussion → design → planning → execution → review → completion)
+- Standardized terminology: job, design, phase, runbook, step
+- Defined 4 skills: `/design`, `/plan-adhoc`, `/orchestrate`, `/vet`
+- Specified `prepare-runbook.py` script (Python, stdlib only)
+- Documented renames: `task-execute` → `quiet-task`, `task-plan` → `/plan-adhoc`
+- Created design document at `plans/oneshot-workflow/design.md`
 
 ## Pending Tasks
-- Execute Phase 3 (composition API design)
-- Or continue planning Phase 4+ using same process
+- Phase 1: Script implementation + quiet-task rename
+- Phase 2: Skill creation (4 skills)
+- Phase 3: Documentation updates
+- Phase 4: Cleanup and terminology pass
 
 ## Blockers / Gotchas
 - None
 
 ## Next Steps
-Execute Phase 3 using the formalized weak orchestrator pattern, or continue with Phase 4+ planning. All patterns validated and ready for production use.
+Create runbook for Phase 1 implementation using `/plan-adhoc` process.
 
 ## Key Context
 
-**Working branch:** unification
+**Working branch:** oneshot (from unification)
 
-**Phase 3 Plan:**
-- Location: `plans/unification/phase3-execution-plan.md`
-- Status: READY (reviewed by sonnet)
-- Steps: 5 sequential design steps (feature extraction → synthesis)
-- Model: All sonnet (architectural design work)
-- Output: `scratch/consolidation/design/compose-api.md`
+**Design document:** `plans/oneshot-workflow/design.md`
+- 6-stage workflow formalized
+- 4 skills defined with purposes
+- Script spec with inputs/outputs/validation
+- Implementation phases outlined
 
-**Agent Core Pattern:**
-- Skills and agents copied from agent-core to .claude/ (copying is safest, though skills can be symlinked)
-- Agents MUST be copied (Claude Code doesn't follow agent symlinks)
-- Sync command: `cd agent-core && just sync-to-parent`
+**Key terminology:**
+- Job = what user wants to accomplish
+- Runbook = implementation steps (replaces "plan")
+- Runbook prep = 4-point process (Evaluate, Metadata, Review, Split)
 
-**Recent Commits:**
-- b3b9f47: Session state update after Phase 3 planning
-- 56929e2: Remove obsolete sections, update agent-core submodule
-- agent-core 45953b1: Add handoff skill and sync recipe
-- agent-core 99624a3: Document mandatory splitting principle
+**Key renames:**
+- `task-execute.md` → `quiet-task.md` (avoid Task tool conflict)
+- `task-plan` skill → `/plan-adhoc` (contrast with future `/plan-tdd`)
+
+**Discussion origin:** `agents/auto-agent-discussion.md`
 
 ## Design Context
 
+**Oneshot workflow:** `plans/oneshot-workflow/design.md`
 **Unification project:** `plans/unification/design.md`
-**Active task context:** `agents/context.md` (stable, contains architecture and decisions)
+**Active task context:** `agents/context.md`
