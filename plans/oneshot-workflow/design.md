@@ -168,6 +168,24 @@ New session with fresh context.
 - Improvement suggestions
 - Issue identification
 
+### `/remember`
+
+**Purpose:** Update agent documentation and rules
+**Scope:** CLAUDE.md, agents/context.md, and related documentation
+**Applicability:** Both oneshot and feature dev workflows
+
+**Activities:**
+- Update core rules and preferences in CLAUDE.md
+- Document workflow improvements
+- Add constraints after discovering issues
+- Maintain agent documentation based on learnings
+
+**Principles:**
+- Precision over brevity
+- Examples over abstractions
+- Constraints over guidelines
+- Atomic changes
+
 ---
 
 ## Script: `prepare-runbook.py`
@@ -354,6 +372,7 @@ def parse_frontmatter(content):
 - `/plan-adhoc` skill (rename + extend `task-plan`)
 - `/orchestrate` skill
 - `/vet` skill
+- `/remember` skill (based on `agents/role-remember.md`)
 
 ### Phase 3: Documentation
 - Workflow documentation (skill-based, interconnected)
@@ -374,6 +393,7 @@ def parse_frontmatter(content):
 - `.claude/skills/task-plan/skill.md` - Current 4-point process (becomes `/plan-adhoc`)
 - `agent-core/agents/quiet-task.md` - Baseline task agent (formerly `task-execute.md`)
 - `agent-core/bin/create-plan-agent.sh` - Existing script (to replace)
+- `agents/role-remember.md` (git history: 56929e2^) - Remember role documentation (becomes `/remember`)
 
 **Patterns:**
 - Weak orchestrator pattern (`agents/context.md`)

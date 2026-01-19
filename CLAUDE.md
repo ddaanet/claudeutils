@@ -34,6 +34,17 @@ When asked to "#load" or "load", read the session context files:
 
 Do not search for these files; read them directly at these paths.
 
+## Project Structure
+
+### agent-core Path Rule
+
+**CRITICAL:** Always make changes in `~/code/claudeutils/agent-core/`, NOT `~/code/agent-core/`
+
+- `~/code/agent-core/` is a separate git repository (submodule source)
+- `~/code/claudeutils/agent-core/` is the local working copy within this project
+- All development work must happen in the claudeutils copy
+- Never modify files in `~/code/agent-core/` directly
+
 ## Delegation Principle
 
 **Delegate everything.** The orchestrator (main agent) coordinates work but does not implement directly:
