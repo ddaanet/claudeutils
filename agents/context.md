@@ -138,11 +138,18 @@ Implement and validate the task agent execution pattern through a proof-of-conce
 
 **Includes:**
 - Context monitoring skill (100k/125k thresholds)
-- Additional pattern docs (plan-specific agent, phase planning, ad-hoc scripting)
-- Tooling (plan splitter spec, agent creation script)
+- Phase planning pattern documentation
+- Additional tooling (decision catalog, dependency analyzer)
 - Phase 2 full plan (weak orchestrator applied across all steps)
 
-**Rationale for deferral:** Validate core pattern first before investing in infrastructure.
+**Completed:**
+- ✅ Plan-specific agent pattern documentation
+- ✅ Error classification fragment
+- ✅ Prerequisite validation fragment
+- ✅ Commit delegation fragment
+- ✅ Agent generation script (create-plan-agent.sh)
+
+**Rationale:** Pattern validation completed through Phase 2 execution; formalization now complete. Ready for Phase 3+ application.
 
 ## Source Materials
 
