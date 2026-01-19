@@ -24,7 +24,7 @@ Implement and validate the task agent execution pattern through a proof-of-conce
 - No duplication between files
 
 **Deliverables (Option A):**
-- `agent-core/agents/task-execute.md` - Base task agent template
+- `agent-core/agents/quiet-task.md` - Base task agent template
 - `agent-core/pattern-weak-orchestrator.md` - Weak orchestrator pattern (POC)
 - `.claude/agents/phase2-task.md` - Phase 2 plan-specific agent
 - Phase 2 step execution using pattern (validation)

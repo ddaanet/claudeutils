@@ -243,7 +243,7 @@ model: sonnet  # default model for steps
 
 ### Defaults
 
-- Common context: Empty = pure task-execute baseline
+- Common context: Empty = pure quiet-task baseline
 - Orchestrator: Sequential execution, stop on error
 - Model: Inherited from frontmatter or sonnet default
 
@@ -346,7 +346,7 @@ def parse_frontmatter(content):
 
 ### Phase 1: Script Implementation
 - `prepare-runbook.py` with full validation
-- Rename `task-execute.md` → `quiet-task.md`
+- Move/rename `task-execute.md` → `quiet-task.md` in agent-core
 - Test with existing Phase 3 runbook
 
 ### Phase 2: Skill Creation
@@ -372,7 +372,7 @@ def parse_frontmatter(content):
 **Existing artifacts:**
 - `agents/auto-agent-discussion.md` - Original discussion document
 - `.claude/skills/task-plan/skill.md` - Current 4-point process (becomes `/plan-adhoc`)
-- `agent-core/agents/task-execute.md` - Baseline task agent (rename to `quiet-task.md`)
+- `agent-core/agents/quiet-task.md` - Baseline task agent (formerly `task-execute.md`)
 - `agent-core/bin/create-plan-agent.sh` - Existing script (to replace)
 
 **Patterns:**
