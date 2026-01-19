@@ -12,8 +12,8 @@
 #
 # The resulting agent can be used for executing plan steps with full plan context.
 #
-# IMPORTANT: Agents must be actual files in .claude/agents/, not symlinks.
-# Claude Code scans .claude/agents/ at startup and doesn't follow symlinks.
+# IMPORTANT: Agents and skills must be actual files in .claude/, not symlinks.
+# Claude Code scans .claude/agents/ and .claude/skills/ at startup and doesn't follow symlinks.
 
 set -e
 
@@ -102,6 +102,6 @@ cat "$PLAN_CONTEXT_FILE" >> "$OUTPUT_FILE"
 echo "✓ Created plan-specific agent: $OUTPUT_FILE"
 echo ""
 echo "To use this agent:"
-echo "  1. Ensure it's in .claude/agents/ or symlinked"
+echo "  1. Ensure it's in .claude/agents/ (copied, not symlinked)"
 echo "  2. Reference in task delegation: 'Use $AGENT_NAME agent to execute...'"
 echo "  3. Agent will have full $PLAN_NAME context during execution"
