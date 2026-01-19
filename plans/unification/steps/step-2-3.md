@@ -1,6 +1,7 @@
-# Phase 2: Step 3
+# Step 2.3
 
-**Context**: Read `phase2-execution-plan.md` for full execution context, metadata, and design decisions.
+**Plan**: `plans/unification/phase2-execution-plan.md`
+**Common Context**: See plan file for context
 
 ---
 
@@ -35,13 +36,3 @@
 **Date**: 2026-01-18
 
 ---
-
----
-
-**Execution Instructions**:
-1. Read phase2-execution-plan.md for prerequisites, error escalation, and validation patterns
-2. Execute this step following the implementation above
-3. Perform validation checks as specified
-4. Write detailed output to report path specified above
-5. Return only: "done: <summary>" or "error: <description>"
-6. Stop on any unexpected results per communication rules

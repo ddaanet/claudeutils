@@ -1,73 +1,85 @@
-# Context: Task Agent Pattern Implementation (Option A - MVP)
+# Context: Oneshot Workflow (Pattern Validated)
 
 <!--
 Purpose: Task-related, relatively stable, cross-session context
-This session implements the minimal viable pattern for plan-specific task agents.
-Full session plan reviewed and scoped down from 12 tasks to focused MVP.
+Pattern validation complete. Phase 1 (Script) and Phase 2 (Skills) implemented.
+Documentation formalized in WORKFLOW.md.
 -->
 
 ## Objective
 
-Implement and validate the task agent execution pattern through a proof-of-concept, then apply to Phase 2 unification work.
+✅ **Complete:** Oneshot workflow pattern validated and documented.
 
-**Approach:** Practice before documentation - build working pattern first, document after validation.
+**Status:** Phase 1 (Script) and Phase 2 (Skills) complete. Phase 3 (Documentation) complete. Phase 4 (Cleanup) pending.
+
+**Deliverables:**
+- ✅ Workflow guide (`WORKFLOW.md`)
+- ✅ Baseline task agent (`agent-core/agents/quiet-task.md`)
+- ✅ Runbook preparation script (`agent-core/bin/prepare-runbook.py`)
+- ✅ Five skills: `/design`, `/plan-adhoc`, `/orchestrate`, `/vet`, `/remember`
+- ✅ Terminology standardization in `CLAUDE.md`
 
 ## Key Documents
 
-**Session Plan:**
-- `tmp/session-plan-task-agents.md` - Original 12-task plan (reviewed by sonnet)
-- `tmp/session-context-scope.md` - session.md vs context.md scope definition (by opus)
+**Primary Documentation:**
+- `WORKFLOW.md` - User-facing workflow guide (6 stages, 5 skills)
+- `plans/oneshot-workflow/design.md` - Original design document
 
-**Scope Definition:**
-- session.md: Volatile handoff context (current work, progress, blockers)
-- context.md: Stable reference (documents, architecture, paths)
-- No duplication between files
+**Implementation:**
+- `agent-core/agents/quiet-task.md` - Baseline task agent
+- `agent-core/bin/prepare-runbook.py` - Runbook preparation script (300 lines, stdlib-only)
 
-**Deliverables (Option A):**
-- `agent-core/agents/task-execute.md` - Base task agent template
-- `agent-core/pattern-weak-orchestrator.md` - Weak orchestrator pattern (POC)
-- `.claude/agents/phase2-task.md` - Phase 2 plan-specific agent
-- Phase 2 step execution using pattern (validation)
+**Skills (`.claude/skills/`):**
+- `design/` - Opus design sessions
+- `plan-adhoc/` - Sonnet planning with runbook prep
+- `orchestrate/` - Weak orchestrator execution
+- `vet/` - In-progress change review
+- `remember/` - Documentation updates
+
+**Terminology:** See `CLAUDE.md` for standardized terms (job, runbook, phase, step, etc.)
 
 ## Architecture
 
-### Pattern: Plan-Specific Agent
+### Pattern: Runbook-Specific Agent
 
 **Problem:** Context overhead prevents agent-per-step delegation pattern.
 
-**Solution:** Cache plan context in specialized agent system prompt.
+**Solution:** Cache runbook context in specialized agent system prompt.
 
 **Implementation:**
-1. Create baseline task agent (extract from current Task tool)
-2. Planning agent creates plan-specific agent file (baseline + plan context)
-3. Store in plan directory: `.claude/agents/<plan-name>-task.md`
-4. For each step: Load plan-specific agent, append step reference, invoke
+1. Create baseline task agent (`quiet-task.md`)
+2. Planning agent creates runbook-specific agent (baseline + common context)
+3. Store in agents directory: `.claude/agents/<runbook-name>-task.md`
+4. For each step: Load runbook-specific agent, append step reference, invoke
 5. Fresh agent invocation per step (no noise accumulation)
 
 **Creation responsibility:**
-- Planning agent (medium-strength, sonnet-level) creates plan-specific agent during plan phase
+- Planning agent (sonnet) creates runbook-specific agent during planning phase
+- Uses `prepare-runbook.py` script to generate artifacts
 - NOT weak orchestrator's job (too complex for haiku-level)
-- Plan-specific agent must exist before execution begins
+- Runbook-specific agent must exist before execution begins
 
 **Benefits:**
-- Context caching (plan context reused across steps)
+- Context caching (runbook context reused across steps)
 - Clean execution (no transcript bloat)
 - Quiet pattern compatible (reports to files, terse returns)
-- Reviewable (agent prompt visible in plan directory)
-- Versionable (agent evolves with plan)
+- Reviewable (agent prompt visible in agents directory)
+- Versionable (agent evolves with runbook)
 
 ### Pattern: Weak Orchestrator
 
-**Role:** Execute plan steps, escalate on error (haiku-level complexity).
+**Role:** Execute runbook steps reliably, escalate on error (haiku-level complexity).
 
 **Behavior:**
-- Read plan step
-- Invoke plan-specific agent with step reference
+- Read runbook step from step file
+- Invoke runbook-specific agent with step reference
 - On success: Continue to next step
 - On simple error: Delegate to sonnet for diagnostic/fix
-- On complex error: Abort, provide context, request opus plan update
+- On complex error: Abort, provide context, request opus runbook update
 
 **Key characteristic:** Delegation-only, no judgment calls.
+
+**Skill:** `/orchestrate` - Implements this pattern for prepared runbooks.
 
 ### Pattern: Quiet Execution
 
@@ -82,21 +94,22 @@ Implement and validate the task agent execution pattern through a proof-of-conce
 
 ## Design Decisions
 
-### Why Option A (MVP) Over Full Implementation
+### Pattern Validation Approach
 
-**Original scope:** 12 tasks, 50-70 agent calls, 750k-1.5M tokens (3-5 handoffs).
+**Original scope:** 12 tasks, comprehensive documentation before validation.
 
-**Problems identified by review (sonnet):**
+**Problems identified:**
 1. Circular dependency: Documenting patterns before validating
 2. No proof-of-concept or integration testing
 3. Scope unrealistic for single session
-4. Missing acceptance criteria for pattern docs
 
-**Option A rationale:**
-- Validate pattern on real work (Phase 2) before documenting
-- Immediate value (Phase 2 continues) vs. speculative documentation
+**Chosen approach (Option A - MVP):**
+- Validate pattern through implementation first
+- Document after validation (evidence-based)
+- Immediate value (working tools) vs. speculative documentation
 - Risk mitigation: Practice reveals issues before investment
-- Foundation for Session 2 (informed documentation)
+
+**Result:** Pattern validated successfully through Phase 1 and 2 implementation.
 
 ### Why Baseline Agent First
 
@@ -111,45 +124,45 @@ Implement and validate the task agent execution pattern through a proof-of-conce
 - Remove search/analyze/explore language (plan-time concerns)
 - Remove detailed report requirements
 - Remove emoji directive
-- Focus role: Execute plan, stop on missing info or unexpected results
+- Focus role: Execute steps, stop on missing info or unexpected results
 - Output: Brief report (success) or diagnostic info (error)
 
 **Usage:**
 - Baseline = reusable foundation
-- Specialization = append plan context (plan-specific agent)
+- Specialization = append runbook context (runbook-specific agent)
 - Further specialization = append step reference (step execution)
 
-### Why Weak Orchestrator POC
+### Weak Orchestrator Validation
 
 **Testing hypothesis:**
-- Can haiku execute plan steps reliably with plan-specific agents?
+- Can haiku execute runbook steps reliably with runbook-specific agents?
 - Does error escalation pattern work (haiku → sonnet → opus)?
 - Is quiet execution + terse return sufficient for orchestration?
 
 **Validation approach:**
-- Document pattern first (design artifact)
-- Execute Phase 2 step using pattern
+- Implement pattern in `/orchestrate` skill
+- Test with real runbook execution
 - Capture lessons learned
 - Refine pattern based on results
 
-## Deferred Work
+**Result:** Pattern works as designed. `/orchestrate` skill implements validated pattern.
 
-**See:** `agents/todo.md` section "Deferred from Task Agent Pattern Session"
+## Implementation Status
 
-**Includes:**
+**Completed Phases:**
+- ✅ Phase 1: Script implementation (`prepare-runbook.py`, `quiet-task.md`)
+- ✅ Phase 2: Skill creation (5 skills: `/design`, `/plan-adhoc`, `/orchestrate`, `/vet`, `/remember`)
+- ✅ Phase 3: Documentation (`WORKFLOW.md`, terminology updates)
+
+**Pending:**
+- Phase 4: Cleanup (archive obsolete scripts, update existing runbooks, terminology pass)
+
+**Deferred Work:**
 - Context monitoring skill (100k/125k thresholds)
-- Phase planning pattern documentation
+- Feature development workflow (TDD-focused, separate from oneshot)
 - Additional tooling (decision catalog, dependency analyzer)
-- Phase 2 full plan (weak orchestrator applied across all steps)
 
-**Completed:**
-- ✅ Plan-specific agent pattern documentation
-- ✅ Error classification fragment
-- ✅ Prerequisite validation fragment
-- ✅ Commit delegation fragment
-- ✅ Agent generation script (create-plan-agent.sh)
-
-**Rationale:** Pattern validation completed through Phase 2 execution; formalization now complete. Ready for Phase 3+ application.
+**Pattern Status:** Validated and production-ready. Documentation complete.
 
 ## Source Materials
 

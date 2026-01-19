@@ -127,4 +127,26 @@ Deferred work items and shelved context.
 
 ---
 
+### 2026-01-19 - Merge Skills and Agents to Prompt-Composer Framework
+
+**Priority:** High (after markdown job complete)
+
+**Context:**
+- Current skills (.claude/skills/*) and agents (agent-core/agents/*) will be converted to prompt-composer framework
+- Existing role-*.md files in agents/ directory will be merged with new skills and agents
+- This is a consolidation of the agent architecture into a unified framework
+
+**Tasks:**
+- [ ] Convert current skills to prompt-composer framework
+- [ ] Convert agent-core agents to prompt-composer framework
+- [ ] Merge existing role-*.md files with new skills and agents
+- [ ] Update documentation to reflect new framework
+- [ ] Test converted skills and agents
+
+**Blocked by:** Markdown job completion
+
+**Reference:** Context from session.md Phase 4 cleanup discussion
+
+---
+
 - [ ] (empty - items added as needed)

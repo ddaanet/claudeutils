@@ -7,7 +7,7 @@
 #   build-plan-agent.sh phase2 phase2-task plans/unification/phase2-execution-plan.md .claude/agents
 #
 # This script creates a plan-specific agent by combining:
-# 1. Baseline task-execute agent frontmatter and system prompt
+# 1. Baseline quiet-task agent frontmatter and system prompt
 # 2. Plan-specific context appended as additional sections
 #
 # The resulting agent can be used for executing plan steps with full plan context.
@@ -39,8 +39,8 @@ OUTPUT_DIR="$4"
 # Resolve paths
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-# agent-core is a sibling directory, not a subdirectory
-BASELINE_AGENT="/Users/david/code/agent-core/agents/task-execute.md"
+# agent-core is a subdirectory within claudeutils
+BASELINE_AGENT="/Users/david/code/claudeutils/agent-core/agents/quiet-task.md"
 
 # Validate inputs
 if [ ! -f "$BASELINE_AGENT" ]; then
