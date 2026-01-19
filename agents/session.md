@@ -1,42 +1,51 @@
 # Session Handoff: 2026-01-19
 
-**Status:** TDD integration design complete - ready for sonnet planning
+**Status:** TDD integration runbook complete and ready for execution
 
 ## Completed This Session
 
-- Analyzed pytest-md skills vs agent-core skills
-- Designed TDD workflow integration (Option A: TDD as specialized workflow)
-- Wrote design document: `plans/tdd-integration/design.md`
+- Created implementation runbook for TDD integration design
+- Completed 4-point planning process:
+  - Point 1: Evaluated tasks (8 steps, 2 require separate planning)
+  - Point 2: Created runbook with weak orchestrator metadata
+  - Point 3: Review by sonnet agent (NEEDS_REVISION → addressed all critical/major issues)
+  - Point 4: Generated execution artifacts via prepare-runbook.py
+- Runbook status: READY
+- Artifacts created:
+  - `.claude/agents/tdd-integration-task.md` (plan-specific agent)
+  - `plans/tdd-integration/steps/step-*.md` (8 step files)
+  - `plans/tdd-integration/orchestrator-plan.md`
 
-**Key design decisions:**
-- Merge /design and /plan-design (TDD mode support)
-- Merge /execute-tdd and /orchestrate (unified runbook execution)
-- TDD task agent as baseline template (not standalone)
-- Agent-per-cycle pattern with prepare-runbook.py integration
-- WIP commit + amend pattern for clean history
-- Separate workflow docs (oneshot + tdd)
+**Key revisions from review:**
+- Fixed step dependencies (Steps 1-3 parallel)
+- Rewrote Step 1 to use Read/Write tools (not bash cp)
+- Added explicit tool usage instructions to all steps
+- Clarified Steps 6-7 create planning requests (not blocked)
+- Fixed all validation sections to use specialized tools
 
 ## Pending Tasks
 
-### Immediate: Create Implementation Runbook
-- [ ] Run `/plan-adhoc` on `plans/tdd-integration/design.md`
+### Immediate: Execute TDD Integration Runbook
+- [ ] Run `/orchestrate` on `plans/tdd-integration/runbook.md`
+  - Steps 1-5: Create workflow docs, update skills
+  - Steps 6-7: Create planning requests for prepare-runbook.py and /plan-tdd
+  - Step 8: Integrate pytest-md with agent-core submodule
 
-### TDD Integration Implementation (from runbook)
-- [ ] Write `agent-core/agents/tdd-workflow.md`
-- [ ] Write `agent-core/agents/tdd-task.md` (baseline template)
-- [ ] Move `claudeutils/agents/workflow.md` → `agent-core/agents/oneshot-workflow.md`
-- [ ] Update `/design` skill with TDD mode
-- [ ] Update `/oneshot` skill with TDD methodology detection
-- [ ] Update `/orchestrate` skill with TDD runbook support
-- [ ] Update `prepare-runbook.py` for TDD cycle format
-- [ ] Create `/plan-tdd` skill
-- [ ] pytest-md integration: submodule + sync + remove project skills
+### After Runbook Execution
+- [ ] Execute Step 6 planning request (prepare-runbook.py TDD support)
+- [ ] Execute Step 7 planning request (/plan-tdd skill creation)
+- [ ] Test full TDD workflow with pytest-md
 
 ### After TDD Integration
 - [ ] Fix precommit checks in markdown branch
 - [ ] Return to unification branch for Phase 4
 
+## Blockers / Gotchas
+
+- Steps 6-7 require separate planning sessions (complexity >100 lines)
+- pytest-md directory path not verified (will check in Step 8)
+- Step 8 may need manual skill/agent installation if sync recipe missing
+
 ## Next Steps
 
-1. Start new session with sonnet
-2. Type `#execute` → runs `/plan-adhoc` on `plans/tdd-integration/design.md`
+Run `/orchestrate` on the TDD integration runbook to execute Steps 1-8. Steps will create workflow docs, update skills, and generate planning requests for complex implementations.
