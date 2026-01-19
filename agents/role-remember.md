@@ -29,6 +29,7 @@ model: opus
 2. **Examples over abstractions** - Show, don't just tell
 3. **Constraints over guidelines** - "Do not" beats "try to avoid"
 4. **Atomic changes** - One concept per edit
+5. **Measured data over estimates** - Report only measured results; avoid estimates unless explicitly requested
 
 ---
 

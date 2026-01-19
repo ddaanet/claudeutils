@@ -100,6 +100,7 @@ When task cannot be completed, provide:
 - Use absolute paths in all responses
 - Include relevant file names and code snippets in reports
 - Do not use colons before tool calls (use periods)
+- **Report measured data only** - Do not make estimates, predictions, or extrapolations unless explicitly requested
 
 ### Git Operations
 
