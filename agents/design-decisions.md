@@ -676,3 +676,39 @@ runs during formatting. Benefits:
 - Code follows existing patterns
 - Clear error messages for invalid input
 - Documentation complete and accurate
+
+## Oneshot Workflow Pattern (Completed 2026-01-19)
+
+**Decision:** Implement and validate weak orchestrator pattern with runbook-specific agents for ad-hoc task execution.
+
+**Status:** Complete - All phases delivered, pattern validated, archived to `plans/archive/oneshot-workflow/`
+
+**Key Components:**
+- Baseline task agent (`agent-core/agents/quiet-task.md`)
+- Runbook preparation script (`agent-core/bin/prepare-runbook.py`)
+- 5 skills: `/design`, `/plan-adhoc`, `/orchestrate`, `/vet`, `/remember`
+- Complete documentation (`agents/workflow.md`)
+
+**Pattern Validation:**
+- Haiku successfully executes runbook steps using runbook-specific agents
+- Error escalation works (haiku → sonnet → opus)
+- Quiet execution pattern maintains lean orchestrator context
+- Context caching via runbook-specific agents reduces token costs
+
+**Terminology Standardization:**
+- Job = user's goal
+- Design = architectural spec from opus
+- Runbook = implementation steps (replaces "plan" in execution context)
+- Step = individual unit of work
+- Runbook prep = 4-point process (Evaluate, Metadata, Review, Split)
+
+**Archival:**
+- Completion report: `plans/archive/oneshot-workflow/completion-report.md`
+- All design and execution artifacts preserved
+- Pattern ready for reuse via agent-core skills
+
+**Impact:**
+- Production-ready workflow for ad-hoc tasks
+- Reduced context overhead through specialized agents
+- Standardized terminology across documentation
+- Reusable components via agent-core submodule

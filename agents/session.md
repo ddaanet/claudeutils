@@ -1,52 +1,56 @@
 # Session Handoff: 2026-01-19
 
-**Status:** Merging oneshot workflow into unification branch
+**Status:** Markdown branch - Ready to investigate and fix precommit checks
 
 ## Completed This Session
 
-### Unification Project (Phase 3)
-- Executed Phase 3 with all 5 design steps (sonnet delegations)
-- Step 1: Feature extraction from tuick (10+ features) and emojipack
-- Step 2: Core module design (5 public functions, detailed algorithm)
-- Step 3: CLI interface design (subcommands, arguments, pyproject.toml)
-- Step 4: YAML schema design (validation rules, 5 examples)
-- Step 5: Unified compose-api.md (115K integrated design document)
-- All execution reports written to plans/unification/reports/phase3-step-*.md
+### Branch Operations
+- Switched to markdown branch
+- Merged unification into markdown (bringing all latest changes)
+- Archived oneshot workflow to `plans/archive/oneshot-workflow/`
+- Shelved unification Phase 3 work (incomplete, Phase 4 blocked)
 
-### Oneshot Workflow (All Phases Complete)
-- Phase 4 cleanup: Removed obsolete agents (task-execute, phase2-task, unification-task) and skill (task-plan)
-- Terminology pass: Verified correct runbook/plan usage in active skills
-- Role files: Kept as-is for prompt-composer framework merge
-- Phase 3: Created /oneshot skill, workflow.md, updated CLAUDE.md and /handoff skill
-- Phase 2: Created 5 skills (/design, /plan-adhoc, /orchestrate, /vet, /remember)
-- Phase 1: Created prepare-runbook.py script and quiet-task.md baseline agent
-
-### Current Task
-- Merging oneshot branch into unification
-- Moving new skills to agent-core
-- Updating submodule references
+### Oneshot Workflow Completion
+- Wrote completion report: `plans/archive/oneshot-workflow/completion-report.md`
+- Updated design decisions: `agents/design-decisions.md`
+- Updated context.md: Now focused on markdown branch precommit fixes
+- Archived all oneshot work properly
 
 ## Pending Tasks
-- Complete merge and skill migration
-- Execute Phase 4 (implement composition module and CLI)
-- Continue with Phase 5+ planning or execution
-- Prompt-composer framework merge (blocked by markdown job completion)
+
+### Immediate Priority: Fix Precommit Checks
+- [ ] Investigate precommit check failures
+- [ ] Identify specific issues
+- [ ] Fix issues
+- [ ] Validate precommit passes
+- [ ] Commit fixes
+
+### After Precommit Fixed
+- [ ] Return to unification branch
+- [ ] Execute Phase 4 (implement composition module and CLI)
 
 ## Blockers / Gotchas
-None
+
+**Precommit status unknown** - Need to run precommit and diagnose failures
 
 ## Next Steps
-After merge complete: Phase 4 is ready to execute. Design is complete with all 3 major sections documented. Next agent should review compose-api.md and begin implementation of core module, CLI, and YAML validation.
+
+1. Check for existing markdown branch context/notes
+2. Run precommit to see what's failing
+3. Fix issues systematically
+4. Validate fixes work
+5. Commit and return to unification branch
 
 ## Key Context
 
-**Working branch:** unification
+**Working branch:** markdown
+**Main blocker:** Precommit checks (type, format, lint, or test failures)
 
-**Phase 3 Output (COMPLETE):**
-- Feature extraction: `scratch/consolidation/design/feature-extraction.md` (13K)
-- Core module design: `scratch/consolidation/design/core-module-design.md` (23K)
-- CLI design: `scratch/consolidation/design/cli-design.md` (24K)
-- YAML schema: `scratch/consolidation/design/yaml-schema.md` (21K)
-- **Final deliverable:** `scratch/consolidation/design/compose-api.md` (34K, ready for Phase 4)
+**Unification Work (Blocked):**
+- Phase 3 complete: Design ready at `scratch/consolidation/design/compose-api.md`
+- Phase 4 blocked: Cannot implement until precommit passes
+- Shelved to: `agents/shelf/unification-phase3-session.md`
 
-**Unification project:** `plans/unification/design.md`
+**Recent Merge:**
+- Merged unification → markdown (127 files changed, 21,891 insertions)
+- All recent work (skills, agents, documentation) now in markdown branch
