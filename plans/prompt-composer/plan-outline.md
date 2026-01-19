@@ -487,7 +487,7 @@ handoff.semantic.md)
 2. Verify all roles load correctly with new files
 
 3. Update documentation:
-   - `AGENTS.md` → reference new role system
+   - `CLAUDE.md` → reference new role system
    - `agents/context.md` → point to new locations
    - `README.md` → update if needed
    - Remove "BEFORE STARTING" sections (plans loaded by user)
@@ -498,9 +498,9 @@ handoff.semantic.md)
 
 ---
 
-## Phase 8: AGENTS.md Regeneration (OPEN QUESTION)
+## Phase 8: CLAUDE.md Regeneration (OPEN QUESTION)
 
-**Objective**: Decide AGENTS.md handling strategy.
+**Objective**: Decide CLAUDE.md handling strategy.
 
 **Options**:
 
@@ -514,7 +514,7 @@ handoff.semantic.md)
 - Fallback usage patterns
 - Maintenance burden
 
-**CHECKPOINT 14**: AGENTS.md strategy decided → implement if automated
+**CHECKPOINT 14**: CLAUDE.md strategy decided → implement if automated
 
 ---
 
@@ -549,7 +549,7 @@ analysis.
 7. ✅ **Module granularity**: 14 modules appropriate
 8. ✅ **Config location**: `agents/roles/` - clear purpose, discoverable
 9. ✅ **Development naming**: `.next.md` suffix prevents overwriting during development
-10. ⏳ **AGENTS.md pipeline**: Defer to Phase 9
+10. ⏳ **CLAUDE.md pipeline**: Defer to Phase 9
 
 ---
 

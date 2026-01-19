@@ -47,7 +47,7 @@ compactness critical.
 
 - 6 roles: planning.md, code.md, lint.md, refactor.md, execute.md, remember.md
 - 2 skills: commit.md, handoff.md
-- 1 master: AGENTS.md (project overview, communication patterns, tool batching)
+- 1 master: CLAUDE.md (project overview, communication patterns, tool batching)
 
 **Terminology:**
 
@@ -80,10 +80,10 @@ weak models.
 
 ### Project Context
 
-- Generic "just" recipes: AGENTS.md, README.md
+- Generic "just" recipes: CLAUDE.md, README.md
 - Role-specific recipes: included in role files
 - Split context: overview, data model, commands (selective inclusion)
-- AGENTS.md: fallback for non-role-primed agents only (won't be loaded by role-primed
+- CLAUDE.md: fallback for non-role-primed agents only (won't be loaded by role-primed
   agents per research)
 
 ### Checkpoint Factorization Opportunity
@@ -162,7 +162,7 @@ with ⚠️. How to handle?
 - Store minimal, generate expansions?
 - Mark "expansion-sensitive" for Opus decision?
 
-### 7. AGENTS.md Content
+### 7. CLAUDE.md Content
 
 Purpose: Fallback for non-role-primed agents. Planning/generic agents load it. What
 should it contain?
@@ -171,7 +171,7 @@ should it contain?
 - Tool batching (universal cross-cutting)?
 - TDD overview (project-specific, role-agnostic)?
 
-Note: Rule tiering explanation belongs in remember role, not AGENTS.md.
+Note: Rule tiering explanation belongs in remember role, not CLAUDE.md.
 
 ### 8. Implementation Recommendations
 

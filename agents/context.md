@@ -1,141 +1,178 @@
-# Context
+# Context: Oneshot Workflow (Pattern Validated)
 
-**Archive:** Previous context archived to [2026-01-07-bug4-complete.md](archive/2026-01-07-bug4-complete.md)
+<!--
+Purpose: Task-related, relatively stable, cross-session context
+Pattern validation complete. Phase 1 (Script) and Phase 2 (Skills) implemented.
+Documentation formalized in WORKFLOW.md.
+-->
 
----
+## Objective
 
-## Current State
+✅ **Complete:** Oneshot workflow pattern validated and documented.
 
-**Branch:** `markdown`
+**Status:** Phase 1 (Script) and Phase 2 (Skills) complete. Phase 3 (Documentation) complete. Phase 4 (Cleanup) pending.
 
-**Current work:** Markdown Formatter Migration - Ready for Implementation
+**Deliverables:**
+- ✅ Workflow guide (`WORKFLOW.md`)
+- ✅ Baseline task agent (`agent-core/agents/quiet-task.md`)
+- ✅ Runbook preparation script (`agent-core/bin/prepare-runbook.py`)
+- ✅ Five skills: `/design`, `/plan-adhoc`, `/orchestrate`, `/vet`, `/remember`
+- ✅ Terminology standardization in `CLAUDE.md`
 
-**Status:** Survey complete, shelf skill implemented, ready to implement remark-cli migration
+## Key Documents
 
-### Formatter Survey Results
+**Primary Documentation:**
+- `WORKFLOW.md` - User-facing workflow guide (6 stages, 5 skills)
+- `plans/oneshot-workflow/design.md` - Original design document
 
-**Survey completed:** 2026-01-07 (3 parallel research agents + practical testing)
+**Implementation:**
+- `agent-core/agents/quiet-task.md` - Baseline task agent
+- `agent-core/bin/prepare-runbook.py` - Runbook preparation script (300 lines, stdlib-only)
 
-**Candidates evaluated:**
-1. **Prettier** - Popular formatter, but has idempotency bugs and YAML frontmatter issues
-2. **markdownlint-cli2** - Linter only, not a formatter (ruled out)
-3. **remark-cli** - ✅ **RECOMMENDED** - 100% CommonMark compliant, idempotent, highly configurable
+**Skills (`.claude/skills/`):**
+- `design/` - Opus design sessions
+- `plan-adhoc/` - Sonnet planning with runbook prep
+- `orchestrate/` - Weak orchestrator execution
+- `vet/` - In-progress change review
+- `remember/` - Documentation updates
 
-**Deliverable:** `plans/formatter-comparison.md` (comprehensive 350+ line analysis)
+**Terminology:** See `CLAUDE.md` for standardized terms (job, runbook, phase, step, etc.)
 
-**Test results:**
-- Test corpus created: `tmp/test-remark.md` (12 test sections, 150+ lines)
-- Prettier: Idempotent on corpus, but has documented bugs in production
-- remark-cli: Idempotent on corpus, handles all edge cases correctly
+## Architecture
 
-**Dependencies installed:**
-```bash
-# Already in node_modules
-remark-cli
-remark-gfm
-remark-frontmatter
-remark-preset-lint-consistent
-```
+### Pattern: Runbook-Specific Agent
 
----
+**Problem:** Context overhead prevents agent-per-step delegation pattern.
 
-## Handoff
+**Solution:** Cache runbook context in specialized agent system prompt.
 
-**⚠️ STOP: Do not execute tasks below unless user explicitly requests it.**
+**Implementation:**
+1. Create baseline task agent (`quiet-task.md`)
+2. Planning agent creates runbook-specific agent (baseline + common context)
+3. Store in agents directory: `.claude/agents/<runbook-name>-task.md`
+4. For each step: Load runbook-specific agent, append step reference, invoke
+5. Fresh agent invocation per step (no noise accumulation)
 
-These tasks are documented for context and planning. Wait for explicit instruction ("continue", "proceed", "start", etc.) before delegating or executing.
+**Creation responsibility:**
+- Planning agent (sonnet) creates runbook-specific agent during planning phase
+- Uses `prepare-runbook.py` script to generate artifacts
+- NOT weak orchestrator's job (too complex for haiku-level)
+- Runbook-specific agent must exist before execution begins
 
----
+**Benefits:**
+- Context caching (runbook context reused across steps)
+- Clean execution (no transcript bloat)
+- Quiet pattern compatible (reports to files, terse returns)
+- Reviewable (agent prompt visible in agents directory)
+- Versionable (agent evolves with runbook)
 
-**Next priority:** Markdown formatter migration (remark-cli)
+### Pattern: Weak Orchestrator
 
-**Implementation tasks (for haiku):**
+**Role:** Execute runbook steps reliably, escalate on error (haiku-level complexity).
 
-1. **Create `.remarkrc.json` config** (configuration provided in comparison doc)
-2. **Update `package.json` scripts:**
-   - Add `format:md` script for formatting
-   - Add `format:md:check` script for CI
-3. **Create `.remarkignore`** (exclude node_modules, vendor, etc.)
-4. **Test formatting on project markdown files:**
-   - Run `remark . -o --quiet`
-   - Verify `git diff` shows acceptable changes
-   - Ensure no corruption of nested code blocks, YAML frontmatter, inline code
-5. **Update justfile** (if dprint used there)
-6. **Optional: Remove dprint** (if present and no longer needed)
-7. **Commit migration** with clear commit message
+**Behavior:**
+- Read runbook step from step file
+- Invoke runbook-specific agent with step reference
+- On success: Continue to next step
+- On simple error: Delegate to sonnet for diagnostic/fix
+- On complex error: Abort, provide context, request opus runbook update
 
-**Reference documents:**
-- `plans/formatter-comparison.md` - Full analysis and migration path
-- `tmp/.remarkrc.json` - Example config (tested)
-- `tmp/test-remark.md` - Formatted test corpus
+**Key characteristic:** Delegation-only, no judgment calls.
 
-**Key configuration (from comparison doc):**
-```json
-{
-  "settings": {
-    "bullet": "*",
-    "fence": "`",
-    "fences": true,
-    "rule": "*",
-    "emphasis": "*",
-    "strong": "*",
-    "incrementListMarker": true,
-    "listItemIndent": "one"
-  },
-  "plugins": [
-    "remark-gfm",
-    "remark-frontmatter",
-    "remark-preset-lint-consistent"
-  ]
-}
-```
+**Skill:** `/orchestrate` - Implements this pattern for prepared runbooks.
 
-**Critical verification steps:**
-- Check agents/*.md files preserve structure
-- Check AGENTS.md table formatting
-- Check nested code blocks in any docs
-- Verify YAML frontmatter unchanged (if any files have it)
+### Pattern: Quiet Execution
 
-**Previous work (archived):**
-- Bug #4: Inline Code Span Protection - Fixed and committed (482eacf) ✅
-- Bugs #1-#3: All fixed and verified ✅
+**Agents write detailed output to files, return only:**
+- Success: Filename
+- Failure: Error message + diagnostic info
 
----
+**Benefits:**
+- Orchestrator context stays lean
+- Detailed logs available for debugging
+- Token-efficient delegation
 
-## Recent Decisions
+## Design Decisions
 
-**2026-01-07: Markdown Formatter Selection**
-- **Decision:** Migrate to remark-cli for markdown formatting
-- **Rationale:**
-  - Prettier has documented idempotency bugs (empty sub-bullets, mid-word underscores, unstable lists)
-  - Prettier has YAML frontmatter issues (strips comments, wraps long lists incorrectly)
-  - markdownlint-cli2 is a linter, not a formatter
-  - remark-cli: 100% CommonMark compliant, idempotent, highly configurable
-- **Testing:** Both Prettier and remark-cli tested with comprehensive corpus, both passed
-- **Production concerns:** Prettier's known bugs in production scenarios outweigh test success
-- **Configuration:** 17+ formatting options in remark vs 2 in Prettier (better control)
-- **Next step:** Implement migration (tasks documented in Handoff section)
+### Pattern Validation Approach
 
-**2026-01-06: Inline Code Span Protection Strategy** (archived to Bug #4)
-- Protect only 1-2 backtick spans (`` `code` ``, ``` ``code`` ```)
-- Escape 3+ backtick spans (`````python`, treated as fence markers)
-- Rationale: Matches intent to escape potential fence markers while preserving actual inline code
+**Original scope:** 12 tasks, comprehensive documentation before validation.
 
-**2026-01-06: Bugs #1/#2/#3 Root Cause** (archived)
-- All three bugs caused by missing recursive parsing in `parse_segments()`
-- Solution: Recursive parsing for ```markdown blocks (lines 224-268)
+**Problems identified:**
+1. Circular dependency: Documenting patterns before validating
+2. No proof-of-concept or integration testing
+3. Scope unrealistic for single session
 
-**2026-01-13: Model Selection for Delegation**
-- **Decision:** Use haiku for execution tasks, opus only for architecture/planning
-- **Rationale:**
-  - Orchestrator made expensive mistake using opus for simple file operations
-  - Cost impact: Session cost $4.46+ due to wrong model selection
-  - Haiku is sufficient for straightforward execution tasks like file operations
-  - Opus should be reserved for complex planning and architectural decisions
-- **Implementation:** Update delegation principle in AGENTS.md to reflect this rule
+**Chosen approach (Option A - MVP):**
+- Validate pattern through implementation first
+- Document after validation (evidence-based)
+- Immediate value (working tools) vs. speculative documentation
+- Risk mitigation: Practice reveals issues before investment
 
----
+**Result:** Pattern validated successfully through Phase 1 and 2 implementation.
 
-## Blockers
+### Why Baseline Agent First
 
-**None currently.** Survey complete, ready for migration implementation.
+**Current Task tool behavior:**
+- Assumes large codebase → verbose search/analysis directives
+- Emphasizes thoroughness, exploration, detailed reporting
+- Includes emoji directives
+- Mixed execution + research responsibilities
+
+**Baseline agent modifications:**
+- Remove codebase size assumptions
+- Remove search/analyze/explore language (plan-time concerns)
+- Remove detailed report requirements
+- Remove emoji directive
+- Focus role: Execute steps, stop on missing info or unexpected results
+- Output: Brief report (success) or diagnostic info (error)
+
+**Usage:**
+- Baseline = reusable foundation
+- Specialization = append runbook context (runbook-specific agent)
+- Further specialization = append step reference (step execution)
+
+### Weak Orchestrator Validation
+
+**Testing hypothesis:**
+- Can haiku execute runbook steps reliably with runbook-specific agents?
+- Does error escalation pattern work (haiku → sonnet → opus)?
+- Is quiet execution + terse return sufficient for orchestration?
+
+**Validation approach:**
+- Implement pattern in `/orchestrate` skill
+- Test with real runbook execution
+- Capture lessons learned
+- Refine pattern based on results
+
+**Result:** Pattern works as designed. `/orchestrate` skill implements validated pattern.
+
+## Implementation Status
+
+**Completed Phases:**
+- ✅ Phase 1: Script implementation (`prepare-runbook.py`, `quiet-task.md`)
+- ✅ Phase 2: Skill creation (5 skills: `/design`, `/plan-adhoc`, `/orchestrate`, `/vet`, `/remember`)
+- ✅ Phase 3: Documentation (`WORKFLOW.md`, terminology updates)
+
+**Pending:**
+- Phase 4: Cleanup (archive obsolete scripts, update existing runbooks, terminology pass)
+
+**Deferred Work:**
+- Context monitoring skill (100k/125k thresholds)
+- Feature development workflow (TDD-focused, separate from oneshot)
+- Additional tooling (decision catalog, dependency analyzer)
+
+**Pattern Status:** Validated and production-ready. Documentation complete.
+
+## Source Materials
+
+**Current Task tool system prompt:** Extract from tool descriptions, basis for baseline agent.
+
+**Existing patterns:**
+- `/shelve` skill: Just implemented (progressive disclosure, template separation)
+- `/commit` skill: Example of proper Claude Code skill structure
+- `skills/skill-shelf.md`: Older pattern, reference only
+
+**Related projects:**
+- agent-core: `/Users/david/code/agent-core` (git submodule in claudeutils)
+- Target for pattern documentation and baseline agent

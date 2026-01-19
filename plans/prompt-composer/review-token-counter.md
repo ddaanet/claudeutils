@@ -650,4 +650,4 @@ def mock_token_counting(mocker):
 
 - Project config: `pyproject.toml`
 - Lock file: `uv.lock`
-- Documentation: `README.md`, `AGENTS.md`, etc.
+- Documentation: `README.md`, `CLAUDE.md`, etc.

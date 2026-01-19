@@ -241,7 +241,7 @@ steps.
 ## Documentation
 
 - `agents/context.md` - Current work context and handoff information
-- `AGENTS.md` - Project overview and coding standards
+- `CLAUDE.md` - Project overview and coding standards
 - `agents/design-decisions.md` - Architectural and implementation decisions
 - `agents/TEST_DATA.md` - Data types and sample entries
 - `agents/ROADMAP.md` - Future enhancement ideas

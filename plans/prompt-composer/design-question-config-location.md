@@ -49,7 +49,7 @@ agents/
 ├── role-remember.md
 ├── rules-commit.md      # Skills also in agents/
 ├── rules-handoff.md
-└── AGENTS.md
+└── CLAUDE.md
 ```
 
 ---
@@ -218,7 +218,7 @@ agents/
 ```
 .
 ├── agents/              # Agent instruction files
-│   ├── AGENTS.md
+│   ├── CLAUDE.md
 │   ├── design-decisions.md
 │   ├── role-*.md
 │   └── rules-*.md

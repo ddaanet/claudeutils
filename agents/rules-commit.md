@@ -12,7 +12,7 @@ instead.
 
 **If not already loaded, read this file using the Read tool:**
 
-1. `AGENTS.md` - Project overview and user preferences
+1. `CLAUDE.md` - Project overview and user preferences
 
 ⚠️ **Do not proceed until this file is in context.**
 

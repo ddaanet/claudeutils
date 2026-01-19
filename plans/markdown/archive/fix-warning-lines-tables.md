@@ -570,7 +570,7 @@ Root cause analysis reveals one critical segment parser bug.
 1. Run unit tests: `just test tests/test_markdown.py`
 2. Run formatter: `just format`
 3. Check diff: `git diff` (should be minimal/none)
-4. Spot check: AGENTS.md, START.md, session.md remain clean
+4. Spot check: CLAUDE.md, START.md, session.md remain clean
 
 ## Phase 9: Fix Incorrect Backtick Escaping in Documentation
 
@@ -791,7 +791,7 @@ After implementing fixes:
 
 1. **Revert corrupted files:**
    ```bash
-   git checkout HEAD -- AGENTS.md START.md session.md agents/modules/MODULE_INVENTORY.md
+   git checkout HEAD -- CLAUDE.md START.md session.md agents/modules/MODULE_INVENTORY.md
    ```
 
 2. **Run formatter:**
@@ -817,7 +817,7 @@ After implementing fixes:
 
 Running `just format` before fixes affected 27 files:
 
-- AGENTS.md
+- CLAUDE.md
 - START.md
 - session.md
 - agents/modules/MODULE_INVENTORY.md

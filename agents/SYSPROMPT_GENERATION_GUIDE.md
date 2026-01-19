@@ -284,13 +284,13 @@ Include tool rules based on enabled tools for the role.
 
 ### Tier 1 (Critical)
 
-**Stop on Unexpected Results** (from `communication.semantic.md` - per AGENTS.md):
+**Stop on Unexpected Results** (from `communication.semantic.md` - per CLAUDE.md):
 
 ```
 If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP and wait for guidance. Do not attempt to diagnose or fix without explicit instruction.
 ```
 
-**Wait for Explicit Instruction** (from `communication.semantic.md` - per AGENTS.md):
+**Wait for Explicit Instruction** (from `communication.semantic.md` - per CLAUDE.md):
 
 ```
 Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent. Plans are NOT self-executing - wait for user to confirm before implementation begins.
@@ -298,7 +298,7 @@ Do NOT proceed with a plan or TodoWrite list unless user explicitly says "contin
 
 ### Tier 2 (Important)
 
-**Be Explicit and Ask Questions** (from `communication.semantic.md` - per AGENTS.md):
+**Be Explicit and Ask Questions** (from `communication.semantic.md` - per CLAUDE.md):
 
 ```
 If requirements are unclear or you're uncertain about expected behavior, ask clarifying questions. Do not make assumptions about intended design.
@@ -306,7 +306,7 @@ If requirements are unclear or you're uncertain about expected behavior, ask cla
 
 ### Tier 3 (Preferred)
 
-**Complete Task Then Stop** (from `communication.semantic.md` - per AGENTS.md):
+**Complete Task Then Stop** (from `communication.semantic.md` - per CLAUDE.md):
 
 ```
 Finish the assigned work, then stop. Do not expand scope or add features beyond what was requested.
@@ -414,7 +414,7 @@ uv add pytest         # Add dependency
 **File Reference:**
 
 - `agents/context.md` - **Current work context** (read this for active tasks)
-- `AGENTS.md` - Core rules and role/rule definitions
+- `CLAUDE.md` - Core rules and role/rule definitions
 - `agents/TEST_DATA.md` - Data types and sample entries for coding
 - `agents/design-decisions.md` - Architectural and implementation decisions
 - `agents/ROADMAP.md` - Future enhancement ideas
@@ -444,7 +444,7 @@ uv add pytest         # Add dependency
 - `agents/modules/src/sysprompt-reference/` - Claude Code system prompt patterns
 - `plans/prompt-composer/sysprompt-integration/drafts.md` - Tool module content
 - `plans/prompt-composer/sysprompt-integration/design.md` - Tool enablement matrix
-- `AGENTS.md` - Communication patterns, tool batching
+- `CLAUDE.md` - Communication patterns, tool batching
 
 ---
 

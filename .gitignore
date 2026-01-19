@@ -1,8 +1,14 @@
-list/
-__pycache__/
-/tmp-*
-*.scratch.*
-/.vscode/
-/.envrc
+# Secrets
+/.env
+
+# Volatile work files
 /scratch/
 /tmp/
+
+# Python files
+__pycache__/
+list/
+
+# IDE cruft
+/.vscode/
+
