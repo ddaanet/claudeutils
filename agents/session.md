@@ -18,7 +18,10 @@
 
 ## Pending Tasks
 
-### TDD Integration Implementation
+### Immediate: Create Implementation Runbook
+- [ ] Run `/plan-adhoc` on `plans/tdd-integration/design.md`
+
+### TDD Integration Implementation (from runbook)
 - [ ] Write `agent-core/agents/tdd-workflow.md`
 - [ ] Write `agent-core/agents/tdd-task.md` (baseline template)
 - [ ] Move `claudeutils/agents/workflow.md` → `agent-core/agents/oneshot-workflow.md`
@@ -36,5 +39,4 @@
 ## Next Steps
 
 1. Start new session with sonnet
-2. Run `/plan-adhoc` on `plans/tdd-integration/design.md`
-3. Execute implementation runbook
+2. Type `#execute` → runs `/plan-adhoc` on `plans/tdd-integration/design.md`

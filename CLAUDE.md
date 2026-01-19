@@ -42,6 +42,14 @@
 
 ## Session Management
 
+### Execute Rule (#execute)
+
+When asked to "#execute" or "execute":
+1. Load session context (same as #load)
+2. Immediately perform the next pending task
+
+This is the primary command for continuing work across sessions.
+
 ### Load Rule (#load)
 
 When asked to "#load" or "load", read the session context files:
