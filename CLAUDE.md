@@ -2,7 +2,7 @@
 
 **Current work state:** Read `agents/context.md` for active tasks and decisions.
 **Architecture decisions:** See `agents/design-decisions.md` for technical rationale.
-**Workflow guide:** See `WORKFLOW.md` for oneshot workflow details.
+**Workflow guide:** See `agents/workflow.md` for oneshot workflow details.
 
 ---
 
