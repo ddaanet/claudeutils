@@ -177,4 +177,16 @@ Deferred work items and shelved context.
 
 ---
 
+### 2026-01-19 - TDD Integration Deferred Items
+
+**Context:** From TDD workflow integration design session
+
+- [ ] Project-specific test command configuration (currently hardcoded: `just test`, `just lint`, `just precommit`)
+- [ ] Add line limits to agent docs (when markdown processing fixed)
+- [ ] Documentation refactoring support (when docs exceed line limits)
+
+**Reference:** `plans/tdd-integration/design.md`
+
+---
+
 - [ ] (empty - items added as needed)

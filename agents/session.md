@@ -1,56 +1,40 @@
 # Session Handoff: 2026-01-19
 
-**Status:** Markdown branch - Ready to investigate and fix precommit checks
+**Status:** TDD integration design complete - ready for sonnet planning
 
 ## Completed This Session
 
-### Branch Operations
-- Switched to markdown branch
-- Merged unification into markdown (bringing all latest changes)
-- Archived oneshot workflow to `plans/archive/oneshot-workflow/`
-- Shelved unification Phase 3 work (incomplete, Phase 4 blocked)
+- Analyzed pytest-md skills vs agent-core skills
+- Designed TDD workflow integration (Option A: TDD as specialized workflow)
+- Wrote design document: `plans/tdd-integration/design.md`
 
-### Oneshot Workflow Completion
-- Wrote completion report: `plans/archive/oneshot-workflow/completion-report.md`
-- Updated design decisions: `agents/design-decisions.md`
-- Updated context.md: Now focused on markdown branch precommit fixes
-- Archived all oneshot work properly
+**Key design decisions:**
+- Merge /design and /plan-design (TDD mode support)
+- Merge /execute-tdd and /orchestrate (unified runbook execution)
+- TDD task agent as baseline template (not standalone)
+- Agent-per-cycle pattern with prepare-runbook.py integration
+- WIP commit + amend pattern for clean history
+- Separate workflow docs (oneshot + tdd)
 
 ## Pending Tasks
 
-### Immediate Priority: Fix Precommit Checks
-- [ ] Investigate precommit check failures
-- [ ] Identify specific issues
-- [ ] Fix issues
-- [ ] Validate precommit passes
-- [ ] Commit fixes
+### TDD Integration Implementation
+- [ ] Write `agent-core/agents/tdd-workflow.md`
+- [ ] Write `agent-core/agents/tdd-task.md` (baseline template)
+- [ ] Move `claudeutils/agents/workflow.md` → `agent-core/agents/oneshot-workflow.md`
+- [ ] Update `/design` skill with TDD mode
+- [ ] Update `/oneshot` skill with TDD methodology detection
+- [ ] Update `/orchestrate` skill with TDD runbook support
+- [ ] Update `prepare-runbook.py` for TDD cycle format
+- [ ] Create `/plan-tdd` skill
+- [ ] pytest-md integration: submodule + sync + remove project skills
 
-### After Precommit Fixed
-- [ ] Return to unification branch
-- [ ] Execute Phase 4 (implement composition module and CLI)
-
-## Blockers / Gotchas
-
-**Precommit status unknown** - Need to run precommit and diagnose failures
+### After TDD Integration
+- [ ] Fix precommit checks in markdown branch
+- [ ] Return to unification branch for Phase 4
 
 ## Next Steps
 
-1. Check for existing markdown branch context/notes
-2. Run precommit to see what's failing
-3. Fix issues systematically
-4. Validate fixes work
-5. Commit and return to unification branch
-
-## Key Context
-
-**Working branch:** markdown
-**Main blocker:** Precommit checks (type, format, lint, or test failures)
-
-**Unification Work (Blocked):**
-- Phase 3 complete: Design ready at `scratch/consolidation/design/compose-api.md`
-- Phase 4 blocked: Cannot implement until precommit passes
-- Shelved to: `agents/shelf/unification-phase3-session.md`
-
-**Recent Merge:**
-- Merged unification → markdown (127 files changed, 21,891 insertions)
-- All recent work (skills, agents, documentation) now in markdown branch
+1. Start new session with sonnet
+2. Run `/plan-adhoc` on `plans/tdd-integration/design.md`
+3. Execute implementation runbook
