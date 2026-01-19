@@ -2,6 +2,22 @@
 
 **Current work state:** Read `agents/context.md` for active tasks and decisions.
 **Architecture decisions:** See `agents/design-decisions.md` for technical rationale.
+**Workflow guide:** See `WORKFLOW.md` for oneshot workflow details.
+
+---
+
+## Terminology
+
+| Term | Definition |
+|------|------------|
+| **Job** | What the user wants to accomplish |
+| **Design** | Architectural specification from Opus design session |
+| **Phase** | Design-level segmentation for complex work |
+| **Runbook** | Step-by-step implementation instructions (previously called "plan") |
+| **Step** | Individual unit of work within a runbook |
+| **Runbook prep** | 4-point process: Evaluate, Metadata, Review, Split |
+
+**Note on directory naming:** The `plans/` directory is a historical convention and remains unchanged. It contains runbooks, step files, and execution artifacts.
 
 ---
 
@@ -33,6 +49,29 @@ When asked to "#load" or "load", read the session context files:
 - `agents/context.md` - Active multi-step task context (if exists)
 
 Do not search for these files; read them directly at these paths.
+
+**After reading session.md, continue work automatically:**
+
+1. **If in-progress task exists:**
+   - Report status to user: "Continuing [task description]"
+   - Resume work on that task
+
+2. **If no in-progress task, but pending tasks exist:**
+   - Take first pending task
+   - Mark as in-progress (update session.md)
+   - Report to user: "Starting next task: [task description]"
+   - Begin work
+
+3. **If no pending tasks:**
+   - Report status to user: "Session loaded. No pending tasks."
+   - Wait for instructions
+
+**Task status notation in session.md:**
+- `- [ ]` = Pending task
+- `- [x]` = Completed task
+- `- [>]` = In-progress task (optional, or use bold/italics)
+
+This enables seamless multi-session workflows with automatic continuation.
 
 ## Project Structure
 
@@ -78,7 +117,7 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 - Saves tokens and execution time
 - Reduces risk of misinterpretation
 
-**Reference:** See `/task-plan` skill Point 1 for detailed script evaluation guidance.
+**Reference:** See `/plan-adhoc` skill Point 1 for detailed script evaluation guidance.
 
 ### Model Selection for Delegation
 
@@ -96,14 +135,14 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **For execution tasks:**
 
-1. Specify output file path in task prompt (typically `plans/<plan-name>/reports/<report-name>.md`)
+1. Specify output file path in task prompt (typically `plans/<runbook-name>/reports/<report-name>.md`)
 2. Instruct agent to write detailed output to that file
 3. Agent returns only: filename (success) or error message (failure)
 4. Use second agent to read report and provide distilled summary to user
 
 **Goal:** Prevent orchestrator context pollution with verbose task output. Orchestrator sees only success/failure + summary, not full execution logs.
 
-**Note:** For plan execution, use `plans/*/reports/` directory. For ad-hoc work, use project-local `tmp/` (not system `/tmp/`). Report naming varies with delegation pattern.
+**Note:** For runbook execution, use `plans/*/reports/` directory. For ad-hoc work, use project-local `tmp/` (not system `/tmp/`). Report naming varies with delegation pattern.
 
 ### Commit Agent Delegation Pattern
 
