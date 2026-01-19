@@ -6,6 +6,65 @@ Deferred work items and shelved context.
 
 ## Backlog
 
+### 2026-01-19 - Convert agent-core to Claude Code Plugin
+
+**Priority:** High (after unification complete)
+
+**Context:**
+- Current: agent-core as git submodule with manual sync (`just sync-to-parent`)
+- Pain point: Manual sync required after every change, easy to forget
+- Solution: Convert to Claude Code plugin for auto-discovery
+
+**Benefits:**
+- ✅ No manual sync needed
+- ✅ Works across all projects simultaneously
+- ✅ Version management via plugin system
+- ✅ Single source of truth (no file duplication)
+- ✅ Portable paths via `${CLAUDE_PLUGIN_ROOT}`
+
+**Tasks:**
+- [ ] Complete unification work first (blocker)
+- [ ] Create `.claude-plugin/plugin.json` in agent-core
+- [ ] Create `agents/` directory in agent-core (currently missing)
+- [ ] Test plugin installation: `claude plugin install /Users/david/code/agent-core`
+- [ ] Update agent-core README with plugin usage
+- [ ] Optional: Remove submodule from claudeutils (or keep during transition)
+- [ ] Optional: Update justfile with plugin-focused tasks (bump-version, test-install)
+
+**Future Enhancement:**
+- Add Python tooling (pyproject.toml, src/, tests/) when complex transforms needed
+- Example: prepare-execution script for plan → execution artifacts
+
+**Reference:** Discussion on 2026-01-19 about plugin structure compatibility
+
+---
+
+### 2026-01-19 - Create handoff-discussion Skill
+
+**Priority:** Medium
+
+**Context:**
+- Need pattern for handing off complex design discussions to conversational opus
+- Current manual approach: Write comprehensive handoff to `agents/auto-agent-discussion.md`
+- Pattern should automate handoff document creation
+
+**Requirements:**
+- Template for discussion handoffs (problem, context files, questions, goals)
+- Progressive disclosure pattern (like shelve skill)
+- Include file references instead of repeating content
+- Should work for design exploration, architecture decisions, trade-off analysis
+
+**Tasks:**
+- [ ] Create skill structure: `skills/handoff-discussion/`
+- [ ] Write skill instructions in `SKILL.md`
+- [ ] Create discussion handoff template
+- [ ] Document when to use (design exploration, multi-option decisions)
+- [ ] Add to agent-core for reusability
+
+**Reference:** Created manual handoff on 2026-01-19 for plan-to-execution script design
+
+---
+
 ### 2026-01-18 - Session: unification
 
 **Branch:** unification
