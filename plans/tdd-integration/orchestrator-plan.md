@@ -1,14 +1,34 @@
 ## Orchestrator Instructions
 
-Execute steps sequentially using tdd-integration-task agent.
+**CRITICAL: Each step MUST be executed by a separate agent invocation.** Do not execute multiple steps in a single agent call.
+
+Use tdd-integration-task agent for all step executions.
 
 **Execution Order:**
 
-1. Execute steps 1-3 in parallel (independent file creation)
-2. Execute steps 4-5 in parallel after steps 1-3 complete (for reference consistency)
-3. Execute step 6 after steps 1-5 complete (creates planning request)
-4. Execute step 7 after step 6 completes (creates planning request)
-5. Execute step 8 (can proceed independently, not blocked by steps 6-7)
+**Phase 1 - Parallel execution (Steps 1-3):**
+- Launch 3 agents in parallel (single message with 3 Task tool calls):
+  - Agent 1: Execute Step 1 (create oneshot-workflow.md)
+  - Agent 2: Execute Step 2 (create tdd-workflow.md)
+  - Agent 3: Execute Step 3 (create tdd-task.md)
+- Wait for all 3 agents to complete before proceeding
+
+**Phase 2 - Parallel execution (Steps 4-5):**
+- Launch 2 agents in parallel (single message with 2 Task tool calls):
+  - Agent 4: Execute Step 4 (update /design skill)
+  - Agent 5: Execute Step 5 (update /oneshot skill)
+- Wait for both agents to complete before proceeding
+
+**Phase 3 - Sequential execution (Steps 6-8):**
+- Agent 6: Execute Step 6 (create planning request for prepare-runbook.py)
+- Agent 7: Execute Step 7 (create planning request for /plan-tdd) - after Step 6 completes
+- Agent 8: Execute Step 8 (pytest-md integration) - can run independently
+
+**Agent Invocation Pattern:**
+```
+For parallel steps: Single message with multiple Task tool calls
+For sequential steps: One Task tool call per message, wait for completion
+```
 
 **Error Handling:**
 

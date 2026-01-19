@@ -37,6 +37,7 @@
 - [ ] Test full TDD workflow with pytest-md
 
 ### After TDD Integration
+- [ ] Update /plan-adhoc and /plan-tdd skills to incorporate learnings from runbook execution
 - [ ] Fix precommit checks in markdown branch
 - [ ] Return to unification branch for Phase 4
 
