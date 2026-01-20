@@ -23,6 +23,25 @@
 
 ---
 
+## Documentation Structure
+
+**Progressive discovery:** Don't preload all documentation. Read specific guides only when needed.
+
+### Core Instructions
+- **CLAUDE.md** (this file) - Agent instructions, workflows, communication rules
+
+### Architecture & Design
+- **agents/design-decisions.md** - High-level architectural decisions and workflow patterns
+- **agents/implementation-notes.md** - Detailed implementation decisions (read when implementing similar features)
+- **agents/cli-design.md** - CLI patterns and conventions (read when adding/modifying commands)
+- **agents/test-strategy.md** - Testing conventions and patterns (read when writing tests)
+
+### Current Work
+- **agents/session.md** - Current session handoff context
+- **agents/context.md** - Active multi-step task context (if exists)
+
+---
+
 ## Terminology
 
 | Term | Definition |
