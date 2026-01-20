@@ -1,24 +1,32 @@
 # Session Handoff: 2026-01-20
 
-**Status:** Steps 6-7 complete. TDD support deployed (prepare-runbook.py + /plan-tdd skill). Ready for pytest-md integration (Step 8).
+**Status:** TDD integration complete. All 8 steps executed. Branch ready for merge into unification.
 
 ## Completed This Session
 
+**TDD Integration Runbook (all 8 steps):**
+- Steps 1-5: Core workflow files, skill updates (oneshot-workflow.md, tdd-workflow.md, tdd-task.md, /design, /oneshot)
 - Step 6: prepare-runbook.py TDD support (248 lines) - cycle extraction, validation, conditional baselines
 - Step 7: /plan-tdd skill (2,356 lines) - 5-phase TDD planning system with full documentation
-- Commits: agent-core `c525a1d`, claudeutils `92414b9`
+- Step 8: pytest-md integration - agent-core submodule added, old skills backed up and removed
+
+**Commits:**
+- agent-core: `c525a1d` (TDD workflow support)
+- claudeutils: `92414b9` (Steps 6-7), `e17f59e` (session handoff)
+- pytest-md: Submodule `742291c` (integrated agent-core)
 
 ## Pending Tasks
 
-- [ ] Step 8: pytest-md integration
-- [ ] Test full TDD workflow with pytest-md
-- [ ] Return to unification branch (Phase 4 blocked)
+- [ ] Merge tdd-integration branch into unification branch
+- [ ] Test full TDD workflow with pytest-md (optional validation)
+- [ ] Resume unification Phase 4: Composition module and CLI implementation
 
 ## Blockers / Gotchas
 
-- /plan-tdd skill is comprehensive but token-heavy (2,356 lines). Consider optimization if token usage becomes constraint during execution.
-- All infrastructure in place; ready for pytest-md integration testing.
+- /plan-tdd skill is comprehensive but token-heavy (2,356 lines). Consider optimization if token usage becomes constraint.
+- pytest-mdSync recipe not present in agent-core - skills/agents need manual installation or sync mechanism.
+- Working tree clean, no uncommitted changes.
 
 ## Next Steps
 
-Execute Step 8 runbook to integrate pytest-md framework into TDD workflow. After validation, return to unification branch for Phase 4 composition module work.
+Merge tdd-integration into unification branch, then resume Phase 4 composition work per `plans/unification/design.md`.
