@@ -15,7 +15,7 @@
 
 ### Immediate: Commit Changes
 - [x] Commit agent-core changes (new workflows, task agent, skill updates) - commit 27ebce3
-- [ ] Commit claudeutils changes (planning requests, integration metadata)
+- [x] Commit claudeutils changes (planning requests, integration metadata) - commit 03818ae
 
 ### Phase 2: Execute Planning Requests
 - [ ] Execute Step 6 planning request (prepare-runbook.py TDD support)
