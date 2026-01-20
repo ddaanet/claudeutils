@@ -1,39 +1,37 @@
 # Session Handoff: 2026-01-20
 
-**Status:** TDD integration runbook executed successfully. Planning requests created. Ready to commit changes and execute planning phases.
+**Status:** Step 6 planning complete (prepare-runbook.py TDD support). Runbook ready for execution. Step 7 planning next.
 
 ## Completed This Session
 
-- Executed TDD integration runbook (all 8 steps) via `/orchestrate`
-  - Phase 1 (parallel): Created oneshot-workflow.md, tdd-workflow.md, tdd-task.md in agent-core
-  - Phase 2 (parallel): Updated /design and /oneshot skills
-  - Phase 3 (sequential): Created planning requests (Steps 6-7), integrated pytest-md with agent-core submodule
-- All validation criteria met, no errors encountered
-- Artifacts ready in agent-core and claudeutils
+### TDD Integration Runbook (Steps 1-5)
+- Executed all 8 steps via `/orchestrate` (workflows, baselines, skills, planning requests)
+- All validation criteria met, artifacts committed
+- Commits: agent-core 27ebce3, claudeutils 03818ae
+
+### Step 6: prepare-runbook.py TDD Support Planning
+- Created 9-step runbook via `/plan-adhoc` 4-point process
+- Updated /plan-adhoc Point 3: use quiet-task + /vet delegation (not custom review)
+- Added Skill tool to quiet-task agent prolog (enable /vet invocation)
+- Created `agents/runbook-review-guide.md` (prevent false positives in reviews)
+- Review cycle: READY (0 critical, 0 major issues)
+- Generated execution artifacts: agent, 9 step files, orchestrator plan
+- Commits: agent-core e75f0be→85143b2, claudeutils 34d3223→627c5b5
 
 ## Pending Tasks
 
-### Immediate: Commit Changes
-- [x] Commit agent-core changes (new workflows, task agent, skill updates) - commit 27ebce3
-- [x] Commit claudeutils changes (planning requests, integration metadata) - commit 03818ae
-
-### Phase 2: Execute Planning Requests
-- [ ] Execute Step 6 planning request (prepare-runbook.py TDD support)
 - [ ] Execute Step 7 planning request (/plan-tdd skill creation)
-
-### Phase 3: Integration & Testing
+- [ ] Execute prepare-runbook-tdd runbook (via /orchestrate)
+- [ ] Execute /plan-tdd runbook (after created)
 - [ ] Test full TDD workflow with pytest-md
-- [ ] Verify /plan-tdd and prepare-runbook.py implementations
-- [ ] Update /plan-adhoc skill with TDD integration learnings
-
-### Phase 4: Branch Cleanup
-- [ ] Fix precommit checks in markdown branch if needed
 - [ ] Return to unification branch for Phase 4 work
 
 ## Blockers / Gotchas
 
-- None. All steps completed successfully. pytest-md submodule integration complete.
+- None. All steps successful.
+- **Pattern established:** quiet-task + /vet for runbook reviews (not custom review prompts)
+- **Layered context model:** Tool rules in baseline, not in steps (see runbook-review-guide.md)
 
 ## Next Steps
 
-Commit the changes to agent-core and claudeutils. Then execute the two planning requests in separate planning sessions.
+Execute Step 7 planning request to create /plan-tdd skill runbook. Use same pattern: /plan-adhoc with quiet-task + /vet review.
