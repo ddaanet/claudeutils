@@ -66,7 +66,6 @@ Do not search for these files; read them directly at these paths.
 
 2. **If no in-progress task, but pending tasks exist:**
    - Take first pending task
-   - Mark as in-progress (update session.md)
    - Report to user: "Starting next task: [task description]"
    - Begin work
 
