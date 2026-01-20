@@ -128,7 +128,7 @@ model: sonnet
 - Document includes function inventory with line numbers
 - Document includes integration points for 6 TDD requirements
 
-**Report Path**: `plans/prepare-runbook-tdd/reports/step-1-analysis.md`
+**Report Path**: `plans/prepare-runbook-tdd/reports/step-1-report.md`
 
 ---
 
@@ -186,7 +186,7 @@ model: sonnet
 - Document includes validation algorithm pseudocode
 - Document includes example data structures
 
-**Report Path**: `plans/prepare-runbook-tdd/reports/step-2-design.md`
+**Report Path**: `plans/prepare-runbook-tdd/reports/step-2-report.md`
 
 ---
 
@@ -524,11 +524,20 @@ model: sonnet
 
 **Objective**: Run modified `prepare-runbook.py` on existing TDD runbook and verify correct outputs.
 
-**Script Evaluation**: Small script (≤25 lines)
+**Script Evaluation**: Integration test (55 lines) - delegate to agent
 
 **Execution Model**: Sonnet
 
 **Implementation**:
+
+Create and execute integration test script with the following requirements:
+1. Run prepare-runbook.py on plans/tdd-integration/runbook.md
+2. Verify agent uses tdd-task.md baseline (grep check)
+3. Verify cycle files created, not step files (file count check)
+4. Verify orchestrator plan exists (file existence check)
+5. Exit with clear pass/fail status
+
+Reference script template:
 
 ```bash
 #!/usr/bin/env bash
