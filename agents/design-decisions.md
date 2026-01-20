@@ -46,7 +46,7 @@ Key architectural decisions made during project development.
 
 **Key Components:**
 - TDD workflow documentation (`agent-core/agents/tdd-workflow.md`)
-- TDD baseline agent (`agent-core/agents/tdd-baseline.md`)
+- TDD baseline agent (`agent-core/agents/tdd-task.md`)
 - `/plan-tdd` skill with 4-point preparation (Design, Phases, Model, Cycles)
 - Cycle-based runbooks supporting RED/GREEN/REFACTOR progression
 - TDD task agent pattern with cycle-aware instruction sets
