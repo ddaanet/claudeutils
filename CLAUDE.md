@@ -168,6 +168,8 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **Note:** For runbook execution, use `plans/*/reports/` directory. For ad-hoc work, use project-local `tmp/` (not system `/tmp/`). Report naming varies with delegation pattern.
 
+**Preferred agent:** Use `quiet-task` agent for execution tasks. It implements the quiet pattern by default (reports to files, terse returns). Avoid generic Task agents that return verbose output to orchestrator context.
+
 ### Commit Agent Delegation Pattern
 
 **Rule:** When delegating commits, orchestrator analyzes changes and drafts message, agent executes.
