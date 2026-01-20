@@ -153,6 +153,12 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **Critical:** Never use opus for straightforward execution tasks (file creation, edits, running commands). This wastes cost and time.
 
+### Pre-Delegation Checkpoint
+
+Before invoking Task tool, verify:
+- Model matches stated plan (haiku/sonnet/opus)
+- If changing model, state reason explicitly
+
 ### Quiet Execution Pattern
 
 **Rule:** Execution agents report to files, not to orchestrator context.
