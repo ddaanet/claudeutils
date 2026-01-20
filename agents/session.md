@@ -1,37 +1,34 @@
 # Session Handoff: 2026-01-20
 
-**Status:** Step 6 planning complete (prepare-runbook.py TDD support). Runbook ready for execution. Step 7 planning next.
+**Status:** Step 7 planning complete (/plan-tdd skill runbook). Ready for execution.
 
 ## Completed This Session
 
-### TDD Integration Runbook (Steps 1-5)
-- Executed all 8 steps via `/orchestrate` (workflows, baselines, skills, planning requests)
-- All validation criteria met, artifacts committed
-- Commits: agent-core 27ebce3, claudeutils 03818ae
+### TDD Integration Steps 1-6
+- Executed Steps 1-5 via `/orchestrate` (workflows, baselines, skills, planning requests)
+- Completed Step 6 planning (prepare-runbook.py TDD support) with 9-step runbook
+- All commits: agent-core 27ebce3→85143b2, claudeutils 03818ae→627c5b5
 
-### Step 6: prepare-runbook.py TDD Support Planning
+### Step 7: /plan-tdd Skill Planning
 - Created 9-step runbook via `/plan-adhoc` 4-point process
-- Updated /plan-adhoc Point 3: use quiet-task + /vet delegation (not custom review)
-- Added Skill tool to quiet-task agent prolog (enable /vet invocation)
-- Created `agents/runbook-review-guide.md` (prevent false positives in reviews)
-- Review cycle: READY (0 critical, 0 major issues)
-- Generated execution artifacts: agent, 9 step files, orchestrator plan
-- Commits: agent-core e75f0be→85143b2, claudeutils 34d3223→627c5b5
+- Review: READY (0 critical, 0 major, 3 minor issues - enhancements only)
+- Generated execution artifacts: plan-tdd-skill-task agent, 9 step files, orchestrator plan
+- Location: `plans/plan-tdd-skill/runbook.md`
 
 ## Pending Tasks
 
-- [ ] Execute Step 7 planning request (/plan-tdd skill creation)
-- [ ] Execute prepare-runbook-tdd runbook (via /orchestrate)
-- [ ] Execute /plan-tdd runbook (after created)
+- [ ] Execute prepare-runbook-tdd runbook (Step 6 implementation)
+- [ ] Execute plan-tdd-skill runbook (Step 7 implementation)
+- [ ] Execute Step 8 (pytest-md integration)
 - [ ] Test full TDD workflow with pytest-md
 - [ ] Return to unification branch for Phase 4 work
 
 ## Blockers / Gotchas
 
-- None. All steps successful.
-- **Pattern established:** quiet-task + /vet for runbook reviews (not custom review prompts)
-- **Layered context model:** Tool rules in baseline, not in steps (see runbook-review-guide.md)
+- None. All planning steps successful.
+- **Pattern validated:** /plan-adhoc with quiet-task + /vet for runbook reviews
+- **Execution order:** Step 6 (prepare-runbook.py) must execute before Step 7 (/plan-tdd skill)
 
 ## Next Steps
 
-Execute Step 7 planning request to create /plan-tdd skill runbook. Use same pattern: /plan-adhoc with quiet-task + /vet review.
+Execute Step 6 runbook (prepare-runbook-tdd) via `/orchestrate` to implement TDD cycle support in prepare-runbook.py, then execute Step 7 runbook (plan-tdd-skill).
