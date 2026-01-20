@@ -73,13 +73,6 @@ model: sonnet
 - Validate structure before generation
 - Report counts and paths in output
 
-**Tool Usage Reminder**:
-- Use **Read** instead of `cat`
-- Use **Edit** for file modifications
-- Use **Write** for new files
-- Use **Bash** only for running scripts
-- Use **Grep** for code searches
-
 ---
 
 ## Step 1: Analyze Current Implementation
