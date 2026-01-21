@@ -63,7 +63,7 @@
 2. **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
 3. **Be explicit** - Ask clarifying questions if requirements unclear
 4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
-5. **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly
+5. **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly. Use `/gitmoji` before `/commit` for emoji-prefixed messages
 6. **No estimates unless requested** - Do NOT make estimates, predictions, or extrapolations unless explicitly requested by the user. Report measured data only.
 
 ## Error Handling
