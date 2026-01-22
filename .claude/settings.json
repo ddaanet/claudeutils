@@ -1,31 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(just test:*)",
-      "Bash(git show:*)",
-      "Bash(git diff:*)",
-      "Bash(git commit:*)",
-      "Bash(git status:*)",
-      "Bash(just line-limits)",
+      "Bash(git:*)",
       "Bash(wc:*)",
-      "Bash(uv run claudeutils:*)"
+      "Bash(claudeutils:*)",
+      "Skill",
+      "WebSearch"
     ],
     "deny": [
-      "NotebookEdit"
+      "NotebookEdit",
+      "Bash(git push:*)"
     ]
   },
   "attribution": {
     "commit": "",
     "pr": ""
   },
-  "enabledPlugins": {
-    "superpowers@superpowers-marketplace": false,
-    "code-review@claude-plugins-official": false,
-    "commit-commands@claude-plugins-official": false,
-    "explanatory-output-style@claude-plugins-official": false,
-    "context7@claude-plugins-official": false,
-    "feature-dev@claude-plugins-official": false,
-    "hookify@claude-plugins-official": false
-  },
-  "plansDirectory": "plans/"
+  "plansDirectory": "plans/",
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  }
 }
