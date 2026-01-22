@@ -17,10 +17,6 @@ dev: format precommit
 precommit:
     #!/usr/bin/env bash -euo pipefail
     {{ _bash-defs }}
-    style_yellow
-    echo "⚠️  precommit is disabled"
-    style_normal
-    exit 0
     sync
     report "bare ignores" check_bare_ignores
     report "ruff" ruff check -q
