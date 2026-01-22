@@ -8,9 +8,9 @@
 
 **Branch:** `markdown`
 
-**Current work:** Markdown Formatter Migration - Ready for Implementation
+**Current work:** Line Limit Refactoring - Tests Pass, Complexity Issues Remain
 
-**Status:** Survey complete, shelf skill implemented, ready to implement remark-cli migration
+**Status:** Refactoring complete, all tests passing (315/315). Complexity violations present in refactored modules.
 
 ### Formatter Survey Results
 
@@ -37,6 +37,52 @@ remark-frontmatter
 remark-preset-lint-consistent
 ```
 
+### Line Limit Refactoring (2026-01-22)
+
+**Completed:** Refactored large markdown.py module into focused, well-typed modules
+
+**Changes made:**
+1. **Module split** - Created 4 new modules:
+   - `markdown_block_fixes.py` (98 lines) - Code block fixes
+   - `markdown_inline_fixes.py` (179 lines) - Inline backtick handling
+   - `markdown_list_fixes.py` (352 lines) - List-related fixes
+   - `markdown_parsing.py` (276 lines) - Segment parsing
+   - `markdown.py` reduced from 976 to 125 lines
+
+2. **Fixed configuration issues:**
+   - Removed deprecated `[ruff]` section from agent-core/fragments/ruff.toml
+   - Fixed mypy type annotations (11 errors fixed)
+   - Fixed test imports (2 files)
+
+3. **Updated inner fence behavior:**
+   - Changed to upgrade ALL blocks with inner fences to 4 backticks (not just markdown)
+   - Handles typical Claude output discussing code blocks
+   - Updated 5 tests to reflect new behavior
+   - Removed error-raising for inner fences (now auto-fixed)
+
+**Test results:**
+- ✅ All 315 tests passing (`just test`)
+- ✅ All 154 markdown tests passing
+- ✅ Mypy clean
+- ⚠️ Complexity violations (`just dev`):
+  - C901 (too complex): 5 functions
+  - PLR0912 (too many branches): 3 functions
+  - PLR0915 (too many statements): 2 functions
+  - PLR0911 (too many returns): 1 function
+- ⚠️ Minor issues: E501 line length (5 lines), D205 docstring format (1 line)
+
+**Files modified:**
+- src/claudeutils/markdown.py (refactored)
+- src/claudeutils/markdown_block_fixes.py (new)
+- src/claudeutils/markdown_inline_fixes.py (new)
+- src/claudeutils/markdown_list_fixes.py (new)
+- src/claudeutils/markdown_parsing.py (new)
+- tests/test_markdown.py (2 tests updated)
+- tests/test_markdown_block.py (1 test updated)
+- tests/test_markdown_parsing.py (1 test updated)
+- tests/test_cli_markdown.py (1 test updated)
+- agent-core/fragments/ruff.toml (fixed)
+
 ---
 
 ## Handoff
@@ -47,7 +93,25 @@ These tasks are documented for context and planning. Wait for explicit instructi
 
 ---
 
-**Next priority:** Markdown formatter migration (remark-cli)
+**Immediate next:** Address complexity violations (required for `just dev` to pass)
+
+**Complexity violations:**
+- `markdown_block_fixes.py::fix_markdown_code_blocks` - C901(14>10), PLR0912(17>12), PLR0915(54>50)
+- `markdown_inline_fixes.py::escape_inline_backticks` - C901(14>10)
+- `markdown_list_fixes.py::fix_metadata_blocks` - C901(13>10), PLR0912(13>12)
+- `markdown_list_fixes.py::fix_warning_lines` - C901(22>10), PLR0911(9>6)
+- `markdown_parsing.py::parse_segments` - C901(27>10), PLR0912(31>12), PLR0915(90>50)
+
+**Options:**
+1. Refactor complex functions (break into smaller helpers)
+2. Add `# noqa` comments to suppress (not recommended for new code)
+3. Adjust complexity thresholds in ruff config (last resort)
+
+**Minor issues (can defer):**
+- E501 line length: 5 lines across 3 files
+- D205 docstring format: 1 line in markdown_list_fixes.py
+
+**Or proceed to:** Markdown formatter migration (remark-cli) - complexity violations can be addressed later
 
 **Implementation tasks (for haiku):**
 

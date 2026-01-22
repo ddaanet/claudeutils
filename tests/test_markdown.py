@@ -225,7 +225,7 @@ def test_fix_markdown_code_blocks_no_change_without_inner_fence() -> None:
 
 
 def test_fix_markdown_code_blocks_passes_through_inner_fence_in_python() -> None:
-    """Test: ```python block with inner fence is passed through unchanged."""
+    """Test: ```python block with inner fence is upgraded to 4 backticks."""
     input_lines = [
         "```python\n",
         "def foo():\n",
@@ -237,7 +237,17 @@ def test_fix_markdown_code_blocks_passes_through_inner_fence_in_python() -> None
         '    """\n',
         "```\n",
     ]
-    expected = input_lines.copy()
+    expected = [
+        "````python\n",
+        "def foo():\n",
+        '    """\n',
+        "    Example:\n",
+        "    ```\n",
+        "    code\n",
+        "    ```\n",
+        '    """\n',
+        "````\n",
+    ]
     assert fix_markdown_code_blocks(input_lines) == expected
 
 
@@ -746,10 +756,10 @@ def test_fix_backtick_spaces_via_segment_processing() -> None:
 
 
 def test_inner_fence_in_python_block_passed_through() -> None:
-    """Test 18: Inner fence in non-markdown block is passed through.
+    """Test 18: Inner fence in non-markdown block is upgraded to 4 backticks.
 
-    Verify that `process_lines` passes through inner fences in non-markdown
-    blocks unchanged. Inline backtick escaping handles fence markers in text.
+    Verify that `process_lines` fixes inner fences in non-markdown blocks
+    by upgrading to 4 backticks (typical Claude output discussing code blocks).
     """
     input_lines = [
         "```python\n",
@@ -762,7 +772,17 @@ def test_inner_fence_in_python_block_passed_through() -> None:
         '    """\n',
         "```\n",
     ]
-    expected = input_lines.copy()
+    expected = [
+        "````python\n",
+        "def foo():\n",
+        '    """\n',
+        "    Example:\n",
+        "    ```\n",
+        "    code\n",
+        "    ```\n",
+        '    """\n',
+        "````\n",
+    ]
     result = process_lines(input_lines)
     assert result == expected
 

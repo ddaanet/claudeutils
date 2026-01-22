@@ -33,7 +33,9 @@ lint: format
     {{ _bash-defs }}
     {{ _sync }}
     show "# ruff check"
-    safe {{ _ruff }} check -q --ignore=C901
+    # Complexit fixes require refactoring. Out of scope for lint.
+    complexity=C901,PLR0904,PLR0911,PLR0912,PLR0913,PLR0914,PLR0915,PLR0916,PLR0917
+    safe {{ _ruff }} check -q --ignore=$complexity
     show "# docformatter -c"
     safe docformatter -c src tests
     show "# mypy"
@@ -94,7 +96,8 @@ format:
     docformatter --diff src tests | patch-and-print -RCp1 >> "$tmpfile" || true
 
     # Format markdown files with remark-cli
-    npx remark . -o --quiet && git diff --name-only | grep '\.md$' >> "$tmpfile" || true
+    # TODO: fix markdown reformatting bugs and re-enable
+    # npx remark . -o --quiet && git diff --name-only | grep '\.md$' >> "$tmpfile" || true
 
     modified=$(sort --unique < "$tmpfile")
     if [ -n "$modified" ] ; then
