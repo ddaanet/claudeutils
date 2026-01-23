@@ -89,8 +89,8 @@ This is the primary command for continuing work across sessions.
 ### Load Rule (#load)
 
 When asked to "#load" or "load", read the session context files:
-- `agents/session.md` - Current work state, handoff context, decisions, blockers
 - `agents/context.md` - Active multi-step task context (if exists)
+- `agents/session.md` - Current work state, handoff context, decisions, blockers
 
 Do not search for these files; read them directly at these paths.
 
