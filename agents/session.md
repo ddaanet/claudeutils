@@ -1,46 +1,56 @@
 # Session Handoff: 2026-01-23
 
-**Status:** Test refactor complete and committed
+**Status:** Merging tdd-integration into unification
 
 ## Completed This Session
-- Created runbook for test file refactoring (test_markdown*.py line limit violations)
-- Completed 4-point planning process: evaluation, metadata, review (2 rounds), artifact preparation
-- Fixed critical issues: corrected test counts (154 total), acknowledged existing split files, fixed temp paths
-- Prepared execution artifacts: agent, 5 step files, orchestrator plan in plans/test-refactor/
-- Executed full test refactor runbook: 5 steps completed
-- Vet review: All 77 tests passing, all files under 400-line limit
-- Committed changes: hash 5507b68 - "♻️ Refactor monolithic test_markdown.py into split modules"
-- Merge pending: markdown → unification branch with --no-ff
+
+**Plans cleanup (unification branch):**
+- Committed CLAUDE.md documentation streamline (f178e8c)
+- Moved scratch/consolidation to plans/unification/consolidation (e3d4e44)
+- Cleaned up plans directory: removed 26 completed/archived files (51bdfb0)
+- Extracted formatter decision to agents/design-decisions.md
+- Created comprehensive plans/README.md index
+- **In progress:** Resolving tdd-integration merge conflicts
+
+**From tdd-integration branch:**
+- TDD Integration Runbook: All 8 steps complete
+  - Steps 1-5: Core workflow files, skill updates
+  - Step 6: prepare-runbook.py TDD support (248 lines)
+  - Step 7: /plan-tdd skill (2,356 lines)
+  - Step 8: pytest-md integration with agent-core submodule
+- /vet review: All validated, ready for merge
+- Commits: agent-core c525a1d, claudeutils 92414b9/e17f59e/ccba93b
+
+**From markdown → unification merge:**
+- Test refactor complete: All 77 tests passing, line limits fixed
+- Deleted monolithic test_markdown.py (1,256 lines)
+- Redistributed tests across domain modules
+- Committed 5507b68, merged cb3824f
 
 ## Key Results
-✓ test_markdown.py deleted (1,256 lines → 0)
-✓ test_markdown_parsing.py shrunk (501 → 304 lines)
-✓ test_markdown_inline.py: 385 lines
-✓ test_markdown_list.py: 341 lines
-✓ All 77 tests passing
-✓ Line limit violations fixed
+
+✓ TDD workflow complete and production-ready
+✓ Test refactoring complete (all tests passing)
+✓ Plans directory cleaned and organized
+✓ Consolidation design work properly located
 
 ## Pending Tasks
-- Complete merge and skill migration
-- Execute Phase 4 (implement composition module and CLI)
-- Continue with Phase 5+ planning or execution
-- Prompt-composer framework merge (blocked by markdown job completion)
+
+- [ ] Complete tdd-integration merge (resolving conflicts now)
+  - [x] .claude/settings.json - resolved
+  - [x] CLAUDE.md - resolved
+  - [x] agents/context.md - removed (renamed to session.md)
+  - [x] agents/design-decisions.md - merged
+  - [ ] agents/session.md - resolving now
+- [ ] Commit merge with informative message
+- [ ] Resume unification Phase 4: Composition module and CLI implementation
 
 ## Blockers / Gotchas
-None
+
+None. Merge conflicts are standard (settings, documentation, session state).
 
 ## Next Steps
-After merge complete: Phase 4 is ready to execute. Design is complete with all 3 major sections documented. Next agent should review compose-api.md and begin implementation of core module, CLI, and YAML validation.
 
-## Key Context
-
-**Working branch:** unification
-
-**Phase 3 Output (COMPLETE):**
-- Feature extraction: `scratch/consolidation/design/feature-extraction.md` (13K)
-- Core module design: `scratch/consolidation/design/core-module-design.md` (23K)
-- CLI design: `scratch/consolidation/design/cli-design.md` (24K)
-- YAML schema: `scratch/consolidation/design/yaml-schema.md` (21K)
-- **Final deliverable:** `scratch/consolidation/design/compose-api.md` (34K, ready for Phase 4)
-
-**Unification project:** `plans/unification/design.md`
+1. Complete merge commit with summary of integrated work
+2. Resume Phase 4 per `plans/unification/design.md`
+3. Phase 4 ready: compose-api.md (34K) complete with full design
