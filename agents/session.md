@@ -1,18 +1,19 @@
 # Session Handoff: 2026-01-23
 
-**Status:** All checks passing (315/315 tests, ruff clean)
+**Status:** Test refactor runbook ready for execution
 
 ## Completed This Session
-- Fixed D205/E501 linting violations by shortening docstring summaries
-- Added docformatter vs ruff D205 conflict documentation to design-decisions.md
-- Added D205 detection hint to justfile check recipe
-- All tests passing (315/315), all checks clean
+- Created runbook for test file refactoring (test_markdown*.py line limit violations)
+- Completed 4-point planning process: evaluation, metadata, review (2 rounds), artifact preparation
+- Fixed critical issues: corrected test counts (154 total), acknowledged existing split files, fixed temp paths
+- Prepared execution artifacts: agent, 5 step files, orchestrator plan in plans/test-refactor/
 
 ## Pending Tasks
-None - all linting issues resolved.
+- Execute test refactor runbook to fix line limit violations (test_markdown_parsing.py: 501 lines, test_markdown.py: 1256 lines)
 
 ## Blockers
 None.
 
 ## Next Steps
-Option: Proceed with markdown formatter migration (remark-cli) - implementation tasks in context.md.
+Use `/orchestrate` to execute the runbook at plans/test-refactor/runbook.md, or run steps manually via step files.
+Strategy: Redistribute test_markdown.py tests to existing split files (block/core/inline/list/parsing), then delete test_markdown.py.
