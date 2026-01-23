@@ -312,3 +312,74 @@ def test_escape_inline_backticks_preserves_one_four_one_with_spaces() -> None:
     result = escape_inline_backticks(input_lines)
     # Single-backtick span with spaces - should be preserved
     assert result == ["Use ` ```` ` for blocks\n"]
+
+
+def test_integration_python_fence_protection() -> None:
+    """Integration: Content in ```python fences is protected."""
+    input_lines = [
+        "Here is ```python code:\n",
+        "\n",
+        "```python\n",
+        "✅ Task 1\n",
+        "✅ Task 2\n",
+        "```\n",
+        "\n",
+        "After the fence.\n",
+    ]
+    result = process_lines(input_lines)
+    # Python fence content should NOT be converted to list items
+    assert result[3] == "✅ Task 1\n"
+    assert result[4] == "✅ Task 2\n"
+
+
+def test_integration_yaml_fence_protection() -> None:
+    """Integration: Content in ```yaml fences is protected."""
+    input_lines = [
+        "Configuration:\n",
+        "\n",
+        "```yaml\n",
+        "✅ Check: true\n",
+        "❌ Status: false\n",
+        "```\n",
+        "\n",
+        "End of config.\n",
+    ]
+    result = process_lines(input_lines)
+    # YAML fence content should NOT be converted to list items
+    assert result[3] == "✅ Check: true\n"
+    assert result[4] == "❌ Status: false\n"
+
+
+def test_integration_markdown_fence_processing() -> None:
+    """Integration: Content in ```markdown fences IS processed (intentional).
+
+    Markdown blocks are processable=True to allow formatting doc examples.
+    """
+    input_lines = [
+        "Example markdown:\n",
+        "\n",
+        "```markdown\n",
+        "**File:** role.md\n",
+        "**Model:** Sonnet\n",
+        "```\n",
+    ]
+    result = process_lines(input_lines)
+    # Markdown fence content IS processed (intentional - for doc examples)
+    assert result[3] == "- **File:** role.md\n"
+    assert result[4] == "- **Model:** Sonnet\n"
+
+
+def test_integration_bare_fence_protection() -> None:
+    """Integration: Content in bare ``` fences is protected."""
+    input_lines = [
+        "Some code:\n",
+        "\n",
+        "```\n",
+        "✅ Task 1\n",
+        "✅ Task 2\n",
+        "```\n",
+    ]
+    result = process_lines(input_lines)
+    # Bare fence content should NOT be converted to list items
+    assert result[3] == "✅ Task 1\n"
+    assert result[4] == "✅ Task 2\n"
