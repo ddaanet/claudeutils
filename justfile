@@ -1,103 +1,75 @@
-#!/usr/bin/env just --justfile
+# Justfile Rules:
+# - Errors should not pass silently without good reason
+# - Only use `2>/dev/null` for probing (checking exit status when command has no quiet option)
+# - Only use `|| true` to continue after expected failures (required with `set -e`)
+# Enable bash tracing (set -x) for all recipes. Usage: just trace=true <recipe>
 
-# Use direct venv binaries when in Claude Code sandbox (uv run crashes on system config
-# access)
+trace := "false"
 
-[private]
-sandboxed := shell('[ -w /tmp ] && echo "0" || echo "1"')
-_sync := if sandboxed == "1" { '' } else { 'uv sync -q' }
-_pytest := if sandboxed == "1" { '.venv/bin/pytest' } else { "uv run pytest" }
-_ruff := if sandboxed == "1" { '.venv/bin/ruff' } else { "uv run ruff" }
-_mypy := if sandboxed == "1" { '.venv/bin/mypy' } else { "uv run mypy" }
-_claudeutils := if sandboxed == "1" { '.venv/bin/claudeutils' } else { "uv run claudeutils" }
-
+# List available recipes
 help:
-    just --list --unsorted
+    @just --list --unsorted
 
-# Run all checks (format, check, test, line-limits)
+# Format and run all checks
 [no-exit-message]
-dev: format check test line-limits
+dev: format precommit
 
-# Run tests
+# Run all checks
+[no-exit-message]
+precommit:
+    #!{{ bash_prolog }}
+    sync
+    run-checks
+    safe pytest-quiet
+    run-line-limits
+    report-end-safe "Precommit"
+
+# Run test suite
 [no-exit-message]
 test *ARGS:
-    #!/usr/bin/env bash -euo pipefail
-    {{ _bash-defs }}
-    {{ _sync }}
-    {{ _pytest }} {{ ARGS }}
-
-# Format, check with complexity disabled, test
-[no-exit-message]
-lint: format
-    #!/usr/bin/env bash -euo pipefail
-    {{ _bash-defs }}
-    {{ _sync }}
-    show "# ruff check"
-    # Complexit fixes require refactoring. Out of scope for lint.
-    complexity=C901,PLR0904,PLR0911,PLR0912,PLR0913,PLR0914,PLR0915,PLR0916,PLR0917
-    safe {{ _ruff }} check -q --ignore=$complexity
-    show "# docformatter -c"
-    safe docformatter -c src tests
-    show "# mypy"
-    safe {{ _mypy }}
-    show "# pytest"
-    safe {{ _pytest }} -q
-    end-safe
-
-# Check code style
-[no-exit-message]
-check:
-    #!/usr/bin/env bash -euo pipefail
-    {{ _bash-defs }}
-    {{ _sync }}
-    show "# ruff check"
-    ruff_output=$({{ _ruff }} check -q 2>&1 || true)
-    echo "$ruff_output"
-    if echo "$ruff_output" | grep -q D205; then
-        echo ""
-        echo "Note: D205 violations often occur when docformatter wraps docstring"
-        echo "summaries to fit 80-char limit. See:"
-        echo "  agents/design-decisions.md: Docformatter vs. Ruff D205 Conflict"
-    fi
-    safe [ -z "$ruff_output" ]
-    show "# docformatter -c"
-    safe docformatter -c src tests 2>&1
-    show "# mypy"
-    safe {{ _mypy }}
-    end-safe
+    #!{{ bash_prolog }}
+    sync
+    pytest {{ ARGS }}
+    report-end-safe "Tests"
 
 # Check file line limits
 [no-exit-message]
 line-limits:
-    ./scripts/check_line_limits.sh
+    #!{{ bash_prolog }}
+    sync
+    run-line-limits
+    report-end-safe "Line limits"
 
-# Role: code - verify tests pass
-[group('roles')]
+# Format, check with complexity disabled, test
 [no-exit-message]
-role-code *ARGS: (test ARGS)
+lint: format
+    #!{{ bash_prolog }}
+    sync
+    ruff_ignores=C901,PLR0904,PLR0911,PLR0912,PLR0913,PLR0914,PLR0915,PLR0916,PLR0917,PLR1701,PLR1702
+    report "ruff check" ruff check -q --ignore=$ruff_ignores
+    report "docformatter -c" docformatter -c src tests
+    report "mypy" mypy
+    safe pytest-quiet
+    report-end-safe "Lint"
 
-# Role: lint - format and verify all checks pass (no complexity)
-[group('roles')]
+# Check code style
 [no-exit-message]
-role-lint: lint
-
-# Role: refactor - full development cycle
-[group('roles')]
-[no-exit-message]
-role-refactor: dev
+check:
+    #!{{ bash_prolog }}
+    sync
+    run-checks
+    report-end-safe "Checks"
 
 # Format code
 format:
-    #!/usr/bin/env bash -euo pipefail
-    {{ _bash-defs }}
-    {{ _sync }}
-    tmpfile=$(mktemp tmp-fmt-XXXXXX)
-    trap "rm $tmpfile" EXIT
+    #!{{ bash_prolog }}
+    sync
+    set-tmpfile
     patch-and-print() {
         patch "$@" | sed -Ene "/^patching file '/s/^[^']+'([^']+)'/\\1/p"
     }
-    {{ _ruff }} check -q --fix-only --diff | patch-and-print >> "$tmpfile" || true
-    {{ _ruff }} format -q --diff | patch-and-print >> "$tmpfile" || true
+    ruff check -q --fix-only --diff | patch-and-print >> "$tmpfile" || true
+    ruff format -q --diff | patch-and-print >> "$tmpfile" || true
     # docformatter --diff applies the change *and* outputs the diff, so we need to
     # reverse the patch (-R) and dry run (-C), and it prefixes the path with before and
     # after (-p1 ignores the first component of the path). Hence `patch -RCp1`.
@@ -116,53 +88,205 @@ format:
     fi
 
 # Create release: tag, build tarball, upload to PyPI and GitHub
-release bump='patch': _fail_if_claudecode dev
-    #!/usr/bin/env bash -euo pipefail
-    {{ _bash-defs }}
-    git diff --quiet HEAD || fail "Error: uncommitted changes"
-    release=$(uv version --bump {{ bump }} --dry-run)
-    while read -re -p "Release $release? [y/n] " answer; do
-        case "$answer" in
-            y|Y) break;;
-            n|N) exit 1;;
-            *) continue;;
+# Use --dry-run to perform local changes and verify external permissions without publishing
+
+# Use --rollback to revert local changes from a crashed dry-run
+[no-exit-message]
+release *ARGS: _fail_if_claudecode dev
+    #!{{ bash_prolog }}
+    DRY_RUN=false
+    ROLLBACK=false
+    BUMP=patch
+    # Parse flags and positional args
+    for arg in {{ ARGS }}; do
+        case "$arg" in
+            --dry-run) DRY_RUN=true ;;
+            --rollback) ROLLBACK=true ;;
+            --*) fail "Error: unknown option: $arg" ;;
+            *) [[ -n "${positional:-}" ]] && fail "Error: too many arguments"
+               positional=$arg ;;
         esac
     done
-    visible uv version --bump {{ bump }}
+    [[ -n "${positional:-}" ]] && BUMP=$positional
+
+    # Cleanup function: revert commit and remove build artifacts
+    cleanup_release() {
+        local initial_head=$1
+        local initial_branch=$2
+        local version=$3
+        visible git reset --hard "$initial_head"
+        if [[ -n "$initial_branch" ]]; then
+            visible git checkout "$initial_branch"
+        else
+            visible git checkout "$initial_head"
+        fi
+
+        # Remove only this version's build artifacts
+        if [[ -n "$version" ]] && [[ -d dist ]]; then
+            find dist -name "*${version}*" -delete
+            [[ -d dist ]] && [[ -z "$(ls -A dist)" ]] && visible rmdir dist
+        fi
+    }
+
+    # Rollback mode
+    if [[ "$ROLLBACK" == "true" ]]; then
+        # Check if there's a release commit at HEAD
+        if git log -1 --format=%s | grep -q "🔖 Release"; then
+            # Verify no permanent changes (commit not pushed to remote)
+            # Skip check if HEAD is detached or has no upstream
+            if git symbolic-ref -q HEAD >/dev/null && git rev-parse --abbrev-ref @{u} >/dev/null 2>&1; then
+                # We're on a branch with upstream - check if release commit is unpushed
+                if ! git log @{u}.. --oneline | grep -q "🔖 Release"; then
+                    fail "Error: release commit already pushed to remote"
+                fi
+            fi
+
+            version=$(git log -1 --format=%s | grep -oP '(?<=Release ).*')
+            current_branch=$(git symbolic-ref -q --short HEAD || echo "")
+            cleanup_release "HEAD~1" "$current_branch" "$version"
+            echo "${GREEN}✓${NORMAL} Rollback complete"
+        else
+            fail "No release commit found"
+        fi
+        exit 0
+    fi
+
+    # Check preconditions
+    git diff --quiet HEAD || fail "Error: uncommitted changes"
+    current_branch=$(git symbolic-ref -q --short HEAD || echo "")
+    [[ -z "$current_branch" ]] && fail "Error: not on a branch (HEAD is detached)"
+    main_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
+    [[ "$current_branch" != "$main_branch" ]] && fail "Error: must be on $main_branch branch (currently on $current_branch)"
+    release=$(uv version --bump "$BUMP" --dry-run)
+    tag="v$(echo "$release" | awk '{print $NF}')"
+    git rev-parse "$tag" >/dev/null 2>&1 && fail "Error: tag $tag already exists"
+
+    # Interactive confirmation (skip in dry-run)
+    if [[ "$DRY_RUN" == "false" ]]; then
+        while read -re -p "Release $release? [y/n] " answer; do
+            case "$answer" in
+                y|Y) break;;
+                n|N) exit 1;;
+                *) continue;;
+            esac
+        done
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        INITIAL_HEAD=$(git rev-parse HEAD)
+        INITIAL_BRANCH=$(git symbolic-ref -q --short HEAD || echo "")
+        trap 'cleanup_release "$INITIAL_HEAD" "$INITIAL_BRANCH" "${version:-}"; exit 1' ERR EXIT
+    fi
+
+    # Perform local changes: version bump, commit, build
+    visible uv version --bump "$BUMP"
     version=$(uv version)
     git add pyproject.toml uv.lock
     visible git commit -m "🔖 Release $version"
-    visible git push
     tag="v$(uv version --short)"
-    git rev-parse "$tag" >/dev/null 2>&1 && fail "Error: tag $tag already exists"
+    visible uv build
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        # Verify external permissions
+        git push --dry-run || fail "Error: cannot push to git remote"
+        [[ -z "${UV_PUBLISH_TOKEN:-}" ]] && fail "Error: UV_PUBLISH_TOKEN not set. Get token from https://pypi.org/manage/account/token/"
+        uv publish --dry-run dist/* || fail "Error: cannot publish to PyPI"
+        gh auth status >/dev/null 2>&1 || fail "Error: not authenticated with GitHub"
+
+        echo ""
+        echo "${GREEN}✓${NORMAL} Dry-run complete: $version"
+        echo "  ${GREEN}✓${NORMAL} Git push permitted"
+        echo "  ${GREEN}✓${NORMAL} PyPI publish permitted"
+        echo "  ${GREEN}✓${NORMAL} GitHub release permitted"
+
+        # Normal cleanup
+        trap - ERR EXIT
+        cleanup_release "$INITIAL_HEAD" "$INITIAL_BRANCH" "$version"
+        echo ""
+        echo "Run: ${COMMAND}just release $BUMP${NORMAL}"
+        exit 0
+    fi
+
+    # Perform external actions
+    visible git push
     visible git tag -a "$tag" -m "Release $version"
     visible git push origin "$tag"
-    visible uv build
     visible uv publish
-    visible gh release create "$tag" --title "$version" \
-        --generate-notes
-    echo "${GREEN}Release $tag complete${NORMAL}"
+    visible gh release create "$tag" --title "$version" --generate-notes
+    echo "${GREEN}✓${NORMAL} Release $tag complete"
 
-# Bash definitions
+# Bash prolog
 [private]
-_bash-defs := '''
+bash_prolog := \
+    ( if trace == "true" { "/usr/bin/env bash -xeuo pipefail" } \
+    else { "/usr/bin/env bash -euo pipefail" } ) + "\n" + '''
 COMMAND="''' + style('command') + '''"
 ERROR="''' + style('error') + '''"
+RED=$'\033[31m'
 GREEN=$'\033[32m'
 NORMAL="''' + NORMAL + '''"
 safe () { "$@" || status=false; }
 end-safe () { ${status:-true}; }
 show () { echo "$COMMAND$*$NORMAL"; }
 visible () { show "$@"; "$@"; }
-fail () { echo "${ERROR}$*${NORMAL}" >&2; exit 1; }
+fail () { echo "${ERROR}$*${NORMAL}"; exit 1; }
+
+# Do not uv sync when in Claude Code sandbox
+sync() { test -w /tmp &&  uv sync -q "$@"; }
+set-tmpfile() {
+    if [[ ! -v tmpfile ]]; then
+        tmpfile=$(mktemp tmp/justfile-XXXXXX)
+        trap "rm $tmpfile" EXIT
+    fi
+}
+
+HEADER_STYLE=$'\033[1;36m'  # Bold cyan
+report () {
+    # Usage: report "header" command args
+    header=$1; shift
+    set-tmpfile
+    safe "$@" > "$tmpfile"
+    if [ -s "$tmpfile" ]; then
+        echo "${HEADER_STYLE}# $header${NORMAL}"
+        cat "$tmpfile"
+    fi
+}
+
+pytest-quiet () {
+    # Bug: pytest -q exits 0 even if tests fail
+    set-tmpfile
+    pytest -q > "$tmpfile"
+    if grep -q "^Re-run failed: " "$tmpfile"; then
+        show "# pytest"
+        cat "$tmpfile"
+        return 1
+    fi
+}
+
+run-checks() {
+    report "ruff check" ruff check -q
+    report "docformatter -c" docformatter -c src tests
+    report "mypy" mypy
+}
+
+run-line-limits() {
+    ./scripts/check_line_limits.sh
+}
+
+report-end-safe() {
+    if end-safe
+    then echo "${GREEN}✓$NORMAL $1 OK"
+    else echo "${RED}✗$NORMAL $1 failed"
+    fi
+    end-safe
+}
 '''
 
 # Fail if CLAUDECODE is set
 [no-exit-message]
 [private]
 _fail_if_claudecode:
-    #!/usr/bin/env bash -euo pipefail
-    if [ "${CLAUDECODE:-}" != "" ]; then
-        echo -e '{{ style("error") }}⛔️ Denied: Protected recipe{{ NORMAL }}'
-        exit 1
+    #!{{ bash_prolog }}
+    if [ "${CLAUDECODE:-}" != "" ]
+    then fail "⛔️ Denied: Protected recipe"
     fi
