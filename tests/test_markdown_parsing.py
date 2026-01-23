@@ -301,4 +301,3 @@ def test_prefix_detection_excludes_lowercase_colon_prefixes() -> None:
     expected = input_lines.copy()
     result = fix_warning_lines(input_lines)
     assert result == expected
-
