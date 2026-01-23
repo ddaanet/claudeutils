@@ -134,7 +134,7 @@ def _indent_following_lists(lines: list[str], start_idx: int, result: list[str])
 
 
 def fix_metadata_blocks(lines: list[str]) -> list[str]:
-    """Convert consecutive **Label:** lines to list items and indent following lists.
+    """Convert **Label:** lines to list items, indent following lists.
 
     Also indents any list items that follow the metadata block.
     """

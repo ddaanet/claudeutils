@@ -183,7 +183,7 @@ def test_fix_metadata_list_indentation_stops_at_non_list() -> None:
 
 
 def test_metadata_list_indentation_works_with_metadata_blocks() -> None:
-    """Test 2+ labels converted and following list indented, single label not."""
+    """Test labels converted, following list indented, single label not."""
     input_lines = [
         "**File:** `role.md`\n",
         "**Model:** Sonnet\n",

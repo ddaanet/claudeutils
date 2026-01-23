@@ -281,6 +281,37 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 ## Code Quality
 
+### Docformatter vs. Ruff D205 Conflict
+
+**Decision:** Accept docformatter wrapping as the source of D205 violations when docstring
+first line exceeds 80-char limit.
+
+**Issue:** When a docstring summary exceeds 80 characters, docformatter wraps the first
+line, which triggers ruff D205 (blank line required between summary and description).
+
+**Example:**
+```python
+# Original (E501 - line too long):
+"""Convert consecutive **Label:** lines to list items and indent following lists."""
+
+# Docformatter wraps first line to fit 80 chars:
+"""Convert consecutive **Label:** lines to list items and indent following
+lists.
+"""
+```
+
+This triggers ruff D205 because docformatter doesn't add the blank line that ruff
+expects after a multi-line summary.
+
+**Solution:** Shorten docstring summaries to fit within 80 characters (docformatter's
+wrap-summaries limit), preventing the wrap and avoiding the D205 violation.
+
+**Rationale:** docformatter handles docstring reformatting (which ruff doesn't do). The
+wrap-summaries setting exists for readability. The conflict is expected but surprising
+when the first line should be shortened.
+
+**Don't do:** Ignore D205 globally or disable docformatter.
+
 ### Complexity Management
 
 **Decision:** Extract helper functions when cyclomatic complexity exceeds limits

@@ -51,9 +51,17 @@ check:
     {{ _bash-defs }}
     {{ _sync }}
     show "# ruff check"
-    safe {{ _ruff }} check -q
+    ruff_output=$({{ _ruff }} check -q 2>&1 || true)
+    echo "$ruff_output"
+    if echo "$ruff_output" | grep -q D205; then
+        echo ""
+        echo "Note: D205 violations often occur when docformatter wraps docstring"
+        echo "summaries to fit 80-char limit. See:"
+        echo "  agents/design-decisions.md: Docformatter vs. Ruff D205 Conflict"
+    fi
+    safe [ -z "$ruff_output" ]
     show "# docformatter -c"
-    safe docformatter -c src tests
+    safe docformatter -c src tests 2>&1
     show "# mypy"
     safe {{ _mypy }}
     end-safe

@@ -1,14 +1,15 @@
 # Session Handoff: 2026-01-23
 
-**Status:** All linting violations resolved, all tests passing (91/91)
+**Status:** All checks passing (315/315 tests, ruff clean)
 
 ## Completed This Session
-- Fixed D205 docstring format in fix_metadata_blocks function
-- Fixed 2 E501 line length violations in tests
-- All tests passing (91/91), ruff checks clean
+- Fixed D205/E501 linting violations by shortening docstring summaries
+- Added docformatter vs ruff D205 conflict documentation to design-decisions.md
+- Added D205 detection hint to justfile check recipe
+- All tests passing (315/315), all checks clean
 
 ## Pending Tasks
-None - all minor linting issues resolved.
+None - all linting issues resolved.
 
 ## Blockers
 None.
