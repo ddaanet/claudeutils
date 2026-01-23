@@ -2,7 +2,43 @@
 
 **Current work state:** Read `agents/context.md` for active tasks and decisions.
 **Architecture decisions:** See `agents/design-decisions.md` for technical rationale.
-**Workflow guide:** See `agents/workflow.md` for oneshot workflow details.
+
+---
+
+## Workflow Selection
+
+**Entry point:** Use `/oneshot` skill for all one-off tasks. It auto-detects methodology.
+
+**TDD workflow** - Feature development with test-first methodology:
+- **Signals:** Test-first culture, user mentions "test/TDD/red-green", behavioral verification needed
+- **Route:** `/design` (TDD mode) → `/plan-tdd` → `/orchestrate` → `/vet` → `/review-analysis`
+- **Detailed guide:** `agent-core/agents/tdd-workflow.md` (read when executing TDD workflow)
+
+**Oneshot workflow** - General implementation tasks:
+- **Signals:** Infrastructure, refactoring, prototyping, migrations, default case
+- **Route:** `/design` → `/plan-adhoc` → `/orchestrate` → `/vet`
+- **Detailed guide:** `agent-core/agents/oneshot-workflow.md` (read when executing oneshot workflow)
+
+**Progressive discovery:** Don't preload all workflow documentation. Read detailed guides only when executing that specific workflow type. Use references as needed during execution.
+
+---
+
+## Documentation Structure
+
+**Progressive discovery:** Don't preload all documentation. Read specific guides only when needed.
+
+### Core Instructions
+- **CLAUDE.md** (this file) - Agent instructions, workflows, communication rules
+
+### Architecture & Design
+- **agents/design-decisions.md** - High-level architectural decisions and workflow patterns
+- **agents/implementation-notes.md** - Detailed implementation decisions (read when implementing similar features)
+- **agents/cli-design.md** - CLI patterns and conventions (read when adding/modifying commands)
+- **agents/test-strategy.md** - Testing conventions and patterns (read when writing tests)
+
+### Current Work
+- **agents/session.md** - Current session handoff context
+- **agents/context.md** - Active multi-step task context (if exists)
 
 ---
 
@@ -27,7 +63,7 @@
 2. **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
 3. **Be explicit** - Ask clarifying questions if requirements unclear
 4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
-5. **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly
+5. **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly. Use `/gitmoji` before `/commit` for emoji-prefixed messages
 6. **No estimates unless requested** - Do NOT make estimates, predictions, or extrapolations unless explicitly requested by the user. Report measured data only.
 
 ## Error Handling
@@ -42,11 +78,19 @@
 
 ## Session Management
 
+### Execute Rule (#execute)
+
+When asked to "#execute" or "execute":
+1. Load session context (same as #load)
+2. Immediately perform the next pending task
+
+This is the primary command for continuing work across sessions.
+
 ### Load Rule (#load)
 
 When asked to "#load" or "load", read the session context files:
-- `agents/session.md` - Current work state, handoff context, decisions, blockers
 - `agents/context.md` - Active multi-step task context (if exists)
+- `agents/session.md` - Current work state, handoff context, decisions, blockers
 
 Do not search for these files; read them directly at these paths.
 
@@ -58,7 +102,6 @@ Do not search for these files; read them directly at these paths.
 
 2. **If no in-progress task, but pending tasks exist:**
    - Take first pending task
-   - Mark as in-progress (update session.md)
    - Report to user: "Starting next task: [task description]"
    - Begin work
 
@@ -129,6 +172,12 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **Critical:** Never use opus for straightforward execution tasks (file creation, edits, running commands). This wastes cost and time.
 
+### Pre-Delegation Checkpoint
+
+Before invoking Task tool, verify:
+- Model matches stated plan (haiku/sonnet/opus)
+- If changing model, state reason explicitly
+
 ### Quiet Execution Pattern
 
 **Rule:** Execution agents report to files, not to orchestrator context.
@@ -143,6 +192,8 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 **Goal:** Prevent orchestrator context pollution with verbose task output. Orchestrator sees only success/failure + summary, not full execution logs.
 
 **Note:** For runbook execution, use `plans/*/reports/` directory. For ad-hoc work, use project-local `tmp/` (not system `/tmp/`). Report naming varies with delegation pattern.
+
+**Preferred agent:** Use `quiet-task` agent for execution tasks. It implements the quiet pattern by default (reports to files, terse returns). Avoid generic Task agents that return verbose output to orchestrator context.
 
 ### Commit Agent Delegation Pattern
 

@@ -1,0 +1,138 @@
+# Step 1 Report: Identify Duplicate Tests
+
+**Status**: COMPLETE
+
+**Execution Date**: 2026-01-23
+
+---
+
+## Analysis Summary
+
+All test functions in `test_markdown.py` (77 tests) are duplicates of tests in the split files:
+
+- **test_markdown_block.py**: 5 tests (all duplicated)
+- **test_markdown_core.py**: 9 tests (all duplicated)
+- **test_markdown_inline.py**: 27 tests (all duplicated)
+- **test_markdown_list.py**: 14 tests (all duplicated)
+- **test_markdown_parsing.py**: 22 tests (all duplicated)
+
+**Key Finding**: 100% of test_markdown.py is duplicated across split files. No unique tests to redistribute.
+
+---
+
+## Duplicate Tests by Category
+
+### Duplicates in test_markdown_block.py (5)
+```
+test_fix_markdown_code_blocks_handles_multiple_blocks
+test_fix_markdown_code_blocks_ignores_inline_backticks
+test_fix_markdown_code_blocks_nests_when_inner_fence_detected
+test_fix_markdown_code_blocks_no_change_without_inner_fence
+test_fix_markdown_code_blocks_passes_through_inner_fence_in_python
+```
+
+### Duplicates in test_markdown_core.py (9)
+```
+test_import_process_lines
+test_process_file_returns_false_when_unchanged
+test_process_file_returns_true_when_modified
+test_process_lines_fixes_dunder_references
+test_process_lines_fixes_metadata_blocks
+test_process_lines_fixes_nested_lists
+test_process_lines_fixes_numbered_list_spacing
+test_process_lines_fixes_warning_lines
+test_process_lines_is_idempotent
+```
+
+### Duplicates in test_markdown_inline.py (27)
+```
+test_escape_inline_backticks_adjacent_spans
+test_escape_inline_backticks_empty_span
+test_escape_inline_backticks_escapes_bare_triple_outside_spans
+test_escape_inline_backticks_four_backticks_idempotent
+test_escape_inline_backticks_handles_mixed_backtick_counts
+test_escape_inline_backticks_is_idempotent
+test_escape_inline_backticks_mixed_bare_and_inline
+test_escape_inline_backticks_preserves_double_backtick_spans
+test_escape_inline_backticks_preserves_double_containing_single
+test_escape_inline_backticks_preserves_five_backticks
+test_escape_inline_backticks_preserves_four_backticks
+test_escape_inline_backticks_preserves_mixed_delimiters
+test_escape_inline_backticks_preserves_multiple_spans
+test_escape_inline_backticks_preserves_one_four_one_with_spaces
+test_escape_inline_backticks_preserves_quoted_doc_example
+test_escape_inline_backticks_preserves_real_fences
+test_escape_inline_backticks_preserves_single_backtick_spans
+test_escape_inline_backticks_skips_content_inside_blocks
+test_escape_inline_backticks_span_at_boundaries
+test_escape_inline_backticks_unclosed_not_corrupted
+test_escape_inline_backticks_wraps_language_references
+test_escape_inline_backticks_wraps_standalone_triple_backticks
+test_fix_backtick_spaces_quotes_both_spaces
+test_fix_backtick_spaces_quotes_leading_space
+test_fix_backtick_spaces_quotes_trailing_space
+test_fix_backtick_spaces_skips_code_without_spaces
+test_fix_backtick_spaces_via_segment_processing
+```
+
+### Duplicates in test_markdown_list.py (14)
+```
+test_fix_metadata_list_indentation_adds_to_existing_indent
+test_fix_metadata_list_indentation_basic_case
+test_fix_metadata_list_indentation_colon_outside
+test_fix_metadata_list_indentation_handles_numbered_lists
+test_fix_metadata_list_indentation_skips_label_with_content
+test_fix_metadata_list_indentation_stops_at_non_list
+test_fix_warning_lines_handles_bracket_and_colon_prefix
+test_fix_warning_lines_handles_checkmark_emoji
+test_fix_warning_lines_handles_cross_emoji
+test_fix_warning_lines_handles_mixed_emoji_prefix
+test_fix_warning_lines_skips_existing_lists
+test_fix_warning_lines_skips_single_line
+test_fix_warning_lines_skips_table_rows
+test_metadata_list_indentation_works_with_metadata_blocks
+```
+
+### Duplicates in test_markdown_parsing.py (22)
+```
+test_inner_fence_detection_in_markdown_block
+test_inner_fence_in_python_block_passed_through
+test_integration_bare_fence_protection
+test_integration_markdown_fence_processing
+test_integration_nested_fences_in_markdown_block
+test_integration_plain_text_still_processes
+test_integration_python_fence_protection
+test_integration_yaml_fence_protection
+test_integration_yaml_prolog_protection
+test_nested_python_block_in_markdown_no_blank_line
+test_prefix_detection_excludes_block_quotes
+test_prefix_detection_excludes_lowercase_colon_prefixes
+test_prefix_detection_excludes_regular_prose
+test_prefix_detection_excludes_tree_diagrams
+test_prefix_detection_preserves_uppercase_colon_prefixes
+test_segment_aware_processing_applies_fix_to_plain_text
+test_segment_aware_processing_skips_bare_fence_blocks
+test_segment_aware_processing_skips_nested_markdown_in_python
+test_segment_aware_processing_skips_yaml_prolog
+test_single_bold_label_not_converted_to_list
+test_yaml_prolog_recognizes_keys_with_hyphens
+test_yaml_prolog_recognizes_keys_without_spaces
+```
+
+---
+
+## Next Steps
+
+Per the runbook's "Unexpected Result Handling" section:
+- **>50 duplicates found**: 77 duplicates detected
+- **Action**: Delete test_markdown.py after verifying tests still pass
+- **Rationale**: All tests in test_markdown.py are already covered by split files
+
+---
+
+## Data Files
+
+All analysis data saved to `/Users/david/code/claudeutils/tmp/`:
+- `block_tests.txt`, `core_tests.txt`, `inline_tests.txt`, `list_tests.txt`, `parsing_tests.txt`, `main_tests.txt`
+- `dup_block.txt`, `dup_core.txt`, `dup_inline.txt`, `dup_list.txt`, `dup_parsing.txt`
+- `all_duplicates.txt` - Combined unique duplicates list
