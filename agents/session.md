@@ -1,56 +1,38 @@
 # Session Handoff: 2026-01-23
 
-**Status:** Merging tdd-integration into unification
+**Status:** TDD integration merged successfully into unification branch
 
 ## Completed This Session
 
-**Plans cleanup (unification branch):**
+**Plans cleanup:**
 - Committed CLAUDE.md documentation streamline (f178e8c)
 - Moved scratch/consolidation to plans/unification/consolidation (e3d4e44)
 - Cleaned up plans directory: removed 26 completed/archived files (51bdfb0)
 - Extracted formatter decision to agents/design-decisions.md
 - Created comprehensive plans/README.md index
-- **In progress:** Resolving tdd-integration merge conflicts
 
-**From tdd-integration branch:**
-- TDD Integration Runbook: All 8 steps complete
-  - Steps 1-5: Core workflow files, skill updates
-  - Step 6: prepare-runbook.py TDD support (248 lines)
-  - Step 7: /plan-tdd skill (2,356 lines)
-  - Step 8: pytest-md integration with agent-core submodule
-- /vet review: All validated, ready for merge
-- Commits: agent-core c525a1d, claudeutils 92414b9/e17f59e/ccba93b
+**TDD integration merge:**
+- Resolved all merge conflicts (settings, CLAUDE.md, design-decisions, session)
+- Merged tdd-integration branch with --no-ff (7255e13)
+- Integrated: 8-step TDD workflow, /plan-tdd skill, TDD task agent
+- Updated agent-core submodule, reorganized skills as symlinks
+- Synced skills/agents from agent-core to parent .claude directory
 
-**From markdown → unification merge:**
-- Test refactor complete: All 77 tests passing, line limits fixed
-- Deleted monolithic test_markdown.py (1,256 lines)
-- Redistributed tests across domain modules
-- Committed 5507b68, merged cb3824f
-
-## Key Results
-
-✓ TDD workflow complete and production-ready
-✓ Test refactoring complete (all tests passing)
-✓ Plans directory cleaned and organized
-✓ Consolidation design work properly located
+**Key artifacts from merge:**
+- agent-core submodule at c525a1d (TDD workflow support)
+- Skills reorganized: commit, design, gitmoji, handoff, oneshot, orchestrate, plan-adhoc, plan-tdd, remember, shelve, vet
+- New documentation: agents/cli-design.md, implementation-notes.md, runbook-review-guide.md, test-strategy.md
 
 ## Pending Tasks
 
-- [ ] Complete tdd-integration merge (resolving conflicts now)
-  - [x] .claude/settings.json - resolved
-  - [x] CLAUDE.md - resolved
-  - [x] agents/context.md - removed (renamed to session.md)
-  - [x] agents/design-decisions.md - merged
-  - [ ] agents/session.md - resolving now
-- [ ] Commit merge with informative message
 - [ ] Resume unification Phase 4: Composition module and CLI implementation
+  - Design complete: plans/unification/consolidation/design/compose-api.md (34K)
+  - Ready to execute implementation runbook
 
 ## Blockers / Gotchas
 
-None. Merge conflicts are standard (settings, documentation, session state).
+None. All merge conflicts resolved, working tree clean.
 
 ## Next Steps
 
-1. Complete merge commit with summary of integrated work
-2. Resume Phase 4 per `plans/unification/design.md`
-3. Phase 4 ready: compose-api.md (34K) complete with full design
+Resume unification Phase 4 per `plans/unification/design.md`. Composition API design is complete and ready for implementation.
