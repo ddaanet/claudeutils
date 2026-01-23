@@ -707,3 +707,66 @@ runs during formatting. Benefits:
 - Code follows existing patterns
 - Clear error messages for invalid input
 - Documentation complete and accurate
+
+## Markdown Formatter Selection
+
+### remark-cli Over Prettier
+
+**Decision Date:** 2026-01-07
+
+**Decision:** Use remark-cli as markdown formatter, not Prettier or markdownlint-cli2.
+
+**Rationale:**
+
+| Criterion | Prettier | markdownlint-cli2 | remark-cli (chosen) |
+|-----------|----------|-------------------|---------------------|
+| Primary Purpose | Formatter | Linter only | Formatter |
+| Idempotent | ❌ No (documented bugs) | ❓ N/A | ✅ Yes |
+| CommonMark Compliance | ⚠️ Mostly | ✅ Yes | ✅ 100% |
+| Nested Code Blocks | ⚠️ Issues | ❓ Unclear | ✅ Correct |
+| YAML Frontmatter | ⚠️ Strips comments | ✅ Yes | ✅ Exact preservation |
+| Configuration | 2 options | 60+ lint rules | 17+ format options |
+
+**Prettier issues disqualifying it:**
+- Non-idempotent: Multiple documented bugs (empty sub-bullets, mid-word underscores, lists with extra indent)
+- YAML frontmatter: Strips comments, breaks on long lists
+- Nested code blocks: Inconsistent backtick reduction
+- Limited configurability
+
+**markdownlint-cli2 limitations:**
+- Not a comprehensive formatter (only fixes rule violations)
+- No idempotency guarantee
+
+**remark-cli advantages:**
+- Idempotent by design with fixed configuration
+- 100% CommonMark compliance via micromark
+- Handles nested code blocks correctly per spec
+- Preserves YAML frontmatter exactly (doesn't parse or modify)
+- Highly configurable (17+ formatting options)
+- Active maintenance by unified collective
+- 150+ plugin ecosystem
+
+**Test Results:** Both Prettier and remark-cli passed test corpus validation (3 runs, idempotent). However, Prettier has documented edge cases that fail in production use.
+
+**Configuration chosen:**
+```json
+{
+  "settings": {
+    "bullet": "*",
+    "fence": "`",
+    "fences": true,
+    "rule": "*",
+    "emphasis": "*",
+    "strong": "*",
+    "incrementListMarker": true,
+    "listItemIndent": "one"
+  },
+  "plugins": [
+    "remark-gfm",
+    "remark-frontmatter",
+    "remark-preset-lint-consistent"
+  ]
+}
+```
+
+**Reference:** Full evaluation in `plans/formatter-comparison.md` (to be archived after cleanup)
