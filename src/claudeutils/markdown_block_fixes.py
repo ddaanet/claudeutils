@@ -4,6 +4,53 @@ Handles nesting of markdown blocks containing inner fence markers.
 """
 
 
+def _has_inner_fence_in_block(
+    lines: list[str], block_start: int, block_end: int
+) -> bool:
+    """Check if a block contains inner ``` markers."""
+    return any("```" in lines[k] for k in range(block_start, block_end))
+
+
+def _find_matching_close_fence(lines: list[str], start_idx: int) -> bool:
+    """Look ahead to find matching closing ``` fence.
+
+    Returns True if a matching closing fence is found before any opening.
+    """
+    for k in range(start_idx + 1, len(lines)):
+        check_line = lines[k].strip()
+        if check_line == "```":
+            return True
+        if check_line.startswith("```") and len(check_line) > 3:
+            # Opening fence before close - stop looking
+            return False
+    return False
+
+
+def _build_upgraded_block(language: str, block_lines: list[str]) -> list[str]:
+    """Build block with upgraded 4-backtick fences."""
+    return [f"````{language}\n", *block_lines[1:-1], "````\n"]
+
+
+def _track_fence_depth(
+    block_stripped: str, fence_depth: int, lines: list[str], idx: int
+) -> int:
+    """Track fence depth based on current line.
+
+    Returns:
+        New fence depth or -1 if outer closing fence found
+    """
+    if len(block_stripped) > 3:
+        return fence_depth + 1
+    if block_stripped == "```":
+        if fence_depth > 0:
+            return fence_depth - 1
+        # At fence_depth==0: is this inner opening or outer closing?
+        if _find_matching_close_fence(lines, idx):
+            return fence_depth + 1
+        return -1  # Outer closing fence
+    return fence_depth
+
+
 def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
     """Nest ```markdown blocks that contain inner ``` fences.
 
@@ -28,7 +75,6 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
             block_lines = [line]
             j = i + 1
             fence_depth = 0
-            has_inner_fence = False
 
             while j < len(lines):
                 block_line = lines[j]
@@ -36,38 +82,12 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
                 block_stripped = block_line.strip()
 
                 if block_stripped.startswith("```"):
-                    if len(block_stripped) > 3:
-                        fence_depth += 1
-                        has_inner_fence = True
-                    elif block_stripped == "```":
-                        if fence_depth > 0:
-                            fence_depth -= 1
-                            has_inner_fence = True
-                        else:
-                            # At fence_depth==0: is this inner opening or outer closing?
-                            # Look ahead for matching closing fence
-                            found_matching_close = False
-                            for k in range(j + 1, len(lines)):
-                                check_line = lines[k].strip()
-                                if check_line == "```":
-                                    found_matching_close = True
-                                    break
-                                if check_line.startswith("```") and len(check_line) > 3:
-                                    # Opening fence before close - stop looking
-                                    break
-
-                            if found_matching_close:
-                                # This is an inner opening fence
-                                fence_depth += 1
-                                has_inner_fence = True
-                            else:
-                                # This is the outer closing fence
-                                has_inner = any(
-                                    "```" in lines[k] for k in range(i + 1, j)
-                                )
-                                if j > i + 1 and has_inner:
-                                    has_inner_fence = True
-                                break
+                    new_depth = _track_fence_depth(
+                        block_stripped, fence_depth, lines, j
+                    )
+                    if new_depth == -1:
+                        break
+                    fence_depth = new_depth
 
                 j += 1
             else:
@@ -75,14 +95,13 @@ def fix_markdown_code_blocks(lines: list[str]) -> list[str]:
                 i = j
                 continue
 
+            # Check if block has inner fences and upgrade if needed
+            has_inner_fence = (
+                _has_inner_fence_in_block(lines, i + 1, j) or fence_depth > 0
+            )
             if has_inner_fence:
-                # Upgrade any block with inner fences to use ````
-                # This handles Claude output that discusses fenced blocks
-                result.append(f"````{language}\n")
-                result.extend(block_lines[1:-1])
-                result.append("````\n")
+                result.extend(_build_upgraded_block(language, block_lines))
             else:
-                # No inner fences, pass through as-is
                 result.extend(block_lines)
 
             i = j + 1

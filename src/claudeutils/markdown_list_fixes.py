@@ -5,6 +5,132 @@ metadata list indentation.
 """
 
 import re
+from typing import Final
+
+# Characters that indicate tree diagrams
+_TREE_CHARS: Final = ["├", "└", "│"]
+
+
+def _should_skip_prefix_extraction(stripped: str) -> bool:
+    """Check if line should be skipped during prefix extraction."""
+    if not stripped:
+        return True
+    if re.match(r"^[-*]|^\d+\.", stripped):
+        return True
+    if stripped.startswith("|") and stripped.count("|") >= 2:
+        return True
+    if stripped.startswith(">"):
+        return True
+    return any(sym in stripped[:3] for sym in _TREE_CHARS)
+
+
+def _extract_prefix(line: str) -> str | None:
+    """Extract non-markup prefix from line.
+
+    Returns None if line is empty, is already a list item, or has no clear
+    prefix. Returns prefix string (e.g., "✅", "[TODO]", "NOTE:") if found.
+
+    ONLY matches:
+    - Emoji-like symbols (non-alphanumeric at start)
+    - Bracketed text [like this]
+    - Uppercase words ending with colon (NOTE:, WARNING:, TODO:)
+    """
+    stripped = line.strip()
+
+    if _should_skip_prefix_extraction(stripped):
+        return None
+
+    # Try each pattern in order
+    emoji_match = re.match(r"^([^\w\s\[\(\{\-\*\|>`]+)(\s|$)", stripped)
+    if emoji_match:
+        return emoji_match.group(1)
+
+    bracket_match = re.match(r"^(\[[^\]]+\])(\s|$)", stripped)
+    if bracket_match:
+        return bracket_match.group(1)
+
+    colon_match = re.match(r"^([A-Z][A-Z0-9_]*:)\s", stripped)
+    if colon_match:
+        return colon_match.group(1)
+
+    return None
+
+
+def _is_emoji_prefix(prefix: str) -> bool:
+    """Check if prefix is emoji-like."""
+    return bool(re.match(r"^[^\w\s\[\(\{\-\*]", prefix))
+
+
+def _is_bracket_prefix(prefix: str) -> bool:
+    """Check if prefix is bracketed text."""
+    return prefix.startswith("[")
+
+
+def _is_colon_prefix(prefix: str) -> bool:
+    """Check if prefix ends with colon."""
+    return prefix.endswith(":")
+
+
+def _is_similar_prefix(p1: str | None, p2: str | None) -> bool:
+    """Check if two prefixes are similar (emoji, bracket, colon types)."""
+    if p1 is None or p2 is None:
+        return False
+    if p1 == p2:
+        return True
+    return (
+        (_is_emoji_prefix(p1) and _is_emoji_prefix(p2))
+        or (_is_bracket_prefix(p1) and _is_bracket_prefix(p2))
+        or (_is_colon_prefix(p1) and _is_colon_prefix(p2))
+    )
+
+
+def _collect_metadata_block(
+    lines: list[str], start_idx: int, pattern: str
+) -> tuple[list[str], int, bool]:
+    """Collect consecutive metadata lines and check for trailing blank.
+
+    Returns:
+        (metadata_lines, next_idx, has_blank_line_after)
+    """
+    metadata_lines = [lines[start_idx]]
+    j = start_idx + 1
+    found_blank = False
+    while j < len(lines):
+        next_line = lines[j]
+        if re.match(pattern, next_line.strip()):
+            metadata_lines.append(next_line)
+            j += 1
+        elif next_line.strip() == "":
+            found_blank = True
+            j += 1
+            break
+        else:
+            break
+    return metadata_lines, j, found_blank
+
+
+def _indent_following_lists(lines: list[str], start_idx: int, result: list[str]) -> int:
+    """Indent list items that follow a metadata block.
+
+    Returns:
+        New index after processing
+    """
+    j = start_idx
+    while j < len(lines):
+        list_line = lines[j]
+        list_stripped = list_line.strip()
+
+        if list_stripped == "":
+            result.append(list_line)
+            j += 1
+            break
+
+        if not re.match(r"^[-*] |^\d+\. ", list_stripped):
+            break
+
+        result.append(f"  {list_stripped}\n")
+        j += 1
+    return j
 
 
 def fix_metadata_blocks(lines: list[str]) -> list[str]:
@@ -12,51 +138,20 @@ def fix_metadata_blocks(lines: list[str]) -> list[str]:
     lists."""
     result = []
     i = 0
-    # Match both **Label:** and **Label**: patterns (with optional content after)
     pattern = r"^\*\*[A-Za-z][^*]+:\*\*|^\*\*[A-Za-z][^*]+\*\*:"
+
     while i < len(lines):
         line = lines[i]
         if re.match(pattern, line.strip()):
-            metadata_lines = [line]
-            j = i + 1
-            found_blank = False
-            while j < len(lines):
-                next_line = lines[j]
-                if re.match(pattern, next_line.strip()):
-                    metadata_lines.append(next_line)
-                    j += 1
-                elif next_line.strip() == "":
-                    # Empty line ends block
-                    found_blank = True
-                    j += 1
-                    break
-                else:
-                    break
+            metadata_lines, j, found_blank = _collect_metadata_block(lines, i, pattern)
             if len(metadata_lines) >= 2:
                 for meta_line in metadata_lines:
                     stripped = meta_line.strip()
                     if stripped:
                         result.append(f"- {stripped}\n")
-                # Preserve blank line
                 if found_blank:
                     result.append("\n")
-
-                # Indent following list items (if any)
-                while j < len(lines):
-                    list_line = lines[j]
-                    list_stripped = list_line.strip()
-
-                    if list_stripped == "":
-                        result.append(list_line)
-                        j += 1
-                        break
-
-                    if not re.match(r"^[-*] |^\d+\. ", list_stripped):
-                        break
-
-                    result.append(f"  {list_stripped}\n")
-                    j += 1
-
+                j = _indent_following_lists(lines, j, result)
                 i = j
                 continue
         result.append(line)
@@ -137,94 +232,16 @@ def fix_warning_lines(lines: list[str]) -> list[str]:
     result = []
     i = 0
 
-    def extract_prefix(line: str) -> str | None:
-        """Extract non-markup prefix from line.
-
-        Returns None if line is empty, is already a list item, or has no clear
-        prefix. Returns prefix string (e.g., "✅", "[TODO]", "NOTE:") if found.
-
-        ONLY matches:
-        - Emoji-like symbols (non-alphanumeric at start)
-        - Bracketed text [like this]
-        - Uppercase words ending with colon (NOTE:, WARNING:, TODO:)
-
-        Explicitly excludes:
-        - Regular prose (lowercase words)
-        - Block quotes (>)
-        - Tree diagrams (├, └, │)
-        - YAML keys or section headers (lowercase word + colon)
-        """
-        stripped = line.strip()
-        if not stripped:
-            return None
-        if re.match(r"^[-*]|^\d+\.", stripped):
-            return None
-
-        # Skip table rows (start with | and contain 2+ pipes)
-        if stripped.startswith("|") and stripped.count("|") >= 2:
-            return None
-
-        # Skip block quotes (start with >)
-        if stripped.startswith(">"):
-            return None
-
-        # Skip tree diagram symbols
-        if any(sym in stripped[:3] for sym in ["├", "└", "│"]):
-            return None
-
-        # Match emoji-like prefixes (non-alphanumeric, non-whitespace at start)
-        # Exclude: [ ( { - * | > ` (these have special meanings)
-        emoji_match = re.match(r"^([^\w\s\[\(\{\-\*\|>`]+)(\s|$)", stripped)
-        if emoji_match:
-            return emoji_match.group(1)
-
-        # Match bracketed prefixes [like this]
-        bracket_match = re.match(r"^(\[[^\]]+\])(\s|$)", stripped)
-        if bracket_match:
-            return bracket_match.group(1)
-
-        # Match ONLY uppercase word + colon at start (followed by space)
-        # NOTE: This, WARNING: That, TODO: Item
-        # But NOT lowercase: Implementation:, description:
-        colon_match = re.match(r"^([A-Z][A-Z0-9_]*:)\s", stripped)
-        if colon_match:
-            return colon_match.group(1)
-
-        # No valid prefix found
-        return None
-
-    def is_similar_prefix(p1: str | None, p2: str | None) -> bool:
-        """Check if two prefixes are similar (emoji, bracket, colon types)."""
-        if p1 is None or p2 is None:
-            return False
-        if p1 == p2:
-            return True
-
-        def is_emoji_prefix(prefix: str) -> bool:
-            return bool(re.match(r"^[^\w\s\[\(\{\-\*]", prefix))
-
-        def is_bracket_prefix(prefix: str) -> bool:
-            return prefix.startswith("[")
-
-        def is_colon_prefix(prefix: str) -> bool:
-            return prefix.endswith(":")
-
-        return (
-            (is_emoji_prefix(p1) and is_emoji_prefix(p2))
-            or (is_bracket_prefix(p1) and is_bracket_prefix(p2))
-            or (is_colon_prefix(p1) and is_colon_prefix(p2))
-        )
-
     while i < len(lines):
         line = lines[i]
-        prefix = extract_prefix(line)
+        prefix = _extract_prefix(line)
 
         if prefix:
             prefixed_lines = [line]
             j = i + 1
             while j < len(lines):
-                next_prefix = extract_prefix(lines[j])
-                if is_similar_prefix(prefix, next_prefix):
+                next_prefix = _extract_prefix(lines[j])
+                if _is_similar_prefix(prefix, next_prefix):
                     prefixed_lines.append(lines[j])
                     j += 1
                 else:

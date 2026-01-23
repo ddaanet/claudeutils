@@ -11,6 +11,183 @@ from collections.abc import Callable
 from pydantic import BaseModel
 
 
+def _try_parse_yaml_prolog(
+    lines: list[str], start_idx: int
+) -> tuple[Segment | None, int]:
+    """Try to parse YAML prolog starting at index.
+
+    Returns:
+        (segment or None, new_index)
+    """
+    prolog_lines = [lines[start_idx]]
+    j = start_idx + 1
+    has_key_value = False
+    found_closing = False
+
+    # Check if next line exists and is not blank (immediate content required)
+    if not (j < len(lines) and lines[j].strip()):
+        return None, start_idx
+
+    while j < len(lines):
+        current_line = lines[j]
+        current_stripped = current_line.strip()
+
+        if not current_stripped:
+            # Blank line inside - not a valid prolog
+            return None, start_idx
+
+        if current_stripped == "---":
+            prolog_lines.append(current_line)
+            found_closing = True
+            j += 1
+            break
+
+        if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
+            has_key_value = True
+
+        prolog_lines.append(current_line)
+        j += 1
+
+    if found_closing and has_key_value:
+        return (
+            Segment(
+                processable=False,
+                language="yaml-prolog",
+                lines=prolog_lines,
+                start_line=start_idx,
+            ),
+            j,
+        )
+    return None, start_idx
+
+
+def _extract_fence_info(line: str) -> tuple[int, str | None]:
+    """Extract backtick count and language from fence line."""
+    backtick_count = 0
+    for char in line:
+        if char == "`":
+            backtick_count += 1
+        else:
+            break
+    language = line[backtick_count:].strip() or None
+    return backtick_count, language
+
+
+def _find_fenced_block_end(
+    lines: list[str], start_idx: int, backtick_count: int
+) -> tuple[list[str], int, list[tuple[int, str | None]]]:
+    """Find end of fenced block, tracking nesting.
+
+    Returns:
+        (block_lines, end_index, fence_stack_at_exit)
+    """
+    fence_lines = [lines[start_idx]]
+    i = start_idx + 1
+    _, language = _extract_fence_info(lines[start_idx])
+    fence_stack: list[tuple[int, str | None]] = [(backtick_count, language)]
+
+    while i < len(lines) and fence_stack:
+        current_stripped = lines[i].strip()
+        fence_lines.append(lines[i])
+
+        if current_stripped.startswith("```"):
+            backtick_in_line, _ = _extract_fence_info(current_stripped)
+            language_in_line = current_stripped[backtick_in_line:].strip() or None
+
+            if backtick_in_line == backtick_count:
+                if language_in_line:
+                    fence_stack.append((backtick_in_line, language_in_line))
+                else:
+                    fence_stack.pop()
+                    if not fence_stack:
+                        i += 1
+                        break
+        i += 1
+
+    return fence_lines, i, fence_stack
+
+
+def _parse_fenced_block(lines: list[str], start_idx: int) -> tuple[list[Segment], int]:
+    """Parse fenced code block starting at index.
+
+    Returns:
+        (segments, new_index)
+    """
+    stripped = lines[start_idx].strip()
+    backtick_count, language = _extract_fence_info(stripped)
+
+    fence_lines, end_idx, _fence_stack = _find_fenced_block_end(
+        lines, start_idx, backtick_count
+    )
+
+    # Markdown blocks are processable, others are protected
+    processable = language == "markdown"
+
+    if not processable or len(fence_lines) <= 2:
+        return (
+            [
+                Segment(
+                    processable=processable,
+                    language=language,
+                    lines=fence_lines,
+                    start_line=end_idx - len(fence_lines),
+                )
+            ],
+            end_idx,
+        )
+
+    # Recursive parsing for markdown blocks
+    inner_content = fence_lines[1:-1]
+    inner_start_line = (end_idx - len(fence_lines)) + 1
+
+    inner_segments = parse_segments(inner_content)
+    for seg in inner_segments:
+        seg.start_line += inner_start_line
+
+    return (
+        [
+            Segment(
+                processable=True,
+                language=language,
+                lines=[fence_lines[0]],
+                start_line=end_idx - len(fence_lines),
+            ),
+            *inner_segments,
+            Segment(
+                processable=True,
+                language=language,
+                lines=[fence_lines[-1]],
+                start_line=end_idx - 1,
+            ),
+        ],
+        end_idx,
+    )
+
+
+def _collect_plain_text(lines: list[str], start_idx: int) -> tuple[list[str], int]:
+    """Collect plain text until next fence or YAML prolog.
+
+    Returns:
+        (text_lines, new_index)
+    """
+    text_lines: list[str] = []
+    i = start_idx
+    while i < len(lines):
+        stripped = lines[i].strip()
+        if text_lines and stripped.startswith("```"):
+            break
+        if (
+            text_lines
+            and stripped == "---"
+            and i + 1 < len(lines)
+            and lines[i + 1].strip()
+        ):
+            break
+        text_lines.append(lines[i])
+        i += 1
+    return text_lines, i
+
+
 class Segment(BaseModel):
     """A segment of markdown document (processable or protected)."""
 
@@ -58,7 +235,6 @@ def apply_fix_to_segments(
                 )
             )
         else:
-            # Protected segment - skip this fix
             result.append(segment)
     return result
 
@@ -75,197 +251,33 @@ def parse_segments(lines: list[str]) -> list[Segment]:
         line = lines[i]
         stripped = line.strip()
 
-        # Check if this is a YAML prolog section
+        # Try to parse YAML prolog
         if stripped == "---":
-            # Look ahead to see if this is a YAML prolog
-            # Must have closing ---, no blank lines INSIDE, and at least one key: value
-            # The next line after opening --- must NOT be blank (no intervening blank line)
-            prolog_lines = [line]
-            j = i + 1
-            has_key_value = False
-            has_blank_line_inside = False
-            found_closing = False
-            is_valid_prolog = False
-
-            # Check if next line exists and is not blank (immediate content required)
-            if j < len(lines) and lines[j].strip():
-                # Has content immediately after opening ---
-                while j < len(lines):
-                    current_line = lines[j]
-                    current_stripped = current_line.strip()
-
-                    # Check for blank line inside the prolog
-                    if not current_stripped:
-                        has_blank_line_inside = True
-                        break
-
-                    # Check for closing ---
-                    if current_stripped == "---":
-                        prolog_lines.append(current_line)
-                        found_closing = True
-                        j += 1
-                        break
-
-                    # Check for key: value pattern
-                    # Accepts: "key: value", "key:", "key_name:", "key-name:", "key123:"
-                    # Pattern allows underscores, hyphens, and digits except as first character
-                    if re.match(r"^[a-zA-Z_][\w-]*:", current_stripped):
-                        has_key_value = True
-
-                    prolog_lines.append(current_line)
-                    j += 1
-
-                # Is this a valid YAML prolog?
-                if found_closing and has_key_value and not has_blank_line_inside:
-                    is_valid_prolog = True
-
-            if is_valid_prolog:
-                # Valid YAML prolog section
-                segments.append(
-                    Segment(
-                        processable=False,
-                        language="yaml-prolog",
-                        lines=prolog_lines,
-                        start_line=i,
-                    )
-                )
-                i = j
+            prolog_segment, next_idx = _try_parse_yaml_prolog(lines, i)
+            if prolog_segment:
+                segments.append(prolog_segment)
+                i = next_idx
                 continue
-            # Not a valid prolog, fall through to collect as plain text
 
-        # Check if this is a fence opening
+        # Try to parse fenced block
         if stripped.startswith("```"):
-            # Count opening backticks
-            backtick_count = 0
-            for char in stripped:
-                if char == "`":
-                    backtick_count += 1
-                else:
-                    break
+            new_segments, next_idx = _parse_fenced_block(lines, i)
+            segments.extend(new_segments)
+            i = next_idx
+            continue
 
-            # Extract language
-            language = stripped[backtick_count:].strip() or None
-            fence_lines = [line]
-            i += 1
-
-            # Find closing fence, handling nested blocks
-            # Use a stack to track nested fence opening (language tags)
-            fence_stack: list[tuple[int, str | None]] = [(backtick_count, language)]
-
-            while i < len(lines) and fence_stack:
-                current_stripped = lines[i].strip()
-                fence_lines.append(lines[i])
-
-                # Count backticks if this is a fence line
-                if current_stripped.startswith("```"):
-                    backtick_in_line = 0
-                    for char in current_stripped:
-                        if char == "`":
-                            backtick_in_line += 1
-                        else:
-                            break
-
-                    # Extract language
-                    language_in_line = (
-                        current_stripped[backtick_in_line:].strip() or None
-                    )
-
-                    # Check if this is a fence with matching backtick count
-                    if backtick_in_line == backtick_count:
-                        if language_in_line:
-                            # Fence with language - this is an opening
-                            fence_stack.append((backtick_in_line, language_in_line))
-                        else:
-                            # Bare fence - closes the most recent opening
-                            fence_stack.pop()
-                            if not fence_stack:
-                                # This closes our main fence
-                                i += 1
-                                break
-                i += 1
-
-            # Extract the original language from the first fence line
-            open_lang = (
-                stripped[backtick_count:].strip() or None
-            )  # Ensure we use original
-            # Markdown blocks are processable, others are protected
-            processable = open_lang == "markdown"
-
-            # Recursive parsing for markdown blocks
-            if processable and len(fence_lines) > 2:
-                # Extract inner content (exclude opening and closing fence lines)
-                inner_content = fence_lines[1:-1]
-                inner_start_line = (i - len(fence_lines)) + 1
-
-                # Recursively parse inner content
-                inner_segments = parse_segments(inner_content)
-
-                # Adjust start_line for each nested segment
-                for seg in inner_segments:
-                    seg.start_line += inner_start_line
-
-                # Add opening fence as segment
-                segments.append(
-                    Segment(
-                        processable=True,
-                        language=open_lang,
-                        lines=[fence_lines[0]],
-                        start_line=i - len(fence_lines),
-                    )
+        # Collect plain text
+        text_lines, next_idx = _collect_plain_text(lines, i)
+        if text_lines:
+            segments.append(
+                Segment(
+                    processable=True,
+                    language=None,
+                    lines=text_lines,
+                    start_line=i,
                 )
-
-                # Add recursively parsed segments
-                segments.extend(inner_segments)
-
-                # Add closing fence as segment
-                segments.append(
-                    Segment(
-                        processable=True,
-                        language=open_lang,
-                        lines=[fence_lines[-1]],
-                        start_line=i - 1,
-                    )
-                )
-            else:
-                # Non-markdown blocks or empty markdown blocks - no recursion
-                segments.append(
-                    Segment(
-                        processable=processable,
-                        language=open_lang,
-                        lines=fence_lines,
-                        start_line=i - len(fence_lines),
-                    )
-                )
-        else:
-            # Collect plain text until next fence or potential YAML prolog
-            text_lines: list[str] = []
-            start_i = i
-            while i < len(lines):
-                stripped = lines[i].strip()
-                # Break on fence markers (but collect at least one line first)
-                if text_lines and stripped.startswith("```"):
-                    break
-                # Only break on "---" if it could be a valid YAML prolog
-                # (has non-blank content immediately after) and we've collected at least one line
-                if (
-                    text_lines
-                    and stripped == "---"
-                    and i + 1 < len(lines)
-                    and lines[i + 1].strip()
-                ):
-                    break
-                text_lines.append(lines[i])
-                i += 1
-
-            if text_lines:
-                segments.append(
-                    Segment(
-                        processable=True,
-                        language=None,
-                        lines=text_lines,
-                        start_line=start_i,
-                    )
-                )
+            )
+        i = next_idx
 
     return segments
 

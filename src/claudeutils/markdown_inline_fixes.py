@@ -94,6 +94,22 @@ def find_inline_code_spans(line: str) -> list[tuple[int, int]]:
     return spans
 
 
+def _escape_triple_backticks_in_line(line: str) -> str:
+    """Escape triple backticks in a line (outside protected spans).
+
+    Returns line with triple backticks wrapped in double backticks.
+    """
+    pattern = r"`` (`{3,}\w*) ``|(`{3,})(\w*)"
+
+    def replacer(m: Match[str]) -> str:
+        if m.group(1):  # Already escaped
+            return m.group(0)
+        # Unescaped - wrap it
+        return f"`` {m.group(2)}{m.group(3)} ``"
+
+    return re.sub(pattern, replacer, line)
+
+
 def escape_inline_backticks(lines: list[str]) -> list[str]:
     """Escape triple backticks when they appear inline in text.
 
@@ -126,17 +142,7 @@ def escape_inline_backticks(lines: list[str]) -> list[str]:
         spans = find_inline_code_spans(line)
 
         if not spans:
-            # No inline code spans - apply escape pattern to whole line
-            pattern = r"`` (`{3,}\w*) ``|(`{3,})(\w*)"
-
-            def replacer(m: Match[str]) -> str:
-                if m.group(1):  # Already escaped
-                    return m.group(0)
-                # Unescaped - wrap it
-                return f"`` {m.group(2)}{m.group(3)} ``"
-
-            escaped_line = re.sub(pattern, replacer, line)
-            result.append(escaped_line)
+            result.append(_escape_triple_backticks_in_line(line))
         else:
             # Process only text outside protected spans
             escaped_parts = []
@@ -146,15 +152,7 @@ def escape_inline_backticks(lines: list[str]) -> list[str]:
                 # Process gap before this span
                 if pos < start:
                     gap = line[pos:start]
-                    pattern = r"`` (`{3,}\w*) ``|(`{3,})(\w*)"
-
-                    def replacer(m: Match[str]) -> str:
-                        if m.group(1):
-                            return m.group(0)
-                        return f"`` {m.group(2)}{m.group(3)} ``"
-
-                    gap_escaped = re.sub(pattern, replacer, gap)
-                    escaped_parts.append(gap_escaped)
+                    escaped_parts.append(_escape_triple_backticks_in_line(gap))
 
                 # Add protected span unchanged
                 escaped_parts.append(line[start:end])
@@ -163,17 +161,8 @@ def escape_inline_backticks(lines: list[str]) -> list[str]:
             # Process remaining text after last span
             if pos < len(line):
                 gap = line[pos:]
-                pattern = r"`` (`{3,}\w*) ``|(`{3,})(\w*)"
+                escaped_parts.append(_escape_triple_backticks_in_line(gap))
 
-                def replacer(m: Match[str]) -> str:
-                    if m.group(1):
-                        return m.group(0)
-                    return f"`` {m.group(2)}{m.group(3)} ``"
-
-                gap_escaped = re.sub(pattern, replacer, gap)
-                escaped_parts.append(gap_escaped)
-
-            escaped_line = "".join(escaped_parts)
-            result.append(escaped_line)
+            result.append("".join(escaped_parts))
 
     return result
