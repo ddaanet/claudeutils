@@ -560,7 +560,7 @@ def test_process_lines_is_idempotent() -> None:
 
 
 def test_metadata_list_indentation_works_with_metadata_blocks() -> None:
-    """Test: 2+ labels converted and following list indented, single label not converted."""
+    """Test 2+ labels converted and following list indented, single label not."""
     input_lines = [
         "**File:** `role.md`\n",
         "**Model:** Sonnet\n",
