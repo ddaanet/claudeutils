@@ -1,10 +1,5 @@
 # Agent Instructions
 
-**Current work state:** Read `agents/context.md` for active tasks and decisions.
-**Architecture decisions:** See `agents/design-decisions.md` for technical rationale.
-
----
-
 ## Workflow Selection
 
 **Entry point:** Use `/oneshot` skill for all one-off tasks. It auto-detects methodology.
@@ -37,8 +32,8 @@
 - **agents/test-strategy.md** - Testing conventions and patterns (read when writing tests)
 
 ### Current Work
-- **agents/session.md** - Current session handoff context
-- **agents/context.md** - Active multi-step task context (if exists)
+- @agents/context.md - Active multi-step task context (if exists)
+- @agents/session.md - Current session handoff context (update only on handoff)
 
 ---
 
@@ -86,16 +81,6 @@ When asked to "#execute" or "execute":
 
 This is the primary command for continuing work across sessions.
 
-### Load Rule (#load)
-
-When asked to "#load" or "load", read the session context files:
-- `agents/context.md` - Active multi-step task context (if exists)
-- `agents/session.md` - Current work state, handoff context, decisions, blockers
-
-Do not search for these files; read them directly at these paths.
-
-**After reading session.md, continue work automatically:**
-
 1. **If in-progress task exists:**
    - Report status to user: "Continuing [task description]"
    - Resume work on that task
@@ -106,7 +91,7 @@ Do not search for these files; read them directly at these paths.
    - Begin work
 
 3. **If no pending tasks:**
-   - Report status to user: "Session loaded. No pending tasks."
+   - Report status to user: "No pending tasks."
    - Wait for instructions
 
 **Task status notation in session.md:**
