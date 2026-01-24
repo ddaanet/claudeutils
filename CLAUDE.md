@@ -54,13 +54,14 @@
 
 ## Communication Rules
 
-1. **Token economy** - Do NOT repeat file contents in responses. Give file references (path:line or path) instead. Be concise.
-2. **Stop on unexpected results** - If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP and wait for guidance
-3. **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
-4. **Be explicit** - Ask clarifying questions if requirements unclear
-5. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
-6. **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly. Use `/gitmoji` before `/commit` for emoji-prefixed messages
-7. **No estimates unless requested** - Do NOT make estimates, predictions, or extrapolations unless explicitly requested by the user. Report measured data only.
+- **Token economy** - Do NOT repeat file contents in responses. Give file references (path:line or path) instead. Be concise.
+- **Avoid numbered lists** - Use bullets unless sequencing/ordering matters. Numbered lists cause renumbering churn when edited.
+- **Stop on unexpected results** - If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP and wait for guidance
+- **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
+- **Be explicit** - Ask clarifying questions if requirements unclear
+- **Stop at boundaries** - Complete assigned task then stop (no scope creep)
+- **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly. Use `/gitmoji` before `/commit` for emoji-prefixed messages
+- **No estimates unless requested** - Do NOT make estimates, predictions, or extrapolations unless explicitly requested by the user. Report measured data only.
 
 ## Error Handling
 
@@ -87,23 +88,23 @@
 ### Execute Rule (#execute)
 
 When asked to "#execute" or "execute":
-1. Load session context (same as #load)
-2. Immediately perform the next pending task
+- Load session context (same as #load)
+- Immediately perform the next pending task
 
 This is the primary command for continuing work across sessions.
 
-1. **If in-progress task exists:**
-   - Report status to user: "Continuing [task description]"
-   - Resume work on that task
+**If in-progress task exists:**
+- Report status to user: "Continuing [task description]"
+- Resume work on that task
 
-2. **If no in-progress task, but pending tasks exist:**
-   - Take first pending task
-   - Report to user: "Starting next task: [task description]"
-   - Begin work
+**If no in-progress task, but pending tasks exist:**
+- Take first pending task
+- Report to user: "Starting next task: [task description]"
+- Begin work
 
-3. **If no pending tasks:**
-   - Report status to user: "No pending tasks."
-   - Wait for instructions
+**If no pending tasks:**
+- Report status to user: "No pending tasks."
+- Wait for instructions
 
 **Task status notation in session.md:**
 - `- [ ]` = Pending task
