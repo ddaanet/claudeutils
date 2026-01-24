@@ -54,12 +54,13 @@
 
 ## Communication Rules
 
-1. **Stop on unexpected results** - If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP and wait for guidance
-2. **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
-3. **Be explicit** - Ask clarifying questions if requirements unclear
-4. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
-5. **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly. Use `/gitmoji` before `/commit` for emoji-prefixed messages
-6. **No estimates unless requested** - Do NOT make estimates, predictions, or extrapolations unless explicitly requested by the user. Report measured data only.
+1. **Token economy** - Do NOT repeat file contents in responses. Give file references (path:line or path) instead. Be concise.
+2. **Stop on unexpected results** - If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP and wait for guidance
+3. **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
+4. **Be explicit** - Ask clarifying questions if requirements unclear
+5. **Stop at boundaries** - Complete assigned task then stop (no scope creep)
+6. **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly. Use `/gitmoji` before `/commit` for emoji-prefixed messages
+7. **No estimates unless requested** - Do NOT make estimates, predictions, or extrapolations unless explicitly requested by the user. Report measured data only.
 
 ## Error Handling
 
