@@ -4,12 +4,18 @@
       "Bash(git:*)",
       "Bash(wc:*)",
       "Bash(claudeutils:*)",
+      "Bash(just:*)",
+      "Bash(pytest:*)",
+      "Bash(ruff:*)",
+      "Bash(mypy:*)",
+      "Bash(docformatter:*)",
       "Skill",
       "WebSearch"
     ],
     "deny": [
       "NotebookEdit",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(just release:*)"
     ]
   },
   "attribution": {
