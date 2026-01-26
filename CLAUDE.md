@@ -2,7 +2,12 @@
 
 ## Workflow Selection
 
-**Entry point:** Use `/oneshot` skill for all one-off tasks. It auto-detects methodology.
+**Entry point:**
+- **Questions/research/discussion** → Handle directly (no workflow needed)
+- **Implementation tasks** (code, files, scripts, migrations, refactoring) → Use `/oneshot` skill
+- **Workflow in progress** (check session.md) → Continue from current state
+
+The `/oneshot` skill auto-detects methodology and complexity, routing to appropriate workflow.
 
 **TDD workflow** - Feature development with test-first methodology:
 - **Signals:** Test-first culture, user mentions "test/TDD/red-green", behavioral verification needed
