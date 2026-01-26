@@ -1,107 +1,69 @@
 # Session Handoff: 2026-01-26
 
-**Status:** TDD runbook review mechanism implemented; prescriptive code anti-pattern detected and fixed
+**Session ID:** `3571ef05-f905-44f7-83e5-11cb2d141e10`
+
+**Status:** Learnings consolidation design complete; design skill improved
 
 ## Completed This Session
 
-**TDD runbook process failure diagnosis:**
-- Root cause: /plan-tdd generated prescriptive runbooks with exact Python code in GREEN phases
-- Violation: Agents became code copiers instead of implementers
-- Impact: 6/11 cycles in composition API runbook contained implementation code
-- Design document (compose-api.md) showed function implementations, influencing runbook generation
+**Learnings consolidation design:**
+- Designed segmented learnings with @ chain expansion
+- Architecture: CLAUDE.md → @session.md → @learnings/pending.md → @learnings/*.md
+- Validated @ expansion works recursively in memory files (not prompt refs)
+- Created design doc: `plans/learnings-consolidation/design.md`
+- Key insight: Consolidate learnings to skill reference files (not CLAUDE.md) for discoverability
+- Cross-cutting rules → topical skills (sandboxed, token-optimization, etc.)
 
-**TDD review mechanism created:**
-- Created /review-tdd-plan skill in agent-core/skills/review-tdd-plan/SKILL.md
-- Created tdd-plan-reviewer agent in agent-core/agents/tdd-plan-reviewer.md
-- Updated /plan-tdd skill Phase 5 to trigger reviewer (stops on violations, shows user)
-- Updated CLAUDE.md TDD workflow route to include review step
-- Agent-core commits: 0cfd422 (review mechanism), 037282d (justfile fix)
+**Design skill improvement:**
+- Rewrote `.claude/skills/design/SKILL.md` - reduced from 241 to 67 lines
+- Removed verbose templates, trivial examples, hand-holding
+- Added model-neutral language (designer/planner vs Opus/Sonnet)
+- Key principle: Minimize designer output tokens by relying on planner inference
 
-**Justfile sync-to-parent fix:**
-- Changed from absolute to relative symlink paths (../../agent-core/...)
-- Improves portability across machines
-- Successfully synced: 13 skills, 3 agents, 1 hook
-
-**Key artifacts locations:**
-- Review skill: agent-core/skills/review-tdd-plan/SKILL.md
-- Reviewer agent: agent-core/agents/tdd-plan-reviewer.md
-- Updated workflow: CLAUDE.md lines 6-9
-- Parent symlinks: .claude/skills/review-tdd-plan, .claude/agents/tdd-plan-reviewer.md
+**Research conducted:**
+- Web search for session management patterns (OpenAI SDK, Google ADK, Anthropic)
+- Found Continuous-Claude-v3 (PostgreSQL-based, more complex)
+- Verified our pattern is novel: No official handoff skills in Anthropic marketplace
+- Pattern aligns with industry (staging area → consolidation → persistent storage)
 
 ## Pending Tasks
 
-- [ ] **Commit parent repo changes** (IMMEDIATE)
-  - Modified: CLAUDE.md (TDD workflow route updated)
-  - Modified: agent-core submodule reference (points to 037282d)
-  - Use /gitmoji + /commit for emoji-prefixed message
+- [ ] **Implement learnings consolidation** - See `plans/learnings-consolidation/design.md`
+  - Create `agents/learnings/` directory structure
+  - Create `agent-core/bin/add-learning.py` script
+  - Update handoff skill to use script
+  - Update remember skill to target skill references
 
-- [ ] **Fix composition API runbook** (BLOCKED - pending review)
-  - Original issue still exists: prescriptive code in GREEN phases
-  - Need to apply review feedback from plans/unification/consolidation/reports/runbook-review.md:586-748
-  - Restructure cycles: X.1 simplest happy path → X.2 error handling → X.3 features
-  - Replace code blocks with behavior descriptions and hints
+- [ ] **Run prepare-runbook.py on composition API runbook** (from previous session)
 
-- [ ] **Execute revised runbook** (AFTER FIXES)
-  - Run prepare-runbook.py to generate artifacts
-  - Use /orchestrate for TDD cycle execution
+- [ ] **Clean up test files** - foo.md, bar.md, baz.md, @foo.md in CLAUDE.md
 
 ## Blockers / Gotchas
 
-**Composition API runbook still needs fixes:**
-- Contains prescriptive implementation code (the problem we just diagnosed)
-- Not yet fixed - review mechanism created but fixes not applied
-- Next session should run tdd-plan-reviewer to validate or apply fixes manually
-
-**Symlink removal issue during sync:**
-- .claude/agents/quiet-task.md had com.apple.provenance extended attribute
-- Required sandbox bypass to remove protected symlink
-- Pattern: Use xattr -d or dangerouslyDisableSandbox for stuck symlinks
-
-**Agent-core workflow:**
-- Always work in ~/code/claudeutils/agent-core/ (submodule working copy)
-- Commit in agent-core first, then update parent submodule reference
-- Run just sync-to-parent to install symlinks in parent .claude/
+**@ expansion behavior:**
+- Memory files (CLAUDE.md chain): Recursive expansion works
+- Prompt @ refs (@file.md in user message): Single level only, no recursion
+- Design must use memory file chain for learnings expansion
 
 ## Next Steps
 
-Commit parent repo changes (CLAUDE.md + agent-core submodule update) with /gitmoji + /commit
+Clean up test files, then implement learnings consolidation or continue composition API runbook execution.
 
 ---
 
 ## Recent Learnings
 
-**TDD runbook anti-pattern (CRITICAL):**
-- Anti-pattern: GREEN phases with exact implementation code
-  ```markdown
-  **GREEN Phase:**
-  ```python
-  def load_config(config_path: Path) -> dict:
-      # exact code here
-  ```
-  ```
-- Correct pattern: Behavior descriptions with hints
-  ```markdown
-  **GREEN Phase:**
-  **Behavior**: Minimal load_config() to pass tests
-  **Hint**: Use yaml.safe_load(), Path.open()
-  ```
-- Rationale: Tests should drive implementation, not scripts prescribe it
-- First cycle: Simplest functional happy path (not trivial stub, but not all features)
+**Learnings → skill references (not docs):**
+- Anti-pattern: Consolidate learnings to CLAUDE.md/design-decisions.md (low discoverability, always loaded)
+- Correct pattern: Consolidate to skill reference files (progressive disclosure, loaded when skill triggers)
+- Rationale: Skills have discoverability via triggering; docs require grep
 
-**Review delegation in workflows:**
-- Phase 5 of /plan-tdd now triggers tdd-plan-reviewer agent
-- Agent writes report to plans/*/reports/runbook-review.md
-- Workflow STOPs on violations, shows user, waits for decision
-- User can apply fixes or approve anyway (judgment required)
+**Design output optimization:**
+- Minimize T1 (designer) output tokens by relying on T2 (planner) inference
+- Large tasks require planning anyway - dense design output aligns with planning needs
+- Write for intelligent readers, omit obvious details
 
-**Skill organization:**
-- Skills live in agent-core/skills/ (synced to parent .claude/skills/)
-- Agents live in agent-core/agents/ (synced to parent .claude/agents/)
-- Hooks live in agent-core/hooks/ (synced to parent .claude/hooks/)
-- sync-to-parent creates relative symlinks for portability
-
-**Progressive disclosure principle:**
-- Don't preload all workflow docs (token economy)
-- Read specific guides only when executing that workflow
-- CLAUDE.md removed non-existent tdd-workflow.md reference
-- Workflow routes should be concise, details in skills/agents
+**@ expansion scope:**
+- Memory files: Recursive expansion (CLAUDE.md → session.md → learnings/pending.md → *.md)
+- Prompt refs: Single level only
+- Staging area must be referenced through memory file chain
