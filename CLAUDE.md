@@ -6,8 +6,9 @@
 
 **TDD workflow** - Feature development with test-first methodology:
 - **Signals:** Test-first culture, user mentions "test/TDD/red-green", behavioral verification needed
-- **Route:** `/design` (TDD mode) → `/plan-tdd` → [tdd-plan-reviewer] → prepare-runbook.py → `/orchestrate` → `/vet`
+- **Route:** `/design` (TDD mode) → `/plan-tdd` → [tdd-plan-reviewer] → [apply fixes if needed] → **prepare-runbook.py** → `/orchestrate` → `/vet`
 - **Review:** tdd-plan-reviewer agent checks for prescriptive code and RED/GREEN violations
+- **CRITICAL:** Must run prepare-runbook.py after review (and fixes) before `/orchestrate` - generates step files and execution artifacts
 
 **Oneshot workflow** - General implementation tasks:
 - **Signals:** Infrastructure, refactoring, prototyping, migrations, default case

@@ -802,7 +802,7 @@ runs during formatting. Benefits:
 - Standardized terminology across documentation
 - Reusable components via agent-core submodule
 
-## TDD Workflow Integration (Completed 2026-01-19)
+## TDD Workflow Integration (Completed 2026-01-19, Updated 2026-01-26)
 
 **Decision:** Extend weak orchestrator pattern to support TDD methodology for feature development.
 
@@ -811,15 +811,19 @@ runs during formatting. Benefits:
 **Key Components:**
 - TDD workflow documentation (`agent-core/agents/tdd-workflow.md`)
 - TDD baseline agent (`agent-core/agents/tdd-task.md`)
-- `/plan-tdd` skill with 4-point preparation (Design, Phases, Model, Cycles)
+- `/plan-tdd` skill with 5-phase execution (includes automated review)
 - Cycle-based runbooks supporting RED/GREEN/REFACTOR progression
 - TDD task agent pattern with cycle-aware instruction sets
+- TDD runbook reviewer (`agent-core/agents/tdd-plan-reviewer.md`) for prescriptive code detection
+- Review skill (`agent-core/skills/review-tdd-plan/`) for anti-pattern detection
 
 **Architecture:**
 - Unified design entry point (`/design` skill) supports both oneshot and TDD modes
 - RED phase: Write failing tests, document intent
-- GREEN phase: Implement minimal working solution
+- GREEN phase: Describe behavior and provide hints (NOT prescriptive code)
 - REFACTOR phase: Improve code quality while maintaining tests
+- **Automated review**: tdd-plan-reviewer detects prescriptive code violations
+- **Mandatory prepare-runbook.py**: Generates step files before /orchestrate
 - Cycle-aware task delegation with scoped runbooks per cycle
 - Quiet execution pattern preserves orchestrator context
 
@@ -829,9 +833,13 @@ runs during formatting. Benefits:
 - Deduplication: Use 4-point prep to avoid overlap with oneshot workflow
 - Testing focus: Behavioral verification with full test coverage
 - Progressive discovery: Documentation read only when executing TDD workflow
+- Anti-pattern detection: Automated review prevents prescriptive code in GREEN phases
+- Mandatory artifact generation: prepare-runbook.py must run before /orchestrate
 
 **Impact:**
 - Production-ready TDD workflow for test-first development
 - Enforced test-first methodology via /plan-tdd skill
+- Prescriptive code detection prevents "copy-paste" implementations
 - Reusable cycle patterns via agent-core documentation
 - Consistent terminology across test and implementation phases
+- Proper execution flow: design → plan → review → prepare → orchestrate
