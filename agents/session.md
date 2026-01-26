@@ -1,59 +1,58 @@
 # Session Handoff: 2026-01-26
 
-**Status:** Learnings consolidation complete with progressive disclosure improvements
+**Status:** TDD runbook Common Context factorization complete
 
 ## Completed This Session
 
-**Learnings consolidation system:**
-- Point 0 assessment: Bypassed orchestration (4 files, clear design, single session more efficient)
-- Created `agents/learnings/` staging directory and `pending.md` index
-- Implemented `agent-core/bin/add-learning.py` script (tested successfully)
-- Updated handoff skill: Extract learnings → stage with add-learning.py
-- Updated remember skill: Process pending learnings → consolidate to skill references
-- Architecture: CLAUDE.md → @session.md → @learnings/pending.md → @*.md (@ chain expansion)
-- Commits: d35b81c (implementation), ee58c22 (executable permission), 342121e (frontmatter fixes)
+**Runbook boilerplate factorization:**
+- Problem: prepare-runbook.py required stop conditions and dependencies in every cycle (12 warnings)
+- Solution: Support Common Context inheritance in validation (agent-core/bin/prepare-runbook.py)
+- Updated `validate_cycle_structure()` to check Common Context for inherited sections
+- Added Common Context extraction before validation loop
+- Result: Composition API runbook compiles clean (12 cycles, zero warnings)
+- Token savings: ~150 lines of boilerplate eliminated per TDD runbook
+- Commits (agent-core): 5c41c53 (✨ learnings consolidation), 72636a4 (🐛 frontmatter), 5e4eb3f (🔧 executable), 2eec1ba (♻️ progressive disclosure), 4ac4546 (🧱 Common Context)
+- Commits (main): ac5da32 (factorization + compilation), 4e8725d (submodule update)
 
-**Workflow improvements:**
-- Updated `/plan-adhoc` skill: Added Point 0 orchestration assessment gate
-- Updated `/oneshot` workflow selection: Clarify when to invoke vs handle directly
-- Added skill development guidance to CLAUDE.md: Load plugin-dev:skill-development when editing skills
-- Commits: 9e7f8cd (plan-adhoc Point 0), 7161d85 (workflow selection), ae52321 (skill dev guidance)
+**Planning skill updates:**
+- Updated `/plan-adhoc`: Added Common Context output optimization guidance
+- Updated `/plan-tdd`: Added factorization instructions with example template
+- Enables planners to eliminate repetitive per-step/cycle boilerplate
+- Commits (agent-core): b3e5b56 (📝 planning skills), (main): 884f9e9 (📝 Pre-Edit Checks)
 
-**Quality reviews:**
-- Vet review: Ready with minor improvements (tmp/reviews/vet-review-learnings-consolidation.md)
-- Skill-reviewer feedback: Fixed critical frontmatter issues (name, description, tool permissions)
-- Manual skill review: Progressive disclosure recommendations documented
-- Commits: e804782 (vet fixes), b3f5b53 (frontmatter fixes)
+**Behavioral improvements:**
+- Added "Pre-Edit Checks" section to CLAUDE.md (pattern-based skill loading table)
+- Prevents editing skills/hooks/agents/commands without loading domain skill first
+- Commit: 884f9e9
 
-**Progressive disclosure refactoring:**
-- Handoff skill: 934 → 607 words (35% reduction)
-  - Moved template to references/template.md
-  - Moved learnings staging to references/learnings-staging.md
-  - Removed redundant "When to Use" section
-- Remember skill: 661 → 560 words (15% reduction)
-  - Moved rule management to references/rule-management.md
-  - Moved patterns to examples/remember-patterns.md
-- Commit: e2845e7, 562d30a
+**Gitmoji updates:**
+- Gitmojified 5 recent agent-core commits (✨🔧🐛♻️🧱)
+- Used semantic matching: features → ✨, fixes → 🐛, config → 🔧, refactor → ♻️, infra → 🧱
 
 **From previous session (context):**
-- Designed learnings consolidation with @ chain expansion
-- Improved design skill (241 → 67 lines)
-- Researched session management patterns (verified novelty)
+- Learnings consolidation system complete
+- Progressive disclosure refactoring (handoff/remember skills)
+- Workflow improvements (plan-adhoc Point 0, oneshot selection)
 
 ## Pending Tasks
 
-- [ ] **Run prepare-runbook.py on composition API runbook** (from previous session)
+- [ ] **Process pending learnings** - Use `/remember` to consolidate 3 staged learnings
+- [ ] **Execute composition API runbook** - Run `/orchestrate` on compiled TDD runbook
 
 ## Blockers / Gotchas
 
-**@ expansion behavior:**
-- Memory files (CLAUDE.md chain): Recursive expansion works
-- Prompt @ refs (@file.md in user message): Single level only, no recursion
-- Learnings must be referenced through memory file chain (session.md → pending.md)
+**Script-first evaluation rule:**
+- Violated during manual edit churn (removing per-cycle stop conditions)
+- Should have used sed/python script for pattern-based removal
+- Caught and corrected with scripted approach
+
+**Sandbox restrictions:**
+- `.claude/agents/` writes blocked by sandbox
+- Required `dangerouslyDisableSandbox: true` for prepare-runbook.py execution
 
 ## Next Steps
 
-Learnings consolidation complete. Ready for `/remember` skill to process pending learnings to skill references, or continue with composition API runbook work.
+Ready for either: 1) `/remember` to process pending learnings, or 2) `/orchestrate` to execute composition API runbook.
 
 ---
 
