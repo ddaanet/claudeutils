@@ -1,86 +1,107 @@
-# Session Handoff: 2026-01-24
+# Session Handoff: 2026-01-26
 
-**Status:** Agent-core submodule integrated; /tmp blocking hook implemented; CLAUDE.md communication rules updated
+**Status:** TDD runbook review mechanism implemented; prescriptive code anti-pattern detected and fixed
 
 ## Completed This Session
 
-**Agent-core submodule integration:**
-- Converted agent-core from direct copy to git submodule (commit: 7f5ae4f)
-- Updated agent-core justfile: Added hooks syncing to sync-to-parent recipe (agent-core commit: 8424cdd)
-- Removed install script (scripts/install-agent-core.sh), replaced with justfile workflow
-- Submodule at commit 8424cdd (includes /tmp blocking hook + hooks sync)
-- Final commit: 29c039f
+**TDD runbook process failure diagnosis:**
+- Root cause: /plan-tdd generated prescriptive runbooks with exact Python code in GREEN phases
+- Violation: Agents became code copiers instead of implementers
+- Impact: 6/11 cycles in composition API runbook contained implementation code
+- Design document (compose-api.md) showed function implementations, influencing runbook generation
 
-**PreToolUse hook for /tmp blocking:**
-- Implemented hook in agent-core: hooks/pretooluse-block-tmp.sh
-- Blocks Write tool calls to /tmp/ and /private/tmp/ paths
-- Returns JSON with permissionDecision: "deny" and error message
-- Resolves Write tool path-based deny pattern limitation (discovered earlier)
-- Hook not yet installed locally (requires `cd agent-core && just sync-to-parent`)
+**TDD review mechanism created:**
+- Created /review-tdd-plan skill in agent-core/skills/review-tdd-plan/SKILL.md
+- Created tdd-plan-reviewer agent in agent-core/agents/tdd-plan-reviewer.md
+- Updated /plan-tdd skill Phase 5 to trigger reviewer (stops on violations, shows user)
+- Updated CLAUDE.md TDD workflow route to include review step
+- Agent-core commits: 0cfd422 (review mechanism), 037282d (justfile fix)
 
-**CLAUDE.md communication rules enhanced:**
-- Added token economy rule: Don't repeat file contents, use references (commit: 409a756)
-- Added rule to avoid numbered lists unless sequencing matters (commit: 43666cb)
-- Converted Communication Rules from numbered to bulleted list
-- Converted Execute Rule workflow from numbered to bulleted list
-- Rationale: Avoid renumbering churn when editing
+**Justfile sync-to-parent fix:**
+- Changed from absolute to relative symlink paths (../../agent-core/...)
+- Improves portability across machines
+- Successfully synced: 13 skills, 3 agents, 1 hook
+
+**Key artifacts locations:**
+- Review skill: agent-core/skills/review-tdd-plan/SKILL.md
+- Reviewer agent: agent-core/agents/tdd-plan-reviewer.md
+- Updated workflow: CLAUDE.md lines 6-9
+- Parent symlinks: .claude/skills/review-tdd-plan, .claude/agents/tdd-plan-reviewer.md
 
 ## Pending Tasks
 
-- [ ] **Apply review feedback to composition API runbook**
-  - Restructure Cycles 2.1, 3.1, 4.1 to minimal implementations (happy path only)
-  - Move features to later cycles for proper RED/GREEN sequencing
-  - Fix CLI command naming (compose_cmd → compose or add @main.command(name='compose'))
-  - Fix exit code mapping (FileNotFoundError should be exit 2, not 4)
-  - Remove/fix invalid YAML anchor test (line 451-467)
-  - Add implementation sequencing hints
-  - Review report: plans/unification/consolidation/reports/runbook-review.md:586-748
+- [ ] **Commit parent repo changes** (IMMEDIATE)
+  - Modified: CLAUDE.md (TDD workflow route updated)
+  - Modified: agent-core submodule reference (points to 037282d)
+  - Use /gitmoji + /commit for emoji-prefixed message
+
+- [ ] **Fix composition API runbook** (BLOCKED - pending review)
+  - Original issue still exists: prescriptive code in GREEN phases
+  - Need to apply review feedback from plans/unification/consolidation/reports/runbook-review.md:586-748
+  - Restructure cycles: X.1 simplest happy path → X.2 error handling → X.3 features
+  - Replace code blocks with behavior descriptions and hints
 
 - [ ] **Execute revised runbook** (AFTER FIXES)
-  - Run prepare-runbook.py to generate execution artifacts
+  - Run prepare-runbook.py to generate artifacts
   - Use /orchestrate for TDD cycle execution
-  - Follow strict RED-GREEN-REFACTOR discipline
 
 ## Blockers / Gotchas
 
-**Runbook revision required before execution:**
-- Current runbook violates TDD RED/GREEN discipline in 6/11 cycles (55%)
-- Must restructure implementations to be incremental (not all-at-once)
-- See review report: plans/unification/consolidation/reports/runbook-review.md
+**Composition API runbook still needs fixes:**
+- Contains prescriptive implementation code (the problem we just diagnosed)
+- Not yet fixed - review mechanism created but fixes not applied
+- Next session should run tdd-plan-reviewer to validate or apply fixes manually
 
-**Earlier context (TDD workflow):**
-- TDD workflow enhanced with delegated review (commit: 9df24a1, aa054da)
-- Composition API runbook created (commit: 64815ab)
-- Review found violations, now needs fixes before execution
+**Symlink removal issue during sync:**
+- .claude/agents/quiet-task.md had com.apple.provenance extended attribute
+- Required sandbox bypass to remove protected symlink
+- Pattern: Use xattr -d or dangerouslyDisableSandbox for stuck symlinks
+
+**Agent-core workflow:**
+- Always work in ~/code/claudeutils/agent-core/ (submodule working copy)
+- Commit in agent-core first, then update parent submodule reference
+- Run just sync-to-parent to install symlinks in parent .claude/
 
 ## Next Steps
 
-Apply review feedback to composition API runbook (see plans/unification/consolidation/reports/runbook-review.md:586-748)
+Commit parent repo changes (CLAUDE.md + agent-core submodule update) with /gitmoji + /commit
 
 ---
 
 ## Recent Learnings
 
-**Communication efficiency (NEW):**
-- Don't repeat file contents in responses (costs tokens)
-- Use file references instead: path:line or just path
-- Avoid numbered lists unless sequencing matters (causes renumbering churn when editing)
-- User feedback: "It's expensive, if info is in a file, reference it"
+**TDD runbook anti-pattern (CRITICAL):**
+- Anti-pattern: GREEN phases with exact implementation code
+  ```markdown
+  **GREEN Phase:**
+  ```python
+  def load_config(config_path: Path) -> dict:
+      # exact code here
+  ```
+  ```
+- Correct pattern: Behavior descriptions with hints
+  ```markdown
+  **GREEN Phase:**
+  **Behavior**: Minimal load_config() to pass tests
+  **Hint**: Use yaml.safe_load(), Path.open()
+  ```
+- Rationale: Tests should drive implementation, not scripts prescribe it
+- First cycle: Simplest functional happy path (not trivial stub, but not all features)
 
-**Agent-core submodule workflow:**
-- Changes must be made in ~/code/claudeutils/agent-core/ (local working copy)
-- Never modify ~/code/agent-core/ directly (submodule source repo)
-- Sync workflow: Edit in agent-core → commit → update parent submodule reference
-- Justfile sync-to-parent creates symlinks for skills, agents, hooks
+**Review delegation in workflows:**
+- Phase 5 of /plan-tdd now triggers tdd-plan-reviewer agent
+- Agent writes report to plans/*/reports/runbook-review.md
+- Workflow STOPs on violations, shows user, waits for decision
+- User can apply fixes or approve anyway (judgment required)
 
-**PreToolUse hook pattern for path validation:**
-- Write tool doesn't support path-based deny patterns in settings.json
-- Solution: PreToolUse hook with JSON input/output
-- Hook reads tool_name and tool_input.file_path from JSON
-- Returns permissionDecision: "deny" to block, empty JSON to allow
-- Pattern applicable to other path-based restrictions
+**Skill organization:**
+- Skills live in agent-core/skills/ (synced to parent .claude/skills/)
+- Agents live in agent-core/agents/ (synced to parent .claude/agents/)
+- Hooks live in agent-core/hooks/ (synced to parent .claude/hooks/)
+- sync-to-parent creates relative symlinks for portability
 
-**TDD runbook patterns (prior session):**
-- Delegated review catches RED/GREEN violations before execution
-- Anti-pattern: Complete signatures in first cycle → tests pass immediately
-- Correct: Minimal implementation in X.1, add features incrementally in X.2+
+**Progressive disclosure principle:**
+- Don't preload all workflow docs (token economy)
+- Read specific guides only when executing that workflow
+- CLAUDE.md removed non-existent tdd-workflow.md reference
+- Workflow routes should be concise, details in skills/agents

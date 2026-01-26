@@ -1,1 +1,1 @@
-/Users/david/code/claudeutils/agent-core/agents/quiet-task.md
+../../agent-core/agents/quiet-task.md

@@ -6,8 +6,8 @@
 
 **TDD workflow** - Feature development with test-first methodology:
 - **Signals:** Test-first culture, user mentions "test/TDD/red-green", behavioral verification needed
-- **Route:** `/design` (TDD mode) → `/plan-tdd` → `/orchestrate` → `/vet` → `/review-analysis`
-- **Detailed guide:** `agent-core/agents/tdd-workflow.md` (read when executing TDD workflow)
+- **Route:** `/design` (TDD mode) → `/plan-tdd` → [tdd-plan-reviewer] → prepare-runbook.py → `/orchestrate` → `/vet`
+- **Review:** tdd-plan-reviewer agent checks for prescriptive code and RED/GREEN violations
 
 **Oneshot workflow** - General implementation tasks:
 - **Signals:** Infrastructure, refactoring, prototyping, migrations, default case
@@ -72,6 +72,18 @@
 - Report all errors explicitly to the user
 - Never use error suppression patterns (e.g., `|| true`, `2>/dev/null`, ignoring exit codes)
 - If a command fails, surface the failure - don't hide it
+
+**Exception:** In bash scripts using token-efficient pattern, `|| true` is used to handle expected non-zero exits (grep no-match, diff differences). See `/token-efficient-bash` skill.
+
+## Bash Scripting
+
+**For sequential bash commands (3+ steps):** Use token-efficient bash pattern.
+
+Use **`/token-efficient-bash` skill** for:
+- Multi-step bash scripts (3+ commands)
+- Pattern: `exec 2>&1; set -xeuo pipefail`
+- 40-60% token savings (eliminates echo/error statements)
+- Automatic tracing + fail-fast errors
 
 ## File System Rules
 

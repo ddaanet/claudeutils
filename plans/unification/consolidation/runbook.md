@@ -381,9 +381,10 @@ def format_separator(style: str = "---") -> str:
 
 ## Cycle 2.1: Basic YAML Configuration Loading
 
-**Objective**: Implement load_config() with basic YAML parsing and validation
+**Objective**: Implement load_config() with basic YAML parsing (happy path only)
 **Script Evaluation**: Direct execution (TDD cycle)
 **Execution Model**: Haiku
+**Implementation Hint**: Happy path only - no error handling, no validation
 
 **Implementation:**
 
@@ -480,7 +481,7 @@ ImportError: cannot import name 'load_config' from 'claudeutils.compose'
 
 **GREEN Phase:**
 
-**Implementation**: Add load_config() function with YAML parsing
+**Implementation**: Add load_config() function with minimal YAML parsing
 
 **Changes:**
 - File: src/claudeutils/compose.py
@@ -499,31 +500,9 @@ def load_config(config_path: Path) -> dict:
 
     Returns:
         Parsed configuration dict.
-
-    Raises:
-        FileNotFoundError: If config file does not exist
-        yaml.YAMLError: If config is malformed YAML
-        ValueError: If config missing required fields
     """
-    if not config_path.exists():
-        raise FileNotFoundError(f"Configuration file not found: {config_path}")
-
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-    except yaml.YAMLError as e:
-        raise yaml.YAMLError(f"Error parsing YAML: {e}")
-
-    # Validate required fields
-    if not config:
-        raise ValueError("Empty configuration file")
-    if 'fragments' not in config:
-        raise ValueError("Missing required field: fragments")
-    if 'output' not in config:
-        raise ValueError("Missing required field: output")
-    if not config['fragments']:
-        raise ValueError("fragments list cannot be empty")
-
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = yaml.safe_load(f)
     return config
 ```
 
@@ -541,9 +520,10 @@ def load_config(config_path: Path) -> dict:
 
 ## Cycle 2.2: Configuration Error Handling
 
-**Objective**: Validate error cases for load_config()
+**Objective**: Add error handling and validation to load_config()
 **Script Evaluation**: Direct execution (TDD cycle)
 **Execution Model**: Haiku
+**Implementation Hint**: Add file existence check, YAML parsing errors, field validation
 
 **Implementation:**
 
@@ -604,7 +584,49 @@ FAILED - assert not raised
 
 **GREEN Phase:**
 
-**Implementation**: Error handling already added in Cycle 2.1, tests should pass
+**Implementation**: Add error handling to load_config()
+
+**Changes:**
+- File: src/claudeutils/compose.py
+  Action: Update load_config() to add validation and error handling
+
+```python
+def load_config(config_path: Path) -> dict:
+    """
+    Load and parse YAML composition configuration file.
+
+    Args:
+        config_path: Path to YAML configuration file.
+
+    Returns:
+        Parsed configuration dict.
+
+    Raises:
+        FileNotFoundError: If config file does not exist
+        yaml.YAMLError: If config is malformed YAML
+        ValueError: If config missing required fields
+    """
+    if not config_path.exists():
+        raise FileNotFoundError(f"Configuration file not found: {config_path}")
+
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        raise yaml.YAMLError(f"Error parsing YAML: {e}")
+
+    # Validate required fields
+    if not config:
+        raise ValueError("Empty configuration file")
+    if 'fragments' not in config:
+        raise ValueError("Missing required field: fragments")
+    if 'output' not in config:
+        raise ValueError("Missing required field: output")
+    if not config['fragments']:
+        raise ValueError("fragments list cannot be empty")
+
+    return config
+```
 
 **Verify GREEN**: pytest tests/test_compose.py::test_load_config_missing -v
 - All 4 tests must pass
@@ -620,9 +642,10 @@ FAILED - assert not raised
 
 ## Cycle 3.1: Basic Fragment Composition
 
-**Objective**: Implement compose() function with basic fragment assembly
+**Objective**: Implement compose() function with minimal fragment assembly (happy path only)
 **Script Evaluation**: Direct execution (TDD cycle)
 **Execution Model**: Haiku
+**Implementation Hint**: Minimal compose - no title, no options, hardcoded separator "\n---\n\n"
 
 **Implementation:**
 
@@ -700,7 +723,7 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 
 **GREEN Phase:**
 
-**Implementation**: Add compose() function with basic composition logic
+**Implementation**: Add compose() function with minimal composition logic
 
 **Changes:**
 - File: src/claudeutils/compose.py
@@ -710,10 +733,6 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 def compose(
     fragments: list[Path] | list[str],
     output: Path | str,
-    title: str | None = None,
-    adjust_headers: bool = False,
-    separator: str = "---",
-    validate_mode: str = "strict",
 ) -> None:
     """
     Compose multiple markdown fragments into a single output file.
@@ -721,60 +740,24 @@ def compose(
     Args:
         fragments: List of fragment file paths.
         output: Path to output file.
-        title: Optional markdown header to prepend.
-        adjust_headers: If True, increase all fragment headers by 1 level.
-        separator: Fragment separator style ("---", "blank", "none").
-        validate_mode: Error handling strategy ("strict", "warn").
-
-    Raises:
-        FileNotFoundError: If validate_mode="strict" and fragment missing
-        PermissionError: If output directory cannot be created
-        IOError: If output file cannot be written
     """
     # Convert to Path objects
     output_path = Path(output) if isinstance(output, str) else output
     fragment_paths = [Path(f) if isinstance(f, str) else f for f in fragments]
-
-    # Validate fragments in strict mode
-    if validate_mode == "strict":
-        missing = [p for p in fragment_paths if not p.exists()]
-        if missing:
-            raise FileNotFoundError(f"Fragment not found: {missing[0]}")
 
     # Create output directory
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Compose fragments
     with open(output_path, 'w', encoding='utf-8') as out:
-        # Write title if provided
-        if title:
-            out.write(f"# {title}\n\n")
-
-        # Process each fragment
         for i, frag_path in enumerate(fragment_paths):
-            # Skip if missing in warn mode
-            if not frag_path.exists():
-                if validate_mode == "warn":
-                    import sys
-                    print(f"WARNING: Skipping missing fragment: {frag_path}", file=sys.stderr)
-                    continue
-
-            # Read fragment
             content = frag_path.read_text(encoding='utf-8')
-
-            # Apply transformations
-            if adjust_headers:
-                content = increase_header_levels(content, 1)
-
             content = normalize_newlines(content)
-
-            # Write content
             out.write(content)
 
             # Write separator (except after last fragment)
             if i < len(fragment_paths) - 1:
-                sep = format_separator(separator)
-                out.write(sep)
+                out.write("\n---\n\n")  # Hardcoded separator
 ```
 
 **Verify GREEN**: pytest tests/test_compose.py::test_compose -v
@@ -791,9 +774,10 @@ def compose(
 
 ## Cycle 3.2: Title and Separator Options
 
-**Objective**: Validate title injection and separator style options
+**Objective**: Add title and separator parameters to compose()
 **Script Evaluation**: Direct execution (TDD cycle)
 **Execution Model**: Haiku
+**Implementation Hint**: Add title and separator parameters with defaults
 
 **Implementation:**
 
@@ -872,7 +856,47 @@ AssertionError - tests fail because separator handling may need refinement
 
 **GREEN Phase:**
 
-**Implementation**: Implementation from Cycle 3.1 should already support these features
+**Implementation**: Add title and separator parameters
+
+**Changes:**
+- File: src/claudeutils/compose.py
+  Action: Update compose() function signature and add title/separator handling
+
+```python
+def compose(
+    fragments: list[Path] | list[str],
+    output: Path | str,
+    title: str | None = None,
+    separator: str = "---",
+) -> None:
+    """
+    Compose multiple markdown fragments into a single output file.
+
+    Args:
+        fragments: List of fragment file paths.
+        output: Path to output file.
+        title: Optional markdown header to prepend.
+        separator: Fragment separator style ("---", "blank", "none").
+    """
+    output_path = Path(output) if isinstance(output, str) else output
+    fragment_paths = [Path(f) if isinstance(f, str) else f for f in fragments]
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, 'w', encoding='utf-8') as out:
+        # Write title if provided
+        if title:
+            out.write(f"# {title}\n\n")
+
+        for i, frag_path in enumerate(fragment_paths):
+            content = frag_path.read_text(encoding='utf-8')
+            content = normalize_newlines(content)
+            out.write(content)
+
+            if i < len(fragment_paths) - 1:
+                sep = format_separator(separator)
+                out.write(sep)
+```
 
 **Verify GREEN**: pytest tests/test_compose.py::test_compose_separator -v
 - All 4 tests must pass
@@ -888,9 +912,10 @@ AssertionError - tests fail because separator handling may need refinement
 
 ## Cycle 3.3: Header Adjustment Integration
 
-**Objective**: Validate adjust_headers parameter integration
+**Objective**: Add adjust_headers parameter to compose()
 **Script Evaluation**: Direct execution (TDD cycle)
 **Execution Model**: Haiku
+**Implementation Hint**: Add adjust_headers parameter, apply increase_header_levels when enabled
 
 **Implementation:**
 
@@ -954,7 +979,53 @@ May pass - implementation already supports this
 
 **GREEN Phase:**
 
-**Implementation**: Already implemented in Cycle 3.1
+**Implementation**: Add adjust_headers parameter
+
+**Changes:**
+- File: src/claudeutils/compose.py
+  Action: Update compose() to add adjust_headers parameter
+
+```python
+def compose(
+    fragments: list[Path] | list[str],
+    output: Path | str,
+    title: str | None = None,
+    adjust_headers: bool = False,
+    separator: str = "---",
+) -> None:
+    """
+    Compose multiple markdown fragments into a single output file.
+
+    Args:
+        fragments: List of fragment file paths.
+        output: Path to output file.
+        title: Optional markdown header to prepend.
+        adjust_headers: If True, increase all fragment headers by 1 level.
+        separator: Fragment separator style ("---", "blank", "none").
+    """
+    output_path = Path(output) if isinstance(output, str) else output
+    fragment_paths = [Path(f) if isinstance(f, str) else f for f in fragments]
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, 'w', encoding='utf-8') as out:
+        if title:
+            out.write(f"# {title}\n\n")
+
+        for i, frag_path in enumerate(fragment_paths):
+            content = frag_path.read_text(encoding='utf-8')
+
+            # Apply header adjustment if enabled
+            if adjust_headers:
+                content = increase_header_levels(content, 1)
+
+            content = normalize_newlines(content)
+            out.write(content)
+
+            if i < len(fragment_paths) - 1:
+                sep = format_separator(separator)
+                out.write(sep)
+```
 
 **Verify GREEN**: pytest tests/test_compose.py::test_compose_adjust_headers -v
 - All 3 tests must pass
