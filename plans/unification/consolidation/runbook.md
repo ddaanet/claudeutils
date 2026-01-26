@@ -61,6 +61,24 @@ Tests grouped in batches of 3-5 related assertions to maintain RED/GREEN discipl
 - Mock patching: patch where object is used, not defined
 - Exit codes: 1=config error, 2=fragment error, 3=output error, 4=arg error
 
+**Stop Conditions (all cycles):**
+
+STOP IMMEDIATELY if:
+- RED phase: Test passes (expected failure)
+- RED phase: Failure message doesn't match expected
+- GREEN phase: Tests don't pass after implementation
+- Any phase: Existing tests break (regression)
+
+Actions when stopped:
+1. Document in reports/cycle-{X}-{Y}-notes.md
+2. Test passes unexpectedly → Investigate if feature exists
+3. Regression → STOP, report broken tests
+4. Scope unclear → STOP, document ambiguity
+
+**Dependencies (all cycles):**
+
+All cycles are sequential - each cycle builds on previous implementations.
+
 ---
 
 ## Cycle 1.1: Header Level Detection
