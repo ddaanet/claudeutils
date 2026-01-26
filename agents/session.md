@@ -14,6 +14,16 @@
 
 ## Completed This Session
 
+**Learnings consolidation implementation:**
+- Assessed with Point 0: Direct implementation preferred (4 files, clear design, single session)
+- Created agents/learnings/ staging directory
+- Implemented agent-core/bin/add-learning.py script
+- Updated handoff skill: Extract learnings → call script (commit: d35b81c)
+- Updated remember skill: Process pending.md → consolidate to skill references
+- Updated plan-adhoc skill: Added Point 0 orchestration assessment gate (commit: 9e7f8cd)
+- Tested integration: Script correctly stages learnings and updates pending.md
+- Commits: ae52321, e5d546c, cf17985
+
 **Learnings consolidation design:**
 - Designed segmented learnings with @ chain expansion
 - Architecture: CLAUDE.md → @session.md → @learnings/pending.md → @learnings/*.md
@@ -37,10 +47,8 @@
 ## Pending Tasks
 
 ### Workflow: Learnings Consolidation
-- [>] **Planning** - Create runbook with implementation steps (/plan-adhoc)
-- [ ] **Execution** - Run runbook steps (/orchestrate)
-- [ ] **Review** - Verify changes and identify issues (/vet)
-- [ ] **Completion** - Update documentation, finalize work
+- [x] **Implementation** - Implemented directly (Point 0 bypass, no orchestration needed)
+- [x] **Review** - Vet review complete (tmp/reviews/vet-review-learnings-consolidation.md)
 
 ### Other Pending Work
 - [ ] **Run prepare-runbook.py on composition API runbook** (from previous session)
