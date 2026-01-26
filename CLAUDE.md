@@ -261,6 +261,18 @@ Agent returns: "a7f38c2"
 
 **Critical:** Always include this reminder in task prompts to prevent bash tool misuse.
 
+### Skill Development
+
+**Rule:** When creating or editing a skill, start by loading the `plugin-dev:skill-development` skill.
+
+**Why:** The skill-development skill provides:
+- Skill structure and frontmatter guidance
+- Progressive disclosure patterns
+- Triggering condition best practices
+- Integration with Claude Code plugin system
+
+**Usage:** Invoke the skill before beginning skill work to load context and patterns.
+
 ## Tool Batching
 
 **Planning phase (before tool calls):**
