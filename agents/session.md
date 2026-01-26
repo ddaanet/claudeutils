@@ -2,7 +2,15 @@
 
 **Session ID:** `3571ef05-f905-44f7-83e5-11cb2d141e10`
 
-**Status:** Learnings consolidation design complete; design skill improved
+**Status:** Oneshot workflow - learnings consolidation implementation
+
+## Current Work
+
+**Job:** Implement learnings consolidation system per plans/learnings-consolidation/design.md
+
+**Type:** One-off task (oneshot workflow)
+
+**Complexity:** Moderate
 
 ## Completed This Session
 
@@ -28,15 +36,14 @@
 
 ## Pending Tasks
 
-- [ ] **Implement learnings consolidation** - See `plans/learnings-consolidation/design.md`
-  - Create `agents/learnings/` directory structure
-  - Create `agent-core/bin/add-learning.py` script
-  - Update handoff skill to use script
-  - Update remember skill to target skill references
+### Workflow: Learnings Consolidation
+- [>] **Planning** - Create runbook with implementation steps (/plan-adhoc)
+- [ ] **Execution** - Run runbook steps (/orchestrate)
+- [ ] **Review** - Verify changes and identify issues (/vet)
+- [ ] **Completion** - Update documentation, finalize work
 
+### Other Pending Work
 - [ ] **Run prepare-runbook.py on composition API runbook** (from previous session)
-
-- [ ] **Clean up test files** - foo.md, bar.md, baz.md, @foo.md in CLAUDE.md
 
 ## Blockers / Gotchas
 
@@ -45,9 +52,15 @@
 - Prompt @ refs (@file.md in user message): Single level only, no recursion
 - Design must use memory file chain for learnings expansion
 
+## Key Context
+
+Design complete: `plans/learnings-consolidation/design.md`
+- Architecture: CLAUDE.md → @session.md → @learnings/pending.md → @learnings/*.md
+- Components: directory structure, add-learning.py script, handoff/remember skill updates
+
 ## Next Steps
 
-Clean up test files, then implement learnings consolidation or continue composition API runbook execution.
+Planning stage in progress - invoking /plan-adhoc to create implementation runbook.
 
 ---
 
