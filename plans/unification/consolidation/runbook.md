@@ -122,24 +122,14 @@ ImportError: cannot import name 'get_header_level' from 'claudeutils.compose'
 - File: src/claudeutils/compose.py
   Action: Create file with imports and get_header_level() function
 
-```python
-import re
-from pathlib import Path
+**Behavior**:
+- Parse line to detect hash marks at start
+- Count consecutive hashes (1-6)
+- Return count if valid header pattern, None otherwise
+- Must handle space after hashes (e.g., "# Title" → 1, "### Section" → 3)
+- Must return None for non-header lines
 
-
-def get_header_level(line: str) -> int | None:
-    """
-    Detect markdown header level from a line.
-
-    Args:
-        line: Single line of text.
-
-    Returns:
-        Header level (1-6) if line is header, None otherwise.
-    """
-    match = re.match(r'^(#+)\s', line)
-    return len(match.group(1)) if match else None
-```
+**Hint**: Use regex to match start-of-line hash pattern. Consider re.match() with pattern group extraction to count hashes.
 
 **Verify GREEN**: pytest tests/test_compose.py::test_get_header_level -v
 - All 4 tests must pass
@@ -234,22 +224,15 @@ ImportError: cannot import name 'increase_header_levels' from 'claudeutils.compo
 - File: src/claudeutils/compose.py
   Action: Add increase_header_levels() function
 
-```python
-def increase_header_levels(content: str, levels: int = 1) -> str:
-    """
-    Increase markdown header levels by specified amount.
+**Behavior**:
+- Process multi-line markdown content
+- Find all header lines (lines starting with #)
+- Add specified number of hash marks to each header
+- Preserve non-header lines unchanged
+- Default levels=1
+- Must pass tests: increase by 1, increase by 2, no headers, custom levels
 
-    Args:
-        content: Markdown content string.
-        levels: Number of header levels to increase (default 1).
-
-    Returns:
-        Content with adjusted headers.
-    """
-    pattern = r'^(#{1,})\s'
-    replacement = r'\1' + '#' * levels + ' '
-    return re.sub(pattern, replacement, content, flags=re.MULTILINE)
-```
+**Hint**: Use regex with MULTILINE flag to process multiple lines. Consider re.sub() for replacement. Pattern should match start-of-line hashes.
 
 **Verify GREEN**: pytest tests/test_compose.py::test_increase_header_levels -v
 - All 4 tests must pass
@@ -331,41 +314,25 @@ ImportError: cannot import name 'normalize_newlines' from 'claudeutils.compose'
 - File: src/claudeutils/compose.py
   Action: Add both utility functions
 
-```python
-def normalize_newlines(content: str) -> str:
-    """
-    Ensure content ends with single newline.
+**Behavior**:
 
-    Args:
-        content: String content.
+**normalize_newlines()**:
+- Ensure content ends with exactly one newline
+- If content already ends with newline, return unchanged
+- If content is empty or None, return unchanged
+- Otherwise append single newline
+- Must pass: adds newline, preserves existing, handles empty, idempotent
 
-    Returns:
-        Content with single trailing newline.
-    """
-    if not content or content.endswith('\n'):
-        return content
-    return content + '\n'
+**format_separator()**:
+- Return formatted separator string based on style parameter
+- Support styles: "---" (default), "blank", "none"
+- "---" returns horizontal rule with blank lines
+- "blank" returns blank lines only
+- "none" returns empty string
+- Raise ValueError for unknown styles
+- Must pass: all style tests, default, unknown style error
 
-
-def format_separator(style: str = "---") -> str:
-    """
-    Format fragment separator based on style.
-
-    Args:
-        style: Separator style ("---", "blank", "none").
-
-    Returns:
-        Separator string ready for output.
-    """
-    if style == "---":
-        return "\n---\n\n"
-    elif style == "blank":
-        return "\n\n"
-    elif style == "none":
-        return ""
-    else:
-        raise ValueError(f"Unknown separator style: {style}")
-```
+**Hint**: Simple string operations and conditionals. Tests define expected output formats.
 
 **Verify GREEN**: pytest tests/test_compose.py::test_normalize_newlines -v
 - All 5 tests must pass
@@ -487,24 +454,14 @@ ImportError: cannot import name 'load_config' from 'claudeutils.compose'
 - File: src/claudeutils/compose.py
   Action: Add imports and load_config() function
 
-```python
-import yaml
+**Behavior**:
+- Read YAML file from config_path
+- Parse YAML into Python dict
+- Return parsed configuration
+- Must pass test assertions: basic structure, optional fields (title, separator), defaults (adjust_headers), YAML anchors
 
-
-def load_config(config_path: Path) -> dict:
-    """
-    Load and parse YAML composition configuration file.
-
-    Args:
-        config_path: Path to YAML configuration file.
-
-    Returns:
-        Parsed configuration dict.
-    """
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-    return config
-```
+**Hint**: Use yaml.safe_load() with UTF-8 encoding. No error handling in this cycle.
+**Implementation Hint**: Happy path only - no validation, no error handling
 
 **Verify GREEN**: pytest tests/test_compose.py::test_load_config -v
 - All 4 tests must pass
@@ -590,43 +547,16 @@ FAILED - assert not raised
 - File: src/claudeutils/compose.py
   Action: Update load_config() to add validation and error handling
 
-```python
-def load_config(config_path: Path) -> dict:
-    """
-    Load and parse YAML composition configuration file.
+**Behavior**:
+- Raise FileNotFoundError if config file doesn't exist
+- Raise yaml.YAMLError if YAML is malformed
+- Raise ValueError if required fields missing (fragments, output)
+- Raise ValueError if config is empty
+- Validate fragments list not empty
+- Must match test exception patterns and error messages
 
-    Args:
-        config_path: Path to YAML configuration file.
-
-    Returns:
-        Parsed configuration dict.
-
-    Raises:
-        FileNotFoundError: If config file does not exist
-        yaml.YAMLError: If config is malformed YAML
-        ValueError: If config missing required fields
-    """
-    if not config_path.exists():
-        raise FileNotFoundError(f"Configuration file not found: {config_path}")
-
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-    except yaml.YAMLError as e:
-        raise yaml.YAMLError(f"Error parsing YAML: {e}")
-
-    # Validate required fields
-    if not config:
-        raise ValueError("Empty configuration file")
-    if 'fragments' not in config:
-        raise ValueError("Missing required field: fragments")
-    if 'output' not in config:
-        raise ValueError("Missing required field: output")
-    if not config['fragments']:
-        raise ValueError("fragments list cannot be empty")
-
-    return config
-```
+**Hint**: Check file existence before reading. Catch yaml.YAMLError during parsing. Validate dict structure after loading.
+**Implementation Hint**: Add file existence check, YAML parsing errors, field validation
 
 **Verify GREEN**: pytest tests/test_compose.py::test_load_config_missing -v
 - All 4 tests must pass
@@ -729,36 +659,18 @@ ImportError: cannot import name 'compose' from 'claudeutils.compose'
 - File: src/claudeutils/compose.py
   Action: Add compose() function
 
-```python
-def compose(
-    fragments: list[Path] | list[str],
-    output: Path | str,
-) -> None:
-    """
-    Compose multiple markdown fragments into a single output file.
+**Behavior**:
+- Accept fragments as list of Path or str
+- Write composed output to output path
+- Support single fragment (direct copy with normalization)
+- Support multiple fragments (joined with separator)
+- Auto-create output parent directories if needed
+- Normalize newlines in all fragments
+- Add separator between fragments (not after last)
+- Must pass all 4 tests: single fragment, multiple fragments, path types, auto-create dirs
 
-    Args:
-        fragments: List of fragment file paths.
-        output: Path to output file.
-    """
-    # Convert to Path objects
-    output_path = Path(output) if isinstance(output, str) else output
-    fragment_paths = [Path(f) if isinstance(f, str) else f for f in fragments]
-
-    # Create output directory
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Compose fragments
-    with open(output_path, 'w', encoding='utf-8') as out:
-        for i, frag_path in enumerate(fragment_paths):
-            content = frag_path.read_text(encoding='utf-8')
-            content = normalize_newlines(content)
-            out.write(content)
-
-            # Write separator (except after last fragment)
-            if i < len(fragment_paths) - 1:
-                out.write("\n---\n\n")  # Hardcoded separator
-```
+**Hint**: Convert strings to Path objects. Use Path.mkdir(parents=True, exist_ok=True) for directories. Hardcode separator "\n---\n\n" for now. Use normalize_newlines() utility.
+**Implementation Hint**: Minimal compose - no title, no options, hardcoded separator "\n---\n\n"
 
 **Verify GREEN**: pytest tests/test_compose.py::test_compose -v
 - All 4 tests must pass
@@ -1218,58 +1130,19 @@ AttributeError: 'Group' object has no attribute 'compose'
 - File: src/claudeutils/cli.py
   Action: Add compose subcommand to main CLI group
 
-```python
-import click
-from pathlib import Path
-from claudeutils.compose import compose, load_config
+**Behavior**:
+- Add @main.command() decorator for compose subcommand
+- Accept config_file as required argument (must exist)
+- Support --output option to override config output path
+- Support --validate option for mode (strict/warn, default strict)
+- Support --verbose flag for detailed output
+- Support --dry-run flag (show plan, don't write)
+- Load config using load_config()
+- Call compose() with config values
+- Handle errors with appropriate exit codes (FileNotFoundError→4, ValueError→1, other→3)
+- Must pass all 3 tests: basic compose, missing config, invalid YAML
 
-
-@main.command()
-@click.argument('config_file', type=click.Path(exists=True))
-@click.option('--output', '-o', type=click.Path(),
-              help='Override output path from config')
-@click.option('--validate', '-v', type=click.Choice(['strict', 'warn']),
-              default='strict', help='Validation mode')
-@click.option('--verbose', is_flag=True, help='Verbose output')
-@click.option('--dry-run', is_flag=True, help='Show plan without writing')
-def compose_cmd(config_file, output, validate, verbose, dry_run):
-    """Compose markdown from YAML configuration."""
-    try:
-        config_path = Path(config_file)
-        config = load_config(config_path)
-
-        if verbose:
-            click.echo(f"Loading config: {config_file}")
-
-        if dry_run:
-            click.echo(f"Dry-run: Would compose to {config.get('output')}")
-            return
-
-        output_path = Path(output) if output else Path(config['output'])
-        fragments = [Path(f) for f in config['fragments']]
-
-        compose(
-            fragments=fragments,
-            output=output_path,
-            title=config.get('title'),
-            adjust_headers=config.get('adjust_headers', False),
-            separator=config.get('separator', '---'),
-            validate_mode=validate,
-        )
-
-        if verbose:
-            click.echo(f"Composed {len(fragments)} fragments to {output_path}")
-
-    except FileNotFoundError as e:
-        click.echo(f"Error: {e}", err=True)
-        raise SystemExit(4)
-    except ValueError as e:
-        click.echo(f"Configuration error: {e}", err=True)
-        raise SystemExit(1)
-    except Exception as e:
-        click.echo(f"Error: {e}", err=True)
-        raise SystemExit(3)
-```
+**Hint**: Use @main.command() decorator. Use click.argument() for required parameters with type validation. Use click.option() for optional flags. Use click.echo() for output. Use SystemExit(code) for exit codes. Import compose and load_config from claudeutils.compose.
 
 **Verify GREEN**: pytest tests/test_cli_compose.py::test_cli_compose -v
 - All 3 tests must pass
