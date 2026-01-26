@@ -1,56 +1,47 @@
 # Session Handoff: 2026-01-26
 
-**Session ID:** `3571ef05-f905-44f7-83e5-11cb2d141e10`
-
-**Status:** Oneshot workflow - learnings consolidation implementation
-
-## Current Work
-
-**Job:** Implement learnings consolidation system per plans/learnings-consolidation/design.md
-
-**Type:** One-off task (oneshot workflow)
-
-**Complexity:** Moderate
+**Status:** Learnings consolidation complete with progressive disclosure improvements
 
 ## Completed This Session
 
-**Learnings consolidation implementation:**
-- Assessed with Point 0: Direct implementation preferred (4 files, clear design, single session)
-- Created agents/learnings/ staging directory
-- Implemented agent-core/bin/add-learning.py script
-- Updated handoff skill: Extract learnings → call script (commit: d35b81c)
-- Updated remember skill: Process pending.md → consolidate to skill references
-- Updated plan-adhoc skill: Added Point 0 orchestration assessment gate (commit: 9e7f8cd)
-- Tested integration: Script correctly stages learnings and updates pending.md
-- Commits: ae52321, e5d546c, cf17985
+**Learnings consolidation system:**
+- Point 0 assessment: Bypassed orchestration (4 files, clear design, single session more efficient)
+- Created `agents/learnings/` staging directory and `pending.md` index
+- Implemented `agent-core/bin/add-learning.py` script (tested successfully)
+- Updated handoff skill: Extract learnings → stage with add-learning.py
+- Updated remember skill: Process pending learnings → consolidate to skill references
+- Architecture: CLAUDE.md → @session.md → @learnings/pending.md → @*.md (@ chain expansion)
+- Commits: d35b81c (implementation), ee58c22 (executable permission), 342121e (frontmatter fixes)
 
-**Learnings consolidation design:**
-- Designed segmented learnings with @ chain expansion
-- Architecture: CLAUDE.md → @session.md → @learnings/pending.md → @learnings/*.md
-- Validated @ expansion works recursively in memory files (not prompt refs)
-- Created design doc: `plans/learnings-consolidation/design.md`
-- Key insight: Consolidate learnings to skill reference files (not CLAUDE.md) for discoverability
-- Cross-cutting rules → topical skills (sandboxed, token-optimization, etc.)
+**Workflow improvements:**
+- Updated `/plan-adhoc` skill: Added Point 0 orchestration assessment gate
+- Updated `/oneshot` workflow selection: Clarify when to invoke vs handle directly
+- Added skill development guidance to CLAUDE.md: Load plugin-dev:skill-development when editing skills
+- Commits: 9e7f8cd (plan-adhoc Point 0), 7161d85 (workflow selection), ae52321 (skill dev guidance)
 
-**Design skill improvement:**
-- Rewrote `.claude/skills/design/SKILL.md` - reduced from 241 to 67 lines
-- Removed verbose templates, trivial examples, hand-holding
-- Added model-neutral language (designer/planner vs Opus/Sonnet)
-- Key principle: Minimize designer output tokens by relying on planner inference
+**Quality reviews:**
+- Vet review: Ready with minor improvements (tmp/reviews/vet-review-learnings-consolidation.md)
+- Skill-reviewer feedback: Fixed critical frontmatter issues (name, description, tool permissions)
+- Manual skill review: Progressive disclosure recommendations documented
+- Commits: e804782 (vet fixes), b3f5b53 (frontmatter fixes)
 
-**Research conducted:**
-- Web search for session management patterns (OpenAI SDK, Google ADK, Anthropic)
-- Found Continuous-Claude-v3 (PostgreSQL-based, more complex)
-- Verified our pattern is novel: No official handoff skills in Anthropic marketplace
-- Pattern aligns with industry (staging area → consolidation → persistent storage)
+**Progressive disclosure refactoring:**
+- Handoff skill: 934 → 607 words (35% reduction)
+  - Moved template to references/template.md
+  - Moved learnings staging to references/learnings-staging.md
+  - Removed redundant "When to Use" section
+- Remember skill: 661 → 560 words (15% reduction)
+  - Moved rule management to references/rule-management.md
+  - Moved patterns to examples/remember-patterns.md
+- Commit: e2845e7, 562d30a
+
+**From previous session (context):**
+- Designed learnings consolidation with @ chain expansion
+- Improved design skill (241 → 67 lines)
+- Researched session management patterns (verified novelty)
 
 ## Pending Tasks
 
-### Workflow: Learnings Consolidation
-- [x] **Implementation** - Implemented directly (Point 0 bypass, no orchestration needed)
-- [x] **Review** - Vet review complete (tmp/reviews/vet-review-learnings-consolidation.md)
-
-### Other Pending Work
 - [ ] **Run prepare-runbook.py on composition API runbook** (from previous session)
 
 ## Blockers / Gotchas
@@ -58,33 +49,12 @@
 **@ expansion behavior:**
 - Memory files (CLAUDE.md chain): Recursive expansion works
 - Prompt @ refs (@file.md in user message): Single level only, no recursion
-- Design must use memory file chain for learnings expansion
-
-## Key Context
-
-Design complete: `plans/learnings-consolidation/design.md`
-- Architecture: CLAUDE.md → @session.md → @learnings/pending.md → @learnings/*.md
-- Components: directory structure, add-learning.py script, handoff/remember skill updates
+- Learnings must be referenced through memory file chain (session.md → pending.md)
 
 ## Next Steps
 
-Planning stage in progress - invoking /plan-adhoc to create implementation runbook.
+Learnings consolidation complete. Ready for `/remember` skill to process pending learnings to skill references, or continue with composition API runbook work.
 
 ---
 
-## Recent Learnings
-
-**Learnings → skill references (not docs):**
-- Anti-pattern: Consolidate learnings to CLAUDE.md/design-decisions.md (low discoverability, always loaded)
-- Correct pattern: Consolidate to skill reference files (progressive disclosure, loaded when skill triggers)
-- Rationale: Skills have discoverability via triggering; docs require grep
-
-**Design output optimization:**
-- Minimize T1 (designer) output tokens by relying on T2 (planner) inference
-- Large tasks require planning anyway - dense design output aligns with planning needs
-- Write for intelligent readers, omit obvious details
-
-**@ expansion scope:**
-- Memory files: Recursive expansion (CLAUDE.md → session.md → learnings/pending.md → *.md)
-- Prompt refs: Single level only
-- Staging area must be referenced through memory file chain
+@agents/learnings/pending.md
