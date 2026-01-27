@@ -127,6 +127,15 @@
 - Simplified justfile to use direct VENV binaries (removed conditional logic)
 - Commits: agent-core 4b63c7d, main bde8e1c
 
+**bin/shelve and bin/poptodo evaluation (Sonnet):**
+- Analyzed bin/shelve and bin/poptodo scripts vs /shelve skill
+- Found scripts broken (missing template file agents/session.template.md)
+- Format conflict: scripts use simple --- stack, todo.md uses shelve skill format
+- No documentation or usage found (only deferred task reference)
+- Decision: Remove scripts (shelve skill is superior and actively used)
+- Removed bin/shelve, bin/poptodo, and empty bin/ directory
+- Evaluation documented in tmp/shelve-evaluation.md
+
 ## Pending Tasks
 
 **Ready for Sonnet implementation:**
@@ -169,10 +178,10 @@
 
 - [x] **Process pending learnings** - `/remember` to consolidate staged learnings
 - [x] **Remove "uv run" references** - Audit subprocess calls
+- [x] **Evaluate bin/poptodo and bin/shelve** - Removed (broken, duplicate shelve skill)
 
 **Deferred:**
 
-- [ ] **Evaluate bin/poptodo and bin/shelve** - Integration with shelve skill
 - [ ] **Session size tooling** - Add @ chain line count to add-learning.py or standalone script (needs test suite)
 
 ## Blockers / Gotchas
