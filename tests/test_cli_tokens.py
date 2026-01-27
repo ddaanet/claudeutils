@@ -226,6 +226,9 @@ def test_cli_rate_limit_error_shows_message(
     # Set fake API key to pass authentication check
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
 
+    # Mock Anthropic client to avoid instantiation with SOCKS proxy
+    mocker.patch("claudeutils.tokens_cli.Anthropic", autospec=True)
+
     # Setup mocks with resolve returning model and count_tokens raising error
     mock_resolve = mocker.patch(
         "claudeutils.tokens_cli.resolve_model_alias", autospec=True

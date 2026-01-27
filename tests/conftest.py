@@ -196,6 +196,9 @@ def mock_token_counting(
         # Set fake API key to pass authentication check
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
 
+        # Mock Anthropic client to avoid instantiation with SOCKS proxy
+        mocker.patch("claudeutils.tokens_cli.Anthropic", autospec=True)
+
         mocker.patch(
             "claudeutils.tokens_cli.resolve_model_alias",
             return_value=ModelId(model_id),
