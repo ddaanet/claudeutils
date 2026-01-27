@@ -57,6 +57,12 @@
 
 - [ ] **Commit workflow** - After dev fixes: squash 15 WIP commits or keep detailed history (decision pending)
 
+- [ ] **Plan-TDD skill improvement** - Add guidance to avoid presentation tests
+  - Problem statement: plans/plan-tdd-skill/problem.md
+  - Issue: Help text tests are brittle and don't fit TDD methodology
+  - Action: Add "What NOT to test" section to plan-tdd skill
+  - See also: Test suite audit for similar anti-patterns
+
 ## Blockers / Gotchas
 
 **None currently blocking execution.** Previous session gotchas resolved:
