@@ -19,17 +19,17 @@ uv tool install .
 
 ```bash
 # List all conversation sessions
-uv run claudeutils list
+claudeutils list
 
 # Extract feedback from a specific session (by prefix)
-uv run claudeutils extract e12d203f
+claudeutils extract e12d203f
 
 # Extract to file
-uv run claudeutils extract e12d203f --output feedback.json
+claudeutils extract e12d203f --output feedback.json
 
 # Use custom project directory
-uv run claudeutils list --project /path/to/project
-uv run claudeutils extract abc123 --project /path/to/project
+claudeutils list --project /path/to/project
+claudeutils extract abc123 --project /path/to/project
 ```
 
 ### Token Counting
@@ -39,16 +39,16 @@ variable.
 
 ```bash
 # Count tokens in a single file
-uv run claudeutils tokens sonnet prompt.md
+claudeutils tokens sonnet prompt.md
 
 # Count tokens across multiple files
-uv run claudeutils tokens opus file1.md file2.md
+claudeutils tokens opus file1.md file2.md
 
 # JSON output format
-uv run claudeutils tokens haiku prompt.md --json
+claudeutils tokens haiku prompt.md --json
 
 # Use full model ID instead of alias
-uv run claudeutils tokens claude-sonnet-4-5-20250929 prompt.md
+claudeutils tokens claude-sonnet-4-5-20250929 prompt.md
 ```
 
 **Supported model aliases:**
@@ -68,10 +68,10 @@ formatting:
 
 ```bash
 # Process files from git status
-git status --short | cut -c4- | uv run claudeutils markdown
+git status --short | cut -c4- | claudeutils markdown
 
 # Or pipe file paths directly
-echo "output.md" | uv run claudeutils markdown
+echo "output.md" | claudeutils markdown
 ```
 
 **What it fixes:**
@@ -100,18 +100,18 @@ Process feedback in stages: collect → analyze → rules
 
 ```bash
 # Step 1: Collect feedback from ALL sessions into one file
-uv run claudeutils collect --output all_feedback.json
+claudeutils collect --output all_feedback.json
 
 # Step 2: Analyze - filter noise and categorize
-uv run claudeutils analyze --input all_feedback.json
+claudeutils analyze --input all_feedback.json
 # Output: total count, filtered count, category breakdown
 
 # Step 3: Extract rule-worthy items (sorted, deduplicated)
-uv run claudeutils rules --input all_feedback.json --format json
+claudeutils rules --input all_feedback.json --format json
 
 # Pipeline with stdin (no intermediate files)
-uv run claudeutils collect | uv run claudeutils analyze -
-uv run claudeutils collect | uv run claudeutils rules --input -
+claudeutils collect | claudeutils analyze -
+claudeutils collect | claudeutils rules --input -
 ```
 
 #### Categories (from analyze)

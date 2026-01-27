@@ -39,9 +39,9 @@ just lint             # Run linting only (for lint role)
 ### Tool Commands
 
 ```bash
-uv run claudeutils list                    # List all sessions
-uv run claudeutils extract <prefix>        # Extract feedback by session prefix
-uv run claudeutils extract <prefix> -o X   # Extract to file X
+claudeutils list                    # List all sessions
+claudeutils extract <prefix>        # Extract feedback by session prefix
+claudeutils extract <prefix> -o X   # Extract to file X
 ```
 
 ### Dependency Management

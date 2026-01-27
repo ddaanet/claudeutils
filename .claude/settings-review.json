@@ -8,7 +8,7 @@
       "Bash(just line-limits)",
       "Bash(just dev)",
       "Bash(just check)",
-      "Bash(uv run claudeutils:*)"
+      "Bash(claudeutils:*)"
     ],
     "ask": [
       "Bash(git commit:*)"

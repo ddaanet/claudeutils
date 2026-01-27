@@ -337,7 +337,7 @@ This triggers ruff D205 because docformatter doesn't add the blank line that ruf
 
 **Rationale:** Token counts vary by model; explicit model choice ensures accurate counts
 
-**CLI Usage:** `uv run claudeutils tokens sonnet file.md`
+**CLI Usage:** `claudeutils tokens sonnet file.md`
 
 **Implementation:** `count_tokens_for_file(path: Path, model: str)`
 
@@ -400,7 +400,7 @@ This triggers ruff D205 because docformatter doesn't add the blank line that ruf
 
 **Decision:** Defer glob pattern expansion to future release
 
-**Rationale:** Simplify initial implementation; users can use shell expansion if needed (e.g., `uv run claudeutils tokens *.md --model sonnet`)
+**Rationale:** Simplify initial implementation; users can use shell expansion if needed (e.g., `claudeutils tokens *.md --model sonnet`)
 
 **Future:** May add built-in glob support in later version
 

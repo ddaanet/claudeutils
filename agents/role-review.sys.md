@@ -388,9 +388,9 @@ just check            # Run ruff + mypy only
 just format           # Auto-format code
 
 # Tool usage
-uv run claudeutils list
-uv run claudeutils extract <prefix>
-uv run claudeutils tokens <model> <file>
+claudeutils list
+claudeutils extract <prefix>
+claudeutils tokens <model> <file>
 ```
 
 **File Reference:**

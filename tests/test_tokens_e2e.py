@@ -19,7 +19,7 @@ def test_end_to_end_token_counting_with_alias_resolution(
 
     Given: Environment has valid ANTHROPIC_API_KEY, no models cache exists, real
       file "fixture.md" with known content, model="sonnet" (unversioned alias)
-    When: `uv run claudeutils tokens sonnet fixture.md` executed
+    When: `claudeutils tokens sonnet fixture.md` executed
     Then:
       - Exits 0
       - First line shows resolved model ID

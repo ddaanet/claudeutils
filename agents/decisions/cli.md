@@ -26,7 +26,7 @@ CLI-specific patterns and conventions for claudeutils command-line interface.
 
 **Decision:** Add `[project.scripts]` in pyproject.toml: `claudeutils = "claudeutils.cli:main"`
 
-**Rationale:** Simpler invocation (`uv run claudeutils list` vs `uv run python -m claudeutils.cli list`)
+**Rationale:** Simpler invocation (`claudeutils list` vs `uv run python -m claudeutils.cli list`)
 
 **Impact:** Direct command usage after install
 

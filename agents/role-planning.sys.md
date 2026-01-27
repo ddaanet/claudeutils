@@ -343,15 +343,15 @@ just check            # Run ruff + mypy only
 just format           # Auto-format code
 
 # Tool usage
-uv run claudeutils list                        # List all sessions
-uv run claudeutils extract <prefix>            # Extract feedback by session prefix
-uv run claudeutils extract <prefix> -o out.json  # Extract to file
-uv run claudeutils list --project /path        # Use custom project directory
+claudeutils list                        # List all sessions
+claudeutils extract <prefix>            # Extract feedback by session prefix
+claudeutils extract <prefix> -o out.json  # Extract to file
+claudeutils list --project /path        # Use custom project directory
 
 # Token counting (requires ANTHROPIC_API_KEY)
-uv run claudeutils tokens sonnet file.md       # Count tokens in a file
-uv run claudeutils tokens opus file1 file2     # Count tokens across multiple files
-uv run claudeutils tokens haiku file.md --json # JSON output format
+claudeutils tokens sonnet file.md       # Count tokens in a file
+claudeutils tokens opus file1 file2     # Count tokens across multiple files
+claudeutils tokens haiku file.md --json # JSON output format
 
 # Dependency management
 uv add pytest         # Add dependency
