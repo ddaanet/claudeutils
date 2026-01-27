@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-27
 
-**Status:** Three skill improvements complete (handoff-lite, commit-context, learnings discoverability)
+**Status:** Four skill improvements complete; handoff skill fully simplified with inline learnings
 
 ## Completed This Session
 
@@ -74,6 +74,18 @@
 - Commits: agent-core cd645de, main f410fb7
 - Removed completed plan: learnings-management/
 
+**Handoff skill complete simplification (Sonnet):**
+- Removed add-learning.py script dependency entirely
+- Inlined all 7 pending learnings into session.md
+- Removed entire agents/learnings/ directory (8 files: pending.md + 7 learning files)
+- Removed all @ references to pending.md from handoff skill
+- Simplified session size measurement (session.md only, self-contained)
+- Removed obsolete learnings-staging.md reference file
+- Rationale: Inline learnings in session.md easier to edit/update than separate file system
+- Final skill word count: 756 words (lean and self-contained)
+- Session.md: 209 lines (within target range with all learnings inline)
+- Commits: agent-core a8ad5fa, main 04c6e59
+
 ## Pending Tasks
 
 **Ready for Sonnet implementation:**
@@ -133,7 +145,7 @@
 
 ## Next Steps
 
-Sonnet can implement learnings discoverability fix.
+Ready for docs refactoring work (decisions/ structure, CLAUDE.md reduction, /remember skill routing) or other tasks.
 
 ## Recent Learnings
 
@@ -156,10 +168,48 @@ Sonnet can implement learnings discoverability fix.
 - Provides confidence that skill follows patterns correctly
 - Use case: Run after skill creation/editing to catch issues before commit
 
-@agents/learnings/pending.md
+**Inline learnings workflow simplification:**
+- Anti-pattern: Separate file system (pending.md + individual files) requiring script management
+- Correct pattern: Inline learnings directly in session.md for easy editing
+- Rationale: Simpler workflow, no script complexity, easier to add/update/refine learnings
+- Result: Removed agents/learnings/ directory entirely, all learnings now self-contained in session.md
+
+**Design output optimization:**
+- Minimize T1 (designer) output tokens by relying on T2 (planner) inference
+- Large tasks require planning anyway - dense design output aligns with planning needs
+- Write for intelligent readers, omit obvious details
+
+**Learnings → skill references (not docs):**
+- Anti-pattern: Consolidate learnings to CLAUDE.md/design-decisions.md (low discoverability, always loaded)
+- Correct pattern: Consolidate to skill reference files (progressive disclosure, loaded when skill triggers)
+- Rationale: Skills have discoverability via triggering; docs require grep
+
+**Commit squashing for TDD workflows:**
+- Pattern: Reset --soft to base, create squashed commit, cherry-pick subsequent commits
+- Benefits: Clean history without losing granular cycle progression in reports
+- Git safety: Always create backup tag before squashing, test result before cleanup
+- Result: 16 TDD cycle commits successfully squashed into single feature commit while preserving complete implementation and subsequent work
+
+**Model terminology clarity:**
+- Anti-pattern: Using T1/T2/T3 terminology (ambiguous ordering)
+- Correct pattern: Use premium/standard/efficient (clear capability hierarchy)
+- Rationale: T3 could mean "tier 3" (lowest) or "T-3" (third from top) - confusing
+
+**Skill naming for model targeting:**
+- Anti-pattern: -lite suffix implying "less features" when targeting different models
+- Correct pattern: Name reflects purpose (handoff-lite = efficient model target, commit-context = context-aware behavior)
+- Rationale: handoff-lite targets efficient models while commit-lite would be confusing (implies fewer features, not model targeting)
+
+**Three-stream problem documentation:**
+- Pattern: Document parallel work streams with problem.md (analysis) + session.md (design proposals)
+- Benefits: Enables async prioritization - user can select stream without re-discovering context
+- Structure: plans/<stream-name>/{problem.md, session.md} pattern scales well
+- Example: Handoff skill, model awareness, and plan-tdd improvements all documented in parallel from single TDD session
 
 ---
 
-Git status: Modified agents/session.md (this file)
+---
+
+Git status: Clean working tree
 Branch: skills
-Current HEAD: f410fb7 (✨ Improve handoff skill learnings discoverability)
+Current HEAD: 04c6e59 (♻️ Simplify handoff to inline learnings in session.md)
