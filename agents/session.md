@@ -86,6 +86,25 @@
 - Session.md: 209 lines (within target range with all learnings inline)
 - Commits: agent-core a8ad5fa, main 04c6e59
 
+**Docs refactoring (Opus guidance, Sonnet execution):**
+- Split design-decisions.md into 4 domain files:
+  - decisions/architecture.md (module structure, paths, data models, code quality, markdown)
+  - decisions/cli.md (CLI patterns, merged from cli-design.md)
+  - decisions/testing.md (test patterns, merged from test-strategy.md)
+  - decisions/workflows.md (oneshot/TDD workflow patterns)
+- Created 3 rule files for path-triggered domain docs:
+  - .claude/rules/cli-work.md → src/cli/**, bin/**
+  - .claude/rules/test-work.md → tests/**, **/*_test.py
+  - .claude/rules/workflow-work.md → plans/**, agents/workflows/**
+- Updated CLAUDE.md:
+  - Removed Hashtag Conventions section (~60 lines, unused by agents)
+  - Updated Documentation Structure to reference decisions/
+  - Kept all cross-cutting content (Delegation, Bash Scripting, etc.)
+- Replaced design-decisions.md with redirect to new structure
+- Updated /remember skill routing to target domain docs
+- Commits: agent-core b6cd79f, main 7c087ae
+- Net change: 934 lines deleted, 734 added (200 line reduction)
+
 ## Pending Tasks
 
 **Ready for Sonnet implementation:**
@@ -104,25 +123,17 @@
   - Problem: `plans/learnings-management/problem.md` (now removed)
   - Completed: agent-core cd645de, main f410fb7
 
-**Ready for Sonnet implementation (docs refactoring):**
+**Completed docs refactoring:**
 
-- [ ] **Create decisions/ structure** - Split design-decisions.md into domain files
-  - Design: `plans/docs-to-skills/design.md`
-  - Create `agents/decisions/` with cli.md, testing.md, workflows.md, delegation.md, architecture.md
-  - Extract content from design-decisions.md by domain
-  - Create rule files in `.claude/rules/` pointing to domain docs
+- [x] **Create decisions/ structure** - Split design-decisions.md into domain files
+  - Completed: 4 domain files created with merged content from old files
 
-- [ ] **Refactor CLAUDE.md** - Reduce to ~100 lines of core principles
-  - Design: `plans/docs-to-skills/design.md`
-  - Move domain content to decisions/*.md
-  - Keep: Workflow Selection, Documentation Structure, Terminology, Core Principles
-  - Remove: Delegation Principle, Bash Scripting, File System Rules, Tool Batching
+- [x] **Update CLAUDE.md** - Remove unused sections, update references
+  - Completed: Removed Hashtag Conventions, updated Documentation Structure
+  - Note: Kept cross-cutting content per Opus guidance (Delegation, Bash, etc.)
 
-- [ ] **Update /remember skill routing** - Route learnings to domain docs
-  - Design: `plans/docs-to-skills/design.md`
-  - Update `agent-core/skills/remember/skill.md` routing table
-  - Add domain inference logic
-  - Route to decisions/*.md instead of monolithic design-decisions.md
+- [x] **Update /remember skill routing** - Route learnings to domain docs
+  - Completed: Updated routing table with 4 domain targets
 
 **Deferred to separate design sessions:**
 
@@ -145,7 +156,7 @@
 
 ## Next Steps
 
-Ready for docs refactoring work (decisions/ structure, CLAUDE.md reduction, /remember skill routing) or other tasks.
+Docs refactoring complete. Ready for other tasks from Pending list or new work.
 
 ## Recent Learnings
 
