@@ -2,7 +2,7 @@
 
 CLI-specific patterns and conventions for claudeutils command-line interface.
 
-## CLI Design
+## CLI Conventions
 
 ### Path.cwd() vs os.getcwd()
 
@@ -14,27 +14,23 @@ CLI-specific patterns and conventions for claudeutils command-line interface.
 
 ### Error Output Pattern
 
-**Decision:** Print errors to stderr using `print(..., file=sys.stderr)` before
-`sys.exit(1)`
+**Decision:** Print errors to stderr using `print(..., file=sys.stderr)` before `sys.exit(1)`
 
 **Rationale:** Standard Unix convention - errors to stderr, data to stdout
 
 **Examples:**
-
 - "No session found with prefix 'xyz'" → stderr, exit 1
 - "Multiple sessions match prefix 'abc'" → stderr, exit 1
 
 ### Entry Point Configuration
 
-**Decision:** Add `[project.scripts]` in pyproject.toml:
-`claudeutils = "claudeutils.cli:main"`
+**Decision:** Add `[project.scripts]` in pyproject.toml: `claudeutils = "claudeutils.cli:main"`
 
-**Rationale:** Simpler invocation (`uv run claudeutils list` vs
-`uv run python -m claudeutils.cli list`)
+**Rationale:** Simpler invocation (`uv run claudeutils list` vs `uv run python -m claudeutils.cli list`)
 
 **Impact:** Direct command usage after install
 
-## Output Format Options
+## Output Formats
 
 ### Feedback Processing Output Formats
 
@@ -44,15 +40,11 @@ CLI-specific patterns and conventions for claudeutils command-line interface.
 
 **Impact:** All batch commands (`analyze`, `rules`) support both formats
 
-## Token Output Format
-
 ### Token Output Format
 
-**Decision:** Human-readable text by default, JSON with `--json` flag; include resolved
-model ID in all outputs
+**Decision:** Human-readable text by default, JSON with `--json` flag; include resolved model ID in all outputs
 
 **Text format:**
-
 ```
 Using model: claude-sonnet-4-5-20250929
 path/to/file1.md: 150 tokens
@@ -61,7 +53,6 @@ Total: 350 tokens
 ```
 
 **JSON format:**
-
 ```json
 {
   "model": "claude-sonnet-4-5-20250929",
@@ -74,8 +65,6 @@ Total: 350 tokens
 ```
 
 **Rationale:**
-
 - Matches existing CLI patterns (analyze, rules); text for humans, JSON for scripting
 - Show resolved model ID so users know which exact model version was used
-- Critical for debugging and reproducibility (especially when using aliases that
-  auto-update)
+- Critical for debugging and reproducibility (especially when using aliases that auto-update)

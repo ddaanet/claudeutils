@@ -6,11 +6,9 @@ Testing conventions and patterns for claudeutils codebase.
 
 ### Test Module Split Strategy
 
-**Decision:** Split test files to mirror source module structure + separate CLI test
-modules by subcommand
+**Decision:** Split test files to mirror source module structure + separate CLI test modules by subcommand
 
 **Structure:**
-
 ```
 tests/
 ├── test_models.py          # Pydantic validation
@@ -26,14 +24,13 @@ tests/
 
 **Rationale:** Maintain 400-line limit while keeping related tests together
 
-## Mock Patching Pattern
+## Mock Patching
 
 ### Mock Patching Pattern
 
 **Decision:** Patch where object is **used**, not where it's **defined**
 
 **Example:**
-
 ```python
 # If module A defines foo(), and module B imports and uses it:
 # Patch at usage location:
@@ -43,22 +40,19 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 **Rationale:** Python imports create references in the importing module's namespace
 
-**Applied:** Mock patches target `claudeutils.discovery.*` and
-`claudeutils.extraction.*` for functions used in those modules
+**Applied:** Mock patches target `claudeutils.discovery.*` and `claudeutils.extraction.*` for functions used in those modules
 
-## Testing Strategy - Markdown Cleanup
+## TDD Approach
 
-### Testing Strategy
+### Testing Strategy for Markdown Cleanup
 
 **TDD approach:**
-
 - Red test → minimal code → green test
 - Each feature: 4-6 test cycles
 - Integration tests verify no conflicts
 - Edge cases documented and tested
 
 **Test coverage:**
-
 - Valid patterns (should convert)
 - Invalid patterns (should skip or error)
 - Edge cases (empty blocks, unclosed fences, etc.)
