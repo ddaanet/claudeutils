@@ -396,7 +396,7 @@ uv run claudeutils tokens <model> <file>
 **File Reference:**
 
 - `agents/context.md` - **Current work context** (read this for active tasks)
-- `AGENTS.md` - Core rules and role/rule definitions
+- `CLAUDE.md` - Core rules and role/rule definitions
 - `agents/TEST_DATA.md` - Data types and sample entries for coding
 - `agents/design-decisions.md` - Architectural and implementation decisions
 - `agents/ROADMAP.md` - Future enhancement ideas

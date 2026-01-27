@@ -1,14 +1,13 @@
-# Transient work files
+# Secrets
+/.env
+
+# Volatile work files
 /scratch/
 /tmp/
 
-# For secrets only. Other env variables are in .envrc
-/.env
-
-# Python build stuff
-list/
+# Python files
 __pycache__/
+list/
 
 # IDE cruft
 /.vscode/
-

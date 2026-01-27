@@ -1,0 +1,12 @@
+sources:
+  core: &core agent-core/fragments
+
+fragments:
+  - *core/AGENTS-framework.md
+  - *core/communication.md
+  - *core/delegation.md
+  - *core/tool-batching.md
+  - *core/roles-rules-skills.md
+  - *core/hashtags.md
+
+output: AGENTS.md

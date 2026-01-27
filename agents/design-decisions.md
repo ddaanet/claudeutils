@@ -281,6 +281,37 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 ## Code Quality
 
+### Docformatter vs. Ruff D205 Conflict
+
+**Decision:** Accept docformatter wrapping as the source of D205 violations when docstring
+first line exceeds 80-char limit.
+
+**Issue:** When a docstring summary exceeds 80 characters, docformatter wraps the first
+line, which triggers ruff D205 (blank line required between summary and description).
+
+**Example:**
+```python
+# Original (E501 - line too long):
+"""Convert consecutive **Label:** lines to list items and indent following lists."""
+
+# Docformatter wraps first line to fit 80 chars:
+"""Convert consecutive **Label:** lines to list items and indent following
+lists.
+"""
+```
+
+This triggers ruff D205 because docformatter doesn't add the blank line that ruff
+expects after a multi-line summary.
+
+**Solution:** Shorten docstring summaries to fit within 80 characters (docformatter's
+wrap-summaries limit), preventing the wrap and avoiding the D205 violation.
+
+**Rationale:** docformatter handles docstring reformatting (which ruff doesn't do). The
+wrap-summaries setting exists for readability. The conflict is expected but surprising
+when the first line should be shortened.
+
+**Don't do:** Ignore D205 globally or disable docformatter.
+
 ### Complexity Management
 
 **Decision:** Extract helper functions when cyclomatic complexity exceeds limits
@@ -676,3 +707,139 @@ runs during formatting. Benefits:
 - Code follows existing patterns
 - Clear error messages for invalid input
 - Documentation complete and accurate
+
+## Markdown Formatter Selection
+
+### remark-cli Over Prettier
+
+**Decision Date:** 2026-01-07
+
+**Decision:** Use remark-cli as markdown formatter, not Prettier or markdownlint-cli2.
+
+**Rationale:**
+
+| Criterion | Prettier | markdownlint-cli2 | remark-cli (chosen) |
+|-----------|----------|-------------------|---------------------|
+| Primary Purpose | Formatter | Linter only | Formatter |
+| Idempotent | ❌ No (documented bugs) | ❓ N/A | ✅ Yes |
+| CommonMark Compliance | ⚠️ Mostly | ✅ Yes | ✅ 100% |
+| Nested Code Blocks | ⚠️ Issues | ❓ Unclear | ✅ Correct |
+| YAML Frontmatter | ⚠️ Strips comments | ✅ Yes | ✅ Exact preservation |
+| Configuration | 2 options | 60+ lint rules | 17+ format options |
+
+**Prettier issues disqualifying it:**
+- Non-idempotent: Multiple documented bugs (empty sub-bullets, mid-word underscores, lists with extra indent)
+- YAML frontmatter: Strips comments, breaks on long lists
+- Nested code blocks: Inconsistent backtick reduction
+- Limited configurability
+
+**markdownlint-cli2 limitations:**
+- Not a comprehensive formatter (only fixes rule violations)
+- No idempotency guarantee
+
+**remark-cli advantages:**
+- Idempotent by design with fixed configuration
+- 100% CommonMark compliance via micromark
+- Handles nested code blocks correctly per spec
+- Preserves YAML frontmatter exactly (doesn't parse or modify)
+- Highly configurable (17+ formatting options)
+- Active maintenance by unified collective
+- 150+ plugin ecosystem
+
+**Test Results:** Both Prettier and remark-cli passed test corpus validation (3 runs, idempotent). However, Prettier has documented edge cases that fail in production use.
+
+**Configuration chosen:**
+```json
+{
+  "settings": {
+    "bullet": "*",
+    "fence": "`",
+    "fences": true,
+    "rule": "*",
+    "emphasis": "*",
+    "strong": "*",
+    "incrementListMarker": true,
+    "listItemIndent": "one"
+  },
+  "plugins": [
+    "remark-gfm",
+    "remark-frontmatter",
+    "remark-preset-lint-consistent"
+  ]
+}
+```
+
+**Reference:** Full evaluation in `plans/formatter-comparison.md` (archived after cleanup)
+
+## Oneshot Workflow Pattern (Completed 2026-01-19)
+
+**Decision:** Implement and validate weak orchestrator pattern with runbook-specific agents for ad-hoc task execution.
+
+**Status:** Complete - All phases delivered, pattern validated
+
+**Key Components:**
+- Baseline task agent (`agent-core/agents/quiet-task.md`)
+- Runbook preparation script (`agent-core/bin/prepare-runbook.py`)
+- 5 skills: `/design`, `/plan-adhoc`, `/orchestrate`, `/vet`, `/remember`
+- Complete documentation (documented in CLAUDE.md and agent-core)
+
+**Pattern Validation:**
+- Haiku successfully executes runbook steps using runbook-specific agents
+- Error escalation works (haiku → sonnet → opus)
+- Quiet execution pattern maintains lean orchestrator context
+- Context caching via runbook-specific agents reduces token costs
+
+**Terminology Standardization:**
+- Job = user's goal
+- Design = architectural spec from opus
+- Runbook = implementation steps (replaces "plan" in execution context)
+- Step = individual unit of work
+- Runbook prep = 4-point process (Evaluate, Metadata, Review, Split)
+
+**Impact:**
+- Production-ready workflow for ad-hoc tasks
+- Reduced context overhead through specialized agents
+- Standardized terminology across documentation
+- Reusable components via agent-core submodule
+
+## TDD Workflow Integration (Completed 2026-01-19, Updated 2026-01-26)
+
+**Decision:** Extend weak orchestrator pattern to support TDD methodology for feature development.
+
+**Status:** Complete - All 8 steps delivered, production-ready
+
+**Key Components:**
+- TDD workflow documentation (`agent-core/agents/tdd-workflow.md`)
+- TDD baseline agent (`agent-core/agents/tdd-task.md`)
+- `/plan-tdd` skill with 5-phase execution (includes automated review)
+- Cycle-based runbooks supporting RED/GREEN/REFACTOR progression
+- TDD task agent pattern with cycle-aware instruction sets
+- TDD runbook reviewer (`agent-core/agents/tdd-plan-reviewer.md`) for prescriptive code detection
+- Review skill (`agent-core/skills/review-tdd-plan/`) for anti-pattern detection
+
+**Architecture:**
+- Unified design entry point (`/design` skill) supports both oneshot and TDD modes
+- RED phase: Write failing tests, document intent
+- GREEN phase: Describe behavior and provide hints (NOT prescriptive code)
+- REFACTOR phase: Improve code quality while maintaining tests
+- **Automated review**: tdd-plan-reviewer detects prescriptive code violations
+- **Mandatory prepare-runbook.py**: Generates step files before /orchestrate
+- Cycle-aware task delegation with scoped runbooks per cycle
+- Quiet execution pattern preserves orchestrator context
+
+**Key Decisions:**
+- Cycle-based splitting: Each RED/GREEN/REFACTOR as separate runbook cycle
+- Model assignment: Sonnet for TDD planning, haiku for implementation, opus for design
+- Deduplication: Use 4-point prep to avoid overlap with oneshot workflow
+- Testing focus: Behavioral verification with full test coverage
+- Progressive discovery: Documentation read only when executing TDD workflow
+- Anti-pattern detection: Automated review prevents prescriptive code in GREEN phases
+- Mandatory artifact generation: prepare-runbook.py must run before /orchestrate
+
+**Impact:**
+- Production-ready TDD workflow for test-first development
+- Enforced test-first methodology via /plan-tdd skill
+- Prescriptive code detection prevents "copy-paste" implementations
+- Reusable cycle patterns via agent-core documentation
+- Consistent terminology across test and implementation phases
+- Proper execution flow: design → plan → review → prepare → orchestrate

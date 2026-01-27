@@ -51,6 +51,14 @@ def test_extract_with_output_flag(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """Extract command with --output writes to file."""
+    project_dir = tmp_path / "project"
+    project_dir.mkdir()
+    history_dir = tmp_path / ".claude" / "projects" / "-test-project"
+    history_dir.mkdir(parents=True)
+    (history_dir / f"{pytest_helpers.SESSION_ID_MAIN}.jsonl").write_text(
+        '{"test": 1}\n'
+    )
+
     feedback_item = FeedbackItem(
         timestamp="2025-12-16T08:43:43.872Z",
         session_id=pytest_helpers.SESSION_ID_MAIN,
@@ -64,6 +72,11 @@ def test_extract_with_output_flag(
     output_file = tmp_path / "feedback.json"
 
     monkeypatch.setattr("claudeutils.cli.extract_feedback_recursively", mock_extract)
+    monkeypatch.setattr(
+        "claudeutils.cli.get_project_history_dir",
+        lambda p: history_dir,
+    )
+    monkeypatch.chdir(project_dir)
 
     runner = CliRunner()
     runner.invoke(cli, ["extract", "e12d203f", "--output", str(output_file)])

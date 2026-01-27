@@ -37,7 +37,7 @@ class with `[RULE:Tn]` markers for budget tracking and composition.
 - 6 roles: `planning.md`, `code.md`, `lint.md`, `refactor.md`, `execute.md`,
   `remember.md`
 - 2 skills: `commit.md`, `handoff.md`
-- 1 master: `AGENTS.md` (project overview, communication patterns, tool batching)
+- 1 master: `CLAUDE.md` (project overview, communication patterns, tool batching)
 
 **Terminology**:
 
@@ -70,10 +70,10 @@ with ⚠️ symbols for weak models.
 3. **Split project context**: Modules for overview, data model, commands (selective
    inclusion)
 4. **Rebuild commit.md**: Currently haiku-optimized, needs semantic source
-5. **AGENTS.md scope**: Fallback for non-role-primed agents only (communication + tool
+5. **CLAUDE.md scope**: Fallback for non-role-primed agents only (communication + tool
    batching)
 6. **Role-specific recipes**: Include in role files; generic recipes in
-   AGENTS.md/README.md
+   CLAUDE.md/README.md
 7. **Different expansion needs**: Agent classes require different rule counts for same
    semantic module
 
@@ -116,7 +116,7 @@ more attention" - this is **incorrect**. Tier 1 (critical) rules should be at ST
 LLMs only read explicitly provided context. No learned behavior to load additional
 files.
 
-**Implication**: Role-primed agents won't load AGENTS.md unless explicitly instructed.
+**Implication**: Role-primed agents won't load CLAUDE.md unless explicitly instructed.
 No wasted rule needed to prevent loading.
 
 ### 20/60/20 Tiering
@@ -445,7 +445,7 @@ agents/
 ├── role-remember.md
 ├── rules-commit.md       # Skills
 ├── rules-handoff.md
-└── AGENTS.md
+└── CLAUDE.md
 
 Note: .next.md files used during development to avoid overwriting existing roles.
 After validation, .next.md renamed to .md and old files archived.
@@ -508,7 +508,7 @@ analysis.
 | Tier assignment                                     | Markers in variants, hints in sources                       | Enables proper distribution across primacy/middle/recency      |
 | Tier semantics                                      | Same tier across all variants                               | Tier = criticality, not expansion level                        |
 | Skill handling                                      | Weak-only, no variants                                      | On-demand loading; marginal token savings not worth complexity |
-| AGENTS.md scope                                     | Fallback only (communication + tool-batching)               | Role-primed agents skip it per research                        |
+| CLAUDE.md scope                                     | Fallback only (communication + tool-batching)               | Role-primed agents skip it per research                        |
 | Tier distribution                                   | Tier 1→start (primacy), Tier 3→end (recency), Tier 2→middle | Position bias exploitation                                     |
 | Validation approach                                 | Warnings with thresholds, never fail                        | Iterative refinement, human-in-loop                            |
 | Marker removal                                      | Final composition step (clean agent context)                | No pollution of agent context with internal markers            |
