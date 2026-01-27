@@ -63,8 +63,6 @@ check:
 # Format code
 format:
     #!{{ bash_prolog }}
-    echo "format recipe: Tracing enabled for diagnostic"
-    set -x
     sync
     set-tmpfile
     patch-and-print() {
@@ -234,7 +232,7 @@ visible () { show "$@"; "$@"; }
 fail () { echo "${ERROR}$*${NORMAL}"; exit 1; }
 
 # Do not uv sync when in Claude Code sandbox
-sync() { test -w /tmp &&  uv sync -q "$@"; }
+sync() { if [ -w /tmp ]; then uv sync -q; fi; }
 set-tmpfile() {
     if [[ ! -v tmpfile ]]; then
         tmpfile=$(mktemp tmp/justfile-XXXXXX)
