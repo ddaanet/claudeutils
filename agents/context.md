@@ -1,41 +1,42 @@
 # Context
 
-**Archive:** Previous context archived to [2026-01-07-bug4-complete.md](archive/2026-01-07-bug4-complete.md)
-
 ---
 
 ## Current State
 
-**Branch:** `markdown`
+**Branch:** `skills`
 
-**Current work:** Markdown Formatter Migration - Ready for Implementation
+**Current work:** Skill improvement implementations (pre-edit rules, handoff-lite, commit-context)
 
-**Status:** Survey complete, shelf skill implemented, ready to implement remark-cli migration
+**Status:** Three designs ready for implementation (see session.md for details)
 
-### Formatter Survey Results
+### Completed
 
-**Survey completed:** 2026-01-07 (3 parallel research agents + practical testing)
+**Process failure diagnosis (2026-01-27):**
+- Identified unreliability of documentation-only enforcement for pre-edit skill loading
+- Designed rule-based solution using `.claude/rules/` with `paths` frontmatter
+- Three rule files will provide automatic context injection when editing domain files
 
-**Candidates evaluated:**
-1. **Prettier** - Popular formatter, but has idempotency bugs and YAML frontmatter issues
-2. **markdownlint-cli2** - Linter only, not a formatter (ruled out)
-3. **remark-cli** - ✅ **RECOMMENDED** - 100% CommonMark compliant, idempotent, highly configurable
+### Ready for Implementation
 
-**Deliverable:** `plans/formatter-comparison.md` (comprehensive 350+ line analysis)
+**Pre-edit rule files:**
+- `.claude/rules/skill-development.md` → paths: `.claude/skills/**/*`
+- `.claude/rules/hook-development.md` → paths: `.claude/hooks/**/*`
+- `.claude/rules/agent-development.md` → paths: `.claude/agents/**/*`
+- Each ~10 lines with paths frontmatter and skill loading reminder
+- Removes need for Pre-Edit Checks table in CLAUDE.md
 
-**Test results:**
-- Test corpus created: `tmp/test-remark.md` (12 test sections, 150+ lines)
-- Prettier: Idempotent on corpus, but has documented bugs in production
-- remark-cli: Idempotent on corpus, handles all edge cases correctly
+**handoff-lite skill:**
+- Design: `plans/handoff-skill/design.md`
+- Mechanical handoff for efficient models, embedded template, no reference reads
 
-**Dependencies installed:**
-```bash
-# Already in node_modules
-remark-cli
-remark-gfm
-remark-frontmatter
-remark-preset-lint-consistent
-```
+**commit-context skill:**
+- Design: `plans/commit-context/design.md`
+- Context-aware commit, skips git discovery
+
+**Learnings discoverability fix:**
+- Problem: `plans/learnings-management/problem.md`
+- Update `.claude/skills/handoff/SKILL.md` with inline @ chain, size measurement, add-learning.py
 
 ---
 
@@ -43,99 +44,31 @@ remark-preset-lint-consistent
 
 **⚠️ STOP: Do not execute tasks below unless user explicitly requests it.**
 
-These tasks are documented for context and planning. Wait for explicit instruction ("continue", "proceed", "start", etc.) before delegating or executing.
-
----
-
-**Next priority:** Markdown formatter migration (remark-cli)
-
-**Implementation tasks (for haiku):**
-
-1. **Create `.remarkrc.json` config** (configuration provided in comparison doc)
-2. **Update `package.json` scripts:**
-   - Add `format:md` script for formatting
-   - Add `format:md:check` script for CI
-3. **Create `.remarkignore`** (exclude node_modules, vendor, etc.)
-4. **Test formatting on project markdown files:**
-   - Run `remark . -o --quiet`
-   - Verify `git diff` shows acceptable changes
-   - Ensure no corruption of nested code blocks, YAML frontmatter, inline code
-5. **Update justfile** (if dprint used there)
-6. **Optional: Remove dprint** (if present and no longer needed)
-7. **Commit migration** with clear commit message
-
-**Reference documents:**
-- `plans/formatter-comparison.md` - Full analysis and migration path
-- `tmp/.remarkrc.json` - Example config (tested)
-- `tmp/test-remark.md` - Formatted test corpus
-
-**Key configuration (from comparison doc):**
-```json
-{
-  "settings": {
-    "bullet": "*",
-    "fence": "`",
-    "fences": true,
-    "rule": "*",
-    "emphasis": "*",
-    "strong": "*",
-    "incrementListMarker": true,
-    "listItemIndent": "one"
-  },
-  "plugins": [
-    "remark-gfm",
-    "remark-frontmatter",
-    "remark-preset-lint-consistent"
-  ]
-}
-```
-
-**Critical verification steps:**
-- Check agents/*.md files preserve structure
-- Check AGENTS.md table formatting
-- Check nested code blocks in any docs
-- Verify YAML frontmatter unchanged (if any files have it)
-
-**Previous work (archived):**
-- Bug #4: Inline Code Span Protection - Fixed and committed (482eacf) ✅
-- Bugs #1-#3: All fixed and verified ✅
+See session.md for full task list. Current priorities:
+- Pre-edit rule files (3 files)
+- handoff-lite skill implementation
+- commit-context skill implementation
+- Learnings discoverability fix
 
 ---
 
 ## Recent Decisions
 
-**2026-01-07: Markdown Formatter Selection**
-- **Decision:** Migrate to remark-cli for markdown formatting
+**2026-01-27: Rule-based Pre-Edit Enforcement**
+- **Decision:** Use `.claude/rules/` with `paths` frontmatter for pre-edit skill loading
 - **Rationale:**
-  - Prettier has documented idempotency bugs (empty sub-bullets, mid-word underscores, unstable lists)
-  - Prettier has YAML frontmatter issues (strips comments, wraps long lists incorrectly)
-  - markdownlint-cli2 is a linter, not a formatter
-  - remark-cli: 100% CommonMark compliant, idempotent, highly configurable
-- **Testing:** Both Prettier and remark-cli tested with comprehensive corpus, both passed
-- **Production concerns:** Prettier's known bugs in production scenarios outweigh test success
-- **Configuration:** 17+ formatting options in remark vs 2 in Prettier (better control)
-- **Next step:** Implement migration (tasks documented in Handoff section)
+  - Documentation-only enforcement unreliable (relies on model memory/attention)
+  - Hooks can't detect skill loading state (only see tool inputs, not conversation context)
+  - Rules with path prefixes provide automatic context injection
+- **Implementation:** Three rule files replace Pre-Edit Checks table in CLAUDE.md
 
-**2026-01-06: Inline Code Span Protection Strategy** (archived to Bug #4)
-- Protect only 1-2 backtick spans (`` `code` ``, ``` ``code`` ```)
-- Escape 3+ backtick spans (`````python`, treated as fence markers)
-- Rationale: Matches intent to escape potential fence markers while preserving actual inline code
-
-**2026-01-06: Bugs #1/#2/#3 Root Cause** (archived)
-- All three bugs caused by missing recursive parsing in `parse_segments()`
-- Solution: Recursive parsing for ```markdown blocks (lines 224-268)
-
-**2026-01-13: Model Selection for Delegation**
-- **Decision:** Use haiku for execution tasks, opus only for architecture/planning
-- **Rationale:**
-  - Orchestrator made expensive mistake using opus for simple file operations
-  - Cost impact: Session cost $4.46+ due to wrong model selection
-  - Haiku is sufficient for straightforward execution tasks like file operations
-  - Opus should be reserved for complex planning and architectural decisions
-- **Implementation:** Update delegation principle in AGENTS.md to reflect this rule
+**2026-01-13: Model Selection for Delegation** (from previous context)
+- Use haiku for execution tasks, opus only for architecture/planning
+- Cost impact from wrong model selection can be significant
+- Haiku sufficient for straightforward execution tasks
 
 ---
 
 ## Blockers
 
-**None currently.** Survey complete, ready for migration implementation.
+**None currently.** Three designs ready for implementation.

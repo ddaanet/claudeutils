@@ -1,8 +1,15 @@
 # Session Handoff: 2026-01-27
 
-**Status:** Process failure diagnosed; rule-based solution designed for pre-edit skill loading
+**Status:** Documentation cleanup complete; ready for skill implementations
 
 ## Completed This Session
+
+**Documentation cleanup (Sonnet):**
+- Reviewed context.md for currentness (obsolete markdown formatter content)
+- Deleted obsolete plans: formatter-comparison.md, markdown-fence-aware-processing.md
+- Deleted obsolete archive: 2026-01-07-markdown-formatter.md
+- Updated context.md with current skill improvement work
+- Decision already preserved in agents/design-decisions.md:711-772
 
 **Process failure diagnosis (Opus):**
 - Sonnet failed to load `plugin-dev:skill-development` before editing SKILL.md (per CLAUDE.md Pre-Edit Checks)
@@ -50,7 +57,6 @@
 
 - [ ] **Process pending learnings** - `/remember` to consolidate staged learnings
 - [ ] **Remove "uv run" references** - Audit subprocess calls
-- [ ] **Review context.md from main** - Markdown formatter migration status
 - [ ] **Evaluate bin/poptodo and bin/shelve** - Integration with shelve skill
 - [ ] **Session size tooling** - Add @ chain line count to add-learning.py or standalone script (needs test suite)
 
