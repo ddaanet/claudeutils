@@ -601,3 +601,55 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 ```
 
 **Reference:** Full evaluation in `plans/formatter-comparison.md` (archived after cleanup)
+
+## Claude Code Rule Files
+
+### Rule Files for Context Injection
+
+**Decision Date:** 2026-01-27
+
+**Decision:** Use `.claude/rules/` with `paths` frontmatter for automatic context injection when editing domain-specific files.
+
+**Rationale:**
+- Documentation-only enforcement (CLAUDE.md tables) relies on model memory/attention - unreliable
+- Hooks cannot detect skill loading state (only see tool inputs, not conversation context)
+- Rule files with path prefixes provide automatic, hierarchical context injection
+
+**Implementation:**
+- `.claude/rules/skill-development.md` → `.claude/skills/**/*`
+- `.claude/rules/hook-development.md` → `.claude/hooks/**/*`
+- `.claude/rules/agent-development.md` → `.claude/agents/**/*`
+- `.claude/rules/command-development.md` → `.claude/commands/**/*`
+
+**Limitations:**
+- Rule files provide passive reminders, not enforcement
+- Models can still ignore rule context (requires compliance)
+- Trade-off accepted: Better discoverability than CLAUDE.md bloat, but not foolproof
+
+**Impact:**
+- Improved discoverability of pre-edit requirements
+- Automatic context loading when editing domain files
+- Removed 13 lines of Pre-Edit Checks table from CLAUDE.md
+
+## Model Terminology
+
+### Premium/Standard/Efficient Naming
+
+**Decision Date:** 2026-01-27
+
+**Decision:** Use "premium/standard/efficient" terminology for model tiers instead of "T1/T2/T3".
+
+**Rationale:**
+- T3 terminology ambiguous: Could mean "tier 3" (lowest) or "T-3" (third from top)
+- Premium/standard/efficient clearly communicates capability hierarchy
+- Aligns with cost and performance expectations
+
+**Mapping:**
+- Premium = Opus (architecture, complex design)
+- Standard = Sonnet (general work, planning)
+- Efficient = Haiku (execution, simple edits)
+
+**Impact:**
+- Clear model selection guidance in delegation
+- No ambiguity in documentation and skill instructions
+- Easier for users to understand model choices

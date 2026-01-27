@@ -160,62 +160,10 @@ Docs refactoring complete. Ready for other tasks from Pending list or new work.
 
 ## Recent Learnings
 
-**Rule files provide context, not enforcement:**
-- Rule file triggered when editing SKILL.md but I initially ignored the prompt to load skill-development guide
-- User correction needed: "Rule file did not do its job, you did not load skill"
-- Learning: Rules are passive reminders - they improve discoverability but still require model compliance
-- This confirms the earlier analysis: rules inject context automatically but can't enforce behavior
-- Trade-off accepted: Better than CLAUDE.md bloat, but not foolproof
-
-**Skill-development skill prevents common mistakes:**
-- Loading skill-development guide provided critical patterns: third-person description, imperative writing, progressive disclosure
-- Without it, likely would have made mistakes in frontmatter description or writing style
-- Validation: The guide's patterns directly prevented anti-patterns (second-person writing, weak triggers)
-- Confirms value of pre-edit skill loading despite enforcement limitations
-
-**Skill-reviewer agent as quality gate:**
-- plugin-dev:skill-reviewer provides objective validation against best practices
-- Caught that implementation exceeded design (in good ways - added clarifying sections)
-- Provides confidence that skill follows patterns correctly
-- Use case: Run after skill creation/editing to catch issues before commit
-
-**Inline learnings workflow simplification:**
-- Anti-pattern: Separate file system (pending.md + individual files) requiring script management
-- Correct pattern: Inline learnings directly in session.md for easy editing
-- Rationale: Simpler workflow, no script complexity, easier to add/update/refine learnings
-- Result: Removed agents/learnings/ directory entirely, all learnings now self-contained in session.md
-
-**Design output optimization:**
-- Minimize T1 (designer) output tokens by relying on T2 (planner) inference
-- Large tasks require planning anyway - dense design output aligns with planning needs
-- Write for intelligent readers, omit obvious details
-
-**Learnings → skill references (not docs):**
-- Anti-pattern: Consolidate learnings to CLAUDE.md/design-decisions.md (low discoverability, always loaded)
-- Correct pattern: Consolidate to skill reference files (progressive disclosure, loaded when skill triggers)
-- Rationale: Skills have discoverability via triggering; docs require grep
-
-**Commit squashing for TDD workflows:**
-- Pattern: Reset --soft to base, create squashed commit, cherry-pick subsequent commits
-- Benefits: Clean history without losing granular cycle progression in reports
-- Git safety: Always create backup tag before squashing, test result before cleanup
-- Result: 16 TDD cycle commits successfully squashed into single feature commit while preserving complete implementation and subsequent work
-
-**Model terminology clarity:**
-- Anti-pattern: Using T1/T2/T3 terminology (ambiguous ordering)
-- Correct pattern: Use premium/standard/efficient (clear capability hierarchy)
-- Rationale: T3 could mean "tier 3" (lowest) or "T-3" (third from top) - confusing
-
-**Skill naming for model targeting:**
-- Anti-pattern: -lite suffix implying "less features" when targeting different models
-- Correct pattern: Name reflects purpose (handoff-lite = efficient model target, commit-context = context-aware behavior)
-- Rationale: handoff-lite targets efficient models while commit-lite would be confusing (implies fewer features, not model targeting)
-
-**Three-stream problem documentation:**
-- Pattern: Document parallel work streams with problem.md (analysis) + session.md (design proposals)
-- Benefits: Enables async prioritization - user can select stream without re-discovering context
-- Structure: plans/<stream-name>/{problem.md, session.md} pattern scales well
-- Example: Handoff skill, model awareness, and plan-tdd improvements all documented in parallel from single TDD session
+**Commit skills now perform handoff first:**
+- Both `/commit` and `/commit-context` now run `/handoff` before committing
+- Prevents out-of-sync session.md on git reset
+- Eliminates need to squash separate handoff commits after work completion
 
 ---
 

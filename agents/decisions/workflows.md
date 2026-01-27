@@ -78,3 +78,95 @@ Workflow-related architectural decisions and patterns.
 - Reusable cycle patterns via agent-core documentation
 - Consistent terminology across test and implementation phases
 - Proper execution flow: design → plan → review → prepare → orchestrate
+
+## Handoff Pattern: Inline Learnings
+
+**Decision Date:** 2026-01-27
+
+**Decision:** Store session learnings inline in `session.md` rather than separate file system.
+
+**Rationale:**
+- Separate file system (pending.md + individual learning files) requires script management
+- Inline learnings are easier to edit, update, and refine during handoffs
+- Simpler workflow without add-learning.py complexity
+- Single source of truth for session state
+
+**Implementation:**
+- Removed `agents/learnings/` directory entirely
+- All learnings now in `session.md` Recent Learnings section
+- Handoff skill simplified (removed script dependencies)
+
+**Impact:**
+- Reduced handoff complexity
+- Easier to discover and update learnings
+- Self-contained session documentation
+
+## Design Phase: Output Optimization
+
+**Decision Date:** 2026-01-27
+
+**Decision:** Minimize designer (premium model) output tokens by writing for intelligent readers.
+
+**Rationale:**
+- Large tasks require planning step anyway - planner can infer details
+- Dense design output aligns with planning needs
+- Intelligent downstream agents don't need obvious details spelled out
+
+**Pattern:**
+- Designer produces concise, high-level architectural guidance
+- Planner elaborates details during runbook creation
+- Implementation agents work from detailed runbook steps
+
+**Impact:**
+- Reduced token cost in premium design phase
+- No loss of implementation quality (detail added in planning)
+- Faster design sessions
+
+## Planning Pattern: Three-Stream Problem Documentation
+
+**Decision Date:** 2026-01-27
+
+**Decision:** Document parallel work streams with `problem.md` (analysis) + `session.md` (design proposals).
+
+**Rationale:**
+- Enables async prioritization without re-discovering context
+- User can select work stream based on documented analysis
+- Scales well for complex sessions with multiple improvement areas
+
+**Structure:**
+```
+plans/<stream-name>/
+├── problem.md      # Analysis: what's broken, why it matters
+└── session.md      # Design proposals and decisions
+```
+
+**Example:** During TDD session, documented handoff skill improvements, model awareness, and plan-tdd improvements as separate streams with complete analysis.
+
+**Impact:**
+- Better context preservation across sessions
+- User can prioritize work streams easily
+- Clear separation of analysis vs design
+
+## TDD Workflow: Commit Squashing Pattern
+
+**Decision Date:** 2026-01-27
+
+**Decision:** Squash TDD cycle commits into single feature commit while preserving granular cycle progression in reports.
+
+**Pattern:**
+1. Create backup tag before squashing
+2. `git reset --soft <base-commit>` to staging area
+3. Create squashed commit with feature message
+4. Cherry-pick subsequent commits (if any)
+5. Test result before cleanup
+6. Delete backup tag after verification
+
+**Rationale:**
+- Clean git history (one commit per feature)
+- Complete cycle-by-cycle implementation preserved in runbook reports
+- Avoids polluting history with WIP commits
+
+**Impact:**
+- Production-ready commit history
+- Full audit trail in execution reports
+- Easy to review feature implementation holistically
