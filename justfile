@@ -44,8 +44,6 @@ line-limits:
 [no-exit-message]
 lint: format
     #!{{ bash_prolog }}
-    echo "lint recipe: Tracing enabled for diagnostic"
-    set -x
     sync
     ruff_ignores=C901,PLR0904,PLR0911,PLR0912,PLR0913,PLR0914,PLR0915,PLR0916,PLR0917,PLR1701,PLR1702
     report "ruff check" ruff check -q --ignore=$ruff_ignores
@@ -65,6 +63,8 @@ check:
 # Format code
 format:
     #!{{ bash_prolog }}
+    echo "format recipe: Tracing enabled for diagnostic"
+    set -x
     sync
     set-tmpfile
     patch-and-print() {
