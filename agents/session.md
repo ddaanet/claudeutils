@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-27
 
-**Status:** Four skill improvements complete; handoff skill fully simplified with inline learnings
+**Status:** Skill improvements complete; learnings consolidated; codebase cleanup done
 
 ## Completed This Session
 
@@ -105,6 +105,28 @@
 - Commits: agent-core b6cd79f, main 7c087ae
 - Net change: 934 lines deleted, 734 added (200 line reduction)
 
+**Commit skills handoff integration (Sonnet):**
+- Updated `/commit` and `/commit-context` skills to run `/handoff` before committing
+- Prevents out-of-sync session.md on git reset
+- Eliminates need to squash separate handoff commits
+- Commits: agent-core 0f25960, main 7f41854
+
+**Learnings consolidation (Sonnet with /remember skill):**
+- Consolidated 11 session learnings to permanent documentation
+- Added 5 decisions to workflows.md (inline learnings, design optimization, three-stream docs, commit squashing)
+- Added 2 decisions to architecture.md (rule files, model terminology)
+- Created consolidation-patterns.md reference for /remember skill
+- Updated /remember skill with routing guidance and progressive disclosure principle
+- Cleared processed learnings from session.md
+- Commits: agent-core 206f9bd, main 909c26a
+
+**uv run references cleanup (Sonnet with script):**
+- Created and executed cleanup script to remove "uv run" prefix throughout codebase
+- Updated 13 files: README, agent docs, settings, decision docs, tests
+- Changed 'uv run claudeutils' → 'claudeutils' (package is installed)
+- Simplified justfile to use direct VENV binaries (removed conditional logic)
+- Commits: agent-core 4b63c7d, main bde8e1c
+
 ## Pending Tasks
 
 **Ready for Sonnet implementation:**
@@ -143,10 +165,13 @@
 - [ ] **Plan-TDD skill** - Add guidance to avoid presentation tests
   - Problem: `plans/plan-tdd-skill/problem.md`
 
-**Deferred until after process improvements:**
+**Process improvements:**
 
-- [ ] **Process pending learnings** - `/remember` to consolidate staged learnings
-- [ ] **Remove "uv run" references** - Audit subprocess calls
+- [x] **Process pending learnings** - `/remember` to consolidate staged learnings
+- [x] **Remove "uv run" references** - Audit subprocess calls
+
+**Deferred:**
+
 - [ ] **Evaluate bin/poptodo and bin/shelve** - Integration with shelve skill
 - [ ] **Session size tooling** - Add @ chain line count to add-learning.py or standalone script (needs test suite)
 
