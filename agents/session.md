@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-27
 
-**Status:** Documentation cleanup complete; ready for skill implementations
+**Status:** Pre-edit rule files implemented; ready for remaining skill implementations
 
 ## Completed This Session
 
@@ -17,21 +17,22 @@
 - Investigated alternatives: hooks (PreToolUse can't detect skill loading state), nested CLAUDE.md (concerns about .claude/ subdirs)
 - Solution: `.claude/rules/` with `paths` frontmatter provides hierarchical behavior
 
-**Designed rule-based pre-edit enforcement:**
-- Three rule files with path prefixes trigger skill loading reminders
-- `.claude/rules/skill-development.md` → paths: `.claude/skills/**/*`
-- `.claude/rules/hook-development.md` → paths: `.claude/hooks/**/*`
-- `.claude/rules/agent-development.md` → paths: `.claude/agents/**/*`
-- Each rule reminds to load corresponding `/plugin-dev:*` skill before editing
+**Rule-based pre-edit enforcement implementation (Sonnet):**
+- Verified with claude-code-guide agent: rule files cannot invoke tools, only provide context
+- Accepted limitation: rules improve discoverability but don't enforce behavior
+- Created 4 rule files in `.claude/rules/` with paths frontmatter
+  - `skill-development.md` → `.claude/skills/**/*`
+  - `hook-development.md` → `.claude/hooks/**/*`
+  - `agent-development.md` → `.claude/agents/**/*`
+  - `command-development.md` → `.claude/commands/**/*`
+- Removed Pre-Edit Checks table from CLAUDE.md (13 lines)
+- Fixed justfile sandbox issue (user-fixed: removed /tmp test, then tracing)
+- Commit: 3dc94a9 with gitmoji 🔧
+- Precommit passed
 
 ## Pending Tasks
 
 **Ready for Sonnet implementation:**
-
-- [ ] **Create pre-edit rule files** - `.claude/rules/{skill,hook,agent}-development.md`
-  - Each ~10 lines with paths frontmatter and skill loading reminder
-  - Provides automatic context injection when editing domain files
-  - Remove Pre-Edit Checks section from CLAUDE.md (rules replace it)
 
 - [ ] **Implement handoff-lite skill** - Create `.claude/skills/handoff-lite/SKILL.md`
   - Design: `plans/handoff-skill/design.md`
@@ -105,9 +106,15 @@ Sonnet can implement the three ready designs (`handoff-lite`, `commit-context`, 
 - Multiple rule files with different path prefixes = hierarchical behavior
 - Nested CLAUDE.md in .claude/ subdirs works but rules pattern is cleaner
 
+**Rule files are passive context, not enforcement:**
+- Rule files inject text context but cannot invoke tools or enforce behavior
+- Improvement over monolithic CLAUDE.md: contextual guidance appears when editing matching files
+- Trade-off: Better discoverability through automatic loading, but still relies on model compliance
+- Decision: Proceed with rule files (contextual guidance beats CLAUDE.md bloat)
+
 @agents/learnings/pending.md
 
 ---
 
 Git status: Clean working tree, branch skills
-Current HEAD: 4308e30 (📋 Session handoff: skill improvement designs complete)
+Current HEAD: 3dc94a9 (🔧 Add path-based rule files for domain context injection)

@@ -273,19 +273,6 @@ Agent returns: "a7f38c2"
 
 **Usage:** Invoke the skill before beginning skill work to load context and patterns.
 
-## Pre-Edit Checks
-
-**Before editing files, verify domain-specific skill is loaded:**
-
-| File Pattern | Required Skill |
-|--------------|----------------|
-| `*/SKILL.md`, `skills/*/` | `plugin-dev:skill-development` |
-| `hooks.json`, `*.hook.md` | `plugin-dev:hook-development` |
-| `*/agents/*.md` | `plugin-dev:agent-development` |
-| `commands/*/` | `plugin-dev:command-development` |
-
-**If skill not loaded:** STOP, load skill, then proceed with edit.
-
 ## Tool Batching
 
 **Planning phase (before tool calls):**
