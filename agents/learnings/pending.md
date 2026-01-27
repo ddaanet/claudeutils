@@ -11,3 +11,5 @@ When `/remember` skill is invoked, it processes these learnings and consolidates
 @agents/learnings/2026-01-26-at-expansion-scope.md
 @agents/learnings/2026-01-27-commit-squashing-tdd.md
 @agents/learnings/2026-01-27-three-stream-problem-documentation.md
+@agents/learnings/2026-01-27-model-terminology-clarity.md
+@agents/learnings/2026-01-27-skill-naming-model-targeting.md

@@ -1,81 +1,58 @@
 # Session Handoff: 2026-01-27
 
-**Status:** TDD work complete and squashed; three process improvement streams ready
+**Status:** Process failure diagnosed; rule-based solution designed for pre-edit skill loading
 
 ## Completed This Session
 
-**TDD cycle commits squashed:**
-- 16 commits (12 TDD cycles + 4 report commits) squashed into single commit 72167fa
-- Final message: "✨ Add markdown composition API with TDD methodology"
-- Includes: Core implementation, 47 tests, 12 cycle reports, vet review
-- 5 subsequent commits preserved: session handoffs, anti-pattern docs, test fixes
-- `just dev` verified clean (no lint/type/format errors)
+**Process failure diagnosis (Opus):**
+- Sonnet failed to load `plugin-dev:skill-development` before editing SKILL.md (per CLAUDE.md Pre-Edit Checks)
+- Root cause: Documentation-only enforcement relies on model memory/attention - unreliable
+- Investigated alternatives: hooks (PreToolUse can't detect skill loading state), nested CLAUDE.md (concerns about .claude/ subdirs)
+- Solution: `.claude/rules/` with `paths` frontmatter provides hierarchical behavior
 
-**Composition API implementation complete:**
-- 47/47 tests passing (36 unit + 11 CLI integration)
-- Core: compose.py (185 lines, 6 functions for header manipulation and composition)
-- CLI: compose_command with full option support
-- Dependencies: PyYAML, types-PyYAML added to pyproject.toml
-- Quality: READY-TO-COMMIT (per vet review)
-
-**Handoff skill protocol violations fixed:**
-- Staged 2 learnings using add-learning.py (commit-squashing-tdd, three-stream-problem-documentation)
-- Added @agents/learnings/pending.md reference to session.md (enables @ chain expansion via CLAUDE.md)
-- Proper session size measurement: 116 lines total (session.md 86 + pending.md 13 + learnings 17)
-- Updated plans/handoff-skill/problem.md with discoverability issues identified
-
-## Process Improvement Work Streams
-
-Three parallel work streams documented and ready for design/implementation:
-
-1. **Handoff skill** - Two-level protocol (quick vs full) with auto-escalation
-2. **Model awareness** - Make `/model` switches visible to agents via hooks
-3. **Plan-TDD skill** - Anti-pattern guidance for presentation tests
-
-Each has problem.md and session.md in plans/ directory with complete analysis and design proposals.
+**Designed rule-based pre-edit enforcement:**
+- Three rule files with path prefixes trigger skill loading reminders
+- `.claude/rules/skill-development.md` → paths: `.claude/skills/**/*`
+- `.claude/rules/hook-development.md` → paths: `.claude/hooks/**/*`
+- `.claude/rules/agent-development.md` → paths: `.claude/agents/**/*`
+- Each rule reminds to load corresponding `/plugin-dev:*` skill before editing
 
 ## Pending Tasks
 
-**Process improvement work streams** (user will tackle after these are ready):
+**Ready for Sonnet implementation:**
 
-- [ ] **Handoff skill improvement** - Design two-level handoff protocol
-  - Problem: plans/handoff-skill/problem.md (haiku agent violated protocol)
-  - Session: plans/handoff-skill/session.md (design ready for review)
-  - Root cause: Skill complexity mismatch (labeled haiku, requires sonnet complexity)
-  - Solution: Quick handoff (haiku) vs full handoff (sonnet) with auto-escalation
-  - Next: Opus/sonnet design session to finalize protocol and enforcement
+- [ ] **Create pre-edit rule files** - `.claude/rules/{skill,hook,agent}-development.md`
+  - Each ~10 lines with paths frontmatter and skill loading reminder
+  - Provides automatic context injection when editing domain files
+  - Remove Pre-Edit Checks section from CLAUDE.md (rules replace it)
 
-- [ ] **Model awareness improvement** - Make model switches visible to agents
-  - Problem: plans/model-awareness/problem.md (`/model` switches invisible to agents)
-  - Session: plans/model-awareness/session.md (design proposals ready)
-  - Impact: Session continuity, can't recommend appropriate model for next task
-  - Solutions: SessionStart hook, env block enhancement, handoff policy
-  - Next: Design hook-based model tracking approach
+- [ ] **Implement handoff-lite skill** - Create `.claude/skills/handoff-lite/SKILL.md`
+  - Design: `plans/handoff-skill/design.md`
+  - Mechanical handoff for efficient models, embedded template, no reference reads
 
-- [ ] **Plan-TDD skill improvement** - Add guidance to avoid presentation tests
-  - Problem: plans/plan-tdd-skill/problem.md (help text tests are brittle)
-  - Issue: Testing presentation details (help text format) instead of behavior
-  - Action: Add "What NOT to test" section to plan-tdd skill
-  - Anti-pattern: Presentation tests don't fit TDD methodology
+- [ ] **Implement commit-context skill** - Create `.claude/skills/commit-context/SKILL.md`
+  - Design: `plans/commit-context/design.md`
+  - Context-aware commit, skips git discovery
+
+- [ ] **Fix learnings discoverability** - Update `.claude/skills/handoff/SKILL.md`
+  - Problem: `plans/learnings-management/problem.md`
+  - Inline @ chain, size measurement, add-learning.py from references
+
+**Deferred to separate design sessions:**
+
+- [ ] **Model awareness** - Make `/model` switches visible to agents
+  - Problem: `plans/model-awareness/problem.md`
+
+- [ ] **Plan-TDD skill** - Add guidance to avoid presentation tests
+  - Problem: `plans/plan-tdd-skill/problem.md`
 
 **Deferred until after process improvements:**
 
-- [ ] **Process pending learnings** - Use `/remember` to consolidate staged learnings
-- [ ] **Remove "uv run" references** - Audit and fix subprocess calls using "uv run"
-
-**Pending evaluation from main branch merge:**
-
-- [ ] **Review context.md from main** - Evaluate if markdown formatter migration work (2026-01-07) is still relevant or completed
-  - File: See git show fe84617:agents/context.md for original content
-  - Context: Pending work about remark-cli migration (may be complete)
-  - Action: Review and archive or integrate into current session if still relevant
-
-- [ ] **Evaluate bin/poptodo and bin/shelve scripts** - Design decision needed
-  - Files: bin/poptodo, bin/shelve (from main branch)
-  - Skill: .claude/skills/shelve already exists
-  - Intent: Support setting aside current task context when handling workflow interruptions
-  - Action: Design reevaluation - should scripts be integrated into shelve skill or kept separate?
-  - Next: Add to design queue for architecture decision
+- [ ] **Process pending learnings** - `/remember` to consolidate staged learnings
+- [ ] **Remove "uv run" references** - Audit subprocess calls
+- [ ] **Review context.md from main** - Markdown formatter migration status
+- [ ] **Evaluate bin/poptodo and bin/shelve** - Integration with shelve skill
+- [ ] **Session size tooling** - Add @ chain line count to add-learning.py or standalone script (needs test suite)
 
 ## Blockers / Gotchas
 
@@ -83,24 +60,28 @@ Each has problem.md and session.md in plans/ directory with complete analysis an
 
 ## Next Steps
 
-**User will prioritize process improvement work streams:**
-
-1. Review three work streams (handoff skill, model awareness, plan-tdd skill)
-2. Select which to tackle first
-3. Run design sessions (opus/sonnet) to finalize approaches
-4. Implement improvements
-
-**After process improvements:**
-- `/remember` to consolidate pending learnings
-- Audit and remove "uv run" references from codebase
+Sonnet can implement the three ready designs (`handoff-lite`, `commit-context`, learnings discoverability fix) independently.
 
 ## Recent Learnings
+
+**Documentation-only enforcement is unreliable:**
+- Anti-pattern: Relying on CLAUDE.md tables/rules for mandatory behavior (model may skip/forget)
+- Correct pattern: Use `.claude/rules/` with `paths` frontmatter for automatic context injection
+- Rationale: Rules load automatically when working with matching files - no model memory required
+
+**Hooks can't enforce "load skill before action":**
+- PreToolUse hooks can intercept tool calls but can't detect conversation context (skill loading state)
+- Hook agent gets tool input, transcript path - but not semantic context of main agent
+- Hooks are for validating/blocking actions, not enforcing prerequisite context
+
+**Rules `paths` vs nested CLAUDE.md:**
+- `paths` frontmatter controls WHEN rule loads (conditional on file pattern)
+- Multiple rule files with different path prefixes = hierarchical behavior
+- Nested CLAUDE.md in .claude/ subdirs works but rules pattern is cleaner
 
 @agents/learnings/pending.md
 
 ---
 
-Git status: Clean working tree, branch unification
-Current HEAD: f5f0ef0 (🐛 Fix SOCKS proxy error in token counting unit tests)
-Key commits this session:
-- 72167fa - ✨ Add markdown composition API with TDD methodology (squashed from 16 commits)
+Git status: Clean working tree, branch skills
+Current HEAD: 4308e30 (📋 Session handoff: skill improvement designs complete)
