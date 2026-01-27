@@ -1,6 +1,5 @@
 """Tests for CLI markdown command."""
 
-import subprocess
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -9,14 +8,11 @@ from claudeutils.cli import cli
 
 
 def test_help_shows_markdown_command() -> None:
-    """Test: Help text shows markdown command."""
-    result = subprocess.run(
-        ["uv", "run", "claudeutils", "--help"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert "markdown" in result.stdout
+    """Test: markdown command is registered in CLI."""
+    runner = CliRunner()
+    result = runner.invoke(cli, ["--help"])
+    assert result.exit_code == 0
+    assert "markdown" in result.output
 
 
 def test_markdown_processes_file_from_stdin(

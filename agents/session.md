@@ -63,6 +63,13 @@
   - Action: Add "What NOT to test" section to plan-tdd skill
   - See also: Test suite audit for similar anti-patterns
 
+- [ ] **Remove "uv run" references** - Audit project for subprocess calls using "uv run"
+  - Rationale: uv run does not work in sandbox (cache access denied)
+  - Environment: Agents expect activated venv, automatic activation via direnv (.envrc)
+  - Search: grep -r "uv run" across codebase (tests, scripts, docs, justfile)
+  - Fix: Remove "uv run" prefix, rely on activated venv
+  - Note: Two failing tests (test_cli_markdown.py, test_cli_tokens.py) already identified
+
 ## Blockers / Gotchas
 
 **None currently blocking execution.** Previous session gotchas resolved:

@@ -2,7 +2,6 @@
 
 import io
 import json
-import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
@@ -10,8 +9,10 @@ from unittest.mock import Mock
 
 import pytest
 from anthropic import AuthenticationError
+from click.testing import CliRunner
 from pytest_mock import MockerFixture
 
+from claudeutils.cli import cli
 from claudeutils.exceptions import ApiRateLimitError
 from claudeutils.tokens_cli import handle_tokens
 
@@ -21,17 +22,13 @@ def test_cli_requires_model_argument(tmp_path: Path) -> None:
     test_file = tmp_path / "test.md"
     test_file.write_text("Hello world")
 
-    result = subprocess.run(
-        ["uv", "run", "claudeutils", "tokens", str(test_file)],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    runner = CliRunner()
+    result = runner.invoke(cli, ["tokens", str(test_file)])
 
     # Click returns exit code 2 for missing required arguments
-    assert result.returncode == 2
+    assert result.exit_code == 2
     # Click says "missing argument" instead of "required argument"
-    assert "missing" in result.stderr.lower() or "required" in result.stderr.lower()
+    assert "missing" in result.output.lower() or "required" in result.output.lower()
 
 
 def test_cli_accepts_single_file(
