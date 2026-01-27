@@ -45,6 +45,26 @@
   - Problem: `plans/learnings-management/problem.md`
   - Inline @ chain, size measurement, add-learning.py from references
 
+**Ready for Sonnet implementation (docs refactoring):**
+
+- [ ] **Create decisions/ structure** - Split design-decisions.md into domain files
+  - Design: `plans/docs-to-skills/design.md`
+  - Create `agents/decisions/` with cli.md, testing.md, workflows.md, delegation.md, architecture.md
+  - Extract content from design-decisions.md by domain
+  - Create rule files in `.claude/rules/` pointing to domain docs
+
+- [ ] **Refactor CLAUDE.md** - Reduce to ~100 lines of core principles
+  - Design: `plans/docs-to-skills/design.md`
+  - Move domain content to decisions/*.md
+  - Keep: Workflow Selection, Documentation Structure, Terminology, Core Principles
+  - Remove: Delegation Principle, Bash Scripting, File System Rules, Tool Batching
+
+- [ ] **Update /remember skill routing** - Route learnings to domain docs
+  - Design: `plans/docs-to-skills/design.md`
+  - Update `agent-core/skills/remember/skill.md` routing table
+  - Add domain inference logic
+  - Route to decisions/*.md instead of monolithic design-decisions.md
+
 **Deferred to separate design sessions:**
 
 - [ ] **Model awareness** - Make `/model` switches visible to agents
