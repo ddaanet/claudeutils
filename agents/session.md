@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-27
 
-**Status:** handoff-lite and commit-context skills implemented; ready for learnings fix
+**Status:** Three skill improvements complete (handoff-lite, commit-context, learnings discoverability)
 
 ## Completed This Session
 
@@ -65,6 +65,15 @@
 - Ran plugin-dev:skill-reviewer: Excellent rating, no changes required
 - Removed completed plans: handoff-skill/, commit-context/
 
+**Learnings discoverability fix (Sonnet):**
+- Updated `agent-core/skills/handoff/SKILL.md` to inline critical requirements
+- Step 4: Inlined add-learning.py staging procedure with concrete example
+- Step 5: Inlined @ chain size measurement formula with wc command
+- Moved protocol requirements from buried reference file to main skill
+- Final word count: 789 words (within target range)
+- Commits: agent-core cd645de, main f410fb7
+- Removed completed plan: learnings-management/
+
 ## Pending Tasks
 
 **Ready for Sonnet implementation:**
@@ -79,9 +88,9 @@
   - Completed: agent-core 8288ac0, main (pending)
   - Reviewed: skill-reviewer agent (excellent rating)
 
-- [ ] **Fix learnings discoverability** - Update `.claude/skills/handoff/SKILL.md`
-  - Problem: `plans/learnings-management/problem.md`
-  - Inline @ chain, size measurement, add-learning.py from references
+- [x] **Fix learnings discoverability** - Update `.claude/skills/handoff/SKILL.md`
+  - Problem: `plans/learnings-management/problem.md` (now removed)
+  - Completed: agent-core cd645de, main f410fb7
 
 **Ready for Sonnet implementation (docs refactoring):**
 
@@ -153,3 +162,4 @@ Sonnet can implement learnings discoverability fix.
 
 Git status: Modified agents/session.md (this file)
 Branch: skills
+Current HEAD: f410fb7 (✨ Improve handoff skill learnings discoverability)
