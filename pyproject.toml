@@ -9,6 +9,7 @@ dependencies = [
     "click>=8.3.1",
     "platformdirs>=4.5.1",
     "pydantic>=2.0",
+    "pyyaml>=6.0",
 ]
 
 [project.urls]
@@ -25,6 +26,7 @@ dev = [
     "pytest>=7.0",
     "pytest-mock>=3.15.1",
     "pytest-markdown-report>=0.0.2",
+    "types-pyyaml>=6.0",
 ]
 
 [build-system]

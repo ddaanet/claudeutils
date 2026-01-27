@@ -5,9 +5,11 @@ import logging
 import re
 import sys
 from pathlib import Path
+from typing import cast
 
 import click
 
+from claudeutils.compose import compose, load_config
 from claudeutils.discovery import list_top_level_sessions
 from claudeutils.exceptions import ClaudeUtilsError
 from claudeutils.extraction import extract_feedback_recursively
@@ -16,6 +18,64 @@ from claudeutils.markdown import process_file
 from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
 from claudeutils.tokens_cli import handle_tokens
+
+
+def _handle_compose_error(e: Exception) -> None:
+    """Handle errors from compose operations and exit with appropriate code."""
+    if isinstance(e, FileNotFoundError):
+        error_msg = str(e)
+        if "Fragment not found" in error_msg:
+            click.echo(f"Error: {e}", err=True)
+            sys.exit(2)
+        else:
+            click.echo(f"Error: Configuration file not found: {e}", err=True)
+            sys.exit(4)
+    elif isinstance(e, ValueError):
+        click.echo(f"Configuration error: {e}", err=True)
+        sys.exit(1)
+    elif isinstance(e, (TypeError, OSError)):
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(3)
+
+
+def _show_compose_plan(config_file: str, config: dict[str, object]) -> None:
+    """Display compose plan in dry-run mode."""
+    click.echo("Dry-run mode - plan:")
+    click.echo(f"  Config: {config_file}")
+    fragments_list = config.get("fragments", [])
+    frag_count = len(fragments_list) if isinstance(fragments_list, list) else 0
+    click.echo(f"  Fragments: {frag_count} file(s)")
+    click.echo(f"  Output: {config.get('output', 'N/A')}")
+
+
+def _filter_rule_items(
+    items: list[FeedbackItem], min_length: int
+) -> list[FeedbackItem]:
+    """Filter and deduplicate feedback items for rules extraction."""
+    filtered_items = filter_feedback(items)
+    rule_items = [
+        item
+        for item in filtered_items
+        if not (
+            (
+                item.content.lower().startswith("how ")
+                or item.content.lower().startswith("claude code:")
+            )
+            or len(item.content) < min_length
+            or len(item.content) > 1000
+        )
+    ]
+
+    # Sort and deduplicate
+    rule_items.sort(key=lambda x: x.timestamp)
+    seen_prefixes: set[str] = set()
+    deduped_items = []
+    for item in rule_items:
+        prefix = item.content[:100].lower()
+        if prefix not in seen_prefixes:
+            seen_prefixes.add(prefix)
+            deduped_items.append(item)
+    return deduped_items
 
 
 def find_session_by_prefix(prefix: str, project_dir: str) -> str:
@@ -76,16 +136,14 @@ def cli() -> None:
 @cli.command("list", help="List top-level sessions")
 @click.option("--project", default=None, help="Project directory")
 def list_sessions(project: str | None) -> None:
-    """Handle the list subcommand."""
-    if project is None:
-        project = str(Path.cwd())
+    """List top-level sessions in project."""
+    project = project or str(Path.cwd())
     sessions = list_top_level_sessions(project)
     if not sessions:
         print("No sessions found")
     else:
         for session in sessions:
-            prefix = session.session_id[:8]
-            print(f"[{prefix}] {session.title}")
+            print(f"[{session.session_id[:8]}] {session.title}")
 
 
 @cli.command(help="Extract feedback from session")
@@ -93,36 +151,24 @@ def list_sessions(project: str | None) -> None:
 @click.option("--project", default=None, help="Project directory")
 @click.option("--output", help="Output file path")
 def extract(session_prefix: str, project: str | None, output: str | None) -> None:
-    """Handle the extract subcommand."""
-    if project is None:
-        project = str(Path.cwd())
+    """Extract feedback from specified session."""
+    project = project or str(Path.cwd())
     try:
         session_id = find_session_by_prefix(session_prefix, project)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
-
     feedback = extract_feedback_recursively(session_id, project)
     json_output = json.dumps([item.model_dump(mode="json") for item in feedback])
-    if output:
-        Path(output).write_text(json_output)
-    else:
-        print(json_output)
+    (Path(output).write_text if output else print)(json_output)
 
 
-@cli.command(
-    help="Batch collect feedback from all sessions",
-    epilog=(
-        "Extract feedback from all sessions recursively, including "
-        "sub-agents. Outputs JSON array of FeedbackItem objects."
-    ),
-)
+@cli.command(help="Batch collect feedback from all sessions")
 @click.option("--project", default=None, help="Project directory")
 @click.option("--output", help="Output file path")
 def collect(project: str | None, output: str | None) -> None:
-    """Handle the collect subcommand."""
-    if project is None:
-        project = str(Path.cwd())
+    """Collect feedback from all sessions in project."""
+    project = project or str(Path.cwd())
     sessions = list_top_level_sessions(project)
     all_feedback = []
     for session in sessions:
@@ -134,26 +180,11 @@ def collect(project: str | None, output: str | None) -> None:
                 f"Warning: Failed to extract from {session.session_id}: {e}",
                 file=sys.stderr,
             )
-            continue
-
     json_output = json.dumps([item.model_dump(mode="json") for item in all_feedback])
-    if output:
-        Path(output).write_text(json_output)
-    else:
-        print(json_output)
+    (Path(output).write_text if output else print)(json_output)
 
 
-@cli.command(
-    help="Analyze feedback items",
-    epilog="""Categories:
-  instructions  - Directives (don't, never, always, must, should)
-  corrections   - Fixes (no, wrong, incorrect, fix, error)
-  process       - Workflow (plan, next step, before, after)
-  code_review   - Quality (review, refactor, improve, clarity)
-  preferences   - Other substantive feedback
-
-Noise filtered: command output, bash stdout, system messages, short (<10 chars).""",
-)
+@cli.command(help="Analyze feedback items")
 @click.option(
     "--input", "input_path", required=True, help="Input JSON file, or '-' for stdin"
 )
@@ -165,46 +196,31 @@ Noise filtered: command output, bash stdout, system messages, short (<10 chars).
     help="Output format",
 )
 def analyze(input_path: str, output_format: str) -> None:
-    """Handle the analyze subcommand."""
-    # Load feedback from file or stdin
+    """Analyze and categorize feedback items."""
     json_text = sys.stdin.read() if input_path == "-" else Path(input_path).read_text()
-
-    feedback_data = json.loads(json_text)
-    items = [FeedbackItem.model_validate(item) for item in feedback_data]
-
-    # Filter and categorize
+    items = [FeedbackItem.model_validate(item) for item in json.loads(json_text)]
     filtered_items = filter_feedback(items)
     categories: dict[str, int] = {}
     for item in filtered_items:
         category = categorize_feedback(item)
         categories[category] = categories.get(category, 0) + 1
-
-    # Output results
     if output_format == "json":
-        output = {
-            "total": len(items),
-            "filtered": len(filtered_items),
-            "categories": categories,
-        }
-        print(json.dumps(output))
+        print(
+            json.dumps(
+                {
+                    "total": len(items),
+                    "filtered": len(filtered_items),
+                    "categories": categories,
+                }
+            )
+        )
     else:
-        print(f"total: {len(items)}")
-        print(f"filtered: {len(filtered_items)}")
-        print("categories:")
+        print(f"total: {len(items)}\nfiltered: {len(filtered_items)}\ncategories:")
         for category, count in categories.items():
             print(f"  {category}: {count}")
 
 
-@cli.command(
-    help="Extract rule-worthy feedback items",
-    epilog="""Applies stricter filters than analyze:
-  - Removes questions (starting with "How " or "claude code:")
-  - Removes long items (>1000 chars)
-  - Removes short items (<min-length, default 20 chars)
-  - Deduplicates by first 100 characters
-
-Output is sorted chronologically.""",
-)
+@cli.command(help="Extract rule-worthy feedback items")
 @click.option(
     "--input", "input_path", required=True, help="Input JSON file, or '-' for stdin"
 )
@@ -222,41 +238,10 @@ Output is sorted chronologically.""",
     help="Output format",
 )
 def rules(input_path: str, min_length: int, output_format: str) -> None:
-    """Handle the rules subcommand."""
-    # Load feedback from file or stdin
+    """Extract actionable rules from feedback items."""
     json_text = sys.stdin.read() if input_path == "-" else Path(input_path).read_text()
-
-    feedback_data = json.loads(json_text)
-    items = [FeedbackItem.model_validate(item) for item in feedback_data]
-
-    # Filter noise and apply stricter rules
-    filtered_items = filter_feedback(items)
-    rule_items = [
-        item
-        for item in filtered_items
-        if not (
-            # Question check
-            (
-                item.content.lower().startswith("how ")
-                or item.content.lower().startswith("claude code:")
-            )
-            # Length check (min configurable, max 1000)
-            or len(item.content) < min_length
-            or len(item.content) > 1000
-        )
-    ]
-
-    # Sort by timestamp and deduplicate by prefix
-    rule_items.sort(key=lambda x: x.timestamp)
-    seen_prefixes: set[str] = set()
-    deduped_items = []
-    for item in rule_items:
-        prefix = item.content[:100].lower()
-        if prefix not in seen_prefixes:
-            seen_prefixes.add(prefix)
-            deduped_items.append(item)
-
-    # Output results
+    items = [FeedbackItem.model_validate(item) for item in json.loads(json_text)]
+    deduped_items = _filter_rule_items(items, min_length)
     if output_format == "json":
         output = [
             {
@@ -274,16 +259,7 @@ def rules(input_path: str, min_length: int, output_format: str) -> None:
 
 
 @cli.command(
-    help=(
-        "Count tokens in files using Anthropic API. "
-        "Requires ANTHROPIC_API_KEY environment variable."
-    ),
-    epilog=(
-        "Examples:\n"
-        "  uv run claudeutils tokens sonnet prompt.md\n"
-        "  uv run claudeutils tokens opus file1.md file2.md --json\n"
-        "  uv run claudeutils tokens claude-sonnet-4-5-20250929 prompt.md"
-    ),
+    help="Count tokens in files using Anthropic API (requires ANTHROPIC_API_KEY)"
 )
 @click.argument("model", metavar="{haiku,sonnet,opus}")
 @click.argument("files", nargs=-1, required=True, metavar="FILE")
@@ -291,22 +267,102 @@ def rules(input_path: str, min_length: int, output_format: str) -> None:
     "--json", "json_output", is_flag=True, help="Output JSON format instead of text"
 )
 def tokens(model: str, files: tuple[str, ...], *, json_output: bool) -> None:
-    """Handle the tokens subcommand."""
+    """Count tokens in files using Anthropic API."""
     handle_tokens(model, list(files), json_output=json_output)
+
+
+@cli.command(
+    help="Compose markdown from YAML configuration",
+    epilog=(
+        "Load composition configuration from YAML file and compose markdown "
+        "fragments into a single output file. Supports header adjustment, "
+        "custom separators, and strict/warn validation modes."
+    ),
+)
+@click.argument("config_file", type=click.Path())
+@click.option(
+    "--output",
+    type=click.Path(),
+    default=None,
+    help="Override output path from config",
+)
+@click.option(
+    "--validate",
+    type=click.Choice(["strict", "warn"]),
+    default="strict",
+    help="Validation mode for missing fragments",
+)
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="Show detailed output",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show plan without writing",
+)
+def compose_command(
+    config_file: str,
+    output: str | None,
+    validate: str,
+    verbose: bool,  # noqa: FBT001
+    dry_run: bool,  # noqa: FBT001
+) -> None:
+    """Compose markdown documents from fragments."""
+    config_path = Path(config_file)
+    if not config_path.exists():
+        click.echo(f"Error: Configuration file not found: {config_file}", err=True)
+        sys.exit(4)
+
+    try:
+        # Load configuration
+        if verbose:
+            click.echo(f"Loading config from {config_file}")
+
+        config = load_config(config_file)
+
+        # Override output if specified
+        if output:
+            config["output"] = output
+
+        # Show plan if dry-run
+        if dry_run:
+            _show_compose_plan(config_file, config)
+            return
+
+        # Extract config values with type narrowing
+        fragments_val = cast("list[Path | str]", config.get("fragments", []))
+        output_val = cast("Path | str", config["output"])
+        title_val = cast("str | None", config.get("title"))
+        adjust_headers_val = cast("bool", config.get("adjust_headers", False))
+        separator_val = cast("str", config.get("separator", "---"))
+
+        # Compose the document
+        compose(
+            fragments=fragments_val,
+            output=output_val,
+            title=title_val,
+            adjust_headers=adjust_headers_val,
+            separator=separator_val,
+            validate_mode=validate,
+        )
+
+        if verbose:
+            click.echo(f"Successfully composed to {config.get('output')}")
+
+    except (FileNotFoundError, ValueError, TypeError, OSError) as e:
+        _handle_compose_error(e)
 
 
 @cli.command(help="Process markdown files")
 def markdown() -> None:
-    """Handle the markdown subcommand.
-
-    Reads file paths from stdin, processes markdown structure fixes, and prints
-    modified file paths to stdout.
-    """
+    """Handle markdown subcommand: validate and process markdown files from stdin."""
     files = [line.strip() for line in sys.stdin if line.strip()]
-
-    # Validate all files first
     errors: list[str] = []
     valid_files: list[Path] = []
+
+    # Validate files
     for filepath_str in files:
         filepath = Path(filepath_str)
         if filepath.suffix != ".md":
@@ -324,13 +380,11 @@ def markdown() -> None:
         except ClaudeUtilsError as e:
             errors.append(str(e))
 
-    # Report all errors and exit with error code
+    # Report errors
     if errors:
         for error in errors:
             print(error, file=sys.stderr)
         sys.exit(1)
 
 
-def main() -> None:
-    """Entry point for claudeutils CLI."""
-    cli()
+main = cli  # Entry point alias
