@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-28
 
-**Status:** CLAUDE.md refactoring and template creation complete across all projects
+**Status:** Skill review and enhancement complete
 
 ## Completed This Session
 
@@ -37,9 +37,15 @@
 - pytest-md CLAUDE.md: 103 lines with 10 @file references
 - Template ready for future projects
 
+**Skill review and enhancement:**
+- Reviewed next skill with skill-reviewer agent (plugin-dev:skill-reviewer)
+- Enhanced description with additional trigger phrases ("next?", "what should I work on?", "any pending work?")
+- Improved skill discoverability and triggering
+- **Commits:** 585da68 (agent-core), 8060aa7 (claudeutils + submodule update)
+
 ## Pending Tasks
 
-**None - all workflow tasks complete.**
+**None - all work complete.**
 
 ## Blockers / Gotchas
 
@@ -49,15 +55,15 @@
 - Copy command: `cp agent-core/templates/CLAUDE.template.md CLAUDE.md`
 
 **Branch state:**
-- claudeutils: `skills` branch
+- claudeutils: `skills` branch (clean)
 - pytest-md: `dev` branch
-- agent-core: `main` branch (pushed to origin)
+- agent-core: `main` branch (1 commit ahead of origin)
 
 ## Next Steps
 
 **Start fresh session for new work.**
 
-All CLAUDE.md refactoring complete. Template established for future projects.
+Skill review complete. Ready for new tasks.
 
 ## Recent Learnings
 
