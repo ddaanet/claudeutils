@@ -1,51 +1,48 @@
 # Session Handoff: 2026-01-28
 
-**Status:** Skill review and enhancement complete
+**Status:** Unification Phase 4 complete, config composition pending
 
 ## Completed This Session
 
-**Template creation and commit discipline fixes (agent-core):**
-- Created CLAUDE.template.md in agent-core/templates/ for new projects
-- Renamed to CLAUDE.template.md to avoid auto-injection in subdirectories
-- Fixed over-committing pattern in /commit and /commit-context skills
-  - Added interactive vs automated session distinction
-  - Interactive: batch changes, commit on user request or natural breakpoints
-  - Automated: auto-commit after each logical unit per runbook
-- Created 2 new shared fragments:
-  - commit-skill-usage.md (mentions gitmoji is included)
-  - no-estimates.md (no predictions unless requested)
-- **Commits:** 51831e8 (template), 7545d60 (commit discipline), e1385c0 (fragments)
+**Unification project Phase 4 completion:**
+- Discovered unification project was incomplete (config factorization missing)
+- Created agent-core/configs/ directory for base configuration files
+- Moved justfile-base.just, ruff.toml, mypy.toml from fragments/ to configs/
+- Renamed to *-base.* pattern (ruff-base.toml, mypy-base.toml)
+- Created docformatter-base.toml (new file)
+- Created configs/README.md documenting usage and pending composition work
+- Updated STATUS.md to reflect accurate project state (Phase 4 complete, Phases 5-7 split)
+- **Commits (agent-core):** eae879d (@file docs, code-removal fragment), b3a87b3 (configs organization)
+- **Commits (claudeutils):** 089225d (remove obsolete consolidation/), d499edf (STATUS update)
 
-**pytest-md CLAUDE.md migration:**
-- Updated agent-core submodule from 7321a80 to e1385c0 (5 new fragments)
-- Created CLAUDE.md using @file references (103 lines)
-- Restored missing project-specific sections:
-  - Context Management (session.md discipline, handoff protocol)
-  - Opus Orchestration (model selection, sub-agent usage)
-- Removed AGENTS.md (superseded by CLAUDE.md)
-- Sonnet review validated correctness and completeness
-- **Commit:** f82e7a2 (CLAUDE.md + AGENTS.md removal, amended)
-
-**claudeutils fragment adoption:**
-- Replaced inline commit/estimate rules with @file references
-- Updated agent-core submodule to e1385c0
-- **Commit:** ddc7401
+**Documentation and fragments:**
+- Created agent-core/docs/@file-pattern.md (comprehensive guide from claude-code-guide agent)
+- Created agent-core/fragments/code-removal.md (delete obsolete code, don't archive)
+- Added code-removal.md reference to claudeutils CLAUDE.md
+- Removed plans/unification/consolidation/ directory (43 obsolete design files)
 
 **Current state:**
-- agent-core: 18 fragments (up from 11)
-- claudeutils CLAUDE.md: 56 lines with 12 @file references
-- pytest-md CLAUDE.md: 103 lines with 10 @file references
-- Template ready for future projects
-
-**Skill review and enhancement:**
-- Reviewed next skill with skill-reviewer agent (plugin-dev:skill-reviewer)
-- Enhanced description with additional trigger phrases ("next?", "what should I work on?", "any pending work?")
-- Improved skill discoverability and triggering
-- **Commits:** 585da68 (agent-core), 8060aa7 (claudeutils + submodule update)
+- agent-core: configs/ directory with 4 base files + README.md
+- agent-core: 18 fragments (configs moved out)
+- Branch: unification (claudeutils), main (agent-core)
+- Phase 4: ✅ Complete (base configs organized)
+- Phases 5-7: Split status - CLAUDE.md done (@file), configs pending implementation
 
 ## Pending Tasks
 
-**None - all work complete.**
+**Config composition implementation (Phases 5-7 for configs):**
+- Implement justfile import mechanism (projects use inline copies currently)
+- Implement pyproject.toml composition (projects use inline copies currently)
+- Document config composition pattern once implemented
+- See: agent-core/configs/README.md, plans/unification/STATUS.md
+
+## Blockers / Gotchas
+
+**Config composition gap:**
+- Native @file only works for markdown files
+- Justfile/pyproject.toml need different import mechanism
+- Base files organized but not yet consumable by projects
+- Original compose.py design may still be needed for config files
 
 ## Blockers / Gotchas
 
@@ -55,15 +52,16 @@
 - Copy command: `cp agent-core/templates/CLAUDE.template.md CLAUDE.md`
 
 **Branch state:**
-- claudeutils: `skills` branch (clean)
-- pytest-md: `dev` branch
-- agent-core: `main` branch (1 commit ahead of origin)
+- claudeutils: `unification` branch (clean, 2 commits)
+- agent-core: `main` branch (3 commits ahead of origin)
 
 ## Next Steps
 
-**Start fresh session for new work.**
+**Option 1:** Continue with config composition implementation (justfile/pyproject.toml import mechanism)
 
-Skill review complete. Ready for new tasks.
+**Option 2:** Move to next priority work from todo.md:
+- Convert agent-core to Claude Code Plugin (High priority)
+- Markdown Formatter Survey (High priority)
 
 ## Recent Learnings
 
@@ -97,3 +95,9 @@ Skill review complete. Ready for new tasks.
 - Anti-pattern: Auto-committing after each small change in interactive sessions (file edit, template creation)
 - Correct pattern: Distinguish session types - interactive sessions batch related changes and commit on user request; automated workflows commit after each logical unit
 - Rationale: Prevents commit spam in interactive work while maintaining checkpoint discipline in runbook execution
+
+**Delete obsolete code, don't archive:**
+- Anti-pattern: Moving obsolete code to archive/, old/, or commenting it out
+- Correct pattern: Delete completely - git history is the archive
+- Rationale: Dead code creates maintenance burden; git log/show retrieves anything needed
+- New fragment: code-removal.md enforces this pattern
