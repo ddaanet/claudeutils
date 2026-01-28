@@ -1,43 +1,43 @@
 # Session Handoff: 2026-01-28
 
-**Status:** Native @file pattern adopted, additional refactoring in progress
+**Status:** CLAUDE.md refactoring complete, ready for pytest-md update
 
 ## Completed This Session
 
-**Native @file discovery and refactoring:**
+**Native @file discovery and initial refactoring:**
 - Discovered Claude Code native support for `@file` references (recursive, 5 levels deep)
 - **Phase 5-7 obsolete:** compose.py system not needed - native @file achieves goal
-- Refactored CLAUDE.md to use @file references (proof of concept)
-  - 4 fragments extracted: communication.md, bash-strict-mode.md, delegation.md, tool-batching.md
-  - Added section headings before @file references for proper hierarchy
-  - Review confirmed: structure correct, wording quality preserved
+- Initial refactoring: 4 fragments (communication, bash-strict-mode, delegation, tool-batching)
 - Updated plans/unification/STATUS.md with native @file finding
-  - Documented capabilities: recursive inclusion, circular detection, code block protection
-  - Marked Phase 5-7 as "Superseded by Native Feature"
-  - Updated recommendations: adopt native @file pattern
+- **Commit:** c633ad8
+
+**Additional refactoring and consolidation:**
+- Created 5 new fragments in agent-core:
+  - workflows-terminology.md (workflow selection + terminology)
+  - token-economy.md (token economy + avoid numbered lists)
+  - error-handling.md (error handling principles)
+  - tmp-directory.md (project-local tmp/ usage)
+  - execute-rule.md (#execute session continuation)
+- Updated delegation.md: added Script-First Evaluation + Pre-Delegation Checkpoint
+- Removed agent-core path rule (project renamed, no longer confusing)
+- Removed Commit Agent Delegation Pattern (superseded by /commit skill improvements)
+- **Commits:** 1008c47 (additional extractions), 76a3a91 (remove obsolete pattern)
+
+**Final results:**
+- CLAUDE.md: 60 lines (down from 220 - 73% reduction)
+- agent-core: 16 fragments available for reuse
+- agent-core submodule: updated with new fragments (commit 18a539a)
 
 ## Pending Tasks
 
-### Additional CLAUDE.md Refactoring
-**User request:** Further extract reusable rules to agent-core fragments
+### Combine Recent Commits
+- Use `git reset --soft HEAD~2` to combine 1008c47 and 76a3a91
+- Create single commit for all additional refactoring work
 
-**Planned extractions:**
-1. **Workflow + terminology fragment** - Workflow Selection and Terminology sections relate to agent-core skills
-2. **Token economy fragment** - Token economy + avoid numbered lists rules
-3. **Reusable rules to extract:**
-   - Error handling (generic pattern)
-   - Project tmp/ rule (filesystem constraint)
-   - Execute rule (session management)
-4. **Remove agent-core path rule** - Project was renamed to avoid confusion
-5. **Orchestration fragment consolidation:**
-   - Add Script-First Evaluation to orchestration/delegation fragment
-   - Add Pre-Delegation Checkpoint
-6. **Commit agent delegation pattern:**
-   - Mostly superseded by improvements in /commit and /commit-context skills
-   - Consider improving commit skills with tee/filter scripts to match delegation pattern
-   - Not clear if worthwhile - needs evaluation
-
-**After refactoring:** Commit changes
+### Create Template CLAUDE.md
+- Add template CLAUDE.md to agent-core for new projects
+- Based on claudeutils structure with @file references
+- Include placeholders for project-specific sections
 
 ### pytest-md Submodule Update
 - Update pytest-md agent-core submodule (36 commits behind)
@@ -50,18 +50,19 @@
 
 **Branch state:**
 - Current: `skills`
-- Working tree: CLAUDE.md and STATUS.md have uncommitted changes
+- Last 3 commits: c633ad8, 1008c47, 76a3a91 (need to squash last 2)
 
 ## Next Steps
 
-1. Complete additional CLAUDE.md refactoring per user request
-2. Commit refactoring changes
+1. Squash last 2 commits into single commit
+2. Add template CLAUDE.md to agent-core
 3. Update pytest-md submodule
 4. Refactor pytest-md CLAUDE.md
 
 **Reference:**
-- Native @file documentation: plans/unification/STATUS.md (Native @file Feature Discovery section)
-- Current fragments: agent-core/fragments/
+- Native @file documentation: plans/unification/STATUS.md
+- Current fragments: agent-core/fragments/ (16 total)
+- Final CLAUDE.md: 60 lines with 10 @file references
 
 ## Recent Learnings
 
@@ -85,3 +86,8 @@
 - Impact: Custom compose.py system (34K design, Phases 5-7) not needed for modular CLAUDE.md
 - Pattern: Use @file for shared fragments, keep project-specific content inline
 - Rationale: Native feature achieves goal (avoid copy-paste, reuse fragments) without tooling overhead
+
+**Handoff discipline with multi-commit work:**
+- Anti-pattern: Skipping handoff updates between commits during extended work sessions
+- Correct pattern: Update session.md before each commit, or immediately after realizing omission
+- Rationale: Preserves context for next agent, avoids information loss, maintains workflow continuity
