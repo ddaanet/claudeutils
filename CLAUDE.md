@@ -264,7 +264,7 @@ Agent returns: "a7f38c2"
 
 ### Skill Development
 
-**Rule:** When creating or editing a skill, start by loading the `plugin-dev:skill-development` skill.
+**Rule:** When creating, editing, or discussing skills, start by loading the `plugin-dev:skill-development` skill.
 
 **Why:** The skill-development skill provides:
 - Skill structure and frontmatter guidance

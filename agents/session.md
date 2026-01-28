@@ -1,34 +1,26 @@
 # Session Handoff: 2026-01-28
 
-**Status:** Skill improvements complete
+**Status:** Gitmoji integration and commit skill improvements complete
 
 ## Completed This Session
 
-**Plan-TDD skill: Presentation test guidance and checkpoint system:**
-- Opus designed solution in plan mode with iterative refinement
-- Added "What NOT to Test" section to SKILL.md:
-  - Table showing presentation vs behavior test boundaries
-  - Heuristic: "If users see output directly, don't test exact phrasing"
-  - Valid exceptions for regulatory/generated content
-- Added "Checkpoints" section to SKILL.md:
-  - Two-step process: Fix (just dev → sonnet quiet-task → commit), then Vet (quality review → commit)
-  - Placement guidelines: natural boundaries, not every cycle, not all at end
-  - Example showing checkpoint between cycles
-- Added presentation test anti-pattern to references/anti-patterns.md
-- Files modified:
-  - agent-core/skills/plan-tdd/SKILL.md (lines 399-459)
-  - agent-core/skills/plan-tdd/references/anti-patterns.md (line 14)
-
-**Remember skill: Made project-independent:**
-- Removed hardcoded path /Users/david/code/claudeutils/CLAUDE.md
-- Removed obsolete agents/learnings/pending.md processing pattern
-- Generalized File Selection to reference agents/decisions/README.md
-- Updated consolidation-patterns.md to use project-level routing
-- Added routing-template.md showing projects how to configure domain routing
-- Files modified:
-  - agent-core/skills/remember/SKILL.md (commit f97157f)
-  - agent-core/skills/remember/references/consolidation-patterns.md
-  - agent-core/skills/remember/references/routing-template.md (new)
+**Gitmoji integration and commit skill improvements:**
+- Implemented plan from plans/majestic-herding-rain.md using parallel haiku agents
+- Modified 6 files to integrate gitmoji into commit workflows
+- Custom gitmojis (🗜️ compress, 🤖 robot) now auto-append during cache generation
+- Both commit skills now invoke /gitmoji automatically (skip with --no-gitmoji flag)
+- Token-efficient bash pattern added to all execution blocks
+- Specific file staging replaces git add -A pattern
+- Updated CLAUDE.md skill development rule to include "discussing skills"
+- Files modified (agent-core):
+  - skills/gitmoji/scripts/update-gitmoji-index.sh (appends custom gitmojis)
+  - skills/gitmoji/SKILL.md (simplified to single cache, removed custom-gitmojis.md refs)
+  - skills/gitmoji/custom-gitmojis.md (deleted)
+  - skills/commit/SKILL.md (restructured: precommit first, added gitmoji step, token-efficient pattern)
+  - skills/commit-context/SKILL.md (added gitmoji step, precommit in commit block)
+- Files modified (claudeutils):
+  - CLAUDE.md line 267 (expanded skill development trigger)
+- Verification: Cache generated with 77 gitmojis, all patterns confirmed working
 
 ## Pending Tasks
 
