@@ -1,31 +1,16 @@
 # Session Handoff: 2026-01-28
 
-**Status:** Documentation cleanup complete
+**Status:** /next skill logic fix complete
 
 ## Completed This Session
 
-**Removed context.md and consolidated to session.md:**
-- Deleted agents/context.md file (obsolete duplicate)
-- Updated 26 files across main repo and agent-core submodule
-- Replaced all context.md references with session.md
-- Updated skill-shelf.md empty template to match current session.md format
-- Files updated: CLAUDE.md, README.md, agent-core docs/skills/fragments, role files, semantic modules
-- Pattern: context.md was old name for session.md, caused confusion with dual references
-
-**Created /next skill** (previous conversation):
-- Systematic pending work finder in agent-core/skills/next/
-- Checks locations in priority order: initial context → shelf → todo.md → ROADMAP.md
-- Zero tool calls for most common case (work in session.md)
-- Stops immediately when work is found
-- Commit: Using gitmoji 🤖 for skill addition
-
-**Gitmoji integration and commit skill improvements** (previous conversation):
-- Implemented plan from plans/majestic-herding-rain.md using parallel haiku agents
-- Modified 6 files to integrate gitmoji into commit workflows
-- Custom gitmojis (🗜️ compress, 🤖 robot) now auto-append during cache generation
-- Both commit skills now invoke /gitmoji automatically (skip with --no-gitmoji flag)
-- Token-efficient bash pattern added to all execution blocks
-- Specific file staging replaces git add -A pattern
+**Fixed /next skill stop-early logic:**
+- Updated .claude/skills/next/skill.md to clarify pending work detection
+- Bug: Skill was stopping when seeing "None" or "Ready for new work" in session.md
+- Fix: Added explicit definition of what qualifies as pending work (specific tasks/items, NOT empty states)
+- Updated all 4 check steps to distinguish between "actual pending work" vs "no pending work"
+- Updated Important Notes section with clarification
+- Pattern: "Stop early" means stop when work IS found, not when checking reveals emptiness
 
 ## Pending Tasks
 
