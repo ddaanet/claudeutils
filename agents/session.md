@@ -1,26 +1,23 @@
 # Session Handoff: 2026-01-28
 
-**Status:** Gitmoji integration and commit skill improvements complete
+**Status:** Skill improvements complete
 
 ## Completed This Session
 
-**Gitmoji integration and commit skill improvements:**
+**Created /next skill:**
+- Systematic pending work finder in agent-core/skills/next/
+- Checks locations in priority order: initial context → shelf → todo.md → ROADMAP.md
+- Zero tool calls for most common case (work in session.md/context.md)
+- Stops immediately when work is found
+- Commit: Using gitmoji 🤖 for skill addition
+
+**Gitmoji integration and commit skill improvements** (previous conversation):
 - Implemented plan from plans/majestic-herding-rain.md using parallel haiku agents
 - Modified 6 files to integrate gitmoji into commit workflows
 - Custom gitmojis (🗜️ compress, 🤖 robot) now auto-append during cache generation
 - Both commit skills now invoke /gitmoji automatically (skip with --no-gitmoji flag)
 - Token-efficient bash pattern added to all execution blocks
 - Specific file staging replaces git add -A pattern
-- Updated CLAUDE.md skill development rule to include "discussing skills"
-- Files modified (agent-core):
-  - skills/gitmoji/scripts/update-gitmoji-index.sh (appends custom gitmojis)
-  - skills/gitmoji/SKILL.md (simplified to single cache, removed custom-gitmojis.md refs)
-  - skills/gitmoji/custom-gitmojis.md (deleted)
-  - skills/commit/SKILL.md (restructured: precommit first, added gitmoji step, token-efficient pattern)
-  - skills/commit-context/SKILL.md (added gitmoji step, precommit in commit block)
-- Files modified (claudeutils):
-  - CLAUDE.md line 267 (expanded skill development trigger)
-- Verification: Cache generated with 77 gitmojis, all patterns confirmed working
 
 ## Pending Tasks
 
