@@ -1,16 +1,17 @@
 # Session Handoff: 2026-01-28
 
-**Status:** /next skill logic fix complete
+**Status:** /next skill improvements complete
 
 ## Completed This Session
 
-**Fixed /next skill stop-early logic:**
-- Updated .claude/skills/next/skill.md to clarify pending work detection
-- Bug: Skill was stopping when seeing "None" or "Ready for new work" in session.md
-- Fix: Added explicit definition of what qualifies as pending work (specific tasks/items, NOT empty states)
-- Updated all 4 check steps to distinguish between "actual pending work" vs "no pending work"
-- Updated Important Notes section with clarification
-- Pattern: "Stop early" means stop when work IS found, not when checking reveals emptiness
+**Updated /next skill invocation logic:**
+- First commit (2b1fedc): Fixed stop-early logic (was stopping on empty states like "None")
+- Second update: Changed skill to only load when context is empty
+- Modified description: "ONLY when... NO pending work in already-loaded context"
+- Added "When NOT to Use" section: Don't load if work visible in session.md
+- Restructured flow: Context check happens BEFORE skill invocation (not inside skill)
+- Renumbered steps: Removed "Check Initial Context" as step 1 (now prerequisite)
+- Pattern: Most efficient path is checking loaded context first, only load skill if truly empty
 
 ## Pending Tasks
 
