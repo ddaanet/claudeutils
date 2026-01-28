@@ -6,31 +6,24 @@ Deferred work items and shelved context.
 
 ## Backlog
 
-### 2026-01-19 - Session: Unification Phase 3 (Incomplete - Phase 4 Blocked)
+### 2026-01-28 - Unification Project Complete ✅
 
 **Branch:** unification
-**Status:** Phase 3 complete, Phase 4 blocked on precommit fixes
-**Archived to:** `agents/shelf/unification-phase3-session.md`
+**Status:** Complete - all phases done
+**Final Status:** `plans/unification/STATUS.md`
 
 **Completed:**
-- Phase 3: All 5 design steps executed
-- Design deliverable: `scratch/consolidation/design/compose-api.md` (34K, ready for Phase 4)
-- Oneshot workflow complete and archived
-- Merged oneshot to unification, then unification to markdown
+- Phases 1-4: Fragment extraction, analysis, design, integration
+- Phases 5-7: Skipped (native @file support makes compose.py obsolete)
+- Both projects (claudeutils, pytest-md) using @file references
+- Documentation: agent-core/docs/@file-pattern.md
+- New fragment: agent-core/fragments/code-removal.md
+- Obsolete design artifacts removed
 
-**Blocked:**
-- Phase 4 implementation blocked on precommit check fixes
-- Must fix precommit in markdown branch first
-
-**Next Steps:**
-1. Fix precommit checks in markdown branch
-2. Return to unification branch
-3. Execute Phase 4: Implement composition module and CLI
-
-**Key Files:**
-- Design: `plans/unification/design.md`
-- Phase 4 plan: `plans/unification/phases/phase4.md`
-- Implementation spec: `scratch/consolidation/design/compose-api.md`
+**Outcome:**
+- agent-core operational with 16 skills, shared fragments, workflow docs
+- Native @file pattern documented and adopted across projects
+- Clean codebase (obsolete artifacts removed, not archived)
 
 ---
 

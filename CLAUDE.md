@@ -35,6 +35,8 @@
 
 @agent-core/fragments/error-handling.md
 
+@agent-core/fragments/code-removal.md
+
 @agent-core/fragments/bash-strict-mode.md
 
 @agent-core/fragments/tmp-directory.md

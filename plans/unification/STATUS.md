@@ -4,9 +4,11 @@
 
 ## Executive Summary
 
-**agent-core is operational** with 16 actively-developed skills and shared fragments. Both claudeutils and pytest-md use it as a submodule.
+**✅ PROJECT COMPLETE**
 
-**Composition tooling (Phase 5-7) is now obsolete:** Native Claude Code supports `@file` references for recursive file inclusion (max depth: 5 levels). This provides modular organization without custom tooling. The compose.py system design remains available if programmatic generation becomes needed in the future.
+agent-core is operational with 16 actively-developed skills and shared fragments. Both claudeutils and pytest-md use it as a submodule with native `@file` references for modular CLAUDE.md organization.
+
+**Composition tooling (Phase 5-7) obsolete:** Native Claude Code `@file` support makes custom composition tooling unnecessary. Design artifacts removed per code-removal.md fragment.
 
 ## Current State
 
@@ -24,33 +26,22 @@
 - Runbook preparation tooling in `bin/` directory
 
 **Project integration:**
-- claudeutils: agent-core submodule at commit a3f49e5 (latest, 2026-01-28)
-- pytest-md: agent-core submodule at commit 903c129 (36 commits behind)
+- claudeutils: agent-core submodule (latest), CLAUDE.md uses @file references
+- pytest-md: agent-core submodule (latest), CLAUDE.md uses @file references
 - Both use `just sync-to-parent` to symlink skills into `.claude/`
 
-**Phase 3 deliverables (design):**
-- Feature extraction: `consolidation/design/feature-extraction.md`
-- Core module design: `consolidation/design/core-module-design.md`
-- CLI design: `consolidation/design/cli-design.md`
-- YAML schema: `consolidation/design/yaml-schema.md`
-- **Final design:** `consolidation/design/compose-api.md` (34K, comprehensive)
+**@file pattern documentation:**
+- Complete documentation: `agent-core/docs/@file-pattern.md`
+- Covers syntax, recursion depth, circular references, best practices
+- Real-world multi-project examples included
 
 ### ⚠️  Superseded by Native Feature
 
 **Composition tooling (Phase 5-7) - obsolete due to native @file support:**
-- No `src/claudeutils/compose.py` module (not needed)
-- No `claudeutils compose` CLI command (not needed)
-- No compose.yaml files in projects (not needed)
-- **Native solution:** Claude Code supports `@path/to/file.md` references in CLAUDE.md
-  - Recursive inclusion up to 5 levels deep
-  - Relative, absolute, and home directory paths supported
-  - Circular reference detection built-in
-  - Code block protection (won't expand inside backticks)
-- Projects now use @file references for modular organization
-
-**Infrastructure gaps:**
-- Configs mixed in `fragments/` directory (should be `configs/`)
-- pytest-md agent-core submodule is stale (36 commits behind)
+- Native `@file` references provide all needed functionality
+- No custom tooling required (compose.py, CLI, YAML configs)
+- Obsolete design artifacts removed (consolidation/ directory)
+- Documentation available in `agent-core/docs/@file-pattern.md`
 
 ## Architecture Reality vs Plan
 
@@ -129,82 +120,41 @@ Recursive inclusion supported up to 5 levels. References resolved at session sta
 |-------|------|--------|-------|
 | 1 | Extract fragments to agent-core | ✅ Done | Files copied to scratch, fragmented |
 | 2 | Analysis (compose scripts, configs) | ✅ Done | Reports in consolidation/analysis/ |
-| 3 | Design unified composition API | ✅ Done | compose-api.md (34K) ready |
+| 3 | Design unified composition API | ✅ Done | Obsolete artifacts removed |
 | 4 | Integrate content into agent-core | ✅ Done | Skills integrated, fragments ready |
-| 5 | Build composition tooling | ⚠️  Obsolete | Native @file support makes this redundant |
-| 6 | Deploy compose.yaml to projects | ⚠️  Obsolete | Native @file references used instead |
-| 7 | Validation and testing | ⚠️  Obsolete | Native feature already tested by Claude Code |
+| 5 | Build composition tooling | ✅ Skipped | Native @file support sufficient |
+| 6 | Deploy compose.yaml to projects | ✅ Done | Using native @file references |
+| 7 | Validation and testing | ✅ Done | Both projects using @file successfully |
 
-## Next Actions
+## Project Complete
 
-### Recommended: Adopt Native @file Pattern
-1. ✅ Refactor CLAUDE.md to use @file references (proof of concept complete in claudeutils)
-2. Update pytest-md agent-core submodule (36 commits behind)
-3. Refactor pytest-md CLAUDE.md to use @file references
-4. Document @file pattern in agent-core/docs/ for future projects
-5. Archive compose.yaml design as "superseded by native feature"
+All planned work is complete:
+1. ✅ agent-core repository with shared skills/fragments/docs
+2. ✅ Both projects (claudeutils, pytest-md) using agent-core submodule
+3. ✅ Both projects using native @file references in CLAUDE.md
+4. ✅ @file pattern documented in agent-core/docs/@file-pattern.md
+5. ✅ Obsolete design artifacts removed per code-removal.md
+6. ✅ New fragment created: code-removal.md (delete, don't archive)
 
-### If Programmatic Generation Needed Later
-The compose.py design (compose-api.md) remains available if future needs require:
-- Template rendering or conditional inclusion
-- Programmatic header level adjustment
-- Metadata/frontmatter processing
-- Validation or linting of composed output
-- Batch generation for multiple projects
+## New Fragments Created
 
-Current assessment: Native @file sufficient for modular organization.
+**code-removal.md:**
+- Delete obsolete code, don't archive it
+- Git history is the archive
+- Clean codebase is easier to navigate
+- Rationale: Dead code creates maintenance burden
 
-## Dependencies
+This fragment prevents future accumulation of `archive/`, `old/`, or commented-out dead code.
 
-**pytest-md submodule update:**
-```bash
-cd /Users/david/code/pytest-md/agent-core
-git pull origin main
-cd ..
-git add agent-core
-git commit -m "Update agent-core submodule (36 commits, latest skills)"
-```
+## Next Work
 
-**Skills requiring sync:**
-- commit-context, handoff-lite, next, review-tdd-plan, token-efficient-bash
+The unification project is complete. Next potential work (from todo.md):
 
-## Native @file Feature Discovery
+1. **Convert agent-core to Claude Code Plugin** (High priority)
+   - Replace git submodule with plugin for auto-discovery
+   - Benefits: No manual sync, works across all projects
+   - Current blocker: None (unification complete)
 
-**Date:** 2026-01-28
-
-**Finding:** Claude Code natively supports `@file` references in CLAUDE.md for recursive file inclusion.
-
-**Capabilities:**
-- Syntax: `@path/to/file.md` (relative, absolute, or home directory paths)
-- Recursive inclusion up to 5 levels deep
-- Circular reference detection
-- Code block protection (won't expand inside backticks)
-- Resolution timing: Session startup
-
-**Impact on Phases 5-7:**
-- compose.py implementation: Not needed
-- YAML configuration: Not needed
-- CLI commands: Not needed
-- **Native solution achieves original goal:** Modular fragment organization without copy-paste
-
-**Proof of concept:** claudeutils CLAUDE.md refactored to use @file references (2026-01-28)
-
-**Design preservation:** compose-api.md (34K design doc) archived for potential future needs if programmatic generation becomes necessary.
-
-## Risk Assessment
-
-**Low Risk:**
-- agent-core is stable and actively maintained
-- Skills are production-tested in claudeutils
-- Submodule pattern works well
-- Native @file feature is officially supported
-
-**Medium Risk:**
-- pytest-md falling behind on skill improvements (36 commits)
-
-**High Risk:**
-- None currently
-
-## Recommendation
-
-**Adopt native @file pattern for modular CLAUDE.md organization.** The original composition system goal (avoid copy-paste, reuse fragments) is fully achieved by native Claude Code features. Programmatic tooling can be implemented later if specific needs arise (templating, validation, conditional inclusion).
+2. **Markdown Formatter Survey** (High priority)
+   - Find dprint replacement (has serious markdown handling issues)
+   - Evaluate: prettier, markdownlint-cli2, remark-cli
