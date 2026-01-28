@@ -1,28 +1,38 @@
 # Session Handoff: 2026-01-28
 
-**Status:** Handoff skill retention policy implemented
+**Status:** Skill improvements complete
 
 ## Completed This Session
 
-**Handoff skill retention policy (Opus design, Sonnet implementation):**
-- User identified confusing "clearing session" wording in bloat warning
-- Diagnosed "Previous Session" header invention (no guidance on old task cleanup)
-- Researched context management best practices via web search
-- Key insight: Claude Code injects git log at session start - no need to duplicate in session.md
-- Designed tiered retention: delete completed tasks if from previous conversation AND committed
-- Updated agent-core/skills/handoff/SKILL.md:
-  - Fixed bloat warning wording (lines 96-108)
-  - Added Step 6: Trim Completed Tasks with AND logic
-  - Added memory model framing to Principles
-- Updated agent-core/skills/handoff/references/template.md with retention guidelines
-- Removed plans/model-awareness/ directory (task abandoned after user testing)
+**Plan-TDD skill: Presentation test guidance and checkpoint system:**
+- Opus designed solution in plan mode with iterative refinement
+- Added "What NOT to Test" section to SKILL.md:
+  - Table showing presentation vs behavior test boundaries
+  - Heuristic: "If users see output directly, don't test exact phrasing"
+  - Valid exceptions for regulatory/generated content
+- Added "Checkpoints" section to SKILL.md:
+  - Two-step process: Fix (just dev → sonnet quiet-task → commit), then Vet (quality review → commit)
+  - Placement guidelines: natural boundaries, not every cycle, not all at end
+  - Example showing checkpoint between cycles
+- Added presentation test anti-pattern to references/anti-patterns.md
+- Files modified:
+  - agent-core/skills/plan-tdd/SKILL.md (lines 399-459)
+  - agent-core/skills/plan-tdd/references/anti-patterns.md (line 14)
+
+**Remember skill: Made project-independent:**
+- Removed hardcoded path /Users/david/code/claudeutils/CLAUDE.md
+- Removed obsolete agents/learnings/pending.md processing pattern
+- Generalized File Selection to reference agents/decisions/README.md
+- Updated consolidation-patterns.md to use project-level routing
+- Added routing-template.md showing projects how to configure domain routing
+- Files modified:
+  - agent-core/skills/remember/SKILL.md (commit f97157f)
+  - agent-core/skills/remember/references/consolidation-patterns.md
+  - agent-core/skills/remember/references/routing-template.md (new)
 
 ## Pending Tasks
 
-**Deferred to separate design sessions:**
-
-- [ ] **Plan-TDD skill** - Add guidance to avoid presentation tests
-  - Problem: `plans/plan-tdd-skill/problem.md`
+**None.**
 
 ## Blockers / Gotchas
 
@@ -30,18 +40,21 @@
 
 ## Next Steps
 
-Remaining deferred task: Plan-TDD skill improvement. Otherwise ready for new work.
+Ready for new work.
 
 ## Recent Learnings
 
-**Handoff skill retention policy:**
-- Anti-pattern: Accumulating completed tasks across conversations without cleanup
-- Correct pattern: Delete completed tasks if BOTH (previous conversation AND committed)
-- Rationale: Claude Code injects git log at session start - completed committed tasks are redundant in session.md
-- session.md = working memory; git = archive; learnings = semantic memory
+**Checkpoint process for runbooks:**
+- Anti-pattern: All-at-once vetting after full runbook execution OR vetting every single step
+- Correct pattern: Two-step checkpoints at natural boundaries (Fix: just dev → quiet-task → commit; Vet: quality review → commit)
+- Rationale: Balances early issue detection with cost efficiency; creates logical commit points
 
-**Model awareness not implementable with current Claude Code:**
-- Anti-pattern: Designing hook-based solutions for mid-session model switches
-- Reality: SessionStart hook fires once only; no event for `/model` switches
-- Manual testing revealed no satisfactory implementation path
-- Rationale: Some problems need CLI changes, not workarounds
+**Presentation vs behavior in TDD:**
+- Anti-pattern: Writing RED-GREEN cycles for help text wording, error message phrasing, log formatting
+- Correct pattern: Test behavior (command works, error raised, data logged), defer presentation quality to vet checkpoints
+- Rationale: Presentation tests are brittle (break on improvements) and self-evident (users see quality directly)
+
+**Agent-core project-independence pattern:**
+- Anti-pattern: Hardcode project-specific paths or file structures in agent-core skills
+- Correct pattern: Delegate project-specific routing to project-level config files (e.g., agents/decisions/README.md)
+- Rationale: Skills should be opinionated about patterns but flexible about project structure; allows reuse across projects
