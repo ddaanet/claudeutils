@@ -1,29 +1,53 @@
 # Session Handoff: 2026-01-28
 
-**Status:** /next skill improvements complete
+**Status:** Unification project assessed, decision point reached
 
 ## Completed This Session
 
-**Updated /next skill invocation logic:**
-- First commit (2b1fedc): Fixed stop-early logic (was stopping on empty states like "None")
-- Second update: Changed skill to only load when context is empty
-- Modified description: "ONLY when... NO pending work in already-loaded context"
-- Added "When NOT to Use" section: Don't load if work visible in session.md
-- Restructured flow: Context check happens BEFORE skill invocation (not inside skill)
-- Renumbered steps: Removed "Check Initial Context" as step 1 (now prerequisite)
-- Pattern: Most efficient path is checking loaded context first, only load skill if truly empty
+**Unification status assessment:**
+- Restored plans/unification/ from git history (72167fa, 74 files)
+- Merged shelf context files into plans/unification/README.md
+- Cleared agents/shelf/ (now empty)
+- **Created STATUS.md analysis:**
+  - Phase 1-3 complete: agent-core has 16 production skills, shared fragments
+  - Phase 4 partial: Skills integrated, but configs should move to configs/ dir
+  - Phase 5-7 not implemented: No compose.py, no compose.yaml, manual CLAUDE.md
+  - Gap identified: pytest-md submodule 36 commits behind (missing 5 new skills)
+- Updated README.md to point to STATUS.md
+- Updated session.md with current state and options
 
 ## Pending Tasks
 
-**None.**
+### Unification Project - Decision Point
+- **Status:** Phase 1-3 complete, Phase 4-7 (composition tooling) not implemented
+- **Reality Check Complete:** Created `plans/unification/STATUS.md` with comprehensive assessment
+- **Current State:**
+  - agent-core operational with 16 production skills
+  - Both claudeutils and pytest-md use agent-core submodule
+  - pytest-md submodule is 36 commits behind (needs update)
+  - Projects use manual CLAUDE.md (no compose.yaml + generation)
+- **Design Ready:** `plans/unification/consolidation/design/compose-api.md` (34K)
+- **Decision Needed:** Complete composition system vs. defer for future
 
 ## Blockers / Gotchas
 
 **None currently.**
 
+**Branch state:**
+- Current: `skills`
+- Note: plans/unification/ currently staged as new files (restored from history)
+
 ## Next Steps
 
-Ready for new work.
+**Immediate options:**
+1. Update pytest-md agent-core submodule (36 commits behind)
+2. Decide: Complete composition system (Phase 5-7) vs. defer
+3. If completing: Implement src/claudeutils/compose.py per design
+4. If deferring: Document decision and close unification work
+
+**Reference:**
+- Status assessment: `plans/unification/STATUS.md`
+- Design document: `plans/unification/consolidation/design/compose-api.md`
 
 ## Recent Learnings
 
