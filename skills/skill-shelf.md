@@ -20,13 +20,13 @@ trigger: /shelf
 
 ## Workflow
 
-1. **Read** `agents/context.md` (current context)
+1. **Read** `agents/session.md` (current context)
 2. **Read** `agents/todo.md` (existing todo items, create if missing)
 3. **Prepend** current context to `agents/todo.md`:
    - Add dated separator: `## Shelved: YYYY-MM-DD - <topic>`
    - Insert full context content below separator
    - Preserve existing todo.md content below
-4. **Reset** `agents/context.md` to empty template
+4. **Reset** `agents/session.md` to empty template
 5. **Report** completion: "Shelved context: <topic>"
 
 ---
@@ -62,26 +62,32 @@ Deferred work items and shelved context.
 
 ## Empty Context Template
 
-After shelving, reset `agents/context.md` to:
+After shelving, reset `agents/session.md` to:
 
 ```markdown
-# Context
+# Session Handoff: YYYY-MM-DD
 
----
+**Status:** Ready for new work
 
-## Current State
+## Completed This Session
 
-**Branch:** `<branch>`
+(Empty - will be filled with next session's work)
 
-**Current work:** <describe>
+## Pending Tasks
 
-**Status:** <status>
+**None.**
 
----
+## Blockers / Gotchas
 
-## Handoff
+**None currently.**
 
-<next steps>
+## Next Steps
+
+Ready for new work.
+
+## Recent Learnings
+
+(Empty - will be filled as patterns emerge)
 
 ---
 
@@ -100,7 +106,6 @@ After shelving, reset `agents/context.md` to:
 
 ## Constraints
 
-- **Do NOT** delete context.md (reset to template)
-- **Do NOT** modify archived context content
+- **Do NOT** modify archived session.md content
 - **Do NOT** remove existing todo.md content (prepend only)
 - **Create** todo.md if it doesn't exist

@@ -198,7 +198,7 @@ plans/prompt-composer/
 
 ## Related Files Outside This Directory
 
-- `agents/context.md` - Current work context with links to active plans
+- `agents/session.md` - Current work context with links to active plans
 - `agents/modules/MODULE_INVENTORY.md` - Module inventory and status
 - `agents/modules/src/` - 14 semantic sources (read-only, created in Phase 0)
 - `agents/roles/` - Role configuration files (to be created in Phase 5)

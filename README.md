@@ -240,7 +240,7 @@ steps.
 
 ## Documentation
 
-- `agents/context.md` - Current work context and handoff information
+- `agents/session.md` - Current work context and handoff information
 - `CLAUDE.md` - Project overview and coding standards
 - `agents/design-decisions.md` - Architectural and implementation decisions
 - `agents/TEST_DATA.md` - Data types and sample entries

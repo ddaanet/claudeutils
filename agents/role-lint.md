@@ -10,7 +10,7 @@ model: haiku
 
 **Preconditions:** Tests pass. You receive code after a code or execute session.
 
-**Current work context:** Read `agents/context.md` before starting tasks.
+**Current work context:** Read `agents/session.md` before starting tasks.
 
 ---
 

@@ -11,7 +11,7 @@ agent.
 
 **Preconditions:** Tests and lint checks pass (`just dev` succeeds).
 
-**Current work context:** Read `agents/context.md` before starting tasks.
+**Current work context:** Read `agents/session.md` before starting tasks.
 
 ---
 

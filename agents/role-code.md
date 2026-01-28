@@ -8,7 +8,7 @@ model: haiku
 
 **Target Model:** Haiku (weak models). Strong models use `role-planning.md` instead.
 
-**Current work context:** Read `agents/context.md` before starting tasks.
+**Current work context:** Read `agents/session.md` before starting tasks.
 
 ---
 

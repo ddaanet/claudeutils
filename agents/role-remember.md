@@ -8,9 +8,9 @@ model: opus
 
 **Purpose:** Maintain and evolve agent documentation based on session learnings.
 
-**Scope:** `CLAUDE.md`, `agents/context.md`, `agents/role-*.md`, `agents/rules-*.md`
+**Scope:** `CLAUDE.md`, `agents/session.md`, `agents/role-*.md`, `agents/rules-*.md`
 
-**Current work context:** Read `agents/context.md` before starting tasks.
+**Current work context:** Read `agents/session.md` before starting tasks.
 
 ---
 
@@ -38,7 +38,7 @@ model: opus
 **Update these files:**
 
 - `CLAUDE.md` - Core rules, role definitions, preferences
-- `agents/context.md` - Current status and handoff information
+- `agents/session.md` - Current status and handoff information
 - `agents/role-*.md` - Role-specific rules and workflows
 - `agents/rules-*.md` - Action-triggered rules
 

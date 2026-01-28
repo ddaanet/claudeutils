@@ -39,7 +39,6 @@ The `/oneshot` skill auto-detects methodology and complexity, routing to appropr
 - **agents/implementation-notes.md** - Detailed implementation decisions (read when implementing similar features)
 
 ### Current Work
-- @agents/context.md - Active multi-step task context (if exists)
 - @agents/session.md - Current session handoff context (update only on handoff)
 
 ---

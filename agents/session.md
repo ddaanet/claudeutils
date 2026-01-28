@@ -1,13 +1,21 @@
 # Session Handoff: 2026-01-28
 
-**Status:** Skill improvements complete
+**Status:** Documentation cleanup complete
 
 ## Completed This Session
 
-**Created /next skill:**
+**Removed context.md and consolidated to session.md:**
+- Deleted agents/context.md file (obsolete duplicate)
+- Updated 26 files across main repo and agent-core submodule
+- Replaced all context.md references with session.md
+- Updated skill-shelf.md empty template to match current session.md format
+- Files updated: CLAUDE.md, README.md, agent-core docs/skills/fragments, role files, semantic modules
+- Pattern: context.md was old name for session.md, caused confusion with dual references
+
+**Created /next skill** (previous conversation):
 - Systematic pending work finder in agent-core/skills/next/
 - Checks locations in priority order: initial context → shelf → todo.md → ROADMAP.md
-- Zero tool calls for most common case (work in session.md/context.md)
+- Zero tool calls for most common case (work in session.md)
 - Stops immediately when work is found
 - Commit: Using gitmoji 🤖 for skill addition
 

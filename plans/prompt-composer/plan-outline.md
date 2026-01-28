@@ -488,7 +488,7 @@ handoff.semantic.md)
 
 3. Update documentation:
    - `CLAUDE.md` → reference new role system
-   - `agents/context.md` → point to new locations
+   - `agents/session.md` → point to new locations
    - `README.md` → update if needed
    - Remove "BEFORE STARTING" sections (plans loaded by user)
 

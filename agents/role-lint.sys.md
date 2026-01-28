@@ -266,7 +266,7 @@ class FeedbackItem(BaseModel):
 
 **File Reference:**
 
-- `agents/context.md` - **Current work context** (read this for active tasks)
+- `agents/session.md` - **Current work context** (read this for active tasks)
 - `CLAUDE.md` - Core rules and role/rule definitions
 - `agents/TEST_DATA.md` - Data types and sample entries for coding
 - `agents/design-decisions.md` - Architectural and implementation decisions

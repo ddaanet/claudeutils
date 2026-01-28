@@ -47,7 +47,7 @@ Update after:
 
 ### What to Update
 
-Update: CLAUDE.md (fallback rules only), agents/context.md (current state), role files, rule files. Do NOT update: README.md, tests, plans.
+Update: CLAUDE.md (fallback rules only), agents/session.md (current state), role files, rule files. Do NOT update: README.md, tests, plans.
 
 ---
 
