@@ -60,12 +60,11 @@ The `/oneshot` skill auto-detects methodology and complexity, routing to appropr
 
 ## Communication Rules
 
+@agent-core/fragments/communication.md
+
+**Additional communication rules:**
 - **Token economy** - Do NOT repeat file contents in responses. Give file references (path:line or path) instead. Be concise.
 - **Avoid numbered lists** - Use bullets unless sequencing/ordering matters. Numbered lists cause renumbering churn when edited.
-- **Stop on unexpected results** - If something fails OR succeeds unexpectedly, describe expected vs observed, then STOP and wait for guidance
-- **Wait for explicit instruction** - Do NOT proceed with a plan or TodoWrite list unless user explicitly says "continue" or equivalent
-- **Be explicit** - Ask clarifying questions if requirements unclear
-- **Stop at boundaries** - Complete assigned task then stop (no scope creep)
 - **Use /commit skill** - Always invoke `/commit` skill when committing; it handles multi-line message format correctly. Use `/gitmoji` before `/commit` for emoji-prefixed messages
 - **No estimates unless requested** - Do NOT make estimates, predictions, or extrapolations unless explicitly requested by the user. Report measured data only.
 
@@ -83,13 +82,7 @@ The `/oneshot` skill auto-detects methodology and complexity, routing to appropr
 
 ## Bash Scripting
 
-**For sequential bash commands (3+ steps):** Use token-efficient bash pattern.
-
-Use **`/token-efficient-bash` skill** for:
-- Multi-step bash scripts (3+ commands)
-- Pattern: `exec 2>&1; set -xeuo pipefail`
-- 40-60% token savings (eliminates echo/error statements)
-- Automatic tracing + fail-fast errors
+@agent-core/fragments/bash-strict-mode.md
 
 ## File System Rules
 
@@ -144,14 +137,7 @@ This enables seamless multi-session workflows with automatic continuation.
 
 ## Delegation Principle
 
-**Delegate everything.** The orchestrator (main agent) coordinates work but does not implement directly:
-
-1. **Break down** complex requests into discrete tasks
-2. **Assign** each task to a specialized agent (role) or invoke a skill
-3. **Monitor** progress and handle exceptions
-4. **Synthesize** results for the user
-
-Specialized agents focus on their domain; the orchestrator maintains context and flow.
+@agent-core/fragments/delegation.md
 
 ### Script-First Evaluation
 
@@ -177,38 +163,11 @@ Specialized agents focus on their domain; the orchestrator maintains context and
 
 **Reference:** See `/plan-adhoc` skill Point 1 for detailed script evaluation guidance.
 
-### Model Selection for Delegation
-
-**Rule:** Match model cost to task complexity.
-
-- **Haiku:** Execution, implementation, simple edits, file operations
-- **Sonnet:** Default for most work, balanced capability
-- **Opus:** Architecture, planning, complex design decisions only
-
-**Critical:** Never use opus for straightforward execution tasks (file creation, edits, running commands). This wastes cost and time.
-
 ### Pre-Delegation Checkpoint
 
 Before invoking Task tool, verify:
 - Model matches stated plan (haiku/sonnet/opus)
 - If changing model, state reason explicitly
-
-### Quiet Execution Pattern
-
-**Rule:** Execution agents report to files, not to orchestrator context.
-
-**For execution tasks:**
-
-1. Specify output file path in task prompt (typically `plans/<runbook-name>/reports/<report-name>.md`)
-2. Instruct agent to write detailed output to that file
-3. Agent returns only: filename (success) or error message (failure)
-4. Use second agent to read report and provide distilled summary to user
-
-**Goal:** Prevent orchestrator context pollution with verbose task output. Orchestrator sees only success/failure + summary, not full execution logs.
-
-**Note:** For runbook execution, use `plans/*/reports/` directory. For ad-hoc work, use project-local `tmp/` (not system `/tmp/`). Report naming varies with delegation pattern.
-
-**Preferred agent:** Use `quiet-task` agent for execution tasks. It implements the quiet pattern by default (reports to files, terse returns). Avoid generic Task agents that return verbose output to orchestrator context.
 
 ### Commit Agent Delegation Pattern
 
@@ -244,23 +203,6 @@ Orchestrator delegates: commit agent with literal message
 Agent returns: "a7f38c2"
 ```
 
-### Task Agent Tool Usage
-
-**Rule:** Task agents must use specialized tools, not Bash one-liners.
-
-**When delegating tasks, remind agents to:**
-
-- Use **LS** instead of `ls`
-- Use **Grep** instead of `grep` or `rg`
-- Use **Glob** instead of `find`
-- Use **Read** instead of `cat`, `head`, `tail`
-- Use **Write** instead of `echo >` or `cat <<EOF`
-- Use **Edit** instead of `sed`, `awk`
-- **NEVER use heredocs** (`<<EOF`) in bash commands - sandbox blocks them
-- Use **tmp/** in project directory for temp files, NOT `/tmp/`
-
-**Critical:** Always include this reminder in task prompts to prevent bash tool misuse.
-
 ### Skill Development
 
 **Rule:** When creating, editing, or discussing skills, start by loading the `plugin-dev:skill-development` skill.
@@ -275,16 +217,4 @@ Agent returns: "a7f38c2"
 
 ## Tool Batching
 
-**Planning phase (before tool calls):**
-1. Identify ALL changes needed for current task
-2. Group by file: same-file edits sequential, different-file edits parallel
-3. For multi-edit files: list insertion points, plan bottom-to-top order (avoids line shifts)
-
-**Execution phase:**
-4. **Batch reads:** Read multiple files in one message when needed soon
-5. **Different files:** Edit in parallel when independent
-6. **Same file:** Edit sequentially, bottom-to-top when inserting
-7. **Refresh context:** If you plan to modify a file again in next iteration, Read it in the batch
-
----
-
+@agent-core/fragments/tool-batching.md
