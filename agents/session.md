@@ -1,68 +1,63 @@
 # Session Handoff: 2026-01-28
 
-**Status:** CLAUDE.md refactoring complete, ready for pytest-md update
+**Status:** CLAUDE.md refactoring and template creation complete across all projects
 
 ## Completed This Session
 
-**Native @file discovery and initial refactoring:**
-- Discovered Claude Code native support for `@file` references (recursive, 5 levels deep)
-- **Phase 5-7 obsolete:** compose.py system not needed - native @file achieves goal
-- Initial refactoring: 4 fragments (communication, bash-strict-mode, delegation, tool-batching)
-- Updated plans/unification/STATUS.md with native @file finding
-- **Commit:** c633ad8
+**Template creation and commit discipline fixes (agent-core):**
+- Created CLAUDE.template.md in agent-core/templates/ for new projects
+- Renamed to CLAUDE.template.md to avoid auto-injection in subdirectories
+- Fixed over-committing pattern in /commit and /commit-context skills
+  - Added interactive vs automated session distinction
+  - Interactive: batch changes, commit on user request or natural breakpoints
+  - Automated: auto-commit after each logical unit per runbook
+- Created 2 new shared fragments:
+  - commit-skill-usage.md (mentions gitmoji is included)
+  - no-estimates.md (no predictions unless requested)
+- **Commits:** 51831e8 (template), 7545d60 (commit discipline), e1385c0 (fragments)
 
-**Additional refactoring and consolidation:**
-- Created 5 new fragments in agent-core:
-  - workflows-terminology.md (workflow selection + terminology)
-  - token-economy.md (token economy + avoid numbered lists)
-  - error-handling.md (error handling principles)
-  - tmp-directory.md (project-local tmp/ usage)
-  - execute-rule.md (#execute session continuation)
-- Updated delegation.md: added Script-First Evaluation + Pre-Delegation Checkpoint
-- Removed agent-core path rule (project renamed, no longer confusing)
-- Removed Commit Agent Delegation Pattern (superseded by /commit skill improvements)
-- **Commits:** 1008c47 (additional extractions), 76a3a91 (remove obsolete pattern)
+**pytest-md CLAUDE.md migration:**
+- Updated agent-core submodule from 7321a80 to e1385c0 (5 new fragments)
+- Created CLAUDE.md using @file references (103 lines)
+- Restored missing project-specific sections:
+  - Context Management (session.md discipline, handoff protocol)
+  - Opus Orchestration (model selection, sub-agent usage)
+- Removed AGENTS.md (superseded by CLAUDE.md)
+- Sonnet review validated correctness and completeness
+- **Commit:** f82e7a2 (CLAUDE.md + AGENTS.md removal, amended)
 
-**Final results:**
-- CLAUDE.md: 60 lines (down from 220 - 73% reduction)
-- agent-core: 16 fragments available for reuse
-- agent-core submodule: updated with new fragments (commit 18a539a)
+**claudeutils fragment adoption:**
+- Replaced inline commit/estimate rules with @file references
+- Updated agent-core submodule to e1385c0
+- **Commit:** ddc7401
+
+**Current state:**
+- agent-core: 18 fragments (up from 11)
+- claudeutils CLAUDE.md: 56 lines with 12 @file references
+- pytest-md CLAUDE.md: 103 lines with 10 @file references
+- Template ready for future projects
 
 ## Pending Tasks
 
-### Combine Recent Commits
-- Use `git reset --soft HEAD~2` to combine 1008c47 and 76a3a91
-- Create single commit for all additional refactoring work
-
-### Create Template CLAUDE.md
-- Add template CLAUDE.md to agent-core for new projects
-- Based on claudeutils structure with @file references
-- Include placeholders for project-specific sections
-
-### pytest-md Submodule Update
-- Update pytest-md agent-core submodule (36 commits behind)
-- Refactor pytest-md CLAUDE.md to use @file references
-- Document @file pattern for future projects
+**None - all workflow tasks complete.**
 
 ## Blockers / Gotchas
 
-**None currently.**
+**Agent-core template naming:**
+- CLAUDE.md files in subdirectories auto-inject into context
+- Template must be named CLAUDE.template.md to avoid this
+- Copy command: `cp agent-core/templates/CLAUDE.template.md CLAUDE.md`
 
 **Branch state:**
-- Current: `skills`
-- Last 3 commits: c633ad8, 1008c47, 76a3a91 (need to squash last 2)
+- claudeutils: `skills` branch
+- pytest-md: `dev` branch
+- agent-core: `main` branch (pushed to origin)
 
 ## Next Steps
 
-1. Squash last 2 commits into single commit
-2. Add template CLAUDE.md to agent-core
-3. Update pytest-md submodule
-4. Refactor pytest-md CLAUDE.md
+**Start fresh session for new work.**
 
-**Reference:**
-- Native @file documentation: plans/unification/STATUS.md
-- Current fragments: agent-core/fragments/ (16 total)
-- Final CLAUDE.md: 60 lines with 10 @file references
+All CLAUDE.md refactoring complete. Template established for future projects.
 
 ## Recent Learnings
 
@@ -91,3 +86,8 @@
 - Anti-pattern: Skipping handoff updates between commits during extended work sessions
 - Correct pattern: Update session.md before each commit, or immediately after realizing omission
 - Rationale: Preserves context for next agent, avoids information loss, maintains workflow continuity
+
+**Interactive vs automated commit patterns:**
+- Anti-pattern: Auto-committing after each small change in interactive sessions (file edit, template creation)
+- Correct pattern: Distinguish session types - interactive sessions batch related changes and commit on user request; automated workflows commit after each logical unit
+- Rationale: Prevents commit spam in interactive work while maintaining checkpoint discipline in runbook execution
