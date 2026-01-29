@@ -1,8 +1,14 @@
-# Session Handoff: 2026-01-28
+# Session Handoff: 2026-01-29
 
-**Status:** Unification Phase 4 complete, config composition pending
+**Status:** Markdown documentation cleanup complete, ready to commit
 
 ## Completed This Session
+
+**Markdown documentation cleanup:**
+- Fixed broken reference in agents/decisions/architecture.md:603 (plans/formatter-comparison.md no longer exists)
+- Updated ROADMAP.md to mark Markdown Formatter Survey as complete (✅ 2026-01-07)
+- Verified remark-cli migration complete (.remarkrc.json, .remarkignore, justfile updated)
+- Reviewed markdown branch (157 commits behind, all valuable work already merged to main)
 
 **Unification project Phase 4 completion:**
 - Discovered unification project was incomplete (config factorization missing)
@@ -52,7 +58,7 @@
 - Copy command: `cp agent-core/templates/CLAUDE.template.md CLAUDE.md`
 
 **Branch state:**
-- claudeutils: `unification` branch (clean, 2 commits)
+- claudeutils: `main` branch (unification merged, 3 files modified)
 - agent-core: `main` branch (3 commits ahead of origin)
 
 ## Next Steps
@@ -61,7 +67,6 @@
 
 **Option 2:** Move to next priority work from todo.md:
 - Convert agent-core to Claude Code Plugin (High priority)
-- Markdown Formatter Survey (High priority)
 
 ## Recent Learnings
 
@@ -101,3 +106,9 @@
 - Correct pattern: Delete completely - git history is the archive
 - Rationale: Dead code creates maintenance burden; git log/show retrieves anything needed
 - New fragment: code-removal.md enforces this pattern
+
+**Broken documentation references:**
+- Anti-pattern: Leaving references to deleted files in documentation (creates confusion)
+- Correct pattern: Update references when deleting documented work - replace with summary or git history note
+- Rationale: Broken references waste time and undermine documentation credibility
+- Example: architecture.md referenced plans/formatter-comparison.md (deleted), replaced with evaluation summary

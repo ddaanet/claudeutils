@@ -600,7 +600,7 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 }
 ```
 
-**Reference:** Full evaluation in `plans/formatter-comparison.md` (archived after cleanup)
+**Reference:** Decision based on comprehensive evaluation (2026-01-07) comparing Prettier, markdownlint-cli2, and remark-cli across CommonMark compliance, idempotency, configuration options, and test corpus validation
 
 ## Claude Code Rule Files
 
