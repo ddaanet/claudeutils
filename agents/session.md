@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-29
 
-**Status:** Markdown documentation cleanup complete, ready to commit
+**Status:** Markdown documentation cleanup and tmpdir configuration complete
 
 ## Completed This Session
 
@@ -10,7 +10,15 @@
 - Verified remark-cli migration complete (.remarkrc.json, .remarkignore, justfile updated)
 - Reviewed markdown branch (157 commits behind, all valuable work already merged to main)
 
-**Unification project Phase 4 completion:**
+**Project-local tmpdir configuration:**
+- Updated .envrc to use project-local `tmp/claude/` directory
+- Added CLAUDE_CODE_TMPDIR override to prevent `/tmp/claude-501/cwd-*` errors
+- Aligns with CLAUDE.md tmp-directory.md fragment (project-local tmp/, not system /tmp/)
+- Changed `watch_file ~/.env` to `watch_file .env` (local project file)
+- Changed `dotenv` to `dotenv_if_exists` (conditional loading)
+- Directory auto-created on direnv load
+
+**Previous session (2026-01-28) - Unification project Phase 4 completion:**
 - Discovered unification project was incomplete (config factorization missing)
 - Created agent-core/configs/ directory for base configuration files
 - Moved justfile-base.just, ruff.toml, mypy.toml from fragments/ to configs/
@@ -30,7 +38,7 @@
 **Current state:**
 - agent-core: configs/ directory with 4 base files + README.md
 - agent-core: 18 fragments (configs moved out)
-- Branch: unification (claudeutils), main (agent-core)
+- Branch: main (claudeutils), main (agent-core)
 - Phase 4: ✅ Complete (base configs organized)
 - Phases 5-7: Split status - CLAUDE.md done (@file), configs pending implementation
 
@@ -50,15 +58,13 @@
 - Base files organized but not yet consumable by projects
 - Original compose.py design may still be needed for config files
 
-## Blockers / Gotchas
-
 **Agent-core template naming:**
 - CLAUDE.md files in subdirectories auto-inject into context
 - Template must be named CLAUDE.template.md to avoid this
 - Copy command: `cp agent-core/templates/CLAUDE.template.md CLAUDE.md`
 
 **Branch state:**
-- claudeutils: `main` branch (unification merged, 3 files modified)
+- claudeutils: `main` branch
 - agent-core: `main` branch (3 commits ahead of origin)
 
 ## Next Steps
