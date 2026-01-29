@@ -1,6 +1,6 @@
-# Session Handoff: 2026-01-29
+# Session Handoff: 2026-01-30
 
-**Status:** Markdown documentation cleanup and tmpdir configuration complete
+**Status:** Commit unification designed, ready for direct implementation
 
 ## Completed This Session
 
@@ -18,39 +18,67 @@
 - Changed `dotenv` to `dotenv_if_exists` (conditional loading)
 - Directory auto-created on direnv load
 
-**Previous session (2026-01-28) - Unification project Phase 4 completion:**
-- Discovered unification project was incomplete (config factorization missing)
-- Created agent-core/configs/ directory for base configuration files
-- Moved justfile-base.just, ruff.toml, mypy.toml from fragments/ to configs/
-- Renamed to *-base.* pattern (ruff-base.toml, mypy-base.toml)
-- Created docformatter-base.toml (new file)
-- Created configs/README.md documenting usage and pending composition work
-- Updated STATUS.md to reflect accurate project state (Phase 4 complete, Phases 5-7 split)
-- **Commits (agent-core):** eae879d (@file docs, code-removal fragment), b3a87b3 (configs organization)
-- **Commits (claudeutils):** 089225d (remove obsolete consolidation/), d499edf (STATUS update)
+**Diagnosed nested skill interruption bug:**
+- `/commit` invokes `/gitmoji` and `/handoff` via Skill tool, causing context switches requiring user "continue"
+- Confirmed as known bug (GitHub #17351): nested skill invocation doesn't return to calling skill context
+- Claude Code docs have no pattern for skill composition — inline is the workaround
+- Explored skill structure via Task agent (Explore subagent) - found all skills symlinked to agent-core
 
-**Documentation and fragments:**
-- Created agent-core/docs/@file-pattern.md (comprehensive guide from claude-code-guide agent)
-- Created agent-core/fragments/code-removal.md (delete obsolete code, don't archive)
-- Added code-removal.md reference to claudeutils CLAUDE.md
-- Removed plans/unification/consolidation/ directory (43 obsolete design files)
+**Designed commit skill unification** (`plans/commit-unification/design.md`):
+- Merge `/commit` + `/commit-context` into single `/commit` with `--context` flag
+- Inline gitmoji selection (copy index to `commit/references/`, read directly)
+- Keep `/handoff` invocation (complex skill, interruption is acceptable pause for session review)
+- Keep `/gitmoji` and `/handoff` as standalone user-invocable skills (unchanged)
+- Delete `commit-context/` entirely (code removal principle)
+- **Key decisions:**
+  - Copy gitmoji-index.txt (can't reliably cross-reference skills, file is small)
+  - Don't inline handoff (6.5K skill too large, interruption is meaningful)
+  - `--context` flag skips git discovery, uses conversation context
 
-**Current state:**
-- agent-core: configs/ directory with 4 base files + README.md
-- agent-core: 18 fragments (configs moved out)
-- Branch: main (claudeutils), main (agent-core)
-- Phase 4: ✅ Complete (base configs organized)
-- Phases 5-7: Split status - CLAUDE.md done (@file), configs pending implementation
+**Updated sync-to-parent justfile recipe:**
+- Added stale symlink cleanup before sync loop
+- Handles commit-context deletion and any future skill removals generically
+- File: `agent-core/justfile` (already committed: 5d95c4b)
+
+**Planning assessment:**
+- Evaluated via `/plan-adhoc` Point 0 orchestration assessment
+- Conclusion: **Implement directly** (orchestration overhead not justified)
+- Rationale: ~4 files, all straightforward (copies + merge + delete), design complete, single session work
+
+**Commits:**
+- 5d95c4b: 🔧 Configure project-local tmpdir in .envrc (includes justfile update)
 
 ## Pending Tasks
 
+**Commit skill unification implementation (direct execution):**
+1. Copy `agent-core/skills/gitmoji/cache/gitmojis.txt` → `agent-core/skills/commit/references/gitmoji-index.txt`
+2. Adapt `agent-core/skills/gitmoji/scripts/update-gitmoji-index.sh` → `agent-core/skills/commit/scripts/update-gitmoji-index.sh` (update output path)
+3. Rewrite `agent-core/skills/commit/SKILL.md`:
+   - Merge commit + commit-context content
+   - Add `--context` flag handling (skip discovery when set)
+   - Inline gitmoji step (read references/gitmoji-index.txt, semantic matching, prefix commit title)
+   - Keep `/handoff` invocation (step 2)
+   - Update frontmatter description (include `--context` trigger)
+   - Target: ~3K words
+4. Delete `agent-core/skills/commit-context/` directory entirely
+5. Run `just sync-to-parent` in agent-core (removes stale commit-context symlink in claudeutils)
+6. Test all flag combinations
+
+**Reference files:**
+- Design: `plans/commit-unification/design.md`
+- Current `/commit`: `agent-core/skills/commit/SKILL.md` (4.8K)
+- Current `/commit-context`: `agent-core/skills/commit-context/SKILL.md` (5.8K)
+- Gitmoji index: `agent-core/skills/gitmoji/cache/gitmojis.txt` (3.7K, 78 entries)
+
 **Config composition implementation (Phases 5-7 for configs):**
-- Implement justfile import mechanism (projects use inline copies currently)
-- Implement pyproject.toml composition (projects use inline copies currently)
-- Document config composition pattern once implemented
 - See: agent-core/configs/README.md, plans/unification/STATUS.md
 
 ## Blockers / Gotchas
+
+**Nested skill bug (#17351):**
+- Skills invoking other skills via Skill tool cause context switch
+- Workaround: inline the logic or read supporting files directly
+- `/commit` unification inlines gitmoji, keeps `/handoff` (acceptable interruption)
 
 **Config composition gap:**
 - Native @file only works for markdown files
@@ -61,57 +89,54 @@
 **Agent-core template naming:**
 - CLAUDE.md files in subdirectories auto-inject into context
 - Template must be named CLAUDE.template.md to avoid this
-- Copy command: `cp agent-core/templates/CLAUDE.template.md CLAUDE.md`
 
 **Branch state:**
-- claudeutils: `main` branch
-- agent-core: `main` branch (3 commits ahead of origin)
+- claudeutils: main branch (clean after commit 5d95c4b)
+- agent-core: main branch (1 uncommitted change: justfile stale symlink cleanup)
 
 ## Next Steps
 
-**Option 1:** Continue with config composition implementation (justfile/pyproject.toml import mechanism)
+**Next session:** Execute commit skill unification (direct implementation, 6 steps above). Then `/vet` for review.
 
-**Option 2:** Move to next priority work from todo.md:
-- Convert agent-core to Claude Code Plugin (High priority)
+**Model recommendation:** Sonnet (merging skills, semantic work, appropriate for direct implementation)
 
 ## Recent Learnings
 
+**Don't compose skills via Skill tool invocation:**
+- Anti-pattern: Skill A invokes `/skill-b` via Skill tool for sub-operations
+- Correct pattern: Inline the logic or copy supporting files into the calling skill's references/
+- Rationale: Known bug (#17351) causes context switch; no official nested skill pattern exists
+- Tradeoff: Duplication of small files (gitmoji index) is acceptable vs workflow interruption
+
+**Orchestration assessment (Point 0) prevents unnecessary runbooks:**
+- Anti-pattern: Creating runbooks for tasks that should be implemented directly
+- Correct pattern: Evaluate orchestration overhead vs direct implementation (design complete? <6 files? single session?)
+- Rationale: Runbooks add overhead (prep scripts, step files, orchestrator) - only justified for complex/long/parallel work
+- Example: Commit unification is ~4 files + merge, design complete → implement directly
+
 **Checkpoint process for runbooks:**
 - Anti-pattern: All-at-once vetting after full runbook execution OR vetting every single step
-- Correct pattern: Two-step checkpoints at natural boundaries (Fix: just dev → quiet-task → commit; Vet: quality review → commit)
-- Rationale: Balances early issue detection with cost efficiency; creates logical commit points
+- Correct pattern: Two-step checkpoints at natural boundaries
+- Rationale: Balances early issue detection with cost efficiency
 
 **Presentation vs behavior in TDD:**
-- Anti-pattern: Writing RED-GREEN cycles for help text wording, error message phrasing, log formatting
-- Correct pattern: Test behavior (command works, error raised, data logged), defer presentation quality to vet checkpoints
-- Rationale: Presentation tests are brittle (break on improvements) and self-evident (users see quality directly)
+- Anti-pattern: Writing RED-GREEN cycles for help text wording, error message phrasing
+- Correct pattern: Test behavior, defer presentation quality to vet checkpoints
+- Rationale: Presentation tests are brittle and self-evident
 
 **Agent-core project-independence pattern:**
-- Anti-pattern: Hardcode project-specific paths or file structures in agent-core skills
-- Correct pattern: Delegate project-specific routing to project-level config files (e.g., agents/decisions/README.md)
-- Rationale: Skills should be opinionated about patterns but flexible about project structure; allows reuse across projects
+- Anti-pattern: Hardcode project-specific paths in agent-core skills
+- Correct pattern: Delegate project-specific routing to project-level config files
+- Rationale: Skills should be opinionated about patterns but flexible about project structure
 
 **Native @file obsoletes custom composition tooling:**
-- Discovery: Claude Code natively supports `@path/to/file.md` references with recursive inclusion (5 levels)
-- Impact: Custom compose.py system (34K design, Phases 5-7) not needed for modular CLAUDE.md
+- Discovery: Claude Code natively supports `@path/to/file.md` references with recursive inclusion
 - Pattern: Use @file for shared fragments, keep project-specific content inline
-- Rationale: Native feature achieves goal (avoid copy-paste, reuse fragments) without tooling overhead
-
-**Handoff discipline with multi-commit work:**
-- Anti-pattern: Skipping handoff updates between commits during extended work sessions
-- Correct pattern: Update session.md before each commit, or immediately after realizing omission
-- Rationale: Preserves context for next agent, avoids information loss, maintains workflow continuity
-
-**Interactive vs automated commit patterns:**
-- Anti-pattern: Auto-committing after each small change in interactive sessions (file edit, template creation)
-- Correct pattern: Distinguish session types - interactive sessions batch related changes and commit on user request; automated workflows commit after each logical unit
-- Rationale: Prevents commit spam in interactive work while maintaining checkpoint discipline in runbook execution
 
 **Delete obsolete code, don't archive:**
 - Anti-pattern: Moving obsolete code to archive/, old/, or commenting it out
 - Correct pattern: Delete completely - git history is the archive
-- Rationale: Dead code creates maintenance burden; git log/show retrieves anything needed
-- New fragment: code-removal.md enforces this pattern
+- Rationale: Dead code creates maintenance burden
 
 **Broken documentation references:**
 - Anti-pattern: Leaving references to deleted files in documentation (creates confusion)
