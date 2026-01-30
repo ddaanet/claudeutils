@@ -161,3 +161,18 @@
 - Stop condition: None
 - Decision made: Model module created as empty package structure, test validates basic import capability
 
+### Cycle 2.2: LiteLLMModel Pydantic model [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_model_config.py::test_litellm_model_creation -xvs`
+- RED result: FAIL as expected (ImportError: cannot import name 'LiteLLMModel' from 'claudeutils.model')
+- GREEN result: PASS
+- Regression check: 293/293 passed
+- Refactoring: Fixed lint errors (removed unused imports, updated type hint Optional[str] to str | None)
+- Files modified:
+  - tests/test_model_config.py (created with test_litellm_model_creation test)
+  - src/claudeutils/model/config.py (created LiteLLMModel with name, litellm_model, tiers, arena_rank, input_price, output_price, api_key_env, api_base fields)
+  - src/claudeutils/model/__init__.py (added LiteLLMModel export)
+- Stop condition: None
+- Decision made: LiteLLMModel is a Pydantic BaseModel with all required pricing and configuration fields, api_base is optional field
+
