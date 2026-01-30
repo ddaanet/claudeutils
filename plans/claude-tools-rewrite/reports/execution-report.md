@@ -319,3 +319,17 @@
 - Stop condition: None
 - Decision made: token_bar(tokens, max_tokens) calculates percentage and selects Unicode block character from ▁▂▃▄▅▆▇█ based on percentage value
 
+### Cycle 3.4: StatuslineFormatter - vertical bar [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_statusline_display.py::test_vertical_bar -xvs`
+- RED result: FAIL as expected (AttributeError: 'StatuslineFormatter' object has no attribute 'vertical_bar')
+- GREEN result: PASS
+- Regression check: 304/304 passed
+- Refactoring: None (lint passed, precommit passed with no quality warnings)
+- Files modified:
+  - src/claudeutils/statusline/display.py (added vertical_bar method calculating percentage and selecting colored Unicode block character based on usage severity)
+  - tests/test_statusline_display.py (added test_vertical_bar test with 0%, 50%, and 100% usage cases)
+- Stop condition: None
+- Decision made: vertical_bar(percentage) calculates Unicode block character from ▁▂▃▄▅▆▇█ based on percentage value, applies color based on severity (green <50%, yellow <80%, red >=80%)
+
