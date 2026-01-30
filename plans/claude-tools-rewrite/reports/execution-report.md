@@ -246,3 +246,18 @@
 - Stop condition: None
 - Decision made: filter_by_tier is simple list comprehension [m for m in models if tier in m.tiers], enables filtering model list by tier name
 
+### Cycle 2.8: Model override file read [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_model_overrides.py::test_read_overrides -xvs`
+- RED result: FAIL as expected (ImportError: cannot import name 'read_overrides' from 'claudeutils.model')
+- GREEN result: PASS
+- Regression check: 299/299 passed
+- Refactoring: Fixed lint errors (PLC0415 import at top-level, PLW2901 variable overwriting in loop by renaming loop variable), precommit passed with no quality warnings
+- Files modified:
+  - src/claudeutils/model/overrides.py (created read_overrides function parsing bash env var file)
+  - src/claudeutils/model/__init__.py (added read_overrides export)
+  - tests/test_model_overrides.py (created with test_read_overrides test using tempfile fixture)
+- Stop condition: None
+- Decision made: read_overrides uses regex to parse "export VAR=value" lines from file, returns dict[str, str] with variable names and values
+

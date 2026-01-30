@@ -31,3 +31,16 @@ def read_overrides(path: Path) -> dict[str, str]:
             overrides[var_name] = var_value
 
     return overrides
+
+
+def write_overrides(path: Path, env_vars: dict[str, str]) -> None:
+    r"""Write env vars dict to bash export statements.
+
+    Writes environment variables as "export VAR=value\n" lines to a file.
+
+    Args:
+        path: Path to write the override file to.
+        env_vars: Dictionary mapping variable names to values.
+    """
+    lines = [f"export {key}={value}\n" for key, value in env_vars.items()]
+    path.write_text("".join(lines))
