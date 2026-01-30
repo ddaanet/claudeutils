@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-30
 
-**Status:** Work complete, ready to commit
+**Status:** Ready to implement claude-tools-rewrite (45 cycles)
 
 ## Completed This Session
 
@@ -74,17 +74,65 @@
   - skills/plan-adhoc/SKILL.md (3 occurrences changed, frontmatter updated)
   - skills/plan-tdd/SKILL.md (2 occurrences changed, frontmatter added)
 
+**Received claude-tools-rewrite transfer package from home repo:**
+- design.md - Complete design for Python rewrite of shell tools
+- runbook.md - 45 TDD cycles (Phase 1: Account, Phase 2: Model, Phase 3: Statusline + CLI)
+- README.md - Transfer instructions and execution steps
+- Location: `plans/claude-tools-rewrite/`
+
 ## Pending Tasks
 
-None - all work complete.
+**Immediate - Claude Tools Rewrite (45 cycles):**
+- [ ] **Prepare runbook** - Run `agent-core/bin/prepare-runbook.py plans/claude-tools-rewrite/runbook.md`
+- [ ] **Implement** - Execute 45 TDD cycles via `/orchestrate` or manual execution
+  - Phase 1: Account module (13 cycles) - state, providers, keychain, switchback, usage
+  - Phase 2: Model module (9 cycles) - config parsing, overrides, tier filtering
+  - Phase 3: Statusline + CLI (23 cycles) - formatter, CLI integration
+- [ ] **Fix** - Run `just dev` at checkpoints, fix any failures
+- [ ] **Vet** - Review accumulated changes at checkpoints (after Phase 1, Phase 2, Phase 3)
+- [ ] **Complete** - Signal home repo when Python implementation ready for shell wrapper integration
+
+**Workflow pattern:**
+1. Implement cycles within phase
+2. Fix: `just dev` at checkpoint → diagnose/fix failures → commit when green
+3. Vet: Review presentation, clarity, design alignment → fix findings → commit
+4. Repeat for next phase
 
 ## Blockers / Gotchas
 
-None.
+**Python 3.14 Incompatibility:**
+- litellm dependency uvloop doesn't support Python 3.14 yet
+- Solution: Reinstall with `uv tool install --python 3.13 'litellm[proxy]'`
+- claudeutils uses Python 3.14+ — litellm import is optional (runtime pricing only)
+
+**Mock Patching Pattern:**
+- Patch at usage location, not definition location
+- Example: Mock subprocess.run for keychain operations, curl for usage API
+- Use tmp_path fixtures for ~/.claude/ state file simulation
+
+## Reference Files
+
+**Design and Runbook:**
+- plans/claude-tools-rewrite/design.md - Architecture, decisions, module layout
+- plans/claude-tools-rewrite/runbook.md - 45 TDD cycles (PASS from tdd-plan-reviewer)
+- plans/claude-tools-rewrite/README.md - Transfer instructions
+
+**Key Architecture:**
+- Pydantic `AccountState` model with `validate_consistency()` returning issue list
+- Provider as strategy pattern (Anthropic/OpenRouter/LiteLLM implementations)
+- `plistlib.dump()` for LaunchAgent (fixes heredoc variable expansion bug)
+- Zero new dependencies (stdlib + existing pydantic/click)
+
+**Success Criteria:**
+- All 45 cycles GREEN
+- `just dev` passes (tests, mypy, ruff)
+- CLI commands functional: `claudeutils account status`, `claudeutils model list`, etc.
 
 ## Next Steps
 
-Ready for new work. Suggest starting fresh session.
+**Immediate:** Commit previous work (plan-adhoc/plan-tdd updates), then prepare and execute claude-tools-rewrite runbook.
+
+**After complete:** Signal home repo that Python implementation is ready for shell wrapper integration (6 cycles in home repo).
 
 ## Recent Learnings
 
@@ -154,3 +202,6 @@ Ready for new work. Suggest starting fresh session.
 - Correct pattern: Agents write detailed reports to files, return only filename (success) or structured error (failure)
 - Rationale: Prevents context pollution, detailed logs available in files when needed
 - Example: vet-agent writes review to tmp/ or plans/*/reports/, returns just filename
+
+---
+*Handoff by Sonnet. Transfer received from home repo, ready to implement Python modules.*
