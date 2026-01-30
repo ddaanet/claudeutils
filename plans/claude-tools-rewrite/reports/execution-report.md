@@ -232,3 +232,17 @@
 - Stop condition: None
 - Decision made: load_litellm_config uses regex split on "model_name:" entries to extract individual entries, then calls parse_model_entry on each, returns list[LiteLLMModel]
 
+### Cycle 2.7: Filter models by tier [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_model_config.py::test_filter_by_tier -xvs`
+- RED result: FAIL as expected (ImportError: cannot import name 'filter_by_tier' from 'claudeutils.model.config')
+- GREEN result: PASS
+- Regression check: 298/298 passed
+- Refactoring: None (lint reformatted imports, precommit passed with no quality warnings)
+- Files modified:
+  - tests/test_model_config.py (added test_filter_by_tier test with two models, one haiku tier)
+  - src/claudeutils/model/config.py (added filter_by_tier function returning list comprehension filtering by tier)
+- Stop condition: None
+- Decision made: filter_by_tier is simple list comprehension [m for m in models if tier in m.tiers], enables filtering model list by tier name
+

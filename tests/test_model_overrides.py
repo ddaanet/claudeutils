@@ -1,0 +1,26 @@
+"""Test model overrides file reading."""
+
+import tempfile
+from pathlib import Path
+
+from claudeutils.model import read_overrides
+
+
+def test_read_overrides() -> None:
+    """read_overrides() parses bash env var file into dict."""
+    # Create a sample override file with export statements
+    overrides_content = """export ANTHROPIC_API_KEY=sk-test-key
+export ANTHROPIC_BASE_URL=https://example.com
+export LITELLM_API_KEY=sk-litellm-key
+"""
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        override_file = Path(tmpdir) / "claude-model-overrides"
+        override_file.write_text(overrides_content)
+
+        result = read_overrides(override_file)
+
+        assert isinstance(result, dict)
+        assert result["ANTHROPIC_API_KEY"] == "sk-test-key"
+        assert result["ANTHROPIC_BASE_URL"] == "https://example.com"
+        assert result["LITELLM_API_KEY"] == "sk-litellm-key"
