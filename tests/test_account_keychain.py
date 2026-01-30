@@ -62,3 +62,27 @@ def test_keychain_add() -> None:
             ],
             check=False,
         )
+
+
+def test_keychain_delete() -> None:
+    """Test that Keychain.delete() calls security delete-generic-password."""
+    mock_result = Mock()
+    mock_result.returncode = 0
+
+    with patch("subprocess.run", return_value=mock_result) as mock_run:
+        # Create Keychain instance and call delete
+        keychain = Keychain()
+        keychain.delete("test-account", "test-service")
+
+        # Verify subprocess was called with correct arguments
+        mock_run.assert_called_once_with(
+            [
+                "security",
+                "delete-generic-password",
+                "-a",
+                "test-account",
+                "-s",
+                "test-service",
+            ],
+            check=False,
+        )

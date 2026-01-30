@@ -47,3 +47,22 @@ class Keychain:
             ],
             check=False,
         )
+
+    def delete(self, account: str, service: str) -> None:
+        """Delete password from keychain.
+
+        Args:
+            account: Account name to delete
+            service: Service name to delete from
+        """
+        subprocess.run(
+            [
+                "security",
+                "delete-generic-password",
+                "-a",
+                account,
+                "-s",
+                service,
+            ],
+            check=False,
+        )
