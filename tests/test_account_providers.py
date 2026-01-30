@@ -2,7 +2,12 @@
 
 from unittest.mock import Mock
 
-from claudeutils.account import AnthropicProvider, OpenRouterProvider, Provider
+from claudeutils.account import (
+    AnthropicProvider,
+    LiteLLMProvider,
+    OpenRouterProvider,
+    Provider,
+)
 
 
 def test_provider_protocol_exists() -> None:
@@ -47,4 +52,21 @@ def test_openrouter_provider_env_vars() -> None:
 
     # Verify both OPENROUTER_API_KEY and ANTHROPIC_BASE_URL are present
     assert "OPENROUTER_API_KEY" in env_vars
+    assert "ANTHROPIC_BASE_URL" in env_vars
+
+
+def test_litellm_provider_env_vars() -> None:
+    """Return LiteLLM-specific variables.
+
+    Test that LiteLLMProvider.claude_env_vars returns both LITELLM_API_KEY and
+    ANTHROPIC_BASE_URL.
+    """
+    # Create LiteLLMProvider
+    provider = LiteLLMProvider()
+
+    # Get environment variables
+    env_vars = provider.claude_env_vars()
+
+    # Verify LITELLM_API_KEY and ANTHROPIC_BASE_URL are present
+    assert "LITELLM_API_KEY" in env_vars
     assert "ANTHROPIC_BASE_URL" in env_vars

@@ -74,3 +74,18 @@
 - Stop condition: None
 - Decision made: AnthropicProvider is minimal concrete implementation of Provider protocol, takes KeyStore in __init__, returns ANTHROPIC_API_KEY from claude_env_vars()
 
+### Cycle 1.9: OpenRouterProvider implementation [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_account_providers.py::test_openrouter_provider_env_vars -xvs`
+- RED result: FAIL as expected (NameError: name 'OpenRouterProvider' is not defined)
+- GREEN result: PASS
+- Regression check: 287/287 passed
+- Refactoring: Fixed docstring formatting (D205 blank line requirement, moved summary to opening line)
+- Files modified:
+  - tests/test_account_providers.py (added test_openrouter_provider_env_vars test, updated imports)
+  - src/claudeutils/account/providers.py (added OpenRouterProvider class with name, claude_env_vars returning both OPENROUTER_API_KEY and ANTHROPIC_BASE_URL, validate, settings_json_patch methods)
+  - src/claudeutils/account/__init__.py (added OpenRouterProvider export)
+- Stop condition: None
+- Decision made: OpenRouterProvider is minimal concrete implementation of Provider protocol, no __init__ required, returns both environment variables from claude_env_vars()
+
