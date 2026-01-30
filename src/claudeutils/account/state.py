@@ -25,4 +25,7 @@ class AccountState(BaseModel):
         Returns a list of issue strings if any consistency problems are found.
         Returns an empty list if the state is consistent.
         """
-        return []
+        issues = []
+        if self.mode == "plan" and not self.oauth_in_keychain:
+            issues.append("Plan mode requires OAuth credentials in keychain")
+        return issues

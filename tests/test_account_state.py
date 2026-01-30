@@ -35,3 +35,19 @@ def test_validate_consistency_valid_state() -> None:
         litellm_proxy_running=False,
     )
     assert state.validate_consistency() == []
+
+
+def test_validate_plan_requires_oauth() -> None:
+    """Test that plan mode requires OAuth credentials in keychain."""
+    state = AccountState(
+        mode="plan",
+        provider="anthropic",
+        oauth_in_keychain=False,
+        api_in_claude_env=False,
+        base_url=None,
+        has_api_key_helper=False,
+        litellm_proxy_running=False,
+    )
+    assert state.validate_consistency() == [
+        "Plan mode requires OAuth credentials in keychain"
+    ]
