@@ -1,55 +1,59 @@
 # Session Handoff: 2026-01-30
 
-**Status:** Learnings separation migration complete
+**Status:** TDD runbook structural completion - functional implementation needed
 
 ## Completed This Session
 
-**Learnings separation migration executed:**
-- Created migration 001-separate-learnings.md with step-by-step instructions and verification checklist
-- Created agents/learnings.md with 12 learnings extracted from session.md
-- Updated CLAUDE.md to reference learnings.md under Current Work
-- Updated handoff skill to append learnings to separate file (never trim)
-- Updated remember skill to consolidate from learnings.md with keep-recent behavior
-- Commits: agent-core a228d26, claudeutils a205a72
+**Vet review of claude-tools-rewrite execution (d83b0..b40e34e):**
+- Reviewed 37 TDD cycles, 1,446 lines of production code, 29 test files
+- All tests pass, type checking passes, linting passes
+- Identified critical gap: tests validate structure (classes exist, methods exist), not behavior (features work)
+- Analysis documented in plans/claude-tools-rewrite/runbook-analysis.md
+- Vet review in plans/claude-tools-rewrite/reports/vet-review-2026-01-30.md
 
-**Vet review and fixes applied:**
-- Vet-agent identified 4 issues (2 major, 2 minor)
-- Fixed template.md to remove Recent Learnings section from session.md structure
-- Fixed notification threshold from "approaches 80" to explicit "80+ lines"
-- Clarified "most recent" as "at bottom of file" for keep-recent behavior
-- Updated migration checklist to clarify parallel execution option for agent-core repo
-- Amended agent-core commit a228d26 with all fixes
+**Key finding - stub implementations pass weak tests:**
+- account status: Hardcoded state, doesn't read ~/.claude/ files
+- Providers: Return empty strings for credentials instead of fetching from keychain
+- statusline CLI: Just validates JSON and prints "OK", doesn't format/display
+- Tests only check `exit_code == 0` or key existence, not actual values or behavior
+
+**Root cause identified:**
+- Runbook metadata says "45 cycles total" but only 37 cycles defined
+- Missing 8 integration cycles (3.16-3.23) to wire up functionality
+- RED phase tests only verified structure (AttributeError), not behavior
+- GREEN implementations wrote minimal code to pass structure tests (stubs)
 
 ## Pending Tasks
 
-**Immediate - Resume claude-tools-rewrite execution:**
-- [ ] **Amend claudeutils commit** - Include updated agent-core submodule reference after amend
-- [ ] **Execute remaining 35 cycles using `claude0`** - Run orchestrator with `claude --system-prompt "Empty."` to avoid parallelization directive
-  - Phase 1: Cycles 1.3-1.13 (11 remaining) - validate_consistency, providers, keychain
-  - Phase 2: Cycles 2.1-2.9 (9 cycles) - model config parsing, overrides, tier filtering
-  - Phase 3: Cycles 3.1-3.15 (15 cycles) - statusline formatter, CLI integration
-- [ ] **Checkpoint at phase boundaries** - Run `just dev`, verify git state, vet changes
-- [ ] **Complete** - Signal home repo when Python implementation ready
+**Critical - Fix runbook and complete implementation:**
+- [ ] **Decide approach** - See plans/claude-tools-rewrite/runbook-analysis.md for 3 options:
+  - Option 1: Write missing 8 integration cycles (3.16-3.23) and execute
+  - Option 2: Strengthen tests in Cycles 3.9-3.15, re-run with behavior validation
+  - Option 3: Manual implementation (skip TDD, wire up existing stubs)
+- [ ] **Account status integration** - Read ~/.claude/ files, detect keychain OAuth, display real state
+- [ ] **Provider credential wiring** - Connect Keychain to AnthropicProvider, fetch real API keys
+- [ ] **Statusline formatting** - Wire StatuslineFormatter to CLI, format actual output
+- [ ] **Error handling** - Keychain not found, config missing, file read errors
+- [ ] **Integration tests** - End-to-end tests with real ~/.claude/ files
 
-**Research:**
-- [ ] **Look into TUI scripting for orchestrator** - External automation of Claude Code TUI for step-by-step execution control (alternative to in-process orchestration)
-
-**Optional - Design orchestration improvements:**
-- [ ] **Fix orchestrate skill** - Add explicit system prompt override for sequential execution (backup if claude0 approach has issues)
-- [ ] **Add execution metadata** - Step files declare dependencies and execution mode
+**Documentation:**
+- [ ] **Document TDD learning** - Add to learnings.md: "Weak tests in RED phase enable stub implementations"
+  - Pattern: RED tests must verify behavior, not just structure
+  - Example: Check actual output content, not just exit code
 
 ## Blockers / Gotchas
 
-**Use `claude0` for orchestration:**
-- Alias: `claude --system-prompt "Empty."` removes main system prompt
-- Still loads CLAUDE.md, skills, hooks - only removes tool usage policy and parallelization directives
-- Bash tool retains its own git guidance independently
-- TDD cycles remain state-dependent: ONE Task call per message
+**TDD runbook design flaw discovered:**
+- Tests that only check structure (exit codes, key existence) allow stub implementations
+- Example: `assert result.exit_code == 0` passes even if command does nothing
+- Example: `assert "KEY" in dict` passes even if value is empty string
+- Correct pattern: RED tests must verify behavior with mocking/fixtures for real I/O
+- See: plans/claude-tools-rewrite/runbook-analysis.md for detailed examples
 
 **Current git state:**
-- claudeutils: a205a72 (learnings migration, needs amend for updated agent-core)
-- agent-core: a228d26 (amended with vet fixes)
-- Need to amend claudeutils commit to reference updated agent-core submodule
+- claudeutils: b40e34e (Cycle 3.15 complete, all 37 cycles executed)
+- All tests pass, but features don't work (stubs pass structure tests)
+- No new commits needed until implementation approach decided
 
 **Python 3.14 Incompatibility:**
 - litellm dependency uvloop doesn't support Python 3.14 yet
@@ -61,45 +65,35 @@
 - Example: Mock subprocess.run for keychain operations, curl for usage API
 - Use tmp_path fixtures for ~/.claude/ state file simulation
 
-**Heredocs broken in sandbox:**
-- Sandbox blocks temp file creation needed by heredocs
-- .envrc changes did not resolve this
-- Use alternatives (echo, printf, Write tool) when in sandbox mode
-
 ## Reference Files
 
-**Migration Documentation:**
-- agent-core/migrations/001-separate-learnings.md - Migration instructions with verification checklist
-- tmp/migration-001-review.md - Initial vet review before fixes
-- tmp/agent-core-migration-review.md - Final vet review (Needs Minor Changes → all fixed)
+**Critical Analysis (NEW):**
+- plans/claude-tools-rewrite/runbook-analysis.md - Why deliverables aren't functional, 3 fix options
+- plans/claude-tools-rewrite/reports/vet-review-2026-01-30.md - Full vet review of 37 cycles
 
-**Orchestration Failure Analysis (commit f05e1a3):**
-- plans/claude-tools-rewrite/why-parallel-execution.md - WHY orchestrator parallelized (directive conflict analysis)
-- plans/claude-tools-rewrite/orchestration-failure-analysis.md - What happened, evidence, impact
-- plans/claude-tools-rewrite/opus-review-package.md - Design questions for recovery and improvements
-- plans/claude-tools-rewrite/reports/ - Execution reports (1.2 SUCCESS, 1.3 STOP_CONDITION, 1.4 FALSE SUCCESS)
-
-**Design and Runbook:**
+**Runbook and Design:**
 - plans/claude-tools-rewrite/design.md - Architecture, decisions, module layout
-- plans/claude-tools-rewrite/runbook.md - 37 TDD cycles (PASS from tdd-plan-reviewer)
+- plans/claude-tools-rewrite/runbook.md - 37 TDD cycles executed (missing 8 integration cycles)
+- plans/claude-tools-rewrite/steps/ - 37 step files prepared and executed
 - .claude/agents/claude-tools-rewrite-task.md - Generated task agent
-- plans/claude-tools-rewrite/steps/ - 37 step files prepared
-- plans/claude-tools-rewrite/orchestrator-plan.md - Sequential execution plan
 
-**Key Architecture:**
-- Pydantic `AccountState` model with `validate_consistency()` returning issue list
-- Provider as strategy pattern (Anthropic/OpenRouter/LiteLLM implementations)
-- `plistlib.dump()` for LaunchAgent (fixes heredoc variable expansion bug)
-- Zero new dependencies (stdlib + existing pydantic/click)
+**Key Architecture (implemented but not wired):**
+- Pydantic `AccountState` model with `validate_consistency()` - exists but unused by CLI
+- Provider strategy pattern - exists but returns empty credentials
+- StatuslineFormatter with ANSI color codes - exists but CLI doesn't use it
+- UsageCache with 30-second TTL - exists but not wired to any API calls
+- Keychain wrapper - exists but providers don't call it
 
-**Success Criteria:**
-- All 37 cycles GREEN (currently: 2/37 complete)
-- `just dev` passes (tests, mypy, ruff)
-- CLI commands functional: `claudeutils account status`, `claudeutils model list`, etc.
+**Success Criteria (partial):**
+- ✅ All 37 cycles executed and GREEN
+- ✅ `just dev` passes (tests, mypy, ruff)
+- ✅ Module structure complete (all classes/methods exist)
+- ❌ CLI commands functional (hardcoded stubs, not real implementations)
+- ❌ Integration complete (components exist but not wired together)
 
 ## Next Steps
 
-Amend claudeutils commit to include updated agent-core submodule reference. Then resume claude0 orchestrator execution for Cycle 1.3.
+Review plans/claude-tools-rewrite/runbook-analysis.md and decide implementation approach (Option 1: new cycles, Option 2: strengthen tests, Option 3: manual wiring). Document decision and begin implementation.
 
 ---
-*Handoff by Sonnet. Learnings separation complete, all vet issues fixed.*
+*Handoff by Sonnet. Vet review complete, runbook gap identified, pending implementation decision.*

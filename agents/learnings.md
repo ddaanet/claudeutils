@@ -71,3 +71,19 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Issue: Opus blindly followed buggy skill instruction despite knowing correct syntax
 - Root cause: Uncritical compliance with prescriptive skill instruction over model knowledge
 - Fix: Skill should demonstrate working syntax, not prescribe broken syntax
+
+**TDD RED phase tests must verify behavior, not just structure:**
+- Anti-pattern: RED tests only check structure (AttributeError, exit_code == 0, key existence)
+- Issue: Minimal GREEN implementations pass structure tests without implementing actual functionality
+- Examples:
+  - Test checks `assert result.exit_code == 0` → implementation returns 0 with hardcoded data
+  - Test checks `assert "KEY" in dict` → implementation returns `{"KEY": ""}` (empty string)
+  - Test checks class/method exists → implementation returns stub that does nothing
+- Correct pattern: RED tests verify behavior with mocking/fixtures
+  - Mock file I/O and verify reads/writes to actual paths
+  - Mock external calls (subprocess, API) and verify correct invocation
+  - Assert on output content, not just success/failure
+  - Use fixtures (tmp_path) to simulate real filesystem state
+- Rationale: TDD principle "write minimal code to pass test" works only if test requires real behavior
+- Example: Test should mock ~/.claude/account-mode file and verify CLI reads it, not just check exit code
+- See: plans/claude-tools-rewrite/runbook-analysis.md for detailed examples

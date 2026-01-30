@@ -478,3 +478,18 @@
 - Stop condition: None
 - Decision made: Minimal implementation: model reset command deletes ~/.claude/model-override file if it exists using Path.unlink()
 
+### Cycle 3.15: Statusline CLI - basic structure [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_cli_statusline.py::test_statusline_reads_stdin -xvs`
+- RED result: FAIL as expected (Error: No such command 'statusline', exit code 2)
+- GREEN result: PASS
+- Regression check: 315/315 passed
+- Refactoring: None (lint and precommit passed, no quality warnings)
+- Files modified:
+  - src/claudeutils/statusline/cli.py (created with statusline Click command reading stdin JSON)
+  - tests/test_cli_statusline.py (created with test_statusline_reads_stdin test)
+  - src/claudeutils/cli.py (added statusline command import and registration)
+- Stop condition: None
+- Decision made: Minimal implementation: statusline command reads JSON from stdin, validates it with json.loads(), outputs "OK" on success. Serves as foundation for future statusline formatter integration.
+
