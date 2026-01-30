@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock
 
-from claudeutils.account import AnthropicProvider, Provider
+from claudeutils.account import AnthropicProvider, OpenRouterProvider, Provider
 
 
 def test_provider_protocol_exists() -> None:
@@ -31,3 +31,20 @@ def test_anthropic_provider_env_vars() -> None:
     # Verify ANTHROPIC_API_KEY is present and correct
     assert "ANTHROPIC_API_KEY" in env_vars
     assert env_vars["ANTHROPIC_API_KEY"] == "test-anthropic-key"
+
+
+def test_openrouter_provider_env_vars() -> None:
+    """Return both API key and base URL.
+
+    Test that OpenRouterProvider.claude_env_vars returns both OPENROUTER_API_KEY
+    and ANTHROPIC_BASE_URL.
+    """
+    # Create OpenRouterProvider
+    provider = OpenRouterProvider()
+
+    # Get environment variables
+    env_vars = provider.claude_env_vars()
+
+    # Verify both OPENROUTER_API_KEY and ANTHROPIC_BASE_URL are present
+    assert "OPENROUTER_API_KEY" in env_vars
+    assert "ANTHROPIC_BASE_URL" in env_vars
