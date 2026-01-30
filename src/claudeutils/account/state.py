@@ -32,4 +32,6 @@ class AccountState(BaseModel):
             self.api_in_claude_env or self.has_api_key_helper
         ):
             issues.append("API mode requires API key in environment or helper enabled")
+        if self.provider == "litellm" and not self.litellm_proxy_running:
+            issues.append("LiteLLM provider requires proxy to be running")
         return issues

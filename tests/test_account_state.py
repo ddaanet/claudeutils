@@ -67,3 +67,19 @@ def test_validate_api_requires_key() -> None:
     assert state.validate_consistency() == [
         "API mode requires API key in environment or helper enabled"
     ]
+
+
+def test_validate_litellm_requires_proxy() -> None:
+    """Test that LiteLLM provider requires proxy to be running."""
+    state = AccountState(
+        mode="account",
+        provider="litellm",
+        oauth_in_keychain=False,
+        api_in_claude_env=False,
+        base_url=None,
+        has_api_key_helper=False,
+        litellm_proxy_running=False,
+    )
+    assert state.validate_consistency() == [
+        "LiteLLM provider requires proxy to be running"
+    ]
