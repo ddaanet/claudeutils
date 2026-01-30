@@ -51,3 +51,19 @@ def test_validate_plan_requires_oauth() -> None:
     assert state.validate_consistency() == [
         "Plan mode requires OAuth credentials in keychain"
     ]
+
+
+def test_validate_api_requires_key() -> None:
+    """Test that API mode requires API key in environment or helper enabled."""
+    state = AccountState(
+        mode="api",
+        provider="anthropic",
+        oauth_in_keychain=False,
+        api_in_claude_env=False,
+        base_url=None,
+        has_api_key_helper=False,
+        litellm_proxy_running=False,
+    )
+    assert state.validate_consistency() == [
+        "API mode requires API key in environment or helper enabled"
+    ]

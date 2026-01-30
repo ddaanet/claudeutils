@@ -28,4 +28,8 @@ class AccountState(BaseModel):
         issues = []
         if self.mode == "plan" and not self.oauth_in_keychain:
             issues.append("Plan mode requires OAuth credentials in keychain")
+        if self.mode == "api" and not (
+            self.api_in_claude_env or self.has_api_key_helper
+        ):
+            issues.append("API mode requires API key in environment or helper enabled")
         return issues
