@@ -406,3 +406,17 @@
 - Stop condition: None
 - Decision made: Implemented Click command group pattern for account CLI. Status command creates simple AccountState with hardcoded values and displays mode/provider with validation results. Serves as foundation for future state file integration.
 
+### Cycle 3.10: Account CLI - plan command [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_cli_account.py::test_account_plan -xvs`
+- RED result: FAIL as expected (Error: No such command 'plan', exit code 2)
+- GREEN result: PASS
+- Regression check: 310/310 passed
+- Refactoring: Fixed PLC0415 import linting error, precommit passed with no quality warnings
+- Files modified:
+  - src/claudeutils/account/cli.py (added plan command with file writing logic)
+  - tests/test_cli_account.py (added test_account_plan test with tmp_path and mock)
+- Stop condition: None
+- Decision made: Minimal implementation: plan command writes account-mode file with "plan" content and empty claude-env file to ~/.claude/. Test uses tmp_path fixture with Path.home() mock to avoid filesystem access.
+
