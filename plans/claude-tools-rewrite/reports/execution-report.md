@@ -464,3 +464,17 @@
 - Stop condition: None
 - Decision made: Minimal implementation: model set command accepts model_name argument, creates ~/.claude/ directory if needed, calls write_overrides to write ANTHROPIC_MODEL environment variable to model-override file
 
+### Cycle 3.14: Model CLI - reset command [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_cli_model.py::test_model_reset -xvs`
+- RED result: FAIL as expected (exit code 2 - No such command 'reset')
+- GREEN result: PASS
+- Regression check: 314/314 passed
+- Refactoring: None (lint and precommit passed, no quality warnings)
+- Files modified:
+  - src/claudeutils/model/cli.py (added reset command that deletes the model-override file)
+  - tests/test_cli_model.py (added test_model_reset test that verifies override file deletion)
+- Stop condition: None
+- Decision made: Minimal implementation: model reset command deletes ~/.claude/model-override file if it exists using Path.unlink()
+
