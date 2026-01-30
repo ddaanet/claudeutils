@@ -1,23 +1,29 @@
 # Session Handoff: 2026-01-30
 
-**Status:** Recovery strategy decided - use `claude0` for weak orchestration, resume from Cycle 1.3
+**Status:** Learnings separation migration complete
 
 ## Completed This Session
 
-**Orchestration recovery strategy decided:**
-- Analyzed 4 options: upgrade orchestrator, remove system prompt, TUI scripting, strengthen skill directives
-- Decision: Use `claude0` alias (`claude --system-prompt "Empty."`) for weak orchestration
-- Rationale: Removes main system prompt entirely, eliminating the parallelization directive conflict at source
-- Note: Bash tool still carries git guidance independently of main system prompt
+**Learnings separation migration executed:**
+- Created migration 001-separate-learnings.md with step-by-step instructions and verification checklist
+- Created agents/learnings.md with 12 learnings extracted from session.md
+- Updated CLAUDE.md to reference learnings.md under Current Work
+- Updated handoff skill to append learnings to separate file (never trim)
+- Updated remember skill to consolidate from learnings.md with keep-recent behavior
+- Commits: agent-core a228d26, claudeutils a205a72
 
-**Heredoc sandbox test:**
-- Tested heredoc in sandboxed Bash after .envrc change - still broken
-- Error: `can't create temp file for here document: operation not permitted`
-- Sandbox blocks temp file creation required by heredocs
+**Vet review and fixes applied:**
+- Vet-agent identified 4 issues (2 major, 2 minor)
+- Fixed template.md to remove Recent Learnings section from session.md structure
+- Fixed notification threshold from "approaches 80" to explicit "80+ lines"
+- Clarified "most recent" as "at bottom of file" for keep-recent behavior
+- Updated migration checklist to clarify parallel execution option for agent-core repo
+- Amended agent-core commit a228d26 with all fixes
 
 ## Pending Tasks
 
 **Immediate - Resume claude-tools-rewrite execution:**
+- [ ] **Amend claudeutils commit** - Include updated agent-core submodule reference after amend
 - [ ] **Execute remaining 35 cycles using `claude0`** - Run orchestrator with `claude --system-prompt "Empty."` to avoid parallelization directive
   - Phase 1: Cycles 1.3-1.13 (11 remaining) - validate_consistency, providers, keychain
   - Phase 2: Cycles 2.1-2.9 (9 cycles) - model config parsing, overrides, tier filtering
@@ -40,10 +46,10 @@
 - Bash tool retains its own git guidance independently
 - TDD cycles remain state-dependent: ONE Task call per message
 
-**Current git state is clean:**
-- Commits: c115164 (1.1), dd042cd (1.2)
-- Source: AccountState model exists, no validate_consistency method
-- Safe to resume from Cycle 1.3 (no corruption or partial states)
+**Current git state:**
+- claudeutils: a205a72 (learnings migration, needs amend for updated agent-core)
+- agent-core: a228d26 (amended with vet fixes)
+- Need to amend claudeutils commit to reference updated agent-core submodule
 
 **Python 3.14 Incompatibility:**
 - litellm dependency uvloop doesn't support Python 3.14 yet
@@ -61,6 +67,11 @@
 - Use alternatives (echo, printf, Write tool) when in sandbox mode
 
 ## Reference Files
+
+**Migration Documentation:**
+- agent-core/migrations/001-separate-learnings.md - Migration instructions with verification checklist
+- tmp/migration-001-review.md - Initial vet review before fixes
+- tmp/agent-core-migration-review.md - Final vet review (Needs Minor Changes → all fixed)
 
 **Orchestration Failure Analysis (commit f05e1a3):**
 - plans/claude-tools-rewrite/why-parallel-execution.md - WHY orchestrator parallelized (directive conflict analysis)
@@ -88,75 +99,7 @@
 
 ## Next Steps
 
-Use `claude0` to run orchestrator for sequential TDD cycle execution starting at Cycle 1.3. ONE Task call per message. Checkpoint after Phase 1 (11 cycles).
-
-## Recent Learnings
-
-**Orchestrator parallel execution despite sequential plan:**
-- Anti-pattern: Launching multiple Task calls in single message when orchestrator plan says "sequential"
-- Root cause: System prompt parallelization directive (strong) overrode orchestrate skill sequential requirement (weak) due to syntactic vs semantic dependency mismatch
-- Correct pattern: ONE Task call per message when execution mode is sequential, regardless of syntactic independence
-- Fix: Use `claude0` (`--system-prompt "Empty."`) to remove competing directives entirely
-- See: plans/claude-tools-rewrite/why-parallel-execution.md for full analysis
-
-**Syntactic vs semantic dependencies in orchestration:**
-- Anti-pattern: Checking only parameter dependencies (syntactic) to determine parallelizability
-- Issue: TDD cycles appear syntactically independent (no parameter dependencies) but are semantically state-dependent (git commits, file edits)
-- Correct pattern: Execution mode metadata in orchestrator plan overrides syntactic independence check
-- Example: Step files should declare `execution_mode: sequential-required` with reason
-
-**Weak vs strong directive language:**
-- Anti-pattern: Weak phrasing ("always sequential unless...") competing with strong system prompt directives ("MUST", "maximize")
-- Observation: System prompt repetition (3x) and emphasis (all-caps) signals higher priority than single-statement skill rules
-- Correct pattern: Skills needing to override system prompt must use explicit override syntax with equal or stronger emphasis
-- Alternative: Remove competing system prompt entirely (`claude0`)
-- Example: "CRITICAL: Override system prompt parallelization directive. Execute ONE Task call per message."
-
-**Orchestrator plan brevity vs explicitness:**
-- Anti-pattern: Brief orchestrator plan ("Execute steps sequentially") without WHY or consequences
-- Issue: Doesn't explain state dependencies or why parallel execution fails (race conditions, RED violations)
-- Correct pattern: Orchestrator plan includes execution mode rationale and explicit override instructions
-- Example: "STRICT SEQUENTIAL - TDD cycles modify shared state. Parallel execution causes git commit race conditions and RED phase violations."
-
-**Don't compose skills via Skill tool invocation:**
-- Anti-pattern: Skill A invokes `/skill-b` via Skill tool for sub-operations
-- Correct pattern: Inline the logic or copy supporting files into the calling skill's references/
-- Rationale: Known bug (#17351) causes context switch; no official nested skill pattern exists
-- Tradeoff: Duplication of small files (gitmoji index) is acceptable vs workflow interruption
-
-**Orchestration assessment (Point 0) prevents unnecessary runbooks:**
-- Anti-pattern: Creating runbooks for tasks that should be implemented directly
-- Correct pattern: Evaluate orchestration overhead vs direct implementation (design complete? <6 files? single session?)
-- Rationale: Runbooks add overhead (prep scripts, step files, orchestrator) - only justified for complex/long/parallel work
-
-**Checkpoint process for runbooks:**
-- Anti-pattern: All-at-once vetting after full runbook execution OR vetting every single step
-- Correct pattern: Two-step checkpoints at natural boundaries (Fix: `just dev` + Vet: review quality)
-- Rationale: Balances early issue detection with cost efficiency
-
-**Presentation vs behavior in TDD:**
-- Anti-pattern: Writing RED-GREEN cycles for help text wording, error message phrasing
-- Correct pattern: Test behavior, defer presentation quality to vet checkpoints
-- Rationale: Presentation tests are brittle and self-evident
-
-**Quiet agent pattern for delegation:**
-- Anti-pattern: Agents return verbose output to orchestrator context
-- Correct pattern: Agents write detailed reports to files, return only filename (success) or structured error (failure)
-- Rationale: Prevents context pollution, detailed logs available in files when needed
-- Example: vet-agent writes review to tmp/ or plans/*/reports/, returns just filename
-
-**Phase-grouped TDD runbooks:**
-- Anti-pattern: Expecting all runbooks to use flat H2 structure (## Cycle X.Y)
-- Correct pattern: Support both H2 and H3 cycle headers for phase-grouped runbooks (## Phase N / ### Cycle X.Y)
-- Rationale: Phase grouping improves readability for large runbooks with logical phases
-- Fix: prepare-runbook.py regex changed from `^## Cycle` to `^###? Cycle`
-
-**Multiline commit messages in bash:**
-- Anti-pattern: Using `"...\n..."` for multiline git commit messages (backslash-n not interpreted by bash)
-- Correct pattern: Use literal newlines inside double quotes: `git commit -m "Title\n\n- Detail"`
-- Issue: Opus blindly followed buggy skill instruction despite knowing correct syntax
-- Root cause: Uncritical compliance with prescriptive skill instruction over model knowledge
-- Fix: Skill should demonstrate working syntax, not prescribe broken syntax
+Amend claudeutils commit to include updated agent-core submodule reference. Then resume claude0 orchestrator execution for Cycle 1.3.
 
 ---
-*Handoff by Opus. Recovery strategy decided: claude0 for orchestration. 35 cycles remaining.*
+*Handoff by Sonnet. Learnings separation complete, all vet issues fixed.*

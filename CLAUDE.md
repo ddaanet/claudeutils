@@ -20,6 +20,7 @@
 
 ### Current Work
 - @agents/session.md - Current session handoff context (update only on handoff)
+- @agents/learnings.md - Accumulated learnings (append-only, soft limit 80 lines)
 
 ---
 
