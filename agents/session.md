@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Hooks fixed and working; all pending tasks postponed
+**Status:** Hooks fixed and working
 
 ## Completed This Session
 
@@ -24,7 +24,11 @@
 
 ## Pending Tasks
 
-**All tasks postponed by user**
+- [ ] **Ensure workflow vet enforcement** — After `/plan-adhoc` and `/plan-tdd` completion, ensure high/medium fixes applied; during `/orchestrate`, ensure vet steps apply high/medium fixes
+- [ ] **Execute recovery runbook** — `/orchestrate` on claude-tools-recovery (haiku execution)
+- [ ] **Run /remember** — learnings.md at 131 lines (soft limit 80)
+- [ ] **Discuss** — Tool batching: contextual block with contract (batch-level hook rules)
+- [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
 
 ## Blockers / Gotchas
 
@@ -84,18 +88,19 @@
 **Previous work:**
 - `plans/claude-tools-recovery/design.md` — Recovery design (4 phases R0-R4)
 - `plans/claude-tools-recovery/runbook.md` — Generated TDD runbook (43 cycles)
+- `plans/claude-tools-recovery/orchestrator-plan.md` — Execution plan
 - `agent-core/fragments/vet-requirement.md` — Production artifact vet directive
 - `agent-core/agents/refactor.md` — Refactor agent (symlinked)
 - `agent-core/skills/opus-design-question/` — Opus design consultation skill (symlinked)
 
 ## Next Steps
 
-**No active work** - all tasks postponed by user.
-
-**When resuming:**
-1. Review postponed tasks from previous session handoff
-2. Determine next priority
-3. Execute appropriate workflow
+**Priority order:**
+1. Ensure workflow vet enforcement (skill updates)
+2. Execute recovery runbook (orchestration)
+3. Run /remember (learnings consolidation)
+4. Design-vet-agent creation (opus session)
+5. Tool batching discussion (exploration)
 
 ---
-*Handoff by Sonnet. Hook fixes committed; all tasks postponed.*
+*Handoff by Sonnet. Hook fixes committed; pending tasks restored.*
