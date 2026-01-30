@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-30
 
-**Status:** Handoff-haiku import complete, commit-unification implemented with handoff decoupling, ready for commit
+**Status:** All work complete and committed
 
 ## Completed This Session
 
@@ -24,31 +24,30 @@
 - Claude Code docs have no pattern for skill composition — inline is the workaround
 - Explored skill structure via Task agent (Explore subagent) - found all skills symlinked to agent-core
 
-**Imported handoff-haiku fix context from ../home repo:**
+**Imported handoff-haiku fix context from ../home repo (8398772):**
 - Explored ../home commits (8eb2ebe, 2079274, 49eff39) to understand handoff-lite fixes
 - Created import design: plans/handoff-haiku-import/design.md
-- Copied 3 plan documents: plans/handoff-lite-issue/transcript.md, plans/handoff-lite-fixes/design.md, plans/handoff-lite-fixes/design-review.md
-- Added 4 learnings to Recent Learnings (skill model constraints, template ambiguity, delegation ambiguity, description overlap)
+- Copied 3 plan documents: transcript.md (root cause analysis), design.md (5 fixes), design-review.md (APPROVE WITH CHANGES)
+- Added 4 learnings to Recent Learnings
 - Fixed symlinks: removed stale handoff-lite, created handoff-haiku
-- Agent-core already at 018d631 (includes 150b178 handoff-haiku rename)
+- Files: plans/handoff-lite-issue/transcript.md, plans/handoff-lite-fixes/design.md, plans/handoff-lite-fixes/design-review.md
 
-**Reevaluated vet review with handoff-haiku context:**
-- Read vet review: plans/commit-unification/reports/vet-review.md
+**Reevaluated vet review with handoff-haiku context (8398772):**
+- Read vet review: plans/commit-unification/reports/vet-review.md (identified design/implementation misalignment)
 - Created reevaluation: plans/commit-unification/reports/vet-reevaluation.md
-- Key finding: Handoff-haiku Fix 1 pattern supersedes commit-unification approach
+- Key finding: Handoff-haiku Fix 1 pattern supersedes commit-unification inline approach
 - Resolution: REMOVE handoff from commit entirely (don't inline, don't invoke - decouple)
-- Updated assessment: "Needs Design Revision" (was "Needs Minor Changes")
-- Rationale: Handoff-haiku established decoupling as superior pattern for separation of concerns
+- Rationale: Handoff-haiku established separation of concerns as superior to inlining
 
-**Revised commit-unification design:**
+**Revised commit-unification design (8398772):**
 - Updated plans/commit-unification/design.md to apply handoff-haiku Fix 1 pattern
-- Changed Problem #3 from "nested skill bug" to "handoff coupling" (design:9)
-- Updated Requirements: "Remove handoff from commit skill" vs "Inline handoff execution" (design:16)
-- Removed handoff-protocol.md from structure diagram (design:30-37)
-- Rewrote Decision #2: "Remove handoff step entirely" with handoff-haiku rationale (design:54-68)
-- Updated execution flow: removed handoff step, renumbered to 4 steps, added session.md staging (design:89-101)
+- Changed Problem #3 from "nested skill bug" to "handoff coupling"
+- Updated Requirements: "Remove handoff from commit skill" (was "Inline handoff execution")
+- Removed handoff-protocol.md from structure diagram
+- Rewrote Decision #2: "Remove handoff step entirely" with handoff-haiku rationale
+- Updated execution flow: removed handoff step, renumbered to 4 steps, added session.md staging
 
-**Implemented commit-unification in agent-core:**
+**Implemented commit-unification in agent-core (7f6a14f):**
 - Created commit/references/gitmoji-index.txt (copy from gitmoji/cache/, 78 entries)
 - Created commit/scripts/update-gitmoji-index.sh (adapted from gitmoji/scripts/, executable)
 - Rewrote commit/SKILL.md: 189 lines, merged commit + commit-context
@@ -58,44 +57,24 @@
   - Added session.md/plans/ staging guidance (Step 4)
   - All flags documented: --context, --test, --lint, --no-gitmoji
 - Deleted commit-context/ directory entirely
-- Skill review (plugin-dev:skill-reviewer): PRODUCTION-READY, no blocking issues
+- Skill review (plugin-dev:skill-reviewer): PRODUCTION-READY
+
+**Committed all work (d5b9169):**
+- Commit 8398772: Import handoff-haiku context, revise design (claudeutils)
+- Commit 7f6a14f: Unify commit skills (agent-core)
+- Commit d5b9169: Update agent-core submodule 018d631→7f6a14f (claudeutils)
 
 ## Pending Tasks
 
-**Commit work:**
-- Commit handoff-haiku import in claudeutils (3 plan docs, session.md updates, symlink cleanup, vet reevaluation, design revision)
-- Commit commit-unification in agent-core (SKILL.md rewrite, gitmoji files, commit-context deletion)
-- Update claudeutils agent-core submodule reference
-- Final commit in claudeutils (submodule update)
+None - all work complete.
 
 ## Blockers / Gotchas
 
-**None - ready to commit.**
-
-**Config composition gap:**
-- Native @file only works for markdown files
-- Justfile/pyproject.toml need different import mechanism
-- Base files organized but not yet consumable by projects
-- Original compose.py design may still be needed for config files
-
-**Agent-core template naming:**
-- CLAUDE.md files in subdirectories auto-inject into context
-- Template must be named CLAUDE.template.md to avoid this
-
-**Git state:**
-- claudeutils: Modified session.md, new plans/ directories, symlink changes
-- agent-core: Modified commit/SKILL.md, new references/ and scripts/, deleted commit-context/
-- Agent-core at 018d631 (vet-agent), clean working tree before commit-unification changes
+None.
 
 ## Next Steps
 
-**Immediate:** Commit work in sequence:
-1. Commit handoff-haiku import in claudeutils (plans/, session.md, symlinks)
-2. Commit commit-unification in agent-core (SKILL.md, references/, scripts/, deleted commit-context/)
-3. Update agent-core submodule reference in claudeutils
-4. Final commit in claudeutils (submodule update)
-
-**Model recommendation:** Sonnet
+Ready for new work. Suggest starting fresh session.
 
 ## Recent Learnings
 
