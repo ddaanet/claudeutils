@@ -362,3 +362,18 @@
 - Stop condition: None
 - Decision made: create_switchback_plist(plist_path, switchback_time) calculates target time with UTC timezone, creates plist with Label, ProgramArguments, and StartCalendarInterval containing Hour, Minute, Second fields
 
+### Cycle 3.7: Usage API cache - get operation [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_account_usage.py::test_usage_cache_get_stale -xvs`
+- RED result: FAIL as expected (ImportError: cannot import name 'UsageCache' from 'claudeutils.account')
+- GREEN result: PASS
+- Regression check: 307/307 passed
+- Refactoring: Fixed lint errors (added type parameters to dict return type, fixed docstring formatting with blank line and description)
+- Files modified:
+  - src/claudeutils/account/usage.py (created UsageCache class with get() method checking cache file mtime against TTL)
+  - src/claudeutils/account/__init__.py (added UsageCache export)
+  - tests/test_account_usage.py (created with test_usage_cache_get_stale test)
+- Stop condition: None
+- Decision made: UsageCache.get() returns None when cache file doesn't exist or mtime exceeds 30-second TTL, returns None for stale data
+

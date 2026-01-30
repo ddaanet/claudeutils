@@ -1,5 +1,6 @@
 """Usage API caching with 30-second TTL."""
 
+import json
 import time
 from pathlib import Path
 
@@ -29,4 +30,16 @@ class UsageCache:
         if current_time - file_mtime > self.TTL_SECONDS:
             return None
 
-        return None
+        with self.cache_file.open() as f:
+            data = json.load(f)
+            return data if isinstance(data, dict) else None
+
+    def put(self, data: dict[str, object]) -> None:
+        """Write data to cache file with current timestamp.
+
+        Args:
+            data: Dictionary to cache.
+        """
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        with self.cache_file.open("w") as f:
+            json.dump(data, f)
