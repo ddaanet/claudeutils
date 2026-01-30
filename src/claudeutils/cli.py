@@ -9,6 +9,7 @@ from typing import cast
 
 import click
 
+from claudeutils.account.cli import account
 from claudeutils.compose import compose, load_config
 from claudeutils.discovery import list_top_level_sessions
 from claudeutils.exceptions import ClaudeUtilsError
@@ -144,6 +145,9 @@ def list_sessions(project: str | None) -> None:
     else:
         for session in sessions:
             print(f"[{session.session_id[:8]}] {session.title}")
+
+
+cli.add_command(account)
 
 
 @cli.command(help="Extract feedback from session")

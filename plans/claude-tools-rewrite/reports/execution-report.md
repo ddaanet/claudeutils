@@ -377,3 +377,17 @@
 - Stop condition: None
 - Decision made: UsageCache.get() returns None when cache file doesn't exist or mtime exceeds 30-second TTL, returns None for stale data
 
+### Cycle 3.8: Usage API cache - put operation [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_account_usage.py::test_usage_cache_put -xvs`
+- RED result: FAIL as expected (AttributeError: 'UsageCache' object has no attribute 'put')
+- GREEN result: PASS
+- Regression check: 308/308 passed
+- Refactoring: Fixed lint errors (replaced open() with Path.open(), fixed type annotation for test_data dict, fixed get() to return json.load result with type guard)
+- Files modified:
+  - src/claudeutils/account/usage.py (added put() method to write cache file with JSON data, updated get() to actually read and return cached data)
+  - tests/test_account_usage.py (added test_usage_cache_put test with tmp_path fixture, added type annotation for test data dict)
+- Stop condition: None
+- Decision made: UsageCache.put(data) writes dict to cache file as JSON, get() now returns cached data when fresh (within TTL), both methods use Path.open() with type guard for return value
+
