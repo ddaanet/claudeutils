@@ -1,37 +1,55 @@
-# Session Handoff: 2026-01-30
+# Session Handoff: 2026-01-31
 
-**Status:** Hooks fixed, vet requirement added, symlinks created; pending workflow enforcement
+**Status:** Hooks fixed and working; all pending tasks postponed
 
 ## Completed This Session
 
-**Hook fixes and vet requirement (committed in daa2281, 8c36c0b, 02788f7):**
-- agent-core commit 1841810: Fixed hooks.json (missing matcher, path corrections), updated submodule-safety.py (warn on any non-root cwd), created test-hooks.md (10-test procedure), added vet-requirement.md fragment, updated design skill (vet steps)
-- Parent commit daa2281: Updated CLAUDE.md with vet-requirement reference
-- Parent commit 8c36c0b: Added symlinks for refactor agent, opus-design-question skill, hooks
-- Parent commit 02788f7: Added prepare-runbook.py to sandbox exclusions (autoAllowedTools + excludedCommands)
+**Hook fixes (committed in 7083806):**
+- Fixed pretooluse-block-tmp.sh: Output plain text to stderr + exit 2 (not JSON)
+- Moved submodule-safety.py from PreToolUse to PostToolUse (cwd checks need to run after commands execute)
+- Updated .claude/settings.json with correct hook configuration (PreToolUse for Write, PostToolUse for Bash)
+- Removed Bash PreToolUse hook for submodule-safety (was checking cwd before command changed it)
+
+**Hook testing and debugging:**
+- Ran partial test-hooks.md procedure (Tests 1-10)
+- Discovered hooks need to be in .claude/settings.json (not separate .claude/hooks/hooks.json)
+- Found official example showing deny hooks must: output to stderr + exit 2
+- Confirmed PostToolUse hooks work for cwd warnings (now showing properly)
+- Confirmed PreToolUse hooks work for /tmp blocking (clean error message)
 
 **Previous session work (committed earlier):**
+- Hook fixes and vet requirement (daa2281, 8c36c0b, 02788f7)
 - Feedback-fixes execution
 - Recovery runbook generation (43 TDD cycles across 4 phases)
 
 ## Pending Tasks
 
-- [ ] **Ensure workflow vet enforcement** — After `/plan-adhoc` and `/plan-tdd` completion, ensure high/medium fixes applied; during `/orchestrate`, ensure vet steps apply high/medium fixes
-- [ ] **Execute recovery runbook** — `/orchestrate` on claude-tools-recovery (haiku execution)
-- [ ] **Run /remember** — learnings.md at 131 lines (soft limit 80)
-- [ ] **Discuss** — Tool batching: contextual block with contract (batch-level hook rules)
-- [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
+**All tasks postponed by user**
 
 ## Blockers / Gotchas
 
+**Hook output format for deny decisions:**
+- Must output to stderr (`>&2`) and exit with code 2
+- Plain text message works (no JSON wrapper needed)
+- JSON output creates noise: `PreToolUse:Write hook error: [path]: {json}`
+- Plain text is cleaner: `PreToolUse:Write hook error: [path]: message`
+- The `permissionDecision` field is NOT required - exit code 2 is sufficient to deny
+
+**Hook configuration location:**
+- Hooks MUST be in `.claude/settings.json` under `"hooks": {...}`
+- Separate `.claude/hooks/hooks.json` file is NOT loaded
+- Plugin hooks use `{"description": "...", "hooks": {...}}` wrapper format
+- Settings/project-local hooks use direct `{event: [...]}` format
+
+**PreToolUse vs PostToolUse timing:**
+- PreToolUse runs BEFORE command executes (cwd unchanged)
+- PostToolUse runs AFTER command executes (cwd may have changed)
+- cwd checks must be PostToolUse (to detect cwd changes after cd commands)
+- Path validation can be PreToolUse (checking command arguments before execution)
+
 **Hooks require session restart:**
 - Hook changes only take effect after restarting Claude Code
-- Test hooks after commit by restarting session and running test-hooks.md procedure
-
-**Hook configuration format:**
-- Plugin hooks use `{"description": "...", "hooks": {...}}` wrapper format
-- Settings hooks use direct `{event: [...]}` format
-- Project-local hooks (.claude/hooks/) use direct format like settings
+- Test hooks after commit by restarting session
 
 **Symlinks in git:**
 - .claude/ symlinks now tracked (refactor agent, opus-design-question skill, hooks)
@@ -50,7 +68,6 @@
 - Main interactive agent: cwd persists between Bash calls
 - Sub-agents (Task tool): cwd does NOT persist
 - CLAUDE.md absolute path guidance targets sub-agents
-- submodule-safety hook now warns about any non-root cwd
 
 **prepare-runbook.py requires sandbox bypass:**
 - Writing to `.claude/agents/` triggers sandbox permission error
@@ -58,25 +75,27 @@
 
 ## Reference Files
 
+- `agent-core/agents/test-hooks.md` — Hook testing procedure (10 tests)
+- `agent-core/hooks/pretooluse-block-tmp.sh` — /tmp write blocking hook (fixed)
+- `agent-core/hooks/submodule-safety.py` — PostToolUse cwd warning hook
+- `.claude/settings.json` — Hook configuration (PreToolUse + PostToolUse)
+- `/Users/david/.claude/plugins/cache/claude-plugins-official/plugin-dev/*/skills/hook-development/examples/validate-write.sh` — Official hook example showing stderr + exit 2 pattern
+
+**Previous work:**
 - `plans/claude-tools-recovery/design.md` — Recovery design (4 phases R0-R4)
 - `plans/claude-tools-recovery/runbook.md` — Generated TDD runbook (43 cycles)
-- `plans/claude-tools-recovery/orchestrator-plan.md` — Execution plan
-- `agent-core/agents/test-hooks.md` — Hook testing procedure (10 tests)
 - `agent-core/fragments/vet-requirement.md` — Production artifact vet directive
 - `agent-core/agents/refactor.md` — Refactor agent (symlinked)
 - `agent-core/skills/opus-design-question/` — Opus design consultation skill (symlinked)
 
 ## Next Steps
 
-**Immediate:** Restart Claude Code to load updated hooks, then test using test-hooks.md
+**No active work** - all tasks postponed by user.
 
-**After hooks verified:**
-1. Ensure workflow vet enforcement in plan-adhoc/plan-tdd/orchestrate
-2. Execute recovery runbook with `/orchestrate`
-
-**After recovery:**
-1. Run `/remember` to consolidate learnings (131/80 lines)
-2. Vet and commit recovered implementations
+**When resuming:**
+1. Review postponed tasks from previous session handoff
+2. Determine next priority
+3. Execute appropriate workflow
 
 ---
-*Handoff by Sonnet. All changes committed; hooks ready for testing after restart.*
+*Handoff by Sonnet. Hook fixes committed; all tasks postponed.*
