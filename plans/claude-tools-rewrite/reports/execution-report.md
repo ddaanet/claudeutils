@@ -176,3 +176,17 @@
 - Stop condition: None
 - Decision made: LiteLLMModel is a Pydantic BaseModel with all required pricing and configuration fields, api_base is optional field
 
+### Cycle 2.3: Parse single model entry from YAML [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_model_config.py::test_parse_model_entry_basic -xvs`
+- RED result: FAIL as expected (ImportError: cannot import name 'parse_model_entry' from 'claudeutils.model.config')
+- GREEN result: PASS
+- Regression check: 294/294 passed
+- Refactoring: Fixed lint error TRY003 (moved long error message to variable before raising)
+- Files modified:
+  - tests/test_model_config.py (added test_parse_model_entry_basic test)
+  - src/claudeutils/model/config.py (added parse_model_entry function using regex to extract model_name and litellm_model)
+- Stop condition: None
+- Decision made: parse_model_entry uses regex to extract model_name and model fields from YAML entry, returns tuple of (model_name, litellm_model)
+

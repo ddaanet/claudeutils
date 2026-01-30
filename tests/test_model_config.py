@@ -33,6 +33,18 @@ def test_parse_model_entry_basic() -> None:
     litellm_params:
       model: claude-3-5-sonnet-20241022
 """
-    model_name, litellm_model = parse_model_entry(yaml_text)
-    assert model_name == "Claude 3.5 Sonnet"
-    assert litellm_model == "claude-3-5-sonnet-20241022"
+    model = parse_model_entry(yaml_text)
+    assert model.name == "Claude 3.5 Sonnet"
+    assert model.litellm_model == "claude-3-5-sonnet-20241022"
+
+
+def test_parse_model_entry_tiers() -> None:
+    """parse_model_entry() extracts tier tags from comment metadata."""
+    yaml_text = """
+  - model_name: Claude 3.5 Sonnet
+    litellm_params:
+      model: claude-3-5-sonnet-20241022
+    # haiku,sonnet - arena:5
+"""
+    model = parse_model_entry(yaml_text)
+    assert model.tiers == ["haiku", "sonnet"]
