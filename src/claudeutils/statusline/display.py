@@ -80,3 +80,17 @@ class StatuslineFormatter:
             color = "red"
 
         return self.colored(char, color)
+
+    def limit_display(self, name: str, pct: int, reset: str) -> str:
+        """Format limit display with name, percentage, and reset time.
+
+        Args:
+            name: Limit name (e.g., "claude-opus")
+            pct: Percentage used (0-100)
+            reset: Reset time (e.g., "2026-02-01")
+
+        Returns:
+            Formatted limit display with vertical bar and reset time
+        """
+        bar = self.vertical_bar(pct)
+        return f"{name} {bar} {pct}% │ resets {reset}"

@@ -71,3 +71,20 @@ def test_vertical_bar() -> None:
     bar_high = formatter.vertical_bar(100)
     assert isinstance(bar_high, str)
     assert "█" in bar_high
+
+
+def test_limit_display() -> None:
+    """StatuslineFormatter.limit_display() formats limit info.
+
+    Displays name, percentage used, and reset time with colors.
+    """
+    formatter = StatuslineFormatter()
+
+    # Test basic formatting
+    result = formatter.limit_display("claude-opus", 75, "2026-02-01")
+    assert isinstance(result, str)
+    assert "claude-opus" in result
+    assert "75" in result
+    assert "2026-02-01" in result
+    # Should contain vertical bar separator
+    assert "│" in result
