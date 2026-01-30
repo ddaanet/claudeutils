@@ -6,14 +6,14 @@ Three skills (`/commit`, `/commit-context`, `/gitmoji`) have entangled dependenc
 
 1. **Nested skill bug** (GitHub #17351): Both commit skills invoke `/gitmoji` via `Skill` tool, causing context switch that requires user to say "continue"
 2. **Duplication**: commit and commit-context share ~70% identical content (message style, validation flags, TDD pattern, constraints, gitmoji step, handoff step)
-3. **Same bug with /handoff**: Both commit skills also invoke `/handoff`, creating a second interruption point
+3. **Handoff coupling**: Both commit skills invoke `/handoff`, conflating two distinct concerns (committing code vs preserving session context)
 
 ## Requirements
 
 **Functional:**
 - Merge commit + commit-context into single `/commit` skill with `--context` flag
 - Inline gitmoji selection (read index directly, no `/gitmoji` skill invocation)
-- Inline handoff execution (read handoff protocol directly, no `/handoff` skill invocation)
+- Remove handoff from commit skill (separate concerns per handoff-haiku Fix 1; user workflow: `/handoff` then `/commit`)
 - Preserve all existing flags: `--test`, `--lint`, `--no-gitmoji`, `--context`
 - Keep `/gitmoji` as standalone user-invocable skill (unchanged)
 - Keep `/handoff` as standalone user-invocable skill (unchanged)
@@ -31,8 +31,7 @@ Three skills (`/commit`, `/commit-context`, `/gitmoji`) have entangled dependenc
 commit/
 ├── SKILL.md           (unified skill, ~3K words)
 ├── references/
-│   ├── gitmoji-index.txt   (copy of gitmoji cache)
-│   └── handoff-protocol.md (extracted handoff protocol for inline use)
+│   └── gitmoji-index.txt   (copy of gitmoji cache)
 └── scripts/
     └── update-gitmoji-index.sh  (copy or symlink)
 ```
@@ -52,17 +51,21 @@ Rationale:
 
 Tradeoff: Two copies to maintain. Mitigated by: infrequent updates (monthly), small file size, both in same agent-core repo.
 
-**2. Handoff: inline protocol vs keep /handoff invocation**
+**2. Handoff: remove from commit skill entirely**
 
-Decision: **Keep `/handoff` invocation.** Don't inline handoff.
+Decision: **Remove handoff step.** Don't inline, don't invoke — decouple completely.
 
-Rationale:
-- Handoff is complex (6.5K skill + references + examples) — too large to inline
-- Handoff interruption is *less disruptive* than gitmoji because it's a meaningful pause (user reviews session.md update)
-- Handoff is legitimately a separate concern from committing
-- The bug (#17351) affects both, but handoff's interruption is arguably a feature — user sees session context being preserved
+Rationale (per handoff-haiku Fix 1, `plans/handoff-lite-fixes/design.md`):
+- Commit should do one thing: commit code changes
+- Handoff should do one thing: update session context
+- User controls when each happens — `/handoff` then `/commit` as two commands
+- Coupling caused misuse: agent invoked wrong handoff variant during commit execution
+- Eliminates nested skill bug for handoff without inlining 6.5K of skill content
 
-Revisit if: Bug #17351 is fixed (then both work seamlessly), or if users report handoff interruption as a problem.
+Implementation:
+- Remove handoff step from execution flow
+- Add note: "This skill does not update session.md. Run `/handoff` separately before committing if session context needs updating."
+- Add staging guidance: "Include `agents/session.md` and `plans/` files if they have uncommitted changes"
 
 **3. --context flag behavior**
 
@@ -88,14 +91,13 @@ Rationale: Code removal principle — git history preserves it. References in ot
    just precommit [or --test/--lint variant]
    git status -vv  [skip if --context]
 
-2. Perform /handoff (invoke skill — accepted interruption)
+2. Draft commit message (from discovery or conversation context)
 
-3. Draft commit message (from discovery or conversation context)
-
-4. Select gitmoji (INLINE — read references/gitmoji-index.txt directly)
+3. Select gitmoji (INLINE — read references/gitmoji-index.txt directly)
    Skip if --no-gitmoji
 
-5. Stage, commit, verify (single bash block)
+4. Stage, commit, verify (single bash block)
+   Include agents/session.md and plans/ if they have uncommitted changes
 ```
 
 ### Gitmoji Inline Protocol
@@ -121,7 +123,7 @@ This is ~4 lines vs invoking a full skill. The semantic matching logic is inhere
 | `agent-core/skills/commit-context/` | Delete: entire directory |
 | `agent-core/justfile` | Update: add stale symlink cleanup to sync-to-parent |
 | `agent-core/skills/gitmoji/` | No change (standalone skill preserved) |
-| `agent-core/skills/handoff/` | No change |
+| `agent-core/skills/handoff/` | No change (decoupled, user invokes separately) |
 
 ## Testing Strategy
 

@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-30
 
-**Status:** Commit unification designed, ready for direct implementation
+**Status:** Handoff-haiku import complete, commit-unification implemented with handoff decoupling, ready for commit
 
 ## Completed This Session
 
@@ -24,61 +24,53 @@
 - Claude Code docs have no pattern for skill composition — inline is the workaround
 - Explored skill structure via Task agent (Explore subagent) - found all skills symlinked to agent-core
 
-**Designed commit skill unification** (`plans/commit-unification/design.md`):
-- Merge `/commit` + `/commit-context` into single `/commit` with `--context` flag
-- Inline gitmoji selection (copy index to `commit/references/`, read directly)
-- Keep `/handoff` invocation (complex skill, interruption is acceptable pause for session review)
-- Keep `/gitmoji` and `/handoff` as standalone user-invocable skills (unchanged)
-- Delete `commit-context/` entirely (code removal principle)
-- **Key decisions:**
-  - Copy gitmoji-index.txt (can't reliably cross-reference skills, file is small)
-  - Don't inline handoff (6.5K skill too large, interruption is meaningful)
-  - `--context` flag skips git discovery, uses conversation context
+**Imported handoff-haiku fix context from ../home repo:**
+- Explored ../home commits (8eb2ebe, 2079274, 49eff39) to understand handoff-lite fixes
+- Created import design: plans/handoff-haiku-import/design.md
+- Copied 3 plan documents: plans/handoff-lite-issue/transcript.md, plans/handoff-lite-fixes/design.md, plans/handoff-lite-fixes/design-review.md
+- Added 4 learnings to Recent Learnings (skill model constraints, template ambiguity, delegation ambiguity, description overlap)
+- Fixed symlinks: removed stale handoff-lite, created handoff-haiku
+- Agent-core already at 018d631 (includes 150b178 handoff-haiku rename)
 
-**Updated sync-to-parent justfile recipe:**
-- Added stale symlink cleanup before sync loop
-- Handles commit-context deletion and any future skill removals generically
-- File: `agent-core/justfile` (already committed: 5d95c4b)
+**Reevaluated vet review with handoff-haiku context:**
+- Read vet review: plans/commit-unification/reports/vet-review.md
+- Created reevaluation: plans/commit-unification/reports/vet-reevaluation.md
+- Key finding: Handoff-haiku Fix 1 pattern supersedes commit-unification approach
+- Resolution: REMOVE handoff from commit entirely (don't inline, don't invoke - decouple)
+- Updated assessment: "Needs Design Revision" (was "Needs Minor Changes")
+- Rationale: Handoff-haiku established decoupling as superior pattern for separation of concerns
 
-**Planning assessment:**
-- Evaluated via `/plan-adhoc` Point 0 orchestration assessment
-- Conclusion: **Implement directly** (orchestration overhead not justified)
-- Rationale: ~4 files, all straightforward (copies + merge + delete), design complete, single session work
+**Revised commit-unification design:**
+- Updated plans/commit-unification/design.md to apply handoff-haiku Fix 1 pattern
+- Changed Problem #3 from "nested skill bug" to "handoff coupling" (design:9)
+- Updated Requirements: "Remove handoff from commit skill" vs "Inline handoff execution" (design:16)
+- Removed handoff-protocol.md from structure diagram (design:30-37)
+- Rewrote Decision #2: "Remove handoff step entirely" with handoff-haiku rationale (design:54-68)
+- Updated execution flow: removed handoff step, renumbered to 4 steps, added session.md staging (design:89-101)
 
-**Commits:**
-- 5d95c4b: 🔧 Configure project-local tmpdir in .envrc (includes justfile update)
+**Implemented commit-unification in agent-core:**
+- Created commit/references/gitmoji-index.txt (copy from gitmoji/cache/, 78 entries)
+- Created commit/scripts/update-gitmoji-index.sh (adapted from gitmoji/scripts/, executable)
+- Rewrote commit/SKILL.md: 189 lines, merged commit + commit-context
+  - Added --context flag (skip discovery when you know what changed)
+  - Inlined gitmoji selection (Step 3 reads references/gitmoji-index.txt)
+  - Removed handoff step, added note: "Run `/handoff` separately before committing"
+  - Added session.md/plans/ staging guidance (Step 4)
+  - All flags documented: --context, --test, --lint, --no-gitmoji
+- Deleted commit-context/ directory entirely
+- Skill review (plugin-dev:skill-reviewer): PRODUCTION-READY, no blocking issues
 
 ## Pending Tasks
 
-**Commit skill unification implementation (direct execution):**
-1. Copy `agent-core/skills/gitmoji/cache/gitmojis.txt` → `agent-core/skills/commit/references/gitmoji-index.txt`
-2. Adapt `agent-core/skills/gitmoji/scripts/update-gitmoji-index.sh` → `agent-core/skills/commit/scripts/update-gitmoji-index.sh` (update output path)
-3. Rewrite `agent-core/skills/commit/SKILL.md`:
-   - Merge commit + commit-context content
-   - Add `--context` flag handling (skip discovery when set)
-   - Inline gitmoji step (read references/gitmoji-index.txt, semantic matching, prefix commit title)
-   - Keep `/handoff` invocation (step 2)
-   - Update frontmatter description (include `--context` trigger)
-   - Target: ~3K words
-4. Delete `agent-core/skills/commit-context/` directory entirely
-5. Run `just sync-to-parent` in agent-core (removes stale commit-context symlink in claudeutils)
-6. Test all flag combinations
-
-**Reference files:**
-- Design: `plans/commit-unification/design.md`
-- Current `/commit`: `agent-core/skills/commit/SKILL.md` (4.8K)
-- Current `/commit-context`: `agent-core/skills/commit-context/SKILL.md` (5.8K)
-- Gitmoji index: `agent-core/skills/gitmoji/cache/gitmojis.txt` (3.7K, 78 entries)
-
-**Config composition implementation (Phases 5-7 for configs):**
-- See: agent-core/configs/README.md, plans/unification/STATUS.md
+**Commit work:**
+- Commit handoff-haiku import in claudeutils (3 plan docs, session.md updates, symlink cleanup, vet reevaluation, design revision)
+- Commit commit-unification in agent-core (SKILL.md rewrite, gitmoji files, commit-context deletion)
+- Update claudeutils agent-core submodule reference
+- Final commit in claudeutils (submodule update)
 
 ## Blockers / Gotchas
 
-**Nested skill bug (#17351):**
-- Skills invoking other skills via Skill tool cause context switch
-- Workaround: inline the logic or read supporting files directly
-- `/commit` unification inlines gitmoji, keeps `/handoff` (acceptable interruption)
+**None - ready to commit.**
 
 **Config composition gap:**
 - Native @file only works for markdown files
@@ -90,15 +82,20 @@
 - CLAUDE.md files in subdirectories auto-inject into context
 - Template must be named CLAUDE.template.md to avoid this
 
-**Branch state:**
-- claudeutils: main branch (clean after commit 5d95c4b)
-- agent-core: main branch (1 uncommitted change: justfile stale symlink cleanup)
+**Git state:**
+- claudeutils: Modified session.md, new plans/ directories, symlink changes
+- agent-core: Modified commit/SKILL.md, new references/ and scripts/, deleted commit-context/
+- Agent-core at 018d631 (vet-agent), clean working tree before commit-unification changes
 
 ## Next Steps
 
-**Next session:** Execute commit skill unification (direct implementation, 6 steps above). Then `/vet` for review.
+**Immediate:** Commit work in sequence:
+1. Commit handoff-haiku import in claudeutils (plans/, session.md, symlinks)
+2. Commit commit-unification in agent-core (SKILL.md, references/, scripts/, deleted commit-context/)
+3. Update agent-core submodule reference in claudeutils
+4. Final commit in claudeutils (submodule update)
 
-**Model recommendation:** Sonnet (merging skills, semantic work, appropriate for direct implementation)
+**Model recommendation:** Sonnet
 
 ## Recent Learnings
 
@@ -107,6 +104,25 @@
 - Correct pattern: Inline the logic or copy supporting files into the calling skill's references/
 - Rationale: Known bug (#17351) causes context switch; no official nested skill pattern exists
 - Tradeoff: Duplication of small files (gitmoji index) is acceptable vs workflow interruption
+
+**Skill Model Constraints Must Be Enforced:**
+- Anti-pattern: Agent invoked handoff-lite (Haiku-only) from Sonnet
+- Correct pattern: Name encodes constraint (handoff-haiku), `user-invocable: false`, differentiated descriptions
+- Design fix: `plans/handoff-lite-fixes/design.md`
+
+**Template Ambiguity: Replace vs Augment:**
+- Anti-pattern: "Use this template" without merge semantics
+- Correct pattern: Explicit PRESERVE/ADD/REPLACE instructions per section
+- Design fix: Partial template showing only sections being replaced/added
+
+**Skill Delegation Ambiguity:**
+- Anti-pattern: commit-context says "Run `/handoff`" — unclear who invokes
+- Correct pattern: Decouple entirely. Commit = commit. Handoff = handoff. Two commands.
+
+**Skill Description Overlap Causes Misrouting:**
+- Anti-pattern: Two skills sharing trigger phrases ("handoff", "end session")
+- Correct pattern: Internal/model-specific skills have no user-facing triggers, lead with constraints
+- `user-invocable: false` for internal skills
 
 **Orchestration assessment (Point 0) prevents unnecessary runbooks:**
 - Anti-pattern: Creating runbooks for tasks that should be implemented directly
@@ -143,3 +159,9 @@
 - Correct pattern: Update references when deleting documented work - replace with summary or git history note
 - Rationale: Broken references waste time and undermine documentation credibility
 - Example: architecture.md referenced plans/formatter-comparison.md (deleted), replaced with evaluation summary
+
+**Quiet agent pattern for delegation:**
+- Anti-pattern: Agents return verbose output to orchestrator context
+- Correct pattern: Agents write detailed reports to files, return only filename (success) or structured error (failure)
+- Rationale: Prevents context pollution, detailed logs available in files when needed
+- Example: vet-agent writes review to tmp/ or plans/*/reports/, returns just filename
