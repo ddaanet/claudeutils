@@ -190,3 +190,31 @@
 - Stop condition: None
 - Decision made: parse_model_entry uses regex to extract model_name and model fields from YAML entry, returns tuple of (model_name, litellm_model)
 
+### Cycle 2.4: Parse comment metadata (tiers) [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_model_config.py::test_parse_model_entry_tiers -xvs`
+- RED result: FAIL as expected (AssertionError: assert [] == ["haiku", "sonnet"])
+- GREEN result: PASS
+- Regression check: 295/295 passed
+- Refactoring: None (precommit passed, no quality warnings)
+- Files modified:
+  - tests/test_model_config.py (updated test_parse_model_entry_basic to check model object attributes, added test_parse_model_entry_tiers)
+  - src/claudeutils/model/config.py (updated parse_model_entry to return LiteLLMModel object, added regex-based tier extraction from comment line)
+- Stop condition: None
+- Decision made: parse_model_entry changed to return LiteLLMModel object instead of tuple, extracts tiers from comment using regex pattern matching "# tag1,tag2 -" format, splits comma-separated tiers into list
+
+### Cycle 2.5: Parse comment metadata (arena rank and pricing) [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_model_config.py::test_parse_model_entry_metadata -xvs`
+- RED result: FAIL as expected (AssertionError: assert 0 == 5)
+- GREEN result: PASS
+- Regression check: 296/296 passed
+- Refactoring: Fixed docstring formatting to single line, precommit passed with no quality warnings
+- Files modified:
+  - tests/test_model_config.py (added test_parse_model_entry_metadata to validate arena_rank=5, input_price=0.25, output_price=1.25 extraction)
+  - src/claudeutils/model/config.py (added arena rank extraction with regex "arena:N", pricing extraction with regex "$X.XX/$Y.YY", updated parse_model_entry to return LiteLLMModel with extracted values)
+- Stop condition: None
+- Decision made: Extended parse_model_entry to extract arena rank and pricing metadata from comment using separate regex patterns, pricing regex matches decimal format with forward slash separator
+
