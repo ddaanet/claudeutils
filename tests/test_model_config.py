@@ -48,3 +48,21 @@ def test_parse_model_entry_tiers() -> None:
 """
     model = parse_model_entry(yaml_text)
     assert model.tiers == ["haiku", "sonnet"]
+
+
+def test_parse_model_entry_metadata() -> None:
+    """Extract arena rank and pricing from model config comment.
+
+    Parses metadata from model config entry comment line including arena rank
+    and pricing.
+    """
+    yaml_text = """
+  - model_name: Test Model
+    litellm_params:
+      model: test-model-123
+    # haiku,sonnet - arena:5 - $0.25/$1.25
+"""
+    model = parse_model_entry(yaml_text)
+    assert model.arena_rank == 5
+    assert model.input_price == 0.25
+    assert model.output_price == 1.25

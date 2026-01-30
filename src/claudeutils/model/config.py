@@ -44,12 +44,26 @@ def parse_model_entry(yaml_text: str) -> LiteLLMModel:
         tiers_str = tiers_match.group(1)
         tiers = [t.strip() for t in tiers_str.split(",")]
 
+    # Extract arena rank (e.g., "arena:5")
+    arena_rank = 0
+    arena_match = re.search(r"arena:(\d+)", yaml_text)
+    if arena_match:
+        arena_rank = int(arena_match.group(1))
+
+    # Extract pricing (e.g., "$0.25/$1.25")
+    input_price = 0.0
+    output_price = 0.0
+    pricing_match = re.search(r"\$(\d+\.\d+)/\$(\d+\.\d+)", yaml_text)
+    if pricing_match:
+        input_price = float(pricing_match.group(1))
+        output_price = float(pricing_match.group(2))
+
     return LiteLLMModel(
         name=model_name,
         litellm_model=litellm_model,
         tiers=tiers,
-        arena_rank=0,
-        input_price=0.0,
-        output_price=0.0,
+        arena_rank=arena_rank,
+        input_price=input_price,
+        output_price=output_price,
         api_key_env="",
     )
