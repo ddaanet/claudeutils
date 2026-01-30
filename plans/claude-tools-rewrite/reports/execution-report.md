@@ -333,3 +333,32 @@
 - Stop condition: None
 - Decision made: vertical_bar(percentage) calculates Unicode block character from ▁▂▃▄▅▆▇█ based on percentage value, applies color based on severity (green <50%, yellow <80%, red >=80%)
 
+### Cycle 3.5: StatuslineFormatter - limit display [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_statusline_display.py::test_limit_display -xvs`
+- RED result: FAIL as expected (AttributeError: 'StatuslineFormatter' object has no attribute 'limit_display')
+- GREEN result: PASS
+- Regression check: 305/305 passed
+- Refactoring: None (lint passed, precommit passed with no quality warnings)
+- Files modified:
+  - src/claudeutils/statusline/display.py (added limit_display method formatting name, percentage, and reset time with vertical bar)
+  - tests/test_statusline_display.py (added test_limit_display test with format verification)
+- Stop condition: None
+- Decision made: limit_display(name, pct, reset) returns formatted string with limit name, colored vertical bar, percentage, and reset time separated by vertical pipe character
+
+### Cycle 3.6: LaunchAgent plist generation [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_account_switchback.py::test_create_switchback_plist -xvs`
+- RED result: FAIL as expected (ImportError: cannot import name 'create_switchback_plist' from 'claudeutils.account')
+- GREEN result: PASS
+- Regression check: 306/306 passed
+- Refactoring: Fixed lint errors (DTZ005 added UTC timezone, PTH123 changed open() to Path.open()), precommit passed with no quality warnings
+- Files modified:
+  - src/claudeutils/account/switchback.py (created with create_switchback_plist function using plistlib.dump)
+  - src/claudeutils/account/__init__.py (added create_switchback_plist export)
+  - tests/test_account_switchback.py (created with test_create_switchback_plist test using tmp_path fixture)
+- Stop condition: None
+- Decision made: create_switchback_plist(plist_path, switchback_time) calculates target time with UTC timezone, creates plist with Label, ProgramArguments, and StartCalendarInterval containing Hour, Minute, Second fields
+
