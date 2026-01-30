@@ -32,3 +32,11 @@ def set_model(model_name: str) -> None:
     claude_dir.mkdir(parents=True, exist_ok=True)
     override_file = claude_dir / "model-override"
     write_overrides(override_file, {"ANTHROPIC_MODEL": model_name})
+
+
+@model.command("reset")
+def reset_model() -> None:
+    """Reset the default model by deleting override file."""
+    override_file = Path.home() / ".claude" / "model-override"
+    if override_file.exists():
+        override_file.unlink()

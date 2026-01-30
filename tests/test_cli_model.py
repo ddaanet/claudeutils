@@ -43,3 +43,17 @@ def test_model_set(tmp_path: Path) -> None:
     override_file = claude_dir / "model-override"
     assert override_file.exists()
     assert "ANTHROPIC_MODEL=" in override_file.read_text()
+
+
+def test_model_reset(tmp_path: Path) -> None:
+    """Test that model reset command deletes override file."""
+    claude_dir = tmp_path / ".claude"
+    claude_dir.mkdir()
+    override_file = claude_dir / "model-override"
+    override_file.write_text("export ANTHROPIC_MODEL=claude-3-haiku\n")
+
+    runner = CliRunner()
+    with patch("pathlib.Path.home", return_value=tmp_path):
+        result = runner.invoke(cli, ["model", "reset"])
+    assert result.exit_code == 0
+    assert not override_file.exists()
