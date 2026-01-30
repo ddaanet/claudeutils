@@ -9,6 +9,7 @@
       "Bash(ruff:*)",
       "Bash(mypy:*)",
       "Bash(docformatter:*)",
+      "Bash(agent-core/bin/prepare-runbook.py:*)",
       "Skill",
       "WebSearch"
     ],
@@ -26,6 +27,6 @@
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
-    "excludedCommands": ["git"]
+    "excludedCommands": ["git", "agent-core/bin/prepare-runbook.py"]
   }
 }
