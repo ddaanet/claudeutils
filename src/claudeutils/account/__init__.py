@@ -1,6 +1,6 @@
 """Account module."""
 
-from .providers import Provider
+from .providers import AnthropicProvider, Provider
 from .state import AccountState
 
-__all__ = ["AccountState", "Provider"]
+__all__ = ["AccountState", "AnthropicProvider", "Provider"]
