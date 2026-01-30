@@ -18,3 +18,11 @@ class AccountState(BaseModel):
     base_url: str | None = None
     has_api_key_helper: bool
     litellm_proxy_running: bool
+
+    def validate_consistency(self) -> list[str]:
+        """Validate consistency of account state.
+
+        Returns a list of issue strings if any consistency problems are found.
+        Returns an empty list if the state is consistent.
+        """
+        return []

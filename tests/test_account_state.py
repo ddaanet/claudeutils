@@ -21,3 +21,17 @@ def test_account_state_creation() -> None:
     assert state.base_url is None
     assert state.has_api_key_helper is False
     assert state.litellm_proxy_running is False
+
+
+def test_validate_consistency_valid_state() -> None:
+    """Test that validate_consistency() returns empty list for valid state."""
+    state = AccountState(
+        mode="account",
+        provider="anthropic",
+        oauth_in_keychain=False,
+        api_in_claude_env=False,
+        base_url=None,
+        has_api_key_helper=False,
+        litellm_proxy_running=False,
+    )
+    assert state.validate_consistency() == []
