@@ -1,5 +1,7 @@
 """CLI commands for account management."""
 
+from pathlib import Path
+
 import click
 
 from claudeutils.account import AccountState
@@ -31,3 +33,20 @@ def status() -> None:
             click.echo(f"  - {issue}")
     else:
         click.echo("No issues found")
+
+
+@account.command()
+def plan() -> None:
+    """Switch to plan mode and write account configuration files."""
+    # Minimal implementation: write account-mode and claude-env files
+    account_mode_file = Path.home() / ".claude" / "account-mode"
+    claude_env_file = Path.home() / ".claude" / "claude-env"
+
+    # Write account-mode file
+    account_mode_file.parent.mkdir(parents=True, exist_ok=True)
+    account_mode_file.write_text("plan")
+
+    # Write claude-env file (empty for now)
+    claude_env_file.write_text("")
+
+    click.echo("Switched to plan mode")

@@ -1,5 +1,8 @@
 """Tests for the account CLI command group."""
 
+from pathlib import Path
+from unittest.mock import patch
+
 from click.testing import CliRunner
 
 from claudeutils.cli import cli
@@ -11,3 +14,17 @@ def test_account_status() -> None:
     result = runner.invoke(cli, ["account", "status"])
     # The command should exist and return exit code 0
     assert result.exit_code == 0
+
+
+def test_account_plan(tmp_path: Path) -> None:
+    """Test that account plan command switches mode and writes files."""
+    runner = CliRunner()
+    with patch("pathlib.Path.home", return_value=tmp_path):
+        result = runner.invoke(cli, ["account", "plan"])
+    assert result.exit_code == 0
+    # Verify files were written
+    account_mode_file = tmp_path / ".claude" / "account-mode"
+    claude_env_file = tmp_path / ".claude" / "claude-env"
+    assert account_mode_file.exists()
+    assert claude_env_file.exists()
+    assert account_mode_file.read_text() == "plan"
