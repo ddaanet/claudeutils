@@ -11,3 +11,6 @@ list/
 
 # IDE cruft
 /.vscode/
+
+# Local configuration (per-user, not shared)
+*.local.*
