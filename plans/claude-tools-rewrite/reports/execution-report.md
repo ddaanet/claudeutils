@@ -305,3 +305,17 @@
 - Stop condition: None
 - Decision made: StatuslineFormatter.colored(text, color) returns text wrapped in ANSI codes with reset, supports red/green/yellow/blue/magenta/cyan/white colors with hardcoded ANSI codes
 
+### Cycle 3.3: StatuslineFormatter - token bar [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_statusline_display.py::test_token_bar -xvs`
+- RED result: FAIL as expected (AttributeError: 'StatuslineFormatter' object has no attribute 'token_bar')
+- GREEN result: PASS
+- Regression check: 303/303 passed
+- Refactoring: Fixed D205 lint error (docstring multi-line format requires blank line between summary and description), precommit passed with no quality warnings
+- Files modified:
+  - src/claudeutils/statusline/display.py (added token_bar method calculating percentage and rendering Unicode blocks)
+  - tests/test_statusline_display.py (added test_token_bar test with 0%, 50%, and 100% usage cases)
+- Stop condition: None
+- Decision made: token_bar(tokens, max_tokens) calculates percentage and selects Unicode block character from ▁▂▃▄▅▆▇█ based on percentage value
+
