@@ -52,6 +52,8 @@
 
 **Rule:** When creating, editing, or discussing skills, start by loading the `plugin-dev:skill-development` skill.
 
+**Location:** All skills live in `agent-core/skills/`. They are symlinked from `.claude/skills/`. Run `just sync-to-parent` in `agent-core/` to update symlinks.
+
 **Why:** The skill-development skill provides:
 - Skill structure and frontmatter guidance
 - Progressive disclosure patterns
