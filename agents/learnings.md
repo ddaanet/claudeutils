@@ -87,3 +87,44 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: TDD principle "write minimal code to pass test" works only if test requires real behavior
 - Example: Test should mock ~/.claude/account-mode file and verify CLI reads it, not just check exit code
 - See: plans/claude-tools-rewrite/runbook-analysis.md for detailed examples
+
+**No human escalation during refactoring:**
+- Design decisions are made during /design phase
+- Opus handles architectural refactoring within design bounds
+- Human escalation only for execution blockers (in orchestrate skill)
+- Rationale: Blocking pipeline for human input during refactoring is expensive
+
+**Defense-in-depth for commit verification:**
+- tdd-task: post-commit sanity check (verify commit contains expected files)
+- orchestrate: post-step tree check (escalate if dirty)
+- Rationale: Catches different failure modes at different levels
+
+**Handoff must preserve design decision detail:**
+- Anti-pattern: Abbreviating design decisions during handoff, losing rationale
+- Correct pattern: Write design decisions with rationale to learnings.md (staging for /remember)
+- session.md allowed sections: Completed, Pending, Blockers, References only
+- learnings.md is staging → /remember consolidates to permanent locations (fragments/, decisions/, skill references/)
+
+**Don't track "commit this" as pending task:**
+- Anti-pattern: `- [ ] Commit changes` in session.md pending tasks
+- Issue: Commits don't update session.md, so task is never marked done
+- Correct pattern: Commits happen organically; only track substantive work
+
+**Skills cannot invoke other skills (expanded):**
+- Anti-pattern: Skill A invokes `/skill-b` via Skill tool
+- Behavior: Agent stops when first skill finishes; second skill never runs
+- Known issue: Open bug in Claude Code (see also "Don't compose skills" learning above)
+- Implication: /commit cannot call /handoff; must be separate user actions
+- Correct pattern: Inline the logic or use references/ files
+
+**@ references only work in CLAUDE.md:**
+- Not supported in: skill SKILL.md files, agent .md system prompts, Task tool prompts
+- Workaround: Place supporting files in skill directory and reference with relative path
+- Example: `skills/gitmoji/gitmoji-table.md` referenced from SKILL.md
+
+**Tool batching enforcement is an unsolved problem:**
+- Documentation (tool-batching.md fragment) doesn't reliably change behavior
+- Direct interactive guidance is often ignored
+- Hookify rules add per-tool-call context bloat (session bloat)
+- Cost-benefit unclear: planning tokens for batching may exceed cached re-read savings
+- Pending exploration: contextual block with contract (batch-level hook rules)
