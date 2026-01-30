@@ -4,7 +4,7 @@ from pathlib import Path
 
 import click
 
-from claudeutils.model import load_litellm_config
+from claudeutils.model import load_litellm_config, write_overrides
 
 
 @click.group()
@@ -22,3 +22,13 @@ def list_models() -> None:
             click.echo(m.name)
     else:
         click.echo("No LiteLLM configuration found")
+
+
+@model.command("set")
+@click.argument("model_name")
+def set_model(model_name: str) -> None:
+    """Set the default model by writing to override file."""
+    claude_dir = Path.home() / ".claude"
+    claude_dir.mkdir(parents=True, exist_ok=True)
+    override_file = claude_dir / "model-override"
+    write_overrides(override_file, {"ANTHROPIC_MODEL": model_name})

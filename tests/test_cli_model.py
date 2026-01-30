@@ -29,3 +29,17 @@ def test_model_list(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "claude-3-haiku" in result.output
     assert "gpt-4" in result.output
+
+
+def test_model_set(tmp_path: Path) -> None:
+    """Test that model set command writes override file."""
+    claude_dir = tmp_path / ".claude"
+    claude_dir.mkdir()
+
+    runner = CliRunner()
+    with patch("pathlib.Path.home", return_value=tmp_path):
+        result = runner.invoke(cli, ["model", "set", "claude-3-haiku"])
+    assert result.exit_code == 0
+    override_file = claude_dir / "model-override"
+    assert override_file.exists()
+    assert "ANTHROPIC_MODEL=" in override_file.read_text()

@@ -434,3 +434,19 @@
 - Stop condition: None
 - Decision made: Minimal implementation: api command accepts --provider option (default "anthropic"), writes account-mode file with "api" content and account-provider file with selected provider to ~/.claude/. Test uses tmp_path fixture with Path.home() mock.
 
+### Cycle 3.12: Model CLI - list command [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_cli_model.py::test_model_list -xvs`
+- RED result: FAIL as expected (exit code 2 - No such command 'model')
+- GREEN result: PASS
+- Regression check: 312/312 passed
+- Refactoring: Fixed lint errors (variable `list` shadowing builtin, import at top-level), renamed list function to list_models with "list" command name, precommit passed with no quality warnings
+- Files modified:
+  - src/claudeutils/model/cli.py (created with model group and list_models command calling load_litellm_config)
+  - tests/test_cli_model.py (created with test_model_list test using mock config file and Path.home mock)
+  - src/claudeutils/cli.py (added model command import and registration)
+  - src/claudeutils/model/__init__.py (added load_litellm_config export)
+- Stop condition: None
+- Decision made: Minimal implementation: model list command reads LiteLLM config from ~/.config/litellm/config.yaml, calls load_litellm_config to parse models, echoes model names. Test creates mock config file with sample models and mocks Path.home() for isolation.
+
