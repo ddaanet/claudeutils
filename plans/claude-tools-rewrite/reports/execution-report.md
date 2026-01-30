@@ -420,3 +420,17 @@
 - Stop condition: None
 - Decision made: Minimal implementation: plan command writes account-mode file with "plan" content and empty claude-env file to ~/.claude/. Test uses tmp_path fixture with Path.home() mock to avoid filesystem access.
 
+### Cycle 3.11: Account CLI - api command [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_cli_account.py::test_account_api -xvs`
+- RED result: FAIL as expected (Error: No such command 'api', exit code 2)
+- GREEN result: PASS
+- Regression check: 311/311 passed
+- Refactoring: None (lint passed, precommit passed with no quality warnings)
+- Files modified:
+  - src/claudeutils/account/cli.py (added api command with --provider option, file writing logic)
+  - tests/test_cli_account.py (added test_account_api test with tmp_path and mock)
+- Stop condition: None
+- Decision made: Minimal implementation: api command accepts --provider option (default "anthropic"), writes account-mode file with "api" content and account-provider file with selected provider to ~/.claude/. Test uses tmp_path fixture with Path.home() mock.
+

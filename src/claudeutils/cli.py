@@ -16,6 +16,7 @@ from claudeutils.exceptions import ClaudeUtilsError
 from claudeutils.extraction import extract_feedback_recursively
 from claudeutils.filtering import categorize_feedback, filter_feedback
 from claudeutils.markdown import process_file
+from claudeutils.model.cli import model
 from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
 from claudeutils.tokens_cli import handle_tokens
@@ -148,6 +149,7 @@ def list_sessions(project: str | None) -> None:
 
 
 cli.add_command(account)
+cli.add_command(model)
 
 
 @cli.command(help="Extract feedback from session")
