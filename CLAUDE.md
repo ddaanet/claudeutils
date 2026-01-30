@@ -46,6 +46,13 @@
 
 @agent-core/fragments/execute-rule.md
 
+**Pending task notation:**
+
+When user says "pending: task description":
+- Do NOT execute the task now
+- Keep in context and write to session.md Pending Tasks section on next handoff
+- Acknowledge receipt: "Added to pending tasks"
+
 @agent-core/fragments/delegation.md
 
 ### Skill Development
