@@ -261,3 +261,18 @@
 - Stop condition: None
 - Decision made: read_overrides uses regex to parse "export VAR=value" lines from file, returns dict[str, str] with variable names and values
 
+### Cycle 2.9: Model override file write [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_model_overrides.py::test_write_overrides -xvs`
+- RED result: FAIL as expected (ImportError: cannot import name 'write_overrides' from 'claudeutils.model')
+- GREEN result: PASS
+- Regression check: 300/300 passed
+- Refactoring: Fixed lint errors (A002 parameter shadowing builtin `vars`, PLC0415 import at top-level), precommit passed with no quality warnings
+- Files modified:
+  - tests/test_model_overrides.py (added test_write_overrides test with import at top-level, updated test variable naming)
+  - src/claudeutils/model/overrides.py (added write_overrides function writing dict as bash export statements, renamed parameter from `vars` to `env_vars` to avoid shadowing builtin)
+  - src/claudeutils/model/__init__.py (added write_overrides export)
+- Stop condition: None
+- Decision made: write_overrides writes dict entries as "export KEY=value\n" lines, takes env_vars dict parameter, writes to specified path using Path.write_text()
+
