@@ -4,6 +4,12 @@
 
 ## Completed This Session
 
+**Workflow vet enforcement (committed in 6e16c19):**
+- Updated /plan-adhoc: Require high/medium fix application in revision loop
+- Updated /plan-tdd: Changed from user-optional to mandatory fix enforcement
+- Updated /orchestrate: Expanded checkpoint process with three-step Fix/Vet/Functional review
+- Standardized terminology: high/medium priority (was critical/major)
+
 **Hook fixes (committed in 7083806):**
 - Fixed pretooluse-block-tmp.sh: Output plain text to stderr + exit 2 (not JSON)
 - Moved submodule-safety.py from PreToolUse to PostToolUse (cwd checks need to run after commands execute)
@@ -24,7 +30,7 @@
 
 ## Pending Tasks
 
-- [ ] **Ensure workflow vet enforcement** — After `/plan-adhoc` and `/plan-tdd` completion, ensure high/medium fixes applied; during `/orchestrate`, ensure vet steps apply high/medium fixes
+- [x] **Ensure workflow vet enforcement** — After `/plan-adhoc` and `/plan-tdd` completion, ensure high/medium fixes applied; during `/orchestrate`, ensure vet steps apply high/medium fixes
 - [ ] **Execute recovery runbook** — `/orchestrate` on claude-tools-recovery (haiku execution)
 - [ ] **Run /remember** — learnings.md at 131 lines (soft limit 80)
 - [ ] **Discuss** — Tool batching: contextual block with contract (batch-level hook rules)
