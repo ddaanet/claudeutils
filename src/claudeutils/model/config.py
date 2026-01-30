@@ -94,3 +94,16 @@ def load_litellm_config(path: Path) -> list[LiteLLMModel]:
         models.append(model)
 
     return models
+
+
+def filter_by_tier(models: list[LiteLLMModel], tier: str) -> list[LiteLLMModel]:
+    """Return models matching specified tier.
+
+    Args:
+        models: List of LiteLLMModel objects to filter
+        tier: Tier name to filter by
+
+    Returns:
+        List of models where tier is in m.tiers
+    """
+    return [m for m in models if tier in m.tiers]

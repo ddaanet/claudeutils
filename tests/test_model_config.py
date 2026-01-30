@@ -3,7 +3,11 @@
 from pathlib import Path
 
 from claudeutils.model import LiteLLMModel
-from claudeutils.model.config import load_litellm_config, parse_model_entry
+from claudeutils.model.config import (
+    filter_by_tier,
+    load_litellm_config,
+    parse_model_entry,
+)
 
 
 def test_litellm_model_creation() -> None:
@@ -93,3 +97,32 @@ model_list:
     assert models[1].name == "Claude 3.5 Haiku"
     assert models[1].litellm_model == "claude-3-5-haiku-20241022"
     assert models[1].arena_rank == 2
+
+
+def test_filter_by_tier() -> None:
+    """filter_by_tier() returns models matching specified tier."""
+    models = [
+        LiteLLMModel(
+            name="Claude 3.5 Sonnet",
+            litellm_model="claude-3-5-sonnet-20241022",
+            tiers=["sonnet", "api"],
+            arena_rank=1,
+            input_price=3.0,
+            output_price=15.0,
+            api_key_env="ANTHROPIC_API_KEY",
+            api_base=None,
+        ),
+        LiteLLMModel(
+            name="Claude 3.5 Haiku",
+            litellm_model="claude-3-5-haiku-20241022",
+            tiers=["haiku"],
+            arena_rank=2,
+            input_price=0.8,
+            output_price=4.0,
+            api_key_env="ANTHROPIC_API_KEY",
+            api_base=None,
+        ),
+    ]
+    haiku_models = filter_by_tier(models, "haiku")
+    assert len(haiku_models) == 1
+    assert haiku_models[0].name == "Claude 3.5 Haiku"
