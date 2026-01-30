@@ -32,7 +32,8 @@
 ## Pending Tasks
 
 - [x] **Ensure workflow vet enforcement** — After `/plan-adhoc` and `/plan-tdd` completion, ensure high/medium fixes applied; during `/orchestrate`, ensure vet steps apply high/medium fixes
-- [ ] **Execute recovery runbook** — `/orchestrate` on claude-tools-recovery (haiku execution)
+- [ ] **Design session: Update recovery runbook** — Opus review of test file structure and runbook regeneration (CURRENT)
+- [ ] **Execute recovery runbook** — `/orchestrate` on claude-tools-recovery (after design fixes)
 - [ ] **Run /remember** — learnings.md at 131 lines (soft limit 80)
 - [ ] **Discuss** — Tool batching: contextual block with contract (batch-level hook rules)
 - [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
@@ -84,6 +85,15 @@
 - Writing to `.claude/agents/` triggers sandbox permission error
 - Workaround: Added to excludedCommands in settings.json
 
+**Recovery runbook file structure mismatch (BLOCKER):**
+- Runbook references `tests/test_account.py` consolidated test file
+- Actual codebase has granular structure: test_account_structure.py, test_account_state.py, test_account_providers.py, test_account_keychain.py, test_account_switchback.py, test_account_usage.py, test_cli_account.py
+- Cycle 0.1 failed: test_account.py doesn't exist, test_account_status_basic not found
+- Runbook common context assumes wrong test file paths throughout all 43 cycles
+- Root cause: Runbook generated with stale assumptions about test organization
+- Impact: Cannot execute recovery without updating runbook with correct file paths
+- Solution: Design session to review actual test structure and regenerate runbook with correct context
+
 ## Reference Files
 
 - `agent-core/agents/test-hooks.md` — Hook testing procedure (10 tests)
@@ -103,11 +113,11 @@
 ## Next Steps
 
 **Priority order:**
-1. Ensure workflow vet enforcement (skill updates)
-2. Execute recovery runbook (orchestration)
+1. **Design session (URGENT):** Opus review and recovery runbook regeneration with correct test file structure
+2. Execute recovery runbook (orchestration) — after design fixes
 3. Run /remember (learnings consolidation)
 4. Design-vet-agent creation (opus session)
 5. Tool batching discussion (exploration)
 
 ---
-*Handoff by Sonnet. Hook fixes committed; pending tasks restored.*
+*Handoff by Haiku. Recovery execution blocked on runbook test file paths. Prepare for Opus design session to review actual test structure and regenerate runbook.*
