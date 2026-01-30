@@ -110,8 +110,9 @@ Add to Protocol section (after "3. Context Preservation"):
 - `## Pending Tasks`
 - `## Blockers / Gotchas`
 - `## Reference Files`
+- `## Next Steps`
 
-**NEVER create other sections.** No "Learnings", "New Learnings", "Recent Learnings", "Key Design Decisions", or "Next Steps". Learnings and design decisions go to `agents/learnings.md`. Session.md is work state only.
+**NEVER create other sections.** No "Learnings", "New Learnings", "Recent Learnings", or "Key Design Decisions". Learnings and design decisions go to `agents/learnings.md`. Session.md is work state only.
 ```
 
 #### 2c. Add design decisions → learnings guidance
@@ -133,6 +134,7 @@ Add to "4. Write Learnings to Separate File":
 - `## Pending Tasks`
 - `## Blockers / Gotchas`
 - `## Reference Files`
+- `## Next Steps`
 
 Remove `## Key Design Decisions Made` from the constraint list in §2b as well.
 
@@ -146,47 +148,11 @@ Add to "6. Trim Completed Tasks" section (Do NOT list):
 
 ### 3. Session.md — fix current state
 
-- Remove `## New Learnings` section (lines 66-80)
-- Remove `## Key Design Decisions Made` section (lines 52-64) — content moves to learnings.md
-- Remove `- [ ] Commit skill improvements` from pending tasks
-- Content from removed sections + lost design decisions → learnings.md (§4)
+**ALREADY APPLIED.** The 2026-01-30 handoff rewrote session.md without these sections. Skip this section.
 
 ### 4. Learnings.md — absorb design decisions
 
-Append the following (design decisions that were lost in handoff + new learnings from this session):
-
-```markdown
-**No human escalation during refactoring:**
-- Design decisions are made during /design phase
-- Opus handles architectural refactoring within design bounds
-- Human escalation only for execution blockers (in orchestrate skill)
-- Rationale: Blocking pipeline for human input during refactoring is expensive
-
-**Defense-in-depth for commit verification:**
-- tdd-task: post-commit sanity check (verify commit contains expected files)
-- orchestrate: post-step tree check (escalate if dirty)
-- Rationale: Catches different failure modes at different levels
-
-**Handoff must preserve design decision detail:**
-- Anti-pattern: Abbreviating design decisions during handoff, losing rationale
-- Correct pattern: Write design decisions with rationale to learnings.md (staging area for /remember)
-- session.md sections are fixed: Completed, Pending, Blockers, References only (see handoff skill §2b)
-- learnings.md is staging → /remember consolidates to permanent locations (fragments/, decisions/, skill references/)
-
-**Don't track "commit this" as pending task:**
-- Anti-pattern: `- [ ] Commit changes` in session.md pending tasks
-- Issue: Commits don't update session.md, so task is never marked done
-- Correct pattern: Commits happen organically; only track substantive work
-
-**Skills cannot invoke other skills:**
-- Anti-pattern: Skill A invokes `/skill-b` via Skill tool
-- Behavior: Agent stops when first skill finishes; second skill never runs
-- Known issue: Open bug in Claude Code
-- Correct pattern: Inline the logic or use references/ files
-- Implication: /commit cannot call /handoff; must be separate user actions
-```
-
-Note: learnings.md will be ~110 lines. Needs `/remember` consolidation.
+**ALREADY APPLIED.** The 2026-01-30 handoff appended all five learnings (lines 91-130 of learnings.md). Skip this section.
 
 ### 5. Git cleanup — .local files
 
@@ -314,7 +280,7 @@ The PreToolUse warning is the best available solution. Warning message should re
 
 ### D3. Session.md section constraints (learnings AND design decisions)
 
-**Decision:** Add explicit allowed-section list to handoff skill. Four sections only: Completed, Pending, Blockers, References.
+**Decision:** Add explicit allowed-section list to handoff skill. Five sections: Completed, Pending, Blockers, Reference Files, Next Steps.
 
 The constraint covers:
 - **Learnings:** Must go to learnings.md
@@ -346,8 +312,6 @@ Route: Direct execution (simple edits, no orchestration needed)
 - `agent-core/skills/handoff/SKILL.md` (§2b, §2c, §2e)
 - `agent-core/skills/handoff/examples/good-handoff.md` (§2a: delete learnings)
 - `agent-core/skills/handoff/references/template.md` (§2d: remove Key Design Decisions reference if present)
-- `agents/session.md` (§3: remove New Learnings, Key Design Decisions, commit pending task)
-- `agents/learnings.md` (§4: append)
 - `.gitignore` (§5a: add pattern)
 - `agent-core/hooks/hooks.json` (§6: add Bash matcher)
 - `agent-core/hooks/submodule-safety.py` (§6: new script)
