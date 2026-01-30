@@ -1,37 +1,41 @@
 # Session Handoff: 2026-01-30
 
-**Status:** Recovery runbook generated; execution artifacts created; pending skill updates
+**Status:** Hooks fixed and tested; vet requirement added; pending workflow vet enforcement
 
 ## Completed This Session
 
-**Feedback-fixes execution (committed):**
-- Applied all changes from `plans/feedback-fixes/design.md`
-- tdd-task.md: Moved log entry to Step 5, removed orphaned section, renumbered steps 1-7
-- Handoff skill: Added section constraints (5 allowed sections), design decisions → learnings guidance
-- good-handoff.md: Removed pre-migration learnings section
-- .gitignore: Added `*.local.*` pattern
-- agent-core hooks: Restructured hooks.json, created submodule-safety.py PreToolUse hook
-- CLAUDE.md: Added pending task notation rule ("pending: task" → defer to session.md)
+**Hook fixes (uncommitted):**
+- `agent-core/hooks/hooks.json`: Added missing `"matcher": "Write"` for tmp-block hook, changed `${CLAUDE_PLUGIN_ROOT}` to `$CLAUDE_PROJECT_DIR/.claude` (project-local hooks don't have CLAUDE_PLUGIN_ROOT)
+- `agent-core/hooks/submodule-safety.py`: Removed dead `is_inside_submodule()` function, changed logic to warn on ANY Bash command when `cwd != project root` (not just git operations)
+- `agent-core/agents/test-hooks.md`: Created comprehensive test procedure with 10 test cases, standardized expected outcome format (Hook behavior / System message / Tool execution), documented hook matcher mutual exclusivity
 
-**Recovery runbook generation:**
-- Created `plans/claude-tools-recovery/runbook.md` (43 cycles across 4 phases)
-- Phase R0: Delete vacuous tests (4 cycles)
-- Phase R1: Strengthen provider/keychain tests (7 cycles)
-- Phase R2: Strengthen CLI tests (10 cycles)
-- Phase R3: Wire implementations (14 cycles)
-- Phase R4: Error handling + integration tests (8 cycles)
-- Unique pattern: strengthen tests first (R1/R2), wire implementations after (R3)
-- tdd-plan-reviewer validation: PASS (0 violations)
-- Ran `prepare-runbook.py`: Generated 43 step files + orchestrator plan + agent template
+**Vet requirement directive (uncommitted):**
+- `agent-core/fragments/vet-requirement.md`: Created fragment requiring sonnet vet of all production artifacts (plans, code, tests, agent procedures, skills, docs), designs reviewed by opus
+- `CLAUDE.md`: Added reference to vet-requirement.md
+- `.claude/skills/design/SKILL.md`: Added steps 5-6 (vet with opus subagent, apply all high/medium fixes)
+
+**Previous session work (committed):**
+- Feedback-fixes execution in commit history
+- Recovery runbook generation completed
 
 ## Pending Tasks
 
-- [ ] **Update plan-tdd skill** — Apply skill-improvements/design.md changes (assertion quality, happy path first, integration coverage, metadata validation, enhanced checkpoints)
-- [ ] **Update plan-adhoc skill** — Add success criteria guidance (avoid structural-only checks)
-- [ ] **Run /remember** — learnings.md at 130 lines (soft limit 80)
+- [ ] **Ensure workflow vet enforcement** — After `/plan-adhoc` and `/plan-tdd` completion, ensure high/medium fixes applied; during `/orchestrate`, ensure vet steps apply high/medium fixes
+- [ ] **Execute recovery runbook** — `/orchestrate` on claude-tools-recovery (haiku execution)
+- [ ] **Run /remember** — learnings.md at 131 lines (soft limit 80)
 - [ ] **Discuss** — Tool batching: contextual block with contract (batch-level hook rules)
+- [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
 
 ## Blockers / Gotchas
+
+**Hooks require session restart:**
+- Hook changes only take effect after restarting Claude Code
+- Test hooks after commit by restarting session and running test-hooks.md procedure
+
+**Hook configuration format:**
+- Plugin hooks use `{"description": "...", "hooks": {...}}` wrapper format
+- Settings hooks use direct `{event: [...]}` format
+- Project-local hooks (.claude/hooks/) use direct format like settings
 
 **Python 3.14 Incompatibility:**
 - litellm dependency uvloop doesn't support Python 3.14 yet
@@ -45,7 +49,7 @@
 - Main interactive agent: cwd persists between Bash calls
 - Sub-agents (Task tool): cwd does NOT persist
 - CLAUDE.md absolute path guidance targets sub-agents
-- New submodule-safety hook warns about common cwd mistakes
+- submodule-safety hook now warns about any non-root cwd
 
 **prepare-runbook.py requires sandbox bypass:**
 - Writing to `.claude/agents/` triggers sandbox permission error
@@ -53,21 +57,25 @@
 
 ## Reference Files
 
-- `plans/skill-improvements/design.md` — Skill changes to apply (10 components)
 - `plans/claude-tools-recovery/design.md` — Recovery design (4 phases R0-R4)
 - `plans/claude-tools-recovery/runbook.md` — Generated TDD runbook (43 cycles)
 - `plans/claude-tools-recovery/orchestrator-plan.md` — Execution plan
-- `plans/claude-tools-recovery/reports/runbook-review.md` — tdd-plan-reviewer report
-- `agent-core/hooks/submodule-safety.py` — PreToolUse hook for git cwd safety
+- `agent-core/agents/test-hooks.md` — Hook testing procedure (10 tests)
+- `agent-core/fragments/vet-requirement.md` — Production artifact vet directive
 
 ## Next Steps
 
-**Immediate:** Apply skill-improvements to plan-tdd and plan-adhoc skills (detailed in design.md)
+**Immediate:** Commit hook fixes and vet requirement changes
 
-**After skill updates:**
-1. Execute recovery runbook with `/orchestrate`
-2. Run `/remember` to consolidate learnings
-3. Commit all changes
+**After commit:**
+1. Restart Claude Code to load updated hooks
+2. Test hooks using test-hooks.md procedure
+3. Ensure workflow vet enforcement in plan-adhoc/plan-tdd/orchestrate
+4. Execute recovery runbook with `/orchestrate`
+
+**After recovery:**
+1. Run `/remember` to consolidate learnings
+2. Vet and commit recovered implementations
 
 ---
-*Handoff by Sonnet. Recovery runbook ready; skill updates pending.*
+*Handoff by Sonnet. Hooks fixed; vet workflow enforcement pending.*

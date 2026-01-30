@@ -42,6 +42,8 @@
 
 @agent-core/fragments/tmp-directory.md
 
+@agent-core/fragments/vet-requirement.md
+
 ## Session Management
 
 @agent-core/fragments/execute-rule.md
