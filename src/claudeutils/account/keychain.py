@@ -25,3 +25,25 @@ class Keychain:
 
         # Extract password from output (remove newline if present)
         return result.stdout.decode("utf-8").strip()
+
+    def add(self, account: str, password: str, service: str) -> None:
+        """Add password to keychain.
+
+        Args:
+            account: Account name to store
+            password: Password to store
+            service: Service name to store under
+        """
+        subprocess.run(
+            [
+                "security",
+                "add-generic-password",
+                "-a",
+                account,
+                "-s",
+                service,
+                "-p",
+                password,
+            ],
+            check=False,
+        )
