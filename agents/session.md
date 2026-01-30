@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-30
 
-**Status:** All work complete and committed
+**Status:** Work complete, ready to commit
 
 ## Completed This Session
 
@@ -63,6 +63,16 @@
 - Commit 8398772: Import handoff-haiku context, revise design (claudeutils)
 - Commit 7f6a14f: Unify commit skills (agent-core)
 - Commit d5b9169: Update agent-core submodule 018d631→7f6a14f (claudeutils)
+
+**Updated plan-adhoc and plan-tdd skills for direct prepare-runbook.py invocation:**
+- Changed all `python3 agent-core/bin/prepare-runbook.py` to `agent-core/bin/prepare-runbook.py` (relies on shebang)
+- Updated allowed-tools in both skills: added `agent-core/bin/prepare-runbook.py` to Bash permits
+- Removed `python3:*` from plan-adhoc allowed-tools (no longer needed)
+- Added allowed-tools field to plan-tdd frontmatter
+- Rationale: Enables sandbox exemption configuration for prepare-runbook.py specifically (impossible with python3 prefix)
+- Files modified in agent-core:
+  - skills/plan-adhoc/SKILL.md (3 occurrences changed, frontmatter updated)
+  - skills/plan-tdd/SKILL.md (2 occurrences changed, frontmatter added)
 
 ## Pending Tasks
 
