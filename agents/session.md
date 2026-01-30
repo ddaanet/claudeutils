@@ -4,11 +4,12 @@
 
 ## Completed This Session
 
-**Workflow vet enforcement (committed in 6e16c19):**
+**Workflow vet enforcement (committed in 6e16c19, a02e77c):**
 - Updated /plan-adhoc: Require high/medium fix application in revision loop
 - Updated /plan-tdd: Changed from user-optional to mandatory fix enforcement
-- Updated /orchestrate: Expanded checkpoint process with three-step Fix/Vet/Functional review
+- Updated /orchestrate: Tiered checkpoints (light: Fix+Functional at every phase, full: Fix+Vet+Functional at final phase + markers)
 - Standardized terminology: high/medium priority (was critical/major)
+- Opus consultation: Balanced quality vs cost - vet reviews at meaningful boundaries only
 
 **Hook fixes (committed in 7083806):**
 - Fixed pretooluse-block-tmp.sh: Output plain text to stderr + exit 2 (not JSON)
