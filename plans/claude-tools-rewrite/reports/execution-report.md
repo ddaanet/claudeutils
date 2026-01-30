@@ -290,3 +290,18 @@
 - Stop condition: None
 - Decision made: Statusline module created as empty package structure with module docstring, test validates basic import capability
 
+### Cycle 3.2: StatuslineFormatter - colored text [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_statusline_display.py::test_colored_text -xvs`
+- RED result: FAIL as expected (ImportError: cannot import name 'StatuslineFormatter' from 'claudeutils.statusline')
+- GREEN result: PASS
+- Regression check: 302/302 passed
+- Refactoring: Fixed RUF012 lint error (annotated COLORS and RESET as ClassVar), precommit passed with no quality warnings
+- Files modified:
+  - src/claudeutils/statusline/display.py (created StatuslineFormatter class with colored method, COLORS dict and RESET constant)
+  - src/claudeutils/statusline/__init__.py (added StatuslineFormatter import and __all__ export)
+  - tests/test_statusline_display.py (created with test_colored_text test, testing red, green, yellow colors with ANSI codes)
+- Stop condition: None
+- Decision made: StatuslineFormatter.colored(text, color) returns text wrapped in ANSI codes with reset, supports red/green/yellow/blue/magenta/cyan/white colors with hardcoded ANSI codes
+

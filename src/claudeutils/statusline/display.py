@@ -30,3 +30,25 @@ class StatuslineFormatter:
         """
         color_code = self.COLORS.get(color, "")
         return f"{color_code}{text}{self.RESET}"
+
+    def token_bar(self, tokens: int, max_tokens: int) -> str:
+        """Generate Unicode block progress bar for token usage.
+
+        Args:
+            tokens: Current token count
+            max_tokens: Maximum token limit
+
+        Returns:
+            Progress bar using Unicode block characters
+        """
+        if max_tokens <= 0:
+            return ""
+
+        percentage = (tokens / max_tokens) * 100
+        block_chars = "▁▂▃▄▅▆▇█"
+
+        # Calculate which block character to use (0-8)
+        block_index = int((percentage / 100) * len(block_chars))
+        block_index = min(block_index, len(block_chars) - 1)
+
+        return block_chars[block_index]

@@ -24,3 +24,27 @@ def test_colored_text() -> None:
     assert "\033[33m" in yellow_text  # Yellow ANSI code
     assert "warning" in yellow_text
     assert "\033[0m" in yellow_text
+
+
+def test_token_bar() -> None:
+    """Generate progress bar with Unicode blocks.
+
+    StatuslineFormatter.token_bar() generates progress bar for token usage.
+    """
+    formatter = StatuslineFormatter()
+
+    # Test with 50% usage (5 out of 10)
+    bar = formatter.token_bar(5, 10)
+    assert isinstance(bar, str)
+    # Should contain Unicode block characters
+    assert any(char in bar for char in "▁▂▃▄▅▆▇█")
+
+    # Test with 0% usage
+    bar_empty = formatter.token_bar(0, 10)
+    assert isinstance(bar_empty, str)
+
+    # Test with 100% usage
+    bar_full = formatter.token_bar(10, 10)
+    assert isinstance(bar_full, str)
+    # Should contain full block character
+    assert "█" in bar_full
