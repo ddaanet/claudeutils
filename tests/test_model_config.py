@@ -1,7 +1,9 @@
 """Test model configuration with Pydantic models."""
 
+from pathlib import Path
+
 from claudeutils.model import LiteLLMModel
-from claudeutils.model.config import parse_model_entry
+from claudeutils.model.config import load_litellm_config, parse_model_entry
 
 
 def test_litellm_model_creation() -> None:
@@ -66,3 +68,28 @@ def test_parse_model_entry_metadata() -> None:
     assert model.arena_rank == 5
     assert model.input_price == 0.25
     assert model.output_price == 1.25
+
+
+def test_load_litellm_config(tmp_path: Path) -> None:
+    """load_litellm_config() reads YAML file and parses all model entries."""
+    config_file = tmp_path / "config.yaml"
+    config_file.write_text("""
+model_list:
+  - model_name: Claude 3.5 Sonnet
+    litellm_params:
+      model: claude-3-5-sonnet-20241022
+    # sonnet - arena:1 - $3.00/$15.00
+
+  - model_name: Claude 3.5 Haiku
+    litellm_params:
+      model: claude-3-5-haiku-20241022
+    # haiku - arena:2 - $0.80/$4.00
+""")
+    models = load_litellm_config(config_file)
+    assert len(models) == 2
+    assert models[0].name == "Claude 3.5 Sonnet"
+    assert models[0].litellm_model == "claude-3-5-sonnet-20241022"
+    assert models[0].arena_rank == 1
+    assert models[1].name == "Claude 3.5 Haiku"
+    assert models[1].litellm_model == "claude-3-5-haiku-20241022"
+    assert models[1].arena_rank == 2

@@ -1,6 +1,7 @@
 """Pydantic models for model configuration."""
 
 import re
+from pathlib import Path
 
 from pydantic import BaseModel
 
@@ -67,3 +68,29 @@ def parse_model_entry(yaml_text: str) -> LiteLLMModel:
         output_price=output_price,
         api_key_env="",
     )
+
+
+def load_litellm_config(path: Path) -> list[LiteLLMModel]:
+    """Load full LiteLLM config file and parse all model entries.
+
+    Args:
+        path: Path to config.yaml file
+
+    Returns:
+        List of LiteLLMModel objects parsed from config
+    """
+    config_text = path.read_text()
+    models = []
+
+    # Split on model_list entries
+    model_entries = re.split(r"(?=\n  - model_name:)", config_text)
+
+    for raw_entry in model_entries:
+        entry = raw_entry.strip()
+        if not entry or "model_name:" not in entry:
+            continue
+
+        model = parse_model_entry(entry)
+        models.append(model)
+
+    return models
