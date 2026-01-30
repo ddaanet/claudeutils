@@ -48,3 +48,26 @@ def test_token_bar() -> None:
     assert isinstance(bar_full, str)
     # Should contain full block character
     assert "█" in bar_full
+
+
+def test_vertical_bar() -> None:
+    """StatuslineFormatter.vertical_bar() generates vertical bar character.
+
+    Vertical bar shows usage percentage with color based on severity.
+    """
+    formatter = StatuslineFormatter()
+
+    # Test low usage (0%)
+    bar_low = formatter.vertical_bar(0)
+    assert isinstance(bar_low, str)
+    assert "▁" in bar_low
+
+    # Test medium usage (50%)
+    bar_mid = formatter.vertical_bar(50)
+    assert isinstance(bar_mid, str)
+    assert any(char in bar_mid for char in "▁▂▃▄▅▆▇█")
+
+    # Test high usage (100%)
+    bar_high = formatter.vertical_bar(100)
+    assert isinstance(bar_high, str)
+    assert "█" in bar_high

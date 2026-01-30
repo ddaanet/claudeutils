@@ -52,3 +52,31 @@ class StatuslineFormatter:
         block_index = min(block_index, len(block_chars) - 1)
 
         return block_chars[block_index]
+
+    def vertical_bar(self, percentage: int) -> str:
+        """Generate vertical bar character for usage percentage display.
+
+        Args:
+            percentage: Usage percentage (0-100)
+
+        Returns:
+            Colored vertical bar character based on percentage
+        """
+        block_chars = "▁▂▃▄▅▆▇█"
+
+        # Calculate which block character to use (0-8)
+        block_index = int((percentage / 100) * len(block_chars))
+        block_index = min(block_index, len(block_chars) - 1)
+        block_index = max(block_index, 0)
+
+        char = block_chars[block_index]
+
+        # Color based on percentage
+        if percentage < 50:
+            color = "green"
+        elif percentage < 80:
+            color = "yellow"
+        else:
+            color = "red"
+
+        return self.colored(char, color)
