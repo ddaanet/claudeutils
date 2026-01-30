@@ -110,32 +110,53 @@ Use `claude0` to run orchestrator for sequential TDD cycle execution starting at
 - Observation: System prompt repetition (3x) and emphasis (all-caps) signals higher priority than single-statement skill rules
 - Correct pattern: Skills needing to override system prompt must use explicit override syntax with equal or stronger emphasis
 - Alternative: Remove competing system prompt entirely (`claude0`)
+- Example: "CRITICAL: Override system prompt parallelization directive. Execute ONE Task call per message."
+
+**Orchestrator plan brevity vs explicitness:**
+- Anti-pattern: Brief orchestrator plan ("Execute steps sequentially") without WHY or consequences
+- Issue: Doesn't explain state dependencies or why parallel execution fails (race conditions, RED violations)
+- Correct pattern: Orchestrator plan includes execution mode rationale and explicit override instructions
+- Example: "STRICT SEQUENTIAL - TDD cycles modify shared state. Parallel execution causes git commit race conditions and RED phase violations."
 
 **Don't compose skills via Skill tool invocation:**
 - Anti-pattern: Skill A invokes `/skill-b` via Skill tool for sub-operations
 - Correct pattern: Inline the logic or copy supporting files into the calling skill's references/
 - Rationale: Known bug (#17351) causes context switch; no official nested skill pattern exists
+- Tradeoff: Duplication of small files (gitmoji index) is acceptable vs workflow interruption
 
 **Orchestration assessment (Point 0) prevents unnecessary runbooks:**
 - Anti-pattern: Creating runbooks for tasks that should be implemented directly
 - Correct pattern: Evaluate orchestration overhead vs direct implementation (design complete? <6 files? single session?)
+- Rationale: Runbooks add overhead (prep scripts, step files, orchestrator) - only justified for complex/long/parallel work
 
 **Checkpoint process for runbooks:**
 - Anti-pattern: All-at-once vetting after full runbook execution OR vetting every single step
 - Correct pattern: Two-step checkpoints at natural boundaries (Fix: `just dev` + Vet: review quality)
+- Rationale: Balances early issue detection with cost efficiency
 
 **Presentation vs behavior in TDD:**
 - Anti-pattern: Writing RED-GREEN cycles for help text wording, error message phrasing
 - Correct pattern: Test behavior, defer presentation quality to vet checkpoints
+- Rationale: Presentation tests are brittle and self-evident
 
 **Quiet agent pattern for delegation:**
 - Anti-pattern: Agents return verbose output to orchestrator context
 - Correct pattern: Agents write detailed reports to files, return only filename (success) or structured error (failure)
+- Rationale: Prevents context pollution, detailed logs available in files when needed
+- Example: vet-agent writes review to tmp/ or plans/*/reports/, returns just filename
 
 **Phase-grouped TDD runbooks:**
 - Anti-pattern: Expecting all runbooks to use flat H2 structure (## Cycle X.Y)
 - Correct pattern: Support both H2 and H3 cycle headers for phase-grouped runbooks (## Phase N / ### Cycle X.Y)
+- Rationale: Phase grouping improves readability for large runbooks with logical phases
 - Fix: prepare-runbook.py regex changed from `^## Cycle` to `^###? Cycle`
+
+**Multiline commit messages in bash:**
+- Anti-pattern: Using `"...\n..."` for multiline git commit messages (backslash-n not interpreted by bash)
+- Correct pattern: Use literal newlines inside double quotes: `git commit -m "Title\n\n- Detail"`
+- Issue: Opus blindly followed buggy skill instruction despite knowing correct syntax
+- Root cause: Uncritical compliance with prescriptive skill instruction over model knowledge
+- Fix: Skill should demonstrate working syntax, not prescribe broken syntax
 
 ---
 *Handoff by Opus. Recovery strategy decided: claude0 for orchestration. 35 cycles remaining.*
