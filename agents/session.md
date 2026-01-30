@@ -1,22 +1,18 @@
 # Session Handoff: 2026-01-30
 
-**Status:** Hooks fixed and tested; vet requirement added; pending workflow vet enforcement
+**Status:** Hooks fixed, vet requirement added, symlinks created; pending workflow enforcement
 
 ## Completed This Session
 
-**Hook fixes (uncommitted):**
-- `agent-core/hooks/hooks.json`: Added missing `"matcher": "Write"` for tmp-block hook, changed `${CLAUDE_PLUGIN_ROOT}` to `$CLAUDE_PROJECT_DIR/.claude` (project-local hooks don't have CLAUDE_PLUGIN_ROOT)
-- `agent-core/hooks/submodule-safety.py`: Removed dead `is_inside_submodule()` function, changed logic to warn on ANY Bash command when `cwd != project root` (not just git operations)
-- `agent-core/agents/test-hooks.md`: Created comprehensive test procedure with 10 test cases, standardized expected outcome format (Hook behavior / System message / Tool execution), documented hook matcher mutual exclusivity
+**Hook fixes and vet requirement (committed in daa2281, 8c36c0b, 02788f7):**
+- agent-core commit 1841810: Fixed hooks.json (missing matcher, path corrections), updated submodule-safety.py (warn on any non-root cwd), created test-hooks.md (10-test procedure), added vet-requirement.md fragment, updated design skill (vet steps)
+- Parent commit daa2281: Updated CLAUDE.md with vet-requirement reference
+- Parent commit 8c36c0b: Added symlinks for refactor agent, opus-design-question skill, hooks
+- Parent commit 02788f7: Added prepare-runbook.py to sandbox exclusions (autoAllowedTools + excludedCommands)
 
-**Vet requirement directive (uncommitted):**
-- `agent-core/fragments/vet-requirement.md`: Created fragment requiring sonnet vet of all production artifacts (plans, code, tests, agent procedures, skills, docs), designs reviewed by opus
-- `CLAUDE.md`: Added reference to vet-requirement.md
-- `.claude/skills/design/SKILL.md`: Added steps 5-6 (vet with opus subagent, apply all high/medium fixes)
-
-**Previous session work (committed):**
-- Feedback-fixes execution in commit history
-- Recovery runbook generation completed
+**Previous session work (committed earlier):**
+- Feedback-fixes execution
+- Recovery runbook generation (43 TDD cycles across 4 phases)
 
 ## Pending Tasks
 
@@ -37,6 +33,11 @@
 - Settings hooks use direct `{event: [...]}` format
 - Project-local hooks (.claude/hooks/) use direct format like settings
 
+**Symlinks in git:**
+- .claude/ symlinks now tracked (refactor agent, opus-design-question skill, hooks)
+- Point to agent-core/ source files
+- Run `just sync-to-parent` in agent-core to recreate if broken
+
 **Python 3.14 Incompatibility:**
 - litellm dependency uvloop doesn't support Python 3.14 yet
 - Solution: `uv tool install --python 3.13 'litellm[proxy]'`
@@ -53,7 +54,7 @@
 
 **prepare-runbook.py requires sandbox bypass:**
 - Writing to `.claude/agents/` triggers sandbox permission error
-- Workaround: `dangerouslyDisableSandbox: true` for prepare-runbook.py
+- Workaround: Added to excludedCommands in settings.json
 
 ## Reference Files
 
@@ -62,20 +63,20 @@
 - `plans/claude-tools-recovery/orchestrator-plan.md` — Execution plan
 - `agent-core/agents/test-hooks.md` — Hook testing procedure (10 tests)
 - `agent-core/fragments/vet-requirement.md` — Production artifact vet directive
+- `agent-core/agents/refactor.md` — Refactor agent (symlinked)
+- `agent-core/skills/opus-design-question/` — Opus design consultation skill (symlinked)
 
 ## Next Steps
 
-**Immediate:** Commit hook fixes and vet requirement changes
+**Immediate:** Restart Claude Code to load updated hooks, then test using test-hooks.md
 
-**After commit:**
-1. Restart Claude Code to load updated hooks
-2. Test hooks using test-hooks.md procedure
-3. Ensure workflow vet enforcement in plan-adhoc/plan-tdd/orchestrate
-4. Execute recovery runbook with `/orchestrate`
+**After hooks verified:**
+1. Ensure workflow vet enforcement in plan-adhoc/plan-tdd/orchestrate
+2. Execute recovery runbook with `/orchestrate`
 
 **After recovery:**
-1. Run `/remember` to consolidate learnings
+1. Run `/remember` to consolidate learnings (131/80 lines)
 2. Vet and commit recovered implementations
 
 ---
-*Handoff by Sonnet. Hooks fixed; vet workflow enforcement pending.*
+*Handoff by Sonnet. All changes committed; hooks ready for testing after restart.*
