@@ -133,3 +133,17 @@
 - Stop condition: None
 - Decision made: Keychain.add() calls subprocess.run with security add-generic-password command, takes account/password/service parameters
 
+### Cycle 1.13: Keychain wrapper - delete operation [2026-01-30]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_account_keychain.py::test_keychain_delete -xvs`
+- RED result: FAIL as expected (AttributeError: 'Keychain' object has no attribute 'delete')
+- GREEN result: PASS
+- Regression check: 291/291 passed
+- Refactoring: Fixed docstring formatting to single line (removed wrapping)
+- Files modified:
+  - tests/test_account_keychain.py (added test_keychain_delete test using Mock)
+  - src/claudeutils/account/keychain.py (added Keychain.delete() method wrapping subprocess.run)
+- Stop condition: None
+- Decision made: Keychain.delete() calls subprocess.run with security delete-generic-password command, takes account/service parameters
+
