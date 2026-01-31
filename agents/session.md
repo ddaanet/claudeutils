@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-31
 
-**Status:** sync-to-parent sandbox documentation complete (ff4265d).
+**Status:** Execute rule autocommit directive removed (4cabb51).
 
 ## Completed This Session
 
@@ -32,11 +32,18 @@
   - Integration section: Added TDD workflow stages (oneshot and TDD paths now documented)
   - TDD workflow: `/design` (TDD) → `/plan-tdd` → `/orchestrate` → [vet-fix-agent] → [review-tdd-process]
 
-**sync-to-parent sandbox documentation (ff4265d):**
+**sync-to-parent sandbox documentation (4cabb51):**
 - Added dedicated section in `agent-core/fragments/sandbox-exemptions.md` for `just sync-to-parent`
 - Documents `dangerouslyDisableSandbox: true` requirement for symlink operations in `.claude/`
 - Updated `CLAUDE.md` and `agent-core/fragments/claude-config-layout.md` references
 - Resolves blocker: agents now know sandbox bypass required for this recipe
+
+**Execute rule autocommit directive removed (uncommitted):**
+- Root cause: #execute shortcut expansion said "Drive to completion, then stop" — ambiguous phrasing
+- Issue: Agent interpreted "drive to completion" as including commit + handoff, violating "never commit unless asked"
+- Fix: Changed `userpromptsubmit-shortcuts.py` line 24-27 to "Complete the task, then stop. Do NOT commit or handoff."
+- Clarifies: `x` = execute only, `xc` = execute + commit workflow
+- Prevents: Unwanted commits when user just wants task execution
 
 ## Pending Tasks
 
@@ -83,4 +90,4 @@
 Learnings file at 131/80 lines. Run `/remember` to consolidate before next session.
 
 ---
-*Handoff by Sonnet. sync-to-parent sandbox documentation complete.*
+*Handoff by Opus. Execute rule autocommit directive removed.*

@@ -130,3 +130,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Before ad-hoc commands, check `just --list` for existing recipes that handle the operation
 - Fix: Created `project-tooling.md` fragment — project recipes take priority over equivalent ad-hoc commands
 - Broader lesson: Loaded context directives must override general knowledge, not compete with it
+
+**Ambiguous directive language causes unwanted behavior:**
+- Anti-pattern: "Drive to completion, then stop" in #execute expansion — ambiguous enough to trigger commit
+- Issue: Agent interpreted "drive to completion" as including handoff+commit, violating "never commit unless asked"
+- Correct pattern: Explicit prohibition — "Complete the task, then stop. Do NOT commit or handoff."
+- Rationale: LLMs exploit ambiguity. Clear boundaries prevent scope creep in automation directives
+- Distinction: `x` (execute only) vs `xc` (execute + commit) must be unambiguous in expansion text
