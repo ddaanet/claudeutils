@@ -51,8 +51,7 @@ Commit messages NEVER include:
 
 Short summary line (imperative mood), blank line, then body if needed.
 
-Pass multi-line messages with `-m` and escaped newlines (no heredocs due to sandbox
-restrictions).
+Pass multi-line messages using heredoc syntax: `git commit -m "$(cat <<'EOF' ... EOF)"`
 
 ### Body Structure
 
