@@ -1,7 +1,7 @@
 """Tests for the account CLI command group."""
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
 
@@ -51,3 +51,24 @@ def test_account_api(tmp_path: Path) -> None:
     assert provider_file.exists()
     assert account_mode_file.read_text() == "api"
     assert provider_file.read_text() == "anthropic"
+
+
+def test_account_status_with_issues(tmp_path: Path) -> None:
+    """Test account status shows validation issues."""
+    # Create a mock home directory with account-mode file set to plan
+    account_mode_file = tmp_path / ".claude" / "account-mode"
+    account_mode_file.parent.mkdir(parents=True, exist_ok=True)
+    account_mode_file.write_text("plan")
+
+    runner = CliRunner()
+    # Mock Path.home to use tmp_path
+    with patch("claudeutils.account.cli.Path.home", return_value=tmp_path):
+        # Mock Keychain instance and its find method to return None
+        mock_keychain = MagicMock()
+        mock_keychain.find.return_value = None
+        with patch("claudeutils.account.state.Keychain", return_value=mock_keychain):
+            result = runner.invoke(cli, ["account", "status"])
+
+    assert result.exit_code == 0
+    # Verify validation issue is displayed
+    assert "Plan mode requires OAuth credentials in keychain" in result.output

@@ -4,12 +4,15 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+from claudeutils.account.keychain import Keychain
+
 
 def get_account_state() -> AccountState:
     """Load account state from filesystem.
 
     Reads ~/.claude/account-mode and ~/.claude/account-provider files. Returns
-    default values if files don't exist.
+    default values if files don't exist. Also queries keychain for OAuth
+    credentials.
     """
     home = Path.home()
     account_mode_file = home / ".claude" / "account-mode"
@@ -26,10 +29,15 @@ def get_account_state() -> AccountState:
         else "anthropic"
     )
 
+    # Check if OAuth credentials are in keychain
+    keychain = Keychain()
+    oauth_token = keychain.find(account="claude", service="com.anthropic.claude")
+    oauth_in_keychain = oauth_token is not None
+
     return AccountState(
         mode=mode,
         provider=provider,
-        oauth_in_keychain=False,
+        oauth_in_keychain=oauth_in_keychain,
         api_in_claude_env=False,
         has_api_key_helper=False,
         litellm_proxy_running=False,
