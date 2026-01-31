@@ -108,3 +108,18 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Allowing `command.startswith(pattern + ' ')` for restore commands — permits `cd /root && malicious_cmd`
 - Correct pattern: Use exact match only (`command in restore_patterns`) for security-sensitive restore operations
 - Rationale: Shell operators (&&, ;, ||) can chain additional commands. Exact match prevents exploitation while still allowing the intended restore command
+
+**Hooks only active in main agent session:**
+- Anti-pattern: Expecting hooks (PreToolUse/PostToolUse/UserPromptSubmit) to fire in sub-agents spawned via Task tool
+- Correct pattern: Test hooks manually in main session, or document sub-agent limitation in testing procedures
+- Rationale: Hooks load at main session startup and don't propagate to sub-agent execution contexts. Sub-agents can have tools (Bash, Write) but hook interceptors won't fire.
+
+**Hook messages need dual output for user+agent visibility:**
+- Anti-pattern: Using only `additionalContext` or only `systemMessage` in hook output
+- Correct pattern: Include both `additionalContext` (agent sees) and `systemMessage` (user sees) in hook JSON output
+- Rationale: Users need to see hook warnings/expansions directly. Agents need context injection. Dual output ensures both audiences get the message.
+
+**Agent frontmatter YAML must be strictly valid:**
+- Anti-pattern: Placing `<example>` blocks directly in frontmatter with `description:` (single-line syntax)
+- Correct pattern: Use `description: |` multi-line syntax with all examples indented as part of the field value
+- Rationale: YAML parsers treat unindented content after `description:` as new fields. Invalid YAML prevents agent registration. Multi-line string syntax (`|`) makes examples part of description value.

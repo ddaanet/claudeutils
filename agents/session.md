@@ -1,39 +1,42 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Hook output fix implemented and vetted. Restart required to activate hooks.
+**Status:** Hook user visibility improvements complete. test-hooks agent operational.
 
 ## Completed This Session
 
-**Hook output fix implementation (Tier 2):**
-- All 5 fixes from design completed: register shortcuts hook, rewrite submodule-safety.py for dual-mode (PreToolUse block + PostToolUse warn), update settings.json, delete hooks.json files, update claude-config-layout.md
-- Vet review caught major issue: restore command detection allowed `cd <root> && malicious` — fixed to exact match only
-- Minor fix applied: claude-config-layout.md updated from "warns" to "blocks" for accuracy
-- Key changes:
-  - `agent-core/hooks/submodule-safety.py`: Dual-mode script checks `hook_event_name`, PreToolUse blocks ALL commands from wrong cwd (not just dangerous ones), PostToolUse injects `additionalContext` warning, provides exact restore command
-  - `.claude/settings.json`: Added PreToolUse:Bash + UserPromptSubmit hooks, kept PostToolUse:Bash
-  - Deleted `.claude/hooks/hooks.json` and `agent-core/hooks/hooks.json` (invalid config location)
-- Reports: `tmp/hook-fix-report.md`, `tmp/hook-fix-vet-review.md`
+**test-hooks agent creation:**
+- Converted test-hooks.md procedure into proper agent with frontmatter
+- Initial YAML frontmatter was invalid (examples broke parsing) — plugin-dev:agent-creator diagnosed and fixed
+- Used `description: |` multi-line syntax with indented examples
+- Agent spec: haiku model, yellow color, tools: Read/Write/Bash/Grep
+- Symlink already existed at `.claude/agents/test-hooks.md`
+- Agent now discoverable and functional
 
-**Hook diagnosis and design (previous session):**
-- Diagnosed three broken hooks: UserPromptSubmit shortcuts (unregistered), submodule-safety (wrong output field), hooks.json (invalid config location)
-- Root causes: shortcuts hook never added to settings.json; `systemMessage` is user-only (need `hookSpecificOutput.additionalContext` for Claude visibility); `.claude/hooks/hooks.json` not read by Claude Code
-- Design: `plans/hook-output-fix/design.md` — 5 fixes including upgrade from soft warning to hard cwd block
+**Hook user visibility improvements:**
+- Made all hook messages visible to both agent AND user (previously some only showed to agent)
+- Updated `agent-core/hooks/userpromptsubmit-shortcuts.py`: Added `systemMessage` alongside `additionalContext` for both Tier 1 commands and Tier 2 directives
+- Updated `agent-core/hooks/submodule-safety.py`: Added `systemMessage` to PostToolUse warning output
+- No restart needed (scripts execute fresh each time, unlike registration changes)
 
-**Symlink restoration (previous session):**
-- `.claude/hooks/*.py` files had become regular files (ruff reformatted them via `just dev`)
-- Restored as symlinks to `agent-core/hooks/`
-- Ruff errors in `agent-core/hooks/userpromptsubmit-shortcuts.py` fixed (line length, missing docstring)
-- pyproject.toml updated with ruff config
+**Hook testing in main session:**
+- Confirmed sub-agents cannot test Bash hooks (hooks don't propagate to sub-agent contexts)
+- Manually tested all Bash hooks in main session — all PASS:
+  - Test 3: PreToolUse blocks commands when cwd != root ✓
+  - Test 4: Restore command `cd /Users/david/code/claudeutils` bypasses block ✓
+  - Test 7: Subshell `(cd agent-core && ls) && pwd` preserves parent cwd ✓
+  - Test 8: PostToolUse warning after `cd agent-core` (now visible to user) ✓
+  - Test 10: Security - `cd /root && command` blocked (not exact match) ✓
+- test-hooks agent tested Write hooks successfully (6/11 tests PASS, 3 inconclusive due to sub-agent limitation, 2 skipped)
+- Test results: `tmp/hook-test-results-1769892256.md`
 
-**Key discovery — hook output visibility:**
-- `systemMessage` → shown to user only, NOT to Claude
-- `hookSpecificOutput.additionalContext` → visible to Claude
-- stderr + exit 2 → visible to Claude (error/block pattern)
-- The hookify plugin's "UserPromptSubmit hook success" was being mistaken for the project's shortcuts hook working
+**Key discovery:**
+- Hooks (PreToolUse/PostToolUse/UserPromptSubmit) only active in main agent session
+- Sub-agents spawned via Task tool don't inherit hook context
+- test-hooks agent has Bash tool but hooks don't fire in its execution environment
+- UserPromptSubmit hooks only fire on user prompts to main agent (not in sub-agent sessions)
 
 ## Pending Tasks
 
-- [ ] **Test hooks after restart** — verify shortcuts expand (`hc`), PreToolUse blocks non-root cwd, PostToolUse warns, restore works | sonnet | restart
 - [ ] **Orchestrate: integrate review-tdd-process** — rename review-analysis, use custom sonnet sub-agent, runs during orchestration | sonnet
 - [ ] **Refactor oneshot handoff template** — integrate into current handoff/pending/execute framework | sonnet
 - [ ] **Evaluate oneshot skill** — workflow now always starts with /design, may be redundant | opus
@@ -56,20 +59,21 @@
 - Fix 2 (artifact staging) ensures prepare-runbook.py artifacts are staged
 - Fix 1 (submodule awareness) prevents submodule pointer drift
 
-**Learnings file at 99/80 lines** — needs `/remember` consolidation soon.
+**Learnings file at 110/80 lines** — needs `/remember` consolidation soon.
 
-**Hook changes require session restart** — hooks load at session start only. After commit, must restart to test new hook behavior.
+**Hook testing limitation:**
+- test-hooks agent can test Write hooks but not Bash hooks (hooks don't propagate to sub-agents)
+- Bash hooks must be tested manually in main session
+- Consider documenting this in test-hooks agent instructions
 
-**Verification procedure (after restart):**
-1. Shortcuts: Type `hc` → should inject `[SHORTCUT: /handoff --commit]` in additionalContext
-2. PreToolUse block: `cd agent-core` then `ls` → second command blocked with restore instruction
-3. Restore: Run provided `cd` command → next command allowed
-4. Subshell: `(cd agent-core && ls)` from root → allowed, cwd stays root
-5. PostToolUse warn: After cwd drift, should see warning with restore command
+**Agent frontmatter YAML strictness:**
+- Examples in description field must use multi-line syntax (`description: |`) with proper indentation
+- Plain `description:` with unindented examples breaks YAML parsing
+- Agent won't register if frontmatter is invalid
 
 ## Next Steps
 
-Restart session to activate hooks, then run verification procedure. All hooks should now work correctly: shortcuts expand, submodule-safety blocks/warns with correct output visibility.
+Consider consolidating learnings.md (110/80 lines) with `/remember` skill.
 
 ---
-*Handoff by Sonnet. Hook output fix implemented and vetted.*
+*Handoff by Sonnet. Hook visibility improvements and test-hooks agent complete.*
