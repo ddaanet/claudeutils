@@ -137,3 +137,15 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Explicit prohibition — "Complete the task, then stop. Do NOT commit or handoff."
 - Rationale: LLMs exploit ambiguity. Clear boundaries prevent scope creep in automation directives
 - Distinction: `x` (execute only) vs `xc` (execute + commit) must be unambiguous in expansion text
+
+**Don't delegate when context is already loaded:**
+- Anti-pattern: Reading files, gathering context, then delegating to another agent (which re-reads everything)
+- Correct pattern: If you already have files in context, execute directly — delegation adds re-reading overhead
+- Rationale: Token economy. Agent overhead (context setup + re-reading) exceeds cost of continuing in current model
+- Corollary: Delegate when task requires *new* exploration you haven't done yet
+
+**Prose questions with multiple options create ambiguous one-letter responses:**
+- Anti-pattern: "Want me to A or B? Would you rather capture B first?" — `y` binds to last question, not first option
+- Correct pattern: Use AskUserQuestion tool for multi-option choices (structured labels, no ambiguity)
+- Rationale: Users type `y`/`n` for quick responses. Prose questions with trailing yes/no make `y` ambiguous when multiple options were presented
+- Fix: Added communication rule 5 in `agent-core/fragments/communication.md`

@@ -1,53 +1,17 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Execute rule autocommit directive removed (4cabb51).
+**Status:** Oneshot/shelve templates aligned with standard handoff format (3a3005a).
 
 ## Completed This Session
 
-**Project tooling priority rule (diagnostic RCA):**
-- Root cause: Script-First Evaluation in `delegation.md` encouraged `ln -sf` without "check for project recipes first"
-- User diagnostic: Why did agent use `ln -sf` instead of `just sync-to-parent` when both loaded in context?
-- Created `agent-core/fragments/project-tooling.md` — project recipes take priority over ad-hoc commands
-- Updated `agent-core/fragments/delegation.md` — Script-First Evaluation now checks `just --list` first
-- Added to `CLAUDE.md` and `agents/learnings.md`
-- Broader lesson: Loaded directives must override general knowledge, not compete with it
-
-**Justfile help caching system:**
-- Created `agent-core/Makefile` — gmake-based cache management with dependency tracking
-- Makefile hidden in `agent-core/`, entry point is `just` (default `gmake` target shows help message)
-- Generated `.cache/just-help.txt` and `.cache/just-help-agent-core.txt`
-- Updated `CLAUDE.md` — @file references load both cached help outputs in initial context
-- Updated root `justfile`:
-  - Added `cache` recipe → `gmake --no-print-directory -C agent-core all`
-  - `dev` depends on `cache` (rebuilds if justfiles changed)
-  - `precommit` runs `gmake check` (fails if cache stale)
-- FUTURE: When justfiles factored to use agent-core includes, update Makefile dependencies
-
-**review-tdd-process agent integration:**
-- Created `agent-core/agents/review-tdd-process.md` — sonnet agent for post-execution TDD quality analysis
-- Agent analyzes: plan vs execution, TDD compliance (RED/GREEN/REFACTOR), code quality, produces actionable recommendations
-- Synced to `.claude/agents/` via `just sync-to-parent` (requires `dangerouslyDisableSandbox: true`)
-- Updated `agent-core/skills/orchestrate/SKILL.md`:
-  - Section 6: TDD completion now delegates to vet-fix-agent, then review-tdd-process
-  - Integration section: Added TDD workflow stages (oneshot and TDD paths now documented)
-  - TDD workflow: `/design` (TDD) → `/plan-tdd` → `/orchestrate` → [vet-fix-agent] → [review-tdd-process]
-
-**sync-to-parent sandbox documentation (4cabb51):**
-- Added dedicated section in `agent-core/fragments/sandbox-exemptions.md` for `just sync-to-parent`
-- Documents `dangerouslyDisableSandbox: true` requirement for symlink operations in `.claude/`
-- Updated `CLAUDE.md` and `agent-core/fragments/claude-config-layout.md` references
-- Resolves blocker: agents now know sandbox bypass required for this recipe
-
-**Execute rule autocommit directive removed (uncommitted):**
-- Root cause: #execute shortcut expansion said "Drive to completion, then stop" — ambiguous phrasing
-- Issue: Agent interpreted "drive to completion" as including commit + handoff, violating "never commit unless asked"
-- Fix: Changed `userpromptsubmit-shortcuts.py` line 24-27 to "Complete the task, then stop. Do NOT commit or handoff."
-- Clarifies: `x` = execute only, `xc` = execute + commit workflow
-- Prevents: Unwanted commits when user just wants task execution
+**Oneshot handoff template refactoring (3a3005a):**
+- Replaced `## Current Work` / `## Key Context` / `### Workflow:` subsections in oneshot SKILL.md with flat pending tasks using standard sections
+- Aligned shelve template (`agent-core/skills/shelve/templates/session.md`) with handoff template structure
+- Added communication rule 5: use AskUserQuestion for choices, not prose yes/no questions
+- Root cause of template divergence: oneshot skill predates handoff standardization
 
 ## Pending Tasks
 
-- [ ] **Refactor oneshot handoff template** — integrate into current handoff/pending/execute framework | sonnet
 - [ ] **Evaluate oneshot skill** — workflow now always starts with /design, may be redundant | opus
 - [ ] **Update heredoc references** — sandboxed heredoc fix landed. Remove workarounds, restore vendor default heredoc behavior for commit messages | sonnet
 - [ ] **Resume workflow-controls orchestration (steps 2-7)** — `/orchestrate workflow-controls` | sonnet | restart
@@ -70,24 +34,9 @@
 
 **Learnings file at 131/80 lines** — needs `/remember` consolidation urgently.
 
-## Reference Files
-
-**New fragments:**
-- `agent-core/fragments/project-tooling.md` — project recipe priority over ad-hoc commands
-
-**New agent:**
-- `agent-core/agents/review-tdd-process.md` — TDD process quality analysis agent
-
-**Cache files:**
-- `.cache/just-help.txt` — root justfile recipes (loaded via @file in CLAUDE.md)
-- `.cache/just-help-agent-core.txt` — agent-core justfile recipes (loaded via @file in CLAUDE.md)
-
-**Build infrastructure:**
-- `agent-core/Makefile` — cache management with dependency tracking
-
 ## Next Steps
 
-Learnings file at 131/80 lines. Run `/remember` to consolidate before next session.
+Run `/remember` to consolidate learnings before next session.
 
 ---
-*Handoff by Opus. Execute rule autocommit directive removed.*
+*Handoff by Opus. Oneshot/shelve template alignment complete.*
