@@ -149,3 +149,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Use AskUserQuestion tool for multi-option choices (structured labels, no ambiguity)
 - Rationale: Users type `y`/`n` for quick responses. Prose questions with trailing yes/no make `y` ambiguous when multiple options were presented
 - Fix: Added communication rule 5 in `agent-core/fragments/communication.md`
+
+**Redundant routing layers waste tokens through double-assessment:**
+- Anti-pattern: Entry point skill (oneshot) assesses complexity, then routes to planning skill which re-assesses complexity (tier assessment)
+- Correct pattern: Single entry point with triage that routes directly to the appropriate depth — no intermediate routing layer
+- Rationale: Each assessment reads files, analyzes scope, produces output. Two assessments for the same purpose is pure waste
+- Example: Oneshot assessed simple/moderate/complex, then /plan-adhoc re-assessed Tier 1/2/3 — same function, different labels
+
+**First delegated agent failing doesn't mean start over — vet agent has context:**
+- Anti-pattern: When removal agent makes mistakes and vet catches them, launching a new fix agent (which re-reads everything)
+- Correct pattern: If vet agent has the context of what's wrong, leverage it. If caller also has context (from reading vet report), apply fixes directly
+- Rationale: Tier 1/2 pattern — caller reads report, applies fixes with full context. No need for another agent round-trip
