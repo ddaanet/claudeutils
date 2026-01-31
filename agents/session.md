@@ -1,19 +1,29 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Reflect workflow complete — handoff skill fix for `--commit` tail-call semantics.
+**Status:** Vet agent split complete — two-agent pattern implemented codebase-wide.
 
 ## Completed This Session
 
-**Reflect: handoff `--commit` pending-commit RCA:**
-- Previous opus session wrote "Ready to commit" status and "pending commit" footer despite `--commit` tail-call
-- Root cause: handoff skill rule against commit tasks only named "Pending Tasks or Next Steps" sections — agent put equivalent language in Status/footer
-- Fix: broadened rule in `agent-core/skills/handoff/SKILL.md:75-78` to cover all sections, explicitly named the anti-patterns, explained tail-call atomicity
-- Learning added to `agents/learnings.md`
+**Vet agent architecture:**
+- Created `vet-fix-agent` — review + apply critical/major fixes (Tier 3 orchestration, has Edit tool)
+- Updated `vet-agent` — review only (Tier 1/2, no Edit tool — contract enforced by tool list)
+- Design decision: separate agents > single agent with mode flag (tool list enforces, no prompt compliance risk)
+
+**Codebase-wide `/vet` reference replacement (9 files in agent-core + parent):**
+- `plan-adhoc/SKILL.md` — Point 3 uses vet-agent (planner has context), Tier 3 stage uses vet-fix-agent
+- `orchestrate/SKILL.md` — checkpoints and completion use vet-fix-agent
+- `workflows-terminology.md` — route descriptions updated
+- `oneshot-workflow.md` — Stage 5, examples, skills reference
+- `tdd-workflow.md` — Stage 4 and comparison table
+- `oneshot/SKILL.md` — workflow paths and templates
+- `vet/SKILL.md` — integration section documents agent pattern
+- `vet-requirement.md` — full rewrite with two-agent selection guide
+- `learnings.md` — updated vet learning with two-agent rationale
+
+**Orchestrate vet integration:** orchestrate skill checkpoint logic now delegates to vet-fix-agent directly (agent reviews AND fixes, orchestrator checks for UNFIXABLE issues)
 
 ## Pending Tasks
 
-- [ ] **Fix all `/vet` skill references → vet agent** — codebase-wide replacement of `/vet` invocations with vet agent delegation. Includes plan-adhoc Tier 3 Point 3, workflows-terminology route descriptions, oneshot-workflow stages | sonnet
-- [ ] **Orchestrate: integrate vet agent** — vet changes and apply high/medium fixes during orchestration, not postponed to next session | sonnet
 - [ ] **Orchestrate: integrate review-tdd-process** — rename review-analysis, use custom sonnet sub-agent, runs during orchestration | sonnet
 - [ ] **Refactor oneshot handoff template** — integrate into current handoff/pending/execute framework | sonnet
 - [ ] **Evaluate oneshot skill** — workflow now always starts with /design, may be redundant | opus
@@ -36,9 +46,11 @@
 - Fix 2 (artifact staging) ensures prepare-runbook.py artifacts are staged
 - Fix 1 (submodule awareness) prevents submodule pointer drift
 
+**Learnings file at 95/80 lines** — needs `/remember` consolidation soon.
+
 ## Next Steps
 
-First batch of pending work: fix `/vet` references codebase-wide, then integrate vet agent and review-tdd-process into orchestrate skill. These form a cohesive group around the vet-as-agent pattern.
+Continue with pending work batch: integrate review-tdd-process into orchestrate, then evaluate oneshot skill redundancy. The vet-as-agent pattern is now fully implemented.
 
 ---
-*Handoff by Opus. Reflect fix applied.*
+*Handoff by Opus. Vet two-agent pattern complete.*

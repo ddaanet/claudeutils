@@ -82,10 +82,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Always tail-call `/handoff --commit` — handoff captures session context and learnings regardless of tier
 - Rationale: Handoff is about context preservation, not just session restart. Even direct implementations produce learnings and update pending task state
 
-**Vet should be an agent delegation, not a skill invocation:**
-- Anti-pattern: Invoking `/vet` skill from within plan/orchestrate skills
-- Correct pattern: Delegate to vet agent (subagent) that applies high/medium fixes directly
-- Rationale: Agent delegation allows the vet to act autonomously (apply fixes, not just report). Skill invocation is passive (report only, requires orchestrator to apply fixes)
+**Vet uses two agents, selected by caller context:**
+- `vet-agent` — review only (caller has context to apply fixes: Tier 1/2 direct/lightweight)
+- `vet-fix-agent` — review + apply critical/major fixes (orchestration: Tier 3, no other agent has context)
+- Tool list enforces contract: vet-agent has no Edit tool, vet-fix-agent has Edit
+- Anti-pattern: single agent with mode flag (LLM may ignore, tool list can't enforce)
 
 **Handoff `--commit` tail-call means session.md assumes commit succeeds:**
 - Anti-pattern: Writing "Ready to commit" in Status or "pending commit" in footer when `--commit` flag is active
