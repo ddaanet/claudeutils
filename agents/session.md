@@ -8,6 +8,7 @@
 - 3 deviations identified: submodule blindness, unstaged artifacts, orchestrator stop-rule override
 - Design: 6 surgical edits to commit, plan-adhoc, plan-tdd, orchestrate skills + prepare-runbook.py template
 - Opus vet: critical issue caught (contradictory scenario in orchestrate SKILL.md) + 6 other fixes applied
+- Additional RCA: commit skill precommit bypass — same rationalization pattern as orchestrator (`plans/commit-rca-fixes/reports/commit-skill-rca.md`)
 
 **Workflow-controls orchestration (partial):**
 - Step 1 executed: hook script validated (all tier 1/tier 2 shortcuts pass)
