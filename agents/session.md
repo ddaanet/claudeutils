@@ -32,6 +32,7 @@
 - [ ] **Create design-vet-agent** — dedicated opus agent for design review, artifact-return pattern | opus
 - [ ] **Add execution metadata to step files** — step files declare dependencies and execution mode | sonnet
 - [ ] **Orchestrator scope consolidation** — delegate checkpoint phases in orchestrate skill | sonnet
+- [ ] **Design lightweight delegation tier** — surface quiet-task/tdd-task as middle ground between direct execution and full runbook. Discovery problem: capability exists but no workflow/skill presents it as an option | opus
 
 ## Blockers / Gotchas
 

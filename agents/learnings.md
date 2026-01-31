@@ -71,8 +71,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: LLMs will exploit any ambiguity. Contradictory guidance (section 3.3 says stop, scenarios section says continue) guarantees inconsistent behavior
 - Fix designed: `plans/commit-rca-fixes/design.md` (Fix 3)
 
-**Plan skills must stage artifacts immediately after prepare-runbook.py:**
-- Anti-pattern: Generate artifacts, then tail-call handoff→commit hoping commit discovers them
-- Correct pattern: `git add` step files, orchestrator plan, and agent file immediately after prepare-runbook.py
-- Rationale: Commit skill stages "specific files only" and may miss `.claude/agents/` files it doesn't know about
+**prepare-runbook.py must stage its own artifacts:**
+- Anti-pattern: Generate artifacts, then rely on downstream skills/commit to discover and stage them
+- Correct pattern: `git add` inside prepare-runbook.py itself — script owns knowledge of what it creates
+- Rationale: Commit skill stages "specific files only" and may miss `.claude/agents/` files. Putting `git add` in plan skills duplicates logic and couples them to script internals
 - Fix designed: `plans/commit-rca-fixes/design.md` (Fix 2)
