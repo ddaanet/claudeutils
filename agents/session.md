@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Oneshot skill removed, `/design` is now the universal implementation entry point.
+**Status:** Heredoc pattern restored across commit workflow documentation.
 
 ## Completed This Session
 
@@ -21,9 +21,19 @@
 - Reverted `plans/README.md` — historical plan docs must not be modified
 - Vet review caught: plans/README.md modification, orphaned `/oneshot` references in tdd-workflow.md, inconsistent terminology in 6 files — all fixed
 
+**Heredoc pattern restoration (1881049, agent-core:929756a):**
+- Removed sandbox workaround warnings from commit workflow documentation
+- Updated `/commit` skill: heredoc syntax now preferred over literal newlines
+- Updated `agents/rules-commit.md`: heredoc preferred, literal newlines as alternative
+- Updated `agent-core/agents/tdd-task.md`: changed constraint from "never heredocs" to "use heredocs for commit messages"
+- Updated `agent-core/skills/shelve/SKILL.md`: removed "no heredocs" constraint
+- Updated `agent-core/skills/commit/references/learnings.md`: heredoc marked as preferred pattern
+- Updated `agents/modules/src/commit.semantic.md`: heredoc pattern documentation
+- Verified active agent files (quiet-task, refactor, vet-agent, vet-fix-agent) — already correct
+- Historical `.claude/agents/*.md` files left unchanged (generated artifacts, will be regenerated)
+
 ## Pending Tasks
 
-- [ ] **Update heredoc references** — sandboxed heredoc fix landed. Remove workarounds, restore vendor default heredoc behavior for commit messages | sonnet
 - [ ] **Resume workflow-controls orchestration (steps 2-7)** — `/orchestrate workflow-controls` | sonnet | restart
 - [ ] **Implement ambient awareness** — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
 - [ ] **Create /reflect skill** — deviation detection → RCA → fix → handoff/commit automation. Load plugin-dev skills first | opus
@@ -51,4 +61,4 @@
 Run `/remember` to consolidate learnings before next session.
 
 ---
-*Handoff by Opus. Oneshot skill removed, /design is universal entry point.*
+*Handoff by Sonnet. Heredoc pattern restored in commit workflow.*
