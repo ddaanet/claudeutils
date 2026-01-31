@@ -32,3 +32,19 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Ensure skill is surfaced via multiple discovery mechanisms — CLAUDE.md fragment, path-triggered `.claude/rules/` entry, in-workflow reminders in related skills, directive skill description
 - Rationale: Agents only see skill listing descriptions and always-loaded context. Internal skill docs are invisible until invoked. The opus-design-question skill had excellent 248-line docs but zero external visibility — agents asked the user instead of consulting it.
 - Example: 4-layer fix for opus-design-question: fragment + design skill reminder + path rule + directive description
+
+**Shortcut systems need two layers: hook + fragment:**
+- Anti-pattern: Rely solely on hook (exact-match only) or solely on fragment (LLM may ignore)
+- Correct pattern: Hook for mechanical expansion of standalone shortcuts, fragment for vocabulary comprehension when shortcuts appear inline in natural language
+- Rationale: Users naturally embed shortcuts in prose ("design this then hc"). Hooks can't match that (exact match fails), but agent can interpret from vocabulary table. Both layers complement, neither duplicates.
+
+**UserPromptSubmit hooks cannot rewrite prompts:**
+- Can only add `additionalContext` or block (exit 2) — original prompt passes through unchanged
+- No `matcher` support — fires on every prompt. All filtering must be script-internal
+- Use `hookSpecificOutput.additionalContext` for discrete context injection (not shown in transcript)
+- Plain text stdout also works but is visible in transcript
+
+**Case-sensitive shortcuts are unreliable for LLM interpretation:**
+- Anti-pattern: `X` vs `x` for different commands (e.g., execute vs execute+commit)
+- Correct pattern: Use distinct tokens (`xc` vs `x`) rather than case differentiation
+- Rationale: LLMs are unreliable at distinguishing case. Two distinct characters are unambiguous
