@@ -1,6 +1,11 @@
 """Tests for AccountState model."""
 
+from pathlib import Path
+
+import pytest
+
 from claudeutils.account import AccountState
+from claudeutils.account.state import get_account_state
 
 
 def test_account_state_creation() -> None:
@@ -83,3 +88,22 @@ def test_validate_litellm_requires_proxy() -> None:
     assert state.validate_consistency() == [
         "LiteLLM provider requires proxy to be running"
     ]
+
+
+def test_get_account_state_missing_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Test get_account_state() returns defaults when config files missing.
+
+    When config files are missing from ~/.claude/, the function returns defaults
+    for mode and provider.
+    """
+    # Mock Path.home() to return empty tmp_path (no .claude directory)
+    monkeypatch.setattr("claudeutils.account.state.Path.home", lambda: tmp_path)
+
+    # Call get_account_state() with missing files
+    state = get_account_state()
+
+    # Verify default values are returned
+    assert state.mode == "plan"
+    assert state.provider == "anthropic"
