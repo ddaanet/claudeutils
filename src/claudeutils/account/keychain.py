@@ -1,10 +1,26 @@
-"""Keychain wrapper for macOS security command."""
+"""Keychain wrapper for macOS security command.
+
+This module provides a wrapper around the macOS `security` command-line utility
+for managing keychain entries. It requires macOS and will gracefully degrade on
+other platforms or when the security command is unavailable.
+
+Platform dependency: macOS only (requires `security` command)
+"""
 
 import subprocess
 
 
 class Keychain:
-    """Wrapper for macOS Keychain security commands."""
+    """Wrapper for macOS Keychain security commands.
+
+    Error handling strategy:
+    - find(): Returns None on errors (gateway method, called frequently)
+    - add()/delete(): Fail loudly on errors (user-initiated, errors are informative)
+
+    This asymmetry is intentional: find() is defensive because it's the gateway
+    method that determines if keychain operations are available. If find() returns
+    None, callers know not to attempt add/delete operations.
+    """
 
     def find(self, account: str, service: str) -> str | None:
         """Find password in keychain.
