@@ -22,8 +22,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: Design has R0-R4 with R3 omitted → runbook uses R0,R1,R2,R4 → validation fails "Gap 2→4" → manual renumber R4→R3
 - See: plans/runbook-identifiers/problem.md for full analysis and solution options
 
-**Heredocs broken in sandbox mode:**
-- Issue: Sandbox blocks temp file creation needed by heredocs
-- Correct pattern: Use alternatives (echo with newlines, printf, Write tool) when in sandbox mode
-- Example: `echo -e "line1\nline2"` or Write tool instead of `cat <<EOF`
-- See: agent-core/fragments/sandbox-exemptions.md for sandbox-sensitive commands
+**Heredocs broken in sandbox mode — SOLVED:**
+- Root cause: zsh uses `TMPPREFIX` (not `TMPDIR`) for heredoc temp files. Default `/tmp/zsh` is outside sandbox allowlist
+- Fix: `export TMPPREFIX="${TMPDIR:-/tmp}/zsh"` in agent-core/configs/claude-env.sh (sourced by .envrc)
+- Upstream issue: Claude Code sandbox sets TMPDIR but not TMPPREFIX for zsh — should be reported
