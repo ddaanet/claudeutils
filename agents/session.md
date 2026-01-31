@@ -1,123 +1,73 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Hooks fixed and working
+**Status:** Planning pipeline hardened, recovery runbook regeneration next
 
 ## Completed This Session
 
-**Workflow vet enforcement (committed in 6e16c19, a02e77c):**
-- Updated /plan-adhoc: Require high/medium fix application in revision loop
-- Updated /plan-tdd: Changed from user-optional to mandatory fix enforcement
-- Updated /orchestrate: Tiered checkpoints (light: Fix+Functional at every phase, full: Fix+Vet+Functional at final phase + markers)
-- Standardized terminology: high/medium priority (was critical/major)
-- Opus consultation: Balanced quality vs cost - vet reviews at meaningful boundaries only
-
-**Hook fixes (committed in 7083806):**
-- Fixed pretooluse-block-tmp.sh: Output plain text to stderr + exit 2 (not JSON)
-- Moved submodule-safety.py from PreToolUse to PostToolUse (cwd checks need to run after commands execute)
-- Updated .claude/settings.json with correct hook configuration (PreToolUse for Write, PostToolUse for Bash)
-- Removed Bash PreToolUse hook for submodule-safety (was checking cwd before command changed it)
-
-**Hook testing and debugging:**
-- Ran partial test-hooks.md procedure (Tests 1-10)
-- Discovered hooks need to be in .claude/settings.json (not separate .claude/hooks/hooks.json)
-- Found official example showing deny hooks must: output to stderr + exit 2
-- Confirmed PostToolUse hooks work for cwd warnings (now showing properly)
-- Confirmed PreToolUse hooks work for /tmp blocking (clean error message)
-
-**Previous session work (committed earlier):**
-- Hook fixes and vet requirement (daa2281, 8c36c0b, 02788f7)
-- Feedback-fixes execution
-- Recovery runbook generation (43 TDD cycles across 4 phases)
+**Root cause analysis and pipeline fix (committed in 440d87b, 06c957e):**
+- Diagnosed why recovery runbook had wrong test file paths (inferred instead of discovered)
+- Failure traced through pipeline: plan-tdd guessed paths → reviewer didn't check existence → prepare-runbook processed text only → orchestrate failed at execution
+- Fixed 4 skills/agents to prevent recurrence:
+  - plan-tdd: Added required Phase 2 codebase discovery step (Glob/Grep, not infer)
+  - plan-adhoc: Added Point 0.5 codebase discovery before runbook generation
+  - review-tdd-plan: Added criterion 8 (file reference validation) and review Phase 2
+  - vet: Added runbook file reference checks when reviewing plans
+- Verified design.md is correct (accurately describes stubs, phases make sense)
+- Verified actual test structure: 6 granular files (test_account_structure/state/providers/keychain/switchback/usage.py) + test_cli_account.py
+- Verified source is in `src/claudeutils/account/` (not `claudeutils/`)
+- Confirmed implementations are stubs (e.g., account status returns hardcoded state)
+- Some tests already strong (account plan/api mock and assert content), some vacuous (structure, protocol)
 
 ## Pending Tasks
 
-- [x] **Ensure workflow vet enforcement** — After `/plan-adhoc` and `/plan-tdd` completion, ensure high/medium fixes applied; during `/orchestrate`, ensure vet steps apply high/medium fixes
-- [ ] **Design session: Update recovery runbook** — Opus review of test file structure and runbook regeneration (CURRENT)
-- [ ] **Execute recovery runbook** — `/orchestrate` on claude-tools-recovery (after design fixes)
+- [x] **Ensure workflow vet enforcement**
+- [x] **Diagnose and fix planning pipeline** — Root cause analysis of recovery runbook failure, fix plan-tdd/plan-adhoc/review-tdd-plan/vet
+- [ ] **Regenerate recovery runbook** — Run /plan-tdd on plans/claude-tools-recovery/design.md (design verified correct, pipeline now discovers files)
+- [ ] **Execute recovery runbook** — `/orchestrate` on claude-tools-recovery (after runbook regeneration)
 - [ ] **Run /remember** — learnings.md at 131 lines (soft limit 80)
 - [ ] **Discuss** — Tool batching: contextual block with contract (batch-level hook rules)
 - [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
 
 ## Blockers / Gotchas
 
+**Recovery runbook: design is correct, runbook needs regeneration:**
+- Design accurately describes problem (stubs, wrong wiring, vacuous tests)
+- Test files are granular: test_account_structure.py, test_account_state.py, test_account_providers.py, test_account_keychain.py, test_account_switchback.py, test_account_usage.py, test_cli_account.py
+- Source is in `src/claudeutils/account/` (not `claudeutils/`)
+- Pipeline fix ensures /plan-tdd will now Glob for actual files
+- Old runbook at plans/claude-tools-recovery/runbook.md can be overwritten
+
 **Hook output format for deny decisions:**
 - Must output to stderr (`>&2`) and exit with code 2
 - Plain text message works (no JSON wrapper needed)
-- JSON output creates noise: `PreToolUse:Write hook error: [path]: {json}`
-- Plain text is cleaner: `PreToolUse:Write hook error: [path]: message`
-- The `permissionDecision` field is NOT required - exit code 2 is sufficient to deny
 
 **Hook configuration location:**
 - Hooks MUST be in `.claude/settings.json` under `"hooks": {...}`
 - Separate `.claude/hooks/hooks.json` file is NOT loaded
-- Plugin hooks use `{"description": "...", "hooks": {...}}` wrapper format
-- Settings/project-local hooks use direct `{event: [...]}` format
-
-**PreToolUse vs PostToolUse timing:**
-- PreToolUse runs BEFORE command executes (cwd unchanged)
-- PostToolUse runs AFTER command executes (cwd may have changed)
-- cwd checks must be PostToolUse (to detect cwd changes after cd commands)
-- Path validation can be PreToolUse (checking command arguments before execution)
-
-**Hooks require session restart:**
-- Hook changes only take effect after restarting Claude Code
-- Test hooks after commit by restarting session
-
-**Symlinks in git:**
-- .claude/ symlinks now tracked (refactor agent, opus-design-question skill, hooks)
-- Point to agent-core/ source files
-- Run `just sync-to-parent` in agent-core to recreate if broken
-
-**Python 3.14 Incompatibility:**
-- litellm dependency uvloop doesn't support Python 3.14 yet
-- Solution: `uv tool install --python 3.13 'litellm[proxy]'`
-
-**Mock Patching Pattern:**
-- Patch at usage location, not definition location
-- Example: `patch("claudeutils.account.state.subprocess.run")`
-
-**Bash cwd behavior:**
-- Main interactive agent: cwd persists between Bash calls
-- Sub-agents (Task tool): cwd does NOT persist
-- CLAUDE.md absolute path guidance targets sub-agents
 
 **prepare-runbook.py requires sandbox bypass:**
 - Writing to `.claude/agents/` triggers sandbox permission error
 - Workaround: Added to excludedCommands in settings.json
 
-**Recovery runbook file structure mismatch (BLOCKER):**
-- Runbook references `tests/test_account.py` consolidated test file
-- Actual codebase has granular structure: test_account_structure.py, test_account_state.py, test_account_providers.py, test_account_keychain.py, test_account_switchback.py, test_account_usage.py, test_cli_account.py
-- Cycle 0.1 failed: test_account.py doesn't exist, test_account_status_basic not found
-- Runbook common context assumes wrong test file paths throughout all 43 cycles
-- Root cause: Runbook generated with stale assumptions about test organization
-- Impact: Cannot execute recovery without updating runbook with correct file paths
-- Solution: Design session to review actual test structure and regenerate runbook with correct context
+**Mock Patching Pattern:**
+- Patch at usage location, not definition location
+- Example: `patch("claudeutils.account.state.subprocess.run")`
 
 ## Reference Files
 
-- `agent-core/agents/test-hooks.md` — Hook testing procedure (10 tests)
-- `agent-core/hooks/pretooluse-block-tmp.sh` — /tmp write blocking hook (fixed)
-- `agent-core/hooks/submodule-safety.py` — PostToolUse cwd warning hook
-- `.claude/settings.json` — Hook configuration (PreToolUse + PostToolUse)
-- `/Users/david/.claude/plugins/cache/claude-plugins-official/plugin-dev/*/skills/hook-development/examples/validate-write.sh` — Official hook example showing stderr + exit 2 pattern
-
-**Previous work:**
-- `plans/claude-tools-recovery/design.md` — Recovery design (4 phases R0-R4)
-- `plans/claude-tools-recovery/runbook.md` — Generated TDD runbook (43 cycles)
-- `plans/claude-tools-recovery/orchestrator-plan.md` — Execution plan
-- `agent-core/fragments/vet-requirement.md` — Production artifact vet directive
-- `agent-core/agents/refactor.md` — Refactor agent (symlinked)
-- `agent-core/skills/opus-design-question/` — Opus design consultation skill (symlinked)
+- `plans/claude-tools-recovery/design.md` — Recovery design (4 phases R0-R4, verified correct)
+- `plans/claude-tools-recovery/runbook.md` — Old runbook (wrong file paths, needs regeneration)
+- `agent-core/skills/plan-tdd/SKILL.md` — Updated with codebase discovery requirement
+- `agent-core/skills/review-tdd-plan/SKILL.md` — Updated with file reference validation
 
 ## Next Steps
 
 **Priority order:**
-1. **Design session (URGENT):** Opus review and recovery runbook regeneration with correct test file structure
-2. Execute recovery runbook (orchestration) — after design fixes
+1. **Regenerate recovery runbook** — /plan-tdd on plans/claude-tools-recovery/design.md
+2. Execute recovery runbook (orchestration)
 3. Run /remember (learnings consolidation)
 4. Design-vet-agent creation (opus session)
 5. Tool batching discussion (exploration)
 
 ---
-*Handoff by Haiku. Recovery execution blocked on runbook test file paths. Prepare for Opus design session to review actual test structure and regenerate runbook.*
+*Handoff by Opus. Pipeline hardened against fabricated file paths. Design verified correct. Next: regenerate runbook with /plan-tdd (will now discover actual file structure).*
