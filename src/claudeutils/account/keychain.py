@@ -16,19 +16,31 @@ class Keychain:
         Returns:
             Password string from keychain, or None if entry not found
         """
-        result = subprocess.run(
-            ["security", "find-generic-password", "-a", account, "-s", service, "-w"],
-            capture_output=True,
-            text=False,
-            check=False,
-        )
+        try:
+            result = subprocess.run(
+                [
+                    "security",
+                    "find-generic-password",
+                    "-a",
+                    account,
+                    "-s",
+                    service,
+                    "-w",
+                ],
+                capture_output=True,
+                text=False,
+                check=False,
+            )
 
-        # Return None if keychain entry not found (non-zero returncode)
-        if result.returncode != 0:
+            # Return None if keychain entry not found (non-zero returncode)
+            if result.returncode != 0:
+                return None
+
+            # Extract password from output (remove newline if present)
+            return result.stdout.decode("utf-8").strip()
+        except FileNotFoundError:
+            # Return None if security command is not available
             return None
-
-        # Extract password from output (remove newline if present)
-        return result.stdout.decode("utf-8").strip()
 
     def add(self, account: str, password: str, service: str) -> None:
         """Add password to keychain.

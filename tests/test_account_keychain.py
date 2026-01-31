@@ -126,3 +126,21 @@ def test_keychain_find_not_found() -> None:
 
         # Verify that find() returns None when entry not found
         assert result is None
+
+
+def test_keychain_command_not_found() -> None:
+    """Test Keychain.find() gracefully handles security command unavailable."""
+    # Mock subprocess.run to raise FileNotFoundError when security command doesn't exist
+    with patch(
+        "claudeutils.account.keychain.subprocess.run",
+        side_effect=FileNotFoundError("security command not found"),
+    ) as mock_run:
+        # Create Keychain instance and call find
+        keychain = Keychain()
+        result = keychain.find("test-account", "test-service")
+
+        # Verify subprocess was called
+        mock_run.assert_called_once()
+
+        # Verify that find() returns None when security command is unavailable
+        assert result is None
