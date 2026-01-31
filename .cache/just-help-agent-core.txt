@@ -1,0 +1,4 @@
+Available recipes:
+    help           # Show available recipes
+    sync-to-parent # Sync skills and agents to parent project's .claude directory via symlinks
+    precommit      # Stub precommit validation (agent-core has no validation requirements)

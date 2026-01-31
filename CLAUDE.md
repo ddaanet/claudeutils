@@ -63,6 +63,16 @@ When user says "pending: task description":
 
 @agent-core/fragments/delegation.md
 
+@agent-core/fragments/project-tooling.md
+
+### Available Recipes
+
+**Root justfile:**
+@.cache/just-help.txt
+
+**agent-core justfile:**
+@.cache/just-help-agent-core.txt
+
 ### Skill Development
 
 **Rule:** When creating, editing, or discussing skills, start by loading the `plugin-dev:skill-development` skill.

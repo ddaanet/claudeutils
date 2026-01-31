@@ -123,3 +123,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Placing `<example>` blocks directly in frontmatter with `description:` (single-line syntax)
 - Correct pattern: Use `description: |` multi-line syntax with all examples indented as part of the field value
 - Rationale: YAML parsers treat unindented content after `description:` as new fields. Invalid YAML prevents agent registration. Multi-line string syntax (`|`) makes examples part of description value.
+
+**General knowledge overrides project directives (Script-First Evaluation gap):**
+- Anti-pattern: Using `ln -sf` to create symlinks in `.claude/` when `just sync-to-parent` exists
+- Root cause: Script-First Evaluation says "execute simple operations directly" — but doesn't say "check for project recipes first"
+- Correct pattern: Before ad-hoc commands, check `just --list` for existing recipes that handle the operation
+- Fix: Created `project-tooling.md` fragment — project recipes take priority over equivalent ad-hoc commands
+- Broader lesson: Loaded context directives must override general knowledge, not compete with it

@@ -1,43 +1,40 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Hook user visibility improvements complete. test-hooks agent operational.
+**Status:** Project tooling priority fix, justfile caching system, review-tdd-process agent integration complete.
 
 ## Completed This Session
 
-**test-hooks agent creation:**
-- Converted test-hooks.md procedure into proper agent with frontmatter
-- Initial YAML frontmatter was invalid (examples broke parsing) — plugin-dev:agent-creator diagnosed and fixed
-- Used `description: |` multi-line syntax with indented examples
-- Agent spec: haiku model, yellow color, tools: Read/Write/Bash/Grep
-- Symlink already existed at `.claude/agents/test-hooks.md`
-- Agent now discoverable and functional
+**Project tooling priority rule (diagnostic RCA):**
+- Root cause: Script-First Evaluation in `delegation.md` encouraged `ln -sf` without "check for project recipes first"
+- User diagnostic: Why did agent use `ln -sf` instead of `just sync-to-parent` when both loaded in context?
+- Created `agent-core/fragments/project-tooling.md` — project recipes take priority over ad-hoc commands
+- Updated `agent-core/fragments/delegation.md` — Script-First Evaluation now checks `just --list` first
+- Added to `CLAUDE.md` and `agents/learnings.md`
+- Broader lesson: Loaded directives must override general knowledge, not compete with it
 
-**Hook user visibility improvements:**
-- Made all hook messages visible to both agent AND user (previously some only showed to agent)
-- Updated `agent-core/hooks/userpromptsubmit-shortcuts.py`: Added `systemMessage` alongside `additionalContext` for both Tier 1 commands and Tier 2 directives
-- Updated `agent-core/hooks/submodule-safety.py`: Added `systemMessage` to PostToolUse warning output
-- No restart needed (scripts execute fresh each time, unlike registration changes)
+**Justfile help caching system:**
+- Created `agent-core/Makefile` — gmake-based cache management with dependency tracking
+- Makefile hidden in `agent-core/`, entry point is `just` (default `gmake` target shows help message)
+- Generated `.cache/just-help.txt` and `.cache/just-help-agent-core.txt`
+- Updated `CLAUDE.md` — @file references load both cached help outputs in initial context
+- Updated root `justfile`:
+  - Added `cache` recipe → `gmake --no-print-directory -C agent-core all`
+  - `dev` depends on `cache` (rebuilds if justfiles changed)
+  - `precommit` runs `gmake check` (fails if cache stale)
+- FUTURE: When justfiles factored to use agent-core includes, update Makefile dependencies
 
-**Hook testing in main session:**
-- Confirmed sub-agents cannot test Bash hooks (hooks don't propagate to sub-agent contexts)
-- Manually tested all Bash hooks in main session — all PASS:
-  - Test 3: PreToolUse blocks commands when cwd != root ✓
-  - Test 4: Restore command `cd /Users/david/code/claudeutils` bypasses block ✓
-  - Test 7: Subshell `(cd agent-core && ls) && pwd` preserves parent cwd ✓
-  - Test 8: PostToolUse warning after `cd agent-core` (now visible to user) ✓
-  - Test 10: Security - `cd /root && command` blocked (not exact match) ✓
-- test-hooks agent tested Write hooks successfully (6/11 tests PASS, 3 inconclusive due to sub-agent limitation, 2 skipped)
-- Test results: `tmp/hook-test-results-1769892256.md`
-
-**Key discovery:**
-- Hooks (PreToolUse/PostToolUse/UserPromptSubmit) only active in main agent session
-- Sub-agents spawned via Task tool don't inherit hook context
-- test-hooks agent has Bash tool but hooks don't fire in its execution environment
-- UserPromptSubmit hooks only fire on user prompts to main agent (not in sub-agent sessions)
+**review-tdd-process agent integration:**
+- Created `agent-core/agents/review-tdd-process.md` — sonnet agent for post-execution TDD quality analysis
+- Agent analyzes: plan vs execution, TDD compliance (RED/GREEN/REFACTOR), code quality, produces actionable recommendations
+- Synced to `.claude/agents/` via `just sync-to-parent` (requires `dangerouslyDisableSandbox: true`)
+- Updated `agent-core/skills/orchestrate/SKILL.md`:
+  - Section 6: TDD completion now delegates to vet-fix-agent, then review-tdd-process
+  - Integration section: Added TDD workflow stages (oneshot and TDD paths now documented)
+  - TDD workflow: `/design` (TDD) → `/plan-tdd` → `/orchestrate` → [vet-fix-agent] → [review-tdd-process]
 
 ## Pending Tasks
 
-- [ ] **Orchestrate: integrate review-tdd-process** — rename review-analysis, use custom sonnet sub-agent, runs during orchestration | sonnet
+- [ ] **Update sync-to-parent references** — document required `dangerouslyDisableSandbox: true` for the recipe | sonnet
 - [ ] **Refactor oneshot handoff template** — integrate into current handoff/pending/execute framework | sonnet
 - [ ] **Evaluate oneshot skill** — workflow now always starts with /design, may be redundant | opus
 - [ ] **Update heredoc references** — sandboxed heredoc fix landed. Remove workarounds, restore vendor default heredoc behavior for commit messages | sonnet
@@ -59,21 +56,31 @@
 - Fix 2 (artifact staging) ensures prepare-runbook.py artifacts are staged
 - Fix 1 (submodule awareness) prevents submodule pointer drift
 
-**Learnings file at 110/80 lines** — needs `/remember` consolidation soon.
+**Learnings file at 131/80 lines** — needs `/remember` consolidation urgently.
 
-**Hook testing limitation:**
-- test-hooks agent can test Write hooks but not Bash hooks (hooks don't propagate to sub-agents)
-- Bash hooks must be tested manually in main session
-- Consider documenting this in test-hooks agent instructions
+**sync-to-parent requires sandbox bypass:**
+- `just sync-to-parent` in agent-core/ fails with "Operation not permitted" in sandbox
+- Requires `dangerouslyDisableSandbox: true` to succeed
+- Should document this in CLAUDE.md sync-to-parent reference and sandbox-exemptions.md
 
-**Agent frontmatter YAML strictness:**
-- Examples in description field must use multi-line syntax (`description: |`) with proper indentation
-- Plain `description:` with unindented examples breaks YAML parsing
-- Agent won't register if frontmatter is invalid
+## Reference Files
+
+**New fragments:**
+- `agent-core/fragments/project-tooling.md` — project recipe priority over ad-hoc commands
+
+**New agent:**
+- `agent-core/agents/review-tdd-process.md` — TDD process quality analysis agent
+
+**Cache files:**
+- `.cache/just-help.txt` — root justfile recipes (loaded via @file in CLAUDE.md)
+- `.cache/just-help-agent-core.txt` — agent-core justfile recipes (loaded via @file in CLAUDE.md)
+
+**Build infrastructure:**
+- `agent-core/Makefile` — cache management with dependency tracking
 
 ## Next Steps
 
-Consider consolidating learnings.md (110/80 lines) with `/remember` skill.
+Learnings file at 131/80 lines. Run `/remember` to consolidate before next session.
 
 ---
-*Handoff by Sonnet. Hook visibility improvements and test-hooks agent complete.*
+*Handoff by Opus. Project tooling priority diagnostic complete, justfile caching system operational.*

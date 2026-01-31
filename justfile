@@ -12,13 +12,18 @@ help:
 
 # Format and run all checks
 [no-exit-message]
-dev: format precommit
+dev: format cache precommit
+
+# Rebuild cached just help output (if justfiles changed)
+cache:
+    gmake --no-print-directory -C agent-core all
 
 # Run all checks
 [no-exit-message]
 precommit:
     #!{{ bash_prolog }}
     sync
+    gmake --no-print-directory -C agent-core check
     run-checks
     safe pytest-quiet
     run-line-limits
