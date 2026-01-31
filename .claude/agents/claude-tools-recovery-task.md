@@ -317,48 +317,56 @@ Do not proceed beyond assigned cycle. Do not make assumptions about unstated req
 
 **Key Design Decisions:**
 
-1. **Approach: Strengthen tests then wire**
+1. **Approach: Strengthen tests then wire (Option 2)**
    - Structure is correct, only internals need work
    - Strengthened tests create RED phase naturally (stubs fail behavioral assertions)
    - Dogfoods improved plan-tdd skill
 
 2. **Phase R0 deletes before strengthening**
    - Vacuous tests add noise and false confidence
-   - Removing them first clarifies what needs behavioral assertions
+   - Removing them first clarifies what actually needs behavioral assertions
 
 3. **Statusline display modules deferred**
-   - Complex formatting needs separate design
-   - Focus on I/O wiring and state management first
+   - display.py, context.py, plan_usage.py, api_usage.py have complex formatting
+   - Current recovery focuses on I/O wiring and state management
 
 4. **Mock strategy: patch at usage location**
    - `patch("claudeutils.account.state.subprocess.run")` not `patch("subprocess.run")`
-   - More precise, consistent with project patterns
+   - `patch("claudeutils.account.cli.Path.home")` not `patch("pathlib.Path.home")`
 
 **TDD Protocol:**
-
 Strict RED-GREEN-REFACTOR: 1) RED: Write failing test, 2) Verify RED, 3) GREEN: Minimal implementation, 4) Verify GREEN, 5) Verify Regression, 6) REFACTOR (optional)
 
 **Project Paths:**
-
-- Source: `claudeutils/` (account/, model/, statusline/)
-- Tests: `tests/` (test_account.py, test_model.py, test_statusline.py)
-- Config: `~/.claude/` (account-mode, account-provider, .env)
-- Keychain: macOS keychain services
+- Source: `src/claudeutils/account/` (state.py, providers.py, keychain.py, cli.py)
+- Tests: `tests/test_account_*.py`, `tests/test_cli_account.py`
+- Account config: `~/.claude/account-mode`, `~/.claude/account-provider`
+- Keychain service: `com.anthropic.claude`
 
 **Conventions:**
-
 - Use Read/Write/Edit/Grep tools (not Bash for file ops)
 - Report errors explicitly (never suppress)
 - Write notes to plans/claude-tools-recovery/reports/cycle-{X}-{Y}-notes.md
+- Mock patching: patch at usage location (see design decisions #4)
 
 **Stop Conditions (all cycles):**
 
-STOP IMMEDIATELY if: RED phase test passes (expected failure) • RED phase failure message doesn't match expected • GREEN phase tests don't pass after implementation • Any phase existing tests break (regression)
+STOP IMMEDIATELY if:
+- RED phase test passes (expected failure)
+- RED phase failure message doesn't match expected
+- GREEN phase tests don't pass after implementation
+- Any phase existing tests break (regression)
 
-Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test passes unexpectedly → Investigate if feature exists 3) Regression → STOP, report broken tests 4) Scope unclear → STOP, document ambiguity
+Actions when stopped:
+1. Document in reports/cycle-{X}-{Y}-notes.md
+2. Test passes unexpectedly → Investigate if feature exists
+3. Regression → STOP, report broken tests
+4. Scope unclear → STOP, document ambiguity
 
 **Dependencies:**
+Sequential within each phase. All R0 cycles complete before R1. All R1 cycles complete before R2, etc.
 
-Sequential within each phase. Phases must complete in order: R0 → R1 → R2 → R3 → R4
+**Phase Numbering Note:**
+Design document mentions phases R0-R4, but this runbook uses R0-R3. The design's "Phase R3: Wire implementations" is omitted because strengthened tests in R1/R2 already drive implementations during their GREEN phases. The design's R3 was a validation step; this runbook integrates implementation directly into test strengthening cycles. The design's "Phase R4: Error handling" becomes Phase R3 here.
 
 ---

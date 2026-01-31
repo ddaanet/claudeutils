@@ -5,62 +5,72 @@
 
 ---
 
-## Cycle 2.4: Strengthen account status test - consistency validation
+## Cycle 2.4: Test account api writes provider selection
 
-**Objective**: Create inconsistent state fixture, assert output shows validation warnings
-
+**Objective**: Verify account api command writes selected provider and generates credentials
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test account status displays consistency warnings for mismatched state
+**Test:** tests/test_cli_account.py::test_account_api already verifies provider file, strengthen to test claude-env content
 
 **Expected failure:**
 ```
-AssertionError: expected validation warning in output, not found
+AssertionError: assert "OPENROUTER_API_KEY" in claude_env_content
+(may write empty or wrong provider credentials)
 ```
 
-**Why it fails:** Stub doesn't run validation
+**Why it fails:** CLI may not generate provider-specific claude-env
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_validation -v`
-- Must fail (no validation output)
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_api -v
+```
+- Edit test to read claude-env file, assert OPENROUTER_API_KEY present
+- Mock keystore get_openrouter_api_key to return "test-openrouter-key"
+- Test should FAIL if wrong provider or empty file
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Create inconsistent fixture (mode=api + OAuth in keychain), assert warning
+**Implementation:** Update account api to create provider-specific claude-env
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create test_account_status_validation:
-    - Fixture: tmp_path/.claude/account-mode = "api"
-    - Mock: OAuth token in keychain (mode=api shouldn't have OAuth)
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Run: `account status`
-    - Assert: Output contains validation warning or inconsistency message
+- File: src/claudeutils/account/cli.py
+  Action: In api(), create provider based on --provider argument (factory function), generate claude-env with provider.claude_env_vars()
+- File: tests/test_cli_account.py
+  Action: Test with --provider=openrouter, mock keystore, assert OPENROUTER_API_KEY in claude-env
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_validation -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_api -v
+```
+- Test passes with correct provider credentials
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All CLI account tests pass
 
 ---
 
-**Expected Outcome**: Test verifies validation logic runs and outputs warnings
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts validation warning present
-
+**Expected Outcome**: account api test verifies correct provider credentials written
+**Error Conditions**: Wrong provider used → check provider factory logic
+**Validation**: Test verifies provider-specific env vars
+**Success Criteria**: account api generates claude-env with selected provider
 **Report Path**: plans/claude-tools-recovery/reports/cycle-2-4-notes.md
+
+---
+
+**Checkpoint**
+
+1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
+2. Vet: Review CLI test quality, fixture patterns, mock locations. Commit fixes.
+3. Functional review: Verify CLI commands use real filesystem reads (get_account_state), not hardcoded stubs. Check claude-env file generation uses providers. If stubs remain, STOP and report.
 
 ---

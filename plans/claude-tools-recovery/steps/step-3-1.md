@@ -5,61 +5,63 @@
 
 ---
 
-## Cycle 3.1: Wire AccountState factory to read filesystem
+## Cycle 3.1: Handle keychain command not found
 
-**Objective**: Replace hardcoded AccountState with real file reading
-
+**Objective**: Test Keychain handles FileNotFoundError when security command unavailable
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Strengthened test from Cycle 2.1 should now fail
+**Test:** tests/test_account_keychain.py should test Keychain.find() handles FileNotFoundError gracefully
 
 **Expected failure:**
 ```
-AssertionError: expected 'Mode: plan', got 'Mode: <hardcoded>'
+FileNotFoundError not caught, test fails with unhandled exception
 ```
 
-**Why it fails:** AccountState still returns hardcoded values
+**Why it fails:** Keychain.find() doesn't catch subprocess FileNotFoundError
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_reads_files -v`
-- Must fail with fixture assertion
-- If passes, STOP - implementation may already be real
+**Verify RED:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_command_not_found -v
+```
+- Create test with mock subprocess.run raising FileNotFoundError
+- Assert Keychain().find() returns None (graceful degradation)
+- Test should FAIL with uncaught exception
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Update AccountState factory to read ~/.claude/account-mode and account-provider files
+**Implementation:** Add try/except to catch FileNotFoundError
 
 **Changes:**
-- File: claudeutils/account/state.py
-  Action: Update create_account_state() or AccountState constructor:
-    - Read: Path.home() / ".claude" / "account-mode"
-    - Read: Path.home() / ".claude" / "account-provider"
-    - Parse: Strip whitespace, set AccountState.mode and AccountState.provider
-    - Handle: Missing files → default values or None
+- File: src/claudeutils/account/keychain.py
+  Action: Wrap subprocess.run in try/except, catch FileNotFoundError, return None
+- File: tests/test_account_keychain.py
+  Action: Add test with FileNotFoundError mock, assert find() returns None
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_reads_files -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_command_not_found -v
+```
+- Test passes with None return
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_keychain.py -v
+```
+- All keychain tests pass
 
 ---
 
-**Expected Outcome**: AccountState reads real files instead of hardcoded values
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation reads filesystem, test passes
-
+**Expected Outcome**: Keychain returns None when security command unavailable
+**Error Conditions**: Still raises exception → verify try/except scope
+**Validation**: Test verifies None return on FileNotFoundError
+**Success Criteria**: Keychain error handling for missing command
 **Report Path**: plans/claude-tools-recovery/reports/cycle-3-1-notes.md
 
 ---

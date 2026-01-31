@@ -5,62 +5,63 @@
 
 ---
 
-## Cycle 1.2: Strengthen OpenRouter provider keychain test
+## Cycle 1.2: Strengthen OpenRouterProvider with keychain retrieval
 
-**Objective**: Add mock keychain query and assert non-empty API key + base URL
-
+**Objective**: Add keystore to OpenRouterProvider and test credential retrieval
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test OpenRouterProvider.claude_env_vars() returns keychain value and base URL
+**Test:** tests/test_account_providers.py::test_openrouter_provider_env_vars should verify non-empty credentials
 
 **Expected failure:**
 ```
-AssertionError: expected OPENROUTER_API_KEY='sk-or-test456', got OPENROUTER_API_KEY=''
+AssertionError: assert env_vars["OPENROUTER_API_KEY"] != ""
+(current returns empty string)
 ```
 
-**Why it fails:** Stub implementation returns empty string
+**Why it fails:** OpenRouterProvider.claude_env_vars() returns hardcoded empty strings
 
-**Verify RED:** Run `pytest tests/test_account.py::test_openrouter_provider_credentials -v`
-- Must fail with empty credential or missing base URL assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_account_providers.py::test_openrouter_provider_env_vars -v
+```
+- Edit test to add `assert env_vars["OPENROUTER_API_KEY"] != ""`
+- Test should FAIL (stub returns "")
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock keychain, assert API key and OPENROUTER_BASE_URL
+**Implementation:** Add keystore to OpenRouterProvider and retrieve credentials
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Update test_openrouter_provider_credentials:
-    - Mock: `patch("claudeutils.account.providers.subprocess.run")`
-    - Return: keychain password "sk-or-test456"
-    - Assert: `env_vars["OPENROUTER_API_KEY"] == "sk-or-test456"`
-    - Assert: `env_vars["OPENROUTER_BASE_URL"] == "https://openrouter.ai/api/v1"`
-    - Assert: subprocess called with correct service/account
+- File: src/claudeutils/account/providers.py
+  Action: Add `__init__(self, keystore: KeyStore)`, add `get_openrouter_api_key()` to KeyStore protocol, call it in `claude_env_vars()`
+- File: tests/test_account_providers.py
+  Action: Create mock keystore with `get_openrouter_api_key()` returning "test-openrouter-key", verify values
 
-**Verify GREEN:** `pytest tests/test_account.py::test_openrouter_provider_credentials -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_providers.py::test_openrouter_provider_env_vars -v
+```
+- Test passes with real keychain values from mock
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_providers.py -v
+```
+- All provider tests pass
 
 ---
 
-**Expected Outcome**: Test verifies keychain integration and base URL setting
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts keychain value and base URL, not empty
-
+**Expected Outcome**: OpenRouterProvider test uses mock keychain and verifies retrieval
+**Error Conditions**: Keychain mock setup incorrect → adjust mock pattern
+**Validation**: Test has behavioral assertion for credential retrieval
+**Success Criteria**: OpenRouterProvider retrieves credentials from keystore
 **Report Path**: plans/claude-tools-recovery/reports/cycle-1-2-notes.md
 
 ---

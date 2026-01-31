@@ -1,73 +1,73 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Planning pipeline hardened, recovery runbook regeneration next
+**Status:** Recovery runbook generated and ready for execution
 
 ## Completed This Session
 
-**Root cause analysis and pipeline fix (committed in 440d87b, 06c957e):**
-- Diagnosed why recovery runbook had wrong test file paths (inferred instead of discovered)
-- Failure traced through pipeline: plan-tdd guessed paths → reviewer didn't check existence → prepare-runbook processed text only → orchestrate failed at execution
-- Fixed 4 skills/agents to prevent recurrence:
-  - plan-tdd: Added required Phase 2 codebase discovery step (Glob/Grep, not infer)
-  - plan-adhoc: Added Point 0.5 codebase discovery before runbook generation
-  - review-tdd-plan: Added criterion 8 (file reference validation) and review Phase 2
-  - vet: Added runbook file reference checks when reviewing plans
-- Verified design.md is correct (accurately describes stubs, phases make sense)
-- Verified actual test structure: 6 granular files (test_account_structure/state/providers/keychain/switchback/usage.py) + test_cli_account.py
-- Verified source is in `src/claudeutils/account/` (not `claudeutils/`)
-- Confirmed implementations are stubs (e.g., account status returns hardcoded state)
-- Some tests already strong (account plan/api mock and assert content), some vacuous (structure, protocol)
+**Recovery runbook generation:**
+- Regenerated plans/claude-tools-recovery/runbook.md with pipeline fixes applied
+- Used /plan-tdd which now discovers actual file structure via Glob (not inference)
+- 13 cycles across 4 phases: R0 (cleanup), R1 (strengthen provider tests), R2 (strengthen CLI tests), R3 (error handling)
+- Runbook structure: strengthened tests drive implementations in GREEN phases (design's Phase R3 "Wire implementations" folded into R1/R2)
+- Review by tdd-plan-reviewer agent: PASS (no prescriptive code, proper RED/GREEN sequencing, behavioral assertions)
+- Fixed metadata: Total Steps 17 → 13, renumbered Phase R4 → R3 (design R3 omitted)
+- Ran prepare-runbook.py with sandbox disabled: generated 13 step files, plan-specific agent, orchestrator plan
+- New agent: `.claude/agents/claude-tools-recovery-task.md` (requires restart to load)
+
+**Phase renumbering churn identified:**
+- prepare-runbook.py enforces sequential numbering, rejects gaps (2 → 4 failed validation)
+- Required 10+ edits to renumber R4 → R3, update cycle IDs (4.1 → 3.1), update report paths
+- Violates token economy principle: "Avoid numbered lists - causes renumbering churn"
+- Wrote problem statement: plans/runbook-identifiers/problem.md
 
 ## Pending Tasks
 
-- [x] **Ensure workflow vet enforcement**
-- [x] **Diagnose and fix planning pipeline** — Root cause analysis of recovery runbook failure, fix plan-tdd/plan-adhoc/review-tdd-plan/vet
-- [ ] **Regenerate recovery runbook** — Run /plan-tdd on plans/claude-tools-recovery/design.md (design verified correct, pipeline now discovers files)
-- [ ] **Execute recovery runbook** — `/orchestrate` on claude-tools-recovery (after runbook regeneration)
+- [ ] **Execute recovery runbook** — Restart Claude, use /orchestrate on claude-tools-recovery
+- [ ] **Update plan-tdd/plan-adhoc skills** — Auto-run prepare-runbook.py with sandbox bypass, handoff, commit, pipe orchestrate command to pbcopy, report restart/model/paste instructions
+- [ ] **Design runbook identifier solution** — /design plans/runbook-identifiers/problem.md (semantic IDs vs relaxed validation vs auto-numbering)
 - [ ] **Run /remember** — learnings.md at 131 lines (soft limit 80)
 - [ ] **Discuss** — Tool batching: contextual block with contract (batch-level hook rules)
 - [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
 
 ## Blockers / Gotchas
 
-**Recovery runbook: design is correct, runbook needs regeneration:**
-- Design accurately describes problem (stubs, wrong wiring, vacuous tests)
-- Test files are granular: test_account_structure.py, test_account_state.py, test_account_providers.py, test_account_keychain.py, test_account_switchback.py, test_account_usage.py, test_cli_account.py
-- Source is in `src/claudeutils/account/` (not `claudeutils/`)
-- Pipeline fix ensures /plan-tdd will now Glob for actual files
-- Old runbook at plans/claude-tools-recovery/runbook.md can be overwritten
+**Restart required for new agent:**
+- prepare-runbook.py created `.claude/agents/claude-tools-recovery-task.md`
+- Claude Code must restart to discover new agent
+- After restart: /orchestrate will use claude-tools-recovery-task agent for execution
 
-**Hook output format for deny decisions:**
-- Must output to stderr (`>&2`) and exit with code 2
-- Plain text message works (no JSON wrapper needed)
+**prepare-runbook.py sandbox exemption:**
+- Writing to `.claude/agents/` requires `dangerouslyDisableSandbox: true`
+- Already added to excludedCommands in settings.json (persistent exemption)
 
-**Hook configuration location:**
-- Hooks MUST be in `.claude/settings.json` under `"hooks": {...}`
-- Separate `.claude/hooks/hooks.json` file is NOT loaded
-
-**prepare-runbook.py requires sandbox bypass:**
-- Writing to `.claude/agents/` triggers sandbox permission error
-- Workaround: Added to excludedCommands in settings.json
+**Phase numbering causes churn:**
+- Sequential validation rejects gaps (design R0-R4 with R3 omitted → validation error)
+- Renumbering cascade: cycle IDs, report paths, cross-references (10+ edits)
+- Document order defines sequence, numbers are just labels (validation adds no value)
 
 **Mock Patching Pattern:**
 - Patch at usage location, not definition location
-- Example: `patch("claudeutils.account.state.subprocess.run")`
+- Example: `patch("claudeutils.account.cli.Path.home")` not `patch("pathlib.Path.home")`
 
 ## Reference Files
 
-- `plans/claude-tools-recovery/design.md` — Recovery design (4 phases R0-R4, verified correct)
-- `plans/claude-tools-recovery/runbook.md` — Old runbook (wrong file paths, needs regeneration)
-- `agent-core/skills/plan-tdd/SKILL.md` — Updated with codebase discovery requirement
-- `agent-core/skills/review-tdd-plan/SKILL.md` — Updated with file reference validation
+- `plans/claude-tools-recovery/runbook.md` — Regenerated recovery runbook (13 cycles, behavioral tests)
+- `plans/claude-tools-recovery/design.md` — Recovery design (verified correct)
+- `plans/claude-tools-recovery/steps/` — 13 step files generated by prepare-runbook.py
+- `plans/claude-tools-recovery/orchestrator-plan.md` — Orchestrator execution plan
+- `.claude/agents/claude-tools-recovery-task.md` — Plan-specific TDD agent (requires restart)
+- `plans/runbook-identifiers/problem.md` — Phase renumbering churn problem statement
+- `plans/claude-tools-recovery/reports/runbook-review.md` — tdd-plan-reviewer report (PASS)
 
 ## Next Steps
 
 **Priority order:**
-1. **Regenerate recovery runbook** — /plan-tdd on plans/claude-tools-recovery/design.md
-2. Execute recovery runbook (orchestration)
-3. Run /remember (learnings consolidation)
-4. Design-vet-agent creation (opus session)
-5. Tool batching discussion (exploration)
+1. **Restart Claude and execute recovery runbook** — /orchestrate on claude-tools-recovery
+2. Improve plan-tdd/plan-adhoc automation (prepare-runbook, handoff, orchestrate command)
+3. Design runbook identifier solution (eliminate renumbering churn)
+4. Run /remember (learnings consolidation)
+5. Design-vet-agent creation (opus session)
+6. Tool batching discussion (exploration)
 
 ---
-*Handoff by Opus. Pipeline hardened against fabricated file paths. Design verified correct. Next: regenerate runbook with /plan-tdd (will now discover actual file structure).*
+*Handoff by Sonnet. Recovery runbook generated with pipeline fixes (discovers actual files). prepare-runbook.py artifacts ready. Identified phase renumbering churn issue. Next: restart Claude, execute with /orchestrate.*

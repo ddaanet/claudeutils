@@ -5,64 +5,67 @@
 
 ---
 
-## Cycle 2.1: Strengthen account status test - mode and provider files
+## Cycle 2.1: Strengthen account status with filesystem mocking
 
-**Objective**: Mock filesystem with mode/provider files, assert output contains actual values
-
+**Objective**: Test account status reads real filesystem and outputs actual values
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test account status displays mode and provider from fixture files
+**Test:** tests/test_cli_account.py::test_account_status should verify output contains mode from file
 
 **Expected failure:**
 ```
-AssertionError: expected output to contain 'Mode: plan', got 'Mode: <hardcoded>'
+AssertionError: assert "Mode: api" in result.output
+(current hardcoded implementation outputs "Mode: plan")
 ```
 
-**Why it fails:** Stub returns hardcoded output, doesn't read files
+**Why it fails:** CLI hardcodes state instead of reading from files
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_reads_files -v`
-- Must fail with fixture value assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_status -v
+```
+- Edit test to use `tmp_path` fixture, create `.claude/account-mode` with content "api"
+- Mock `pathlib.Path.home` at usage location `claudeutils.account.cli.Path.home` to return `tmp_path`
+- Assert `"Mode: api" in result.output`
+- Test should FAIL (CLI returns hardcoded "Mode: plan")
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock Path.home(), create tmp_path fixtures, assert output contains fixture values
+**Implementation:** Create account state factory and use it in status command
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_account_status_reads_files:
-    - Fixture: Use pytest tmp_path
-    - Setup: Create tmp_path/.claude/account-mode with "plan\n"
-    - Setup: Create tmp_path/.claude/account-provider with "anthropic\n"
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Run: `account status` via CliRunner
-    - Assert: Output contains "Mode: plan"
-    - Assert: Output contains "Provider: anthropic"
+- File: src/claudeutils/account/state.py
+  Action: Add `get_account_state()` function that reads `Path.home() / ".claude" / "account-mode"` and `"account-provider"` files, returns AccountState with file values (default "plan"/"anthropic" if missing)
+- File: src/claudeutils/account/cli.py
+  Action: Replace hardcoded AccountState in status() with `state = get_account_state()`
+- File: tests/test_cli_account.py
+  Action: Update test with tmp_path, file creation, Path.home mock, output assertion
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_reads_files -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_status -v
+```
+- Test passes with output from real file reads
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All CLI account tests pass
 
 ---
 
-**Expected Outcome**: Test verifies filesystem reading with mocked home directory
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts output contains fixture file values
-
+**Expected Outcome**: account status test creates fixtures and verifies output content
+**Error Conditions**: Path.home() mock incorrect → verify patch at usage location
+**Validation**: Test asserts specific mode value from fixture
+**Success Criteria**: CLI reads real files, outputs actual state
 **Report Path**: plans/claude-tools-recovery/reports/cycle-2-1-notes.md
 
 ---

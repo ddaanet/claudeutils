@@ -128,3 +128,12 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Hookify rules add per-tool-call context bloat (session bloat)
 - Cost-benefit unclear: planning tokens for batching may exceed cached re-read savings
 - Pending exploration: contextual block with contract (batch-level hook rules)
+
+**Cycle numbering causes renumbering churn in runbooks:**
+- Anti-pattern: Sequential numeric cycle IDs (0.1, 1.1, 2.1) with validation that rejects gaps
+- Issue: Omitting phases during runbook creation triggers validation errors, requires cascading renumbering (cycle IDs, report paths, cross-references - 10+ edits per gap)
+- Root cause: prepare-runbook.py enforces sequential numbering but document order already defines execution sequence - numbers are redundant labels
+- Correct pattern: Either (1) relax validation to allow gaps, (2) use semantic identifiers (skill-style names), or (3) auto-number during extraction
+- Rationale: Same principle as CLAUDE.md token economy: "Avoid numbered lists - causes renumbering churn when edited"
+- Example: Design has R0-R4 with R3 omitted → runbook uses R0,R1,R2,R4 → validation fails "Gap 2→4" → manual renumber R4→R3
+- See: plans/runbook-identifiers/problem.md for full analysis and solution options

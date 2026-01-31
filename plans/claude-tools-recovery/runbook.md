@@ -6,2675 +6,953 @@ model: haiku
 
 # Claude Tools Recovery TDD Runbook
 
-**Context**: Fix stub implementations in claude-tools rewrite by strengthening tests and wiring real I/O
+**Context**: Recover claude-tools-rewrite implementation by replacing stubs with real I/O and strengthening tests from structural to behavioral assertions.
 
 **Design**: plans/claude-tools-recovery/design.md
 
 **Status**: Draft
 
-**Created**: 2026-01-30
+**Created**: 2026-01-31
 
 ## Weak Orchestrator Metadata
 
-**Total Steps**: 43
-
+**Total Steps**: 13
 **Execution Model**: All cycles: Haiku (TDD execution)
-
 **Step Dependencies**: Sequential within phases
-
 **Error Escalation**: Haiku → User on stop conditions/regression
-
 **Report Locations**: plans/claude-tools-recovery/reports/
-
-**Success Criteria**: All cycles GREEN, no regressions, CLI commands functional with real I/O
-
+**Success Criteria**: All cycles GREEN, no regressions, features functional
 **Prerequisites**: Skill improvements from plans/skill-improvements/design.md applied
 
 ## Common Context
 
 **Key Design Decisions:**
 
-1. **Approach: Strengthen tests then wire**
+1. **Approach: Strengthen tests then wire (Option 2)**
    - Structure is correct, only internals need work
    - Strengthened tests create RED phase naturally (stubs fail behavioral assertions)
    - Dogfoods improved plan-tdd skill
 
 2. **Phase R0 deletes before strengthening**
    - Vacuous tests add noise and false confidence
-   - Removing them first clarifies what needs behavioral assertions
+   - Removing them first clarifies what actually needs behavioral assertions
 
 3. **Statusline display modules deferred**
-   - Complex formatting needs separate design
-   - Focus on I/O wiring and state management first
+   - display.py, context.py, plan_usage.py, api_usage.py have complex formatting
+   - Current recovery focuses on I/O wiring and state management
 
 4. **Mock strategy: patch at usage location**
    - `patch("claudeutils.account.state.subprocess.run")` not `patch("subprocess.run")`
-   - More precise, consistent with project patterns
+   - `patch("claudeutils.account.cli.Path.home")` not `patch("pathlib.Path.home")`
 
 **TDD Protocol:**
-
 Strict RED-GREEN-REFACTOR: 1) RED: Write failing test, 2) Verify RED, 3) GREEN: Minimal implementation, 4) Verify GREEN, 5) Verify Regression, 6) REFACTOR (optional)
 
 **Project Paths:**
-
-- Source: `claudeutils/` (account/, model/, statusline/)
-- Tests: `tests/` (test_account.py, test_model.py, test_statusline.py)
-- Config: `~/.claude/` (account-mode, account-provider, .env)
-- Keychain: macOS keychain services
+- Source: `src/claudeutils/account/` (state.py, providers.py, keychain.py, cli.py)
+- Tests: `tests/test_account_*.py`, `tests/test_cli_account.py`
+- Account config: `~/.claude/account-mode`, `~/.claude/account-provider`
+- Keychain service: `com.anthropic.claude`
 
 **Conventions:**
-
 - Use Read/Write/Edit/Grep tools (not Bash for file ops)
 - Report errors explicitly (never suppress)
 - Write notes to plans/claude-tools-recovery/reports/cycle-{X}-{Y}-notes.md
+- Mock patching: patch at usage location (see design decisions #4)
 
 **Stop Conditions (all cycles):**
 
-STOP IMMEDIATELY if: RED phase test passes (expected failure) • RED phase failure message doesn't match expected • GREEN phase tests don't pass after implementation • Any phase existing tests break (regression)
+STOP IMMEDIATELY if:
+- RED phase test passes (expected failure)
+- RED phase failure message doesn't match expected
+- GREEN phase tests don't pass after implementation
+- Any phase existing tests break (regression)
 
-Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test passes unexpectedly → Investigate if feature exists 3) Regression → STOP, report broken tests 4) Scope unclear → STOP, document ambiguity
+Actions when stopped:
+1. Document in reports/cycle-{X}-{Y}-notes.md
+2. Test passes unexpectedly → Investigate if feature exists
+3. Regression → STOP, report broken tests
+4. Scope unclear → STOP, document ambiguity
 
 **Dependencies:**
+Sequential within each phase. All R0 cycles complete before R1. All R1 cycles complete before R2, etc.
 
-Sequential within each phase. Phases must complete in order: R0 → R1 → R2 → R3 → R4
+**Phase Numbering Note:**
+Design document mentions phases R0-R4, but this runbook uses R0-R3. The design's "Phase R3: Wire implementations" is omitted because strengthened tests in R1/R2 already drive implementations during their GREEN phases. The design's R3 was a validation step; this runbook integrates implementation directly into test strengthening cycles. The design's "Phase R4: Error handling" becomes Phase R3 here.
 
 ---
 
 ## Phase R0: Clean up vacuous tests
 
-## Cycle 0.1: Delete exit-code-only account status test
+Delete tests that verify only structure with no behavioral assertions.
 
-**Objective**: Remove test_account_status_basic that only checks exit_code == 0
+## Cycle 0.1: Delete vacuous module import test
 
+**Objective**: Remove test that only verifies module importability
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Verify test file doesn't contain the vacuous test
+**Test:** tests/test_account_structure.py::test_account_module_importable only checks `assert claudeutils.account is not None`
 
 **Expected failure:**
 ```
-AssertionError: test_account_status_basic still exists in test_account.py
+No failure - this is a deletion cycle
 ```
 
-**Why it fails:** Test hasn't been deleted yet
+**Why it fails:** N/A - deletion cycle
 
-**Verify RED:** Read tests/test_account.py and grep for "test_account_status_basic"
-- Must find the function definition
-- If not found, STOP - test may already be deleted
+**Verify RED:** Read tests/test_account_structure.py
+- Confirm test provides no behavioral value (only structure check)
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Delete test_account_status_basic function from tests/test_account.py
+**Implementation:** Delete tests/test_account_structure.py entirely
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Remove test_account_status_basic function (including decorator and docstring)
+- File: tests/test_account_structure.py
+  Action: Delete file (only contains vacuous import test)
 
-**Verify GREEN:** Read tests/test_account.py
-- Must NOT contain "test_account_status_basic"
+**Verify GREEN:**
+```bash
+pytest tests/test_account_state.py tests/test_account_providers.py -v
+```
+- All remaining account tests still pass
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All remaining tests pass
+**Verify no regression:**
+```bash
+pytest
+```
+- All tests pass (one file removed, no functionality changed)
 
 ---
 
-**Expected Outcome**: Vacuous test removed, remaining tests pass
-
-**Error Conditions**: Test not found → STOP (may be already deleted); Regression → STOP
-
-**Validation**: Test deleted ✓, No regressions ✓
-
-**Success Criteria**: Test file doesn't contain vacuous test, other tests still pass
-
+**Expected Outcome**: Vacuous structural test removed, remaining tests pass
+**Error Conditions**: If other tests break → investigation needed
+**Validation**: File deleted, test suite passes
+**Success Criteria**: tests/test_account_structure.py removed
 **Report Path**: plans/claude-tools-recovery/reports/cycle-0-1-notes.md
-
----
-
-## Cycle 0.2: Delete hasattr-only provider tests
-
-**Objective**: Remove tests that only verify providers have methods via hasattr
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Verify test file doesn't contain hasattr-only tests for providers
-
-**Expected failure:**
-```
-AssertionError: hasattr-only provider tests still exist
-```
-
-**Why it fails:** Tests haven't been deleted yet
-
-**Verify RED:** Grep tests/test_account.py for tests that:
-- Only use `assert hasattr(provider, "method_name")`
-- No behavior assertions
-- Likely names: test_anthropic_provider_has_methods, test_openrouter_provider_has_methods
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Delete hasattr-only provider test functions
-
-**Changes:**
-- File: tests/test_account.py
-  Action: Remove test functions that only check hasattr on providers
-
-**Verify GREEN:** Grep tests/test_account.py
-- Must NOT find hasattr-only provider tests
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All remaining tests pass
-
----
-
-**Expected Outcome**: Hasattr-only tests removed, remaining tests pass
-
-**Error Conditions**: Tests not found → STOP; Regression → STOP
-
-**Validation**: Tests deleted ✓, No regressions ✓
-
-**Success Criteria**: No hasattr-only provider tests remain
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-0-2-notes.md
-
----
-
-## Cycle 0.3: Delete isinstance-only model tests
-
-**Objective**: Remove tests that only verify model objects are correct type
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Verify test file doesn't contain isinstance-only tests
-
-**Expected failure:**
-```
-AssertionError: isinstance-only model tests still exist
-```
-
-**Why it fails:** Tests haven't been deleted yet
-
-**Verify RED:** Grep tests/test_model.py for tests that:
-- Only use `assert isinstance(result, SomeClass)`
-- No behavior assertions
-- Likely pattern: instantiation tests without method calls
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Delete isinstance-only test functions
-
-**Changes:**
-- File: tests/test_model.py
-  Action: Remove test functions that only check isinstance
-
-**Verify GREEN:** Read tests/test_model.py
-- Verify removed tests no longer present
-
-**Verify no regression:** `pytest tests/test_model.py`
-- All remaining tests pass
-
----
-
-**Expected Outcome**: Isinstance-only tests removed, remaining tests pass
-
-**Error Conditions**: Tests not found → STOP; Regression → STOP
-
-**Validation**: Tests deleted ✓, No regressions ✓
-
-**Success Criteria**: No isinstance-only tests remain
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-0-3-notes.md
-
----
-
-## Cycle 0.4: Delete statusline OK-output test
-
-**Objective**: Remove test that only checks statusline returns "OK" string
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Verify test file doesn't contain OK-output test
-
-**Expected failure:**
-```
-AssertionError: statusline OK test still exists
-```
-
-**Why it fails:** Test hasn't been deleted yet
-
-**Verify RED:** Grep tests/test_statusline.py for test checking output == "OK" or similar stub
-- Likely name: test_statusline_basic or test_statusline_output
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Delete statusline OK-output test function
-
-**Changes:**
-- File: tests/test_statusline.py
-  Action: Remove test that checks for "OK" output
-
-**Verify GREEN:** Read tests/test_statusline.py
-- Test no longer present
-
-**Verify no regression:** `pytest tests/test_statusline.py`
-- All remaining tests pass
-
----
-
-**Expected Outcome**: OK-output test removed, remaining tests pass
-
-**Error Conditions**: Test not found → STOP; Regression → STOP
-
-**Validation**: Test deleted ✓, No regressions ✓
-
-**Success Criteria**: No stub output test remains
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-0-4-notes.md
-
----
-
-**Checkpoint**
-
-1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
-2. Vet: Review test deletions (confirm no valuable tests removed). Commit.
-3. Functional review: Verify remaining tests have some behavioral content (even if weak - will strengthen in R1/R2).
 
 ---
 
 ## Phase R1: Strengthen provider and keychain tests
 
-## Cycle 1.1: Strengthen Anthropic provider keychain test
+Replace weak structural assertions with behavioral tests using mocks.
 
-**Objective**: Add mock keychain query and assert non-empty API key in claude_env_vars()
+## Cycle 1.1: Test AnthropicProvider keystore interaction
 
+**Objective**: Verify AnthropicProvider calls keystore method (not just checks key presence)
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test AnthropicProvider.claude_env_vars() returns actual keychain value
+**Test:** tests/test_account_providers.py::test_anthropic_provider_env_vars should verify mock keystore method called
 
 **Expected failure:**
 ```
-AssertionError: expected ANTHROPIC_API_KEY='sk-ant-test123', got ANTHROPIC_API_KEY=''
+AssertionError: Expected 'get_anthropic_api_key' to be called once. Called 0 times.
 ```
 
-**Why it fails:** Stub implementation returns empty string
+**Why it fails:** Test doesn't verify keystore method invocation
 
-**Verify RED:** Run `pytest tests/test_account.py::test_anthropic_provider_credentials -v`
-- Must fail with empty credential assertion
-- If passes, STOP - implementation may already be real
+**Verify RED:**
+```bash
+pytest tests/test_account_providers.py::test_anthropic_provider_env_vars -v
+```
+- Add `mock_keystore.get_anthropic_api_key.assert_called_once()` to test
+- Test should FAIL if assertion missing or mock not called
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock subprocess.run for keychain query, assert non-empty API key
+**Implementation:** Add mock call verification to test (implementation already calls it)
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Update test_anthropic_provider_credentials (or create if missing):
-    - Import: `from unittest.mock import patch, MagicMock`
-    - Mock: `patch("claudeutils.account.providers.subprocess.run")`
-    - Return: keychain password "sk-ant-test123"
-    - Assert: `env_vars["ANTHROPIC_API_KEY"] == "sk-ant-test123"`
-    - Assert: subprocess called with correct service/account args
+- File: tests/test_account_providers.py
+  Action: Add `mock_keystore.get_anthropic_api_key.assert_called_once()` after env_vars call
 
-**Verify GREEN:** `pytest tests/test_account.py::test_anthropic_provider_credentials -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_providers.py::test_anthropic_provider_env_vars -v
+```
+- Test passes with mock call verification
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All existing tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_providers.py -v
+```
+- All provider tests pass
 
 ---
 
-**Expected Outcome**: Test verifies keychain integration with mocked subprocess
-
-**Error Conditions**: Test passes on RED → STOP; GREEN doesn't pass → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts on keychain value, not empty string
-
+**Expected Outcome**: Test verifies keystore method called, not just key presence
+**Error Conditions**: If mock not called → implementation needs fixing
+**Validation**: Mock call assertion added and passes
+**Success Criteria**: Test verifies behavioral interaction with keystore
 **Report Path**: plans/claude-tools-recovery/reports/cycle-1-1-notes.md
 
 ---
 
-## Cycle 1.2: Strengthen OpenRouter provider keychain test
+## Cycle 1.2: Strengthen OpenRouterProvider with keychain retrieval
 
-**Objective**: Add mock keychain query and assert non-empty API key + base URL
-
+**Objective**: Add keystore to OpenRouterProvider and test credential retrieval
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test OpenRouterProvider.claude_env_vars() returns keychain value and base URL
+**Test:** tests/test_account_providers.py::test_openrouter_provider_env_vars should verify non-empty credentials
 
 **Expected failure:**
 ```
-AssertionError: expected OPENROUTER_API_KEY='sk-or-test456', got OPENROUTER_API_KEY=''
+AssertionError: assert env_vars["OPENROUTER_API_KEY"] != ""
+(current returns empty string)
 ```
 
-**Why it fails:** Stub implementation returns empty string
+**Why it fails:** OpenRouterProvider.claude_env_vars() returns hardcoded empty strings
 
-**Verify RED:** Run `pytest tests/test_account.py::test_openrouter_provider_credentials -v`
-- Must fail with empty credential or missing base URL assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_account_providers.py::test_openrouter_provider_env_vars -v
+```
+- Edit test to add `assert env_vars["OPENROUTER_API_KEY"] != ""`
+- Test should FAIL (stub returns "")
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock keychain, assert API key and OPENROUTER_BASE_URL
+**Implementation:** Add keystore to OpenRouterProvider and retrieve credentials
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Update test_openrouter_provider_credentials:
-    - Mock: `patch("claudeutils.account.providers.subprocess.run")`
-    - Return: keychain password "sk-or-test456"
-    - Assert: `env_vars["OPENROUTER_API_KEY"] == "sk-or-test456"`
-    - Assert: `env_vars["OPENROUTER_BASE_URL"] == "https://openrouter.ai/api/v1"`
-    - Assert: subprocess called with correct service/account
+- File: src/claudeutils/account/providers.py
+  Action: Add `__init__(self, keystore: KeyStore)`, add `get_openrouter_api_key()` to KeyStore protocol, call it in `claude_env_vars()`
+- File: tests/test_account_providers.py
+  Action: Create mock keystore with `get_openrouter_api_key()` returning "test-openrouter-key", verify values
 
-**Verify GREEN:** `pytest tests/test_account.py::test_openrouter_provider_credentials -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_providers.py::test_openrouter_provider_env_vars -v
+```
+- Test passes with real keychain values from mock
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_providers.py -v
+```
+- All provider tests pass
 
 ---
 
-**Expected Outcome**: Test verifies keychain integration and base URL setting
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts keychain value and base URL, not empty
-
+**Expected Outcome**: OpenRouterProvider test uses mock keychain and verifies retrieval
+**Error Conditions**: Keychain mock setup incorrect → adjust mock pattern
+**Validation**: Test has behavioral assertion for credential retrieval
+**Success Criteria**: OpenRouterProvider retrieves credentials from keystore
 **Report Path**: plans/claude-tools-recovery/reports/cycle-1-2-notes.md
 
 ---
 
-## Cycle 1.3: Strengthen LiteLLM provider test
+## Cycle 1.3: Strengthen LiteLLMProvider with localhost URL
 
-**Objective**: Assert LiteLLMProvider returns localhost URL without keychain dependency
-
+**Objective**: Verify LiteLLM provider returns specific localhost URL (not empty)
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test LiteLLMProvider.claude_env_vars() returns localhost URL
+**Test:** tests/test_account_providers.py::test_litellm_provider_env_vars should verify specific URL value
 
 **Expected failure:**
 ```
-AssertionError: expected LITELLM_BASE_URL='http://localhost:4000', got LITELLM_BASE_URL=''
+AssertionError: assert env_vars["ANTHROPIC_BASE_URL"] == "http://localhost:4000"
+(current returns empty string)
 ```
 
-**Why it fails:** Stub returns empty or hardcoded "OK"
+**Why it fails:** LiteLLMProvider.claude_env_vars() returns empty string for base URL
 
-**Verify RED:** Run `pytest tests/test_account.py::test_litellm_provider_credentials -v`
-- Must fail with localhost URL assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_account_providers.py::test_litellm_provider_env_vars -v
+```
+- Edit test to assert `env_vars["ANTHROPIC_BASE_URL"] == "http://localhost:4000"`
+- Test should FAIL (stub returns "")
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Assert localhost URL in env vars (no keychain mock needed)
+**Implementation:** Update LiteLLMProvider to return localhost URL constant
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Update test_litellm_provider_credentials:
-    - Assert: `env_vars["LITELLM_BASE_URL"] == "http://localhost:4000"`
-    - No keychain mock (LiteLLM doesn't use credentials)
+- File: src/claudeutils/account/providers.py
+  Action: Replace empty ANTHROPIC_BASE_URL with "http://localhost:4000", keep LITELLM_API_KEY as "none" (doesn't need real key)
+- File: tests/test_account_providers.py
+  Action: Assert ANTHROPIC_BASE_URL == "http://localhost:4000"
 
-**Verify GREEN:** `pytest tests/test_account.py::test_litellm_provider_credentials -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_providers.py::test_litellm_provider_env_vars -v
+```
+- Test passes with correct URL
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_providers.py -v
+```
+- All provider tests pass
 
 ---
 
-**Expected Outcome**: Test verifies localhost URL without keychain
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts localhost URL
-
+**Expected Outcome**: LiteLLM provider test verifies correct base URL value
+**Error Conditions**: URL mismatch → verify localhost port convention
+**Validation**: Test asserts specific URL, not just key presence
+**Success Criteria**: LiteLLM returns http://localhost:4000 base URL
 **Report Path**: plans/claude-tools-recovery/reports/cycle-1-3-notes.md
 
 ---
 
-## Cycle 1.4: Test Anthropic provider missing keychain entry
+## Cycle 1.4: Add Keychain wrapper with subprocess mock
 
-**Objective**: Mock missing keychain entry and verify error handling
-
+**Objective**: Create Keychain class with find() method tested via subprocess mock
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test AnthropicProvider handles missing keychain entry gracefully
+**Test:** Create tests/test_account_keychain.py with test for Keychain.find() mocking subprocess.run
 
 **Expected failure:**
 ```
-FAILED - KeychainError not raised when keychain entry missing
+ModuleNotFoundError: No module named 'test_account_keychain'
+or test fails because Keychain.find() doesn't exist
 ```
 
-**Why it fails:** Stub doesn't query keychain, can't fail
+**Why it fails:** Keychain class or find() method doesn't exist yet
 
-**Verify RED:** Run `pytest tests/test_account.py::test_anthropic_missing_keychain -v`
-- Must fail (KeychainError not raised or wrong error type)
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_find_success -v
+```
+- Create test file with mock for `subprocess.run` at `claudeutils.account.keychain.subprocess.run`
+- Mock returns stdout="test-password\n", returncode=0
+- Assert `Keychain().find("service", "account") == "test-password"`
+- Test should FAIL (implementation missing)
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock subprocess CalledProcessError (keychain not found), assert error raised
+**Implementation:** Create Keychain class with find() method calling subprocess
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create test_anthropic_missing_keychain:
-    - Mock: `patch("claudeutils.account.providers.subprocess.run")` raises CalledProcessError
-    - Call: `provider.claude_env_vars()`
-    - Assert: Raises KeychainError or returns empty with error message
+- File: src/claudeutils/account/keychain.py
+  Action: Create Keychain class with `find(service, account)` using `subprocess.run(["security", "find-generic-password", "-s", service, "-a", account, "-w"], capture_output=True, text=True)`, return stdout.strip()
+- File: tests/test_account_keychain.py
+  Action: Create test with subprocess mock, verify command and return value
 
-**Verify GREEN:** `pytest tests/test_account.py::test_anthropic_missing_keychain -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_find_success -v
+```
+- Test passes with mocked subprocess
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest
+```
+- All existing tests pass
 
 ---
 
-**Expected Outcome**: Test verifies error handling for missing credentials
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts error on missing keychain entry
-
+**Expected Outcome**: Keychain test mocks subprocess and verifies command structure
+**Error Conditions**: subprocess mock not called → verify patch location (usage site)
+**Validation**: Mock verifies security find-generic-password command
+**Success Criteria**: Keychain.find() constructs correct subprocess command
 **Report Path**: plans/claude-tools-recovery/reports/cycle-1-4-notes.md
 
 ---
 
-## Cycle 1.5: Test keychain wrapper find operation
+## Cycle 1.5: Test Keychain entry not found
 
-**Objective**: Mock subprocess for keychain find, assert correct command construction
-
+**Objective**: Test Keychain.find() returns None when entry doesn't exist
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test Keychain.find() constructs correct security command
+**Test:** tests/test_account_keychain.py should test find() returns None on subprocess failure
 
 **Expected failure:**
 ```
-AssertionError: subprocess.run not called with expected security find-generic-password args
+AssertionError: assert result is None
+(may return empty string or raise exception)
 ```
 
-**Why it fails:** Stub doesn't call subprocess
+**Why it fails:** Keychain.find() doesn't handle subprocess returncode != 0
 
-**Verify RED:** Run `pytest tests/test_account.py::test_keychain_find -v`
-- Must fail with mock call assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_find_not_found -v
+```
+- Create test with mock returncode=1, stdout=""
+- Assert `Keychain().find("service", "account") is None`
+- Test should FAIL if error handling missing
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock subprocess, assert find-generic-password command with service/account
+**Implementation:** Update Keychain.find() to return None on subprocess failure
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_keychain_find:
-    - Mock: `patch("claudeutils.account.keychain.subprocess.run")`
-    - Return: MagicMock with stdout containing password
-    - Call: `Keychain.find(service="test-service", account="test-account")`
-    - Assert: subprocess.run called with ["security", "find-generic-password", "-s", "test-service", "-a", "test-account", "-w"]
-    - Assert: Returns password from stdout
+- File: src/claudeutils/account/keychain.py
+  Action: Check `result.returncode`, return `None` if != 0, else return `result.stdout.strip()`
+- File: tests/test_account_keychain.py
+  Action: Add test with mock returncode=1, assert find() returns None
 
-**Verify GREEN:** `pytest tests/test_account.py::test_keychain_find -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_find_not_found -v
+```
+- Test passes with None return
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_keychain.py -v
+```
+- Both find tests pass (success and not found)
 
 ---
 
-**Expected Outcome**: Test verifies keychain find command construction
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts subprocess called with correct args
-
+**Expected Outcome**: Keychain handles missing entries gracefully with None return
+**Error Conditions**: Exception raised instead → add try/except
+**Validation**: Test verifies None return on subprocess failure
+**Success Criteria**: Keychain.find() returns None for missing entries
 **Report Path**: plans/claude-tools-recovery/reports/cycle-1-5-notes.md
-
----
-
-## Cycle 1.6: Test keychain wrapper add operation
-
-**Objective**: Mock subprocess for keychain add, assert correct command construction
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test Keychain.add() constructs correct security command
-
-**Expected failure:**
-```
-AssertionError: subprocess.run not called with expected add-generic-password args
-```
-
-**Why it fails:** Stub doesn't call subprocess
-
-**Verify RED:** Run `pytest tests/test_account.py::test_keychain_add -v`
-- Must fail with mock call assertion
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Mock subprocess, assert add-generic-password command
-
-**Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_keychain_add:
-    - Mock: `patch("claudeutils.account.keychain.subprocess.run")`
-    - Call: `Keychain.add(service="test-service", account="test-account", password="test-pass")`
-    - Assert: subprocess.run called with ["security", "add-generic-password", "-s", "test-service", "-a", "test-account", "-w", "test-pass"]
-
-**Verify GREEN:** `pytest tests/test_account.py::test_keychain_add -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Test verifies keychain add command construction
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts subprocess called with add args
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-1-6-notes.md
-
----
-
-## Cycle 1.7: Test keychain entry not found
-
-**Objective**: Mock CalledProcessError from keychain, verify error handling
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test Keychain.find() raises KeychainError when entry not found
-
-**Expected failure:**
-```
-FAILED - KeychainError not raised on entry not found
-```
-
-**Why it fails:** Stub doesn't detect missing entry
-
-**Verify RED:** Run `pytest tests/test_account.py::test_keychain_not_found -v`
-- Must fail (no error raised or wrong type)
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Mock subprocess CalledProcessError, assert KeychainError raised
-
-**Changes:**
-- File: tests/test_account.py
-  Action: Create test_keychain_not_found:
-    - Mock: `patch("claudeutils.account.keychain.subprocess.run")` raises CalledProcessError(returncode=44)
-    - Call: `Keychain.find(service="missing", account="missing")`
-    - Assert: Raises KeychainError with appropriate message
-
-**Verify GREEN:** `pytest tests/test_account.py::test_keychain_not_found -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Test verifies error on missing keychain entry
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts KeychainError raised
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-1-7-notes.md
 
 ---
 
 **Checkpoint**
 
 1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
-2. Vet: Review provider/keychain test quality. Commit fixes.
-3. Functional review: Verify tests mock real I/O (subprocess), assert on behavior (not just structure).
+2. Vet: Review provider and keychain test quality, mock patterns. Commit fixes.
+3. Functional review: Verify all provider implementations call keystore (not return stubs). Check Keychain calls subprocess. If any stubs remain, STOP and report.
 
 ---
 
 ## Phase R2: Strengthen CLI tests
 
-## Cycle 2.1: Strengthen account status test - mode and provider files
+Replace exit-code-only CLI tests with tests that verify actual output and filesystem state.
 
-**Objective**: Mock filesystem with mode/provider files, assert output contains actual values
+## Cycle 2.1: Strengthen account status with filesystem mocking
 
+**Objective**: Test account status reads real filesystem and outputs actual values
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test account status displays mode and provider from fixture files
+**Test:** tests/test_cli_account.py::test_account_status should verify output contains mode from file
 
 **Expected failure:**
 ```
-AssertionError: expected output to contain 'Mode: plan', got 'Mode: <hardcoded>'
+AssertionError: assert "Mode: api" in result.output
+(current hardcoded implementation outputs "Mode: plan")
 ```
 
-**Why it fails:** Stub returns hardcoded output, doesn't read files
+**Why it fails:** CLI hardcodes state instead of reading from files
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_reads_files -v`
-- Must fail with fixture value assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_status -v
+```
+- Edit test to use `tmp_path` fixture, create `.claude/account-mode` with content "api"
+- Mock `pathlib.Path.home` at usage location `claudeutils.account.cli.Path.home` to return `tmp_path`
+- Assert `"Mode: api" in result.output`
+- Test should FAIL (CLI returns hardcoded "Mode: plan")
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock Path.home(), create tmp_path fixtures, assert output contains fixture values
+**Implementation:** Create account state factory and use it in status command
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_account_status_reads_files:
-    - Fixture: Use pytest tmp_path
-    - Setup: Create tmp_path/.claude/account-mode with "plan\n"
-    - Setup: Create tmp_path/.claude/account-provider with "anthropic\n"
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Run: `account status` via CliRunner
-    - Assert: Output contains "Mode: plan"
-    - Assert: Output contains "Provider: anthropic"
+- File: src/claudeutils/account/state.py
+  Action: Add `get_account_state()` function that reads `Path.home() / ".claude" / "account-mode"` and `"account-provider"` files, returns AccountState with file values (default "plan"/"anthropic" if missing)
+- File: src/claudeutils/account/cli.py
+  Action: Replace hardcoded AccountState in status() with `state = get_account_state()`
+- File: tests/test_cli_account.py
+  Action: Update test with tmp_path, file creation, Path.home mock, output assertion
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_reads_files -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_status -v
+```
+- Test passes with output from real file reads
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All CLI account tests pass
 
 ---
 
-**Expected Outcome**: Test verifies filesystem reading with mocked home directory
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts output contains fixture file values
-
+**Expected Outcome**: account status test creates fixtures and verifies output content
+**Error Conditions**: Path.home() mock incorrect → verify patch at usage location
+**Validation**: Test asserts specific mode value from fixture
+**Success Criteria**: CLI reads real files, outputs actual state
 **Report Path**: plans/claude-tools-recovery/reports/cycle-2-1-notes.md
 
 ---
 
-## Cycle 2.2: Strengthen account status test - keychain OAuth check
+## Cycle 2.2: Test account status displays validation issues
 
-**Objective**: Mock keychain query for OAuth token, assert output shows OAuth status
-
+**Objective**: Verify account status outputs consistency validation results
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test account status displays OAuth status from keychain query
+**Test:** tests/test_cli_account.py should test account status displays issues when state is inconsistent
 
 **Expected failure:**
 ```
-AssertionError: expected output to contain 'OAuth: Yes', got 'OAuth: <hardcoded>'
+AssertionError: assert "Plan mode requires OAuth credentials" in result.output
 ```
 
-**Why it fails:** Stub doesn't query keychain
+**Why it fails:** get_account_state() may not check keychain, or CLI doesn't display validation issues
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_oauth -v`
-- Must fail with OAuth status assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_status_with_issues -v
+```
+- Create test with tmp_path, write mode="plan" to account-mode file
+- Mock keychain query (via Keychain.find) to return None (no OAuth)
+- Assert validation message in output
+- Test should FAIL if CLI doesn't display issues
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock keychain find for OAuth token, assert output shows status
+**Implementation:** Update get_account_state() to query keychain and CLI to display validation
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_account_status_oauth:
-    - Fixture: tmp_path with mode/provider files
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Mock: `patch("claudeutils.account.state.subprocess.run")` returns OAuth token
-    - Run: `account status`
-    - Assert: Output contains "OAuth: Yes" or "OAuth in keychain: Yes"
+- File: src/claudeutils/account/state.py
+  Action: In get_account_state(), create Keychain instance, call find() to check OAuth presence, set oauth_in_keychain field
+- File: src/claudeutils/account/cli.py
+  Action: Ensure status() calls `state.validate_consistency()` and displays issues (already exists from current implementation)
+- File: tests/test_cli_account.py
+  Action: Create test with mode=plan fixture, mock Keychain.find to return None, assert issue message
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_oauth -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_status_with_issues -v
+```
+- Test passes with validation output
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All account CLI tests pass
 
 ---
 
-**Expected Outcome**: Test verifies keychain OAuth query integration
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts OAuth status from mocked keychain
-
+**Expected Outcome**: account status test verifies validation issues displayed
+**Error Conditions**: Issue message not in output → check validate_consistency() call
+**Validation**: Test creates inconsistent state, asserts error message
+**Success Criteria**: CLI outputs consistency validation results
 **Report Path**: plans/claude-tools-recovery/reports/cycle-2-2-notes.md
 
 ---
 
-## Cycle 2.3: Strengthen account status test - API key in .env check
+## Cycle 2.3: Test account plan generates claude-env with credentials
 
-**Objective**: Mock .env file existence, assert output shows API key status
-
+**Objective**: Verify account plan command generates claude-env file with provider credentials
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test account status displays API key status from .env file check
+**Test:** tests/test_cli_account.py::test_account_plan should verify claude-env file contains provider credentials
 
 **Expected failure:**
 ```
-AssertionError: expected output to contain 'API key in .env: Yes', got hardcoded value
+AssertionError: assert "ANTHROPIC_API_KEY" in claude_env_content
+(current writes empty file)
 ```
 
-**Why it fails:** Stub doesn't check .env file
+**Why it fails:** CLI writes empty claude-env file, doesn't call provider
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_env -v`
-- Must fail with .env status assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_plan -v
+```
+- Edit test to read claude-env file content after command
+- Assert file contains "ANTHROPIC_API_KEY=test-" (from mocked keystore)
+- Mock keystore to return "test-anthropic-key"
+- Test should FAIL (current writes empty file)
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Create .env file in fixture, assert output shows API key status
+**Implementation:** Update account plan command to generate claude-env with provider
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_account_status_env:
-    - Fixture: tmp_path with mode/provider files
-    - Setup: Create tmp_path/.claude/.env file (can be empty)
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Run: `account status`
-    - Assert: Output contains "API key in .env: Yes" or similar
+- File: src/claudeutils/account/cli.py
+  Action: In plan(), create AnthropicProvider with Keychain, call claude_env_vars(), format as KEY=value lines, write to claude-env
+- File: tests/test_cli_account.py
+  Action: Mock Keychain.find at `claudeutils.account.state.Keychain.find`, assert claude-env contains credentials
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_env -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_plan -v
+```
+- Test passes with claude-env containing credentials
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All CLI account tests pass
 
 ---
 
-**Expected Outcome**: Test verifies .env file existence check
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts .env status from fixture
-
+**Expected Outcome**: account plan test verifies claude-env file content
+**Error Conditions**: Missing env vars → verify provider.claude_env_vars() call
+**Validation**: Test reads file, asserts credential presence
+**Success Criteria**: account plan generates claude-env with provider credentials
 **Report Path**: plans/claude-tools-recovery/reports/cycle-2-3-notes.md
 
 ---
 
-## Cycle 2.4: Strengthen account status test - consistency validation
+## Cycle 2.4: Test account api writes provider selection
 
-**Objective**: Create inconsistent state fixture, assert output shows validation warnings
-
+**Objective**: Verify account api command writes selected provider and generates credentials
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test account status displays consistency warnings for mismatched state
+**Test:** tests/test_cli_account.py::test_account_api already verifies provider file, strengthen to test claude-env content
 
 **Expected failure:**
 ```
-AssertionError: expected validation warning in output, not found
+AssertionError: assert "OPENROUTER_API_KEY" in claude_env_content
+(may write empty or wrong provider credentials)
 ```
 
-**Why it fails:** Stub doesn't run validation
+**Why it fails:** CLI may not generate provider-specific claude-env
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_validation -v`
-- Must fail (no validation output)
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_api -v
+```
+- Edit test to read claude-env file, assert OPENROUTER_API_KEY present
+- Mock keystore get_openrouter_api_key to return "test-openrouter-key"
+- Test should FAIL if wrong provider or empty file
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Create inconsistent fixture (mode=api + OAuth in keychain), assert warning
+**Implementation:** Update account api to create provider-specific claude-env
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create test_account_status_validation:
-    - Fixture: tmp_path/.claude/account-mode = "api"
-    - Mock: OAuth token in keychain (mode=api shouldn't have OAuth)
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Run: `account status`
-    - Assert: Output contains validation warning or inconsistency message
+- File: src/claudeutils/account/cli.py
+  Action: In api(), create provider based on --provider argument (factory function), generate claude-env with provider.claude_env_vars()
+- File: tests/test_cli_account.py
+  Action: Test with --provider=openrouter, mock keystore, assert OPENROUTER_API_KEY in claude-env
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_validation -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_api -v
+```
+- Test passes with correct provider credentials
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All CLI account tests pass
 
 ---
 
-**Expected Outcome**: Test verifies validation logic runs and outputs warnings
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts validation warning present
-
+**Expected Outcome**: account api test verifies correct provider credentials written
+**Error Conditions**: Wrong provider used → check provider factory logic
+**Validation**: Test verifies provider-specific env vars
+**Success Criteria**: account api generates claude-env with selected provider
 **Report Path**: plans/claude-tools-recovery/reports/cycle-2-4-notes.md
 
 ---
 
-## Cycle 2.5: Strengthen account plan command test
-
-**Objective**: Mock filesystem, assert mode file written and output confirms switch
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test account plan writes mode file and outputs confirmation
-
-**Expected failure:**
-```
-AssertionError: mode file not written or contains wrong value
-```
-
-**Why it fails:** Stub doesn't write file
-
-**Verify RED:** Run `pytest tests/test_account.py::test_account_plan_switch -v`
-- Must fail (file not written or wrong content)
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Mock filesystem, run account plan, assert mode file and output
-
-**Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_account_plan_switch:
-    - Fixture: tmp_path
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Run: `account plan` via CliRunner
-    - Assert: tmp_path/.claude/account-mode file exists
-    - Assert: File content == "plan\n"
-    - Assert: Output contains "Switched to plan mode" or similar
-
-**Verify GREEN:** `pytest tests/test_account.py::test_account_plan_switch -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Test verifies mode file write and confirmation output
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts file written with correct mode value
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-2-5-notes.md
-
----
-
-## Cycle 2.6: Strengthen account api command test
-
-**Objective**: Mock filesystem and keychain, assert mode file and claude-env generated
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test account api writes mode file and generates claude-env with credentials
-
-**Expected failure:**
-```
-AssertionError: claude-env file not created or missing credentials
-```
-
-**Why it fails:** Stub doesn't generate claude-env
-
-**Verify RED:** Run `pytest tests/test_account.py::test_account_api_switch -v`
-- Must fail (claude-env not created or empty)
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Mock keychain, run account api, assert mode file and claude-env
-
-**Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_account_api_switch:
-    - Fixture: tmp_path
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Mock: `patch("claudeutils.account.providers.subprocess.run")` returns API key
-    - Run: `account api`
-    - Assert: tmp_path/.claude/account-mode == "api\n"
-    - Assert: tmp_path/.claude/.env exists and contains ANTHROPIC_API_KEY (or provider key)
-    - Assert: Output confirms switch
-
-**Verify GREEN:** `pytest tests/test_account.py::test_account_api_switch -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Test verifies mode file and claude-env generation
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts both files written with correct content
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-2-6-notes.md
-
----
-
-## Cycle 2.7: Strengthen model list command test
-
-**Objective**: Mock LiteLLM config, assert output contains model names
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test model list displays models from LiteLLM config
-
-**Expected failure:**
-```
-AssertionError: expected model names in output, got empty or hardcoded list
-```
-
-**Why it fails:** Stub doesn't read config
-
-**Verify RED:** Run `pytest tests/test_model.py::test_model_list_output -v`
-- Must fail (no model names or wrong names)
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Mock LiteLLM config file, assert output contains model names
-
-**Changes:**
-- File: tests/test_model.py
-  Action: Create/update test_model_list_output:
-    - Fixture: tmp_path with LiteLLM config YAML containing model_list
-    - Mock: Config path to point to fixture
-    - Run: `model list`
-    - Assert: Output contains model names from fixture (e.g., "claude-sonnet-4-5")
-
-**Verify GREEN:** `pytest tests/test_model.py::test_model_list_output -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_model.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Test verifies LiteLLM config reading and model display
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts model names from config in output
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-2-7-notes.md
-
----
-
-## Cycle 2.8: Strengthen model set command test
-
-**Objective**: Mock filesystem, assert override file written with model name
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test model set writes override file with specified model
-
-**Expected failure:**
-```
-AssertionError: override file not written or contains wrong model
-```
-
-**Why it fails:** Stub doesn't write file
-
-**Verify RED:** Run `pytest tests/test_model.py::test_model_set_writes_file -v`
-- Must fail (file not written)
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Mock override file path, run model set, assert file content
-
-**Changes:**
-- File: tests/test_model.py
-  Action: Create/update test_model_set_writes_file:
-    - Fixture: tmp_path for override file
-    - Mock: Override file path to tmp_path
-    - Run: `model set claude-opus-4`
-    - Assert: Override file exists
-    - Assert: File content == "claude-opus-4\n"
-    - Assert: Output confirms model set
-
-**Verify GREEN:** `pytest tests/test_model.py::test_model_set_writes_file -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_model.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Test verifies override file write with model name
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts file written with correct model
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-2-8-notes.md
-
----
-
-## Cycle 2.9: Strengthen model reset command test
-
-**Objective**: Mock filesystem, assert override file deleted
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test model reset deletes override file
-
-**Expected failure:**
-```
-AssertionError: override file still exists after reset
-```
-
-**Why it fails:** Stub doesn't delete file
-
-**Verify RED:** Run `pytest tests/test_model.py::test_model_reset_deletes_file -v`
-- Must fail (file not deleted)
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Create override file in fixture, run model reset, assert deleted
-
-**Changes:**
-- File: tests/test_model.py
-  Action: Create/update test_model_reset_deletes_file:
-    - Fixture: tmp_path with existing override file
-    - Mock: Override file path to tmp_path
-    - Run: `model reset`
-    - Assert: Override file does not exist
-    - Assert: Output confirms reset
-
-**Verify GREEN:** `pytest tests/test_model.py::test_model_reset_deletes_file -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_model.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Test verifies override file deletion
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts file deleted
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-2-9-notes.md
-
----
-
-## Cycle 2.10: Strengthen statusline command test
-
-**Objective**: Pipe JSON input, assert ANSI-formatted output (not "OK" stub)
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test statusline produces ANSI output from JSON input
-
-**Expected failure:**
-```
-AssertionError: expected ANSI escape codes in output, got "OK"
-```
-
-**Why it fails:** Stub returns "OK" string
-
-**Verify RED:** Run `pytest tests/test_statusline.py::test_statusline_formats_json -v`
-- Must fail (no ANSI codes in output)
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Pipe JSON via CliRunner stdin, assert output contains ANSI codes
-
-**Changes:**
-- File: tests/test_statusline.py
-  Action: Create/update test_statusline_formats_json:
-    - Fixture: JSON string with statusline data (e.g., `{"mode": "plan", "usage": {...}}`)
-    - Run: `statusline` via CliRunner with input=json_fixture
-    - Assert: Output contains ANSI escape codes (e.g., `\x1b[` pattern)
-    - Assert: Output is NOT just "OK"
-
-**Verify GREEN:** `pytest tests/test_statusline.py::test_statusline_formats_json -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_statusline.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Test verifies JSON parsing and ANSI formatting
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts ANSI codes in output, not stub
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-2-10-notes.md
-
----
-
 **Checkpoint**
 
 1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
-2. Vet: Review CLI test quality (mocking, assertions). Commit fixes.
-3. Functional review: Verify tests mock real I/O (filesystem, keychain, stdin), assert on output content.
+2. Vet: Review CLI test quality, fixture patterns, mock locations. Commit fixes.
+3. Functional review: Verify CLI commands use real filesystem reads (get_account_state), not hardcoded stubs. Check claude-env file generation uses providers. If stubs remain, STOP and report.
 
 ---
 
-## Phase R3: Wire implementations
+## Phase R3: Error handling and integration tests
 
-## Cycle 3.1: Wire AccountState factory to read filesystem
+Add error handling for edge cases and end-to-end integration tests.
 
-**Objective**: Replace hardcoded AccountState with real file reading
+## Cycle 3.1: Handle keychain command not found
 
+**Objective**: Test Keychain handles FileNotFoundError when security command unavailable
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Strengthened test from Cycle 2.1 should now fail
+**Test:** tests/test_account_keychain.py should test Keychain.find() handles FileNotFoundError gracefully
 
 **Expected failure:**
 ```
-AssertionError: expected 'Mode: plan', got 'Mode: <hardcoded>'
+FileNotFoundError not caught, test fails with unhandled exception
 ```
 
-**Why it fails:** AccountState still returns hardcoded values
+**Why it fails:** Keychain.find() doesn't catch subprocess FileNotFoundError
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_reads_files -v`
-- Must fail with fixture assertion
-- If passes, STOP - implementation may already be real
+**Verify RED:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_command_not_found -v
+```
+- Create test with mock subprocess.run raising FileNotFoundError
+- Assert Keychain().find() returns None (graceful degradation)
+- Test should FAIL with uncaught exception
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Update AccountState factory to read ~/.claude/account-mode and account-provider files
+**Implementation:** Add try/except to catch FileNotFoundError
 
 **Changes:**
-- File: claudeutils/account/state.py
-  Action: Update create_account_state() or AccountState constructor:
-    - Read: Path.home() / ".claude" / "account-mode"
-    - Read: Path.home() / ".claude" / "account-provider"
-    - Parse: Strip whitespace, set AccountState.mode and AccountState.provider
-    - Handle: Missing files → default values or None
+- File: src/claudeutils/account/keychain.py
+  Action: Wrap subprocess.run in try/except, catch FileNotFoundError, return None
+- File: tests/test_account_keychain.py
+  Action: Add test with FileNotFoundError mock, assert find() returns None
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_reads_files -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_command_not_found -v
+```
+- Test passes with None return
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_keychain.py -v
+```
+- All keychain tests pass
 
 ---
 
-**Expected Outcome**: AccountState reads real files instead of hardcoded values
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation reads filesystem, test passes
-
+**Expected Outcome**: Keychain returns None when security command unavailable
+**Error Conditions**: Still raises exception → verify try/except scope
+**Validation**: Test verifies None return on FileNotFoundError
+**Success Criteria**: Keychain error handling for missing command
 **Report Path**: plans/claude-tools-recovery/reports/cycle-3-1-notes.md
 
 ---
 
-## Cycle 3.2: Wire AccountState OAuth keychain check
+## Cycle 3.2: Handle missing config files gracefully
 
-**Objective**: Query keychain for OAuth token instead of returning hardcoded status
-
+**Objective**: Test get_account_state() uses defaults when config files missing
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Strengthened test from Cycle 2.2 should fail
+**Test:** tests/test_account_state.py should test factory returns default state when files missing
 
 **Expected failure:**
 ```
-AssertionError: expected 'OAuth: Yes', got 'OAuth: <hardcoded>'
+FileNotFoundError or returns None instead of default state
 ```
 
-**Why it fails:** AccountState doesn't query keychain
+**Why it fails:** Factory doesn't handle missing file case
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_oauth -v`
-- Must fail
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_account_state.py::test_get_account_state_missing_files -v
+```
+- Create test with empty tmp_path (no .claude dir)
+- Mock Path.home() to return tmp_path
+- Assert returns AccountState with mode="plan", provider="anthropic" defaults
+- Test should FAIL if factory raises exception
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Update AccountState to query keychain for OAuth token
+**Implementation:** Add default fallback when config files don't exist
 
 **Changes:**
-- File: claudeutils/account/state.py
-  Action: Update create_account_state() or property:
-    - Call: Keychain.find(service="claude-oauth", account=<username>) or similar
-    - Set: AccountState.oauth_in_keychain = True if found, False if not
-    - Handle: KeychainError → False
+- File: src/claudeutils/account/state.py
+  Action: In get_account_state(), wrap file reads in try/except FileNotFoundError, use defaults
+- File: tests/test_account_state.py
+  Action: Create test file, add test with missing files, assert default state
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_oauth -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_state.py::test_get_account_state_missing_files -v
+```
+- Test passes with default state
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_state.py -v
+```
+- All state tests pass
 
 ---
 
-**Expected Outcome**: AccountState queries keychain for OAuth token
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation queries keychain, test passes
-
+**Expected Outcome**: State factory handles missing files with defaults
+**Error Conditions**: Exception raised → add try/except around file reads
+**Validation**: Test verifies default state returned
+**Success Criteria**: Factory robust to missing configuration
 **Report Path**: plans/claude-tools-recovery/reports/cycle-3-2-notes.md
 
 ---
 
-## Cycle 3.3: Wire AccountState .env file check
+## Cycle 3.3: Integration test for mode switching round-trip
 
-**Objective**: Check ~/.claude/.env existence instead of hardcoded value
-
+**Objective**: Test full workflow switching modes and verifying file state
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Strengthened test from Cycle 2.3 should fail
+**Test:** tests/test_cli_account.py should test sequential mode switches with file verification
 
 **Expected failure:**
 ```
-AssertionError: expected 'API key in .env: Yes', got hardcoded value
+May fail if file writes don't persist or state reads incorrect
 ```
 
-**Why it fails:** AccountState doesn't check .env file
+**Why it fails:** Integration gaps between commands
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_env -v`
-- Must fail
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_mode_round_trip -v
+```
+- Create test that invokes account plan, then account api, then account plan again
+- Verify files after each command
+- Test should FAIL if any step doesn't persist state correctly
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Update AccountState to check .env file existence
+**Implementation:** Ensure all commands read/write state correctly (should already work from previous cycles)
 
 **Changes:**
-- File: claudeutils/account/state.py
-  Action: Update create_account_state():
-    - Check: (Path.home() / ".claude" / ".env").exists()
-    - Set: AccountState.api_in_claude_env = True/False
+- File: tests/test_cli_account.py
+  Action: Add integration test with sequential CLI invocations within same CliRunner context, verify file state after each
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_env -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_mode_round_trip -v
+```
+- Test passes with all mode switches verified
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All CLI tests pass
 
 ---
 
-**Expected Outcome**: AccountState checks .env file existence
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation checks file, test passes
-
+**Expected Outcome**: Integration test verifies full workflow end-to-end
+**Error Conditions**: File state inconsistent → check write/read paths match
+**Validation**: Test verifies files after each command
+**Success Criteria**: Round-trip mode switching works correctly
 **Report Path**: plans/claude-tools-recovery/reports/cycle-3-3-notes.md
 
 ---
 
-## Cycle 3.4: Wire Anthropic provider keychain retrieval
-
-**Objective**: Query keychain for API key instead of returning empty string
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 1.1 should fail
-
-**Expected failure:**
-```
-AssertionError: expected ANTHROPIC_API_KEY='sk-ant-test123', got ''
-```
-
-**Why it fails:** Provider doesn't query keychain
-
-**Verify RED:** Run `pytest tests/test_account.py::test_anthropic_provider_credentials -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update AnthropicProvider.claude_env_vars() to query keychain
-
-**Changes:**
-- File: claudeutils/account/providers.py
-  Action: Update AnthropicProvider.claude_env_vars():
-    - Call: Keychain.find(service="anthropic-api-key", account=<account>)
-    - Return: {"ANTHROPIC_API_KEY": <keychain_value>}
-    - Handle: KeychainError → raise or return empty with error
-
-**Verify GREEN:** `pytest tests/test_account.py::test_anthropic_provider_credentials -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Anthropic provider queries keychain for API key
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation queries keychain, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-4-notes.md
-
----
-
-## Cycle 3.5: Wire OpenRouter provider keychain retrieval
-
-**Objective**: Query keychain for API key and set base URL
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 1.2 should fail
-
-**Expected failure:**
-```
-AssertionError: expected OPENROUTER_API_KEY='sk-or-test456', got ''
-```
-
-**Why it fails:** Provider doesn't query keychain
-
-**Verify RED:** Run `pytest tests/test_account.py::test_openrouter_provider_credentials -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update OpenRouterProvider.claude_env_vars() to query keychain and set base URL
-
-**Changes:**
-- File: claudeutils/account/providers.py
-  Action: Update OpenRouterProvider.claude_env_vars():
-    - Call: Keychain.find(service="openrouter-api-key", account=<account>)
-    - Return: {"OPENROUTER_API_KEY": <keychain_value>, "OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1"}
-
-**Verify GREEN:** `pytest tests/test_account.py::test_openrouter_provider_credentials -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: OpenRouter provider queries keychain and sets base URL
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation queries keychain, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-5-notes.md
-
----
-
-## Cycle 3.6: Wire LiteLLM provider localhost URL
-
-**Objective**: Return localhost URL instead of empty string
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 1.3 should fail
-
-**Expected failure:**
-```
-AssertionError: expected LITELLM_BASE_URL='http://localhost:4000', got ''
-```
-
-**Why it fails:** Provider returns empty
-
-**Verify RED:** Run `pytest tests/test_account.py::test_litellm_provider_credentials -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update LiteLLMProvider.claude_env_vars() to return localhost URL
-
-**Changes:**
-- File: claudeutils/account/providers.py
-  Action: Update LiteLLMProvider.claude_env_vars():
-    - Return: {"LITELLM_BASE_URL": "http://localhost:4000"}
-
-**Verify GREEN:** `pytest tests/test_account.py::test_litellm_provider_credentials -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: LiteLLM provider returns localhost URL
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation returns localhost, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-6-notes.md
-
----
-
-## Cycle 3.7: Wire Keychain.find() to subprocess
-
-**Objective**: Call subprocess.run for security find-generic-password
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 1.5 should fail
-
-**Expected failure:**
-```
-AssertionError: subprocess.run not called
-```
-
-**Why it fails:** Keychain.find() is stub
-
-**Verify RED:** Run `pytest tests/test_account.py::test_keychain_find -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update Keychain.find() to call subprocess with security command
-
-**Changes:**
-- File: claudeutils/account/keychain.py
-  Action: Update Keychain.find():
-    - Call: subprocess.run(["security", "find-generic-password", "-s", service, "-a", account, "-w"], capture_output=True, text=True, check=True)
-    - Return: result.stdout.strip()
-    - Handle: CalledProcessError → raise KeychainError
-
-**Verify GREEN:** `pytest tests/test_account.py::test_keychain_find -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Keychain.find() calls subprocess
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation calls subprocess, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-7-notes.md
-
----
-
-## Cycle 3.8: Wire Keychain.add() to subprocess
-
-**Objective**: Call subprocess.run for security add-generic-password
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 1.6 should fail
-
-**Expected failure:**
-```
-AssertionError: subprocess.run not called
-```
-
-**Why it fails:** Keychain.add() is stub
-
-**Verify RED:** Run `pytest tests/test_account.py::test_keychain_add -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update Keychain.add() to call subprocess
-
-**Changes:**
-- File: claudeutils/account/keychain.py
-  Action: Update Keychain.add():
-    - Call: subprocess.run(["security", "add-generic-password", "-s", service, "-a", account, "-w", password], check=True)
-
-**Verify GREEN:** `pytest tests/test_account.py::test_keychain_add -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Keychain.add() calls subprocess
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation calls subprocess, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-8-notes.md
-
----
-
-## Cycle 3.9: Wire account plan command to write file
-
-**Objective**: Write mode file instead of returning stub output
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 2.5 should fail
-
-**Expected failure:**
-```
-AssertionError: mode file not written
-```
-
-**Why it fails:** Command doesn't write file
-
-**Verify RED:** Run `pytest tests/test_account.py::test_account_plan_switch -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update account plan command to write mode file
-
-**Changes:**
-- File: claudeutils/account/cli.py
-  Action: Update plan() command:
-    - Write: (Path.home() / ".claude" / "account-mode").write_text("plan\n")
-    - Output: "Switched to plan mode" message
-
-**Verify GREEN:** `pytest tests/test_account.py::test_account_plan_switch -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Command writes mode file
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation writes file, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-9-notes.md
-
----
-
-## Cycle 3.10: Wire account api command to write files and generate .env
-
-**Objective**: Write mode file and generate claude-env with credentials
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 2.6 should fail
-
-**Expected failure:**
-```
-AssertionError: claude-env file not created
-```
-
-**Why it fails:** Command doesn't generate .env
-
-**Verify RED:** Run `pytest tests/test_account.py::test_account_api_switch -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update account api command to write mode and generate .env
-
-**Changes:**
-- File: claudeutils/account/cli.py
-  Action: Update api() command:
-    - Write: (Path.home() / ".claude" / "account-mode").write_text("api\n")
-    - Get: provider.claude_env_vars()
-    - Write: (Path.home() / ".claude" / ".env") with env vars
-    - Output: Confirmation message
-
-**Verify GREEN:** `pytest tests/test_account.py::test_account_api_switch -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Command writes mode file and generates .env
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation writes both files, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-10-notes.md
-
----
-
-## Cycle 3.11: Wire model list command to read config
-
-**Objective**: Read LiteLLM config and display model names
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 2.7 should fail
-
-**Expected failure:**
-```
-AssertionError: expected model names, got empty or hardcoded
-```
-
-**Why it fails:** Command doesn't read config
-
-**Verify RED:** Run `pytest tests/test_model.py::test_model_list_output -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update model list command to read LiteLLM config
-
-**Changes:**
-- File: claudeutils/model/cli.py
-  Action: Update list_models() command:
-    - Read: LiteLLM config YAML file
-    - Parse: model_list entries
-    - Output: Model names (and tiers if applicable)
-
-**Verify GREEN:** `pytest tests/test_model.py::test_model_list_output -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_model.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Command reads config and displays models
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation reads config, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-11-notes.md
-
----
-
-## Cycle 3.12: Wire model set command to write override file
-
-**Objective**: Write override file with model name
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 2.8 should fail
-
-**Expected failure:**
-```
-AssertionError: override file not written
-```
-
-**Why it fails:** Command doesn't write file
-
-**Verify RED:** Run `pytest tests/test_model.py::test_model_set_writes_file -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update model set command to write override file
-
-**Changes:**
-- File: claudeutils/model/cli.py
-  Action: Update set_model() command:
-    - Write: Override file path with model name
-    - Output: Confirmation message
-
-**Verify GREEN:** `pytest tests/test_model.py::test_model_set_writes_file -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_model.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Command writes override file
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation writes file, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-12-notes.md
-
----
-
-## Cycle 3.13: Wire model reset command to delete override file
-
-**Objective**: Delete override file
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 2.9 should fail
-
-**Expected failure:**
-```
-AssertionError: file still exists
-```
-
-**Why it fails:** Command doesn't delete file
-
-**Verify RED:** Run `pytest tests/test_model.py::test_model_reset_deletes_file -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update model reset command to delete override file
-
-**Changes:**
-- File: claudeutils/model/cli.py
-  Action: Update reset_model() command:
-    - Delete: Override file if exists
-    - Output: Confirmation message
-
-**Verify GREEN:** `pytest tests/test_model.py::test_model_reset_deletes_file -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_model.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Command deletes override file
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation deletes file, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-13-notes.md
-
----
-
-## Cycle 3.14: Wire statusline command to format JSON input
-
-**Objective**: Read stdin JSON and output ANSI-formatted statusline
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Strengthened test from Cycle 2.10 should fail
-
-**Expected failure:**
-```
-AssertionError: expected ANSI codes, got "OK"
-```
-
-**Why it fails:** Command returns stub
-
-**Verify RED:** Run `pytest tests/test_statusline.py::test_statusline_formats_json -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Update statusline command to read stdin and format with StatuslineFormatter
-
-**Changes:**
-- File: claudeutils/statusline/cli.py
-  Action: Update statusline() command:
-    - Read: sys.stdin or Click input
-    - Parse: JSON to dict
-    - Call: StatuslineFormatter.format(data)
-    - Output: ANSI-formatted result
-
-**Verify GREEN:** `pytest tests/test_statusline.py::test_statusline_formats_json -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_statusline.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Command reads JSON and outputs ANSI
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation formats JSON, test passes
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-3-14-notes.md
-
----
-
 **Checkpoint**
 
 1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
-2. Vet: Review implementation quality (error handling, edge cases). Commit fixes.
-3. Functional review: Verify all I/O wired (filesystem, keychain, stdin). Check for remaining stubs.
-
----
-
-## Phase R4: Error handling and integration tests
-
-## Cycle 4.1: Test keychain not accessible error
-
-**Objective**: Verify clear error message when keychain unavailable
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test Keychain operations raise clear error when security command unavailable
-
-**Expected failure:**
-```
-FAILED - Expected KeychainError with clear message, got generic error
-```
-
-**Why it fails:** Error handling not implemented
-
-**Verify RED:** Run `pytest tests/test_account.py::test_keychain_unavailable -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Catch subprocess errors and raise KeychainError with helpful message
-
-**Changes:**
-- File: claudeutils/account/keychain.py
-  Action: Update Keychain.find():
-    - Catch: FileNotFoundError (security not found)
-    - Raise: KeychainError("macOS keychain not available. Are you on macOS?")
-
-**Verify GREEN:** `pytest tests/test_account.py::test_keychain_unavailable -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Clear error message for missing keychain
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Error message is clear and helpful
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-4-1-notes.md
-
----
-
-## Cycle 4.2: Test config files missing defaults
-
-**Objective**: Verify sensible defaults when account config files don't exist
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test AccountState with missing config files returns defaults
-
-**Expected failure:**
-```
-FAILED - Expected default mode, got error or crash
-```
-
-**Why it fails:** Default handling not implemented
-
-**Verify RED:** Run `pytest tests/test_account.py::test_missing_config_defaults -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Return defaults when config files missing
-
-**Changes:**
-- File: claudeutils/account/state.py
-  Action: Update create_account_state():
-    - Catch: FileNotFoundError when reading mode/provider files
-    - Default: mode="plan", provider="anthropic" (or None with clear indication)
-
-**Verify GREEN:** `pytest tests/test_account.py::test_missing_config_defaults -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Sensible defaults when files missing
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Defaults allow account status to work
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-4-2-notes.md
-
----
-
-## Cycle 4.3: Test invalid JSON on statusline stdin
-
-**Objective**: Verify error message (not crash) on invalid JSON
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test statusline with invalid JSON input shows error
-
-**Expected failure:**
-```
-FAILED - Expected error message, got crash or unclear output
-```
-
-**Why it fails:** JSON error handling not implemented
-
-**Verify RED:** Run `pytest tests/test_statusline.py::test_statusline_invalid_json -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Catch JSON parse errors and show clear message
-
-**Changes:**
-- File: claudeutils/statusline/cli.py
-  Action: Update statusline():
-    - Catch: json.JSONDecodeError
-    - Output: "Error: Invalid JSON input" with exit code 1
-
-**Verify GREEN:** `pytest tests/test_statusline.py::test_statusline_invalid_json -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_statusline.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Clear error on invalid JSON
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Error message is clear, non-zero exit
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-4-3-notes.md
-
----
-
-## Cycle 4.4: Test provider missing keychain entry error
-
-**Objective**: Verify clear error with setup instructions when API key missing
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Test account api with missing provider keychain shows setup instructions
-
-**Expected failure:**
-```
-FAILED - Expected setup instructions, got generic error
-```
-
-**Why it fails:** Error message not helpful
-
-**Verify RED:** Run `pytest tests/test_account.py::test_missing_provider_key -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Catch KeychainError and show setup instructions
-
-**Changes:**
-- File: claudeutils/account/cli.py
-  Action: Update api() command:
-    - Catch: KeychainError when getting provider credentials
-    - Output: "API key not found. Run: claudeutils account add-key --provider <name>"
-
-**Verify GREEN:** `pytest tests/test_account.py::test_missing_provider_key -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Clear setup instructions on missing key
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Error includes actionable setup command
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-4-4-notes.md
-
----
-
-## Cycle 4.5: Integration test - full account status flow
-
-**Objective**: End-to-end test with mocked filesystem and keychain
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Full account status flow with all components
-
-**Expected failure:**
-```
-AssertionError: integration not complete (one component still stubbed)
-```
-
-**Why it fails:** Not all wiring complete until previous cycles
-
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_integration -v`
-- Must fail (at least one assertion fails)
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Create comprehensive integration test
-
-**Changes:**
-- File: tests/test_account.py
-  Action: Create test_account_status_integration:
-    - Fixture: tmp_path with mode, provider, .env files
-    - Mock: Path.home() → tmp_path
-    - Mock: Keychain queries (OAuth present, API key present)
-    - Run: `account status`
-    - Assert: Output contains mode, provider, OAuth status, API key status
-    - Assert: Output contains consistency validation results
-
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_integration -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Full account status flow works end-to-end
-
-**Error Conditions**: RED passes → STOP (wiring incomplete); GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: All components integrated, realistic flow
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-4-5-notes.md
-
----
-
-## Cycle 4.6: Integration test - account mode switching round-trip
-
-**Objective**: Test plan → api → plan mode switches preserve state
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Switch plan → api → plan and verify state consistency
-
-**Expected failure:**
-```
-AssertionError: round-trip state inconsistent
-```
-
-**Why it fails:** Integration not complete
-
-**Verify RED:** Run `pytest tests/test_account.py::test_account_mode_roundtrip -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Create round-trip integration test
-
-**Changes:**
-- File: tests/test_account.py
-  Action: Create test_account_mode_roundtrip:
-    - Fixture: tmp_path
-    - Mock: Path.home() → tmp_path
-    - Mock: Keychain (provider credentials)
-    - Run: `account plan`
-    - Assert: Mode file == "plan"
-    - Run: `account api`
-    - Assert: Mode file == "api", .env exists with credentials
-    - Run: `account plan`
-    - Assert: Mode file == "plan", .env still exists (or removed depending on design)
-
-**Verify GREEN:** `pytest tests/test_account.py::test_account_mode_roundtrip -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Mode switching works bidirectionally
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Round-trip preserves state correctly
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-4-6-notes.md
-
----
-
-## Cycle 4.7: Integration test - model override flow
-
-**Objective**: Test set → list → reset model override
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Full model override lifecycle
-
-**Expected failure:**
-```
-AssertionError: override not visible in list or not cleared by reset
-```
-
-**Why it fails:** Integration not complete
-
-**Verify RED:** Run `pytest tests/test_model.py::test_model_override_flow -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Create model override integration test
-
-**Changes:**
-- File: tests/test_model.py
-  Action: Create test_model_override_flow:
-    - Fixture: tmp_path for override file and config
-    - Mock: Config and override paths
-    - Run: `model set claude-opus-4`
-    - Assert: Override file exists with model name
-    - Run: `model list`
-    - Assert: Output shows override is active (if design includes this)
-    - Run: `model reset`
-    - Assert: Override file deleted
-    - Run: `model list`
-    - Assert: No override shown
-
-**Verify GREEN:** `pytest tests/test_model.py::test_model_override_flow -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_model.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Full model override lifecycle works
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Set/list/reset flow is consistent
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-4-7-notes.md
-
----
-
-## Cycle 4.8: Integration test - statusline with realistic JSON
-
-**Objective**: Test statusline with realistic statusline JSON input
-
-**Script Evaluation**: Direct execution (TDD cycle)
-
-**Execution Model**: Haiku
-
-**Implementation:**
-
-**RED Phase:**
-
-**Test:** Statusline with complete JSON structure
-
-**Expected failure:**
-```
-AssertionError: realistic JSON not formatted correctly
-```
-
-**Why it fails:** Edge cases in formatting not handled
-
-**Verify RED:** Run `pytest tests/test_statusline.py::test_statusline_realistic_json -v`
-- Must fail
-- If passes, STOP
-
----
-
-**GREEN Phase:**
-
-**Implementation:** Create realistic statusline integration test
-
-**Changes:**
-- File: tests/test_statusline.py
-  Action: Create test_statusline_realistic_json:
-    - Fixture: JSON with mode, provider, usage stats, plan stats, API stats (realistic structure)
-    - Run: `statusline` with fixture input
-    - Assert: Output contains ANSI codes
-    - Assert: Output is formatted (not just JSON dump)
-    - Assert: All fields represented in output
-
-**Verify GREEN:** `pytest tests/test_statusline.py::test_statusline_realistic_json -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_statusline.py`
-- All tests pass
-
----
-
-**Expected Outcome**: Statusline handles realistic JSON
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Realistic input produces formatted output
-
-**Report Path**: plans/claude-tools-recovery/reports/cycle-4-8-notes.md
-
----
-
-**Checkpoint**
-
-1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
-2. Vet: Review error handling and integration tests. Commit fixes.
-3. Functional review: Verify all features functional with real I/O. Test CLI commands manually if possible.
+2. Vet: Review error handling, integration test coverage. Commit fixes.
+3. Functional review: Manual test `account status`, `account plan`, `account api` commands with real ~/.claude/ directory. Verify actual output (mode/provider read from files, claude-env generated with credentials). If commands still return stubs or hardcoded values, STOP and report.
 
 ---
 
 ## Design Decisions
 
-**1. Approach: Strengthen tests then wire**
-- Choice: Phase R1/R2 strengthen tests, R3 wires implementations
-- Rationale: Strengthened tests create natural RED phase, dogfoods improved plan-tdd skill
+Copied from plans/claude-tools-recovery/design.md:
+
+**1. Approach: Strengthen tests then wire (Option 2 from analysis)**
+- Structure is correct, only internals need work
+- Strengthened tests create RED phase naturally (stubs fail behavioral assertions)
+- Dogfoods improved plan-tdd skill
+- Option 1 (new cycles only) doesn't fix existing weak tests
+- Option 3 (manual) bypasses TDD, loses coverage guarantees
 
 **2. Phase R0 deletes before strengthening**
-- Choice: Remove vacuous tests first
-- Rationale: Reduces noise, clarifies what needs behavioral assertions
+- Vacuous tests add noise and false confidence
+- Removing them first clarifies what actually needs behavioral assertions
+- Prevents confusion during R1/R2 about which tests to edit vs delete
 
 **3. Statusline display modules deferred**
-- Choice: Skip display.py, context.py, plan_usage.py, api_usage.py
-- Rationale: Complex formatting needs separate design, focus on I/O wiring first
+- display.py, context.py, plan_usage.py, api_usage.py have complex formatting
+- These need their own design for test strategy (snapshot testing? golden files?)
+- Current recovery focuses on I/O wiring and state management
+- StatuslineFormatter basic integration tested, not internal formatting
 
 **4. Mock strategy: patch at usage location**
-- Choice: `patch("claudeutils.account.state.subprocess.run")`
-- Rationale: More precise, consistent with project patterns
+- `unittest.mock.patch("claudeutils.account.state.subprocess.run")` not `patch("subprocess.run")`
+- `patch("claudeutils.account.state.Path.home")` not `patch("pathlib.Path.home")`
+- Consistent with existing project mock patterns
+- More precise, less likely to affect unrelated code
 
 ## Dependencies
 
 **Before:**
-- Skill improvements from plans/skill-improvements/design.md applied
-- Branch: tools-rewrite, commit b40e34e (all tests pass but stubbed)
+- Skill improvements applied (plans/skill-improvements/design.md)
+- Improved plan-tdd generates behavioral RED tests
+- Improved review-tdd-plan catches weak assertions
 
 **After:**
 - CLI commands functional with real I/O
 - Statusline display modules (follow-up design)
-- Shell script deprecation (replace with Python CLI)
+- Shell script deprecation (replace shell callers with Python CLI)

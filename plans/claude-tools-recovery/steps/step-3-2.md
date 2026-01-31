@@ -5,60 +5,64 @@
 
 ---
 
-## Cycle 3.2: Wire AccountState OAuth keychain check
+## Cycle 3.2: Handle missing config files gracefully
 
-**Objective**: Query keychain for OAuth token instead of returning hardcoded status
-
+**Objective**: Test get_account_state() uses defaults when config files missing
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Strengthened test from Cycle 2.2 should fail
+**Test:** tests/test_account_state.py should test factory returns default state when files missing
 
 **Expected failure:**
 ```
-AssertionError: expected 'OAuth: Yes', got 'OAuth: <hardcoded>'
+FileNotFoundError or returns None instead of default state
 ```
 
-**Why it fails:** AccountState doesn't query keychain
+**Why it fails:** Factory doesn't handle missing file case
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_oauth -v`
-- Must fail
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_account_state.py::test_get_account_state_missing_files -v
+```
+- Create test with empty tmp_path (no .claude dir)
+- Mock Path.home() to return tmp_path
+- Assert returns AccountState with mode="plan", provider="anthropic" defaults
+- Test should FAIL if factory raises exception
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Update AccountState to query keychain for OAuth token
+**Implementation:** Add default fallback when config files don't exist
 
 **Changes:**
-- File: claudeutils/account/state.py
-  Action: Update create_account_state() or property:
-    - Call: Keychain.find(service="claude-oauth", account=<username>) or similar
-    - Set: AccountState.oauth_in_keychain = True if found, False if not
-    - Handle: KeychainError → False
+- File: src/claudeutils/account/state.py
+  Action: In get_account_state(), wrap file reads in try/except FileNotFoundError, use defaults
+- File: tests/test_account_state.py
+  Action: Create test file, add test with missing files, assert default state
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_oauth -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_state.py::test_get_account_state_missing_files -v
+```
+- Test passes with default state
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_state.py -v
+```
+- All state tests pass
 
 ---
 
-**Expected Outcome**: AccountState queries keychain for OAuth token
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation queries keychain, test passes
-
+**Expected Outcome**: State factory handles missing files with defaults
+**Error Conditions**: Exception raised → add try/except around file reads
+**Validation**: Test verifies default state returned
+**Success Criteria**: Factory robust to missing configuration
 **Report Path**: plans/claude-tools-recovery/reports/cycle-3-2-notes.md
 
 ---

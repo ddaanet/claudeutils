@@ -5,62 +5,72 @@
 
 ---
 
-## Cycle 1.5: Test keychain wrapper find operation
+## Cycle 1.5: Test Keychain entry not found
 
-**Objective**: Mock subprocess for keychain find, assert correct command construction
-
+**Objective**: Test Keychain.find() returns None when entry doesn't exist
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test Keychain.find() constructs correct security command
+**Test:** tests/test_account_keychain.py should test find() returns None on subprocess failure
 
 **Expected failure:**
 ```
-AssertionError: subprocess.run not called with expected security find-generic-password args
+AssertionError: assert result is None
+(may return empty string or raise exception)
 ```
 
-**Why it fails:** Stub doesn't call subprocess
+**Why it fails:** Keychain.find() doesn't handle subprocess returncode != 0
 
-**Verify RED:** Run `pytest tests/test_account.py::test_keychain_find -v`
-- Must fail with mock call assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_find_not_found -v
+```
+- Create test with mock returncode=1, stdout=""
+- Assert `Keychain().find("service", "account") is None`
+- Test should FAIL if error handling missing
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock subprocess, assert find-generic-password command with service/account
+**Implementation:** Update Keychain.find() to return None on subprocess failure
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_keychain_find:
-    - Mock: `patch("claudeutils.account.keychain.subprocess.run")`
-    - Return: MagicMock with stdout containing password
-    - Call: `Keychain.find(service="test-service", account="test-account")`
-    - Assert: subprocess.run called with ["security", "find-generic-password", "-s", "test-service", "-a", "test-account", "-w"]
-    - Assert: Returns password from stdout
+- File: src/claudeutils/account/keychain.py
+  Action: Check `result.returncode`, return `None` if != 0, else return `result.stdout.strip()`
+- File: tests/test_account_keychain.py
+  Action: Add test with mock returncode=1, assert find() returns None
 
-**Verify GREEN:** `pytest tests/test_account.py::test_keychain_find -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_keychain.py::test_keychain_find_not_found -v
+```
+- Test passes with None return
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_keychain.py -v
+```
+- Both find tests pass (success and not found)
 
 ---
 
-**Expected Outcome**: Test verifies keychain find command construction
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts subprocess called with correct args
-
+**Expected Outcome**: Keychain handles missing entries gracefully with None return
+**Error Conditions**: Exception raised instead → add try/except
+**Validation**: Test verifies None return on subprocess failure
+**Success Criteria**: Keychain.find() returns None for missing entries
 **Report Path**: plans/claude-tools-recovery/reports/cycle-1-5-notes.md
+
+---
+
+**Checkpoint**
+
+1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
+2. Vet: Review provider and keychain test quality, mock patterns. Commit fixes.
+3. Functional review: Verify all provider implementations call keystore (not return stubs). Check Keychain calls subprocess. If any stubs remain, STOP and report.
 
 ---

@@ -5,57 +5,56 @@
 
 ---
 
-## Cycle 0.1: Delete exit-code-only account status test
+## Cycle 0.1: Delete vacuous module import test
 
-**Objective**: Remove test_account_status_basic that only checks exit_code == 0
-
+**Objective**: Remove test that only verifies module importability
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Verify test file doesn't contain the vacuous test
+**Test:** tests/test_account_structure.py::test_account_module_importable only checks `assert claudeutils.account is not None`
 
 **Expected failure:**
 ```
-AssertionError: test_account_status_basic still exists in test_account.py
+No failure - this is a deletion cycle
 ```
 
-**Why it fails:** Test hasn't been deleted yet
+**Why it fails:** N/A - deletion cycle
 
-**Verify RED:** Read tests/test_account.py and grep for "test_account_status_basic"
-- Must find the function definition
-- If not found, STOP - test may already be deleted
+**Verify RED:** Read tests/test_account_structure.py
+- Confirm test provides no behavioral value (only structure check)
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Delete test_account_status_basic function from tests/test_account.py
+**Implementation:** Delete tests/test_account_structure.py entirely
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Remove test_account_status_basic function (including decorator and docstring)
+- File: tests/test_account_structure.py
+  Action: Delete file (only contains vacuous import test)
 
-**Verify GREEN:** Read tests/test_account.py
-- Must NOT contain "test_account_status_basic"
+**Verify GREEN:**
+```bash
+pytest tests/test_account_state.py tests/test_account_providers.py -v
+```
+- All remaining account tests still pass
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All remaining tests pass
+**Verify no regression:**
+```bash
+pytest
+```
+- All tests pass (one file removed, no functionality changed)
 
 ---
 
-**Expected Outcome**: Vacuous test removed, remaining tests pass
-
-**Error Conditions**: Test not found → STOP (may be already deleted); Regression → STOP
-
-**Validation**: Test deleted ✓, No regressions ✓
-
-**Success Criteria**: Test file doesn't contain vacuous test, other tests still pass
-
+**Expected Outcome**: Vacuous structural test removed, remaining tests pass
+**Error Conditions**: If other tests break → investigation needed
+**Validation**: File deleted, test suite passes
+**Success Criteria**: tests/test_account_structure.py removed
 **Report Path**: plans/claude-tools-recovery/reports/cycle-0-1-notes.md
 
 ---

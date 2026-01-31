@@ -5,62 +5,60 @@
 
 ---
 
-## Cycle 1.1: Strengthen Anthropic provider keychain test
+## Cycle 1.1: Test AnthropicProvider keystore interaction
 
-**Objective**: Add mock keychain query and assert non-empty API key in claude_env_vars()
-
+**Objective**: Verify AnthropicProvider calls keystore method (not just checks key presence)
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test AnthropicProvider.claude_env_vars() returns actual keychain value
+**Test:** tests/test_account_providers.py::test_anthropic_provider_env_vars should verify mock keystore method called
 
 **Expected failure:**
 ```
-AssertionError: expected ANTHROPIC_API_KEY='sk-ant-test123', got ANTHROPIC_API_KEY=''
+AssertionError: Expected 'get_anthropic_api_key' to be called once. Called 0 times.
 ```
 
-**Why it fails:** Stub implementation returns empty string
+**Why it fails:** Test doesn't verify keystore method invocation
 
-**Verify RED:** Run `pytest tests/test_account.py::test_anthropic_provider_credentials -v`
-- Must fail with empty credential assertion
-- If passes, STOP - implementation may already be real
+**Verify RED:**
+```bash
+pytest tests/test_account_providers.py::test_anthropic_provider_env_vars -v
+```
+- Add `mock_keystore.get_anthropic_api_key.assert_called_once()` to test
+- Test should FAIL if assertion missing or mock not called
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock subprocess.run for keychain query, assert non-empty API key
+**Implementation:** Add mock call verification to test (implementation already calls it)
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Update test_anthropic_provider_credentials (or create if missing):
-    - Import: `from unittest.mock import patch, MagicMock`
-    - Mock: `patch("claudeutils.account.providers.subprocess.run")`
-    - Return: keychain password "sk-ant-test123"
-    - Assert: `env_vars["ANTHROPIC_API_KEY"] == "sk-ant-test123"`
-    - Assert: subprocess called with correct service/account args
+- File: tests/test_account_providers.py
+  Action: Add `mock_keystore.get_anthropic_api_key.assert_called_once()` after env_vars call
 
-**Verify GREEN:** `pytest tests/test_account.py::test_anthropic_provider_credentials -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_account_providers.py::test_anthropic_provider_env_vars -v
+```
+- Test passes with mock call verification
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All existing tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_account_providers.py -v
+```
+- All provider tests pass
 
 ---
 
-**Expected Outcome**: Test verifies keychain integration with mocked subprocess
-
-**Error Conditions**: Test passes on RED → STOP; GREEN doesn't pass → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts on keychain value, not empty string
-
+**Expected Outcome**: Test verifies keystore method called, not just key presence
+**Error Conditions**: If mock not called → implementation needs fixing
+**Validation**: Mock call assertion added and passes
+**Success Criteria**: Test verifies behavioral interaction with keystore
 **Report Path**: plans/claude-tools-recovery/reports/cycle-1-1-notes.md
 
 ---

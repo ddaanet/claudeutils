@@ -5,62 +5,65 @@
 
 ---
 
-## Cycle 2.3: Strengthen account status test - API key in .env check
+## Cycle 2.3: Test account plan generates claude-env with credentials
 
-**Objective**: Mock .env file existence, assert output shows API key status
-
+**Objective**: Verify account plan command generates claude-env file with provider credentials
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test account status displays API key status from .env file check
+**Test:** tests/test_cli_account.py::test_account_plan should verify claude-env file contains provider credentials
 
 **Expected failure:**
 ```
-AssertionError: expected output to contain 'API key in .env: Yes', got hardcoded value
+AssertionError: assert "ANTHROPIC_API_KEY" in claude_env_content
+(current writes empty file)
 ```
 
-**Why it fails:** Stub doesn't check .env file
+**Why it fails:** CLI writes empty claude-env file, doesn't call provider
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_env -v`
-- Must fail with .env status assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_plan -v
+```
+- Edit test to read claude-env file content after command
+- Assert file contains "ANTHROPIC_API_KEY=test-" (from mocked keystore)
+- Mock keystore to return "test-anthropic-key"
+- Test should FAIL (current writes empty file)
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Create .env file in fixture, assert output shows API key status
+**Implementation:** Update account plan command to generate claude-env with provider
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_account_status_env:
-    - Fixture: tmp_path with mode/provider files
-    - Setup: Create tmp_path/.claude/.env file (can be empty)
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Run: `account status`
-    - Assert: Output contains "API key in .env: Yes" or similar
+- File: src/claudeutils/account/cli.py
+  Action: In plan(), create AnthropicProvider with Keychain, call claude_env_vars(), format as KEY=value lines, write to claude-env
+- File: tests/test_cli_account.py
+  Action: Mock Keychain.find at `claudeutils.account.state.Keychain.find`, assert claude-env contains credentials
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_env -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_plan -v
+```
+- Test passes with claude-env containing credentials
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All CLI account tests pass
 
 ---
 
-**Expected Outcome**: Test verifies .env file existence check
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts .env status from fixture
-
+**Expected Outcome**: account plan test verifies claude-env file content
+**Error Conditions**: Missing env vars → verify provider.claude_env_vars() call
+**Validation**: Test reads file, asserts credential presence
+**Success Criteria**: account plan generates claude-env with provider credentials
 **Report Path**: plans/claude-tools-recovery/reports/cycle-2-3-notes.md
 
 ---

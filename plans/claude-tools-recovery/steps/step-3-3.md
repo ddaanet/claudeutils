@@ -5,59 +5,69 @@
 
 ---
 
-## Cycle 3.3: Wire AccountState .env file check
+## Cycle 3.3: Integration test for mode switching round-trip
 
-**Objective**: Check ~/.claude/.env existence instead of hardcoded value
-
+**Objective**: Test full workflow switching modes and verifying file state
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Strengthened test from Cycle 2.3 should fail
+**Test:** tests/test_cli_account.py should test sequential mode switches with file verification
 
 **Expected failure:**
 ```
-AssertionError: expected 'API key in .env: Yes', got hardcoded value
+May fail if file writes don't persist or state reads incorrect
 ```
 
-**Why it fails:** AccountState doesn't check .env file
+**Why it fails:** Integration gaps between commands
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_env -v`
-- Must fail
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_mode_round_trip -v
+```
+- Create test that invokes account plan, then account api, then account plan again
+- Verify files after each command
+- Test should FAIL if any step doesn't persist state correctly
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Update AccountState to check .env file existence
+**Implementation:** Ensure all commands read/write state correctly (should already work from previous cycles)
 
 **Changes:**
-- File: claudeutils/account/state.py
-  Action: Update create_account_state():
-    - Check: (Path.home() / ".claude" / ".env").exists()
-    - Set: AccountState.api_in_claude_env = True/False
+- File: tests/test_cli_account.py
+  Action: Add integration test with sequential CLI invocations within same CliRunner context, verify file state after each
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_env -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_mode_round_trip -v
+```
+- Test passes with all mode switches verified
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All CLI tests pass
 
 ---
 
-**Expected Outcome**: AccountState checks .env file existence
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Implementation checks file, test passes
-
+**Expected Outcome**: Integration test verifies full workflow end-to-end
+**Error Conditions**: File state inconsistent → check write/read paths match
+**Validation**: Test verifies files after each command
+**Success Criteria**: Round-trip mode switching works correctly
 **Report Path**: plans/claude-tools-recovery/reports/cycle-3-3-notes.md
+
+---
+
+**Checkpoint**
+
+1. Fix: Run `just dev`. Sonnet quiet-task fixes failures. Commit when green.
+2. Vet: Review error handling, integration test coverage. Commit fixes.
+3. Functional review: Manual test `account status`, `account plan`, `account api` commands with real ~/.claude/ directory. Verify actual output (mode/provider read from files, claude-env generated with credentials). If commands still return stubs or hardcoded values, STOP and report.
 
 ---

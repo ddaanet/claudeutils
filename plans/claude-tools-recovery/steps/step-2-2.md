@@ -5,62 +5,66 @@
 
 ---
 
-## Cycle 2.2: Strengthen account status test - keychain OAuth check
+## Cycle 2.2: Test account status displays validation issues
 
-**Objective**: Mock keychain query for OAuth token, assert output shows OAuth status
-
+**Objective**: Verify account status outputs consistency validation results
 **Script Evaluation**: Direct execution (TDD cycle)
-
 **Execution Model**: Haiku
 
 **Implementation:**
 
 **RED Phase:**
 
-**Test:** Test account status displays OAuth status from keychain query
+**Test:** tests/test_cli_account.py should test account status displays issues when state is inconsistent
 
 **Expected failure:**
 ```
-AssertionError: expected output to contain 'OAuth: Yes', got 'OAuth: <hardcoded>'
+AssertionError: assert "Plan mode requires OAuth credentials" in result.output
 ```
 
-**Why it fails:** Stub doesn't query keychain
+**Why it fails:** get_account_state() may not check keychain, or CLI doesn't display validation issues
 
-**Verify RED:** Run `pytest tests/test_account.py::test_account_status_oauth -v`
-- Must fail with OAuth status assertion
-- If passes, STOP
+**Verify RED:**
+```bash
+pytest tests/test_cli_account.py::test_account_status_with_issues -v
+```
+- Create test with tmp_path, write mode="plan" to account-mode file
+- Mock keychain query (via Keychain.find) to return None (no OAuth)
+- Assert validation message in output
+- Test should FAIL if CLI doesn't display issues
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Mock keychain find for OAuth token, assert output shows status
+**Implementation:** Update get_account_state() to query keychain and CLI to display validation
 
 **Changes:**
-- File: tests/test_account.py
-  Action: Create/update test_account_status_oauth:
-    - Fixture: tmp_path with mode/provider files
-    - Mock: `patch("claudeutils.account.state.Path.home", return_value=tmp_path)`
-    - Mock: `patch("claudeutils.account.state.subprocess.run")` returns OAuth token
-    - Run: `account status`
-    - Assert: Output contains "OAuth: Yes" or "OAuth in keychain: Yes"
+- File: src/claudeutils/account/state.py
+  Action: In get_account_state(), create Keychain instance, call find() to check OAuth presence, set oauth_in_keychain field
+- File: src/claudeutils/account/cli.py
+  Action: Ensure status() calls `state.validate_consistency()` and displays issues (already exists from current implementation)
+- File: tests/test_cli_account.py
+  Action: Create test with mode=plan fixture, mock Keychain.find to return None, assert issue message
 
-**Verify GREEN:** `pytest tests/test_account.py::test_account_status_oauth -v`
-- Must pass
+**Verify GREEN:**
+```bash
+pytest tests/test_cli_account.py::test_account_status_with_issues -v
+```
+- Test passes with validation output
 
-**Verify no regression:** `pytest tests/test_account.py`
-- All tests pass
+**Verify no regression:**
+```bash
+pytest tests/test_cli_account.py -v
+```
+- All account CLI tests pass
 
 ---
 
-**Expected Outcome**: Test verifies keychain OAuth query integration
-
-**Error Conditions**: RED passes → STOP; GREEN fails → Debug
-
-**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
-
-**Success Criteria**: Test asserts OAuth status from mocked keychain
-
+**Expected Outcome**: account status test verifies validation issues displayed
+**Error Conditions**: Issue message not in output → check validate_consistency() call
+**Validation**: Test creates inconsistent state, asserts error message
+**Success Criteria**: CLI outputs consistency validation results
 **Report Path**: plans/claude-tools-recovery/reports/cycle-2-2-notes.md
 
 ---
