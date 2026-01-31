@@ -26,3 +26,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Root cause: zsh uses `TMPPREFIX` (not `TMPDIR`) for heredoc temp files. Default `/tmp/zsh` is outside sandbox allowlist
 - Fix: `export TMPPREFIX="${TMPDIR:-/tmp}/zsh"` in agent-core/configs/claude-env.sh (sourced by .envrc)
 - Upstream issue: Claude Code sandbox sets TMPDIR but not TMPPREFIX for zsh — should be reported
+
+**Skills need multi-layer discovery, not just good internal docs:**
+- Anti-pattern: Build a well-documented skill and assume agents will find and use it ("build it and they will come")
+- Correct pattern: Ensure skill is surfaced via multiple discovery mechanisms — CLAUDE.md fragment, path-triggered `.claude/rules/` entry, in-workflow reminders in related skills, directive skill description
+- Rationale: Agents only see skill listing descriptions and always-loaded context. Internal skill docs are invisible until invoked. The opus-design-question skill had excellent 248-line docs but zero external visibility — agents asked the user instead of consulting it.
+- Example: 4-layer fix for opus-design-question: fragment + design skill reminder + path rule + directive description

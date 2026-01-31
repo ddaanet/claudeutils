@@ -48,6 +48,8 @@
 
 @agent-core/fragments/vet-requirement.md
 
+@agent-core/fragments/design-decisions.md
+
 ## Session Management
 
 @agent-core/fragments/execute-rule.md
