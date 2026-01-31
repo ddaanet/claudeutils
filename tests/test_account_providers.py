@@ -25,6 +25,9 @@ def test_anthropic_provider_env_vars() -> None:
     assert "ANTHROPIC_API_KEY" in env_vars
     assert env_vars["ANTHROPIC_API_KEY"] == "test-anthropic-key"
 
+    # Verify that the keystore method was called
+    mock_keystore.get_anthropic_api_key.assert_called_once()
+
 
 def test_openrouter_provider_env_vars() -> None:
     """Return both API key and base URL.
