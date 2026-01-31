@@ -58,3 +58,21 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Match `permissions.allow` prefix exactly (no `python3`) + use `dangerouslyDisableSandbox: true` for writes outside cwd
 - Result: `permissions.allow` auto-grants the sandbox lift (no prompt), `dangerouslyDisableSandbox` reliably bypasses sandbox
 - Example: `agent-core/bin/prepare-runbook.py` — direct invocation (has shebang), with `dangerouslyDisableSandbox: true` for `.claude/agents/` write
+
+**Commit skill has no submodule awareness — causes silent sync drift:**
+- Anti-pattern: `git status` shows `M agent-core`, agent stages parent files but ignores submodule internals
+- Correct pattern: When submodule is modified, inspect inside it, commit submodule first, then stage pointer in parent
+- Rationale: Parent commit with dirty submodule pointer creates sync issues that compound across sessions
+- Fix designed: `plans/commit-rca-fixes/design.md` (Fix 1)
+
+**Orchestrator stop rules get overridden by LLM judgment:**
+- Anti-pattern: Rule says "STOP on dirty git" but agent rationalizes "expected report file" and continues
+- Correct pattern: Make rules absolute with "no exceptions" language + delete contradictory scenarios
+- Rationale: LLMs will exploit any ambiguity. Contradictory guidance (section 3.3 says stop, scenarios section says continue) guarantees inconsistent behavior
+- Fix designed: `plans/commit-rca-fixes/design.md` (Fix 3)
+
+**Plan skills must stage artifacts immediately after prepare-runbook.py:**
+- Anti-pattern: Generate artifacts, then tail-call handoff→commit hoping commit discovers them
+- Correct pattern: `git add` step files, orchestrator plan, and agent file immediately after prepare-runbook.py
+- Rationale: Commit skill stages "specific files only" and may miss `.claude/agents/` files it doesn't know about
+- Fix designed: `plans/commit-rca-fixes/design.md` (Fix 2)
