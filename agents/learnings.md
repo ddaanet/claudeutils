@@ -92,3 +92,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Writing "Ready to commit" in Status or "pending commit" in footer when `--commit` flag is active
 - Correct pattern: Write status reflecting post-commit state — the tail-call makes commit atomic with handoff
 - Rationale: Next session reads session.md post-commit. Stale commit-pending language causes agents to re-attempt already-completed commits. The rule against commit tasks in Pending/Next Steps must extend to ALL sections
+
+**Hook output visibility — `systemMessage` vs `additionalContext`:**
+- Anti-pattern: Using `systemMessage` in hook output expecting Claude to see it
+- Correct pattern: Use `hookSpecificOutput.additionalContext` for Claude-visible context; `systemMessage` is user-facing only
+- Three visibility channels: `additionalContext` → Claude sees; `systemMessage` → user sees; stderr + exit 2 → Claude sees as error
+- `.claude/hooks/hooks.json` is NOT a valid config location — hooks go in settings.json only
+
+**Symlinks can silently become regular files:**
+- Anti-pattern: Assume symlinks in `.claude/hooks/` persist across tool operations
+- Correct pattern: Verify symlinks after any operation that reformats files (`just dev`, `ruff format`)
+- Rationale: Formatters follow symlinks and may replace them with reformatted copies. `just dev` did this to both hook .py files

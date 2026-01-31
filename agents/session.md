@@ -1,29 +1,29 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Vet agent split complete — two-agent pattern implemented codebase-wide.
+**Status:** Hook output fix design complete. Ready for planning/implementation.
 
 ## Completed This Session
 
-**Vet agent architecture:**
-- Created `vet-fix-agent` — review + apply critical/major fixes (Tier 3 orchestration, has Edit tool)
-- Updated `vet-agent` — review only (Tier 1/2, no Edit tool — contract enforced by tool list)
-- Design decision: separate agents > single agent with mode flag (tool list enforces, no prompt compliance risk)
+**Hook diagnosis and design:**
+- Diagnosed three broken hooks: UserPromptSubmit shortcuts (unregistered), submodule-safety (wrong output field), hooks.json (invalid config location)
+- Root causes: shortcuts hook never added to settings.json; `systemMessage` is user-only (need `hookSpecificOutput.additionalContext` for Claude visibility); `.claude/hooks/hooks.json` not read by Claude Code
+- Design: `plans/hook-output-fix/design.md` — 5 fixes including upgrade from soft warning to hard cwd block
 
-**Codebase-wide `/vet` reference replacement (9 files in agent-core + parent):**
-- `plan-adhoc/SKILL.md` — Point 3 uses vet-agent (planner has context), Tier 3 stage uses vet-fix-agent
-- `orchestrate/SKILL.md` — checkpoints and completion use vet-fix-agent
-- `workflows-terminology.md` — route descriptions updated
-- `oneshot-workflow.md` — Stage 5, examples, skills reference
-- `tdd-workflow.md` — Stage 4 and comparison table
-- `oneshot/SKILL.md` — workflow paths and templates
-- `vet/SKILL.md` — integration section documents agent pattern
-- `vet-requirement.md` — full rewrite with two-agent selection guide
-- `learnings.md` — updated vet learning with two-agent rationale
+**Symlink restoration:**
+- `.claude/hooks/*.py` files had become regular files (ruff reformatted them via `just dev`)
+- Restored as symlinks to `agent-core/hooks/`
+- Ruff errors in `agent-core/hooks/userpromptsubmit-shortcuts.py` fixed (line length, missing docstring)
+- pyproject.toml updated with ruff config
 
-**Orchestrate vet integration:** orchestrate skill checkpoint logic now delegates to vet-fix-agent directly (agent reviews AND fixes, orchestrator checks for UNFIXABLE issues)
+**Key discovery — hook output visibility:**
+- `systemMessage` → shown to user only, NOT to Claude
+- `hookSpecificOutput.additionalContext` → visible to Claude
+- stderr + exit 2 → visible to Claude (error/block pattern)
+- The hookify plugin's "UserPromptSubmit hook success" was being mistaken for the project's shortcuts hook working
 
 ## Pending Tasks
 
+- [ ] **Implement hook-output-fix** — `/plan-adhoc plans/hook-output-fix/design.md` | sonnet
 - [ ] **Orchestrate: integrate review-tdd-process** — rename review-analysis, use custom sonnet sub-agent, runs during orchestration | sonnet
 - [ ] **Refactor oneshot handoff template** — integrate into current handoff/pending/execute framework | sonnet
 - [ ] **Evaluate oneshot skill** — workflow now always starts with /design, may be redundant | opus
@@ -46,11 +46,13 @@
 - Fix 2 (artifact staging) ensures prepare-runbook.py artifacts are staged
 - Fix 1 (submodule awareness) prevents submodule pointer drift
 
-**Learnings file at 95/80 lines** — needs `/remember` consolidation soon.
+**Learnings file at 99/80 lines** — needs `/remember` consolidation soon.
+
+**Hook changes require session restart** — after implementing hook-output-fix, must restart to test.
 
 ## Next Steps
 
-Continue with pending work batch: integrate review-tdd-process into orchestrate, then evaluate oneshot skill redundancy. The vet-as-agent pattern is now fully implemented.
+Implement hook-output-fix design (5 fixes: register shortcuts, fix output format, upgrade to hard cwd block, delete stale hooks.json, update docs). Then test all hooks after restart.
 
 ---
-*Handoff by Opus. Vet two-agent pattern complete.*
+*Handoff by Opus. Hook output fix designed.*
