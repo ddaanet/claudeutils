@@ -1,6 +1,39 @@
 """AccountState Pydantic model for representing account configuration state."""
 
+from pathlib import Path
+
 from pydantic import BaseModel
+
+
+def get_account_state() -> AccountState:
+    """Load account state from filesystem.
+
+    Reads ~/.claude/account-mode and ~/.claude/account-provider files. Returns
+    default values if files don't exist.
+    """
+    home = Path.home()
+    account_mode_file = home / ".claude" / "account-mode"
+    account_provider_file = home / ".claude" / "account-provider"
+
+    mode = (
+        account_mode_file.read_text(encoding="utf-8").strip()
+        if account_mode_file.exists()
+        else "plan"
+    )
+    provider = (
+        account_provider_file.read_text(encoding="utf-8").strip()
+        if account_provider_file.exists()
+        else "anthropic"
+    )
+
+    return AccountState(
+        mode=mode,
+        provider=provider,
+        oauth_in_keychain=False,
+        api_in_claude_env=False,
+        has_api_key_helper=False,
+        litellm_proxy_running=False,
+    )
 
 
 class AccountState(BaseModel):

@@ -8,12 +8,20 @@ from click.testing import CliRunner
 from claudeutils.cli import cli
 
 
-def test_account_status() -> None:
-    """Test that account status command returns account state."""
+def test_account_status(tmp_path: Path) -> None:
+    """Test account status reads filesystem state."""
+    # Create a mock home directory with account-mode file
+    account_mode_file = tmp_path / ".claude" / "account-mode"
+    account_mode_file.parent.mkdir(parents=True, exist_ok=True)
+    account_mode_file.write_text("api")
+
     runner = CliRunner()
-    result = runner.invoke(cli, ["account", "status"])
-    # The command should exist and return exit code 0
+    with patch("claudeutils.account.cli.Path.home", return_value=tmp_path):
+        result = runner.invoke(cli, ["account", "status"])
+
+    # Verify the command reads the file and outputs actual mode
     assert result.exit_code == 0
+    assert "Mode: api" in result.output
 
 
 def test_account_plan(tmp_path: Path) -> None:

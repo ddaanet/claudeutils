@@ -4,7 +4,7 @@ from pathlib import Path
 
 import click
 
-from claudeutils.account import AccountState
+from claudeutils.account.state import get_account_state
 
 
 @click.group()
@@ -15,15 +15,7 @@ def account() -> None:
 @account.command()
 def status() -> None:
     """Display current account status."""
-    # Minimal implementation: create a simple state and display it
-    state = AccountState(
-        mode="plan",
-        provider="anthropic",
-        oauth_in_keychain=True,
-        api_in_claude_env=False,
-        has_api_key_helper=False,
-        litellm_proxy_running=False,
-    )
+    state = get_account_state()
     issues = state.validate_consistency()
     click.echo(f"Mode: {state.mode}")
     click.echo(f"Provider: {state.provider}")
