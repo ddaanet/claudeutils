@@ -4,6 +4,8 @@ from pathlib import Path
 
 import click
 
+from claudeutils.account.keychain import Keychain
+from claudeutils.account.providers import AnthropicProvider
 from claudeutils.account.state import get_account_state
 
 
@@ -30,16 +32,45 @@ def status() -> None:
 @account.command()
 def plan() -> None:
     """Switch to plan mode and write account configuration files."""
-    # Minimal implementation: write account-mode and claude-env files
+    # Create keychain adapter for provider
+    keychain = Keychain()
+
+    class KeychainAdapter:
+        """Adapter to convert Keychain to KeyStore protocol."""
+
+        def __init__(self, keychain: Keychain) -> None:
+            self.keychain = keychain
+
+        def get_anthropic_api_key(self) -> str:
+            """Get Anthropic API key from keychain."""
+            return (
+                self.keychain.find(account="anthropic", service="com.anthropic.claude")
+                or ""
+            )
+
+        def get_openrouter_api_key(self) -> str:
+            """Get OpenRouter API key from keychain."""
+            return (
+                self.keychain.find(account="openrouter", service="com.anthropic.claude")
+                or ""
+            )
+
+    # Create provider and get credentials
+    keystore = KeychainAdapter(keychain)
+    provider = AnthropicProvider(keystore)
+    env_vars = provider.claude_env_vars()
+
+    # Format environment variables
+    env_lines = [f"{key}={value}" for key, value in env_vars.items()]
+    env_content = "\n".join(env_lines)
+
+    # Write configuration files
     account_mode_file = Path.home() / ".claude" / "account-mode"
     claude_env_file = Path.home() / ".claude" / "claude-env"
 
-    # Write account-mode file
     account_mode_file.parent.mkdir(parents=True, exist_ok=True)
     account_mode_file.write_text("plan")
-
-    # Write claude-env file (empty for now)
-    claude_env_file.write_text("")
+    claude_env_file.write_text(env_content)
 
     click.echo("Switched to plan mode")
 

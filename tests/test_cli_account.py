@@ -25,9 +25,19 @@ def test_account_status(tmp_path: Path) -> None:
 
 
 def test_account_plan(tmp_path: Path) -> None:
-    """Test that account plan command switches mode and writes files."""
+    """Test account plan writes files with provider credentials.
+
+    Verifies that switching to plan mode generates a claude-env file containing
+    the provider API credentials.
+    """
     runner = CliRunner()
-    with patch("pathlib.Path.home", return_value=tmp_path):
+    # Mock Keychain.find to return test credentials
+    mock_keychain = MagicMock()
+    mock_keychain.find.return_value = "test-anthropic-key"
+    with (
+        patch("claudeutils.account.cli.Path.home", return_value=tmp_path),
+        patch("claudeutils.account.cli.Keychain", return_value=mock_keychain),
+    ):
         result = runner.invoke(cli, ["account", "plan"])
     assert result.exit_code == 0
     # Verify files were written
@@ -36,6 +46,9 @@ def test_account_plan(tmp_path: Path) -> None:
     assert account_mode_file.exists()
     assert claude_env_file.exists()
     assert account_mode_file.read_text() == "plan"
+    # Verify claude-env contains provider credentials
+    claude_env_content = claude_env_file.read_text()
+    assert "ANTHROPIC_API_KEY=test-anthropic-key" in claude_env_content
 
 
 def test_account_api(tmp_path: Path) -> None:
