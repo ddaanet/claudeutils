@@ -100,3 +100,42 @@ def test_account_status_with_issues(tmp_path: Path) -> None:
     assert result.exit_code == 0
     # Verify validation issue is displayed
     assert "Plan mode requires OAuth credentials in keychain" in result.output
+
+
+def test_account_mode_round_trip(tmp_path: Path) -> None:
+    """Test full workflow switching modes and verifying file state.
+
+    Integration test that verifies:
+    1. Start in plan mode (default)
+    2. Switch to api mode with openrouter provider
+    3. Switch back to plan mode
+    4. Verify files persist state correctly at each step
+    """
+    runner = CliRunner()
+    mock_keychain = MagicMock()
+    mock_keychain.find.return_value = "test-api-key"
+
+    with patch("claudeutils.account.cli.Path.home", return_value=tmp_path):
+        # Step 1: Invoke plan mode
+        with patch("claudeutils.account.cli.Keychain", return_value=mock_keychain):
+            result = runner.invoke(cli, ["account", "plan"])
+        assert result.exit_code == 0
+        mode_file = tmp_path / ".claude" / "account-mode"
+        assert mode_file.read_text() == "plan"
+
+        # Step 2: Invoke api mode with openrouter
+        with patch("claudeutils.account.cli.Keychain", return_value=mock_keychain):
+            result = runner.invoke(cli, ["account", "api", "--provider", "openrouter"])
+        assert result.exit_code == 0
+        assert mode_file.read_text() == "api"
+        provider_file = tmp_path / ".claude" / "account-provider"
+        assert provider_file.read_text() == "openrouter"
+
+        # Step 3: Invoke plan mode again
+        with patch("claudeutils.account.cli.Keychain", return_value=mock_keychain):
+            result = runner.invoke(cli, ["account", "plan"])
+        assert result.exit_code == 0
+        # Verify mode switched back to plan
+        assert mode_file.read_text() == "plan"
+        # Provider file should still exist (not deleted by mode change)
+        assert provider_file.read_text() == "openrouter"
