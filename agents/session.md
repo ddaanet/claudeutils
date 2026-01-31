@@ -1,27 +1,38 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Commit RCA design complete (3 systemic fixes). Workflow-controls step 1 executed, steps 2-7 remaining. Git history repaired.
+**Status:** Commit RCA fixes implemented and committed. Two pending design tasks added for plan workflow improvements.
 
 ## Completed This Session
 
-**Commit pipeline RCA — `plans/commit-rca-fixes/design.md`:**
-- 3 deviations identified: submodule blindness, unstaged artifacts, orchestrator stop-rule override
-- Design: 6 surgical edits to commit, plan-adhoc, plan-tdd, orchestrate skills + prepare-runbook.py template
-- Opus vet: critical issue caught (contradictory scenario in orchestrate SKILL.md) + 6 other fixes applied
-- Additional RCA: commit skill precommit bypass — same rationalization pattern as orchestrator (`plans/commit-rca-fixes/reports/commit-skill-rca.md`)
+**Commit RCA fixes — implemented directly (bypassed runbook creation):**
+- Design refinement: moved `git add` from plan skills to prepare-runbook.py (single fix point, script owns artifact knowledge)
+- Design refinement: removed "agent-core:" prefix from submodule commits (redundant inside submodule repo)
+- Design refinement: clean-tree contract in prepare-runbook.py (appended to generated agents, not baseline templates — quiet-task serves dual purpose)
+- Point 0 assessment: 5 edits across 4 files, all surgical and independent → implement directly
+- Implementation: all 5 fixes applied exactly as designed
+  - Fix 1: Submodule awareness in commit skill (agent-core/skills/commit/SKILL.md)
+  - Fix 2: Artifact staging in prepare-runbook.py (subprocess import, git add before return)
+  - Fix 3: Orchestrator stop rule strengthened (agent-core/skills/orchestrate/SKILL.md, contradictory scenario deleted)
+  - Design doc updated with revision trail
+  - learnings.md updated with correct pattern
+- Vet review: 0 critical, 0 major, 0 minor issues — ready
+- Commits: 17d78d7 (submodule), 69885be (parent) — Fix 1 applied successfully (submodule first, pointer staged, parent committed)
 
-**Workflow-controls orchestration (partial):**
-- Step 1 executed: hook script validated (all tier 1/tier 2 shortcuts pass)
-- Orchestration interrupted after step 1 due to dirty git state (submodule + report uncommitted)
-- Root cause: sonnet orchestrator rationalized dirty state instead of stopping
+**Lightweight delegation discussion:**
+- User observation: commit-rca-fixes was good case for lightweight delegation
+- Middle tier need identified: between direct execution and full runbook
+- Discovery problem: quiet-task/tdd-task exist but no workflow surfaces them as option
+- Pending task added: design lightweight delegation tier
 
-**Git history repair:**
-- Squashed d59eafe+38ef9f7 into 090a772 (runbook prep was split across two commits)
-- Step-1 execution committed as 28bc6be
+**Plan workflow fast paths discussion:**
+- User noted: direct implementation path should be formalized in plan-adhoc and plan-tdd
+- Pattern demonstrated: Point 0 assessment → implement → vet → fixes → commit
+- Pending tasks added: design updates for both plan skills
 
 ## Pending Tasks
 
-- [ ] **Plan and execute commit-rca-fixes** — `/plan-adhoc plans/commit-rca-fixes/design.md` | sonnet
+- [ ] **Design plan-adhoc: formalize direct implementation fast path** — Point 0 → implement → vet → fixes → handoff/commit. Update skill with explicit pattern | opus
+- [ ] **Design plan-tdd: add direct execution and lightweight delegation fast paths** — Similar to plan-adhoc, plus lightweight delegation option. Update skill with patterns | opus
 - [ ] **Resume workflow-controls orchestration (steps 2-7)** — `/orchestrate workflow-controls` | sonnet | restart
 - [ ] **Implement ambient awareness** — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
 - [ ] **Create /reflect skill** — deviation detection → RCA → fix → handoff/commit automation. Load plugin-dev skills first | opus
@@ -36,9 +47,10 @@
 
 ## Blockers / Gotchas
 
-**Commit-rca-fixes should land before resuming workflow-controls:**
-- Fix 3 (orchestrator stop rule) prevents repeat of the step-1 dirty-state issue
-- Fix 2 (artifact staging) prevents plan skills from leaving unstaged files
+**Commit-rca-fixes now active:**
+- Fix 3 (orchestrator stop rule) prevents dirty-state rationalization
+- Fix 2 (artifact staging) ensures prepare-runbook.py artifacts are staged
+- Fix 1 (submodule awareness) prevents submodule pointer drift
 
 **Hook changes require session restart:**
 - UserPromptSubmit hook (Step 7 of workflow-controls runbook) won't activate until Claude Code restarts
@@ -50,7 +62,7 @@
 
 ## Next Steps
 
-Plan and execute commit-rca-fixes first (small, surgical). Then resume workflow-controls orchestration from step 2.
+Two design tasks for workflow improvements (plan-adhoc and plan-tdd fast paths), then resume workflow-controls orchestration from step 2.
 
 ---
-*Handoff by Opus. RCA design vetted, git history cleaned, ready for planning.*
+*Handoff by Sonnet. Commit RCA fixes implemented and active.*
