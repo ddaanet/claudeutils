@@ -160,3 +160,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: When removal agent makes mistakes and vet catches them, launching a new fix agent (which re-reads everything)
 - Correct pattern: If vet agent has the context of what's wrong, leverage it. If caller also has context (from reading vet report), apply fixes directly
 - Rationale: Tier 1/2 pattern — caller reads report, applies fixes with full context. No need for another agent round-trip
+
+**SessionStart hook is broken for new sessions (don't depend on it):**
+- Issue: [#10373](https://github.com/anthropics/claude-code/issues/10373) — SessionStart output discarded for new sessions
+- Only works after `/clear`, `/compact`, or `--resume`
+- Root cause: `qz("startup")` never called for new interactive sessions
+- Don't build features depending on SessionStart until fixed upstream
+- Alternative: Use `@agents/session.md` in CLAUDE.md for task context (already loaded)
