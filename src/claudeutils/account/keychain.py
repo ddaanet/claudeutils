@@ -6,7 +6,7 @@ import subprocess
 class Keychain:
     """Wrapper for macOS Keychain security commands."""
 
-    def find(self, account: str, service: str) -> str:
+    def find(self, account: str, service: str) -> str | None:
         """Find password in keychain.
 
         Args:
@@ -14,7 +14,7 @@ class Keychain:
             service: Service name to search for
 
         Returns:
-            Password string from keychain
+            Password string from keychain, or None if entry not found
         """
         result = subprocess.run(
             ["security", "find-generic-password", "-a", account, "-s", service, "-w"],
@@ -22,6 +22,10 @@ class Keychain:
             text=False,
             check=False,
         )
+
+        # Return None if keychain entry not found (non-zero returncode)
+        if result.returncode != 0:
+            return None
 
         # Extract password from output (remove newline if present)
         return result.stdout.decode("utf-8").strip()

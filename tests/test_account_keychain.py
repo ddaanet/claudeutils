@@ -92,3 +92,37 @@ def test_keychain_delete() -> None:
             ],
             check=False,
         )
+
+
+def test_keychain_find_not_found() -> None:
+    """Test that Keychain.find() returns None when entry doesn't exist."""
+    # Mock subprocess.run to return failure when keychain entry not found
+    mock_result = Mock()
+    mock_result.stdout = b""
+    mock_result.returncode = 1  # Non-zero indicates entry not found
+
+    with patch(
+        "claudeutils.account.keychain.subprocess.run", return_value=mock_result
+    ) as mock_run:
+        # Create Keychain instance and call find
+        keychain = Keychain()
+        result = keychain.find("nonexistent-account", "nonexistent-service")
+
+        # Verify subprocess was called with correct arguments
+        mock_run.assert_called_once_with(
+            [
+                "security",
+                "find-generic-password",
+                "-a",
+                "nonexistent-account",
+                "-s",
+                "nonexistent-service",
+                "-w",
+            ],
+            capture_output=True,
+            text=False,
+            check=False,
+        )
+
+        # Verify that find() returns None when entry not found
+        assert result is None
