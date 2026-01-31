@@ -1,28 +1,34 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Two fixes completed and committed. Ready for next pending task.
+**Status:** Tail-call skill composition pattern implemented. Ready for commit.
 
 ## Completed This Session
 
-**prepare-runbook.py artifact hygiene fix (commit 0ebfaff):**
-- Added cleanup logic to remove orphaned step files before writing new ones
-- 4 lines in validate_and_create(): check if steps/ exists, unlink all *.md before writing
-- Tested: 44 orphaned files → 13 matching current runbook
+**Tail-call pattern for skill composition:**
+- Implemented skill chaining via tail-calls: plan-* → `/handoff --commit` → `/commit` → display next task (or `/next`)
+- Key insight: skills terminate when invoking another skill — this is a feature for final-action invocation (tail-call), not a bug
+- Two composition primitives: tail calls (sync chaining within session), pending tasks (async continuation across sessions)
+- Modified 6 files: plan-adhoc/SKILL.md, plan-tdd/SKILL.md, handoff/SKILL.md, commit/SKILL.md, workflows-terminology.md, learnings.md
+- First attempted inlining git/session.md logic — user identified tail-call pattern as cleaner solution
+- Vet review: no critical issues, applied minor fixes (universal post-commit behavior clarification)
+- Review report: tmp/vet-tail-call-skills.md
 
-**Handoff anti-pattern rule relocation (commit 7360d3d):**
-- Root cause: "no commit tasks" rule was in Phase 6 (trim), but violation occurs in Phase 2/3 (write)
-- Fix: Added NEVER block to Phase 3 (Context Preservation), removed duplicate from Phase 6
-- Design: plans/handoff-rules-fix/design.md
-- Insight: Rule location problem, not rule existence problem — rules must be at point of violation, not point of enforcement
+**Specific changes per file:**
+- `agent-core/skills/plan-adhoc/SKILL.md` — Point 4.1: auto prepare-runbook.py, pbcopy, tail-call `/handoff --commit`; added Skill to allowed-tools
+- `agent-core/skills/plan-tdd/SKILL.md` — Phase 5 steps 5-7: same pattern; updated CRITICAL block and Integration Notes
+- `agent-core/skills/handoff/SKILL.md` — Added `--commit` flag, Tail-Call section, allowed-tools (Read, Write, Edit, Bash, Skill)
+- `agent-core/skills/commit/SKILL.md` — Added "Post-Commit: Display Next Task" section; tail-calls `/next` if no pending tasks; added Read+Skill to allowed-tools
+- `agent-core/fragments/workflows-terminology.md` — Updated both workflow routes to show tail-call chain
+- `agents/learnings.md` — Updated two entries: "Don't compose skills" and "Skills cannot invoke other skills" to document tail-call exception
 
 ## Pending Tasks
 
-- [ ] **Update plan-tdd/plan-adhoc skills** — Auto-run prepare-runbook.py with sandbox bypass, handoff, commit, pipe orchestrate command to pbcopy, report restart/model/paste instructions
 - [ ] **Design runbook identifier solution** — /design plans/runbook-identifiers/problem.md (semantic IDs vs relaxed validation vs auto-numbering)
 - [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
 - [ ] **Add execution metadata to step files** — Step files declare dependencies and execution mode
 - [ ] **Orchestrator scope consolidation** — Update orchestrate skill to delegate checkpoint phases (Fix + Vet + Functional) instead of manual invocation
-- [ ] **Run /remember** — Process learnings from sessions (learnings.md at 153 lines, soft limit 80)
+- [ ] **Run /remember** — Process learnings from sessions (learnings.md at ~160 lines, soft limit 80)
+- [ ] **Restart session, switch to haiku, paste `/orchestrate` from clipboard** — Only if a runbook was just prepared (N/A this session, but documents the pattern)
 
 ## Blockers / Gotchas
 
@@ -30,19 +36,23 @@
 - Mock assertion in test_account_keychain.py:143 could be more specific (assert_called_once_with vs assert_called_once)
 - Fix opportunistically when touching that test file
 
+**Tail-call pattern is untested in live workflow:**
+- Pattern is documented but hasn't been exercised end-to-end (plan-* → handoff --commit → commit → next)
+- First real test will be next time /plan-tdd or /plan-adhoc runs to completion
+- Watch for: skill termination timing, session.md state after handoff, clipboard content
+
 ## Reference Files
 
-- **plans/handoff-rules-fix/design.md** - Design doc for handoff rule relocation
+- **tmp/vet-tail-call-skills.md** — Vet review of tail-call pattern changes
 
 ## Next Steps
 
 **Immediate:**
-- Update plan-tdd/plan-adhoc skills: automate prepare-runbook.py, handoff, commit, clipboard piping
+- Run /remember to consolidate learnings.md (~160 lines, soft limit 80) — overdue
 
 **Upcoming:**
 - Design runbook identifier solution (semantic IDs vs relaxed validation)
 - Create design-vet-agent (opus session)
-- Run /remember to consolidate learnings.md (153 lines, soft limit 80)
 
 ---
-*Handoff by Opus. Two fixes: prepare-runbook.py artifact hygiene (0ebfaff) and handoff rule relocation to point of violation (7360d3d). Learnings.md at 153 lines — /remember overdue.*
+*Handoff by Opus. Tail-call skill composition pattern: plan-* → /handoff --commit → /commit → next. Learnings.md overdue for /remember (~160 lines).*

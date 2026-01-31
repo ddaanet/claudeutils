@@ -32,11 +32,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Orchestrator plan includes execution mode rationale and explicit override instructions
 - Example: "STRICT SEQUENTIAL - TDD cycles modify shared state. Parallel execution causes git commit race conditions and RED phase violations."
 
-**Don't compose skills via Skill tool invocation:**
-- Anti-pattern: Skill A invokes `/skill-b` via Skill tool for sub-operations
-- Correct pattern: Inline the logic or copy supporting files into the calling skill's references/
-- Rationale: Known bug (#17351) causes context switch; no official nested skill pattern exists
-- Tradeoff: Duplication of small files (gitmoji index) is acceptable vs workflow interruption
+**Don't compose skills via mid-execution Skill tool invocation:**
+- Anti-pattern: Skill A invokes `/skill-b` mid-execution via Skill tool for sub-operations
+- Correct pattern for mid-execution: Inline the logic or copy supporting files into references/
+- **Exception — tail calls:** Invoking a skill as the FINAL action works (skill was terminating anyway)
+- See also: "Skills cannot invoke other skills mid-execution (but CAN tail-call)" below
 
 **Orchestration assessment (Point 0) prevents unnecessary runbooks:**
 - Anti-pattern: Creating runbooks for tasks that should be implemented directly
@@ -110,12 +110,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Issue: Commits don't update session.md, so task is never marked done
 - Correct pattern: Commits happen organically; only track substantive work
 
-**Skills cannot invoke other skills (expanded):**
-- Anti-pattern: Skill A invokes `/skill-b` via Skill tool
+**Skills cannot invoke other skills mid-execution (but CAN tail-call):**
+- Anti-pattern: Skill A invokes `/skill-b` mid-execution via Skill tool
 - Behavior: Agent stops when first skill finishes; second skill never runs
-- Known issue: Open bug in Claude Code (see also "Don't compose skills" learning above)
-- Implication: /commit cannot call /handoff; must be separate user actions
-- Correct pattern: Inline the logic or use references/ files
+- **Exception — tail calls:** If Skill A's **final action** is invoking `/skill-b`, this works — A was done anyway
+- Tail-call pattern: `/plan-tdd` → tail: `/handoff --commit` → tail: `/commit`
+- Two composition primitives: tail calls (sync chaining), pending tasks (async/cross-session)
+- Correct pattern: Mid-execution = inline the logic. End of skill = tail-call is safe.
 
 **@ references only work in CLAUDE.md:**
 - Not supported in: skill SKILL.md files, agent .md system prompts, Task tool prompts
