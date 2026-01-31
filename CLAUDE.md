@@ -42,6 +42,10 @@
 
 @agent-core/fragments/tmp-directory.md
 
+@agent-core/fragments/sandbox-exemptions.md
+
+@agent-core/fragments/claude-config-layout.md
+
 @agent-core/fragments/vet-requirement.md
 
 ## Session Management

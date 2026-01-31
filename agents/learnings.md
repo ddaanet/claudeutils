@@ -137,3 +137,16 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: Same principle as CLAUDE.md token economy: "Avoid numbered lists - causes renumbering churn when edited"
 - Example: Design has R0-R4 with R3 omitted → runbook uses R0,R1,R2,R4 → validation fails "Gap 2→4" → manual renumber R4→R3
 - See: plans/runbook-identifiers/problem.md for full analysis and solution options
+
+**Heredocs broken in sandbox mode:**
+- Issue: Sandbox blocks temp file creation needed by heredocs
+- Correct pattern: Use alternatives (echo with newlines, printf, Write tool) when in sandbox mode
+- Example: `echo -e "line1\nline2"` or Write tool instead of `cat <<EOF`
+- See: agent-core/fragments/sandbox-exemptions.md for sandbox-sensitive commands
+
+**Handoff-haiku drops unresolved items:**
+- Anti-pattern: REPLACE semantics for Pending Tasks and Blockers/Gotchas drops unresolved items from prior sessions
+- Root cause: Haiku follows literal "replace with fresh content" instruction, doesn't infer "carry forward unresolved"
+- Correct pattern: MERGE semantics (carry forward unresolved + add new)
+- Fix: Updated handoff-haiku skill to explicitly merge Pending Tasks and Blockers/Gotchas
+- Impact: Prevents loss of long-term pending work and active gotchas across handoffs

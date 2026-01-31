@@ -41,10 +41,19 @@
 
 - [ ] **Continue Phase R3 execution** — 5 remaining cycles (error handling and validation)
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing (prevent orphaned files)
+- [ ] **Update plan-tdd/plan-adhoc skills** — Auto-run prepare-runbook.py with sandbox bypass, handoff, commit, pipe orchestrate command to pbcopy, report restart/model/paste instructions
+- [ ] **Design runbook identifier solution** — /design plans/runbook-identifiers/problem.md (semantic IDs vs relaxed validation vs auto-numbering)
+- [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
+- [ ] **Add execution metadata to step files** — Step files declare dependencies and execution mode
 - [ ] **Orchestrator over-analysis learning** — Haiku should mediate agents only, escalate plan changes to planning agent
 - [ ] **Run /remember** — Process learnings from sessions
 
 ## Blockers / Gotchas
+
+**Restart required for new agent:**
+- prepare-runbook.py created `.claude/agents/claude-tools-recovery-task.md`
+- Claude Code must restart to discover new agent
+- After restart: /orchestrate will use claude-tools-recovery-task agent for execution
 
 **Orchestrator scope creep identified:**
 - Haiku orchestrator performed diagnostic and Opus design review instead of escalating
@@ -57,11 +66,6 @@
 - Two generations left 44 step files; only 13 match current runbook
 - Older generation files have outdated assumptions (references tests/test_account.py, hasattr patterns)
 - Caused Step 0-2 collision with non-existent tests
-
-**Mock Patching Pattern (enforced in R1):**
-- Patch at usage location, not definition location
-- Example: `patch("claudeutils.account.keychain.subprocess.run")` not `patch("subprocess.run")`
-- All keychain tests corrected in Cycle 1.4
 
 ## Session Notes
 
