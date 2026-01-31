@@ -103,3 +103,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Assume symlinks in `.claude/hooks/` persist across tool operations
 - Correct pattern: Verify symlinks after any operation that reformats files (`just dev`, `ruff format`)
 - Rationale: Formatters follow symlinks and may replace them with reformatted copies. `just dev` did this to both hook .py files
+
+**Shell command continuation in hooks can be exploited:**
+- Anti-pattern: Allowing `command.startswith(pattern + ' ')` for restore commands — permits `cd /root && malicious_cmd`
+- Correct pattern: Use exact match only (`command in restore_patterns`) for security-sensitive restore operations
+- Rationale: Shell operators (&&, ;, ||) can chain additional commands. Exact match prevents exploitation while still allowing the intended restore command
