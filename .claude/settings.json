@@ -66,7 +66,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/userpromptsubmit-shortcuts.py"
+            "command": "python3 $CLAUDE_PROJECT_DIR/agent-core/hooks/userpromptsubmit-shortcuts.py",
+            "timeout": 5
           }
         ]
       }
