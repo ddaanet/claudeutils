@@ -1,6 +1,6 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Project tooling priority fix, justfile caching system, review-tdd-process agent integration complete.
+**Status:** sync-to-parent sandbox documentation complete (ff4265d).
 
 ## Completed This Session
 
@@ -32,9 +32,14 @@
   - Integration section: Added TDD workflow stages (oneshot and TDD paths now documented)
   - TDD workflow: `/design` (TDD) → `/plan-tdd` → `/orchestrate` → [vet-fix-agent] → [review-tdd-process]
 
+**sync-to-parent sandbox documentation (ff4265d):**
+- Added dedicated section in `agent-core/fragments/sandbox-exemptions.md` for `just sync-to-parent`
+- Documents `dangerouslyDisableSandbox: true` requirement for symlink operations in `.claude/`
+- Updated `CLAUDE.md` and `agent-core/fragments/claude-config-layout.md` references
+- Resolves blocker: agents now know sandbox bypass required for this recipe
+
 ## Pending Tasks
 
-- [ ] **Update sync-to-parent references** — document required `dangerouslyDisableSandbox: true` for the recipe | sonnet
 - [ ] **Refactor oneshot handoff template** — integrate into current handoff/pending/execute framework | sonnet
 - [ ] **Evaluate oneshot skill** — workflow now always starts with /design, may be redundant | opus
 - [ ] **Update heredoc references** — sandboxed heredoc fix landed. Remove workarounds, restore vendor default heredoc behavior for commit messages | sonnet
@@ -58,11 +63,6 @@
 
 **Learnings file at 131/80 lines** — needs `/remember` consolidation urgently.
 
-**sync-to-parent requires sandbox bypass:**
-- `just sync-to-parent` in agent-core/ fails with "Operation not permitted" in sandbox
-- Requires `dangerouslyDisableSandbox: true` to succeed
-- Should document this in CLAUDE.md sync-to-parent reference and sandbox-exemptions.md
-
 ## Reference Files
 
 **New fragments:**
@@ -83,4 +83,4 @@
 Learnings file at 131/80 lines. Run `/remember` to consolidate before next session.
 
 ---
-*Handoff by Opus. Project tooling priority diagnostic complete, justfile caching system operational.*
+*Handoff by Sonnet. sync-to-parent sandbox documentation complete.*
