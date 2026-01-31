@@ -48,3 +48,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: `X` vs `x` for different commands (e.g., execute vs execute+commit)
 - Correct pattern: Use distinct tokens (`xc` vs `x`) rather than case differentiation
 - Rationale: LLMs are unreliable at distinguishing case. Two distinct characters are unambiguous
+
+**Sandbox bypass: `permissions.allow` + `dangerouslyDisableSandbox` is the reliable combo:**
+- Anti-pattern: Relying on `excludedCommands` for sandbox bypass (buggy — check if fixed:
+  https://github.com/anthropics/claude-code/issues/10767,
+  https://github.com/anthropics/claude-code/issues/14162,
+  https://github.com/anthropics/claude-code/issues/19135)
+- Anti-pattern: Adding interpreter prefix (`python3 cmd`) which breaks `permissions.allow` pattern matching
+- Correct pattern: Match `permissions.allow` prefix exactly (no `python3`) + use `dangerouslyDisableSandbox: true` for writes outside cwd
+- Result: `permissions.allow` auto-grants the sandbox lift (no prompt), `dangerouslyDisableSandbox` reliably bypasses sandbox
+- Example: `agent-core/bin/prepare-runbook.py` — direct invocation (has shebang), with `dangerouslyDisableSandbox: true` for `.claude/agents/` write
