@@ -1,15 +1,14 @@
 # Session Handoff: 2026-01-31
 
-**Status:** Plan skill fast paths implemented (Tier 1 direct). Ready to commit.
+**Status:** Reflect workflow complete — handoff skill fix for `--commit` tail-call semantics.
 
 ## Completed This Session
 
-**Implement plan-skill-fast-paths** (Tier 1 direct implementation):
-- Three-tier assessment added to both `agent-core/skills/plan-adhoc/SKILL.md` and `agent-core/skills/plan-tdd/SKILL.md`
-- Workflow docs updated: `agent-core/fragments/workflows-terminology.md`, `agent-core/docs/oneshot-workflow.md`, `agents/decisions/workflows.md`
-- Design at `plans/plan-skill-fast-paths/design.md` (v3)
-- Vet review: sonnet agent, assessment READY with note about design/implementation handoff discrepancy (resolved — user directed all tiers use `/handoff --commit`)
-- User feedback applied: all tiers end with `/handoff --commit`, use vet agent (not `/vet` skill), plan-adhoc Tier 2 allows single quiet-task delegation
+**Reflect: handoff `--commit` pending-commit RCA:**
+- Previous opus session wrote "Ready to commit" status and "pending commit" footer despite `--commit` tail-call
+- Root cause: handoff skill rule against commit tasks only named "Pending Tasks or Next Steps" sections — agent put equivalent language in Status/footer
+- Fix: broadened rule in `agent-core/skills/handoff/SKILL.md:75-78` to cover all sections, explicitly named the anti-patterns, explained tail-call atomicity
+- Learning added to `agents/learnings.md`
 
 ## Pending Tasks
 
@@ -37,13 +36,9 @@
 - Fix 2 (artifact staging) ensures prepare-runbook.py artifacts are staged
 - Fix 1 (submodule awareness) prevents submodule pointer drift
 
-**Hook changes require session restart:**
-- UserPromptSubmit hook (Step 7 of workflow-controls runbook) won't activate until Claude Code restarts
-- Test all shortcuts after restart: `s`, `x`, `xc`, `r`, `h`, `hc`, `ci`, `d:`, `p:`
-
 ## Next Steps
 
 First batch of pending work: fix `/vet` references codebase-wide, then integrate vet agent and review-tdd-process into orchestrate skill. These form a cohesive group around the vet-as-agent pattern.
 
 ---
-*Handoff by Opus. Implementation complete, pending commit.*
+*Handoff by Opus. Reflect fix applied.*

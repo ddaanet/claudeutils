@@ -86,3 +86,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Invoking `/vet` skill from within plan/orchestrate skills
 - Correct pattern: Delegate to vet agent (subagent) that applies high/medium fixes directly
 - Rationale: Agent delegation allows the vet to act autonomously (apply fixes, not just report). Skill invocation is passive (report only, requires orchestrator to apply fixes)
+
+**Handoff `--commit` tail-call means session.md assumes commit succeeds:**
+- Anti-pattern: Writing "Ready to commit" in Status or "pending commit" in footer when `--commit` flag is active
+- Correct pattern: Write status reflecting post-commit state — the tail-call makes commit atomic with handoff
+- Rationale: Next session reads session.md post-commit. Stale commit-pending language causes agents to re-attempt already-completed commits. The rule against commit tasks in Pending/Next Steps must extend to ALL sections
