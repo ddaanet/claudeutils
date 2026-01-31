@@ -560,3 +560,34 @@ runs during formatting. Benefits:
 - Code follows existing patterns
 - Clear error messages for invalid input
 - Documentation complete and accurate
+
+## @ References Limitation
+
+**Context:** CLAUDE.md supports `@file.md` references for progressive disclosure.
+
+**Limitation:** @ references only work in `CLAUDE.md`. Not supported in:
+- Skill `SKILL.md` files
+- Agent `.md` system prompts
+- Task tool prompts
+
+**Workaround:** Place supporting files in skill directory and reference with relative path.
+
+**Example:** `skills/gitmoji/gitmoji-table.md` referenced from SKILL.md using relative path.
+
+**Impact:** Skill documentation must use inline content or relative paths for supporting files.
+
+## Skill Rules Placement: Point of Violation
+
+**Context:** Multi-phase skill procedures with content generation and cleanup.
+
+**Anti-pattern:** Placing "don't write X" rules in cleanup/trim phases instead of writing phases.
+
+**Problem:** Agent follows phases sequentially; by the time it reaches cleanup, the violation is already written.
+
+**Correct pattern:** Place negative constraints alongside positive content guidance, where decisions are made.
+
+**Example:** "No commit tasks" rule moved from Phase 6 (Trim) to Phase 3 (Context Preservation).
+
+**Generalization:** Any rule about what NOT to produce should be co-located with instructions for WHAT to produce.
+
+**Impact:** Prevents violations rather than detecting them after the fact.

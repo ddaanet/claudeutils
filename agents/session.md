@@ -23,12 +23,14 @@
 
 ## Pending Tasks
 
+- [x] **Run /remember** — Process learnings from sessions (learnings.md at ~160 lines, soft limit 80)
+- [ ] **Search for configuration fix to make heredoc work in sandbox**
+- [ ] **Design solution for ambient awareness of consolidated learnings**
+- [ ] **Add specific "go read the docs" checkpoints in design and plan skills**
 - [ ] **Design runbook identifier solution** — /design plans/runbook-identifiers/problem.md (semantic IDs vs relaxed validation vs auto-numbering)
 - [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
 - [ ] **Add execution metadata to step files** — Step files declare dependencies and execution mode
 - [ ] **Orchestrator scope consolidation** — Update orchestrate skill to delegate checkpoint phases (Fix + Vet + Functional) instead of manual invocation
-- [ ] **Run /remember** — Process learnings from sessions (learnings.md at ~160 lines, soft limit 80)
-- [ ] **Restart session, switch to haiku, paste `/orchestrate` from clipboard** — Only if a runbook was just prepared (N/A this session, but documents the pattern)
 
 ## Blockers / Gotchas
 

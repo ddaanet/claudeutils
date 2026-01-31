@@ -65,3 +65,42 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 - Code follows existing patterns
 - Clear error messages for invalid input
 - Documentation complete and accurate
+
+## TDD RED Phase: Behavioral Verification
+
+**Decision Date:** 2026-01-31
+
+**Decision:** RED phase tests must verify behavior, not just structure.
+
+**Anti-pattern:** Tests checking only structure (AttributeError, exit_code == 0, key existence)
+
+**Problem:** Minimal GREEN implementations pass structure tests without implementing actual functionality.
+
+**Examples of structural tests (insufficient):**
+- `assert result.exit_code == 0` → implementation returns 0 with hardcoded data
+- `assert "KEY" in dict` → implementation returns `{"KEY": ""}` (empty string)
+- Test checks class/method exists → implementation returns stub that does nothing
+
+**Correct pattern:** RED tests verify behavior with mocking/fixtures
+- Mock file I/O and verify reads/writes to actual paths
+- Mock external calls (subprocess, API) and verify correct invocation
+- Assert on output content, not just success/failure
+- Use fixtures (tmp_path) to simulate real filesystem state
+
+**Rationale:** TDD principle "write minimal code to pass test" works only if test requires real behavior.
+
+**Example:** Test should mock ~/.claude/account-mode file and verify CLI reads it, not just check exit code.
+
+**Impact:** Prevents trivial implementations that satisfy tests without implementing functionality.
+
+## TDD: Presentation vs Behavior
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Test behavior, defer presentation quality to vet checkpoints.
+
+**Anti-pattern:** Writing RED-GREEN cycles for help text wording, error message phrasing.
+
+**Rationale:** Presentation tests are brittle and self-evident.
+
+**Impact:** Focus TDD cycles on functionality, handle presentation in batch during vet checkpoints.

@@ -170,3 +170,108 @@ plans/<stream-name>/
 - Production-ready commit history
 - Full audit trail in execution reports
 - Easy to review feature implementation holistically
+
+## Orchestrator Execution Mode
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Execution mode metadata in orchestrator plan overrides system prompt parallelization directives.
+
+**Problem:** System prompt parallelization directive (strong emphasis, 3x repetition) overrides orchestrate skill sequential requirement when tasks appear syntactically independent but are semantically state-dependent (TDD cycles, git commits).
+
+**Solution:**
+- Use `claude0` (`--system-prompt "Empty."`) to remove competing directives
+- Execution mode metadata in orchestrator plan is authoritative
+- ONE Task call per message when execution mode is sequential
+- Plan must include rationale and explicit override instructions
+
+**Pattern:**
+```markdown
+**Execution Mode:** STRICT SEQUENTIAL
+
+**Rationale:** TDD cycles modify shared state. Parallel execution causes git commit race conditions and RED phase violations.
+
+**Override:** Execute ONE Task call per message, regardless of syntactic independence.
+```
+
+**Rationale:**
+- Syntactic independence (no parameter dependencies) != semantic independence (state dependencies)
+- Strong directive language ("CRITICAL", "MUST", all-caps) matches system prompt emphasis level
+- Explicit rationale prevents future misinterpretation
+
+**Impact:**
+- Prevents race conditions in TDD workflow execution
+- Clear contract between planner and orchestrator
+- Eliminates ambiguity in execution mode requirements
+
+## Orchestration Assessment: Runbook vs Direct Implementation
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Evaluate orchestration overhead vs direct implementation before creating runbooks.
+
+**Assessment criteria:**
+- Design complete and unambiguous?
+- Affects <6 files?
+- Single session execution?
+- Simple sequential operations?
+
+**If YES to all → implement directly. If NO to any → create runbook.**
+
+**Rationale:** Runbooks add overhead (prep scripts, step files, orchestrator) - only justified for complex/long/parallel work.
+
+**Impact:** Prevents unnecessary runbook creation for straightforward tasks.
+
+## Checkpoint Process for Runbooks
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Two-step checkpoints at natural boundaries in runbook execution.
+
+**Pattern:**
+1. **Fix checkpoint:** `just dev` (lint, tests, build verification)
+2. **Vet checkpoint:** Quality review (code review, architecture validation)
+
+**Rationale:** Balances early issue detection with cost efficiency. Avoids both extremes: all-at-once vetting (late detection) and per-step vetting (excessive overhead).
+
+**Impact:** Optimal cost-benefit for runbook quality assurance.
+
+## Phase-Grouped TDD Runbooks
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Support both flat (H2) and phase-grouped (H2 + H3) cycle headers in runbooks.
+
+**Patterns:**
+- Flat: `## Cycle X.Y`
+- Phase-grouped: `## Phase N` / `### Cycle X.Y`
+
+**Implementation:** `prepare-runbook.py` regex changed from `^## Cycle` to `^###? Cycle`
+
+**Rationale:** Phase grouping improves readability for large runbooks with logical phases.
+
+**Impact:** Flexible runbook structure for different complexity levels.
+
+## No Human Escalation During Refactoring
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Design decisions are made during `/design` phase. Opus handles architectural refactoring within design bounds. Human escalation only for execution blockers.
+
+**Rationale:** Blocking pipeline for human input during refactoring is expensive.
+
+**Impact:** Faster execution, clear separation between design (user input) and implementation (automated).
+
+## Defense-in-Depth: Commit Verification
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Multiple layers of commit verification at different execution levels.
+
+**Layers:**
+- **tdd-task agent:** Post-commit sanity check (verify commit contains expected files)
+- **orchestrate skill:** Post-step tree check (escalate if working tree dirty)
+
+**Rationale:** Catches different failure modes at different levels (commit content vs working tree state).
+
+**Impact:** Robust commit verification without single point of failure.
