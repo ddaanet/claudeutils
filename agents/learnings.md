@@ -150,3 +150,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: MERGE semantics (carry forward unresolved + add new)
 - Fix: Updated handoff-haiku skill to explicitly merge Pending Tasks and Blockers/Gotchas
 - Impact: Prevents loss of long-term pending work and active gotchas across handoffs
+
+**Skill rules must live at point of violation, not point of enforcement:**
+- Anti-pattern: Placing "don't write X" rules in cleanup/trim phases (Phase 6) instead of writing phases (Phase 3)
+- Issue: Agent follows phases sequentially; by the time it reaches cleanup, the violation is already written
+- Correct pattern: Place negative constraints alongside positive content guidance, where decisions are made
+- Example: "No commit tasks" rule moved from Phase 6 (Trim) to Phase 3 (Context Preservation)
+- Generalization: Any rule about what NOT to produce should be co-located with instructions for WHAT to produce
