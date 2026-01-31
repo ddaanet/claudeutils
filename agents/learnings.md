@@ -76,3 +76,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: `git add` inside prepare-runbook.py itself — script owns knowledge of what it creates
 - Rationale: Commit skill stages "specific files only" and may miss `.claude/agents/` files. Putting `git add` in plan skills duplicates logic and couples them to script internals
 - Fix designed: `plans/commit-rca-fixes/design.md` (Fix 2)
+
+**All tiers must end with `/handoff --commit`, never bare `/commit`:**
+- Anti-pattern: Tier 1/2 skip handoff because "no session restart needed"
+- Correct pattern: Always tail-call `/handoff --commit` — handoff captures session context and learnings regardless of tier
+- Rationale: Handoff is about context preservation, not just session restart. Even direct implementations produce learnings and update pending task state
+
+**Vet should be an agent delegation, not a skill invocation:**
+- Anti-pattern: Invoking `/vet` skill from within plan/orchestrate skills
+- Correct pattern: Delegate to vet agent (subagent) that applies high/medium fixes directly
+- Rationale: Agent delegation allows the vet to act autonomously (apply fixes, not just report). Skill invocation is passive (report only, requires orchestrator to apply fixes)

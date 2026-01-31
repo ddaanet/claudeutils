@@ -204,23 +204,40 @@ plans/<stream-name>/
 - Clear contract between planner and orchestrator
 - Eliminates ambiguity in execution mode requirements
 
-## Orchestration Assessment: Runbook vs Direct Implementation
+## Orchestration Assessment: Three-Tier Implementation Model
 
-**Decision Date:** 2026-01-31
+**Decision Date:** 2026-01-31 (updated 2026-01-31)
 
-**Decision:** Evaluate orchestration overhead vs direct implementation before creating runbooks.
+**Decision:** Plan skills use three-tier assessment to route work appropriately. This supersedes the original binary (direct vs runbook) decision.
 
-**Assessment criteria:**
-- Design complete and unambiguous?
-- Affects <6 files?
-- Single session execution?
-- Simple sequential operations?
+**Three Tiers:**
 
-**If YES to all → implement directly. If NO to any → create runbook.**
+**Tier 1 (Direct Implementation):**
+- Design complete (no open decisions)
+- All edits straightforward (<100 lines each)
+- Total scope: <6 files
+- Single session, single model
+- No parallelization benefit
+- **Sequence:** Implement directly → vet agent → apply fixes → `/handoff --commit`
 
-**Rationale:** Runbooks add overhead (prep scripts, step files, orchestrator) - only justified for complex/long/parallel work.
+**Tier 2 (Lightweight Delegation):**
+- Design complete, scope moderate (6-15 files or 2-4 logical components)
+- Work benefits from agent isolation but not full orchestration
+- Components are sequential (no parallelization benefit)
+- No model switching needed
+- **Sequence:** Delegate via Task tool (quiet-task/tdd-task) with context in prompts → vet agent → `/handoff --commit`
 
-**Impact:** Prevents unnecessary runbook creation for straightforward tasks.
+**Tier 3 (Full Runbook):**
+- Multiple independent steps (parallelizable)
+- Steps need different models
+- Long-running / multi-session execution
+- Complex error recovery
+- >15 files or complex coordination
+- **Sequence:** 4-point process → prepare-runbook.py → handoff → restart → orchestrate
+
+**Rationale:** Matches orchestration overhead to task complexity. Tier 1 avoids unnecessary process for simple tasks. Tier 2 provides middle ground with context isolation but minimal overhead. Tier 3 preserves full pipeline for complex work.
+
+**Impact:** Prevents unnecessary runbook creation for straightforward tasks while surfacing lightweight delegation as middle ground.
 
 ## Checkpoint Process for Runbooks
 
