@@ -52,18 +52,33 @@ def test_account_plan(tmp_path: Path) -> None:
 
 
 def test_account_api(tmp_path: Path) -> None:
-    """Test that account api command switches to API mode."""
+    """Test account api writes provider credentials.
+
+    Verifies that the account api command generates a claude-env file containing
+    the provider-specific API credentials.
+    """
     runner = CliRunner()
-    with patch("pathlib.Path.home", return_value=tmp_path):
-        result = runner.invoke(cli, ["account", "api", "--provider", "anthropic"])
+    # Mock Keychain to return test credentials for OpenRouter
+    mock_keychain = MagicMock()
+    mock_keychain.find.return_value = "test-openrouter-key"
+    with (
+        patch("claudeutils.account.cli.Path.home", return_value=tmp_path),
+        patch("claudeutils.account.cli.Keychain", return_value=mock_keychain),
+    ):
+        result = runner.invoke(cli, ["account", "api", "--provider", "openrouter"])
     assert result.exit_code == 0
     # Verify files were written
     account_mode_file = tmp_path / ".claude" / "account-mode"
     provider_file = tmp_path / ".claude" / "account-provider"
+    claude_env_file = tmp_path / ".claude" / "claude-env"
     assert account_mode_file.exists()
     assert provider_file.exists()
     assert account_mode_file.read_text() == "api"
-    assert provider_file.read_text() == "anthropic"
+    assert provider_file.read_text() == "openrouter"
+    # Verify claude-env contains provider-specific credentials
+    assert claude_env_file.exists()
+    claude_env_content = claude_env_file.read_text()
+    assert "OPENROUTER_API_KEY=test-openrouter-key" in claude_env_content
 
 
 def test_account_status_with_issues(tmp_path: Path) -> None:
