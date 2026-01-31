@@ -66,3 +66,5 @@ def test_litellm_provider_env_vars() -> None:
     # Verify LITELLM_API_KEY and ANTHROPIC_BASE_URL are present
     assert "LITELLM_API_KEY" in env_vars
     assert "ANTHROPIC_BASE_URL" in env_vars
+    # Verify specific localhost URL value
+    assert env_vars["ANTHROPIC_BASE_URL"] == "http://localhost:4000"

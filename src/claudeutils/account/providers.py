@@ -119,8 +119,8 @@ class LiteLLMProvider:
     def claude_env_vars(self) -> dict[str, str]:
         """Get environment variables needed for this provider."""
         return {
-            "LITELLM_API_KEY": "",
-            "ANTHROPIC_BASE_URL": "",
+            "LITELLM_API_KEY": "none",
+            "ANTHROPIC_BASE_URL": "http://localhost:4000",
         }
 
     def validate(self) -> list[str]:
