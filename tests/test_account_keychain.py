@@ -13,7 +13,9 @@ def test_keychain_find_success() -> None:
     mock_result.stdout = b"test-password-value"
     mock_result.returncode = 0
 
-    with patch("subprocess.run", return_value=mock_result) as mock_run:
+    with patch(
+        "claudeutils.account.keychain.subprocess.run", return_value=mock_result
+    ) as mock_run:
         # Create Keychain instance and call find
         keychain = Keychain()
         password = keychain.find("test-account", "test-service")
@@ -43,7 +45,9 @@ def test_keychain_add() -> None:
     mock_result = Mock()
     mock_result.returncode = 0
 
-    with patch("subprocess.run", return_value=mock_result) as mock_run:
+    with patch(
+        "claudeutils.account.keychain.subprocess.run", return_value=mock_result
+    ) as mock_run:
         # Create Keychain instance and call add
         keychain = Keychain()
         keychain.add("test-account", "test-password", "test-service")
@@ -69,7 +73,9 @@ def test_keychain_delete() -> None:
     mock_result = Mock()
     mock_result.returncode = 0
 
-    with patch("subprocess.run", return_value=mock_result) as mock_run:
+    with patch(
+        "claudeutils.account.keychain.subprocess.run", return_value=mock_result
+    ) as mock_run:
         # Create Keychain instance and call delete
         keychain = Keychain()
         keychain.delete("test-account", "test-service")
