@@ -35,14 +35,19 @@ def test_openrouter_provider_env_vars() -> None:
     Test that OpenRouterProvider.claude_env_vars returns both OPENROUTER_API_KEY
     and ANTHROPIC_BASE_URL.
     """
-    # Create OpenRouterProvider
-    provider = OpenRouterProvider()
+    # Create a mock KeyStore that returns a test API key
+    mock_keystore = Mock()
+    mock_keystore.get_openrouter_api_key.return_value = "test-openrouter-key"
+
+    # Create OpenRouterProvider with mock keystore
+    provider = OpenRouterProvider(mock_keystore)
 
     # Get environment variables
     env_vars = provider.claude_env_vars()
 
-    # Verify both OPENROUTER_API_KEY and ANTHROPIC_BASE_URL are present
+    # Verify both OPENROUTER_API_KEY and ANTHROPIC_BASE_URL are present and correct
     assert "OPENROUTER_API_KEY" in env_vars
+    assert env_vars["OPENROUTER_API_KEY"] == "test-openrouter-key"
     assert "ANTHROPIC_BASE_URL" in env_vars
 
 

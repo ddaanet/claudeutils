@@ -10,6 +10,10 @@ class KeyStore(Protocol):
         """Get the Anthropic API key from keystore."""
         ...
 
+    def get_openrouter_api_key(self) -> str:
+        """Get the OpenRouter API key from keystore."""
+        ...
+
 
 class Provider(Protocol):
     """Protocol defining the interface for account providers."""
@@ -71,6 +75,14 @@ class AnthropicProvider:
 class OpenRouterProvider:
     """Provider implementation for OpenRouter API."""
 
+    def __init__(self, keystore: KeyStore) -> None:
+        """Initialize OpenRouterProvider with keystore.
+
+        Args:
+            keystore: KeyStore instance for retrieving credentials.
+        """
+        self.keystore = keystore
+
     @property
     def name(self) -> str:
         """Get the provider name."""
@@ -78,8 +90,9 @@ class OpenRouterProvider:
 
     def claude_env_vars(self) -> dict[str, str]:
         """Get environment variables needed for this provider."""
+        api_key = self.keystore.get_openrouter_api_key()
         return {
-            "OPENROUTER_API_KEY": "",
+            "OPENROUTER_API_KEY": api_key,
             "ANTHROPIC_BASE_URL": "",
         }
 
