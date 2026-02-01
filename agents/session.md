@@ -1,32 +1,24 @@
 # Session Handoff: 2026-02-01
 
-**Status:** PreToolUse symlink-redirect hook implemented and tested.
+**Status:** Memory index location fix designed — moves from agent-core (shared) to project-level.
 
 ## Completed This Session
 
-**PreToolUse hook: block symlink writes:**
-- Created `agent-core/hooks/pretooluse-symlink-redirect.sh`
-- Blocks Write/Edit operations to files symlinked to agent-core
-- Updated `pretooluse-block-tmp.sh` to also check Edit tool (was Write-only)
-- Updated `.claude/settings.json` — combined both hooks under `Write|Edit` matcher
-- Synced symlinks via `just sync-to-parent`
-- Updated `agent-core/agents/test-hooks.md` with Test 12 (block symlinks) and Test 13 (allow direct paths)
-- Hook message refined: concise format with correct tool name and relative path
-  - Final format: `🚫 BLOCKED: This file is symlinked to agent-core\nInstead, Edit file: agent-core/path/to/file.md`
-- Hook tested and working correctly in main session
+**Design: Memory index location fix + seeding** (`plans/remember-update/design.md`):
+- Identified architectural issue: memory-index.md in agent-core (shared submodule) but catalogs project-specific learnings
+- Designed move from `agent-core/fragments/memory-index.md` → `agents/memory-index.md`
+- Specified seeding heuristic: index non-`@`-imported knowledge (decisions, rules, skill references)
+- Vet review by opus: 3 medium fixes applied (seeding scope, path-change clarity, consumer migration status)
+- Confirmed pytest-md/tuick don't import memory-index yet — no breakage from deletion
+- Design routes to `/plan-adhoc` (Tier 1 or 2)
 
 **Files changed:**
-- Submodule agent-core:
-  - `hooks/pretooluse-symlink-redirect.sh` (new)
-  - `hooks/pretooluse-block-tmp.sh` (now checks both Write and Edit)
-  - `agents/test-hooks.md` (added Test 12/13, updated count to 13 tests)
-- Parent:
-  - `.claude/settings.json` (PreToolUse Write|Edit matcher with both hooks)
-  - `.claude/hooks/pretooluse-symlink-redirect.sh` (symlink created)
+- `plans/remember-update/design.md` (new — design document)
 
 ## Pending Tasks
 
-- [ ] **Run /remember** — learnings file at 169/80 lines, needs consolidation urgently | sonnet
+- [ ] **Implement memory index move** — `/plan-adhoc plans/remember-update/design.md` | sonnet
+- [ ] **Run /remember** — learnings file at 180/80 lines, needs consolidation urgently | sonnet
 - [ ] **Create /reflect skill** — deviation detection → RCA → fix → handoff/commit automation. Load plugin-dev skills first | opus
 - [ ] **Insert skill loading in design docs** — design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills | sonnet
 - [ ] **Update workflow skills: pbcopy next command** — commit/handoff STATUS display copies next command to clipboard | sonnet
@@ -46,11 +38,11 @@
 **SessionStart hook broken ([#10373](https://github.com/anthropics/claude-code/issues/10373)):**
 - Don't build features depending on SessionStart until fixed upstream
 
-**Learnings file at 169/80 lines** — needs `/remember` consolidation urgently.
+**Learnings file at 180/80 lines** — needs `/remember` consolidation urgently.
 
 ## Next Steps
 
-Run `/remember` to consolidate learnings.
+Implement memory index move: `/plan-adhoc plans/remember-update/design.md`
 
 ---
-*Handoff by Sonnet. PreToolUse symlink-redirect hook implemented and tested.*
+*Handoff by Opus. Memory index location fix designed and vetted.*
