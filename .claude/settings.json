@@ -9,6 +9,7 @@
       "Bash(ruff:*)",
       "Bash(mypy:*)",
       "Bash(docformatter:*)",
+      "Bash(pbcopy:*)",
       "Bash(agent-core/bin/prepare-runbook.py:*)",
       "Skill",
       "WebSearch"
