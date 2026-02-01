@@ -47,3 +47,19 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Committing after completing work because it "feels like a natural breakpoint"
 - Correct pattern: Only commit when user explicitly requests (`/commit`, `ci`, `xc`, `hc`)
 - Rationale: Previous rule had ambiguous disjunction (three bullets any-one-sufficient vs "wait for user direction"). With `xc` (execute+commit) shortcuts, auto-commit provides no value — user controls commit timing explicitly
+
+**MCP tools unavailable in sub-agents (Task tool):**
+- Anti-pattern: Assuming quiet-task or other sub-agents can call MCP tools (Context7, etc.)
+- Correct pattern: MCP tools only available in main session. Call directly from designer/planner, write results to report file for reuse.
+- Confirmed: Empirical test — quiet-task haiku has no access to `mcp__plugin_context7_context7__*` tools
+- Impact: Context7 queries cost opus tokens when designer calls them, but results persist for planner reuse
+
+**Hook-based session capture is impractical for sub-agent outputs:**
+- Anti-pattern: Using PostToolUse hooks to capture Explore/claude-code-guide results
+- Correct pattern: Session-log based capture (future work) or quiet agents that write their own reports
+- Rationale: Hooks don't fire in sub-agents. Task matcher fires on ALL Tasks (noisy). Better mechanism is session-log extraction.
+
+**Outline-first design workflow prevents wasted opus tokens:**
+- Anti-pattern: Producing full design.md in a single pass, then discovering user wanted different approach
+- Correct pattern: Produce freeform outline first, iterate with user via incremental deltas, then generate full design after validation
+- Escape hatch: If user already specified approach/decisions/scope, compress outline+discussion into single validation
