@@ -1,23 +1,22 @@
 # Session Handoff: 2026-02-01
 
-**Status:** Shortcut documentation and help shortcut added.
+**Status:** Ambient awareness design revised — memory index replaces changelog.
 
 ## Completed This Session
 
-**`?` help shortcut and shortcut documentation:**
-- Added `?` as Tier 1 command in `agent-core/hooks/userpromptsubmit-shortcuts.py` — lists shortcuts, keywords, and entry point skills
-- Added `?` to vocabulary table in `agent-core/fragments/execute-rule.md`
-- Created `agent-core/docs/shortcuts.md` — human-readable reference for all shortcuts, directives, workflow keywords, and entry skills
-
-**SessionStart hook research and decision:**
-- Researched SessionStart hook for auto-status on session start
-- Found [#10373](https://github.com/anthropics/claude-code/issues/10373): SessionStart output discarded for new sessions, only works after `/clear`
-- Decision: Drop SessionStart hook — broken for primary use case (`claude` restart). `@agents/session.md` already loaded via CLAUDE.md provides task context
-- Dropped AskUserQuestion-after-STATUS idea — only useful with autostart, harmful when session clear needed
+**Ambient awareness design revision (`plans/ambient-awareness/design.md`):**
+- User rejected rotating changelog approach — wanted "condensed memory" (persistent catalog, not temporal window)
+- Consulted Opus on architecture: Memory Index (Option A) recommended over Enriched Fragment Headers (B) or Memory Manifest (C)
+- Redesigned Part 1: Memory index file — one-line-per-learning catalog with domain grouping, always @-imported, soft limit 100 entries
+- Added Part 2: Explicit memory discovery step in `/design` (step 1.5) and `/plan-adhoc` (Point 0.5) — active search before architectural decisions
+- Part 3 unchanged: Remember skill post-consolidation updates to maintain index
+- Part 4 unchanged: Orphan audit (4 deletions, 3 new `.claude/rules/` entries)
+- Opus vet review: no critical issues, 3 major fixes applied (fragment count 24 not 23, soft limit for index growth, `.claude/rules/` routing in consolidation-patterns)
+- Minor issues noted but deferred: error-classification scope may be too narrow, plan-tdd also needs memory discovery step
 
 ## Pending Tasks
 
-- [ ] **Resume workflow-controls orchestration (steps 2-7)** — `/orchestrate workflow-controls` | sonnet | restart
+- [x] **Resume workflow-controls orchestration (steps 2-7)** — complete
 - [ ] **Implement ambient awareness** — `/plan-adhoc plans/ambient-awareness/design.md` | sonnet
 - [ ] **Create /reflect skill** — deviation detection → RCA → fix → handoff/commit automation. Load plugin-dev skills first | opus
 - [ ] **Insert skill loading in design docs** — design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills | sonnet
@@ -36,15 +35,13 @@
 - Fix 1 (submodule awareness) prevents submodule pointer drift
 
 **SessionStart hook broken ([#10373](https://github.com/anthropics/claude-code/issues/10373)):**
-- Output discarded for new sessions (`claude` command)
-- Only works after `/clear`, `/compact`, or `--resume`
 - Don't build features depending on SessionStart until fixed upstream
 
-**Learnings file at 161/80 lines** — needs `/remember` consolidation urgently.
+**Learnings file at 169/80 lines** — needs `/remember` consolidation urgently.
 
 ## Next Steps
 
-Run `/remember` to consolidate learnings before next session.
+Run `/remember` to consolidate learnings before starting ambient awareness planning.
 
 ---
-*Handoff by Sonnet. Help shortcut and shortcut docs added.*
+*Handoff by Opus. Design revised: memory index replaces changelog.*
