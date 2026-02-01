@@ -42,3 +42,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Fix 3 (orchestrator stop rule): Absolute "no exceptions" language, deleted contradictory scenarios
 - Status: All fixes implemented and committed, active in current workflow
 - Prevents: Submodule sync drift, missing artifacts in commits, dirty-state rationalization
+
+**Never auto-commit in interactive sessions:**
+- Anti-pattern: Committing after completing work because it "feels like a natural breakpoint"
+- Correct pattern: Only commit when user explicitly requests (`/commit`, `ci`, `xc`, `hc`)
+- Rationale: Previous rule had ambiguous disjunction (three bullets any-one-sufficient vs "wait for user direction"). With `xc` (execute+commit) shortcuts, auto-commit provides no value — user controls commit timing explicitly

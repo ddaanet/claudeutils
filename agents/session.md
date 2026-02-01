@@ -1,29 +1,37 @@
 # Session Handoff: 2026-02-01
 
-**Status:** /reflect skill implemented, vetted, ready to use.
+**Status:** /reflect skill implemented, post-implementation fixes applied.
 
 ## Completed This Session
 
 **Implemented /reflect skill** (Tier 1 direct implementation):
-- Created `agent-core/skills/reflect/SKILL.md` (1,542 words)
-- Created `references/patterns.md` (1,236 words) — 11 deviation patterns with diagnostic heuristics
-- Created `references/rca-template.md` (651 words) — structured RCA report format
+- Created `agent-core/skills/reflect/SKILL.md` (~1,500 words)
+- Created `references/patterns.md` (11 deviation patterns with diagnostic heuristics)
+- Created `references/rca-template.md` (structured RCA report format)
 - Symlinked to `.claude/skills/reflect` via `just sync-to-parent`
 - Added memory index entry
 - Vetted by skill-reviewer agent: Pass with 3 minor issues, all fixed
 - All checks passed (`just dev`)
 
-**Skill review fixes applied:**
-- Changed "approaching 80 lines" to "≥70 lines" threshold (3 locations)
-- Converted numbered examples to bullet format (eliminates renumbering churn)
-- Added slug format guidance: kebab-case description (e.g., `orchestrator-dirty-tree`)
+**Post-implementation fixes from user review:**
 
-**Tier assessment rationale:**
-- Design complete, all decisions made
-- 4-5 straightforward file creates/edits (<200 lines each)
-- Single cohesive skill (no parallelization benefit)
-- Single session, single model
-- No orchestration needed
+- **Removed tail-call to /handoff --commit from all exit paths:**
+  - /reflect runs in opus after user model switch
+  - Must return control so user can switch back and continue working
+  - All three exit paths now end with "stop and return control to user"
+  - Removed `Skill` from allowed-tools frontmatter
+  - Updated memory index entry accordingly
+
+- **Removed auto-commit from commit skill:**
+  - Previous "When to Use" had ambiguous disjunction: three bullet triggers vs "wait for user direction"
+  - Agent auto-committed after fix without explicit request — user caught deviation
+  - /reflect RCA classified as rule fix (ambiguous rule), not behavioral
+  - Replaced with single unambiguous rule: "Only commit when explicitly requested. No exceptions."
+  - Rationale: `xc`/`hc` shortcuts make auto-commit unnecessary
+
+- **Fixed framing block rendering in CLI:**
+  - `---` gets stripped by CLI markdown renderer (interpreted as horizontal rule)
+  - Replaced with Unicode box-drawing characters (`━━━━`) which render as-is
 
 ## Pending Tasks
 - [ ] **Insert skill loading in design docs** — design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills | sonnet
@@ -49,4 +57,4 @@
 Insert skill loading in design docs: design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills.
 
 ---
-*Handoff by Sonnet. /reflect skill implemented and ready to use after session restart.*
+*Handoff by Sonnet. /reflect skill complete with post-review fixes.*
