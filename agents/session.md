@@ -1,21 +1,28 @@
 # Session Handoff: 2026-02-01
 
-**Status:** Learnings consolidated into permanent documentation.
+**Status:** /reflect skill design complete, vetted by opus.
 
 ## Completed This Session
 
-**Learnings consolidation** (via `/remember` skill):
-- Consolidated learnings.md from 180/80 lines to 45/80 lines
-- Migrated entries to permanent locations:
-  - Behavioral rules → memory-index.md
-  - Workflow patterns → memory-index.md
-  - Technical decisions → memory-index.md
-  - Hook patterns → agent-core documentation
-- Updated memory index from 46 to 56 entries (10 new entries added)
-- All critical institutional knowledge preserved and indexed
+**Designed /reflect skill** (`plans/reflect-skill/design.md`):
+- Structured RCA skill for diagnosing agent deviations in-session
+- Key constraint: must run in deviation session (conversation context is diagnostic evidence)
+- User flow: interrupt → confirm (optional) → opus takeover → /reflect
+- Session-break framing block forces diagnostic mindset shift (prevents execution-mode continuation)
+- Three exit paths: fix in-session, RCA complete + handoff, partial RCA + handoff
+- All paths tail-call `/handoff --commit`
+- Vetted by opus: 0 critical, 3 major (all fixed), 5 minor (relevant ones fixed)
+- Fixes applied: allowed-tools frontmatter, conversation scanning clarity, slug-based RCA paths, user-invocable field, /remember line count check, memory-index entry draft
+
+**Design decisions made during discussion:**
+- RCA requires conversation context where error occurred — cannot be post-session
+- Opus session takeover is the mechanism (haiku/sonnet can't reliably self-diagnose)
+- Framing block essential: without it, agent stays in execution mode and applies quick fixes
+- Three exit paths needed because context budget varies and upstream doc fixes may require new session
+- "reflect" is the right name — short, clear verb for self-analysis
 
 ## Pending Tasks
-- [ ] **Create /reflect skill** — deviation detection → RCA → fix → handoff/commit automation. Load plugin-dev skills first | opus
+- [ ] **Implement /reflect skill** — `/plan-adhoc plans/reflect-skill/design.md` | sonnet
 - [ ] **Insert skill loading in design docs** — design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills | sonnet
 - [ ] **Update workflow skills: pbcopy next command** — commit/handoff STATUS display copies next command to clipboard | sonnet
 - [ ] **Add "go read the docs" checkpoints** — partially addressed by design-work.md rule | sonnet
@@ -36,7 +43,7 @@
 
 ## Next Steps
 
-Create /reflect skill for deviation detection and automated RCA workflow.
+Implement /reflect skill from design: `/plan-adhoc plans/reflect-skill/design.md`
 
 ---
-*Handoff by Sonnet. Learnings consolidated.*
+*Handoff by Sonnet. Design complete, ready for planning.*
