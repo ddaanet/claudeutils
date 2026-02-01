@@ -1,7 +1,7 @@
 ---
 name: design-workflow-enhancement-task
 description: Execute design-workflow-enhancement steps from the plan with plan-specific context.
-model: haiku
+model: sonnet
 color: cyan
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
@@ -134,23 +134,28 @@ Do not proceed beyond assigned task scope. Do not make assumptions about unstate
 
 ## Common Context
 
-**Key Constraints**:
-- Maintain token economy (dense output for opus designer)
-- Skill files use YAML frontmatter with multi-line syntax for descriptions
-- Agent descriptions must include examples in proper XML format
-- Quiet execution pattern: write report to file, return filepath only
-- Documentation checkpoint is domain-aware (no fixed "always read X" beyond level 1)
+**Design location**: `plans/design-workflow-enhancement/design.md`
 
-**Project Paths**:
-- Agent files: `agent-core/agents/*.md`
-- Skill files: `agent-core/skills/*/SKILL.md`
-- Symlink management: `just sync-to-parent` in `agent-core/` directory
+**Key constraints from design**:
+- Outline-first workflow: Phase A (research + outline) → Phase B (discussion) → Phase C (generate design)
+- Documentation checkpoint replaces Steps 1 + 1.5 (understand + memory discovery)
+- quiet-explore writes to files (quiet task pattern), returns filepath only
+- Context7 calls happen directly from main session (MCP tools unavailable in sub-agents)
+- Documentation perimeter section in design output guides planner reading
 
-**Conventions**:
-- Agent system prompts address agent in second person ("You are...")
-- Agent tools array uses specialized tools over Bash for file operations
-- Design skill produces dense output for intelligent downstream readers
-- Planning skills load documentation perimeter section at start of intake/discovery
+**Agent spec location**: Design section "quiet-explore Agent" (lines 128-167)
+
+**Project conventions**:
+- Agent files: `agent-core/agents/*.md` with YAML frontmatter
+- Skill files: `agent-core/skills/*/SKILL.md` with YAML frontmatter
+- Symlinks: Created via `just sync-to-parent` (requires `dangerouslyDisableSandbox: true`)
+- Multi-line YAML descriptions use `|` syntax (prevents parse errors)
+
+**Stop conditions (all steps)**:
+- File not found at expected path
+- Structural mismatch (e.g., expected section missing)
+- YAML parse errors after edits
+- Validation failures after changes
 
 ---
 

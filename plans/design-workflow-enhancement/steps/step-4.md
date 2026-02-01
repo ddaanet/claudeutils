@@ -1,62 +1,48 @@
 # Step 4
 
-**Plan**: `plans/design-workflow-enhancement/runbook.md`
+**Plan**: `/Users/david/code/claudeutils/plans/design-workflow-enhancement/runbook.md`
 **Common Context**: See plan file for context
 
 ---
 
-## Step 4: Update plan-adhoc/SKILL.md with Documentation Perimeter
+## Step 4: Create Symlinks and Validate
 
-**Objective**: Add documentation perimeter loading to Point 0.5 (Discover Codebase Structure).
+**Objective**: Create symlinks for agent, run validation
 
-**Execution Model**: Sonnet
+**Execution Model**: Haiku (simple operations)
 
 **Implementation**:
 
-Read `agent-core/skills/plan-adhoc/SKILL.md` and add documentation perimeter loading step.
+```bash
+# Navigate to agent-core and create symlinks
+cd /Users/david/code/claudeutils/agent-core && just sync-to-parent
 
-**Change Location**: Point 0.5 section (starts at line 95)
+# Verify symlink created
+ls -la /Users/david/code/claudeutils/.claude/agents/quiet-explore.md
 
-**Add as Step 0 Before Existing Numbered Steps**:
-
-Insert before existing "1. **Discover relevant prior knowledge:**":
-
-```markdown
-0. **Load documentation perimeter from design (if exists):**
-   - If design document exists, read "Documentation Perimeter" section
-   - Load all files listed under "Required reading"
-   - Execute Context7 queries listed under "Context7 references"
-   - Note "Additional research allowed" guidance
-   - If no design document or no perimeter section, proceed to step 1
+# Run validation
+cd /Users/david/code/claudeutils && just dev
 ```
 
-Preserve existing steps 1-2 unchanged.
-
-**Integration Notes**:
-- Documentation perimeter is loaded FIRST (when it exists) as step 0
-- Existing steps 1-2 (memory-index discovery, file verification) still run unchanged
-- Perimeter provides designer's recommended context; discovery validates/extends it
-
-**Expected Outcome**: Planning skill reads documentation perimeter section from design (when exists) before existing discovery steps.
+**Expected Outcome**: Symlink exists, validation passes
 
 **Unexpected Result Handling**:
-- If step numbering conflicts: Renumber existing steps accordingly
-- If discovery steps already reference design document: Integrate perimeter loading with existing references
+- If symlink creation fails: Check permissions, escalate to sonnet
+- If validation fails: Report specific failures (formatting, linting)
 
 **Error Conditions**:
-- File not found → Escalate to sonnet
-- Section structure unclear → Escalate to sonnet
+- `just sync-to-parent` fails → Escalate with error output
+- Symlink not created → Verify agent file exists, escalate if so
+- `just dev` fails → Report failures for fixing
 
 **Validation**:
-- Documentation perimeter step added before existing discovery
-- Conditional logic (skip if no design/no perimeter) included
-- Integration preserves existing discovery steps
+- Symlink exists and points to `agent-core/agents/quiet-explore.md`
+- `just dev` exits with code 0
 
 **Success Criteria**:
-- Point 0.5 includes documentation perimeter loading as step 0
-- Conditional logic (skip if no design/perimeter) included
-- Existing steps 1-2 (memory-index, file verification) preserved
+- Symlink verified
+- All checks pass
 
-**Report Path**: `plans/design-workflow-enhancement/reports/step-4-update-plan-adhoc.md`
+**Report Path**: `plans/design-workflow-enhancement/reports/step-4-symlinks-validation.md`
 
 ---

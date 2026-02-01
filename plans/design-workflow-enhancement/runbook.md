@@ -1,8 +1,13 @@
+---
+name: design-workflow-enhancement
+model: sonnet
+---
+
 # Design Workflow Enhancement Runbook
 
-**Context**: Implement outline-first design workflow with documentation checkpoint and research artifact persistence.
+**Context**: Implement outline-first workflow for design skill with documentation checkpoint and quiet-explore agent
 
-**Source**: `plans/design-workflow-enhancement/design.md`
+**Source**: Design Rev 2 at `plans/design-workflow-enhancement/design.md`
 
 **Status**: Draft
 **Created**: 2026-02-01
@@ -11,482 +16,352 @@
 
 ## Weak Orchestrator Metadata
 
-**Total Steps**: 6
+**Total Steps**: 4
 
 **Execution Model**:
-- Step 1: Haiku (create reports directory - simple file operation)
-- Step 2: Sonnet (agent creation with plugin-dev context)
-- Steps 3-5: Sonnet (skill file modifications - complex due to interpreting design guidance)
-- Step 6: Sonnet (symlink management + testing)
+- Step 1: Sonnet (agent creation from spec)
+- Step 2: Sonnet (vet-agent review, planner applies fixes)
+- Step 3: Sonnet (skill edits with interpretation)
+- Step 4: Haiku (symlink management and validation)
 
-**Step Dependencies**: Sequential (agent must exist before skill references it, skills should be updated cohesively)
+**Step Dependencies**:
+- Steps 1-2: Sequential (review depends on creation)
+- Step 3: Independent (no agent file dependency)
+- Step 4: Depends on 1-3 (symlinks after all files exist)
 
 **Error Escalation**:
-- Haiku → Sonnet: File not found, unexpected structure, ambiguous specification
-- Sonnet → User: Validation failures, design contradictions, missing requirements
+- Sonnet → User: Missing files, structural misalignments, ambiguous guidance, unfixable agent spec issues
+- Haiku → Sonnet: Symlink creation failures
 
-**Report Locations**: `plans/design-workflow-enhancement/reports/step-N.md` (directory created in Step 1)
+**Report Locations**: `plans/design-workflow-enhancement/reports/step-{N}-*.md`
 
-**Success Criteria**: All skill files updated, quiet-explore agent created and symlinked, design workflow supports outline-first iteration with documentation checkpoint.
+**Success Criteria**:
+- All 4 files created/modified (1 agent, 3 skills)
+- quiet-explore agent passes plugin-dev:agent-creator review
+- Symlinks created in `.claude/agents/quiet-explore.md`
+- `just dev` passes (formatting, validation)
 
 **Prerequisites**:
-- Design document at `plans/design-workflow-enhancement/design.md` (✓ verified via Read)
-- Agent baseline at `agent-core/agents/quiet-task.md` (✓ verified via Read)
-- Skill files exist: `agent-core/skills/design/SKILL.md`, `agent-core/skills/plan-adhoc/SKILL.md`, `agent-core/skills/plan-tdd/SKILL.md` (✓ verified via Glob)
-- Built-in Explore agent system prompt knowledge (✓ documented in design)
-- Reports directory at `plans/design-workflow-enhancement/reports/` (✓ created during runbook generation)
+- Design document exists (✓ verified: `plans/design-workflow-enhancement/design.md`)
+- Target skill files exist (✓ verified via Glob):
+  - `agent-core/skills/design/SKILL.md`
+  - `agent-core/skills/plan-adhoc/SKILL.md`
+  - `agent-core/skills/plan-tdd/SKILL.md`
+- Agent baseline exists: `agent-core/agents/quiet-task.md`
+- Symlink recipe exists: `just sync-to-parent` in agent-core/
 
 ---
 
 ## Common Context
 
-**Key Constraints**:
-- Maintain token economy (dense output for opus designer)
-- Skill files use YAML frontmatter with multi-line syntax for descriptions
-- Agent descriptions must include examples in proper XML format
-- Quiet execution pattern: write report to file, return filepath only
-- Documentation checkpoint is domain-aware (no fixed "always read X" beyond level 1)
+**Design location**: `plans/design-workflow-enhancement/design.md`
 
-**Project Paths**:
-- Agent files: `agent-core/agents/*.md`
-- Skill files: `agent-core/skills/*/SKILL.md`
-- Symlink management: `just sync-to-parent` in `agent-core/` directory
+**Key constraints from design**:
+- Outline-first workflow: Phase A (research + outline) → Phase B (discussion) → Phase C (generate design)
+- Documentation checkpoint replaces Steps 1 + 1.5 (understand + memory discovery)
+- quiet-explore writes to files (quiet task pattern), returns filepath only
+- Context7 calls happen directly from main session (MCP tools unavailable in sub-agents)
+- Documentation perimeter section in design output guides planner reading
 
-**Conventions**:
-- Agent system prompts address agent in second person ("You are...")
-- Agent tools array uses specialized tools over Bash for file operations
-- Design skill produces dense output for intelligent downstream readers
-- Planning skills load documentation perimeter section at start of intake/discovery
+**Agent spec location**: Design section "quiet-explore Agent" (lines 128-167)
+
+**Project conventions**:
+- Agent files: `agent-core/agents/*.md` with YAML frontmatter
+- Skill files: `agent-core/skills/*/SKILL.md` with YAML frontmatter
+- Symlinks: Created via `just sync-to-parent` (requires `dangerouslyDisableSandbox: true`)
+- Multi-line YAML descriptions use `|` syntax (prevents parse errors)
+
+**Stop conditions (all steps)**:
+- File not found at expected path
+- Structural mismatch (e.g., expected section missing)
+- YAML parse errors after edits
+- Validation failures after changes
 
 ---
 
-## Step 1: Create Reports Directory
+## Step 1: Create quiet-explore Agent
 
-**Objective**: Create `plans/design-workflow-enhancement/reports/` directory for execution reports.
+**Objective**: Create `agent-core/agents/quiet-explore.md` from design specification
 
-**Execution Model**: Haiku
+**Execution Model**: Sonnet (interprets spec into agent file)
+
+**Implementation**:
+
+Read design section "quiet-explore Agent" (lines 128-167) and create agent file at `agent-core/agents/quiet-explore.md`.
+
+**Agent specification from design**:
+- Name: quiet-explore
+- Description: Multi-line using `|` syntax, summarize "exploration results persist to files for reuse across phases"
+- Model: haiku
+- Color: cyan
+- Tools: ["Read", "Glob", "Grep", "Bash", "Write"]
+
+**System prompt directives** (from design):
+- File search specialist (based on built-in Explore prompt)
+- Read-only for codebase (Write only for report output)
+- Parallel tool calls for speed
+- Absolute paths in findings
+- Report format: Structured findings with file paths, key patterns, code snippets
+- Output: Write report to caller-specified path, return filepath only
+- Bash: Read-only operations (ls, git status, git log, git diff)
+
+**Report location convention** (include in prompt):
+- Design phase: `plans/{name}/reports/explore-{topic}.md`
+- Ad-hoc: `tmp/explore-{topic}.md`
+
+**Expected Outcome**: Agent file created with valid YAML frontmatter and system prompt incorporating all directives
+
+**Unexpected Result Handling**:
+- If baseline pattern (quiet-task.md) unclear: Read `agent-core/agents/quiet-task.md` for reference structure
+- If multi-line description fails YAML parse: Verify `|` syntax used correctly
+
+**Error Conditions**:
+- Missing design file → Escalate to user
+- Cannot determine appropriate system prompt structure → Escalate to user
+
+**Validation**:
+- File exists at `agent-core/agents/quiet-explore.md`
+- YAML frontmatter parses (name, description, model, color, tools present)
+- System prompt includes report output directive
+- System prompt includes read-only Bash constraint
+
+**Success Criteria**:
+- Agent file created
+- YAML uses multi-line syntax for description
+- System prompt addresses all 7 directives from design
+
+**Report Path**: `plans/design-workflow-enhancement/reports/step-1-agent-creation.md`
+
+---
+
+## Step 2: Review quiet-explore Agent
+
+**Objective**: Review and fix agent file using vet-agent
+
+**Execution Model**: Sonnet (vet-agent review)
+
+**Implementation**:
+
+Delegate review to vet-agent:
+```
+Review agent-core/agents/quiet-explore.md for:
+- YAML syntax correctness (frontmatter fields, multi-line description format)
+- Description quality and clarity
+- System prompt structure and completeness (all 7 directives from design)
+- Tool list appropriateness
+- Consistency with quiet-task baseline pattern
+
+Write review report to plans/design-workflow-enhancement/reports/step-2-agent-review.md.
+Return filepath only on success.
+```
+
+After receiving review, read report and apply all critical/major priority fixes to agent file.
+
+**Expected Outcome**: Agent file reviewed and improved, report written
+
+**Unexpected Result Handling**:
+- If review identifies contradictory requirements in spec: Report to user with specific conflicts
+- If git diff shows no changes after review but report lists issues: Verify report explains why no changes needed
+
+**Error Conditions**:
+- Agent file missing → Error: "Agent file not found, Step 1 may have failed"
+- Review report not created → Escalate with error message from vet-agent
+
+**Validation**:
+- Review report exists at expected path
+- Agent file still valid YAML after fixes
+- All critical/major issues from report addressed
+- Compare before/after using git diff (verify improvements made or report explains no-change rationale)
+
+**Success Criteria**:
+- Review complete with report written
+- All critical/major issues fixed
+- Agent file passes YAML parse
+- Improvements documented in git diff or review report
+
+**Report Path**: `plans/design-workflow-enhancement/reports/step-2-agent-review.md` (created by vet-agent)
+
+---
+
+## Step 3: Update Skills
+
+**Objective**: Update design skill (restructure) and plan skills (add documentation perimeter reading)
+
+**Execution Model**: Sonnet (interprets design guidance into skill edits)
+
+**Implementation**:
+
+**3.1 - Update design skill** (`agent-core/skills/design/SKILL.md`):
+
+**First:** Read full skill file to identify current section structure (numbered steps vs phases, exact headings).
+
+From design "Step mapping" table (lines 68-79), restructure skill from current Steps 0-7 into Phases A-C:
+
+**Changes needed**:
+- Replace "### 1. Understand Request" + "### 1.5. Memory Discovery" (lines ~40-54) → Phase A.1 (documentation checkpoint using hierarchy from design lines 85-103)
+- Replace "### 2. Explore Codebase" (lines ~56-60) → Phase A.2 (delegate to quiet-explore, specify report path)
+- Replace "### 3. Research (if needed)" (lines ~62-64) → Phase A.3-4 (Context7 + web research, call directly from main session)
+- Split "### 4. Create Design Document" (lines ~66-94) into:
+  - Phase A.5 (outline) — new section for outline creation + presentation
+  - Phase C.1 (full design) — move current Step 4 content here, add documentation perimeter requirement (design lines 104-126)
+- Rename "### 5. Vet Design" (lines ~96-110) → Phase C.3 (general-purpose opus review - keep unchanged)
+- Rename "### 6. Apply Fixes" (lines ~112-116) → Phase C.4 (keep unchanged)
+- Rename "### 7. Handoff and Commit" (lines ~118-129) → Phase C.5 (keep unchanged)
+
+**Phase B (new)**: Insert between Phase A and Phase C — iterative discussion section from design lines 53-59
+
+**Preservation mapping**:
+- "### 0. Complexity Triage" (lines ~20-36) → Keep as-is before Phase A
+- Plugin-topic skill-loading directive (currently in Step 4 lines ~86-94) → Move to Phase A.5 (outline section)
+- Tail-call to `/handoff --commit` (currently Step 7 lines ~120-127) → Becomes Phase C.5 (no change)
+
+**3.2 - Update plan-adhoc skill** (`agent-core/skills/plan-adhoc/SKILL.md`):
+
+Add "Read documentation perimeter" as first numbered item (item 0) within Point 0.5 section, before the existing "Discover relevant prior knowledge" item.
+
+**Insertion point**: After "### Point 0.5: Discover Codebase Structure (REQUIRED)" heading (line ~95), before "**Before writing any runbook content:**"
+
+**New content**:
+```markdown
+**0. Read documentation perimeter (if present):**
+
+If design document includes "Documentation Perimeter" section:
+- Read all files listed under "Required reading"
+- Note Context7 references (may need additional queries)
+- Factor knowledge into step design
+
+This provides designer's recommended context. Still perform discovery steps 1-2 below for path verification and memory-index scan.
+```
+
+**After insertion**: Renumber existing items (currently 1-2) to (1-2) — no change needed, just verify they remain after new item 0.
+
+**3.3 - Update plan-tdd skill** (`agent-core/skills/plan-tdd/SKILL.md`):
+
+Add documentation perimeter reading to Phase 1 as Step 0, before existing actions.
+
+**Insertion point**: After "### Phase 1: Intake (Tier 3 Only)" heading and "**Objective:** Load design and project conventions." (lines ~104-106), before "**Actions:**" section.
+
+**New content** (insert as first numbered item in Actions list, before "1. **Determine design path:**"):
+```markdown
+0. **Read documentation perimeter (if present):**
+   - If design includes "Documentation Perimeter" section, read all listed files under "Required reading"
+   - Note Context7 references for potential additional queries
+   - This provides designer's recommended context before discovery
+
+```
+
+**After insertion**: Existing actions 1-4 remain numbered as-is (they're already correctly numbered).
+
+**Expected Outcome**: design skill restructured into 3-phase workflow, plan-adhoc and plan-tdd updated with documentation perimeter reading
+
+**Unexpected Result Handling**:
+- If skill structure doesn't match expected sections: Read full skill file to identify actual structure, then apply changes
+- If unclear how to integrate guidance: Report ambiguity to user
+
+**Error Conditions**:
+- Skill file missing → Error with specific path
+- Section not found where expected → Read file, report actual structure
+
+**Validation**:
+- All 3 skill files modified
+- design skill has Phases A-C structure
+- plan-adhoc has documentation perimeter reading in Point 0.5
+- plan-tdd has documentation perimeter reading in Phase 1
+- YAML frontmatter still valid after edits
+
+**Success Criteria**:
+- 3 skill files updated
+- Structural changes preserve existing logic flow
+- No YAML parse errors
+
+**Report Path**: `plans/design-workflow-enhancement/reports/step-3-skill-updates.md`
+
+---
+
+## Step 4: Create Symlinks and Validate
+
+**Objective**: Create symlinks for agent, run validation
+
+**Execution Model**: Haiku (simple operations)
 
 **Implementation**:
 
 ```bash
-mkdir -p /Users/david/code/claudeutils/plans/design-workflow-enhancement/reports
+# Navigate to agent-core and create symlinks
+cd /Users/david/code/claudeutils/agent-core && just sync-to-parent
+
+# Verify symlink created
+ls -la /Users/david/code/claudeutils/.claude/agents/quiet-explore.md
+
+# Run validation
+cd /Users/david/code/claudeutils && just dev
 ```
 
-**Expected Outcome**: Directory created for step execution reports.
+**Expected Outcome**: Symlink exists, validation passes
+
+**Unexpected Result Handling**:
+- If symlink creation fails: Check permissions, escalate to sonnet
+- If validation fails: Report specific failures (formatting, linting)
 
 **Error Conditions**:
-- mkdir fails → Escalate to user (filesystem issue)
+- `just sync-to-parent` fails → Escalate with error output
+- Symlink not created → Verify agent file exists, escalate if so
+- `just dev` fails → Report failures for fixing
 
 **Validation**:
-- Directory exists at specified path
+- Symlink exists and points to `agent-core/agents/quiet-explore.md`
+- `just dev` exits with code 0
 
 **Success Criteria**:
-- reports/ directory created
-- Subsequent steps can write report files
+- Symlink verified
+- All checks pass
 
-**Report Path**: `plans/design-workflow-enhancement/reports/step-1-create-reports-dir.md`
+**Report Path**: `plans/design-workflow-enhancement/reports/step-4-symlinks-validation.md`
 
 ---
 
-## Step 2: Create quiet-explore Agent
-
-**Objective**: Create `agent-core/agents/quiet-explore.md` based on built-in Explore agent with quiet execution pattern.
-
-**Execution Model**: Sonnet
-
-**Implementation**:
-
-Based on design.md specification (lines 113-148), create agent with:
-
-**Frontmatter**:
-```yaml
-name: quiet-explore
-description: |
-  Use this agent when exploration results need to persist to files for reuse
-  across design, planning, and execution phases. Prefer over built-in Explore
-  when results will be referenced by downstream agents. Examples:
-
-  <example>
-  Context: Designer needs codebase exploration for architecture planning
-  user: "Explore the authentication module structure"
-  assistant: "I'll use the quiet-explore agent to analyze the auth module and write findings to a report file"
-  <commentary>
-  Exploration results will be reused by planner - quiet-explore writes to file for persistence
-  </commentary>
-  </example>
-
-  <example>
-  Context: Planner needs to understand existing patterns before creating runbook
-  user: "Find all existing skill files and their structure"
-  assistant: "I'll delegate to quiet-explore to map skill patterns and document findings"
-  <commentary>
-  Systematic exploration with persistent output enables pattern reuse across planning steps
-  </commentary>
-  </example>
-model: haiku
-color: cyan
-tools: ["Read", "Glob", "Grep", "Bash", "Write"]
-```
-
-**System Prompt Core Directives** (adapt from built-in Explore agent):
-- File search specialist with parallel tool usage
-- Read-only for codebase (Write only for report output)
-- Absolute paths in findings
-- Structured report format with file paths, key patterns, relevant code snippets
-- Output: Write report to caller-specified path, return filepath only
-- Bash: Read-only operations only (ls, git status, git log, git diff)
-
-**System Prompt Structure**:
-```markdown
-You are a codebase exploration specialist that writes findings to persistent report files.
-
-**Your Core Responsibilities:**
-1. Explore codebase structure using parallel tool calls for speed
-2. Identify files, patterns, and architectural elements
-3. Document findings in structured reports
-4. Return only the report filepath (quiet execution pattern)
-
-**Exploration Process:**
-1. Use Glob for file discovery (patterns like "**/*.ts", "src/**/*.py")
-2. Use Grep for pattern searching (parallel searches when possible)
-3. Use Read for examining specific files identified during exploration
-4. Use Bash for git operations (status, log, diff) - read-only only
-5. Synthesize findings into structured report
-6. Write report to path specified by caller
-7. Return absolute filepath only
-
-**Report Format:**
-Structure findings with:
-- Files discovered (absolute paths)
-- Key patterns found (with file locations)
-- Relevant code snippets (with line numbers)
-- Architectural observations
-- Summary of exploration scope
-
-**Output:**
-Write complete report to caller-specified path, then return ONLY the absolute filepath.
-
-**Constraints:**
-- Use specialized tools, not Bash: Glob (not find), Grep (not grep), Read (not cat)
-- All file paths in reports must be absolute
-- Bash is for git operations only (ls, git status, git log, git diff)
-- Write is ONLY for report output, never for modifying codebase files
-- Execute tool calls in parallel when independent
-```
-
-**Expected Outcome**: Agent file created at `agent-core/agents/quiet-explore.md` with frontmatter and system prompt following plugin-dev:agent-development patterns.
-
-**Unexpected Result Handling**:
-- If agent-core/agents/ directory doesn't exist: Error (directory must exist per prerequisites)
-- If quiet-task.md structure differs from expected: Review actual structure and adapt system prompt pattern
-
-**Error Conditions**:
-- File write failure → Escalate to user (filesystem issue)
-- Invalid YAML frontmatter → Fix syntax and retry
-
-**Validation**:
-- YAML frontmatter parses correctly
-- Description includes 2 examples with proper XML structure (tags properly closed and nested)
-- System prompt addresses agent in second person
-- Tools array includes Write for report output
-- Examples use valid XML: `<example>`, `<commentary>` tags properly closed
-
-**Success Criteria**:
-- File exists at `agent-core/agents/quiet-explore.md`
-- YAML frontmatter is valid with all required fields
-- System prompt length 500-3000 characters
-- Description includes examples in correct format
-
-**Report Path**: `plans/design-workflow-enhancement/reports/step-2-create-quiet-explore.md`
-
----
-
-## Step 3: Restructure design/SKILL.md into Three-Phase Workflow
-
-**Objective**: Transform design skill from linear steps (0-7) to three-phase workflow (Research+Outline → Iterative Discussion → Generate Design).
-
-**Execution Model**: Sonnet
-
-**Implementation**:
-
-Read `agent-core/skills/design/SKILL.md` and restructure according to design.md specification (lines 30-69).
-
-**Key Changes**:
-
-1. **Replace Step 1 + Step 1.5 with Phase A.1 (Documentation Checkpoint)**:
-   - Expand from current memory discovery into 5-level hierarchy
-   - **Level 1 text to insert:** "**Level 1 (Local knowledge)**: Scan memory-index.md for entries relevant to task domain. For any matches, read referenced files to load full context. Always read agents/design-decisions.md. Read other agents/decisions/*.md and agent-core/fragments/*.md ONLY when memory-index entries reference them as relevant to the task domain."
-   - Level 2 (conditional): plugin-dev skills when touching hooks/agents/skills/MCP
-   - Level 3 (conditional): Context7 via direct MCP tool calls (write results to report)
-   - Level 4 (always for complex): quiet-explore agent
-   - Level 5 (conditional): WebSearch/WebFetch when local sources insufficient
-   - Emphasize domain-awareness: no fixed "always read X" beyond level 1
-
-2. **Replace Step 2 with Phase A.2 (Explore Codebase)**:
-   - Change delegation from `subagent_type="Explore"` to `subagent_type="quiet-explore"`
-   - Specify report path pattern: `plans/{name}/reports/explore-{topic}.md`
-   - Clarify: only Read specific files AFTER exploration identifies them
-
-3. **Add Phase A.3-4 (Context7 + Web Research)**:
-   - Context7: Designer calls MCP tools directly, writes results to `plans/{name}/reports/context7-{topic}.md`
-   - Web: WebSearch/WebFetch direct from main session when needed
-
-4. **Split Step 4 into Phase A.5 (Outline) + Phase C.1 (Full Design)**:
-   - Phase A.5: Produce freeform plan outline, present to user
-   - Add escape hatch: Insert text in Phase A.5: "**Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message."
-   - Phase C.1: Write full design.md incorporating validated outline + all research
-
-5. **Add Phase B (Iterative Discussion)**:
-   - User provides feedback on outline
-   - Designer responds with incremental deltas only (not full outline regeneration)
-   - Loop until user validates approach
-   - Termination: fundamental approach change → restart Phase A
-
-6. **Add Documentation Perimeter to Phase C.1**:
-   - Insert new section in design.md template AFTER "Implementation notes" section
-   - Section heading: "## Documentation Perimeter"
-   - Required reading (files planner must load)
-   - Context7 references (library + query hint)
-   - Note that additional research is allowed
-   - Example placement: After Implementation Notes, before Next Steps
-
-7. **Update Phase C.3-4 (Vet Process)**:
-   - Change from `(subagent_type="general-purpose", model="opus")` to `(subagent_type="vet-agent", model="sonnet")`
-   - Designer reads report and applies critical/major fixes (has context per vet-requirement pattern)
-
-8. **Keep Step 0 (Complexity Triage) unchanged** - runs before phases
-
-9. **Update Phase C.5**: Tail-call `/handoff --commit` (already exists)
-
-**Expected Outcome**: Design skill restructured with outline-first workflow, documentation checkpoint, and research artifact persistence.
-
-**Unexpected Result Handling**:
-- If current step structure differs significantly: Review actual structure, map old → new carefully
-- If plugin-related skill-loading directives already exist: Preserve and integrate with documentation checkpoint
-
-**Error Conditions**:
-- File not found → Escalate to sonnet (prerequisite validation failed)
-- YAML frontmatter parse errors → Fix syntax
-- Ambiguous section boundaries → Escalate to sonnet for clarification
-
-**Validation**:
-- All 8 phases/steps from old structure accounted for in new structure
-- Documentation checkpoint includes all 5 levels
-- Phase B includes termination condition
-- Phase C.1 includes documentation perimeter section template
-
-**Success Criteria**:
-- File modified with three-phase structure
-- Documentation checkpoint replaces Step 1 + Step 1.5
-- Outline-first flow with escape hatch documented
-- quiet-explore referenced instead of built-in Explore
-- Documentation perimeter section included in design.md template
-
-**Report Path**: `plans/design-workflow-enhancement/reports/step-3-restructure-design-skill.md`
-
----
-
-## Step 4: Update plan-adhoc/SKILL.md with Documentation Perimeter
-
-**Objective**: Add documentation perimeter loading to Point 0.5 (Discover Codebase Structure).
-
-**Execution Model**: Sonnet
-
-**Implementation**:
-
-Read `agent-core/skills/plan-adhoc/SKILL.md` and add documentation perimeter loading step.
-
-**Change Location**: Point 0.5 section (starts at line 95)
-
-**Add as Step 0 Before Existing Numbered Steps**:
-
-Insert before existing "1. **Discover relevant prior knowledge:**":
-
-```markdown
-0. **Load documentation perimeter from design (if exists):**
-   - If design document exists, read "Documentation Perimeter" section
-   - Load all files listed under "Required reading"
-   - Execute Context7 queries listed under "Context7 references"
-   - Note "Additional research allowed" guidance
-   - If no design document or no perimeter section, proceed to step 1
-```
-
-Preserve existing steps 1-2 unchanged.
-
-**Integration Notes**:
-- Documentation perimeter is loaded FIRST (when it exists) as step 0
-- Existing steps 1-2 (memory-index discovery, file verification) still run unchanged
-- Perimeter provides designer's recommended context; discovery validates/extends it
-
-**Expected Outcome**: Planning skill reads documentation perimeter section from design (when exists) before existing discovery steps.
-
-**Unexpected Result Handling**:
-- If step numbering conflicts: Renumber existing steps accordingly
-- If discovery steps already reference design document: Integrate perimeter loading with existing references
-
-**Error Conditions**:
-- File not found → Escalate to sonnet
-- Section structure unclear → Escalate to sonnet
-
-**Validation**:
-- Documentation perimeter step added before existing discovery
-- Conditional logic (skip if no design/no perimeter) included
-- Integration preserves existing discovery steps
-
-**Success Criteria**:
-- Point 0.5 includes documentation perimeter loading as step 0
-- Conditional logic (skip if no design/perimeter) included
-- Existing steps 1-2 (memory-index, file verification) preserved
-
-**Report Path**: `plans/design-workflow-enhancement/reports/step-4-update-plan-adhoc.md`
-
----
-
-## Step 5: Update plan-tdd/SKILL.md with Documentation Perimeter
-
-**Objective**: Add documentation perimeter loading to Phase 1 (Intake).
-
-**Execution Model**: Sonnet
-
-**Implementation**:
-
-Read `agent-core/skills/plan-tdd/SKILL.md` and add documentation perimeter loading.
-
-**Change Location**: Phase 1 section (starts at line ~104, has "Actions:" list with 4 items, not "Steps:")
-
-**Add as Action 0 Before Existing Numbered Actions**:
-
-Insert under "**Actions:**" heading, before existing action 1:
-
-```markdown
-0. **Load documentation perimeter from design:**
-   - Read "Documentation Perimeter" section from design document
-   - Load all files listed under "Required reading"
-   - Execute Context7 queries listed under "Context7 references"
-   - Note "Additional research allowed" guidance
-```
-
-Preserve existing actions 1-4 unchanged (no renumbering needed if we use 0).
-
-**Integration Notes**:
-- Documentation perimeter loads before existing Phase 1 actions (as action 0)
-- TDD workflow always has design document (prerequisite)
-- Using "0" for new action avoids renumbering existing 1-4
-
-**Expected Outcome**: TDD planning skill reads documentation perimeter before existing intake actions.
-
-**Unexpected Result Handling**:
-- If Phase 1 uses "Steps:" instead of "Actions:": Adapt to match terminology
-- If numbering scheme conflicts with adding 0: Start at 1 and renumber existing to 2-5
-
-**Error Conditions**:
-- File not found → Escalate to sonnet
-- Phase structure unclear → Escalate to sonnet
-
-**Validation**:
-- Documentation perimeter step added as first step in Phase 1
-- Existing intake steps preserved (possibly renumbered)
-- No conditional logic needed (design always exists in TDD workflow)
-
-**Success Criteria**:
-- Phase 1 includes documentation perimeter loading as action 0
-- Existing actions 1-4 preserved unchanged
-- Action ordering is logical
-
-**Report Path**: `plans/design-workflow-enhancement/reports/step-5-update-plan-tdd.md`
-
----
-
-## Step 6: Symlink Management and Validation
-
-**Objective**: Create symlink for quiet-explore agent and validate workflow changes.
-
-**Execution Model**: Sonnet
-
-**Implementation**:
-
-1. **Create symlinks using project recipe:**
-   ```bash
-   cd /Users/david/code/claudeutils/agent-core && just sync-to-parent
-   ```
-   (Requires `dangerouslyDisableSandbox: true` - writes to `.claude/agents/`)
-
-2. **Validation checks:**
-   - Verify symlink: `ls -la /Users/david/code/claudeutils/.claude/agents/quiet-explore.md`
-   - Check YAML parses: Read agent file, confirm no syntax errors
-   - Verify skill files: Read each modified skill, check structure is coherent
-   - Documentation perimeter: Grep for "Documentation Perimeter" in design skill template
-
-3. **Report findings:**
-   - Symlink creation status
-   - Any YAML parse errors
-   - Structural issues in skill files
-   - Missing elements from specification
-
-**Expected Outcome**: Symlink created, all files syntactically valid, workflow changes complete.
-
-**Unexpected Result Handling**:
-- If symlink creation fails: Check sandbox bypass, verify paths, escalate if unresolved
-- If YAML errors found: Fix syntax and re-run sync
-- If skill structure issues: Apply fixes or escalate for complex issues
-
-**Error Conditions**:
-- Symlink creation fails → Escalate to user (sandbox/permission issue)
-- YAML parse errors → Fix and retry
-- Missing specification elements → Escalate to user (implementation incomplete)
-
-**Validation**:
-- Symlink exists at `.claude/agents/quiet-explore.md`
-- Points to `agent-core/agents/quiet-explore.md`
-- All modified skill files have valid YAML frontmatter
-- Design skill has three-phase structure
-- Planning skills have documentation perimeter loading
-
-**Success Criteria**:
-- Symlink created successfully
-- No YAML parse errors
-- All specification elements implemented
-- Files are coherent and follow documented patterns
-- quiet-explore agent system prompt includes all core directives (parallel tools, absolute paths, report format, Bash read-only)
-
-**Report Path**: `plans/design-workflow-enhancement/reports/step-6-symlink-validation.md`
+## Orchestrator Instructions
+
+**Parallelization**:
+- Steps 1-2: Must run sequentially (review depends on agent creation)
+- Step 3: Can run in parallel with Steps 1-2 (no dependency on agent file)
+- Step 4: Must run after all previous steps complete (needs all files + fixes applied)
+
+**Stop conditions**:
+- Any step reports error → stop, escalate to user
+- Step 2 review identifies UNFIXABLE critical issues → stop, escalate
 
 ---
 
 ## Design Decisions
 
-**Sequential execution despite apparent independence:**
-- Agent must exist before skills reference it
-- Skill updates should be cohesive (all done together, not split across sessions)
-- Symlink management must happen after agent creation
+**Agent creation pattern**: Task agent creates from spec, vet-agent reviews, planner applies fixes. This follows standard review pattern for implementation artifacts (vet-requirement.md, learnings.md: model selection for design interpretation).
 
-**Sonnet for agent creation and skill modifications:**
-- Agent creation requires plugin-dev context and careful example crafting (sonnet)
-- Skill modifications require interpreting design guidance and writing explicit markdown text (sonnet needed, not haiku)
+**No sequential dependency for Step 3**: Skills reference agents by name string. Agent file doesn't need to exist at skill-edit time, only at runtime after symlinks (design Runbook Guidance).
 
-**Documentation perimeter integration varies by workflow:**
-- plan-adhoc: Conditional (design may not exist)
-- plan-tdd: Always present (design is prerequisite)
-- Different integration points reflect different workflow structures
+**Symlink step stays simple**: `just sync-to-parent` is a 2-line operation (cd + just). Combined with validation for efficiency (design Runbook Guidance line 247).
+
+**Model selection**: Sonnet for Steps 1-3 (interprets spec/design guidance, applies review fixes), haiku for Step 4 (scripted operations). Rationale: learnings.md "model selection for interpreting design guidance" — sonnet interprets intent, haiku executes explicit commands.
 
 ---
 
 ## Dependencies
 
 **Before This Runbook**:
-- Design document complete and vetted
-- Built-in Explore agent system prompt knowledge (for quiet-explore creation)
+- Design complete at `plans/design-workflow-enhancement/design.md`
+- Agent-core and skill structure unchanged
 
 **After This Runbook**:
-- Design workflow can use outline-first iteration
-- Research artifacts persist to files for reuse
-- Planners consume documentation perimeter from designs
+- Design skill uses outline-first workflow
+- quiet-explore agent available for use
+- Plan skills consume documentation perimeter
+- Ready for manual testing (run `/design` on test task)
 
 ---
 
 ## Notes
 
-**Testing strategy** (from design.md):
+**Testing strategy** (from design):
 - Manual: Run `/design` on test task, verify outline-first flow
 - Verify quiet-explore writes report and returns filepath
 - Verify Context7 direct calls + Write to report works

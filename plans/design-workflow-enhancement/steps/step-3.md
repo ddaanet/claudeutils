@@ -1,91 +1,101 @@
 # Step 3
 
-**Plan**: `plans/design-workflow-enhancement/runbook.md`
+**Plan**: `/Users/david/code/claudeutils/plans/design-workflow-enhancement/runbook.md`
 **Common Context**: See plan file for context
 
 ---
 
-## Step 3: Restructure design/SKILL.md into Three-Phase Workflow
+## Step 3: Update Skills
 
-**Objective**: Transform design skill from linear steps (0-7) to three-phase workflow (Research+Outline → Iterative Discussion → Generate Design).
+**Objective**: Update design skill (restructure) and plan skills (add documentation perimeter reading)
 
-**Execution Model**: Sonnet
+**Execution Model**: Sonnet (interprets design guidance into skill edits)
 
 **Implementation**:
 
-Read `agent-core/skills/design/SKILL.md` and restructure according to design.md specification (lines 30-69).
+**3.1 - Update design skill** (`agent-core/skills/design/SKILL.md`):
 
-**Key Changes**:
+**First:** Read full skill file to identify current section structure (numbered steps vs phases, exact headings).
 
-1. **Replace Step 1 + Step 1.5 with Phase A.1 (Documentation Checkpoint)**:
-   - Expand from current memory discovery into 5-level hierarchy
-   - **Level 1 text to insert:** "**Level 1 (Local knowledge)**: Scan memory-index.md for entries relevant to task domain. For any matches, read referenced files to load full context. Always read agents/design-decisions.md. Read other agents/decisions/*.md and agent-core/fragments/*.md ONLY when memory-index entries reference them as relevant to the task domain."
-   - Level 2 (conditional): plugin-dev skills when touching hooks/agents/skills/MCP
-   - Level 3 (conditional): Context7 via direct MCP tool calls (write results to report)
-   - Level 4 (always for complex): quiet-explore agent
-   - Level 5 (conditional): WebSearch/WebFetch when local sources insufficient
-   - Emphasize domain-awareness: no fixed "always read X" beyond level 1
+From design "Step mapping" table (lines 68-79), restructure skill from current Steps 0-7 into Phases A-C:
 
-2. **Replace Step 2 with Phase A.2 (Explore Codebase)**:
-   - Change delegation from `subagent_type="Explore"` to `subagent_type="quiet-explore"`
-   - Specify report path pattern: `plans/{name}/reports/explore-{topic}.md`
-   - Clarify: only Read specific files AFTER exploration identifies them
+**Changes needed**:
+- Replace "### 1. Understand Request" + "### 1.5. Memory Discovery" (lines ~40-54) → Phase A.1 (documentation checkpoint using hierarchy from design lines 85-103)
+- Replace "### 2. Explore Codebase" (lines ~56-60) → Phase A.2 (delegate to quiet-explore, specify report path)
+- Replace "### 3. Research (if needed)" (lines ~62-64) → Phase A.3-4 (Context7 + web research, call directly from main session)
+- Split "### 4. Create Design Document" (lines ~66-94) into:
+  - Phase A.5 (outline) — new section for outline creation + presentation
+  - Phase C.1 (full design) — move current Step 4 content here, add documentation perimeter requirement (design lines 104-126)
+- Rename "### 5. Vet Design" (lines ~96-110) → Phase C.3 (general-purpose opus review - keep unchanged)
+- Rename "### 6. Apply Fixes" (lines ~112-116) → Phase C.4 (keep unchanged)
+- Rename "### 7. Handoff and Commit" (lines ~118-129) → Phase C.5 (keep unchanged)
 
-3. **Add Phase A.3-4 (Context7 + Web Research)**:
-   - Context7: Designer calls MCP tools directly, writes results to `plans/{name}/reports/context7-{topic}.md`
-   - Web: WebSearch/WebFetch direct from main session when needed
+**Phase B (new)**: Insert between Phase A and Phase C — iterative discussion section from design lines 53-59
 
-4. **Split Step 4 into Phase A.5 (Outline) + Phase C.1 (Full Design)**:
-   - Phase A.5: Produce freeform plan outline, present to user
-   - Add escape hatch: Insert text in Phase A.5: "**Escape hatch:** If user input already specifies approach, decisions, and scope (e.g., detailed problem.md), compress A+B by presenting outline and asking for validation in a single message."
-   - Phase C.1: Write full design.md incorporating validated outline + all research
+**Preservation mapping**:
+- "### 0. Complexity Triage" (lines ~20-36) → Keep as-is before Phase A
+- Plugin-topic skill-loading directive (currently in Step 4 lines ~86-94) → Move to Phase A.5 (outline section)
+- Tail-call to `/handoff --commit` (currently Step 7 lines ~120-127) → Becomes Phase C.5 (no change)
 
-5. **Add Phase B (Iterative Discussion)**:
-   - User provides feedback on outline
-   - Designer responds with incremental deltas only (not full outline regeneration)
-   - Loop until user validates approach
-   - Termination: fundamental approach change → restart Phase A
+**3.2 - Update plan-adhoc skill** (`agent-core/skills/plan-adhoc/SKILL.md`):
 
-6. **Add Documentation Perimeter to Phase C.1**:
-   - Insert new section in design.md template AFTER "Implementation notes" section
-   - Section heading: "## Documentation Perimeter"
-   - Required reading (files planner must load)
-   - Context7 references (library + query hint)
-   - Note that additional research is allowed
-   - Example placement: After Implementation Notes, before Next Steps
+Add "Read documentation perimeter" as first numbered item (item 0) within Point 0.5 section, before the existing "Discover relevant prior knowledge" item.
 
-7. **Update Phase C.3-4 (Vet Process)**:
-   - Change from `(subagent_type="general-purpose", model="opus")` to `(subagent_type="vet-agent", model="sonnet")`
-   - Designer reads report and applies critical/major fixes (has context per vet-requirement pattern)
+**Insertion point**: After "### Point 0.5: Discover Codebase Structure (REQUIRED)" heading (line ~95), before "**Before writing any runbook content:**"
 
-8. **Keep Step 0 (Complexity Triage) unchanged** - runs before phases
+**New content**:
+```markdown
+**0. Read documentation perimeter (if present):**
 
-9. **Update Phase C.5**: Tail-call `/handoff --commit` (already exists)
+If design document includes "Documentation Perimeter" section:
+- Read all files listed under "Required reading"
+- Note Context7 references (may need additional queries)
+- Factor knowledge into step design
 
-**Expected Outcome**: Design skill restructured with outline-first workflow, documentation checkpoint, and research artifact persistence.
+This provides designer's recommended context. Still perform discovery steps 1-2 below for path verification and memory-index scan.
+```
+
+**After insertion**: Renumber existing items (currently 1-2) to (1-2) — no change needed, just verify they remain after new item 0.
+
+**3.3 - Update plan-tdd skill** (`agent-core/skills/plan-tdd/SKILL.md`):
+
+Add documentation perimeter reading to Phase 1 as Step 0, before existing actions.
+
+**Insertion point**: After "### Phase 1: Intake (Tier 3 Only)" heading and "**Objective:** Load design and project conventions." (lines ~104-106), before "**Actions:**" section.
+
+**New content** (insert as first numbered item in Actions list, before "1. **Determine design path:**"):
+```markdown
+0. **Read documentation perimeter (if present):**
+   - If design includes "Documentation Perimeter" section, read all listed files under "Required reading"
+   - Note Context7 references for potential additional queries
+   - This provides designer's recommended context before discovery
+
+```
+
+**After insertion**: Existing actions 1-4 remain numbered as-is (they're already correctly numbered).
+
+**Expected Outcome**: design skill restructured into 3-phase workflow, plan-adhoc and plan-tdd updated with documentation perimeter reading
 
 **Unexpected Result Handling**:
-- If current step structure differs significantly: Review actual structure, map old → new carefully
-- If plugin-related skill-loading directives already exist: Preserve and integrate with documentation checkpoint
+- If skill structure doesn't match expected sections: Read full skill file to identify actual structure, then apply changes
+- If unclear how to integrate guidance: Report ambiguity to user
 
 **Error Conditions**:
-- File not found → Escalate to sonnet (prerequisite validation failed)
-- YAML frontmatter parse errors → Fix syntax
-- Ambiguous section boundaries → Escalate to sonnet for clarification
+- Skill file missing → Error with specific path
+- Section not found where expected → Read file, report actual structure
 
 **Validation**:
-- All 8 phases/steps from old structure accounted for in new structure
-- Documentation checkpoint includes all 5 levels
-- Phase B includes termination condition
-- Phase C.1 includes documentation perimeter section template
+- All 3 skill files modified
+- design skill has Phases A-C structure
+- plan-adhoc has documentation perimeter reading in Point 0.5
+- plan-tdd has documentation perimeter reading in Phase 1
+- YAML frontmatter still valid after edits
 
 **Success Criteria**:
-- File modified with three-phase structure
-- Documentation checkpoint replaces Step 1 + Step 1.5
-- Outline-first flow with escape hatch documented
-- quiet-explore referenced instead of built-in Explore
-- Documentation perimeter section included in design.md template
+- 3 skill files updated
+- Structural changes preserve existing logic flow
+- No YAML parse errors
 
-**Report Path**: `plans/design-workflow-enhancement/reports/step-3-restructure-design-skill.md`
+**Report Path**: `plans/design-workflow-enhancement/reports/step-3-skill-updates.md`
 
 ---
