@@ -24,7 +24,7 @@
 
 ---
 
-@agent-core/fragments/memory-index.md
+@agents/memory-index.md
 
 ---
 

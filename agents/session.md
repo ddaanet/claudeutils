@@ -1,23 +1,31 @@
 # Session Handoff: 2026-02-01
 
-**Status:** Memory index location fix designed — moves from agent-core (shared) to project-level.
+**Status:** Memory index relocated to project-level, seeded with 46 entries.
 
 ## Completed This Session
 
-**Design: Memory index location fix + seeding** (`plans/remember-update/design.md`):
-- Identified architectural issue: memory-index.md in agent-core (shared submodule) but catalogs project-specific learnings
-- Designed move from `agent-core/fragments/memory-index.md` → `agents/memory-index.md`
-- Specified seeding heuristic: index non-`@`-imported knowledge (decisions, rules, skill references)
-- Vet review by opus: 3 medium fixes applied (seeding scope, path-change clarity, consumer migration status)
-- Confirmed pytest-md/tuick don't import memory-index yet — no breakage from deletion
-- Design routes to `/plan-adhoc` (Tier 1 or 2)
+**Memory index relocation implemented** (Tier 1 direct implementation):
+- Moved memory-index.md from `agent-core/fragments/` to `agents/memory-index.md` (project-level)
+- Seeded with 46 entries across 4 sections: behavioral rules (5), workflow patterns (7), technical decisions (9), tool/infrastructure (7)
+- Updated all path references: CLAUDE.md `@`-import, remember skill, consolidation-patterns
+- Deleted old `agent-core/fragments/memory-index.md`
+- Vet review: "Ready" assessment, no critical/major issues
+- Entry format: keyword-rich summaries with `→` separator (no line numbers per design)
+- Tier assessment bypassed full runbook — implementation straightforward, all context already loaded
 
 **Files changed:**
-- `plans/remember-update/design.md` (new — design document)
+- `agents/memory-index.md` (created with seeded entries)
+- `CLAUDE.md` (updated `@`-import path)
+- `agent-core/skills/remember/SKILL.md` (updated path in step 4a)
+- `agent-core/skills/remember/references/consolidation-patterns.md` (updated path reference)
+- `agent-core/fragments/memory-index.md` (deleted)
+- `plans/remember-update/reports/implementation-review.md` (vet report)
+
+**Review findings:**
+- Minor issues only: optional historical refs skipped, submodule commit sequence (handled by commit process)
+- Seeding quality excellent: comprehensive coverage of learnings.md and decisions/ files
 
 ## Pending Tasks
-
-- [ ] **Implement memory index move** — `/plan-adhoc plans/remember-update/design.md` | sonnet
 - [ ] **Run /remember** — learnings file at 180/80 lines, needs consolidation urgently | sonnet
 - [ ] **Create /reflect skill** — deviation detection → RCA → fix → handoff/commit automation. Load plugin-dev skills first | opus
 - [ ] **Insert skill loading in design docs** — design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills | sonnet
@@ -42,7 +50,7 @@
 
 ## Next Steps
 
-Implement memory index move: `/plan-adhoc plans/remember-update/design.md`
+Run /remember to consolidate learnings file (180/80 lines).
 
 ---
-*Handoff by Opus. Memory index location fix designed and vetted.*
+*Handoff by Sonnet. Memory index relocated and seeded.*
