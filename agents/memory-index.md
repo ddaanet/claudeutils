@@ -57,4 +57,4 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 - Hook security: use exact match for restore operations, not startswith() - prevents shell operator exploitation → `agent-core/fragments/claude-config-layout.md`
 - Case-sensitive shortcuts unreliable for LLM interpretation - use distinct tokens (xc vs x) not case (X vs x) → `agent-core/fragments/execute-rule.md`
 - Shortcut systems need two layers - hook for exact-match expansion, fragment for inline vocabulary comprehension → `agent-core/fragments/execute-rule.md`
-- /reflect skill for in-session RCA of agent deviations — opus model, three exit paths (fix/handoff/partial), tail-calls /handoff --commit → `agent-core/skills/reflect/SKILL.md`
+- /reflect skill for in-session RCA of agent deviations — opus model, three exit paths (fix/handoff/partial), returns control to user → `agent-core/skills/reflect/SKILL.md`
