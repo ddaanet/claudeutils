@@ -76,3 +76,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Haiku for explicit edits with exact text provided, sonnet for generating markdown from design guidance
 - Rationale: Haiku executes what's specified, sonnet interprets intent and produces explicit text
 - Trade-off: Sonnet costs more but prevents re-work from under-specified haiku tasks
+
+**Design review uses general-purpose(opus), not vet-agent(sonnet):**
+- Anti-pattern: Using vet-agent for design review (vet is implementation-focused — code quality, patterns, correctness)
+- Correct pattern: `Task(subagent_type="general-purpose", model="opus")` for design review — architectural analysis, completeness, consistency, feasibility
+- Rationale: general-purpose agent strengths (architecture analysis, multi-file exploration, complex investigation) align with design review needs
+
+**Agent-creator works as reviewer in orchestration:**
+- Anti-pattern: Only using agent-creator for interactive agent creation from scratch
+- Correct pattern: Task agent creates file from spec, then `plugin-dev:agent-creator` reviews and fixes (YAML syntax, description quality, prompt structure)
+- Mechanism: Custom `## Orchestrator Instructions` in runbook specifies per-step subagent_type override. prepare-runbook.py already extracts custom orchestrator sections.
+- Confirmed empirically: agent-creator is cooperative in review mode, has Write access

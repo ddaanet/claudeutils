@@ -1,30 +1,24 @@
 # Session Handoff: 2026-02-01
 
-**Status:** Runbook ready for design workflow enhancement — outline-first workflow, documentation checkpoint, quiet-explore agent. Artifacts prepared, awaiting execution.
+**Status:** Design Rev 2 complete for design workflow enhancement. Previous runbook invalidated — needs re-planning from revised design.
 
 ## Completed This Session
 
-**Planning: Design Workflow Enhancement** (sonnet planning session):
-- Runbook at `plans/design-workflow-enhancement/runbook.md`
-- Tier 3 assessment: 6 steps, sequential execution (agent must exist before skill references)
-- Step 1: Create reports directory
-- Step 2: Create quiet-explore agent (haiku, cyan, writes to file, based on Explore prompt)
-- Step 3: Restructure design skill into 3 phases (outline → discussion → generate)
-- Step 4-5: Add documentation perimeter loading to plan-adhoc and plan-tdd skills
-- Step 6: Symlink management and validation
-- Vet review by sonnet: 4 critical + 5 major issues, all fixed
-- Critical fixes: reports directory prerequisite, skill structure alignment (adhoc line 95, tdd action 0), vet invocation clarification
-- Major fixes: explicit markdown for escape hatch and level 1 text, escalated to sonnet model for all skill modifications
-- Artifacts prepared via prepare-runbook.py: agent, 6 step files, orchestrator plan
-- Orchestrate command ready: `/orchestrate design-workflow-enhancement`
+**Design Revision (Rev 2): Design Workflow Enhancement** (opus design session):
+- Revised `plans/design-workflow-enhancement/design.md` addressing 5 design issues + 2 runbook issues
+- Decision 7 (new): Design review stays `general-purpose(opus)` — vet is implementation-focused, general-purpose better for architectural analysis. No change from current skill.
+- Decision 8 (new): Agent creation uses task agent (sonnet) + `plugin-dev:agent-creator` review step. Orchestrator plan specifies per-step subagent_type via custom `## Orchestrator Instructions` section (no prepare-runbook.py changes needed).
+- Level 1 doc checkpoint clarified: memory-index is ambient awareness index, not only discovery method. quiet-explore and Grep also valid for targeted doc collection.
+- Runbook Guidance section added for planner: symlinks = 2 lines not 50, no sequential dependency for agent-before-skills, step count target.
+- Opus review: 2 moderate + 4 minor issues found, all fixed (outline example, backward compat, convergence bound, plugin-topic phase mapping, reviewer note)
 
-**Earlier work:**
+**Previous session work (committed):**
+- Planning session produced original runbook (now invalidated by Rev 2)
 - Design complete (opus): outline-first workflow, documentation checkpoint, quiet-explore agent
 - Clipboard integration and submodule/gitmoji guidance for commit/handoff skills
-- Plugin-topic detection in design skill
 
 ## Pending Tasks
-- [ ] **Execute design workflow enhancement** — `/orchestrate design-workflow-enhancement` | haiku | restart
+- [ ] **Re-plan design workflow enhancement** — `/plan-adhoc plans/design-workflow-enhancement/design.md` | sonnet
 - [ ] **Design runbook identifier solution** — `/design plans/runbook-identifiers/problem.md` | opus
 - [ ] **Create design-vet-agent** — dedicated opus agent for design review, artifact-return pattern | opus
 - [ ] **Add execution metadata to step files** — step files declare dependencies and execution mode | sonnet
@@ -33,21 +27,15 @@
 
 ## Blockers / Gotchas
 
-**Vet review revealed skill structure misalignments:**
-- plan-adhoc Point 0.5 starts at line 95, not line 47-78 — has numbered steps (1-2), not prose
-- plan-tdd Phase 1 uses "Actions:" not "Steps:" — existing actions numbered 1-4
-- Fix: read actual structures, integrate as step/action 0 before existing numbered items
-- Prevented: execution failures from incorrect section identification
+**Previous runbook invalidated by Rev 2:**
+- `plans/design-workflow-enhancement/runbook.md` and its prepared artifacts (steps/, orchestrator-plan.md, .claude/agents/design-workflow-enhancement-task.md) are stale
+- Re-planning needed: design has new decisions (agent-creator review, per-step agent override in orchestrator instructions), changed runbook guidance (fewer steps, no false sequential dependency)
+- Old artifacts should be overwritten by prepare-runbook.py during re-planning
 
-**Model selection for skill modifications:**
-- Anti-pattern: Assigning haiku to interpret design guidance ("add escape hatch if user specifies approach")
-- Correct: Sonnet for skill modifications requiring markdown text generation from design intent
-- Rationale: Haiku needs explicit text, sonnet can interpret design → explicit text
-
-**MCP tools unavailable in sub-agents:**
-- Confirmed empirically: quiet-task haiku cannot call Context7 MCP tools
-- Impact: Context7 must be called directly from main session (opus designer)
-- Trade-off: Costs opus tokens for Write, but results persist for planner reuse
+**Agent-creator integration with orchestration:**
+- Pattern: Custom `## Orchestrator Instructions` section in runbook specifies `subagent_type="plugin-dev:agent-creator"` for review step
+- prepare-runbook.py already extracts custom orchestrator sections — no code changes needed
+- Agent-creator is cooperative in review mode (empirically confirmed): catches YAML syntax, improves descriptions
 
 **Commit-rca-fixes active:**
 - Fix 3 (orchestrator stop rule) prevents dirty-state rationalization
@@ -59,9 +47,9 @@
 
 ## Next Steps
 
-Execute the design workflow enhancement runbook with haiku orchestrator. Requires session restart to discover new agent.
+Re-plan design workflow enhancement from revised design. Sonnet session, no restart needed.
 
-Command ready (restart session, switch to haiku, then execute): `/orchestrate design-workflow-enhancement`
+Command: `/plan-adhoc plans/design-workflow-enhancement/design.md`
 
 ---
-*Handoff by Sonnet. Design workflow enhancement planned with tier 3 assessment and vet review.*
+*Handoff by Sonnet. Design Rev 2 addresses agent-creator integration, design review rationale, doc checkpoint flexibility, and runbook guidance.*
