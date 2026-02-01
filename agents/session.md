@@ -1,17 +1,21 @@
 # Session Handoff: 2026-02-01
 
-**Status:** Design skill updated with plugin-related skill-loading directives.
+**Status:** Workflow skills updated with clipboard integration for STATUS displays.
 
 ## Completed This Session
 
-**Inserted skill-loading directives in design skill** (Tier 1 direct):
-- Added plugin-topic detection to step 4 (Create Design Document) in `agent-core/skills/design/SKILL.md`
-- When design involves hooks/agents/skills/plugins, design doc's "Next steps" tells planner to load matching `plugin-dev:*` skill
-- Added memory index entry for discovery
+**Updated commit and handoff skills with clipboard integration** (Tier 1 direct):
+- Added pbcopy command to commit skill's Post-Commit section
+- Added pbcopy command to handoff skill's Display STATUS section
+- Both skills now copy next command to clipboard after displaying STATUS
+- Documented sandbox bypass requirement (pbcopy blocked by sandbox)
+- Enables paste-and-go workflow for pending tasks
 - All checks passed (`just dev`)
 
+**Previous work (earlier session):**
+- Added plugin-topic detection to design skill
+
 ## Pending Tasks
-- [ ] **Update workflow skills: pbcopy next command** — commit/handoff STATUS display copies next command to clipboard | sonnet
 - [ ] **Add "go read the docs" checkpoints** — partially addressed by design-work.md rule | sonnet
 - [ ] **Design runbook identifier solution** — `/design plans/runbook-identifiers/problem.md` | opus
 - [ ] **Create design-vet-agent** — dedicated opus agent for design review, artifact-return pattern | opus
@@ -30,7 +34,7 @@
 
 ## Next Steps
 
-Update workflow skills: pbcopy next command — commit/handoff STATUS display copies next command to clipboard.
+Add "go read the docs" checkpoints — partially addressed by design-work.md rule.
 
 ---
-*Handoff by Sonnet. Design skill plugin-loading directives added.*
+*Handoff by Sonnet. Clipboard integration added to workflow skills.*
