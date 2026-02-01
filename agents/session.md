@@ -1,33 +1,37 @@
 # Session Handoff: 2026-02-01
 
-**Status:** Ambient awareness implementation complete (Tier 2 lightweight delegation).
+**Status:** Memory index pruning resolved, design-decisions scope fixed.
 
 ## Completed This Session
 
-**Ambient awareness implementation:**
-- Tier 2 assessment: 13 files, design complete, 5 components, benefits from agent isolation but not full orchestration
-- Delegated 5 components to quiet-task agents (memory index, CLAUDE.md, skills, rules, cleanup)
-- Vet review found 4 critical + 4 major issues, all fixed
-- **Critical fixes applied:**
-  - Memory index now starts empty (remember skill populates during consolidation)
-  - Path-scoped rule frontmatter: `paths:` → `path:` (critical bug - rules would never trigger)
-- **Major fixes applied:**
-  - plan-adhoc Point 0.5: memory discovery now precedes file verification
-  - plan-tdd Phase 2: added step 3.5 for memory discovery (parallel with plan-adhoc)
-- **New problem identified:** Memory index pruning criteria unclear (documented in `plans/ambient-awareness/memory-index-pruning-problem.md`)
+**Memory index pruning design resolved:**
+- Evaluated 4 options (no-prune, redundancy-based, staleness-based, coverage-based)
+- Initial decision: A+D hybrid (grow + consolidate on threshold)
+- User identified consolidation loses keyword discovery surface for on-demand targets
+- Further identified soft limits cause same failure as learnings.md (agents treat as hard cap, aggressively prune)
+- **Final decision:** Append-only, no limits, no pruning, no consolidation
+- Rationale: Each entry is keyword-rich discovery surface; growth bounded by consolidation rate; token cost modest (200 entries ≈ 5000 tokens)
+- Problem doc deleted (`plans/ambient-awareness/memory-index-pruning-problem.md`)
+- Decision recorded in `agents/decisions/architecture.md`
+
+**Design-decisions scope fix:**
+- `/opus-design-question` was invoked inside `/design` session — circular (design session exists to make decisions)
+- Root cause: `design-decisions.md` fragment said "any workflow phase" — too broad
+- Fix: Scoped to "planning or execution" with explicit design session exclusion
+- Updated both `agent-core/fragments/design-decisions.md` and `agent-core/skills/design/SKILL.md`
 
 **Files changed:**
-- Parent: `CLAUDE.md` (added memory-index import), `agents/README.md` (removed deleted fragment refs), `.claude/rules/planning-work.md` + `commit-work.md` (new path-scoped rules)
+- Parent: `agents/decisions/architecture.md` (pruning decision), `plans/ambient-awareness/memory-index-pruning-problem.md` (deleted)
 - Submodule agent-core:
-  - New: `fragments/memory-index.md` (empty, seeded by remember skill)
-  - Deleted: 4 orphaned fragments (AGENTS-framework, hashtags, roles-rules-skills, tool-preferences)
-  - Updated: `skills/design/SKILL.md` (step 1.5), `skills/plan-adhoc/SKILL.md` (Point 0.5 reordered), `skills/plan-tdd/SKILL.md` (step 3.5), `skills/remember/SKILL.md` (step 4a), `skills/remember/references/consolidation-patterns.md` (66 new lines)
-
-**Vet report:** `tmp/ambient-awareness-review.md` (11 issues found, 8 fixed)
+  - `fragments/memory-index.md` (append-only header)
+  - `fragments/design-decisions.md` (scoped to planning/execution)
+  - `skills/design/SKILL.md` (explicit exclusion note)
+  - `skills/remember/references/consolidation-patterns.md` (append-only guidance)
 
 ## Pending Tasks
 
-- [ ] **Resolve memory index pruning design** — `/design plans/ambient-awareness/memory-index-pruning-problem.md` | opus
+- [ ] **PreToolUse hook: block symlink writes** — block writes to files that are symlinks to agent-core, redirect to correct path relative to project root | sonnet
+- [ ] **Run /remember** — learnings file at 169/80 lines, needs consolidation urgently | sonnet
 - [ ] **Create /reflect skill** — deviation detection → RCA → fix → handoff/commit automation. Load plugin-dev skills first | opus
 - [ ] **Insert skill loading in design docs** — design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills | sonnet
 - [ ] **Update workflow skills: pbcopy next command** — commit/handoff STATUS display copies next command to clipboard | sonnet
@@ -49,14 +53,9 @@
 
 **Learnings file at 169/80 lines** — needs `/remember` consolidation urgently.
 
-**Memory index pruning design unresolved:**
-- Current guidance says "remove entries promoted to always-loaded" but that's circular/vague
-- Need design decision on pruning model (no-prune-just-grow vs redundancy-based vs staleness vs coverage)
-- See `plans/ambient-awareness/memory-index-pruning-problem.md`
-
 ## Next Steps
 
-Run `/remember` to consolidate learnings, then address memory index pruning design.
+Run `/remember` to consolidate learnings.
 
 ---
-*Handoff by Sonnet. Ambient awareness Tier 2 implementation complete, vet fixes applied.*
+*Handoff by Sonnet. Memory index pruning resolved (append-only), design-decisions scope fixed.*

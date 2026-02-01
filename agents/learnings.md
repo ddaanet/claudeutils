@@ -167,3 +167,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Root cause: `qz("startup")` never called for new interactive sessions
 - Don't build features depending on SessionStart until fixed upstream
 - Alternative: Use `@agents/session.md` in CLAUDE.md for task context (already loaded)
+
+**Soft limits on append-only knowledge stores cause aggressive pruning:**
+- Anti-pattern: "Soft limit: N entries" on memory index or similar knowledge stores
+- Correct pattern: Append-only with no limit. Growth is naturally bounded by consolidation rate
+- Rationale: Agents treat soft limits as hard caps and aggressively remove entries. Same failure observed with learnings.md (80-line limit)
+- Corollary: Consolidation (merging entries into summaries) loses keyword discovery surface for on-demand targets — only safe for already-@-imported targets
+
+**/opus-design-question should not be used inside /design sessions:**
+- Anti-pattern: Design skill step 1 says "use /opus-design-question for architectural choices" — but design sessions exist to make those decisions
+- Correct pattern: Scope /opus-design-question to planning and execution phases only. Design sessions reason through decisions directly
+- Root cause: `design-decisions.md` fragment said "any workflow phase" — too broad, included the design phase itself

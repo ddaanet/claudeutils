@@ -602,6 +602,31 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 
 **Reference:** Decision based on comprehensive evaluation (2026-01-07) comparing Prettier, markdownlint-cli2, and remark-cli across CommonMark compliance, idempotency, configuration options, and test corpus validation
 
+## Memory Index Pruning
+
+### Growth + Consolidation Model
+
+**Decision Date:** 2026-02-01
+
+**Decision:** No active pruning. Soft limit (100 entries) triggers consolidation of related entries into domain summaries, not deletion.
+
+**Options considered:**
+- A) No pruning, just growth — simple but index could become noisy
+- B) Redundancy-based (remove when fragment is @-imported) — circular: index catalogs ALL knowledge
+- C) Staleness-based (remove after N cycles without relevance) — requires metadata tracking, learnings aren't ephemeral
+- D) Coverage-based (replace granular entries with domain summaries) — natural consolidation pattern
+
+**Chosen:** A — append-only, no pruning, no consolidation, no limit.
+
+**Rationale:**
+- Each entry provides keyword-rich discovery surface for on-demand knowledge — removal loses ambient awareness
+- Consolidation into domain summaries kills keyword matching (e.g., "Sandbox patterns" won't trigger when agent works on `prepare-runbook.py`)
+- Soft limits cause the same failure as learnings.md: agents treat them as hard caps and aggressively prune
+- Token cost is modest: 200 entries × ~25 tokens ≈ 5000 tokens (acceptable for always-loaded context)
+- Growth is naturally bounded by consolidation rate (~5-10 entries/session)
+
+**Impact:** memory-index.md header updated (append-only), consolidation-patterns.md updated, no changes to /remember skill logic.
+
 ## Claude Code Rule Files
 
 ### Rule Files for Context Injection
