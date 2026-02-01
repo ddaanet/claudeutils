@@ -1,18 +1,18 @@
 # Session Handoff: 2026-02-01
 
-**Status:** Workflow skills updated with clipboard integration for STATUS displays.
+**Status:** Workflow skills improved with clipboard integration and better submodule/gitmoji guidance.
 
 ## Completed This Session
 
-**Updated commit and handoff skills with clipboard integration** (Tier 1 direct):
-- Added pbcopy command to commit skill's Post-Commit section
-- Added pbcopy command to handoff skill's Display STATUS section
-- Both skills now copy next command to clipboard after displaying STATUS
-- Documented sandbox bypass requirement (pbcopy blocked by sandbox)
-- Enables paste-and-go workflow for pending tasks
+**Improved commit skill guidance** (Tier 1 direct):
+- Added clipboard integration to commit and handoff skills (pbcopy after STATUS display)
+- Fixed submodule guidance: use subshell pattern `(cd submodule && git ...)` to preserve working directory
+- Added concrete command templates in submodule section
+- Removed inlined gitmoji examples (eliminates bias - gitmoji-index.txt is sole source)
+- Documented sandbox bypass requirement for pbcopy
 - All checks passed (`just dev`)
 
-**Previous work (earlier session):**
+**Earlier session:**
 - Added plugin-topic detection to design skill
 
 ## Pending Tasks
