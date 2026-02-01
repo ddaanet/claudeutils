@@ -63,3 +63,16 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Producing full design.md in a single pass, then discovering user wanted different approach
 - Correct pattern: Produce freeform outline first, iterate with user via incremental deltas, then generate full design after validation
 - Escape hatch: If user already specified approach/decisions/scope, compress outline+discussion into single validation
+
+**Vet review catches structure misalignments before execution:**
+- Anti-pattern: Writing runbook steps based on assumed structure ("lines ~47-78") without reading actual files
+- Correct pattern: Vet agent validates file paths AND structural assumptions via Glob/Read during review
+- Example: plan-adhoc Point 0.5 actually at line 95, plan-tdd uses "Actions:" not "Steps:"
+- Impact: Prevented execution failures from incorrect section identification
+- Critical: Vet review with path validation is a blocker-prevention mechanism, not just quality check
+
+**Model selection for interpreting design guidance:**
+- Anti-pattern: Assigning haiku to tasks requiring interpretation of design intent ("add escape hatch if...")
+- Correct pattern: Haiku for explicit edits with exact text provided, sonnet for generating markdown from design guidance
+- Rationale: Haiku executes what's specified, sonnet interprets intent and produces explicit text
+- Trade-off: Sonnet costs more but prevents re-work from under-specified haiku tasks
