@@ -15,6 +15,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 ## Workflow Patterns
 
+- Design docs include skill-loading directives for plugin topics (hooks/agents/skills) — planner loads plugin-dev:* skill before runbook creation → `agent-core/skills/design/SKILL.md`
 - Weak orchestrator pattern: task agents report to files (quiet execution) to prevent context pollution → `agents/decisions/workflows.md`
 - TDD workflow: RED (failing tests) → GREEN (behavior hints, not prescriptive code) → REFACTOR cycles → `agents/decisions/workflows.md`
 - Handoff pattern: store learnings inline in session.md, not separate file system - simpler to edit and update → `agents/decisions/workflows.md`
