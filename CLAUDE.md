@@ -24,6 +24,10 @@
 
 ---
 
+@agent-core/fragments/memory-index.md
+
+---
+
 ## Communication Rules
 
 @agent-core/fragments/communication.md
