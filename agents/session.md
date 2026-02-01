@@ -1,28 +1,31 @@
 # Session Handoff: 2026-02-01
 
-**Status:** /reflect skill design complete, vetted by opus.
+**Status:** /reflect skill implemented, vetted, ready to use.
 
 ## Completed This Session
 
-**Designed /reflect skill** (`plans/reflect-skill/design.md`):
-- Structured RCA skill for diagnosing agent deviations in-session
-- Key constraint: must run in deviation session (conversation context is diagnostic evidence)
-- User flow: interrupt → confirm (optional) → opus takeover → /reflect
-- Session-break framing block forces diagnostic mindset shift (prevents execution-mode continuation)
-- Three exit paths: fix in-session, RCA complete + handoff, partial RCA + handoff
-- All paths tail-call `/handoff --commit`
-- Vetted by opus: 0 critical, 3 major (all fixed), 5 minor (relevant ones fixed)
-- Fixes applied: allowed-tools frontmatter, conversation scanning clarity, slug-based RCA paths, user-invocable field, /remember line count check, memory-index entry draft
+**Implemented /reflect skill** (Tier 1 direct implementation):
+- Created `agent-core/skills/reflect/SKILL.md` (1,542 words)
+- Created `references/patterns.md` (1,236 words) — 11 deviation patterns with diagnostic heuristics
+- Created `references/rca-template.md` (651 words) — structured RCA report format
+- Symlinked to `.claude/skills/reflect` via `just sync-to-parent`
+- Added memory index entry
+- Vetted by skill-reviewer agent: Pass with 3 minor issues, all fixed
+- All checks passed (`just dev`)
 
-**Design decisions made during discussion:**
-- RCA requires conversation context where error occurred — cannot be post-session
-- Opus session takeover is the mechanism (haiku/sonnet can't reliably self-diagnose)
-- Framing block essential: without it, agent stays in execution mode and applies quick fixes
-- Three exit paths needed because context budget varies and upstream doc fixes may require new session
-- "reflect" is the right name — short, clear verb for self-analysis
+**Skill review fixes applied:**
+- Changed "approaching 80 lines" to "≥70 lines" threshold (3 locations)
+- Converted numbered examples to bullet format (eliminates renumbering churn)
+- Added slug format guidance: kebab-case description (e.g., `orchestrator-dirty-tree`)
+
+**Tier assessment rationale:**
+- Design complete, all decisions made
+- 4-5 straightforward file creates/edits (<200 lines each)
+- Single cohesive skill (no parallelization benefit)
+- Single session, single model
+- No orchestration needed
 
 ## Pending Tasks
-- [ ] **Implement /reflect skill** — `/plan-adhoc plans/reflect-skill/design.md` | sonnet
 - [ ] **Insert skill loading in design docs** — design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills | sonnet
 - [ ] **Update workflow skills: pbcopy next command** — commit/handoff STATUS display copies next command to clipboard | sonnet
 - [ ] **Add "go read the docs" checkpoints** — partially addressed by design-work.md rule | sonnet
@@ -43,7 +46,7 @@
 
 ## Next Steps
 
-Implement /reflect skill from design: `/plan-adhoc plans/reflect-skill/design.md`
+Insert skill loading in design docs: design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills.
 
 ---
-*Handoff by Sonnet. Design complete, ready for planning.*
+*Handoff by Sonnet. /reflect skill implemented and ready to use after session restart.*
