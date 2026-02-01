@@ -1,36 +1,31 @@
 # Session Handoff: 2026-02-01
 
-**Status:** Memory index pruning resolved, design-decisions scope fixed.
+**Status:** PreToolUse symlink-redirect hook implemented and tested.
 
 ## Completed This Session
 
-**Memory index pruning design resolved:**
-- Evaluated 4 options (no-prune, redundancy-based, staleness-based, coverage-based)
-- Initial decision: A+D hybrid (grow + consolidate on threshold)
-- User identified consolidation loses keyword discovery surface for on-demand targets
-- Further identified soft limits cause same failure as learnings.md (agents treat as hard cap, aggressively prune)
-- **Final decision:** Append-only, no limits, no pruning, no consolidation
-- Rationale: Each entry is keyword-rich discovery surface; growth bounded by consolidation rate; token cost modest (200 entries ≈ 5000 tokens)
-- Problem doc deleted (`plans/ambient-awareness/memory-index-pruning-problem.md`)
-- Decision recorded in `agents/decisions/architecture.md`
-
-**Design-decisions scope fix:**
-- `/opus-design-question` was invoked inside `/design` session — circular (design session exists to make decisions)
-- Root cause: `design-decisions.md` fragment said "any workflow phase" — too broad
-- Fix: Scoped to "planning or execution" with explicit design session exclusion
-- Updated both `agent-core/fragments/design-decisions.md` and `agent-core/skills/design/SKILL.md`
+**PreToolUse hook: block symlink writes:**
+- Created `agent-core/hooks/pretooluse-symlink-redirect.sh`
+- Blocks Write/Edit operations to files symlinked to agent-core
+- Updated `pretooluse-block-tmp.sh` to also check Edit tool (was Write-only)
+- Updated `.claude/settings.json` — combined both hooks under `Write|Edit` matcher
+- Synced symlinks via `just sync-to-parent`
+- Updated `agent-core/agents/test-hooks.md` with Test 12 (block symlinks) and Test 13 (allow direct paths)
+- Hook message refined: concise format with correct tool name and relative path
+  - Final format: `🚫 BLOCKED: This file is symlinked to agent-core\nInstead, Edit file: agent-core/path/to/file.md`
+- Hook tested and working correctly in main session
 
 **Files changed:**
-- Parent: `agents/decisions/architecture.md` (pruning decision), `plans/ambient-awareness/memory-index-pruning-problem.md` (deleted)
 - Submodule agent-core:
-  - `fragments/memory-index.md` (append-only header)
-  - `fragments/design-decisions.md` (scoped to planning/execution)
-  - `skills/design/SKILL.md` (explicit exclusion note)
-  - `skills/remember/references/consolidation-patterns.md` (append-only guidance)
+  - `hooks/pretooluse-symlink-redirect.sh` (new)
+  - `hooks/pretooluse-block-tmp.sh` (now checks both Write and Edit)
+  - `agents/test-hooks.md` (added Test 12/13, updated count to 13 tests)
+- Parent:
+  - `.claude/settings.json` (PreToolUse Write|Edit matcher with both hooks)
+  - `.claude/hooks/pretooluse-symlink-redirect.sh` (symlink created)
 
 ## Pending Tasks
 
-- [ ] **PreToolUse hook: block symlink writes** — block writes to files that are symlinks to agent-core, redirect to correct path relative to project root | sonnet
 - [ ] **Run /remember** — learnings file at 169/80 lines, needs consolidation urgently | sonnet
 - [ ] **Create /reflect skill** — deviation detection → RCA → fix → handoff/commit automation. Load plugin-dev skills first | opus
 - [ ] **Insert skill loading in design docs** — design skill should load relevant plugin-dev skills when topic involves hooks/agents/skills | sonnet
@@ -58,4 +53,4 @@
 Run `/remember` to consolidate learnings.
 
 ---
-*Handoff by Sonnet. Memory index pruning resolved (append-only), design-decisions scope fixed.*
+*Handoff by Sonnet. PreToolUse symlink-redirect hook implemented and tested.*
