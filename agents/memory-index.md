@@ -8,9 +8,10 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 - Tool batching enforcement is unsolved - documentation unreliable, hookify rules add bloat, cost-benefit unclear → `agents/learnings.md`
 - Script-First Evaluation: check project recipes (just --list) before ad-hoc commands - recipes encode institutional knowledge → `agent-core/fragments/project-tooling.md`
-- Don't delegate when context already loaded - delegation makes agent re-read everything, wastes tokens → `agents/learnings.md`
+- Don't delegate when context already loaded - delegation makes agent re-read everything, wastes tokens → `agents/decisions/workflows.md`
 - Use AskUserQuestion tool for multi-option choices, not prose questions - y/n binds to last question creating ambiguity → `agent-core/fragments/communication.md`
 - Three-tier assessment (direct/lightweight delegation/full runbook) determines implementation approach based on complexity → `agents/decisions/workflows.md`
+- Automation directives need unambiguous boundaries - use explicit prohibitions not vague "drive to completion" → `agent-core/fragments/communication.md`
 
 ## Workflow Patterns
 
@@ -21,6 +22,10 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 - Checkpoint process: fix checkpoint (just dev) then vet checkpoint at natural boundaries, not per-step → `agents/decisions/workflows.md`
 - Commit verification defense-in-depth: tdd-task checks commit content, orchestrate checks working tree state → `agents/decisions/workflows.md`
 - TDD commit squashing: backup tag → reset --soft → squashed commit, preserves cycle detail in reports → `agents/decisions/workflows.md`
+- All tiers end with /handoff --commit - handoff captures context/learnings regardless of session restart need → `agents/decisions/workflows.md`
+- Handoff --commit assumes commit succeeds - session.md reflects post-commit state, no pending commit language → `agents/decisions/workflows.md`
+- Leverage vet agent context for fixes instead of launching new agents - saves token waste from re-reading → `agents/decisions/workflows.md`
+- Single-layer complexity assessment - no double-assessment between entry point and planning skill → `agents/decisions/workflows.md`
 
 ## Technical Decisions
 
@@ -33,13 +38,22 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 - Memory index is append-only with no limit - consolidation loses keyword discovery, growth bounded naturally → `agents/decisions/architecture.md`
 - Claude Code rule files with path frontmatter for automatic context injection when editing domain files → `agents/decisions/architecture.md`
 - Model terminology: premium (Opus), standard (Sonnet), efficient (Haiku) - clearer than T1/T2/T3 → `agents/decisions/architecture.md`
+- Skill discovery needs 4 layers - CLAUDE.md fragment, path rules, in-workflow reminders, directive description → `agents/decisions/architecture.md`
+- Agent frontmatter YAML must use multi-line syntax (|) for descriptions with examples to prevent parse errors → `agents/decisions/architecture.md`
+- Symlinks can become regular files after formatters - verify symlinks after just dev, ruff format operations → `agents/decisions/architecture.md`
+- Heredocs work in sandbox via TMPPREFIX="${TMPDIR:-/tmp}/zsh" in claude-env.sh (zsh-specific fix) → `agents/decisions/architecture.md`
 
 ## Tool & Infrastructure
 
-- Sandbox bypass requires both permissions.allow (no prompt) and dangerouslyDisableSandbox (reliable bypass) → `agents/learnings.md`
-- prepare-runbook.py must git add its own artifacts - script owns knowledge of what it creates → `agents/learnings.md`
-- Submodule commits: when modified, commit submodule first then stage pointer in parent to avoid sync drift → `agents/learnings.md`
-- Hook development: use both additionalContext (agent sees) and systemMessage (user sees), YAML must be strict → `agents/learnings.md`
+- Sandbox bypass requires both permissions.allow (no prompt) and dangerouslyDisableSandbox (reliable bypass) → `agent-core/fragments/sandbox-exemptions.md`
+- prepare-runbook.py must git add its own artifacts - script owns knowledge of what it creates (IMPLEMENTED) → `agents/learnings.md`
+- Submodule commits: when modified, commit submodule first then stage pointer in parent to avoid sync drift (IMPLEMENTED) → `agents/learnings.md`
+- Hook development: use both additionalContext (agent sees) and systemMessage (user sees), YAML must be strict → `agent-core/fragments/claude-config-layout.md`
 - Session shortcuts: x (smart execute/resume), xc (execute + commit), r (strict resume), s (status display) → `agent-core/fragments/execute-rule.md`
-- Vet agent selection: vet-agent (review only, Tier 1/2) vs vet-fix-agent (review + fix, Tier 3 orchestration) → `agents/learnings.md`
+- Vet agent selection: vet-agent (review only, Tier 1/2) vs vet-fix-agent (review + fix, Tier 3 orchestration) → `agent-core/fragments/vet-requirement.md`
 - TDD RED phase tests must verify behavior with mocking/fixtures, not just structure (exit code, key existence) → `agents/decisions/testing.md`
+- UserPromptSubmit hooks cannot rewrite prompts - only add additionalContext or block, no matcher support → `agent-core/fragments/claude-config-layout.md`
+- Hooks only active in main session - do NOT fire in sub-agents spawned via Task tool → `agent-core/fragments/claude-config-layout.md`
+- Hook security: use exact match for restore operations, not startswith() - prevents shell operator exploitation → `agent-core/fragments/claude-config-layout.md`
+- Case-sensitive shortcuts unreliable for LLM interpretation - use distinct tokens (xc vs x) not case (X vs x) → `agent-core/fragments/execute-rule.md`
+- Shortcut systems need two layers - hook for exact-match expansion, fragment for inline vocabulary comprehension → `agent-core/fragments/execute-rule.md`

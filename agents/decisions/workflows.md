@@ -292,3 +292,81 @@ plans/<stream-name>/
 **Rationale:** Catches different failure modes at different levels (commit content vs working tree state).
 
 **Impact:** Robust commit verification without single point of failure.
+
+## Handoff Workflow
+
+### Handoff Tail-Call Pattern
+
+**Decision Date:** 2026-02-01
+
+**Decision:** All tiers (1/2/3) must end with `/handoff --commit`, never bare `/commit`.
+
+**Anti-pattern:** Tier 1/2 skip handoff because "no session restart needed"
+
+**Correct pattern:** Always tail-call `/handoff --commit` — handoff captures session context and learnings regardless of tier
+
+**Rationale:** Handoff is about context preservation, not just session restart. Even direct implementations produce learnings and update pending task state.
+
+**Impact:** Consistent workflow termination across all tier levels.
+
+### Handoff Commit Assumption
+
+**Decision Date:** 2026-02-01
+
+**Decision:** session.md reflects post-commit state when `--commit` flag is used.
+
+**Anti-pattern:** Writing "Ready to commit" in Status or "pending commit" in footer when `--commit` flag is active
+
+**Correct pattern:** Write status reflecting post-commit state — the tail-call makes commit atomic with handoff
+
+**Rationale:** Next session reads session.md post-commit. Stale commit-pending language causes agents to re-attempt already-completed commits. The rule against commit tasks in Pending/Next Steps must extend to ALL sections.
+
+**Impact:** Prevents duplicate commit attempts in subsequent sessions.
+
+## Workflow Efficiency
+
+### Delegation with Context
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Don't delegate when context is already loaded.
+
+**Anti-pattern:** Reading files, gathering context, then delegating to another agent (which re-reads everything)
+
+**Correct pattern:** If you already have files in context, execute directly — delegation adds re-reading overhead
+
+**Rationale:** Token economy. Agent overhead (context setup + re-reading) exceeds cost of continuing in current model.
+
+**Corollary:** Delegate when task requires *new* exploration you haven't done yet.
+
+**Impact:** Reduces token waste from redundant context loading.
+
+### Routing Layer Efficiency
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Single-layer complexity assessment, not double assessment.
+
+**Anti-pattern:** Entry point skill assesses complexity, then routes to planning skill which re-assesses complexity (tier assessment)
+
+**Correct pattern:** Single entry point with triage that routes directly to the appropriate depth — no intermediate routing layer
+
+**Rationale:** Each assessment reads files, analyzes scope, produces output. Two assessments for the same purpose is pure waste.
+
+**Example:** Oneshot assessed simple/moderate/complex, then /plan-adhoc re-assessed Tier 1/2/3 — same function, different labels.
+
+**Impact:** Eliminates redundant analysis overhead.
+
+### Vet Agent Context Usage
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Leverage vet agent context for fixes instead of launching new agents.
+
+**Anti-pattern:** When removal agent makes mistakes and vet catches them, launching a new fix agent (which re-reads everything)
+
+**Correct pattern:** If vet agent has context of what's wrong, leverage it. If caller also has context (from reading vet report), apply fixes directly.
+
+**Rationale:** Tier 1/2 pattern — caller reads report, applies fixes with full context. No need for another agent round-trip.
+
+**Impact:** Faster fix cycles without redundant context loading.

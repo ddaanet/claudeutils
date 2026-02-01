@@ -678,3 +678,82 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 - Clear model selection guidance in delegation
 - No ambiguity in documentation and skill instructions
 - Easier for users to understand model choices
+
+## Skill Discovery
+
+### Multi-Layer Discovery Pattern
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Skills require multiple discovery layers, not just good internal documentation.
+
+**Anti-pattern:** Build well-documented skill and assume agents will find it ("build it and they will come")
+
+**Correct pattern:** Surface skills via 4 discovery layers:
+1. CLAUDE.md fragment or always-loaded context
+2. Path-triggered `.claude/rules/` entry
+3. In-workflow reminders in related skills
+4. Directive skill description
+
+**Rationale:** Agents only see skill listing descriptions and always-loaded context. Internal skill docs are invisible until invoked.
+
+**Example:** opus-design-question skill had 248-line docs but zero external visibility — agents asked user instead of consulting it. Fixed with 4-layer approach.
+
+**Impact:** Ensures skills are discoverable and used appropriately.
+
+## Agent Development
+
+### Agent Frontmatter YAML Validation
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Agent frontmatter YAML must use multi-line syntax (`|`) for descriptions containing examples.
+
+**Anti-pattern:**
+```yaml
+description: Short description
+<example>...</example>
+```
+
+**Correct pattern:**
+```yaml
+description: |
+  Short description with examples
+  <example>...</example>
+```
+
+**Rationale:** YAML parsers treat unindented content after `description:` as new fields. Invalid YAML prevents agent registration. Multi-line string syntax (`|`) makes examples part of description value.
+
+**Impact:** Prevents agent registration failures due to invalid YAML.
+
+## Symlink Management
+
+### Symlink Persistence
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Verify symlinks after operations that reformat files.
+
+**Anti-pattern:** Assume symlinks in `.claude/hooks/` persist across tool operations
+
+**Correct pattern:** Verify symlinks after `just dev`, `ruff format`, or similar formatters
+
+**Rationale:** Formatters follow symlinks and may replace them with reformatted copies. `just dev` did this to both hook .py files.
+
+**Impact:** Use `just sync-to-parent` to restore symlinks after formatting operations.
+
+## Shell Environment
+
+### Heredoc Sandbox Compatibility
+
+**Decision Date:** 2026-02-01 (SOLVED)
+
+**Problem:** Heredocs broken in sandbox mode — zsh uses `TMPPREFIX` (not `TMPDIR`) for heredoc temp files. Default `/tmp/zsh` is outside sandbox allowlist.
+
+**Solution:** `export TMPPREFIX="${TMPDIR:-/tmp}/zsh"` in `agent-core/configs/claude-env.sh` (sourced by `.envrc`)
+
+**Rationale:** Claude Code sandbox sets TMPDIR but not TMPPREFIX for zsh.
+
+**Status:** Resolved in agent-core configuration.
+
+**Impact:** Heredocs work correctly in sandbox mode.
