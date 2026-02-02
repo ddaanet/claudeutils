@@ -96,3 +96,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Read each step file's "Execution Model" field and pass that to Task tool's model parameter
 - Impact: Haiku step agents skip complex behaviors (vet delegation, commit sequences) that sonnet would follow
 - Fix: Clarified orchestrate skill Section 3.1 — model comes from step file, not orchestrator default
+
+**Design-vet-agent replaces inline opus delegation for design review:**
+- Was: design skill used `Task(subagent_type="general-purpose", model="opus")` for design review
+- Now: design skill uses `Task(subagent_type="design-vet-agent")` — dedicated agent with opus model
+- Benefits: Artifact-return pattern (detailed report to file), specialized review protocol, consistent with vet-agent/vet-fix-agent structure
+- Three-agent vet system: vet-agent (code, sonnet), vet-fix-agent (code + fixes, sonnet), design-vet-agent (architecture, opus)
