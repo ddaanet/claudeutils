@@ -27,6 +27,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 - Handoff --commit assumes commit succeeds - session.md reflects post-commit state, no pending commit language → `agents/decisions/workflows.md`
 - Leverage vet agent context for fixes instead of launching new agents - saves token waste from re-reading → `agents/decisions/workflows.md`
 - Single-layer complexity assessment - no double-assessment between entry point and planning skill → `agents/decisions/workflows.md`
+- Orchestrator model ≠ step agent model — read "Execution Model" from each step file, don't default all to haiku → `agents/learnings.md`
 
 ## Technical Decisions
 

@@ -93,3 +93,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Root cause: Baseline template designed for ad-hoc delegation (no auto-commit), but orchestrated execution requires clean tree after every step
 - Fix: Qualified quiet-task.md line 112 to add "or a clean-tree requirement is specified"
 - Broader lesson: Appended context at bottom of agent file has weak positional authority vs bolded NEVER in core constraints section — contradictions resolve in favor of the structurally prominent directive
+
+**Orchestrator model ≠ step agent model:**
+- Anti-pattern: Using orchestrator's own model (haiku) for all step agent Task invocations
+- Root cause: Orchestrate skill said "model: [from orchestrator metadata, typically haiku]" — ambiguous, conflated orchestrator model with step execution model
+- Correct pattern: Read each step file's "Execution Model" field and pass that to Task tool's model parameter
+- Impact: Haiku step agents skip complex behaviors (vet delegation, commit sequences) that sonnet would follow
+- Fix: Clarified orchestrate skill Section 3.1 — model comes from step file, not orchestrator default
