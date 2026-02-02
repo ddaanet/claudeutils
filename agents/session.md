@@ -32,7 +32,7 @@
 
 ## Pending Tasks
 
-- [ ] **Execute design workflow enhancement** — `/orchestrate design-workflow-enhancement` | opus | restart
+- [ ] **Execute design workflow enhancement** — `/orchestrate design-workflow-enhancement` | haiku | restart
 - [ ] **Design runbook identifier solution** — `/design plans/runbook-identifiers/problem.md` | opus
 - [ ] **Create design-vet-agent** — dedicated opus agent for design review, artifact-return pattern | opus
 - [ ] **Add execution metadata to step files** — step files declare dependencies and execution mode | sonnet
@@ -73,9 +73,9 @@
 
 ## Next Steps
 
-User will commit RCA fixes and Step 2 report separately, then restart session with opus model to resume orchestration.
+User will commit RCA fixes and Step 2 report separately, then restart session with haiku model to resume orchestration.
 
-**Why opus needed:** Next orchestration must run on opus so Task delegation respects per-step model specifications (Steps 1-3: sonnet, Step 4: haiku). Previous attempt ran orchestrator on haiku which ignored step model fields.
+**Why haiku still works:** Orchestrate skill now instructs haiku to read per-step "Execution Model" fields and pass them to Task tool. Haiku orchestrator can correctly delegate Steps 1-3 to sonnet and Step 4 to haiku by reading step file metadata.
 
 ---
 *Handoff by Opus. Model selection RCA complete, orchestrate skill fixed, awaiting commits before resuming execution.*
