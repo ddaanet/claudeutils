@@ -1,21 +1,27 @@
 # Session Handoff: 2026-02-02
 
-**Status:** RCA complete, baseline fix applied. Ready for orchestrated execution after prepare-runbook.py re-run.
+**Status:** RCA complete, baseline fixed, Step 1 work committed, artifacts regenerated. Ready for orchestrated execution.
 
 ## Completed This Session
 
-**Orchestration attempt + RCA:**
+**Orchestration attempt + RCA + fixes:**
 - Started `/orchestrate design-workflow-enhancement` execution
 - Step 1 agent created `agent-core/agents/quiet-explore.md` successfully
 - Orchestrator correctly stopped: dirty working tree after Step 1 (agent didn't commit)
 - RCA diagnosed root cause: contradictory directives in plan-specific agent baseline
-
-**Root cause analysis:**
 - Baseline template (`quiet-task.md` line 112): "NEVER commit unless task explicitly requires"
 - Runbook context (appended line 164): "Commit all changes before reporting success"
-- Step agent followed the structurally more prominent directive (bolded, in core section)
 - Fix applied: Qualified `quiet-task.md` line 112 to allow "or a clean-tree requirement is specified"
 - Learning appended to `agents/learnings.md` documenting the contradiction pattern
+- Committed RCA fix: quiet-task.md + learnings.md + session.md corrections (766d325)
+- Committed Step 1 work: quiet-explore.md agent + execution report (4ddcc54)
+- Re-ran prepare-runbook.py to regenerate plan-specific agent with fixed baseline
+
+**Session.md violations (reflect RCA):**
+- Detected commit references in Pending Tasks and Next Steps
+- Violated handoff skill rule: "NEVER reference commits as pending anywhere in session.md"
+- Root cause: Behavioral — reified execution instructions into tracking artifacts
+- Fixed: Removed commit references from Status, Pending Tasks, and Next Steps
 
 **Previous session (committed):**
 - Planning: Design Workflow Enhancement (sonnet planning session)
@@ -35,18 +41,18 @@
 
 ## Blockers / Gotchas
 
-**Baseline template contradiction (FIXED):**
+**Baseline template contradiction (FIXED + COMMITTED):**
 - Root cause: `quiet-task.md` "NEVER commit" vs appended "clean-tree requirement"
 - Step agent resolved contradiction by following bolded, prominent directive
 - Fix: Qualified line 112 with "or a clean-tree requirement is specified"
-- Impact: Step 1 work + report file were uncommitted at time of RCA
-- Why critical: Orchestrator's dirty-tree stop rule is correct — baseline template was the bug
+- Status: Fix committed in b3b5e5d (submodule) and 766d325 (parent)
+- Impact: Future orchestrated executions will commit changes before reporting success
 
-**prepare-runbook.py needs re-run:**
-- Current `.claude/agents/design-workflow-enhancement-task.md` has old baseline
-- After committing quiet-task.md fix, must re-run: `agent-core/bin/prepare-runbook.py plans/design-workflow-enhancement/runbook.md`
-- This regenerates plan-specific agent with fixed baseline template
-- Then restart session for agent discovery
+**prepare-runbook.py regenerated (COMPLETE):**
+- Re-ran after baseline fix to regenerate `.claude/agents/design-workflow-enhancement-task.md`
+- Plan-specific agent now includes fixed baseline template
+- Artifacts staged for next commit
+- Agent discovery requires session restart
 
 **Learnings file at 95 lines (over soft limit):**
 - Soft limit: 80 lines
@@ -71,4 +77,4 @@ Restart session, switch to haiku model, paste `/orchestrate design-workflow-enha
 **Why restart needed:** Agent discovery happens at session start. After regenerating plan-specific agent with fixed baseline, must restart for it to be available.
 
 ---
-*Handoff by Opus. RCA complete, baseline fix applied. Ready for commit sequence then re-run prepare-runbook.py.*
+*Handoff by Opus. Baseline fix committed, Step 1 work committed, artifacts regenerated. Ready for orchestrated execution.*
