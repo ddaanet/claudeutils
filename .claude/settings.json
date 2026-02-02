@@ -44,9 +44,28 @@
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/pretooluse-symlink-redirect.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/submodule-safety.py"
+          }
+        ]
       }
     ],
-    "PostToolUse": [],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/submodule-safety.py"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [

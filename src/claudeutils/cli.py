@@ -9,14 +9,17 @@ from typing import cast
 
 import click
 
+from claudeutils.account.cli import account
 from claudeutils.compose import compose, load_config
 from claudeutils.discovery import list_top_level_sessions
 from claudeutils.exceptions import ClaudeUtilsError
 from claudeutils.extraction import extract_feedback_recursively
 from claudeutils.filtering import categorize_feedback, filter_feedback
 from claudeutils.markdown import process_file
+from claudeutils.model.cli import model
 from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
+from claudeutils.statusline.cli import statusline
 from claudeutils.tokens_cli import handle_tokens
 
 
@@ -144,6 +147,11 @@ def list_sessions(project: str | None) -> None:
     else:
         for session in sessions:
             print(f"[{session.session_id[:8]}] {session.title}")
+
+
+cli.add_command(account)
+cli.add_command(model)
+cli.add_command(statusline)
 
 
 @cli.command(help="Extract feedback from session")

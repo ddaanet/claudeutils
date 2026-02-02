@@ -117,25 +117,25 @@ git commit -m "..."   # Commit with concise message
 
 ### Multi-line Commit Messages
 
-⚠️ **Do NOT use HEREDOC syntax** - sandboxing prevents heredoc operation.
+✅ **Use heredoc syntax for clean formatting:**
 
-✅ **Use multiline string with `-m` flag:**
+```bash
+git commit -m "$(cat <<'EOF'
+Short summary line
+
+Longer explanation of why this change was made and what
+design decisions were involved.
+EOF
+)"
+```
+
+**Alternative:** Literal newlines in double quotes also work:
 
 ```bash
 git commit -m "Short summary line
 
 Longer explanation of why this change was made and what
 design decisions were involved."
-```
-
-🚫 **AVOID heredoc (sandboxing blocks this):**
-
-```bash
-# DON'T DO THIS - will fail in sandbox
-git commit -m "$(cat <<'EOF'
-Short summary line
-EOF
-)"
 ```
 
 ### Message Body Structure
