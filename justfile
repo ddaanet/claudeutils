@@ -23,6 +23,7 @@ cache:
 precommit:
     #!{{ bash_prolog }}
     sync
+    agent-core/bin/task-token.py agents/session.md
     gmake --no-print-directory -C agent-core check
     run-checks
     safe pytest-quiet

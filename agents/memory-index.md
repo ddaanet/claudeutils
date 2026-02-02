@@ -4,14 +4,13 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 **Append-only.** Never remove or consolidate entries — each entry is a keyword-rich discovery surface for on-demand knowledge. Growth is bounded by consolidation rate (~5-10 entries/session) and total token cost is modest (200 entries ≈ 5000 tokens).
 
+**Do not index content already loaded via CLAUDE.md.** Fragments referenced by `@` are in every conversation. Index entries for those add noise without aiding discovery. Only index knowledge that requires on-demand loading.
+
 ## Behavioral Rules
 
 - Tool batching enforcement is unsolved - documentation unreliable, hookify rules add bloat, cost-benefit unclear → `agents/learnings.md`
-- Script-First Evaluation: check project recipes (just --list) before ad-hoc commands - recipes encode institutional knowledge → `agent-core/fragments/project-tooling.md`
 - Don't delegate when context already loaded - delegation makes agent re-read everything, wastes tokens → `agents/decisions/workflows.md`
-- Use AskUserQuestion tool for multi-option choices, not prose questions - y/n binds to last question creating ambiguity → `agent-core/fragments/communication.md`
 - Three-tier assessment (direct/lightweight delegation/full runbook) determines implementation approach based on complexity → `agents/decisions/workflows.md`
-- Automation directives need unambiguous boundaries - use explicit prohibitions not vague "drive to completion" → `agent-core/fragments/communication.md`
 
 ## Workflow Patterns
 
@@ -28,7 +27,6 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 - Leverage vet agent context for fixes instead of launching new agents - saves token waste from re-reading → `agents/decisions/workflows.md`
 - Single-layer complexity assessment - no double-assessment between entry point and planning skill → `agents/decisions/workflows.md`
 - Orchestrator model ≠ step agent model — read "Execution Model" from each step file, don't default all to haiku → `agents/learnings.md`
-
 ## Technical Decisions
 
 - Module architecture: minimal __init__.py (1 line), private helpers stay with callers for cohesion → `agents/decisions/architecture.md`
@@ -47,16 +45,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 ## Tool & Infrastructure
 
-- Sandbox bypass requires both permissions.allow (no prompt) and dangerouslyDisableSandbox (reliable bypass) → `agent-core/fragments/sandbox-exemptions.md`
 - prepare-runbook.py must git add its own artifacts - script owns knowledge of what it creates (IMPLEMENTED) → `agents/learnings.md`
 - Submodule commits: when modified, commit submodule first then stage pointer in parent to avoid sync drift (IMPLEMENTED) → `agents/learnings.md`
-- Hook development: use both additionalContext (agent sees) and systemMessage (user sees), YAML must be strict → `agent-core/fragments/claude-config-layout.md`
-- Session shortcuts: x (smart execute/resume), xc (execute + commit), r (strict resume), s (status display) → `agent-core/fragments/execute-rule.md`
-- Vet agent selection: vet-agent (review only, Tier 1/2) vs vet-fix-agent (review + fix, Tier 3 orchestration) → `agent-core/fragments/vet-requirement.md`
 - TDD RED phase tests must verify behavior with mocking/fixtures, not just structure (exit code, key existence) → `agents/decisions/testing.md`
-- UserPromptSubmit hooks cannot rewrite prompts - only add additionalContext or block, no matcher support → `agent-core/fragments/claude-config-layout.md`
-- Hooks only active in main session - do NOT fire in sub-agents spawned via Task tool → `agent-core/fragments/claude-config-layout.md`
-- Hook security: use exact match for restore operations, not startswith() - prevents shell operator exploitation → `agent-core/fragments/claude-config-layout.md`
-- Case-sensitive shortcuts unreliable for LLM interpretation - use distinct tokens (xc vs x) not case (X vs x) → `agent-core/fragments/execute-rule.md`
-- Shortcut systems need two layers - hook for exact-match expansion, fragment for inline vocabulary comprehension → `agent-core/fragments/execute-rule.md`
 - /reflect skill for in-session RCA of agent deviations — opus model, three exit paths (fix/handoff/partial), returns control to user → `agent-core/skills/reflect/SKILL.md`

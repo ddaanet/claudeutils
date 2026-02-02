@@ -1,53 +1,40 @@
 # Session Handoff: 2026-02-02
 
-**Status:** Step file metadata and file reference validation complete (Tier 1 direct). Ready for next task.
+**Status:** Task token feature complete (Tier 1 direct). Pending tasks get unique identifiers for context recovery.
 
 ## Completed This Session
 
-**Execution metadata for step files — COMPLETE (Tier 1 direct):**
-- `prepare-runbook.py`: Added `extract_step_metadata()` — extracts `**Execution Model**` and `**Report Path**` from step body into structured header
-- Model values normalized to lowercase, validated against `{haiku, sonnet, opus}`, case-insensitive regex
-- `generate_step_file()` and `generate_cycle_file()` emit metadata header; old `**Common Context**` header line removed (redundant)
-- `orchestrate/SKILL.md` updated: references header metadata instead of searching full body
+**Task token feature — COMPLETE:**
+- `agent-core/bin/task-token.py`: Replaces `#YpM1l` placeholders with unique 5-char base62 tokens in session.md
+- `agent-core/bin/task-context.sh`: Looks up token in git history via `git log -S`, outputs session.md from introducing commit
+- Handoff skill + template updated: agents write `#HGkYM` for new pending tasks
+- `execute-rule.md`: Added "Task Pickup: Context Recovery" section — agents run `task-context.sh <token>` before starting any pending task
+- `just precommit`: Runs `task-token.py` before checks (volatile session state exemption from read-only precommit rule)
+- Vet review: `tmp/vet-review-task-tokens.md` — 3 major issues found and fixed (error message syntax, documentation inconsistency, missing context about token lifecycle)
 
-**File reference validation — COMPLETE (Tier 1 direct):**
-- `prepare-runbook.py`: Added `extract_file_references()` and `validate_file_references()`
-- Extracts backtick-wrapped file paths from step content (requires `/` separator to filter module names)
-- Strips fenced code blocks before extraction
-- Skips: report paths, `plans/*/reports/`, Create/Write/mkdir contexts
-- Non-fatal warnings to stderr — earlier steps may create files for later steps
-- Vet reviews: `tmp/vet-review-execution-metadata.md`, `tmp/vet-review-file-ref-validation.md`
+**Reflect RCA — memory-index fragment entries:**
+- Diagnosed: 12 memory-index entries pointed to `@`-loaded fragments (already in every conversation context)
+- Fix: Removed all 12 redundant entries, added exclusion rule to memory-index header
+- Rule: "Do not index content already loaded via CLAUDE.md"
 
-**Step file header format (new):**
-```markdown
-# Step N
-
-**Plan**: `plans/<name>/runbook.md`
-**Execution Model**: sonnet
-**Report Path**: `plans/<name>/reports/step-N.md`
-
----
-
-[step content...]
-```
-
-**Complexity triage:**
-- `/design` assessed as Moderate → routed to `/plan-adhoc` (skip design)
-- `/plan-adhoc` assessed as Tier 1 — 3 files, straightforward edits
+**Design decisions captured:**
+- Precommit read-only with volatile session state exemption
+- `#OJALi` placeholder pattern: handoff writes placeholder, precommit replaces with unique token
+- Task tokens enable scriptable context recovery without LLM "unclear" detection
 
 ## Pending Tasks
 
-- [ ] **Orchestrator scope consolidation** — delegate checkpoint phases in orchestrate skill | sonnet
-- [ ] **Session-log capture for research artifacts** — extract explore/websearch/context7 results from session transcripts for reuse | opus
+- [ ] **Orchestrator scope consolidation** #E7u8A — delegate checkpoint phases in orchestrate skill | sonnet
+- [ ] **Session-log capture for research artifacts** #7EsHS — extract explore/websearch/context7 results from session transcripts for reuse | opus
 
 ## Blockers / Gotchas
 
-**Learnings file at 105 lines (over 80-line soft limit):**
+**Learnings file at ~112 lines (over 80-line soft limit):**
 - Recommendation: Run `/remember` to consolidate older learnings into permanent documentation
 
-**Existing step files NOT regenerated:**
-- Old step files in `plans/*/steps/` still have old header format
-- Historical artifacts from completed runbooks — new runbooks use new format automatically
+**Task tokens not yet tested end-to-end:**
+- `task-context.sh` requires a committed token in git history to test lookup
+- First real test happens when this session's commit lands and a future session picks up a pending task
 
 ---
-*Handoff by Sonnet. Step metadata + file reference validation implemented, all checks passing.*
+*Handoff by Sonnet. Task token feature implemented, vet reviewed, all fixes applied.*

@@ -102,3 +102,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Now: design skill uses `Task(subagent_type="design-vet-agent")` — dedicated agent with opus model
 - Benefits: Artifact-return pattern (detailed report to file), specialized review protocol, consistent with vet-agent/vet-fix-agent structure
 - Three-agent vet system: vet-agent (code, sonnet), vet-fix-agent (code + fixes, sonnet), design-vet-agent (architecture, opus)
+
+**just precommit is read-only (with volatile session state exemption):**
+- Rule: `just precommit` must not modify source files (unlike `just dev` which autoformats)
+- Exemption: Volatile session state (`agents/session.md`) is exempt — `#PNDNG` token expansion runs in precommit
+- Rationale: Precommit is validation, not transformation. Session state is ephemeral metadata, not source code.
