@@ -9,6 +9,8 @@
       "Bash(ruff:*)",
       "Bash(mypy:*)",
       "Bash(docformatter:*)",
+      "Bash(pbcopy:*)",
+      "Bash(agent-core/bin/prepare-runbook.py:*)",
       "Skill",
       "WebSearch"
     ],
@@ -26,6 +28,35 @@
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
-    "excludedCommands": ["git"]
+    "excludedCommands": ["git", "agent-core/bin/prepare-runbook.py"]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/pretooluse-block-tmp.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/pretooluse-symlink-redirect.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/agent-core/hooks/userpromptsubmit-shortcuts.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
   }
 }
