@@ -1,6 +1,6 @@
 # Step 3
 
-**Plan**: `/Users/david/code/claudeutils/plans/design-workflow-enhancement/runbook.md`
+**Plan**: `plans/design-workflow-enhancement/runbook.md`
 **Common Context**: See plan file for context
 
 ---
