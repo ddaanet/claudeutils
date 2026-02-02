@@ -1,37 +1,46 @@
-# Session Handoff: 2026-01-31
+# Session Handoff: 2026-02-02
 
-**Status:** Phase R3 execution complete. Checkpoint passed (Fix + Vet + Functional). All 318 tests passing with zero regressions.
+**Status:** Completed statusline wiring design with opus vet and fixes.
 
 ## Completed This Session
 
-**Phase R3 execution (error handling and integration tests):**
-- Executed 3 TDD cycles with plan-specific agent:
-  - Cycle 3.1: Keychain error handling for FileNotFoundError (commit ac36838)
-  - Cycle 3.2: Missing config file graceful degradation (commit d34b6e1)
-  - Cycle 3.3: Integration test for mode switching round-trip (commit b30fea3)
-- All cycles GREEN with no regressions (318/318 tests)
-- Execution reports: plans/claude-tools-recovery/reports/cycle-3-{1,2,3}-notes.md
+**Statusline design created and vetted:**
+- Root cause analysis: CLI stub exists but data-gathering modules missing (context.py, plan_usage.py, api_usage.py)
+- Design document: `plans/statusline-wiring/design.md` (TDD mode, two-line output matching shell script)
+- Opus vet identified 13 issues (3 critical, 3 major, 7 minor)
+- Fixed all critical/major issues:
+  - C2: Updated switchback plist to include Month/Day fields (not just H/M/S)
+  - CO1: Replaced `limit_display()` with compact `format_plan_limits()` for two limits on one line
+  - CO2: Clarified plan_usage.py calls OAuth API with 10s cache
+  - F1: Memory-efficient transcript parsing (reads last 1MB, not entire file)
+- Added missing details: token humanization, thinking state source, git detached HEAD handling
 
-**Phase R3 checkpoint (Fix + Vet + Functional):**
-- Fix checkpoint: `just dev` passing, all tests clean (reports/checkpoint-3-fix.md)
-- Vet checkpoint: Sonnet quality review completed, no critical/major issues (reports/checkpoint-3-vet.md)
-  - Minor items: keychain add/delete error consistency, mock assertion specificity, platform assumptions documentation
-  - Vet assessment: **Ready** for functional testing
-- Functional checkpoint: All implementations verified non-stubbed, no hardcoded values (reports/checkpoint-3-functional.md)
+**Key requirements (user-provided):**
+- R2: Context must be accurate after session resume (transcript fallback required for user decision)
+- R3: Switchback time display critical (user needs restart notification)
+- R4: Cache TTL 10s (changed from 30s)
+- R6: Use existing rewritten infrastructure (account/model modules)
 
-**Previous session completion (from git log):**
-- Phase R0-R2 execution complete (commits 5ba3e8a back through eb18e3d)
+**Key design decisions:**
+- D2: Context calculation with transcript fallback (primary: current_usage sum, fallback: parse transcript)
+- D5: Subprocess for git (not GitPython - maintenance mode, memory leaks)
+- D7: Update switchback plist creation to add Month/Day, add read function
+- Three modules: context.py (git/thinking/context), plan_usage.py (OAuth API), api_usage.py (stats-cache.json)
+
+**Files modified:**
+- Created: `plans/statusline-wiring/design.md`
+- Created: `plans/statusline-wiring/reports/explore-statusline.md` (haiku agent, completed with classifyHandoffIfNeeded error but report written)
 
 ## Pending Tasks
 
-- [x] **Continue Phase R3 execution** — 5 remaining cycles complete (3 cycles executed, checkpoints passed)
+- [ ] **Plan statusline wiring** — `/plan-tdd plans/statusline-wiring/design.md` | sonnet
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing (prevent orphaned files)
 - [ ] **Update plan-tdd/plan-adhoc skills** — Auto-run prepare-runbook.py with sandbox bypass, handoff, commit, pipe orchestrate command to pbcopy, report restart/model/paste instructions
-- [ ] **Design runbook identifier solution** — /design plans/runbook-identifiers/problem.md (semantic IDs vs relaxed validation vs auto-numbering)
+- [ ] **Design runbook identifier solution** — `/design plans/runbook-identifiers/problem.md` | opus | restart (semantic IDs vs relaxed validation vs auto-numbering)
 - [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
 - [ ] **Add execution metadata to step files** — Step files declare dependencies and execution mode
 - [ ] **Orchestrator scope consolidation** — Update orchestrate skill to delegate checkpoint phases (Fix + Vet + Functional) instead of manual invocation
-- [ ] **Run /remember** — Process learnings from sessions (learnings.md at 153 lines, soft limit 80)
+- [ ] **Run /remember** — Process learnings from sessions (learnings.md at 169 lines, soft limit 80)
 
 ## Blockers / Gotchas
 
@@ -41,30 +50,26 @@
 - Older generation files have outdated assumptions (references tests/test_account.py, hasattr patterns)
 - Action: Need to fix prepare-runbook.py to clean steps/ directory before write
 
-**Vet minor items from Phase R3 — OPTIONAL IMPROVEMENTS:**
-- Keychain add/delete methods lack FileNotFoundError handling (find() has it)
-- Mock assertion in test_account_keychain.py:143 could be more specific (assert_called_once_with)
-- Platform assumptions (macOS security command) not documented
-- Assessment: Low risk, not blocking (only find() called frequently)
-
 ## Reference Files
 
-- **plans/claude-tools-recovery/reports/cycle-3-{1,2,3}-notes.md** - Cycle execution details
-- **plans/claude-tools-recovery/reports/checkpoint-3-{fix,vet,functional}.md** - Checkpoint results
-- **agent-core/fragments/sandbox-exemptions.md** - Commands requiring sandbox bypass (prepare-runbook.py, .claude/ writes)
-- **agent-core/fragments/claude-config-layout.md** - Hook config, agent discovery, bash cwd behavior
+- **plans/statusline-wiring/design.md** — Complete design with requirements, decisions, implementation notes
+- **plans/statusline-wiring/reports/explore-statusline.md** — Exploration findings (existing code, gaps)
+- **plans/claude-tools-rewrite/migration-learnings.md** — Shell-to-Python learnings (avoid duplication, use existing modules)
+- **plans/claude-tools-rewrite/shell-design-decisions.md** — Original shell implementation (context calculation lines 295-312)
+- **agent-core/fragments/sandbox-exemptions.md** — Commands requiring sandbox bypass
+- **agent-core/fragments/claude-config-layout.md** — Hook config, agent discovery
 
 ## Next Steps
 
 **Immediate:**
-- Commit Phase R3 work (ready for commit)
-- Fix prepare-runbook.py: clean steps/ directory before writing
+- Plan statusline wiring TDD runbook
 
 **Upcoming:**
-- Update orchestrate skill: integrate checkpoint phases (Fix + Vet + Functional) into workflow
-- Update plan-tdd/plan-adhoc skills: automate prepare-runbook.py, handoff, clipboard piping
-- Design runbook identifier solution (semantic IDs vs relaxed validation)
-- Run /remember to consolidate learnings.md (153 lines, soft limit 80)
+- Execute statusline runbook with TDD discipline
+- Fix prepare-runbook.py artifact hygiene
+- Update workflow skills (plan-tdd/plan-adhoc) automation
+- Design runbook identifier solution
+- Run /remember to consolidate learnings.md (169 lines, soft limit 80)
 
 ---
-*Handoff by Haiku orchestrator. Phase R3 execution complete: 3 cycles executed (ac36838, d34b6e1, b30fea3), all checkpoints passed (Fix ✓ Vet ✓ Functional ✓), 318/318 tests passing, zero regressions.*
+*Handoff by Opus. Designed statusline wiring (TDD mode), opus vet found 13 issues (3 critical, 3 major), fixed all critical/major. Design ready for planning.*

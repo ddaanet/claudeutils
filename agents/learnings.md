@@ -150,3 +150,17 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: MERGE semantics (carry forward unresolved + add new)
 - Fix: Updated handoff-haiku skill to explicitly merge Pending Tasks and Blockers/Gotchas
 - Impact: Prevents loss of long-term pending work and active gotchas across handoffs
+
+**Design document structure: Requirements vs Decisions:**
+- Anti-pattern: Mixing user requirements with technical decisions in single section, unclear what's changeable
+- Correct pattern: Separate sections — Requirements (user-provided, immutable), Design Decisions (technical choices, changeable by design agent)
+- Rationale: Requirements need user conversation to change; decisions can be revised by appropriate tier (design agent for design decisions, plan agent for implementation decisions)
+- Validation chain: Design vet checks adherence to requirements, plan vet checks adherence to design (requirements + decisions), implementation vet checks adherence to design
+- Example: "Context must be accurate after resume" (requirement) vs "Use subprocess for git" (design decision)
+
+**Plan vet validates design adherence, not requirement satisfaction:**
+- Anti-pattern: Plan vet checking if plan meets user requirements
+- Correct pattern: Plan vet checks if plan follows design decisions (technical choices from design phase)
+- Rationale: Design vet already validated requirements satisfaction; plan vet ensures planner followed the design
+- Implementation vet checks both: adherence to requirements AND design decisions
+- Validation stages: Design vet → requirements, Plan vet → design decisions, Implementation vet → requirements + design decisions
