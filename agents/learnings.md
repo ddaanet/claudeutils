@@ -87,3 +87,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Task agent creates file from spec, then `plugin-dev:agent-creator` reviews and fixes (YAML syntax, description quality, prompt structure)
 - Mechanism: Custom `## Orchestrator Instructions` in runbook specifies per-step subagent_type override. prepare-runbook.py already extracts custom orchestrator sections.
 - Confirmed empirically: agent-creator is cooperative in review mode, has Write access
+
+**Baseline template "NEVER commit" contradicts orchestrator clean-tree requirement:**
+- Anti-pattern: quiet-task.md says "NEVER commit unless task explicitly requires" while prepare-runbook.py appends "Commit all changes before reporting success"
+- Root cause: Baseline template designed for ad-hoc delegation (no auto-commit), but orchestrated execution requires clean tree after every step
+- Fix: Qualified quiet-task.md line 112 to add "or a clean-tree requirement is specified"
+- Broader lesson: Appended context at bottom of agent file has weak positional authority vs bolded NEVER in core constraints section — contradictions resolve in favor of the structurally prominent directive
