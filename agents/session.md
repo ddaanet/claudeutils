@@ -1,40 +1,79 @@
-# Session Handoff: 2026-02-02
+# Session Handoff: 2026-02-03
 
-**Status:** Task token feature complete (Tier 1 direct). Pending tasks get unique identifiers for context recovery.
+**Status:** Memory index update designed. Semantic header marker (`.` prefix for structural), bare line format, validation consolidation. Six requirement docs written.
 
 ## Completed This Session
 
-**Task token feature — COMPLETE:**
-- `agent-core/bin/task-token.py`: Replaces `#YpM1l` placeholders with unique 5-char base62 tokens in session.md
-- `agent-core/bin/task-context.sh`: Looks up token in git history via `git log -S`, outputs session.md from introducing commit
-- Handoff skill + template updated: agents write `#HGkYM` for new pending tasks
-- `execute-rule.md`: Added "Task Pickup: Context Recovery" section — agents run `task-context.sh <token>` before starting any pending task
-- `just precommit`: Runs `task-token.py` before checks (volatile session state exemption from read-only precommit rule)
-- Vet review: `tmp/vet-review-task-tokens.md` — 3 major issues found and fixed (error message syntax, documentation inconsistency, missing context about token lifecycle)
+### Memory Index Update Design — COMPLETE
 
-**Reflect RCA — memory-index fragment entries:**
-- Diagnosed: 12 memory-index entries pointed to `@`-loaded fragments (already in every conversation context)
-- Fix: Removed all 12 redundant entries, added exclusion rule to memory-index header
-- Rule: "Do not index content already loaded via CLAUDE.md"
+**Core decisions:**
+- Default semantic, `.` prefix marks structural: `## Title` (indexed) vs `## .Title` (not indexed)
+- All header levels checked except `#` (document title)
+- Orphan semantic header → ERROR, blocks commit
+- Content after `#` title exempt (document intro)
+- Nested semantic sections allowed
 
-**Design decisions captured:**
-- Precommit read-only with volatile session state exemption
-- `#OJALi` placeholder pattern: handoff writes placeholder, precommit replaces with unique token
-- Task tokens enable scriptable context recovery without LLM "unclear" detection
+**Memory index format:**
+- Bare lines (14% cheaper than list markers)
+- Keyword phrases: `Key — brief description` (8-12 words)
+- Header: "Prefer retrieval-led reasoning over pre-training knowledge."
+
+**Learnings.md format change:**
+- `**Title:**` → `## Title` (no blank line after)
+- Update /handoff skill template
+
+**Artifacts:** `plans/memory-index-update/design.md`, `plans/memory-index-update/requirements.md`
+
+### Token Syntax Research — COMPLETE
+
+Empirical token comparison for memory index formats:
+- Bare lines: 49 tokens (8 entries)
+- List markers: 57 tokens (+16%)
+- Pipes: 48 tokens (−2% vs bare, but poor readability)
+- Semantic markers (`:`, `!`, `§`): all +1 token per header
+
+### Requirement Documents Written
+
+| Document | Status |
+|----------|--------|
+| `plans/memory-index-update/` | Design + requirements |
+| `plans/validator-consolidation/` | Requirements |
+| `plans/task-prose-keys/` | Requirements |
+| `plans/requirements-skill/` | Requirements (research) |
+| `plans/continuation-passing/` | Requirements + outline |
+| `plans/handoff-validation/` | Requirements + outline (depends on continuation-passing) |
+
+### Vercel Ambient Awareness Research
+
+From https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals:
+- Ambient context (100%) vs skill invocation (79%)
+- Skills not triggered 56% of cases
+- Directive: "Prefer retrieval-led reasoning over pre-training knowledge"
 
 ## Pending Tasks
 
+- [ ] **Memory index update** #YWuND — implement design from `plans/memory-index-update/design.md` | sonnet
+- [ ] **Validator consolidation** #pEmoW — move validators to claudeutils package with tests | sonnet
+- [ ] **Task prose keys** #POn2Z — replace hash tokens with prose keys, merge-aware uniqueness | sonnet
+- [ ] **Continuation passing design** #wW6G2 — complete design from requirements | opus
+- [ ] **Handoff validation design** #JZWhk — complete design, requires continuation passing | opus
+- [ ] **Update design skill** #ba5CS — add separate requirements section, update design-review/plan/vet | sonnet
 - [ ] **Orchestrator scope consolidation** #E7u8A — delegate checkpoint phases in orchestrate skill | sonnet
-- [ ] **Session-log capture for research artifacts** #7EsHS — extract explore/websearch/context7 results from session transcripts for reuse | opus
+- [ ] **Session-log capture research** #7EsHS — extract explore/websearch/context7 results from transcripts | opus
+- [ ] **Account tools gap** #1m1i1 — `claudeutils account api` needs API key in keychain | sonnet
 
 ## Blockers / Gotchas
 
-**Learnings file at ~112 lines (over 80-line soft limit):**
+**Learnings file at ~126 lines (over 80-line soft limit):**
 - Recommendation: Run `/remember` to consolidate older learnings into permanent documentation
 
-**Task tokens not yet tested end-to-end:**
-- `task-context.sh` requires a committed token in git history to test lookup
-- First real test happens when this session's commit lands and a future session picks up a pending task
+**Pending micro-tasks (from design discussion):**
+- Validate /remember flexibility to create new sections/files
+- Move append-only directive to `.claude/rules/memory-index.md`
+- Add line-count limit check for archive files in /remember
+
+**Token counting workaround:**
+- `ANTHROPIC_API_KEY=$(cat ~/.claude/api-key) claudeutils tokens ...`
 
 ---
-*Handoff by Sonnet. Task token feature implemented, vet reviewed, all fixes applied.*
+*Handoff by Sonnet. Memory index update designed. Six requirement docs created.*

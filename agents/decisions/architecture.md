@@ -6,6 +6,8 @@ Module structure, path handling, data models, and general architectural decision
 
 ### Minimal `__init__.py`
 
+**Minimal init:**
+
 **Decision:** Keep `src/claudeutils/__init__.py` empty (1 line)
 
 **Rationale:** Prefer explicit imports from specific modules over package-level re-exports for clarity
@@ -19,6 +21,8 @@ from claudeutils.extraction import extract_feedback_recursively
 ```
 
 ### Private Helpers Stay With Callers
+
+**Private helpers cohesion:**
 
 **Decision:** `_extract_feedback_from_file()` in `parsing.py`, `_process_agent_file()` in `discovery.py`
 
@@ -37,6 +41,8 @@ from claudeutils.extraction import extract_feedback_recursively
 ## Path Handling
 
 ### Path Encoding Algorithm
+
+**Path encoding:**
 
 **Decision:** Simple `/` → `-` character replacement with special root handling (`"/"` → `"-"`)
 
@@ -179,6 +185,8 @@ from claudeutils.extraction import extract_feedback_recursively
 
 ### Pydantic for Validation
 
+**Pydantic for validation:**
+
 **Decision:** Use Pydantic BaseModel for all data structures (SessionInfo, FeedbackItem)
 
 **Benefits:**
@@ -227,6 +235,8 @@ This triggers ruff D205 because docformatter doesn't add the blank line that ruf
 
 ### Complexity Management
 
+**Complexity management:**
+
 **Decision:** Extract helper functions when cyclomatic complexity exceeds limits
 
 **Examples:**
@@ -259,6 +269,8 @@ This triggers ruff D205 because docformatter doesn't add the blank line that ruf
 ## Feedback Processing Pipeline
 
 ### Pipeline Architecture
+
+**Feedback processing:**
 
 **Decision:** Three-stage pipeline: `collect` → `analyze` → `rules`
 
@@ -543,6 +555,8 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 
 ### remark-cli Over Prettier
 
+**Remark-cli chosen:**
+
 **Decision Date:** 2026-01-07
 
 **Decision:** Use remark-cli as markdown formatter, not Prettier or markdownlint-cli2.
@@ -606,6 +620,8 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 
 ### Growth + Consolidation Model
 
+**Memory index append-only:**
+
 **Decision Date:** 2026-02-01
 
 **Decision:** No active pruning. Soft limit (100 entries) triggers consolidation of related entries into domain summaries, not deletion.
@@ -630,6 +646,8 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 ## Claude Code Rule Files
 
 ### Rule Files for Context Injection
+
+**Rule files pattern:**
 
 **Decision Date:** 2026-01-27
 
@@ -660,6 +678,8 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 
 ### Premium/Standard/Efficient Naming
 
+**Premium standard efficient:**
+
 **Decision Date:** 2026-01-27
 
 **Decision:** Use "premium/standard/efficient" terminology for model tiers instead of "T1/T2/T3".
@@ -683,6 +703,8 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 
 ### Multi-Layer Discovery Pattern
 
+**Skill discovery layers:**
+
 **Decision Date:** 2026-02-01
 
 **Decision:** Skills require multiple discovery layers, not just good internal documentation.
@@ -704,6 +726,8 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 ## Agent Development
 
 ### Agent Frontmatter YAML Validation
+
+**Agent frontmatter multiline:**
 
 **Decision Date:** 2026-02-01
 
@@ -730,6 +754,8 @@ description: |
 
 ### Symlink Persistence
 
+**Symlinks after formatters:**
+
 **Decision Date:** 2026-02-01
 
 **Decision:** Verify symlinks after operations that reformat files.
@@ -745,6 +771,8 @@ description: |
 ## Shell Environment
 
 ### Heredoc Sandbox Compatibility
+
+**Heredocs in sandbox:**
 
 **Decision Date:** 2026-02-01 (SOLVED)
 
