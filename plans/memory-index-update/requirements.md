@@ -16,8 +16,8 @@ Index header includes: "Prefer retrieval-led reasoning over pre-training knowled
 **FR-4: Section grouping**
 Entries grouped by section headers (## Behavioral Rules, ## Workflow Patterns, etc.)
 
-**FR-5: Semantic header marker**
-Indexed headers in source docs marked with single-char prefix (e.g., `## !Title`).
+**FR-5: Structural header marker**
+Structural (non-indexed) headers marked with `.` prefix: `## .Title`. Semantic headers have no marker (default).
 
 **FR-6: Token efficiency**
 Target: ~60% savings over original verbose format while maintaining keyword surface.
@@ -49,7 +49,7 @@ Titles are globally unique. Grep finds source file.
 Token comparison: bare lines 14% cheaper than `- ` prefixed (49 vs 57 tokens for 8 entries).
 
 **D-2: Line breaks beat pipes**
-Pipes 12% cheaper (50 vs 57) but: markdown rendering, human editing, git diffs favor line breaks.
+Bare lines (49 tokens) beat pipes (50 tokens) AND list markers (57 tokens). Pipes offer no token advantage and hurt readability/git-diffs.
 
 **D-3: Keyword phrases restore retrieval surface**
 Title-only (current) loses keyword surface. Phrases like "docs unreliable, hookify bloats" add retrieval cues.

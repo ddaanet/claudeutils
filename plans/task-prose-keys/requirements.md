@@ -63,14 +63,17 @@ Task key "Implement foo" and learning key "Implement foo" would conflict. Valida
 
 ## Task Format
 
+**Current (with hash tokens):**
 ```markdown
-## Pending Tasks
-
-- [ ] **Orchestrator scope consolidation** — delegate checkpoint phases | sonnet
-- [ ] **Session-log capture research** — extract results from transcripts | opus
+- [ ] **Orchestrator scope consolidation** #E7u8A — delegate checkpoint phases | sonnet
 ```
 
-Key = "Orchestrator scope consolidation"
+**After (prose key = task name):**
+```markdown
+- [ ] **Orchestrator scope consolidation** — delegate checkpoint phases | sonnet
+```
+
+Key = "Orchestrator scope consolidation" (the bold task name, no separate token needed)
 
 ---
 

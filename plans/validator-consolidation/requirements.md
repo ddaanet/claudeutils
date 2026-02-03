@@ -8,7 +8,7 @@
 Single claudeutils entry point for all validation: `claudeutils validate [targets]`
 
 **FR-2: Learnings validation**
-- Title format: semantic marker + title text
+- Title format: `## Title` header (no marker for semantic, `.` prefix for structural)
 - Max word count per title (5 words)
 - No duplicate titles
 - No empty titles
@@ -24,8 +24,8 @@ Single claudeutils entry point for all validation: `claudeutils validate [target
 - Task keys disjoint from learning keys
 
 **FR-5: Orphan detection**
-- Semantic headers (marked with prefix) that aren't in index = orphan
-- Report orphans as warnings
+- Semantic headers (no `.` prefix) that aren't in index = orphan
+- Report orphans as ERROR (block commit, not warning)
 
 **FR-6: Precommit integration**
 Single `just precommit` call runs all validators.
