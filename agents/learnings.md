@@ -141,3 +141,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Bare lines without markers
 - Measured: 49 tokens (bare) vs 57 tokens (list markers) = 14% savings
 - Rationale: List markers add no semantic value for flat keyword lists
+
+**Design tables are binding constraints:**
+- Anti-pattern: Inventing classification heuristics when design provides explicit rules (e.g., "subsections = structural" when design table shows all ##+ as semantic)
+- Correct pattern: Read design classification tables LITERALLY. Apply judgment only where design says "use judgment" (e.g., identifying genuinely structural headers like TOCs, not reclassifying all subsections)
+- Rationale: Design decisions are intentional. Overriding them based on assumptions contradicts designer's intent
+- Process fix: Skill fixes outlined for `/design` and `/plan-adhoc` — see `plans/memory-index-update/reports/recovery-plan.md`

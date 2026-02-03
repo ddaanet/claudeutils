@@ -1,58 +1,41 @@
 # Session Handoff: 2026-02-03
 
-**Status:** Memory index update designed. Semantic header marker (`.` prefix for structural), bare line format, validation consolidation. Six requirement docs written.
+**Status:** Memory index update implementation started, process failure diagnosed. Recovery plan and skill fixes outlined. Learnings file at 149 lines — needs `/remember` consolidation.
 
 ## Completed This Session
 
-### Memory Index Update Design — COMPLETE
+### Memory Index Implementation — PARTIAL
 
-**Core decisions:**
-- Default semantic, `.` prefix marks structural: `## Title` (indexed) vs `## .Title` (not indexed)
-- All header levels checked except `#` (document title)
-- Orphan semantic header → ERROR, blocks commit
-- Content after `#` title exempt (document intro)
-- Nested semantic sections allowed
+**Delegation to quiet-task agent:**
+- Format migrations completed (bare lines, `## Title` learnings, validator patterns)
+- Agent escalated "design ambiguity" about subsection indexing
+- Escalation was incorrect — design D-1 table explicitly shows all `##`, `###`, `####` as semantic by default
 
-**Memory index format:**
-- Bare lines (14% cheaper than list markers)
-- Keyword phrases: `Key — brief description` (8-12 words)
-- Header: "Prefer retrieval-led reasoning over pre-training knowledge."
+**Process failure diagnosed via `/reflect`:**
+- Root cause: Agent (and planner) misread design table, invented "subsections = structural" heuristic
+- Design says: ALL headers are semantic unless explicitly marked with `.` prefix
+- Index SHOULD be extensive (~140-150 entries) per design rationale
+- Agent should use judgment to identify genuinely structural headers (TOCs, meta-sections), not blanket-reclassify subsections
 
-**Learnings.md format change:**
-- `**Title:**` → `## Title` (no blank line after)
-- Update /handoff skill template
+**Recovery plan written:** `plans/memory-index-update/reports/recovery-plan.md`
+- Step-by-step recovery (add all semantic headers to index, mark only genuinely structural with `.`)
+- Four skill fixes identified for `/design` and `/plan-adhoc`
 
-**Artifacts:** `plans/memory-index-update/design.md`, `plans/memory-index-update/requirements.md`
+### Skill Fixes Outlined
 
-### Token Syntax Research — COMPLETE
+| Fix | Skill | Change |
+|-----|-------|--------|
+| 1 | `/design` | Add "Classification tables are binding" to Phase C.1 |
+| 2 | `/plan-adhoc` | Add "Design constraints are non-negotiable" to Tier 2 |
+| 3 | `/plan-adhoc` | Add "Handling agent escalations" — verify against design before accepting |
+| 4 | `/design` | Add "Binding constraints for planners" to Output Expectations |
 
-Empirical token comparison for memory index formats:
-- Bare lines: 49 tokens (8 entries)
-- List markers: 57 tokens (+16%)
-- Pipes: 48 tokens (−2% vs bare, but poor readability)
-- Semantic markers (`:`, `!`, `§`): all +1 token per header
-
-### Requirement Documents Written
-
-| Document | Status |
-|----------|--------|
-| `plans/memory-index-update/` | Design + requirements |
-| `plans/validator-consolidation/` | Requirements |
-| `plans/task-prose-keys/` | Requirements |
-| `plans/requirements-skill/` | Requirements (research) |
-| `plans/continuation-passing/` | Requirements + outline |
-| `plans/handoff-validation/` | Requirements + outline (depends on continuation-passing) |
-
-### Vercel Ambient Awareness Research
-
-From https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals:
-- Ambient context (100%) vs skill invocation (79%)
-- Skills not triggered 56% of cases
-- Directive: "Prefer retrieval-led reasoning over pre-training knowledge"
+**Files modified by agent:** See `plans/memory-index-update/reports/implementation.md`
 
 ## Pending Tasks
 
-- [ ] **Memory index update** #YWuND — implement design from `plans/memory-index-update/design.md` | sonnet
+- [ ] **Memory index update** #YWuND — continue from recovery plan, add all semantic headers to index, mark genuinely structural with `.`, update remember skill | sonnet
+- [ ] **Apply skill fixes** #PCu7a — implement 4 skill fixes from recovery plan to `/design` and `/plan-adhoc` | sonnet
 - [ ] **Validator consolidation** #pEmoW — move validators to claudeutils package with tests | sonnet
 - [ ] **Task prose keys** #POn2Z — replace hash tokens with prose keys, merge-aware uniqueness | sonnet
 - [ ] **Continuation passing design** #wW6G2 — complete design from requirements | opus
@@ -64,16 +47,17 @@ From https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals:
 
 ## Blockers / Gotchas
 
-**Learnings file at ~126 lines (over 80-line soft limit):**
-- Recommendation: Run `/remember` to consolidate older learnings into permanent documentation
+**Learnings file at 149 lines (CRITICAL — over 80-line limit):**
+- Must run `/remember` to consolidate older learnings before adding more
+- File grew from 144 to 149 lines this session
 
-**Pending micro-tasks (from design discussion):**
-- Validate /remember flexibility to create new sections/files
-- Move append-only directive to `.claude/rules/memory-index.md`
-- Add line-count limit check for archive files in /remember
+**Memory index implementation blocked on recovery:**
+- Agent's partial work left validators failing (146 errors)
+- Must follow recovery plan: add index entries for all semantic headers, mark genuinely structural with `.`
 
-**Token counting workaround:**
-- `ANTHROPIC_API_KEY=$(cat ~/.claude/api-key) claudeutils tokens ...`
+**Design table interpretation:**
+- Classification tables in design docs are LITERAL constraints, not guidelines
+- When agent escalates "ambiguity," verify against design source first
 
 ---
-*Handoff by Sonnet. Memory index update designed. Six requirement docs created.*
+*Handoff by Sonnet. Process failure diagnosed. Recovery plan and skill fixes outlined.*
