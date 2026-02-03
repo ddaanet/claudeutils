@@ -26,6 +26,8 @@ Single claudeutils entry point for all validation: `claudeutils validate [target
 **FR-5: Orphan detection**
 - Semantic headers (no `.` prefix) that aren't in index = orphan
 - Report orphans as ERROR (block commit, not warning)
+- Scope: consolidated learning files only (`agents/decisions/*.md`, `agents/learnings.md`)
+- Exempt: `agent-core/fragments/*.md` (loaded via CLAUDE.md `@` references)
 
 **FR-6: Precommit integration**
 Single `just precommit` call runs all validators.
@@ -53,14 +55,19 @@ Scripts use CLAUDE.md to find project root, not agents/ directory.
 
 ## Design Decisions
 
-**D-1: Consolidate to claudeutils package**
-Current: standalone scripts in agent-core/bin/. Proposed: src/claudeutils/validation.py with CLI entry point.
+**D-1: Validators live in claudeutils**
+claudeutils is a dependency of agent-core (not reverse). Validator code lives in `src/claudeutils/validation.py`. Public entry point needed for precommit — either claudeutils subcommand or standalone script.
 
 **D-2: Shared patterns extracted**
 Title extraction, file discovery, uniqueness checking shared between validators.
 
 **D-3: Test suite required**
 As claudeutils components, validators must have tests. Write post-hoc for existing logic.
+
+**D-4: Entry point options**
+- Option A: `claudeutils validate [targets]` subcommand
+- Option B: Standalone script in agent-core/bin/ that imports from claudeutils
+- Precommit calls whichever entry point is chosen
 
 ---
 

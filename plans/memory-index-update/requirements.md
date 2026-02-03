@@ -51,6 +51,9 @@ Token comparison: bare lines 14% cheaper than `- ` prefixed (49 vs 57 tokens for
 **D-2: Line breaks beat pipes**
 Bare lines (49 tokens) beat pipes (50 tokens) AND list markers (57 tokens). Pipes offer no token advantage and hurt readability/git-diffs.
 
+**D-5: Baseline is commit 48f5**
+Current state (title-only list markers) is intermediate/"damaged". Proper baseline is verbose format with descriptions and file paths (commit 48f5). Proposed format (bare lines + keyword phrases) improves on proper baseline.
+
 **D-3: Keyword phrases restore retrieval surface**
 Title-only (current) loses keyword surface. Phrases like "docs unreliable, hookify bloats" add retrieval cues.
 

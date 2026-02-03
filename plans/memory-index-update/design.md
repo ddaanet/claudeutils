@@ -83,7 +83,7 @@ TDD workflow — RED failing, GREEN hints, REFACTOR cycles
 
 ### D-4: Learnings Format
 
-**Change:** `**Title:**` → `## Title` headers
+**Change:** `**Title:**` → `## Title` headers (VALIDATED)
 
 **Before:**
 ```markdown
@@ -102,6 +102,7 @@ TDD workflow — RED failing, GREEN hints, REFACTOR cycles
 **Notes:**
 - No blank line after `## Title` (preserves line count)
 - Update `/handoff` skill template
+- Breaking change from current format — requires rewriting all learning entries
 
 ### D-5: Validation Consolidation
 
