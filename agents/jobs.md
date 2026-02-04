@@ -21,7 +21,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | review-requirements-consistency | complete | Requirements review |
 | robust-waddling-bunny | complete | Memory index D-3 RCA |
 | runbook-identifiers | complete | Cycle numbering gaps relaxed |
-| statusline-wiring | designed | — |
+| statusline-wiring | planned | 28 cycles, 6 phases |
 | validator-consolidation | requirements | Move to claudeutils package |
 
 ## Complete (Archived)

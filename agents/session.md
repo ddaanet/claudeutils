@@ -1,31 +1,34 @@
 # Session Handoff: 2026-02-04
 
-**Status:** claude-tools-recovery completed. Statusline-wiring confirmed as follow-up, not merge candidate.
+**Status:** statusline-wiring runbook created (28 cycles, 6 phases). Ready for execution.
 
 ## Completed This Session
 
-**Decision: Keep plans separate (not merge)**
-- Analyzed statusline-wiring design (R6: "use existing rewritten infrastructure")
-- Analyzed claude-tools-recovery design (D3: "statusline display modules deferred as follow-up")
-- Decision: statusline-wiring IS the follow-up, not a merge candidate
-- Rationale: Recovery 95% done, only functional review remained; different scopes
+**statusline-wiring TDD runbook:**
+- Created 28-cycle runbook with RED/GREEN/REFACTOR discipline
+- Phases: models (3), context (8), plan_usage (3), api_usage (7), CLI (5), display (2)
+- Tier 3 assessment: >25 cycles, 9 files across 3 packages, multi-session with checkpoints
+- Delegated to tdd-plan-reviewer (sonnet): 12 CRITICAL file reference violations found
+- Applied all fixes: test file paths, metadata count (31→28), dependency notation, Common Context enhancements
+- prepare-runbook.py: created agent + 28 steps + orchestrator-plan.md
+- Artifacts staged for commit
 
-**claude-tools-recovery functional review:**
-- ✓ `account status` — Mode/provider detection, issue reporting
-- ✓ `account-mode`, `account-provider` files — Read correctly
-- ✓ `model list` — 13 models with tier/arena/pricing
-- ✗ `statusline` — Stub "OK" (expected, per D3 out-of-scope)
-- Result: PASS for recovery scope
+**Review fixes applied:**
+- Updated test file references: `test_switchback.py` → `test_account_switchback.py` (4 occurrences)
+- Fixed metadata: Total Steps 31 → 28 (actual cycle count)
+- Added dependency: Cycle 4.7 [DEPENDS: 4.2] (requires read_switchback_plist)
+- Enhanced Common Context: test file creation strategy, module creation order, regression scope clarification
 
-**Status workflow update (prior):**
-- Unified jobs.md Plans table
-- Nested pending task format in STATUS
-- validate-jobs.py precommit validation
+**Design analysis (prior session completion):**
+- Tier assessment: Files ~9, cycles ~25-35, model single (haiku), session multi → Tier 3 full runbook
+- Documentation perimeter loaded: design.md, migration-learnings.md, shell-design-decisions.md, architecture.md
+- Memory index scanned: Pydantic patterns, subprocess patterns, error handling conventions
+- Test structure verified: test_statusline_display.py exists, test_statusline_structure.py exists
 
 ## Pending Tasks
 
-- [ ] **Plan statusline wiring** — `/plan-tdd plans/statusline-wiring/design.md`
-  - Plan: statusline-wiring | Status: designed
+- [ ] **Execute statusline-wiring runbook** — Restart session, switch to haiku, run `/orchestrate statusline-wiring` | haiku | restart
+  - Plan: statusline-wiring | Status: planned
 - [ ] **Delete claude-tools-recovery artifacts** — Remove plan directory (work complete, archived in git)
   - Plan: claude-tools-recovery | Status: complete
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing
@@ -43,26 +46,35 @@
 
 ## Blockers / Gotchas
 
-**Statusline stub is expected:**
-- claude-tools-recovery explicitly deferred statusline display (D3)
-- `statusline` command outputs "OK" — this is NOT a bug
-- statusline-wiring will implement the actual formatting
+**Runbook execution requires restart:**
+- prepare-runbook.py created `.claude/agents/statusline-wiring-task.md`
+- Claude Code only discovers agents at session start
+- Must restart, switch to haiku, then `/orchestrate statusline-wiring`
 
-**jobs.md is authoritative for plan status:**
-- No directory-based status inference
-- validate-jobs.py enforces in precommit
+**Clipboard command failed:**
+- `pbcopy` exited with code 1 (unknown cause)
+- Orchestrate command: `/orchestrate statusline-wiring` (manual entry required)
+
+**Test file creation pattern:**
+- RED phase creates test file with failing test
+- GREEN phase creates source module to pass test
+- Regression verification: skipped for Phases 1-5 (net-new modules), required for Phase 6 (existing display.py)
 
 ## Reference Files
 
-- **plans/claude-tools-recovery/design.md** — D3: statusline deferred as follow-up
-- **plans/statusline-wiring/design.md** — R6: use existing infrastructure
-- **plans/claude-tools-recovery/reports/cycle-3-3-notes.md** — Final GREEN cycle
+- **plans/statusline-wiring/runbook.md** — 28-cycle TDD runbook (6 phases)
+- **plans/statusline-wiring/reports/runbook-review.md** — tdd-plan-reviewer report (12 critical violations, all fixed)
+- **plans/statusline-wiring/orchestrator-plan.md** — execution index (28 steps)
+- **plans/statusline-wiring/steps/step-*.md** — individual cycle instructions (28 files)
+- **.claude/agents/statusline-wiring-task.md** — plan-specific agent (auto-created)
+- **plans/statusline-wiring/design.md** — comprehensive design with 8 decisions, 6 requirements
 
 ## Next Steps
 
-- Delete claude-tools-recovery plan directory (archived in git)
-- Plan statusline-wiring TDD runbook
-- Execute statusline runbook
+- Restart Claude Code session
+- Switch to haiku model
+- Run `/orchestrate statusline-wiring`
+- Follow TDD discipline through 28 cycles with 4 checkpoints
 
 ---
-*Handoff by Sonnet. Recovery complete, statusline-wiring confirmed as follow-up.*
+*Handoff by Sonnet. Runbook complete and validated, ready for haiku execution.*
