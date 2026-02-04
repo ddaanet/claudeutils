@@ -18,31 +18,31 @@
 
 **First:** Read full skill file to identify current section structure (numbered steps vs phases, exact headings).
 
-From design "Step mapping" table (lines 68-79), restructure skill from current Steps 0-7 into Phases A-C:
+From design "Step mapping" table (section "Architecture > Design Skill: Three-Phase Workflow"), restructure skill from current Steps 0-7 into Phases A-C:
 
 **Changes needed**:
-- Replace "### 1. Understand Request" + "### 1.5. Memory Discovery" (lines ~40-54) → Phase A.1 (documentation checkpoint using hierarchy from design lines 85-103)
-- Replace "### 2. Explore Codebase" (lines ~56-60) → Phase A.2 (delegate to quiet-explore, specify report path)
-- Replace "### 3. Research (if needed)" (lines ~62-64) → Phase A.3-4 (Context7 + web research, call directly from main session)
-- Split "### 4. Create Design Document" (lines ~66-94) into:
+- Replace "### 1. Understand Request" + "### 1.5. Memory Discovery" → Phase A.1 (documentation checkpoint using hierarchy from design "Documentation Checkpoint" section)
+- Replace "### 2. Explore Codebase" → Phase A.2 (delegate to quiet-explore, specify report path)
+- Replace "### 3. Research (if needed)" → Phase A.3-4 (Context7 + web research, call directly from main session)
+- Split "### 4. Create Design Document" into:
   - Phase A.5 (outline) — new section for outline creation + presentation
-  - Phase C.1 (full design) — move current Step 4 content here, add documentation perimeter requirement (design lines 104-126)
-- Rename "### 5. Vet Design" (lines ~96-110) → Phase C.3 (general-purpose opus review - keep unchanged)
-- Rename "### 6. Apply Fixes" (lines ~112-116) → Phase C.4 (keep unchanged)
-- Rename "### 7. Handoff and Commit" (lines ~118-129) → Phase C.5 (keep unchanged)
+  - Phase C.1 (full design) — move current Step 4 content here, add documentation perimeter requirement (design "Documentation Perimeter in Design Output" section)
+- Rename "### 5. Vet Design" → Phase C.3 (design-vet-agent review - opus model for architectural analysis)
+- Rename "### 6. Apply Fixes" → Phase C.4 (keep unchanged)
+- Rename "### 7. Handoff and Commit" → Phase C.5 (keep unchanged)
 
-**Phase B (new)**: Insert between Phase A and Phase C — iterative discussion section from design lines 53-59
+**Phase B (new)**: Insert between Phase A and Phase C — iterative discussion section from design "Phase B: Iterative Discussion" section
 
 **Preservation mapping**:
-- "### 0. Complexity Triage" (lines ~20-36) → Keep as-is before Phase A
-- Plugin-topic skill-loading directive (currently in Step 4 lines ~86-94) → Move to Phase A.5 (outline section)
-- Tail-call to `/handoff --commit` (currently Step 7 lines ~120-127) → Becomes Phase C.5 (no change)
+- "### 0. Complexity Triage" → Keep as-is before Phase A
+- Plugin-topic skill-loading directive (currently in Step 4 "Create Design Document") → Move to Phase A.5 (outline section)
+- Tail-call to `/handoff --commit` (currently Step 7) → Becomes Phase C.5 (no change)
 
 **3.2 - Update plan-adhoc skill** (`agent-core/skills/plan-adhoc/SKILL.md`):
 
 Add "Read documentation perimeter" as first numbered item (item 0) within Point 0.5 section, before the existing "Discover relevant prior knowledge" item.
 
-**Insertion point**: After "### Point 0.5: Discover Codebase Structure (REQUIRED)" heading (line ~95), before "**Before writing any runbook content:**"
+**Insertion point**: After "### Point 0.5: Discover Codebase Structure (REQUIRED)" heading, before "**Before writing any runbook content:**"
 
 **New content**:
 ```markdown
@@ -62,7 +62,7 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 
 Add documentation perimeter reading to Phase 1 as Step 0, before existing actions.
 
-**Insertion point**: After "### Phase 1: Intake (Tier 3 Only)" heading and "**Objective:** Load design and project conventions." (lines ~104-106), before "**Actions:**" section.
+**Insertion point**: After "### Phase 1: Intake (Tier 3 Only)" heading and "**Objective:** Load design and project conventions.", before "**Actions:**" section.
 
 **New content** (insert as first numbered item in Actions list, before "1. **Determine design path:**"):
 ```markdown

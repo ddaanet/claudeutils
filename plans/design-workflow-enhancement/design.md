@@ -61,7 +61,7 @@ Plugin-topic: Involves hook development (PreToolUse validation) — load plugin-
 **Phase C: Generate Design**
 1. Write full `design.md` incorporating validated outline + all research
 2. Include documentation perimeter section (what planner should read)
-3. Review design (delegate to `general-purpose` opus — architectural review, not implementation review)
+3. Review design (delegate to `design-vet-agent` — opus model for architectural review)
 4. Apply critical/major fixes from review
 5. `/handoff --commit` (existing tail-call)
 
@@ -74,7 +74,7 @@ Plugin-topic: Involves hook development (PreToolUse validation) — load plugin-
 | Step 2 (explore) | Phase A.2 (quiet-explore) |
 | Step 3 (research) | Phase A.3-4 (Context7 + web) |
 | Step 4 (create design) | Split: Phase A.5 (outline, includes plugin-topic detection) + Phase C.1 (full design with skill-loading directive in Next Steps) |
-| Step 5 (vet) | Phase C.3 (general-purpose opus — unchanged from current skill) |
+| Step 5 (vet) | Phase C.3 (design-vet-agent — opus model for architectural review) |
 | Step 6 (fix) | Phase C.4 |
 | Step 7 (handoff) | Phase C.5 |
 
@@ -207,9 +207,9 @@ The designer writes results to a report file for reuse by planners. This adds op
 - *Rationale:* PostToolUse hooks don't fire in sub-agents (from claude-config-layout.md). Task matcher fires on ALL Tasks (noisy). Session-log based capture is a better mechanism but requires separate design.
 - *Deferred:* Session-log capture as future work item.
 
-**7. Design review stays general-purpose(opus), not vet-agent(sonnet)**
-- *Rationale:* Vet agents are implementation-focused (code quality, patterns, correctness). Design review requires architectural analysis — completeness, consistency, feasibility, edge cases. The general-purpose agent's strengths (architecture analysis, multi-file exploration, complex investigation) align with design review needs.
-- *No change from current skill:* Step 5 already uses `Task(subagent_type="general-purpose", model="opus")`. This is correct and should be preserved in the restructured skill.
+**7. Design review uses design-vet-agent (opus)**
+- *Rationale:* Vet agents are implementation-focused (code quality, patterns, correctness). Design review requires architectural analysis — completeness, consistency, feasibility, edge cases. The dedicated `design-vet-agent` (opus model) provides specialized review protocol for design documents.
+- *Updated:* Phase C.3 now uses `Task(subagent_type="design-vet-agent")`. This agent was created specifically for design review with opus model and artifact-return pattern (detailed report to file).
 
 **8. Agent creation: task agent + agent-creator review**
 - *Rationale:* In interactive sessions, `plugin-dev:agent-creator` is the preferred tool for creating agents. In orchestrated execution, the step file IS the spec — task agent creates the file, then agent-creator reviews and fixes (YAML syntax, description quality, prompt structure). Agent-creator is cooperative in review mode and has Write access.
@@ -230,7 +230,7 @@ The designer writes results to a report file for reuse by planners. This adds op
 
 **Symlink management:** After creating `quiet-explore.md`, run `just sync-to-parent` to create symlinks. This is a single shell command, not a multi-step procedure.
 
-**Design review:** Remains `Task(subagent_type="general-purpose", model="opus")` — unchanged from current skill. See Decision 7.
+**Design review:** Uses `Task(subagent_type="design-vet-agent")` — dedicated opus agent for architectural analysis. See Decision 7.
 
 **Testing strategy:**
 - Manual: Run `/design` on a test task, verify outline-first flow works

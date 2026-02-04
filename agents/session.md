@@ -1,43 +1,42 @@
 # Session Handoff: 2026-02-04
 
-**Status:** Design-workflow-enhancement extended with requirements validation (Steps 5-6). Ready for orchestration.
+**Status:** Design-workflow-enhancement agent alignment fixed, runbook prepared, ready for orchestration.
 
 ## Completed This Session
 
-### Design-Workflow-Enhancement: Requirements Extension
+### Agent Alignment Review
 
-**Extended design.md with requirements alignment validation section:**
-- A.0 requirements checkpoint (before outline)
-- C.1 requirements section guidance with traceability format
-- C.3 design-vet-agent requirements alignment checks
-- Plan skills passthrough (plan-adhoc, plan-tdd)
-- Vet agents conditional validation (vet-agent, vet-fix-agent)
-- Design decisions 9-12 documenting extension rationale
+**Fixed agent selection mismatches in design-workflow-enhancement:**
 
-**Created runbook Steps 5-6:**
-- Step 5: design skill A.0 + design-vet-agent alignment checks
-- Step 6: plan skills passthrough + vet agents conditional validation
+| Step | Was | Now | Rationale |
+|------|-----|-----|-----------|
+| Step 2 (agent review) | vet-agent | plugin-dev:agent-creator | Agent files need agent specialist, not code reviewer |
+| Phase C.3 (design review) | general-purpose opus | design-vet-agent | Dedicated opus agent for architectural review |
 
-**Reviews completed:**
-- design-vet-agent reviewed design (Ready) → `reports/design-review-rev3.md`
-- vet-agent reviewed runbook (Needs Minor Changes) → `reports/runbook-review.md`
+**Files updated:**
+- `design.md` — Decision 7: "Step 5" → "Phase C.3", agent references
+- `runbook.md` — Step 2 agent, removed 12 line-number refs
+- `steps/step-2.md` — vet-agent → agent-creator
+- `steps/step-3.md` — line refs → section names
 
-**Fixed all review issues:**
-- Critical: Success criteria file count, agent prerequisites, structural validation directive
-- Major: Dependency docs reconciled, line numbers → section names, trigger mechanism clarified
+**Design review (Rev 4):** Ready, no critical/major issues
+- Minor: Decision 7 terminology (fixed), line number refs (fixed)
+- Report: `plans/design-workflow-enhancement/reports/design-review-rev4.md`
 
-**Commit:** 3e31573 — 🦺 Extend design-workflow-enhancement with requirements validation
+**Runbook prepared:** 6 steps, orchestrator-plan.md created
 
-### Task Consolidation
+### Three-Agent Vet System (Documented)
 
-**"Update design skill" task** is now covered by design-workflow-enhancement Steps 5-6. The runbook implements:
-- Separate requirements section (A.0 checkpoint + C.1 guidance)
-- Updated design-review/plan/vet process (alignment validation at each stage)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| vet-agent | sonnet | Code quality review (write report) |
+| vet-fix-agent | sonnet | Code quality review + apply fixes |
+| design-vet-agent | opus | Architectural/design review |
 
 ## Pending Tasks
 
+- [ ] **Orchestrate design-workflow-enhancement** — `/orchestrate design-workflow-enhancement` (6 steps) | sonnet
 - [ ] **Continuation passing design-review** — validate outline against requirements, then proceed to Phase B | opus
-- [ ] **Orchestrate design-workflow-enhancement** — `/orchestrate design-workflow-enhancement` (6 steps, requirements extension ready) | sonnet
 - [ ] **Validator consolidation** — move validators to claudeutils package with tests | sonnet
 - [ ] **Handoff validation design** — complete design, requires continuation-passing + validator-consolidation | opus
 - [ ] **Orchestrator scope consolidation** — delegate checkpoint phases in orchestrate skill | sonnet
@@ -54,4 +53,4 @@
 - Requirements MUST NOT be updated if task execution made them outdated
 
 ---
-*Handoff by Sonnet. Requirements extension complete, runbook ready for orchestration.*
+*Handoff by Sonnet. Agent alignment fixed, runbook prepared.*

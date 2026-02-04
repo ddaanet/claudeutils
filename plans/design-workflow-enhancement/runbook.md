@@ -20,7 +20,7 @@ model: sonnet
 
 **Execution Model**:
 - Step 1: Sonnet (agent creation from spec)
-- Step 2: Sonnet (vet-agent review, planner applies fixes)
+- Step 2: Sonnet (plugin-dev:agent-creator review + fix)
 - Step 3: Sonnet (skill edits with interpretation)
 - Step 4: Haiku (symlink management and validation)
 - Step 5: Sonnet (design skill + design-vet-agent requirements extension)
@@ -153,15 +153,17 @@ Read design section "quiet-explore Agent" (lines 128-167) and create agent file 
 
 ## Step 2: Review quiet-explore Agent
 
-**Objective**: Review and fix agent file using vet-agent
+**Objective**: Review and fix agent file using plugin-dev:agent-creator
 
-**Execution Model**: Sonnet (vet-agent review)
+**Execution Model**: Sonnet (agent-creator review)
+
+**Subagent Type**: `plugin-dev:agent-creator`
 
 **Implementation**:
 
-Delegate review to vet-agent:
+Delegate review to plugin-dev:agent-creator:
 ```
-Review agent-core/agents/quiet-explore.md for:
+Review the existing agent file at agent-core/agents/quiet-explore.md for:
 - YAML syntax correctness (frontmatter fields, multi-line description format)
 - Description quality and clarity
 - System prompt structure and completeness (all 7 directives from design)
@@ -169,10 +171,11 @@ Review agent-core/agents/quiet-explore.md for:
 - Consistency with quiet-task baseline pattern
 
 Write review report to plans/design-workflow-enhancement/reports/step-2-agent-review.md.
+Apply critical/major fixes directly to the agent file.
 Return filepath only on success.
 ```
 
-After receiving review, read report and apply all critical/major priority fixes to agent file.
+**Rationale**: Agent files should be reviewed by agent-creator (agent specialist), not vet-agent (code quality specialist). Design Decision 8 specifies this pattern.
 
 **Expected Outcome**: Agent file reviewed and improved, report written
 
@@ -182,7 +185,7 @@ After receiving review, read report and apply all critical/major priority fixes 
 
 **Error Conditions**:
 - Agent file missing → Error: "Agent file not found, Step 1 may have failed"
-- Review report not created → Escalate with error message from vet-agent
+- Review report not created → Escalate with error message from agent-creator
 
 **Validation**:
 - Review report exists at expected path
@@ -196,7 +199,7 @@ After receiving review, read report and apply all critical/major priority fixes 
 - Agent file passes YAML parse
 - Improvements documented in git diff or review report
 
-**Report Path**: `plans/design-workflow-enhancement/reports/step-2-agent-review.md` (created by vet-agent)
+**Report Path**: `plans/design-workflow-enhancement/reports/step-2-agent-review.md` (created by agent-creator)
 
 ---
 
@@ -212,31 +215,31 @@ After receiving review, read report and apply all critical/major priority fixes 
 
 **First:** Read full skill file to identify current section structure (numbered steps vs phases, exact headings).
 
-From design "Step mapping" table (lines 68-79), restructure skill from current Steps 0-7 into Phases A-C:
+From design "Step mapping" table (section "Architecture > Design Skill: Three-Phase Workflow"), restructure skill from current Steps 0-7 into Phases A-C:
 
 **Changes needed**:
-- Replace "### 1. Understand Request" + "### 1.5. Memory Discovery" (lines ~40-54) → Phase A.1 (documentation checkpoint using hierarchy from design lines 85-103)
-- Replace "### 2. Explore Codebase" (lines ~56-60) → Phase A.2 (delegate to quiet-explore, specify report path)
-- Replace "### 3. Research (if needed)" (lines ~62-64) → Phase A.3-4 (Context7 + web research, call directly from main session)
-- Split "### 4. Create Design Document" (lines ~66-94) into:
+- Replace "### 1. Understand Request" + "### 1.5. Memory Discovery" → Phase A.1 (documentation checkpoint using hierarchy from design "Documentation Checkpoint" section)
+- Replace "### 2. Explore Codebase" → Phase A.2 (delegate to quiet-explore, specify report path)
+- Replace "### 3. Research (if needed)" → Phase A.3-4 (Context7 + web research, call directly from main session)
+- Split "### 4. Create Design Document" into:
   - Phase A.5 (outline) — new section for outline creation + presentation
-  - Phase C.1 (full design) — move current Step 4 content here, add documentation perimeter requirement (design lines 104-126)
-- Rename "### 5. Vet Design" (lines ~96-110) → Phase C.3 (general-purpose opus review - keep unchanged)
-- Rename "### 6. Apply Fixes" (lines ~112-116) → Phase C.4 (keep unchanged)
-- Rename "### 7. Handoff and Commit" (lines ~118-129) → Phase C.5 (keep unchanged)
+  - Phase C.1 (full design) — move current Step 4 content here, add documentation perimeter requirement (design "Documentation Perimeter in Design Output" section)
+- Rename "### 5. Vet Design" → Phase C.3 (design-vet-agent review - opus model for architectural analysis)
+- Rename "### 6. Apply Fixes" → Phase C.4 (keep unchanged)
+- Rename "### 7. Handoff and Commit" → Phase C.5 (keep unchanged)
 
-**Phase B (new)**: Insert between Phase A and Phase C — iterative discussion section from design lines 53-59
+**Phase B (new)**: Insert between Phase A and Phase C — iterative discussion section from design "Phase B: Iterative Discussion" section
 
 **Preservation mapping**:
-- "### 0. Complexity Triage" (lines ~20-36) → Keep as-is before Phase A
-- Plugin-topic skill-loading directive (currently in Step 4 lines ~86-94) → Move to Phase A.5 (outline section)
-- Tail-call to `/handoff --commit` (currently Step 7 lines ~120-127) → Becomes Phase C.5 (no change)
+- "### 0. Complexity Triage" → Keep as-is before Phase A
+- Plugin-topic skill-loading directive (currently in Step 4 "Create Design Document") → Move to Phase A.5 (outline section)
+- Tail-call to `/handoff --commit` (currently Step 7) → Becomes Phase C.5 (no change)
 
 **3.2 - Update plan-adhoc skill** (`agent-core/skills/plan-adhoc/SKILL.md`):
 
 Add "Read documentation perimeter" as first numbered item (item 0) within Point 0.5 section, before the existing "Discover relevant prior knowledge" item.
 
-**Insertion point**: After "### Point 0.5: Discover Codebase Structure (REQUIRED)" heading (line ~95), before "**Before writing any runbook content:**"
+**Insertion point**: After "### Point 0.5: Discover Codebase Structure (REQUIRED)" heading, before "**Before writing any runbook content:**"
 
 **New content**:
 ```markdown
@@ -256,7 +259,7 @@ This provides designer's recommended context. Still perform discovery steps 1-2 
 
 Add documentation perimeter reading to Phase 1 as Step 0, before existing actions.
 
-**Insertion point**: After "### Phase 1: Intake (Tier 3 Only)" heading and "**Objective:** Load design and project conventions." (lines ~104-106), before "**Actions:**" section.
+**Insertion point**: After "### Phase 1: Intake (Tier 3 Only)" heading and "**Objective:** Load design and project conventions.", before "**Actions:**" section.
 
 **New content** (insert as first numbered item in Actions list, before "1. **Determine design path:**"):
 ```markdown
@@ -418,7 +421,7 @@ cd /Users/david/code/claudeutils && just dev
 
 ## Design Decisions
 
-**Agent creation pattern**: Task agent creates from spec, vet-agent reviews, planner applies fixes. This follows standard review pattern for implementation artifacts (vet-requirement.md, learnings.md: model selection for design interpretation).
+**Agent creation pattern**: Task agent creates from spec, plugin-dev:agent-creator reviews and applies fixes. This follows design Decision 8 — agent-creator is the specialist for agent files (YAML syntax, description quality, prompt structure).
 
 **No sequential dependency for Step 3**: Skills reference agents by name string. Agent file doesn't need to exist at skill-edit time, only at runtime after symlinks (design Runbook Guidance).
 

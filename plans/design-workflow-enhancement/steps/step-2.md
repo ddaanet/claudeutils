@@ -8,15 +8,17 @@
 
 ## Step 2: Review quiet-explore Agent
 
-**Objective**: Review and fix agent file using vet-agent
+**Objective**: Review and fix agent file using plugin-dev:agent-creator
 
-**Execution Model**: Sonnet (vet-agent review)
+**Execution Model**: Sonnet (agent-creator review)
+
+**Subagent Type**: `plugin-dev:agent-creator`
 
 **Implementation**:
 
-Delegate review to vet-agent:
+Delegate review to plugin-dev:agent-creator:
 ```
-Review agent-core/agents/quiet-explore.md for:
+Review the existing agent file at agent-core/agents/quiet-explore.md for:
 - YAML syntax correctness (frontmatter fields, multi-line description format)
 - Description quality and clarity
 - System prompt structure and completeness (all 7 directives from design)
@@ -24,10 +26,11 @@ Review agent-core/agents/quiet-explore.md for:
 - Consistency with quiet-task baseline pattern
 
 Write review report to plans/design-workflow-enhancement/reports/step-2-agent-review.md.
+Apply critical/major fixes directly to the agent file.
 Return filepath only on success.
 ```
 
-After receiving review, read report and apply all critical/major priority fixes to agent file.
+**Rationale**: Agent files should be reviewed by agent-creator (agent specialist), not vet-agent (code quality specialist). Design Decision 8 specifies this pattern.
 
 **Expected Outcome**: Agent file reviewed and improved, report written
 
@@ -37,7 +40,7 @@ After receiving review, read report and apply all critical/major priority fixes 
 
 **Error Conditions**:
 - Agent file missing → Error: "Agent file not found, Step 1 may have failed"
-- Review report not created → Escalate with error message from vet-agent
+- Review report not created → Escalate with error message from agent-creator
 
 **Validation**:
 - Review report exists at expected path
@@ -51,6 +54,6 @@ After receiving review, read report and apply all critical/major priority fixes 
 - Agent file passes YAML parse
 - Improvements documented in git diff or review report
 
-**Report Path**: `plans/design-workflow-enhancement/reports/step-2-agent-review.md` (created by vet-agent)
+**Report Path**: `plans/design-workflow-enhancement/reports/step-2-agent-review.md` (created by agent-creator)
 
 ---
