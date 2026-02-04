@@ -3,7 +3,8 @@
 **Parallelization**:
 - Steps 1-2: Must run sequentially (review depends on agent creation)
 - Step 3: Can run in parallel with Steps 1-2 (no dependency on agent file)
-- Step 4: Must run after all previous steps complete (needs all files + fixes applied)
+- Steps 5-6: Can run in parallel with each other and with Steps 1-3 (no file dependencies)
+- Step 4: Must run after all other steps complete (symlinks + comprehensive validation)
 
 **Stop conditions**:
 - Any step reports error → stop, escalate to user

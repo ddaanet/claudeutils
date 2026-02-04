@@ -16,18 +16,21 @@ model: sonnet
 
 ## Weak Orchestrator Metadata
 
-**Total Steps**: 4
+**Total Steps**: 6
 
 **Execution Model**:
 - Step 1: Sonnet (agent creation from spec)
 - Step 2: Sonnet (vet-agent review, planner applies fixes)
 - Step 3: Sonnet (skill edits with interpretation)
 - Step 4: Haiku (symlink management and validation)
+- Step 5: Sonnet (design skill + design-vet-agent requirements extension)
+- Step 6: Sonnet (plan skills + vet agents requirements validation)
 
 **Step Dependencies**:
 - Steps 1-2: Sequential (review depends on creation)
-- Step 3: Independent (no agent file dependency)
+- Step 3: Can run parallel with 1-2 (no agent file dependency)
 - Step 4: Depends on 1-3 (symlinks after all files exist)
+- Steps 5-6: Can run parallel with each other and with 1-3 (no file dependencies); run Step 4 validation after all steps for comprehensive results
 
 **Error Escalation**:
 - Sonnet → User: Missing files, structural misalignments, ambiguous guidance, unfixable agent spec issues
@@ -36,9 +39,19 @@ model: sonnet
 **Report Locations**: `plans/design-workflow-enhancement/reports/step-{N}-*.md`
 
 **Success Criteria**:
-- All 4 files created/modified (1 agent, 3 skills)
+- All 7 files created/modified:
+  - `agent-core/agents/quiet-explore.md` (created)
+  - `agent-core/skills/design/SKILL.md` (modified)
+  - `agent-core/skills/plan-adhoc/SKILL.md` (modified)
+  - `agent-core/skills/plan-tdd/SKILL.md` (modified)
+  - `agent-core/agents/design-vet-agent.md` (modified)
+  - `agent-core/agents/vet-agent.md` (modified)
+  - `agent-core/agents/vet-fix-agent.md` (modified)
 - quiet-explore agent passes plugin-dev:agent-creator review
 - Symlinks created in `.claude/agents/quiet-explore.md`
+- design-vet-agent includes requirements alignment checks (section 4.5)
+- vet-agent and vet-fix-agent include conditional requirements validation
+- plan-adhoc and plan-tdd include requirements passthrough
 - `just dev` passes (formatting, validation)
 
 **Prerequisites**:
@@ -47,7 +60,11 @@ model: sonnet
   - `agent-core/skills/design/SKILL.md`
   - `agent-core/skills/plan-adhoc/SKILL.md`
   - `agent-core/skills/plan-tdd/SKILL.md`
-- Agent baseline exists: `agent-core/agents/quiet-task.md`
+- Agent files exist:
+  - `agent-core/agents/quiet-task.md` (baseline for quiet-explore)
+  - `agent-core/agents/design-vet-agent.md` (modified in Step 5)
+  - `agent-core/agents/vet-agent.md` (modified in Step 6)
+  - `agent-core/agents/vet-fix-agent.md` (modified in Step 6)
 - Symlink recipe exists: `just sync-to-parent` in agent-core/
 
 ---
@@ -320,12 +337,78 @@ cd /Users/david/code/claudeutils && just dev
 
 ---
 
+## Step 5: Extend Design Skill and Design-Vet-Agent for Requirements
+
+**Objective**: Add requirements checkpoint (A.0) to design skill and requirements alignment checks to design-vet-agent
+
+**Execution Model**: Sonnet (interprets design guidance into skill/agent edits)
+
+**Implementation**:
+
+**5.1 - Update design skill** (`agent-core/skills/design/SKILL.md`):
+- Add Phase A.0 (Requirements Checkpoint) before A.1
+- Update Phase C.1 to include requirements section guidance with traceability format
+
+**5.2 - Update design-vet-agent** (`agent-core/agents/design-vet-agent.md`):
+- Add requirements alignment checks to "Analyze Design" section
+- Add section 4.5 "Validate Requirements Alignment"
+- Update review report template with "Requirements Alignment" section
+
+**Expected Outcome**: Design skill has A.0 requirements checkpoint, design-vet-agent validates requirements alignment
+
+**Validation**:
+- Both files modified
+- Phase A.0 appears before A.1
+- design-vet-agent has section 4.5
+- YAML frontmatter valid
+
+**Report Path**: `plans/design-workflow-enhancement/reports/step-5-requirements-design.md`
+
+---
+
+## Step 6: Extend Plan Skills and Vet Agents for Requirements Validation
+
+**Objective**: Add requirements passthrough to plan skills and conditional requirements validation to vet agents
+
+**Execution Model**: Sonnet (interprets design guidance into skill/agent edits)
+
+**Implementation**:
+
+**6.1 - Update plan-adhoc skill** (`agent-core/skills/plan-adhoc/SKILL.md`):
+- Extend Point 0.5 item 0 to read requirements from design
+- Add requirements to Common Context template
+- Update vet checkpoint prompt to include requirements validation
+
+**6.2 - Update plan-tdd skill** (`agent-core/skills/plan-tdd/SKILL.md`):
+- Same changes as plan-adhoc (Phase 1 intake, Common Context, checkpoints)
+
+**6.3 - Update vet-agent** (`agent-core/agents/vet-agent.md`):
+- Add conditional requirements validation section (triggers when context provided)
+- Add "Requirements Validation" section to review report template
+
+**6.4 - Update vet-fix-agent** (`agent-core/agents/vet-fix-agent.md`):
+- Same changes as vet-agent
+
+**Expected Outcome**: Plan skills passthrough requirements, vet agents conditionally validate against requirements
+
+**Validation**:
+- All 4 files modified
+- Requirements reading in both plan skills
+- Conditional requirements validation in both vet agents
+- Backward compatible (no requirements context = no validation)
+- YAML frontmatter valid
+
+**Report Path**: `plans/design-workflow-enhancement/reports/step-6-requirements-validation.md`
+
+---
+
 ## Orchestrator Instructions
 
 **Parallelization**:
 - Steps 1-2: Must run sequentially (review depends on agent creation)
 - Step 3: Can run in parallel with Steps 1-2 (no dependency on agent file)
-- Step 4: Must run after all previous steps complete (needs all files + fixes applied)
+- Steps 5-6: Can run in parallel with each other and with Steps 1-3 (no file dependencies)
+- Step 4: Must run after all other steps complete (symlinks + comprehensive validation)
 
 **Stop conditions**:
 - Any step reports error → stop, escalate to user
@@ -348,25 +431,30 @@ cd /Users/david/code/claudeutils && just dev
 ## Dependencies
 
 **Before This Runbook**:
-- Design complete at `plans/design-workflow-enhancement/design.md`
+- Design complete at `plans/design-workflow-enhancement/design.md` (including Requirements Alignment Validation extension)
 - Agent-core and skill structure unchanged
 
 **After This Runbook**:
-- Design skill uses outline-first workflow
+- Design skill uses outline-first workflow with requirements checkpoint (A.0)
 - quiet-explore agent available for use
-- Plan skills consume documentation perimeter
-- Ready for manual testing (run `/design` on test task)
+- Plan skills consume documentation perimeter and requirements
+- Vet agents conditionally validate against requirements
+- design-vet-agent validates requirements alignment in designs
+- Ready for manual testing (run `/design` on test task with requirements.md)
 
 ---
 
 ## Notes
 
 **Testing strategy** (from design):
-- Manual: Run `/design` on test task, verify outline-first flow
+- Manual: Run `/design` on test task with requirements.md, verify outline-first flow
 - Verify quiet-explore writes report and returns filepath
 - Verify Context7 direct calls + Write to report works
 - Verify planner reads documentation perimeter section
+- Verify design-vet-agent produces requirements alignment section in review
+- Verify vet-agent validates against requirements when context provided
 
 **Out of scope** (deferred to future work):
 - Session-log based capture of research artifacts
 - Automated perimeter validation hooks
+- Requirements coverage metrics

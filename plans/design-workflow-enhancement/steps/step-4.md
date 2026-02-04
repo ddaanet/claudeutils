@@ -1,7 +1,8 @@
 # Step 4
 
 **Plan**: `plans/design-workflow-enhancement/runbook.md`
-**Common Context**: See plan file for context
+**Execution Model**: haiku
+**Report Path**: `plans/design-workflow-enhancement/reports/step-4-symlinks-validation.md`
 
 ---
 

@@ -1,41 +1,43 @@
 # Session Handoff: 2026-02-04
 
-**Status:** Continuation passing design — Phase A outline complete, awaiting review.
+**Status:** Design-workflow-enhancement extended with requirements validation (Steps 5-6). Ready for orchestration.
 
 ## Completed This Session
 
-### Continuation Passing Design — Phase A (Outline)
+### Design-Workflow-Enhancement: Requirements Extension
 
-**Progress:** Completed research and produced first outline for user validation.
+**Extended design.md with requirements alignment validation section:**
+- A.0 requirements checkpoint (before outline)
+- C.1 requirements section guidance with traceability format
+- C.3 design-vet-agent requirements alignment checks
+- Plan skills passthrough (plan-adhoc, plan-tdd)
+- Vet agents conditional validation (vet-agent, vet-fix-agent)
+- Design decisions 9-12 documenting extension rationale
 
-**Research completed:**
-- Read requirements.md (FR-1 through FR-8, NFR-1 through NFR-3, constraints)
-- Explored current skill chaining patterns via quiet-explore agent
-- Analyzed tail-call mechanism in handoff, commit, plan-adhoc, orchestrate skills
-- Loaded plugin-dev:skill-development for skill creation guidance
+**Created runbook Steps 5-6:**
+- Step 5: design skill A.0 + design-vet-agent alignment checks
+- Step 6: plan skills passthrough + vet agents conditional validation
 
-**Exploration report:** `plans/continuation-passing/reports/explore-skill-chaining.md`
+**Reviews completed:**
+- design-vet-agent reviewed design (Ready) → `reports/design-review-rev3.md`
+- vet-agent reviewed runbook (Needs Minor Changes) → `reports/runbook-review.md`
 
-**Outline decisions:**
-- Build on existing tail-call pattern (not replace)
-- Parser location: UserPromptSubmit hook (intercepts input, injects additionalContext)
-- Continuation format: Structured JSON (not visible in transcript)
-- Cooperative registry: JSON file listing skills that understand protocol
-- Sub-agent isolation: Hook fires only in main session (Task prompts don't include continuation)
+**Fixed all review issues:**
+- Critical: Success criteria file count, agent prerequisites, structural validation directive
+- Major: Dependency docs reconciled, line numbers → section names, trigger mechanism clarified
 
-**Open questions identified:**
-1. Structured continuation representation (FR-4) in JSON payload
-2. `--` argument separator handling for complex contexts
-3. Error handling mid-chain: abort, skip, or retry
+**Commit:** 3e31573 — 🦺 Extend design-workflow-enhancement with requirements validation
 
-**Scope:** FR-1 through FR-7 in scope; FR-8 (uncooperative wrapping) deferred
+### Task Consolidation
 
-**Next action:** Design-review of outline to validate requirements alignment
+**"Update design skill" task** is now covered by design-workflow-enhancement Steps 5-6. The runbook implements:
+- Separate requirements section (A.0 checkpoint + C.1 guidance)
+- Updated design-review/plan/vet process (alignment validation at each stage)
 
 ## Pending Tasks
 
 - [ ] **Continuation passing design-review** — validate outline against requirements, then proceed to Phase B | opus
-- [ ] **Update design skill** — add separate requirements section, update design-review/plan/vet process; next session will address design process and review tooling | sonnet
+- [ ] **Orchestrate design-workflow-enhancement** — `/orchestrate design-workflow-enhancement` (6 steps, requirements extension ready) | sonnet
 - [ ] **Validator consolidation** — move validators to claudeutils package with tests | sonnet
 - [ ] **Handoff validation design** — complete design, requires continuation-passing + validator-consolidation | opus
 - [ ] **Orchestrator scope consolidation** — delegate checkpoint phases in orchestrate skill | sonnet
@@ -43,7 +45,7 @@
 
 ## Blockers / Gotchas
 
-**Learnings at 130+ lines (soft limit 80):**
+**Learnings at 177 lines (soft limit 80):**
 - Run `/remember` to consolidate older learnings into permanent documentation
 - Not blocking current work
 
@@ -52,4 +54,4 @@
 - Requirements MUST NOT be updated if task execution made them outdated
 
 ---
-*Continuation passing Phase A complete. Outline ready for design-review.*
+*Handoff by Sonnet. Requirements extension complete, runbook ready for orchestration.*

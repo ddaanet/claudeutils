@@ -1,7 +1,8 @@
 # Step 3
 
 **Plan**: `plans/design-workflow-enhancement/runbook.md`
-**Common Context**: See plan file for context
+**Execution Model**: sonnet
+**Report Path**: `plans/design-workflow-enhancement/reports/step-3-skill-updates.md`
 
 ---
 

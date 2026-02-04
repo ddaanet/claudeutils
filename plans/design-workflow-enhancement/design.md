@@ -250,11 +250,157 @@ The designer writes results to a report file for reuse by planners. This adds op
 
 - **Step count target:** The previous runbook had 6 steps for ~4 actual changes (1 agent, 3 skill edits) plus boilerplate. Aim for fewer, denser steps. Combine related operations where the step agent can handle them in sequence.
 
+## Requirements Alignment Validation (Extension)
+
+This section extends the design to add requirements tracking and validation across the workflow.
+
+### Problem
+
+The original design focuses on outline-first workflow and documentation checkpoint but lacks explicit requirements tracking. Deliverables (designs, runbooks, implementations) should be validated against requirements at each stage to ensure alignment.
+
+### Requirements Checkpoint (Phase A.0)
+
+Add to design skill Phase A, before outline generation:
+
+**A.0. Requirements Checkpoint**
+
+If `requirements.md` exists in job directory (`plans/<job-name>/requirements.md`):
+- Read and summarize functional/non-functional requirements
+- Note scope boundaries (in/out of scope)
+- Carry requirements context into outline and design
+
+If no requirements.md exists:
+- Document requirements discovered during research
+- Can be inline in design.md or separate requirements.md (designer's judgment)
+
+**Output:** Requirements summary available for Phase A.5 (outline) and Phase C.1 (design).
+
+### Design Document Requirements Section (Phase C.1)
+
+Design documents must include a Requirements section:
+
+```markdown
+## Requirements
+
+**Source:** `plans/<job-name>/requirements.md` (or inline if documented during design)
+
+**Functional:**
+- FR-1: [requirement] — addressed by [design decision/section]
+- FR-2: [requirement] — addressed by [design decision/section]
+
+**Non-functional:**
+- NFR-1: [requirement] — addressed by [design decision/section]
+
+**Out of scope:**
+- [item] — rationale
+```
+
+**Traceability:** Each requirement should map to a design element. This enables downstream validation.
+
+### Design Review: Requirements Alignment (C.3)
+
+Extend design-vet-agent review criteria:
+
+| Check | Question |
+|-------|----------|
+| **Completeness** | Does design address all functional requirements? |
+| **Consistency** | Do design decisions conflict with non-functional requirements? |
+| **Scope** | Does design stay within scope boundaries? |
+| **Traceability** | Can each requirement be traced to a design element? |
+
+**Review section addition:**
+
+```markdown
+## Requirements Alignment
+
+**Requirements Source:** [path or "inline"]
+
+| Requirement | Addressed | Design Reference |
+|-------------|-----------|------------------|
+| FR-1 | ✓/✗ | Section X / Missing |
+| FR-2 | ✓/✗ | Section Y / Missing |
+| NFR-1 | ✓/✗ | Decision Z / Missing |
+
+**Gaps:** [List any requirements not addressed by design]
+```
+
+### Plan Skills: Requirements Passthrough
+
+**plan-adhoc and plan-tdd changes:**
+
+1. **Read requirements** from design.md `## Requirements` section (or referenced requirements.md)
+2. **Include requirements summary** in runbook Common Context section
+3. **Vet checkpoint prompt** includes: "Verify implementation satisfies requirements"
+
+**Runbook addition (Common Context):**
+
+```markdown
+**Requirements (from design):**
+- FR-1: [summary]
+- FR-2: [summary]
+- NFR-1: [summary]
+
+**Scope boundaries:** [in/out of scope]
+```
+
+### Vet Agents: Dual Validation
+
+Extend vet-agent and vet-fix-agent review protocol:
+
+**Current:** Validates against code quality, project standards, security, testing, documentation.
+
+**Extended:** Add requirements validation section:
+
+```markdown
+## Requirements Validation
+
+**If design/requirements context provided in task prompt:**
+
+| Requirement | Status | Evidence |
+|-------------|--------|----------|
+| FR-1 | Satisfied/Partial/Missing | [file:line or explanation] |
+| FR-2 | Satisfied/Partial/Missing | [file:line or explanation] |
+
+**Gaps:** [Requirements not satisfied by implementation]
+```
+
+**Trigger:** Only when task prompt includes requirements context. Backward compatible — existing vet invocations without requirements context work unchanged.
+
+### Affected Files (Extension)
+
+| File | Change |
+|------|--------|
+| `agent-core/skills/design/SKILL.md` | Add A.0 requirements checkpoint, C.1 requirements section guidance |
+| `agent-core/agents/design-vet-agent.md` | Add requirements alignment checks to review protocol |
+| `agent-core/skills/plan-adhoc/SKILL.md` | Read requirements from design, include in runbook, add to vet prompt |
+| `agent-core/skills/plan-tdd/SKILL.md` | Same as plan-adhoc |
+| `agent-core/agents/vet-agent.md` | Add requirements validation section (conditional on task prompt) |
+| `agent-core/agents/vet-fix-agent.md` | Same as vet-agent |
+
+### Design Decisions (Extension)
+
+**9. Requirements checkpoint before outline**
+- *Rationale:* Requirements inform outline decisions. Loading them early ensures outline reflects actual constraints.
+- *Trade-off:* Adds a step if requirements.md exists. Minimal overhead — Read tool call.
+
+**10. Traceability in design document**
+- *Rationale:* Explicit mapping enables automated/manual validation. Missing traceability is a review finding.
+- *Alternative considered:* Implicit traceability (assume readers can find connections). Rejected — explicit is verifiable.
+
+**11. Conditional requirements validation in vet agents**
+- *Rationale:* Backward compatibility. Existing vet invocations work unchanged. New invocations with requirements context get enhanced validation.
+- *Trigger mechanism:* Task prompt includes requirements summary → agent performs requirements validation section.
+
+**12. Requirements in runbook Common Context**
+- *Rationale:* Step agents need requirements context for validation. Common Context is loaded by all steps.
+- *Alternative:* Pass requirements per-step. Rejected — redundant, increases runbook size.
+
 ## Future Work
 
 - **Session-log based capture:** Extract research artifacts (explore results, web search results, Context7 queries) from session transcripts for reuse. Mechanism TBD — requires separate design.
 - **Context7 delegation:** If Claude Code adds MCP tool access to sub-agents, revisit delegation to quiet-task haiku instead of direct calls.
 - **Automated perimeter validation:** Hook or script that verifies planner actually read the listed documentation perimeter files.
+- **Requirements coverage metrics:** Automated scoring of requirements coverage in designs/implementations.
 
 ## Next Steps
 
