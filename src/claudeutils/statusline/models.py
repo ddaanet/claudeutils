@@ -68,6 +68,17 @@ class PlanUsageData(BaseModel):
     day7_pct: float
 
 
+class ApiUsageData(BaseModel):
+    """API usage statistics by model tier from stats-cache.json."""
+
+    today_opus: int
+    today_sonnet: int
+    today_haiku: int
+    week_opus: int = 0
+    week_sonnet: int = 0
+    week_haiku: int = 0
+
+
 class StatuslineInput(BaseModel):
     """Parsed Claude Code JSON stdin schema.
 
