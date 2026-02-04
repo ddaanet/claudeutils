@@ -19,6 +19,7 @@ Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>
 - `majestic-herding-rain.md` — Gitmoji integration (implemented in commit skill)
 - `robust-waddling-bunny.md` — Memory index D-3 RCA (fix applied)
 - `review-requirements-consistency.md` — Requirements review (one-time)
+- `runbook-identifiers` — Cycle numbering gaps relaxed to warnings
 
 ## In Progress
 
@@ -43,6 +44,5 @@ Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>
 | handoff-validation | — | Requires continuation-passing |
 | markdown | — | Markdown cleanup test corpus |
 | requirements-skill | — | New skill |
-| runbook-identifiers | — | Purpose unclear |
 | validator-consolidation | — | Move to claudeutils package |
 

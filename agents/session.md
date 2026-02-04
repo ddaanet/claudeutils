@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-04
 
-**Status:** STATUS logic now reads jobs.md for authoritative plan status.
+**Status:** Archived runbook-identifiers plan (complete).
 
 ## Completed This Session
 
@@ -40,6 +40,17 @@
 - e9b8458 (parent) - STATUS logic enhancement
 - 447062e (agent-core submodule) - execute-rule.md specification
 
+### Archive runbook-identifiers Plan
+
+**Context:** Cycle numbering gap issue was resolved in commit ebee0b5 (2026-02-02). Plan contained problem statement and vet review of the fix.
+
+**Changes:**
+- Moved runbook-identifiers to jobs.md Complete section (one-off documents)
+- Deleted `plans/runbook-identifiers/` directory
+- Verified learnings.md already captures forward value (lines 14-17: gap relaxation, rationale, fix details)
+
+**Rationale:** Plan was one-off problem investigation and fix, similar to other archived one-off documents. Git history preserves all artifacts.
+
 ## Pending Tasks
 
 - [ ] **Continuation passing design-review** — validate outline against requirements, then proceed to Phase B | opus
@@ -59,4 +70,4 @@
 - Requirements MUST NOT be updated if task execution made them outdated
 
 ---
-*Handoff by Sonnet. STATUS now reflects jobs.md authoritative status.*
+*Handoff by Sonnet. Archived complete runbook-identifiers plan.*
