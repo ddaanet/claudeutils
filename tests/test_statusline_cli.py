@@ -1,8 +1,8 @@
-"""Tests for the statusline CLI command."""
+"""Tests for statusline CLI command."""
 
 from click.testing import CliRunner
 
-from claudeutils.cli import cli
+from claudeutils.statusline.cli import statusline
 from claudeutils.statusline.models import (
     ContextUsage,
     ContextWindowInfo,
@@ -13,8 +13,8 @@ from claudeutils.statusline.models import (
 )
 
 
-def test_statusline_reads_stdin() -> None:
-    """Test that statusline command reads JSON from stdin."""
+def test_statusline_parses_json() -> None:
+    """Test that statusline CLI parses JSON stdin into StatuslineInput model."""
     # Build valid StatuslineInput JSON
     input_data = StatuslineInput(
         model=ModelInfo(display_name="Claude Opus"),
@@ -33,9 +33,13 @@ def test_statusline_reads_stdin() -> None:
         version="1.0.0",
         session_id="test-session-123",
     )
+
     json_str = input_data.model_dump_json()
 
     runner = CliRunner()
-    result = runner.invoke(cli, ["statusline"], input=json_str)
-    # The command should exist and return exit code 0
-    assert result.exit_code == 0
+    result = runner.invoke(statusline, input=json_str)
+
+    # Should parse without error (exit code 0)
+    assert result.exit_code == 0, f"CLI failed: {result.output}"
+    # Should complete without raising a validation exception
+    assert result.exception is None, f"JSON parsing failed: {result.exception}"

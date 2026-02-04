@@ -1,9 +1,10 @@
 """CLI command for statusline."""
 
-import json
 import sys
 
 import click
+
+from claudeutils.statusline.models import StatuslineInput
 
 
 @click.command("statusline")
@@ -11,5 +12,5 @@ def statusline() -> None:
     """Display statusline reading JSON from stdin."""
     input_data = sys.stdin.read()
     if input_data.strip():
-        json.loads(input_data)  # Validate JSON
+        StatuslineInput.model_validate_json(input_data)
     click.echo("OK")
