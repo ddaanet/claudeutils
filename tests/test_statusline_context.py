@@ -1,10 +1,11 @@
 """Tests for statusline context module."""
 
+import json
 import subprocess
 from unittest.mock import MagicMock, patch
 
-from claudeutils.statusline.context import get_git_status
-from claudeutils.statusline.models import GitStatus
+from claudeutils.statusline.context import get_git_status, get_thinking_state
+from claudeutils.statusline.models import GitStatus, ThinkingState
 
 
 def test_get_git_status_in_repo() -> None:
@@ -91,3 +92,23 @@ def test_get_git_status_not_in_repo() -> None:
         assert isinstance(result, GitStatus)
         assert result.branch is None
         assert result.dirty is False
+
+
+def test_get_thinking_state_enabled() -> None:
+    """Test get_thinking_state returns ThinkingState with enabled=True.
+
+    When alwaysThinkingEnabled is true in settings.json.
+    """
+    settings_data = {"alwaysThinkingEnabled": True}
+
+    with patch("pathlib.Path.open", create=True) as mock_open:
+        # Mock file content as JSON string
+        mock_file = MagicMock()
+        mock_file.__enter__.return_value.read.return_value = json.dumps(settings_data)
+        mock_open.return_value = mock_file
+
+        result = get_thinking_state()
+
+        # Verify result
+        assert isinstance(result, ThinkingState)
+        assert result.enabled is True

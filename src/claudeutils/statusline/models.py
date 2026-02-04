@@ -10,6 +10,12 @@ class GitStatus(BaseModel):
     dirty: bool
 
 
+class ThinkingState(BaseModel):
+    """Claude Code thinking state information."""
+
+    enabled: bool
+
+
 class ContextUsage(BaseModel):
     """Token usage breakdown from Claude Code context window."""
 
