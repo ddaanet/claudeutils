@@ -3,6 +3,13 @@
 from pydantic import BaseModel, ConfigDict
 
 
+class GitStatus(BaseModel):
+    """Git repository status information."""
+
+    branch: str | None
+    dirty: bool
+
+
 class ContextUsage(BaseModel):
     """Token usage breakdown from Claude Code context window."""
 
