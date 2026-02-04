@@ -59,10 +59,11 @@ def get_api_usage() -> ApiUsageData | None:
     today_tokens = daily_model_tokens.get(today, {})
     today_aggregated = aggregate_by_tier(today_tokens)
 
-    # Calculate last 7 days (including today)
+    # Calculate most recent 7 days by sorting dates descending
     week_aggregated = {"opus": 0, "sonnet": 0, "haiku": 0}
-    for tokens_dict in list(daily_model_tokens.values())[:7]:
-        day_aggregated = aggregate_by_tier(tokens_dict)
+    sorted_dates = sorted(daily_model_tokens.keys(), reverse=True)[:7]
+    for date in sorted_dates:
+        day_aggregated = aggregate_by_tier(daily_model_tokens[date])
         for tier in ["opus", "sonnet", "haiku"]:
             week_aggregated[tier] += day_aggregated[tier]
 

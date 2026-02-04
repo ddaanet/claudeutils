@@ -5,14 +5,56 @@ import sys
 import click
 
 from claudeutils.account.state import get_account_state
-from claudeutils.statusline.api_usage import get_api_usage
+from claudeutils.statusline.api_usage import get_api_usage, get_switchback_time
 from claudeutils.statusline.context import (
     calculate_context_tokens,
     get_git_status,
     get_thinking_state,
 )
+from claudeutils.statusline.display import StatuslineFormatter
 from claudeutils.statusline.models import StatuslineInput
 from claudeutils.statusline.plan_usage import get_plan_usage
+
+
+def _format_usage_line(account_mode: str) -> str:
+    """Format usage data based on account mode.
+
+    Args:
+        account_mode: Either 'plan' or 'api'.
+
+    Returns:
+        Formatted usage line string.
+    """
+    formatter = StatuslineFormatter()
+    usage_line = ""
+
+    if account_mode == "plan":
+        plan_data = get_plan_usage()
+        if plan_data:
+            usage_line = formatter.format_plan_limits(plan_data)
+    elif account_mode == "api":
+        api_data = get_api_usage()
+        if api_data:
+            # Format API token counts by tier
+            o_today = formatter.format_tokens(api_data.today_opus)
+            s_today = formatter.format_tokens(api_data.today_sonnet)
+            h_today = formatter.format_tokens(api_data.today_haiku)
+            today_str = f"today: o{o_today} s{s_today} h{h_today}"
+            o_week = formatter.format_tokens(api_data.week_opus)
+            s_week = formatter.format_tokens(api_data.week_sonnet)
+            h_week = formatter.format_tokens(api_data.week_haiku)
+            week_str = f"week: o{o_week} s{s_week} h{h_week}"
+            usage_line = f"{today_str} | {week_str}"
+
+        # Add switchback time if available
+        switchback_time = get_switchback_time()
+        if switchback_time:
+            if usage_line:
+                usage_line = f"{usage_line} | switchback: {switchback_time}"
+            else:
+                usage_line = f"switchback: {switchback_time}"
+
+    return usage_line
 
 
 @click.command("statusline")
@@ -23,31 +65,26 @@ def statusline() -> None:
 
         if input_data.strip():
             parsed_input = StatuslineInput.model_validate_json(input_data)
-            # Call context functions (store results in local vars, no output yet)
             git_status = get_git_status()
-            get_thinking_state()
+            get_thinking_state()  # Called for completeness per design
             context_tokens = calculate_context_tokens(parsed_input)
 
-            # Get account state and route to appropriate usage function
+            # Get account state and usage info
             account_state = get_account_state()
-            if account_state.mode == "plan":
-                get_plan_usage()
-            elif account_state.mode == "api":
-                get_api_usage()
+            usage_line = _format_usage_line(account_state.mode)
 
-            # Format and output two lines
-            # Line 1: model emoji + directory + git branch + cost + context tokens
+            # Format line 1: model + directory + git branch + cost + context
             model_name = parsed_input.model.display_name
             dir_name = parsed_input.workspace.current_dir
             branch = git_status.branch if git_status.branch else "no-branch"
             cost = f"${parsed_input.cost.total_cost_usd:.2f}"
             context_str = f"{context_tokens}t" if context_tokens else "0t"
-
             line1 = f"{model_name} {dir_name} {branch} {cost} {context_str}"
 
-            # Line 2: mode + usage info
-            mode = account_state.mode
-            line2 = f"mode: {mode}"
+            # Format line 2: mode + usage info
+            line2 = f"mode: {account_state.mode}"
+            if usage_line:
+                line2 = f"{line2} | {usage_line}"
 
             click.echo(line1)
             click.echo(line2)
