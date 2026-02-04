@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-04
 
-**Status:** STATUS logic updated for plans/claude/ individual file tracking.
+**Status:** STATUS logic now reads jobs.md for authoritative plan status.
 
 ## Completed This Session
 
@@ -16,24 +16,29 @@
 
 **Commit:** dd45dbb (parent), af23ce4 (agent-core submodule)
 
-### STATUS Logic Update for plans/claude/
+### STATUS Logic Enhancement for jobs.md Integration
 
-**Context:** Commit 1fd12bb configured `.claude/settings.json` to use `plans/claude/` as the plan directory for Claude Code's built-in plan mode. This keeps Claude-generated plans separate from manually created plans while still tracking them.
+**Context:** STATUS display was inferring plan status from directory contents only, missing completed plans that are tracked in jobs.md. This caused design-workflow-enhancement to show as "planned" when it was actually complete.
 
 **Changes made:**
-- Updated `agent-core/fragments/execute-rule.md` STATUS display specification
-- Added special handling for `plans/claude/` directory
-- Individual `.md` files in `plans/claude/` now listed as `claude/<filename> — plan`
-- Excludes `.gitkeep` and other non-plan files
-- Added `plan` status value to status detection list
+- Updated `agent-core/fragments/execute-rule.md` STATUS specification
+- Added jobs.md as authoritative source for plan status
+- Status source priority: jobs.md Complete section → In Progress table → Designed table → Requirements table → directory fallback
+- Added `complete` status value to display completed plans
+- Maintains special handling for `plans/claude/` individual files
 
 **Implementation tested:**
-- Logic correctly handles empty `plans/claude/` directory (only .gitkeep)
-- Would list individual plan files when they exist
-- Maintains existing behavior for other `plans/*/` directories
-- Alphabetical sorting preserved across all entries
+- Completed plans correctly extracted from jobs.md "Recent:" section
+- In Progress, Designed, Requirements plans parsed from tables using grep/cut/sed
+- design-workflow-enhancement now shows as "complete" instead of "planned"
+- All 6 completed plans from jobs.md appear in STATUS output
+- Alphabetical sorting preserved
 
-**Rationale:** Built-in plan mode creates individual plan files rather than directory structures. Tracking them individually provides visibility into Claude-managed vs manually-managed plans.
+**Rationale:** jobs.md is the authoritative lifecycle tracker. STATUS display should reflect that truth, not infer stale status from directory presence.
+
+**Commits:**
+- e9b8458 (parent) - STATUS logic enhancement
+- 447062e (agent-core submodule) - execute-rule.md specification
 
 ## Pending Tasks
 
@@ -54,4 +59,4 @@
 - Requirements MUST NOT be updated if task execution made them outdated
 
 ---
-*Handoff by Sonnet. STATUS logic updated for plans/claude/ file tracking.*
+*Handoff by Sonnet. STATUS now reflects jobs.md authoritative status.*
