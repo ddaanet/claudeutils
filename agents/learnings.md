@@ -35,8 +35,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Prevents: Submodule sync drift, missing artifacts in commits, dirty-state rationalization
 ## Never auto-commit in interactive sessions
 - Anti-pattern: Committing after completing work because it "feels like a natural breakpoint"
+- Anti-pattern: Running raw `git commit` to bypass skill protocol (no STATUS display, no clipboard)
 - Correct pattern: Only commit when user explicitly requests (`/commit`, `ci`, `xc`, `hc`)
-- Rationale: Previous rule had ambiguous disjunction (three bullets any-one-sufficient vs "wait for user direction"). With `xc` (execute+commit) shortcuts, auto-commit provides no value — user controls commit timing explicitly
+- Correct pattern: ALL commits follow commit skill protocol — STATUS display is mandatory, not optional
+- Rationale: With `xc` (execute+commit) shortcuts, auto-commit provides no value — user controls commit timing explicitly
+- Reinforcement: "Fix X and do Y" means fix X, do Y, then STOP. Commit is never implicit in task completion.
 ## MCP tools unavailable subagents
 - Anti-pattern: Assuming quiet-task or other sub-agents can call MCP tools (Context7, etc.)
 - Correct pattern: MCP tools only available in main session. Call directly from designer/planner, write results to report file for reuse.
@@ -128,3 +131,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Index entries are `Title — keyword description` where description captures semantic content for discovery
 - Validation checks structural requirements (entry exists); design defines content requirements (entry is keyword-rich). Both must be met.
 - Don't dismiss critical vet feedback by reframing it as a less-severe related finding
+## Commits are sync points
+- Principle: Every version control commit synchronizes files, submodules, and context (session.md)
+- Trigger: When adding new kind of state to versioned content, design extension point in /commit skill to check for that state
+- Current sync checks: submodule commits (step 1b), session.md freshness (step 0)
+- Future examples: large file tracking, external dependency manifests, generated artifacts

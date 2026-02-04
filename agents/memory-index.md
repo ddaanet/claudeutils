@@ -92,32 +92,6 @@ TDD: presentation vs behavior — test behavior defer presentation quality to ve
 
 Commit RCA fixes active — submodule awareness, artifact staging, orchestrator stop rule fixes
 
-## Learnings from Sessions
-
-Agent-creator reviews in orchestration — task creates file then agent-creator reviews fixes YAML
-Ambient awareness beats invocation — embed critical knowledge in loaded context not skills
-Bare lines beat list markers — 14% token savings without semantic loss for index
-Cycle numbering gaps relaxed — gaps downgraded to warnings, document order defines sequence
-Default semantic mark structural — dot prefix marks structural, failure mode catches orphans
-Design review uses opus — architectural analysis not vet-agent code quality focus
-Design tables are binding constraints — read design tables literally, judgment only where specified
-Design-vet-agent replaces inline opus — dedicated agent with artifact-return pattern for architecture
-Header titles not index entries — index requires title with keyword description, validation checks structure not content
-Flags are exact tokens — exact tokens not prose containing flag-like words
-General knowledge overrides directives — project recipes take priority over equivalent ad-hoc commands
-Hook capture impractical subagents — hooks don't fire in sub-agents, session-log extraction better
-MCP tools unavailable subagents — only available in main session, write results to file
-Model selection design guidance — haiku for explicit edits, sonnet for interpreting design intent
-Never auto-commit in interactive sessions — only commit when user explicitly requests with shortcuts
-Orchestrator model mismatch — read step file execution model, not orchestrator default model
-Outline-first design workflow — produce outline first, iterate with user, generate full design after
-Precommit is read-only — must not modify source files, session state exemption
-Root marker for scripts — use CLAUDE.md as root marker, not agents directory
-SessionStart hook broken — output discarded for new sessions, use session.md instead
-Template commit contradiction — contradictions resolve in favor of structurally prominent directive
-Title-words beat kebab-case — natural language tokenizes more efficiently than hyphens
-Vet catches structure misalignments — validates file paths and structural assumptions via Glob Read
-
 ## Architecture Sections
 
 Agent Development — agent frontmatter YAML requires multi-line syntax for examples
