@@ -223,3 +223,41 @@ def test_calculate_context_tokens_from_transcript() -> None:
 
         # Should sum to 50 + 100 + 25 + 25 = 200
         assert result == 200
+
+
+def test_calculate_context_tokens_missing_transcript() -> None:
+    """Test missing transcript returns 0 without exception.
+
+    When current_usage is None and transcript file doesn't exist, should return
+    0 without raising exception (fail-safe per D8).
+    """
+    # Create StatuslineInput with current_usage=None and non-existent path
+    context_window = ContextWindowInfo(current_usage=None, context_window_size=200000)
+    input_data = StatuslineInput(
+        model=ModelInfo(display_name="Claude 3"),
+        workspace=WorkspaceInfo(current_dir="/home/user"),
+        transcript_path="nonexistent.json",
+        context_window=context_window,
+        cost=CostInfo(total_cost_usd=0.05),
+        version="1.0.0",
+        session_id="sess-123",
+    )
+
+    # Mock Path to raise FileNotFoundError when opening missing file
+    with patch("claudeutils.statusline.context.Path") as mock_path_class:
+        # Mock the Path instance
+        mock_path_instance = MagicMock()
+
+        # Mock stat() to raise FileNotFoundError (file doesn't exist)
+        mock_path_instance.stat.side_effect = FileNotFoundError(
+            "[Errno 2] No such file or directory: 'nonexistent.json'"
+        )
+
+        # Make Path() return our mock instance
+        mock_path_class.return_value = mock_path_instance
+
+        # Call calculate_context_tokens - should return 0 without raising
+        result = calculate_context_tokens(input_data)
+
+        # Should return 0 (fail-safe default)
+        assert result == 0
