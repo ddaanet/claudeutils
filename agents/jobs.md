@@ -9,6 +9,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | Plan | Status | Notes |
 |------|--------|-------|
 | claude-tools-recovery | complete | Account/provider/model CLI wired |
+| workflow-feedback-loops | designed | 5 feedback checkpoints, 2 new agents |
 | claude-tools-rewrite | planned | Paused (stubs) |
 | commit-unification | designed | May be superseded by commit-rca-fixes |
 | continuation-passing | requirements | Opus design needed |

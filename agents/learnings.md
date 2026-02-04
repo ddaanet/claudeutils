@@ -43,3 +43,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Benefits: Catches presentation/visual gaps that unit tests miss
 - Process: Delegated to exploration agent, writes detailed conformance matrix
 - Example: statusline-wiring found all 5 requirements met but missing emojis/bars/colors
+## Outline enables phase-by-phase expansion
+- Anti-pattern: Generate full runbook monolithically, review at end (late feedback)
+- Correct pattern: Generate holistic outline first, then expand phase-by-phase with review after each
+- Rationale: Outline provides cross-phase coherence; per-phase expansion provides earlier feedback
+- Quality preserved: Outline catches structure issues before expensive full generation
+## Fix-all for document reviewers
+- Anti-pattern: Review agents only fix critical/major, leave minor for human
+- Correct pattern: Fix-all for document review (AI has no feelings); critical/major only for implementation (higher risk)
+- Distinction: vet-agent remains review-only (caller has context), outline agents fix everything
+- Rationale: Document fixes are low-risk; implementation fixes may have unintended side effects

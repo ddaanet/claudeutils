@@ -1,22 +1,29 @@
 # Session Handoff: 2026-02-04
 
-**Status:** Added document type validation to review agents.
+**Status:** Completed workflow-feedback-loops design with full vet review.
 
 ## Completed This Session
 
-**Review agent document validation:**
-- Added "Step 0: Validate Document Type" to four agents
-- `design-vet-agent` — validates design.md, rejects runbooks (→ use vet-agent)
-- `vet-agent` — validates code/runbooks, rejects design docs (→ use design-vet-agent)
-- `vet-fix-agent` — same validation as vet-agent
-- `tdd-plan-reviewer` — validates TDD runbooks (type: tdd), rejects design/general runbooks
-- Each agent returns structured error with recommendation for correct agent
+**Workflow feedback loops design:**
+- Created `plans/workflow-feedback-loops/design.md` — 5 feedback checkpoints across design/planning/execution
+- Exploration report: `plans/workflow-feedback-loops/reports/explore-current-feedback.md` (gap analysis)
+- Design review v1: Found 3 major, 3 minor issues
+- Design review v2: All issues fixed by design-vet-agent, assessment "Ready"
+
+**Key design decisions:**
+- Fix-all policy: outline agents + design-vet-agent fix ALL (incl. minor); vet-agent/tdd-plan-reviewer remain review-only
+- Phase-by-phase expansion: Outline provides holistic structure, runbook expands phase-by-phase with review after each
+- Input validation matrix: Each agent validates requirements + design + artifact, rejects wrong document types
+- FP-5 artifact delivery: Orchestrator passes changed file list (not git diff text, not runbook)
+
+**Two new agents needed:**
+- `outline-review-agent` — reviews design outlines (sonnet)
+- `runbook-outline-review-agent` — reviews runbook outlines (sonnet)
 
 ## Pending Tasks
 
-- [ ] **Validate vet-fix requires design ref** — fail if given runbook reference
-- [ ] **Add vet+fix after intermediate phases** — with requirements and design, precommit-clean tree
-- [ ] **Update review agents** — use script outputting learnings + memory index + fragments
+- [ ] **Plan workflow-feedback-loops runbook** — `/plan-adhoc plans/workflow-feedback-loops/design.md` | sonnet
+  - Plan: workflow-feedback-loops | Status: designed
 - [ ] **Execute statusline-parity runbook** — `/plan-tdd plans/statusline-parity/design.md` | sonnet
   - Plan: statusline-parity | Status: designed
 - [ ] **Delete claude-tools-recovery artifacts** — Remove plan directory (work complete)
@@ -28,22 +35,22 @@
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
-- [ ] **Run /remember** — Process learnings (learnings.md at ~45 lines)
+- [ ] **Run /remember** — Process learnings (learnings.md at ~53 lines)
 
 ## Blockers / Gotchas
 
-None.
+- **Behavioral change in /design A.5:** Current workflow presents outline inline; new workflow writes to file. User adjustment required.
 
 ## Reference Files
 
-- **agent-core/agents/design-vet-agent.md** — Design doc validation (lines 19-32)
-- **agent-core/agents/vet-agent.md** — Code/runbook validation (lines 19-33)
-- **agent-core/agents/vet-fix-agent.md** — Same as vet-agent (lines 19-33)
-- **agent-core/agents/tdd-plan-reviewer.md** — TDD runbook validation (lines 12-20)
+- **plans/workflow-feedback-loops/design.md** — Full design with 5 feedback checkpoints
+- **plans/workflow-feedback-loops/reports/design-review-v2.md** — Final review (Ready)
+- **plans/workflow-feedback-loops/reports/explore-current-feedback.md** — Gap analysis
 
 ## Next Steps
 
-- Continue with next pending task
+- Plan runbook for workflow-feedback-loops implementation
+- Load `plugin-dev:agent-development` before planning (2 new agents)
 
 ---
-*Handoff by Sonnet. Document type validation added to review agents.*
+*Handoff by Sonnet. Design complete and vetted.*
