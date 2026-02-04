@@ -20,6 +20,8 @@ def create_switchback_plist(plist_path: Path, switchback_time: int) -> None:
         "Label": "com.anthropic.claude.switchback",
         "ProgramArguments": ["/usr/local/bin/claudeutils", "account", "switchback"],
         "StartCalendarInterval": {
+            "Month": target_time.month,
+            "Day": target_time.day,
             "Hour": target_time.hour,
             "Minute": target_time.minute,
             "Second": target_time.second,
