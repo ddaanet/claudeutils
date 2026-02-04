@@ -31,7 +31,17 @@ def get_git_status() -> GitStatus:
 
         branch = result.stdout.strip()
 
-        return GitStatus(branch=branch, dirty=False)
+        # Check for dirty working tree
+        status_result = subprocess.run(
+            ["git", "status", "--porcelain"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        dirty = bool(status_result.stdout.strip())
+
+        return GitStatus(branch=branch, dirty=dirty)
 
     except (subprocess.CalledProcessError, FileNotFoundError):
         # Not in a git repository or git not found
