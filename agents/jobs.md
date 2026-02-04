@@ -11,6 +11,7 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `design-workflow-enhancement` — Outline-first design workflow, documentation checkpoint, requirements validation
 - `feedback-fixes` — Handoff quality, tdd-task restructure, submodule-safety hook
 - `task-prose-keys` — Replaced hash tokens with prose key validation (validate-tasks.py)
 
@@ -23,7 +24,6 @@ Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>
 
 | Plan | Status | Current Step | Task Key |
 |------|--------|--------------|----------|
-| design-workflow-enhancement | planned | Steps 4-7 pending | — |
 | claude-tools-recovery | planned | Re-testing phase | — |
 | claude-tools-rewrite | planned | Paused (stubs) | — |
 
