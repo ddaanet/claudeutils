@@ -4,8 +4,21 @@ import json
 import subprocess
 from unittest.mock import MagicMock, patch
 
-from claudeutils.statusline.context import get_git_status, get_thinking_state
-from claudeutils.statusline.models import GitStatus, ThinkingState
+from claudeutils.statusline.context import (
+    calculate_context_tokens,
+    get_git_status,
+    get_thinking_state,
+)
+from claudeutils.statusline.models import (
+    ContextUsage,
+    ContextWindowInfo,
+    CostInfo,
+    GitStatus,
+    ModelInfo,
+    StatuslineInput,
+    ThinkingState,
+    WorkspaceInfo,
+)
 
 
 def test_get_git_status_in_repo() -> None:
@@ -130,3 +143,32 @@ def test_get_thinking_state_missing_file() -> None:
         # Verify result
         assert isinstance(result, ThinkingState)
         assert result.enabled is False
+
+
+def test_calculate_context_tokens_from_current_usage() -> None:
+    """Test calculate_context_tokens sums 4 token fields from current_usage."""
+    # Create StatuslineInput with current_usage containing 4 token values
+    current_usage = ContextUsage(
+        input_tokens=100,
+        output_tokens=50,
+        cache_creation_input_tokens=25,
+        cache_read_input_tokens=25,
+    )
+    context_window = ContextWindowInfo(
+        current_usage=current_usage, context_window_size=200000
+    )
+    input_data = StatuslineInput(
+        model=ModelInfo(display_name="Claude 3"),
+        workspace=WorkspaceInfo(current_dir="/home/user"),
+        transcript_path="/home/user/.claude/transcript.md",
+        context_window=context_window,
+        cost=CostInfo(total_cost_usd=0.05),
+        version="1.0.0",
+        session_id="sess-123",
+    )
+
+    # Call calculate_context_tokens
+    result = calculate_context_tokens(input_data)
+
+    # Should sum to 100 + 50 + 25 + 25 = 200
+    assert result == 200

@@ -4,7 +4,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from claudeutils.statusline.models import GitStatus, ThinkingState
+from claudeutils.statusline.models import GitStatus, StatuslineInput, ThinkingState
 
 
 def get_git_status() -> GitStatus:
@@ -66,3 +66,28 @@ def get_thinking_state() -> ThinkingState:
     except (FileNotFoundError, json.JSONDecodeError, KeyError):
         # Settings file not found or can't be parsed
         return ThinkingState(enabled=False)
+
+
+def calculate_context_tokens(input_data: StatuslineInput) -> int:
+    """Calculate total context tokens from current_usage.
+
+    Sums the 4 token fields (input_tokens, output_tokens,
+    cache_creation_input_tokens, cache_read_input_tokens) from
+    current_usage when present.
+
+    Args:
+        input_data: StatuslineInput containing context_window information.
+
+    Returns:
+        Sum of the 4 token fields, or 0 if current_usage is None.
+    """
+    if input_data.context_window.current_usage is None:
+        return 0
+
+    usage = input_data.context_window.current_usage
+    return (
+        usage.input_tokens
+        + usage.output_tokens
+        + usage.cache_creation_input_tokens
+        + usage.cache_read_input_tokens
+    )
