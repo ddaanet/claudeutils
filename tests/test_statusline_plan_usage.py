@@ -31,3 +31,16 @@ def test_get_plan_usage() -> None:
         assert result.hour5_pct == 87
         assert result.hour5_reset == "14:23"
         assert result.day7_pct == 42
+
+
+def test_get_plan_usage_api_failure() -> None:
+    """Test get_plan_usage handles API failures gracefully per D8 (fail-safe)."""
+    # Mock UsageCache.get() to raise an exception
+    with patch("claudeutils.statusline.plan_usage.UsageCache") as mock_cache_class:
+        mock_instance = MagicMock()
+        mock_cache_class.return_value = mock_instance
+        mock_instance.get.side_effect = Exception("API call failed")
+
+        result = get_plan_usage()
+
+        assert result is None

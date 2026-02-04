@@ -31,5 +31,5 @@ def get_plan_usage() -> PlanUsageData | None:
             hour5_reset=str(cast("str", reset_5h)) if reset_5h else "—",
             day7_pct=float(cast("float", percent_7d)) if percent_7d else 0.0,
         )
-    except (KeyError, TypeError, ValueError):
+    except Exception:
         return None
