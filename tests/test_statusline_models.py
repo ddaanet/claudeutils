@@ -50,3 +50,30 @@ def test_parse_valid_json() -> None:
     assert input_model.cost.total_cost_usd == 0.12
     assert input_model.version == "2026-01-15"
     assert input_model.session_id == "session-abc123"
+
+
+def test_parse_null_current_usage() -> None:
+    """StatuslineInput parses JSON with context_window.current_usage=null without error.
+
+    Validates that current_usage field is optional and accepts null values,
+    supporting resume session case where usage data may not be available (per R2).
+    """
+    json_data: dict[str, Any] = {
+        "model": {"display_name": "Claude 3.5 Sonnet"},
+        "workspace": {"current_dir": "/Users/david/code/claudeutils"},
+        "transcript_path": "/Users/david/.claude/sessions/session-123/transcript.json",
+        "context_window": {
+            "current_usage": None,
+            "context_window_size": 200000,
+        },
+        "cost": {"total_cost_usd": 0.12},
+        "version": "2026-01-15",
+        "session_id": "session-abc123",
+    }
+
+    # Parse JSON with null current_usage
+    input_model = StatuslineInput(**json_data)
+
+    # Verify model parses and current_usage is None
+    assert input_model.context_window.current_usage is None
+    assert input_model.context_window.context_window_size == 200000
