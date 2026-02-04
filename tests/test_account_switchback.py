@@ -98,3 +98,16 @@ def test_read_switchback_plist() -> None:
     assert result.day == 15
     assert result.hour == 14
     assert result.minute == 30
+
+
+def test_read_switchback_plist_missing(tmp_path: Path) -> None:
+    """Test read_switchback_plist() returns None when plist doesn't exist."""
+    # Create a mock home directory that doesn't contain the plist
+    mock_home = tmp_path / "home"
+    mock_home.mkdir()
+
+    with patch("claudeutils.account.switchback.Path.home", return_value=mock_home):
+        result = read_switchback_plist()
+
+    # Verify result is None when plist file doesn't exist
+    assert result is None
