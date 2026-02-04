@@ -135,3 +135,46 @@ def test_statusline_routes_to_plan_usage() -> None:
         )
         # Should exit successfully
         assert result.exit_code == 0, f"CLI failed: {result.output}"
+
+
+def test_statusline_outputs_two_lines() -> None:
+    """Test that statusline() formats and outputs two lines with real data."""
+    # Build valid StatuslineInput JSON with all required fields
+    input_data = StatuslineInput(
+        model=ModelInfo(display_name="Claude Opus"),
+        workspace=WorkspaceInfo(current_dir="/Users/david/code"),
+        transcript_path="/path/to/transcript.md",
+        context_window=ContextWindowInfo(
+            current_usage=ContextUsage(
+                input_tokens=1000,
+                output_tokens=500,
+                cache_creation_input_tokens=0,
+                cache_read_input_tokens=0,
+            ),
+            context_window_size=200000,
+        ),
+        cost=CostInfo(total_cost_usd=0.05),
+        version="1.0.0",
+        session_id="test-session-123",
+    )
+
+    json_str = input_data.model_dump_json()
+
+    runner = CliRunner()
+    with (
+        patch("claudeutils.statusline.cli.get_git_status"),
+        patch("claudeutils.statusline.cli.get_thinking_state"),
+        patch("claudeutils.statusline.cli.calculate_context_tokens"),
+        patch("claudeutils.statusline.cli.get_account_state"),
+        patch("claudeutils.statusline.cli.get_plan_usage"),
+    ):
+        result = runner.invoke(statusline, input=json_str)
+
+        # Should exit successfully
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
+        # Output should contain two lines
+        lines = result.output.strip().split("\n")
+        assert len(lines) == 2, f"Expected 2 lines, got {len(lines)}: {lines}"
+        # Each line should have content (not empty)
+        assert lines[0].strip(), "Line 1 is empty"
+        assert lines[1].strip(), "Line 2 is empty"
