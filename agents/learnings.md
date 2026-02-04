@@ -136,3 +136,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Trigger: When adding new kind of state to versioned content, design extension point in /commit skill to check for that state
 - Current sync checks: submodule commits (step 1b), session.md freshness (step 0)
 - Future examples: large file tracking, external dependency manifests, generated artifacts
+## Loaded skill overrides fresh-session framing
+- Anti-pattern: After `/clear`, treating loaded skill content as informational rather than actionable
+- Correct pattern: If skill content is present in context (via command injection), execute it immediately
+- Rationale: `/clear` resets conversation history but skill invocation injects actionable instructions
+- The skill IS the task — "fresh session" is not a reason to pause and ask what to do
