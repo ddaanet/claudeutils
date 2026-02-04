@@ -1,8 +1,13 @@
-# Session Handoff: 2026-02-02
+# Session Handoff: 2026-02-04
 
-**Status:** Completed statusline wiring design with opus vet and fixes.
+**Status:** Merged main into tools-rewrite, fixed validation script. Statusline wiring design ready for planning.
 
 ## Completed This Session
+
+**Merged main branch:**
+- Fixed validate-tasks.py to handle merge commits correctly (simplified logic)
+- Main branch adds: prose keys, STATUS jobs.md integration, design-vet-agent, new plan requirements
+- Resolved conflicts (took main's comprehensive learnings.md, merged session.md pending tasks)
 
 **Statusline design created and vetted:**
 - Root cause analysis: CLI stub exists but data-gathering modules missing (context.py, plan_usage.py, api_usage.py)
@@ -36,19 +41,19 @@
 - [ ] **Plan statusline wiring** — `/plan-tdd plans/statusline-wiring/design.md` | sonnet
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing (prevent orphaned files)
 - [ ] **Update plan-tdd/plan-adhoc skills** — Auto-run prepare-runbook.py with sandbox bypass, handoff, commit, pipe orchestrate command to pbcopy, report restart/model/paste instructions
-- [ ] **Design runbook identifier solution** — `/design plans/runbook-identifiers/problem.md` | opus | restart (semantic IDs vs relaxed validation vs auto-numbering)
-- [ ] **Create design-vet-agent** — Opus agent for design document review (deferred to opus session)
+- [ ] **Continuation passing design-review** — validate outline against requirements, then proceed to Phase B | opus
+- [ ] **Validator consolidation** — move validators to claudeutils package with tests | sonnet
+- [ ] **Handoff validation design** — complete design, requires continuation-passing + validator-consolidation | opus
 - [ ] **Add execution metadata to step files** — Step files declare dependencies and execution mode
 - [ ] **Orchestrator scope consolidation** — Update orchestrate skill to delegate checkpoint phases (Fix + Vet + Functional) instead of manual invocation
-- [ ] **Run /remember** — Process learnings from sessions (learnings.md at 169 lines, soft limit 80)
+- [ ] **Session-log capture research** — extract explore/websearch/context7 results from transcripts | opus
+- [ ] **Run /remember** — Process learnings from sessions (learnings.md at 232 lines, soft limit 80)
 
 ## Blockers / Gotchas
 
-**Artifact hygiene issue (prepare-runbook.py) — ACTIVE:**
-- Does not clean steps/ directory before generating new runbook
-- Two generations left 44 step files; only 13 match current runbook
-- Older generation files have outdated assumptions (references tests/test_account.py, hasattr patterns)
-- Action: Need to fix prepare-runbook.py to clean steps/ directory before write
+**Learnings at 232 lines (soft limit 80):**
+- Run `/remember` to consolidate older learnings into permanent documentation
+- Not blocking current work
 
 ## Reference Files
 
@@ -72,4 +77,4 @@
 - Run /remember to consolidate learnings.md (169 lines, soft limit 80)
 
 ---
-*Handoff by Opus. Designed statusline wiring (TDD mode), opus vet found 13 issues (3 critical, 3 major), fixed all critical/major. Design ready for planning.*
+*Handoff by Sonnet. Merged main into tools-rewrite, fixed validate-tasks.py for merge commits. Statusline design ready for planning.*

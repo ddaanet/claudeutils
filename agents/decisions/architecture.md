@@ -6,6 +6,8 @@ Module structure, path handling, data models, and general architectural decision
 
 ### Minimal `__init__.py`
 
+**Minimal init:**
+
 **Decision:** Keep `src/claudeutils/__init__.py` empty (1 line)
 
 **Rationale:** Prefer explicit imports from specific modules over package-level re-exports for clarity
@@ -19,6 +21,8 @@ from claudeutils.extraction import extract_feedback_recursively
 ```
 
 ### Private Helpers Stay With Callers
+
+**Private helpers cohesion:**
 
 **Decision:** `_extract_feedback_from_file()` in `parsing.py`, `_process_agent_file()` in `discovery.py`
 
@@ -37,6 +41,8 @@ from claudeutils.extraction import extract_feedback_recursively
 ## Path Handling
 
 ### Path Encoding Algorithm
+
+**Path encoding:**
 
 **Decision:** Simple `/` → `-` character replacement with special root handling (`"/"` → `"-"`)
 
@@ -179,6 +185,8 @@ from claudeutils.extraction import extract_feedback_recursively
 
 ### Pydantic for Validation
 
+**Pydantic for validation:**
+
 **Decision:** Use Pydantic BaseModel for all data structures (SessionInfo, FeedbackItem)
 
 **Benefits:**
@@ -227,6 +235,8 @@ This triggers ruff D205 because docformatter doesn't add the blank line that ruf
 
 ### Complexity Management
 
+**Complexity management:**
+
 **Decision:** Extract helper functions when cyclomatic complexity exceeds limits
 
 **Examples:**
@@ -259,6 +269,8 @@ This triggers ruff D205 because docformatter doesn't add the blank line that ruf
 ## Feedback Processing Pipeline
 
 ### Pipeline Architecture
+
+**Feedback processing:**
 
 **Decision:** Three-stage pipeline: `collect` → `analyze` → `rules`
 
@@ -543,6 +555,8 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 
 ### remark-cli Over Prettier
 
+**Remark-cli chosen:**
+
 **Decision Date:** 2026-01-07
 
 **Decision:** Use remark-cli as markdown formatter, not Prettier or markdownlint-cli2.
@@ -602,9 +616,38 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 
 **Reference:** Decision based on comprehensive evaluation (2026-01-07) comparing Prettier, markdownlint-cli2, and remark-cli across CommonMark compliance, idempotency, configuration options, and test corpus validation
 
+## Memory Index Pruning
+
+### Growth + Consolidation Model
+
+**Memory index append-only:**
+
+**Decision Date:** 2026-02-01
+
+**Decision:** No active pruning. Soft limit (100 entries) triggers consolidation of related entries into domain summaries, not deletion.
+
+**Options considered:**
+- A) No pruning, just growth — simple but index could become noisy
+- B) Redundancy-based (remove when fragment is @-imported) — circular: index catalogs ALL knowledge
+- C) Staleness-based (remove after N cycles without relevance) — requires metadata tracking, learnings aren't ephemeral
+- D) Coverage-based (replace granular entries with domain summaries) — natural consolidation pattern
+
+**Chosen:** A — append-only, no pruning, no consolidation, no limit.
+
+**Rationale:**
+- Each entry provides keyword-rich discovery surface for on-demand knowledge — removal loses ambient awareness
+- Consolidation into domain summaries kills keyword matching (e.g., "Sandbox patterns" won't trigger when agent works on `prepare-runbook.py`)
+- Soft limits cause the same failure as learnings.md: agents treat them as hard caps and aggressively prune
+- Token cost is modest: 200 entries × ~25 tokens ≈ 5000 tokens (acceptable for always-loaded context)
+- Growth is naturally bounded by consolidation rate (~5-10 entries/session)
+
+**Impact:** memory-index.md header updated (append-only), consolidation-patterns.md updated, no changes to /remember skill logic.
+
 ## Claude Code Rule Files
 
 ### Rule Files for Context Injection
+
+**Rule files pattern:**
 
 **Decision Date:** 2026-01-27
 
@@ -635,6 +678,8 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 
 ### Premium/Standard/Efficient Naming
 
+**Premium standard efficient:**
+
 **Decision Date:** 2026-01-27
 
 **Decision:** Use "premium/standard/efficient" terminology for model tiers instead of "T1/T2/T3".
@@ -653,3 +698,90 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 - Clear model selection guidance in delegation
 - No ambiguity in documentation and skill instructions
 - Easier for users to understand model choices
+
+## Skill Discovery
+
+### Multi-Layer Discovery Pattern
+
+**Skill discovery layers:**
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Skills require multiple discovery layers, not just good internal documentation.
+
+**Anti-pattern:** Build well-documented skill and assume agents will find it ("build it and they will come")
+
+**Correct pattern:** Surface skills via 4 discovery layers:
+1. CLAUDE.md fragment or always-loaded context
+2. Path-triggered `.claude/rules/` entry
+3. In-workflow reminders in related skills
+4. Directive skill description
+
+**Rationale:** Agents only see skill listing descriptions and always-loaded context. Internal skill docs are invisible until invoked.
+
+**Example:** opus-design-question skill had 248-line docs but zero external visibility — agents asked user instead of consulting it. Fixed with 4-layer approach.
+
+**Impact:** Ensures skills are discoverable and used appropriately.
+
+## Agent Development
+
+### Agent Frontmatter YAML Validation
+
+**Agent frontmatter multiline:**
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Agent frontmatter YAML must use multi-line syntax (`|`) for descriptions containing examples.
+
+**Anti-pattern:**
+```yaml
+description: Short description
+<example>...</example>
+```
+
+**Correct pattern:**
+```yaml
+description: |
+  Short description with examples
+  <example>...</example>
+```
+
+**Rationale:** YAML parsers treat unindented content after `description:` as new fields. Invalid YAML prevents agent registration. Multi-line string syntax (`|`) makes examples part of description value.
+
+**Impact:** Prevents agent registration failures due to invalid YAML.
+
+## Symlink Management
+
+### Symlink Persistence
+
+**Symlinks after formatters:**
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Verify symlinks after operations that reformat files.
+
+**Anti-pattern:** Assume symlinks in `.claude/hooks/` persist across tool operations
+
+**Correct pattern:** Verify symlinks after `just dev`, `ruff format`, or similar formatters
+
+**Rationale:** Formatters follow symlinks and may replace them with reformatted copies. `just dev` did this to both hook .py files.
+
+**Impact:** Use `just sync-to-parent` to restore symlinks after formatting operations.
+
+## Shell Environment
+
+### Heredoc Sandbox Compatibility
+
+**Heredocs in sandbox:**
+
+**Decision Date:** 2026-02-01 (SOLVED)
+
+**Problem:** Heredocs broken in sandbox mode — zsh uses `TMPPREFIX` (not `TMPDIR`) for heredoc temp files. Default `/tmp/zsh` is outside sandbox allowlist.
+
+**Solution:** `export TMPPREFIX="${TMPDIR:-/tmp}/zsh"` in `agent-core/configs/claude-env.sh` (sourced by `.envrc`)
+
+**Rationale:** Claude Code sandbox sets TMPDIR but not TMPPREFIX for zsh.
+
+**Status:** Resolved in agent-core configuration.
+
+**Impact:** Heredocs work correctly in sandbox mode.

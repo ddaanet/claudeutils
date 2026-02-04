@@ -12,16 +12,9 @@ The `CLAUDE.md` file in the project root provides comprehensive instructions for
 
 ### Source Fragments
 
-The generated `CLAUDE.md` is composed from the following fragments (in order):
+The `CLAUDE.md` file is composed from fragments stored in `agent-core/fragments/`. These fragments provide modular, reusable instruction components that are imported via `@`-references.
 
-1. **AGENTS-framework.md** - File header and navigation links
-2. **communication.md** - Core communication rules
-3. **delegation.md** - Delegation principles and patterns
-4. **tool-batching.md** - Guidelines for batching tool operations
-5. **roles-rules-skills.md** - Tables defining roles, rules, and skills
-6. **hashtags.md** - Semantic hashtag conventions
-
-All fragments are sourced from `agent-core/fragments/`.
+Core fragments include communication rules, delegation patterns, tool batching guidelines, and workflow-specific instructions.
 
 ### Generation Script
 

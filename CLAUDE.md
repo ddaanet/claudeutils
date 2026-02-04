@@ -21,6 +21,11 @@
 ### Current Work
 - @agents/session.md - Current session handoff context (update only on handoff)
 - @agents/learnings.md - Accumulated learnings (append-only, soft limit 80 lines)
+- @agents/jobs.md - Plan lifecycle tracking (update when plans change status)
+
+---
+
+@agents/memory-index.md
 
 ---
 
@@ -48,6 +53,8 @@
 
 @agent-core/fragments/vet-requirement.md
 
+@agent-core/fragments/design-decisions.md
+
 ## Session Management
 
 @agent-core/fragments/execute-rule.md
@@ -61,11 +68,21 @@ When user says "pending: task description":
 
 @agent-core/fragments/delegation.md
 
+@agent-core/fragments/project-tooling.md
+
+### Available Recipes
+
+**Root justfile:**
+@.cache/just-help.txt
+
+**agent-core justfile:**
+@.cache/just-help-agent-core.txt
+
 ### Skill Development
 
 **Rule:** When creating, editing, or discussing skills, start by loading the `plugin-dev:skill-development` skill.
 
-**Location:** All skills live in `agent-core/skills/`. They are symlinked from `.claude/skills/`. Run `just sync-to-parent` in `agent-core/` to update symlinks.
+**Location:** All skills live in `agent-core/skills/`. They are symlinked from `.claude/skills/`. Run `just sync-to-parent` in `agent-core/` to update symlinks (requires `dangerouslyDisableSandbox: true`).
 
 **Why:** The skill-development skill provides:
 - Skill structure and frontmatter guidance

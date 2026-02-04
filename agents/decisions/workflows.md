@@ -16,6 +16,8 @@ Workflow-related architectural decisions and patterns.
 - 5 skills: `/design`, `/plan-adhoc`, `/orchestrate`, `/vet`, `/remember`
 - Complete documentation (documented in CLAUDE.md and agent-core)
 
+**Weak orchestrator pattern:**
+
 **Pattern Validation:**
 - Haiku successfully executes runbook steps using runbook-specific agents
 - Error escalation works (haiku → sonnet → opus)
@@ -52,6 +54,8 @@ Workflow-related architectural decisions and patterns.
 - TDD runbook reviewer (`agent-core/agents/tdd-plan-reviewer.md`) for prescriptive code detection
 - Review skill (`agent-core/skills/review-tdd-plan/`) for anti-pattern detection
 
+**TDD workflow:**
+
 **Architecture:**
 - Unified design entry point (`/design` skill) supports both oneshot and TDD modes
 - RED phase: Write failing tests, document intent
@@ -80,6 +84,8 @@ Workflow-related architectural decisions and patterns.
 - Proper execution flow: design → plan → review → prepare → orchestrate
 
 ## Handoff Pattern: Inline Learnings
+
+**Handoff pattern:**
 
 **Decision Date:** 2026-01-27
 
@@ -149,6 +155,8 @@ plans/<stream-name>/
 
 ## TDD Workflow: Commit Squashing Pattern
 
+**TDD commit squashing:**
+
 **Decision Date:** 2026-01-27
 
 **Decision:** Squash TDD cycle commits into single feature commit while preserving granular cycle progression in reports.
@@ -170,3 +178,217 @@ plans/<stream-name>/
 - Production-ready commit history
 - Full audit trail in execution reports
 - Easy to review feature implementation holistically
+
+## Orchestrator Execution Mode
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Execution mode metadata in orchestrator plan overrides system prompt parallelization directives.
+
+**Problem:** System prompt parallelization directive (strong emphasis, 3x repetition) overrides orchestrate skill sequential requirement when tasks appear syntactically independent but are semantically state-dependent (TDD cycles, git commits).
+
+**Solution:**
+- Use `claude0` (`--system-prompt "Empty."`) to remove competing directives
+- Execution mode metadata in orchestrator plan is authoritative
+- ONE Task call per message when execution mode is sequential
+- Plan must include rationale and explicit override instructions
+
+**Pattern:**
+```markdown
+**Execution Mode:** STRICT SEQUENTIAL
+
+**Rationale:** TDD cycles modify shared state. Parallel execution causes git commit race conditions and RED phase violations.
+
+**Override:** Execute ONE Task call per message, regardless of syntactic independence.
+```
+
+**Rationale:**
+- Syntactic independence (no parameter dependencies) != semantic independence (state dependencies)
+- Strong directive language ("CRITICAL", "MUST", all-caps) matches system prompt emphasis level
+- Explicit rationale prevents future misinterpretation
+
+**Impact:**
+- Prevents race conditions in TDD workflow execution
+- Clear contract between planner and orchestrator
+- Eliminates ambiguity in execution mode requirements
+
+## Orchestration Assessment: Three-Tier Implementation Model
+
+**Three-tier assessment:**
+
+**Decision Date:** 2026-01-31 (updated 2026-01-31)
+
+**Decision:** Plan skills use three-tier assessment to route work appropriately. This supersedes the original binary (direct vs runbook) decision.
+
+**Three Tiers:**
+
+**Tier 1 (Direct Implementation):**
+- Design complete (no open decisions)
+- All edits straightforward (<100 lines each)
+- Total scope: <6 files
+- Single session, single model
+- No parallelization benefit
+- **Sequence:** Implement directly → vet agent → apply fixes → `/handoff --commit`
+
+**Tier 2 (Lightweight Delegation):**
+- Design complete, scope moderate (6-15 files or 2-4 logical components)
+- Work benefits from agent isolation but not full orchestration
+- Components are sequential (no parallelization benefit)
+- No model switching needed
+- **Sequence:** Delegate via Task tool (quiet-task/tdd-task) with context in prompts → vet agent → `/handoff --commit`
+
+**Tier 3 (Full Runbook):**
+- Multiple independent steps (parallelizable)
+- Steps need different models
+- Long-running / multi-session execution
+- Complex error recovery
+- >15 files or complex coordination
+- **Sequence:** 4-point process → prepare-runbook.py → handoff → restart → orchestrate
+
+**Rationale:** Matches orchestration overhead to task complexity. Tier 1 avoids unnecessary process for simple tasks. Tier 2 provides middle ground with context isolation but minimal overhead. Tier 3 preserves full pipeline for complex work.
+
+**Impact:** Prevents unnecessary runbook creation for straightforward tasks while surfacing lightweight delegation as middle ground.
+
+## Checkpoint Process for Runbooks
+
+**Checkpoint process:**
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Two-step checkpoints at natural boundaries in runbook execution.
+
+**Pattern:**
+1. **Fix checkpoint:** `just dev` (lint, tests, build verification)
+2. **Vet checkpoint:** Quality review (code review, architecture validation)
+
+**Rationale:** Balances early issue detection with cost efficiency. Avoids both extremes: all-at-once vetting (late detection) and per-step vetting (excessive overhead).
+
+**Impact:** Optimal cost-benefit for runbook quality assurance.
+
+## Phase-Grouped TDD Runbooks
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Support both flat (H2) and phase-grouped (H2 + H3) cycle headers in runbooks.
+
+**Patterns:**
+- Flat: `## Cycle X.Y`
+- Phase-grouped: `## Phase N` / `### Cycle X.Y`
+
+**Implementation:** `prepare-runbook.py` regex changed from `^## Cycle` to `^###? Cycle`
+
+**Rationale:** Phase grouping improves readability for large runbooks with logical phases.
+
+**Impact:** Flexible runbook structure for different complexity levels.
+
+## No Human Escalation During Refactoring
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Design decisions are made during `/design` phase. Opus handles architectural refactoring within design bounds. Human escalation only for execution blockers.
+
+**Rationale:** Blocking pipeline for human input during refactoring is expensive.
+
+**Impact:** Faster execution, clear separation between design (user input) and implementation (automated).
+
+## Defense-in-Depth: Commit Verification
+
+**Commit verification:**
+
+**Decision Date:** 2026-01-31
+
+**Decision:** Multiple layers of commit verification at different execution levels.
+
+**Layers:**
+- **tdd-task agent:** Post-commit sanity check (verify commit contains expected files)
+- **orchestrate skill:** Post-step tree check (escalate if working tree dirty)
+
+**Rationale:** Catches different failure modes at different levels (commit content vs working tree state).
+
+**Impact:** Robust commit verification without single point of failure.
+
+## Handoff Workflow
+
+### Handoff Tail-Call Pattern
+
+**Handoff tail-call:**
+
+**Decision Date:** 2026-02-01
+
+**Decision:** All tiers (1/2/3) must end with `/handoff --commit`, never bare `/commit`.
+
+**Anti-pattern:** Tier 1/2 skip handoff because "no session restart needed"
+
+**Correct pattern:** Always tail-call `/handoff --commit` — handoff captures session context and learnings regardless of tier
+
+**Rationale:** Handoff is about context preservation, not just session restart. Even direct implementations produce learnings and update pending task state.
+
+**Impact:** Consistent workflow termination across all tier levels.
+
+### Handoff Commit Assumption
+
+**Handoff commit assumption:**
+
+**Decision Date:** 2026-02-01
+
+**Decision:** session.md reflects post-commit state when `--commit` flag is used.
+
+**Anti-pattern:** Writing "Ready to commit" in Status or "pending commit" in footer when `--commit` flag is active
+
+**Correct pattern:** Write status reflecting post-commit state — the tail-call makes commit atomic with handoff
+
+**Rationale:** Next session reads session.md post-commit. Stale commit-pending language causes agents to re-attempt already-completed commits. The rule against commit tasks in Pending/Next Steps must extend to ALL sections.
+
+**Impact:** Prevents duplicate commit attempts in subsequent sessions.
+
+## Workflow Efficiency
+
+### Delegation with Context
+
+**Delegation with context:**
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Don't delegate when context is already loaded.
+
+**Anti-pattern:** Reading files, gathering context, then delegating to another agent (which re-reads everything)
+
+**Correct pattern:** If you already have files in context, execute directly — delegation adds re-reading overhead
+
+**Rationale:** Token economy. Agent overhead (context setup + re-reading) exceeds cost of continuing in current model.
+
+**Corollary:** Delegate when task requires *new* exploration you haven't done yet.
+
+**Impact:** Reduces token waste from redundant context loading.
+
+### Routing Layer Efficiency
+
+**Single-layer complexity:**
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Single-layer complexity assessment, not double assessment.
+
+**Anti-pattern:** Entry point skill assesses complexity, then routes to planning skill which re-assesses complexity (tier assessment)
+
+**Correct pattern:** Single entry point with triage that routes directly to the appropriate depth — no intermediate routing layer
+
+**Rationale:** Each assessment reads files, analyzes scope, produces output. Two assessments for the same purpose is pure waste.
+
+**Example:** Oneshot assessed simple/moderate/complex, then /plan-adhoc re-assessed Tier 1/2/3 — same function, different labels.
+
+**Impact:** Eliminates redundant analysis overhead.
+
+### Vet Agent Context Usage
+
+**Decision Date:** 2026-02-01
+
+**Decision:** Leverage vet agent context for fixes instead of launching new agents.
+
+**Anti-pattern:** When removal agent makes mistakes and vet catches them, launching a new fix agent (which re-reads everything)
+
+**Correct pattern:** If vet agent has context of what's wrong, leverage it. If caller also has context (from reading vet report), apply fixes directly.
+
+**Rationale:** Tier 1/2 pattern — caller reads report, applies fixes with full context. No need for another agent round-trip.
+
+**Impact:** Faster fix cycles without redundant context loading.
