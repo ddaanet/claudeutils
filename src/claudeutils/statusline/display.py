@@ -94,3 +94,24 @@ class StatuslineFormatter:
         """
         bar = self.vertical_bar(pct)
         return f"{name} {bar} {pct}% │ resets {reset}"
+
+    def format_tokens(self, tokens: int) -> str:
+        """Convert token count to human-readable string.
+
+        Args:
+            tokens: Token count to format
+
+        Returns:
+            Human-readable string (e.g., "1k", "1.5M", "100")
+        """
+        if tokens < 1000:
+            return str(tokens)
+        if tokens < 1000000:
+            # Display as thousands
+            k = tokens // 1000
+            return f"{k}k"
+        # Display as millions
+        m = tokens / 1000000
+        if m == int(m):
+            return f"{int(m)}M"
+        return f"{m:.1f}M"

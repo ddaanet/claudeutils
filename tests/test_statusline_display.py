@@ -88,3 +88,28 @@ def test_limit_display() -> None:
     assert "2026-02-01" in result
     # Should contain vertical bar separator
     assert "│" in result
+
+
+def test_format_tokens() -> None:
+    """StatuslineFormatter.format_tokens() converts token counts to humanized.
+
+    Converts to human-readable strings (e.g., "1k", "1.5M", "100").
+    """
+    formatter = StatuslineFormatter()
+
+    # Test small numbers (< 1k)
+    assert formatter.format_tokens(100) == "100"
+    assert formatter.format_tokens(999) == "999"
+
+    # Test thousands (k)
+    assert formatter.format_tokens(1000) == "1k"
+    assert formatter.format_tokens(1234) == "1k"
+    assert formatter.format_tokens(10000) == "10k"
+    assert formatter.format_tokens(150000) == "150k"
+    assert formatter.format_tokens(999999) == "999k"
+
+    # Test millions (M)
+    assert formatter.format_tokens(1000000) == "1M"
+    assert formatter.format_tokens(1500000) == "1.5M"
+    assert formatter.format_tokens(2500000) == "2.5M"
+    assert formatter.format_tokens(10000000) == "10M"
