@@ -178,3 +178,54 @@ def test_statusline_outputs_two_lines() -> None:
         # Each line should have content (not empty)
         assert lines[0].strip(), "Line 1 is empty"
         assert lines[1].strip(), "Line 2 is empty"
+
+
+def test_statusline_exits_zero_on_error() -> None:
+    """Test that statusline CLI exits with code 0 even when an exception occurs.
+
+    Mocks one of the data functions to raise an exception and verifies:
+    1. CLI exits with code 0 (not 1)
+    2. Error message is logged to stderr
+    """
+    # Build valid StatuslineInput JSON
+    input_data = StatuslineInput(
+        model=ModelInfo(display_name="Claude Opus"),
+        workspace=WorkspaceInfo(current_dir="/Users/david/code"),
+        transcript_path="/path/to/transcript.md",
+        context_window=ContextWindowInfo(
+            current_usage=ContextUsage(
+                input_tokens=1000,
+                output_tokens=500,
+                cache_creation_input_tokens=0,
+                cache_read_input_tokens=0,
+            ),
+            context_window_size=200000,
+        ),
+        cost=CostInfo(total_cost_usd=0.05),
+        version="1.0.0",
+        session_id="test-session-123",
+    )
+
+    json_str = input_data.model_dump_json()
+
+    runner = CliRunner()
+    with (
+        patch("claudeutils.statusline.cli.get_git_status") as mock_git,
+        patch("claudeutils.statusline.cli.get_thinking_state"),
+        patch("claudeutils.statusline.cli.calculate_context_tokens"),
+        patch("claudeutils.statusline.cli.get_account_state"),
+        patch("claudeutils.statusline.cli.get_plan_usage"),
+    ):
+        # Mock get_git_status to raise an exception
+        mock_git.side_effect = Exception("Test error: git command failed")
+
+        result = runner.invoke(statusline, input=json_str)
+
+        # Must exit with code 0 (not 1)
+        assert result.exit_code == 0, (
+            f"Expected exit code 0, got {result.exit_code}. Output: {result.output}"
+        )
+        # Error message must be in output (stderr via click.echo(err=True))
+        assert "Error:" in result.output, (
+            f"Error message should be present in output. Output: '{result.output}'"
+        )
