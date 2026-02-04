@@ -141,3 +141,19 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: If skill content is present in context (via command injection), execute it immediately
 - Rationale: `/clear` resets conversation history but skill invocation injects actionable instructions
 - The skill IS the task — "fresh session" is not a reason to pause and ask what to do
+## UserPromptSubmit has no matcher
+- Anti-pattern: Expecting UserPromptSubmit hooks to support `matcher` field like PreToolUse/PostToolUse
+- Correct pattern: UserPromptSubmit fires on every prompt; all filtering logic lives in the script, not settings.json
+- Rationale: Different hook events have different API capabilities; script-level filtering is more flexible
+## Template merge semantics
+- Anti-pattern: Generic templates that imply "replace structure with this form" (causes learnings deletion)
+- Correct pattern: Partial templates with explicit merge semantics — PRESERVE existing sections, ADD new items, REPLACE only specified content
+- Rationale: "Template" implies blank slate; explicit semantics (preserve/add/replace) prevent unintended overwrites
+## Happy path first TDD
+- Anti-pattern: Testing empty/degenerate cases first (cycle 1: empty list returns []; stub never replaced)
+- Correct pattern: Start with simplest happy path that exercises real behavior; test edge cases only when they need special handling
+- Rationale: Empty-first ordering produces stubs that satisfy tests but never get replaced with real implementations
+## Seeding before auto-generation
+- Anti-pattern: Leaving knowledge indexes empty until consolidation runs
+- Correct pattern: Seed indexes with entries pointing to existing permanent docs before expecting auto-generation to fill them
+- Rationale: Non-empty index is immediately useful; seeding and consolidation are complementary bootstrap mechanisms
