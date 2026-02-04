@@ -1,40 +1,34 @@
 # Session Handoff: 2026-02-03
 
-**Status:** Memory index update implementation started, process failure diagnosed. Recovery plan and skill fixes outlined. Learnings file at 149 lines — needs `/remember` consolidation.
+**Status:** Memory index D-3 non-compliant. Entries are bare titles, not keyword descriptions. ~145 entries need `— description` added. RCA at `plans/robust-waddling-bunny.md`.
 
 ## Completed This Session
 
-### Memory Index Implementation — PARTIAL
+### Memory Index Implementation — PARTIAL (D-3 non-compliant)
 
-**Delegation to quiet-task agent:**
-- Format migrations completed (bare lines, `## Title` learnings, validator patterns)
-- Agent escalated "design ambiguity" about subsection indexing
-- Escalation was incorrect — design D-1 table explicitly shows all `##`, `###`, `####` as semantic by default
+**What's done:**
+- Format migrations: bare lines, `## Title` learnings
+- Validators: semantic/structural header detection (R-4 orphan check)
+- Index populated with header titles (structural compliance)
 
-**Process failure diagnosed via `/reflect`:**
-- Root cause: Agent (and planner) misread design table, invented "subsections = structural" heuristic
-- Design says: ALL headers are semantic unless explicitly marked with `.` prefix
-- Index SHOULD be extensive (~140-150 entries) per design rationale
-- Agent should use judgment to identify genuinely structural headers (TOCs, meta-sections), not blanket-reclassify subsections
+**What's NOT done:**
+- D-3 requires: `Title — keyword description (8-12 words)`
+- Current state: `Title` (bare, 2-4 words)
+- ~145 entries need keyword descriptions added
+- Validator needs D-3 format check (em-dash required)
 
-**Recovery plan written:** `plans/memory-index-update/reports/recovery-plan.md`
-- Step-by-step recovery (add all semantic headers to index, mark only genuinely structural with `.`)
-- Four skill fixes identified for `/design` and `/plan-adhoc`
+**RCA:** `plans/robust-waddling-bunny.md`
+- Agent conflated "entries exist" with "entries are compliant"
+- Dismissed critical vet feedback by reframing as less-severe Major
 
-### Skill Fixes Outlined
-
-| Fix | Skill | Change |
-|-----|-------|--------|
-| 1 | `/design` | Add "Classification tables are binding" to Phase C.1 |
-| 2 | `/plan-adhoc` | Add "Design constraints are non-negotiable" to Tier 2 |
-| 3 | `/plan-adhoc` | Add "Handling agent escalations" — verify against design before accepting |
-| 4 | `/design` | Add "Binding constraints for planners" to Output Expectations |
-
-**Files modified by agent:** See `plans/memory-index-update/reports/implementation.md`
+**Uncommitted changes (partial work):**
+- `agents/learnings.md` — format standardization
+- `agents/memory-index.md` — bare titles (need descriptions)
+- `agent-core/bin/validate-*.py` — R-4 check only, needs D-3 check
 
 ## Pending Tasks
 
-- [ ] **Memory index update** #YWuND — continue from recovery plan, add all semantic headers to index, mark genuinely structural with `.`, update remember skill | sonnet
+- [ ] **Memory index D-3 compliance** #dGh0e — add keyword descriptions to ~145 entries, enhance validator for em-dash check | sonnet
 - [ ] **Apply skill fixes** #PCu7a — implement 4 skill fixes from recovery plan to `/design` and `/plan-adhoc` | sonnet
 - [ ] **Validator consolidation** #pEmoW — move validators to claudeutils package with tests | sonnet
 - [ ] **Task prose keys** #POn2Z — replace hash tokens with prose keys, merge-aware uniqueness | sonnet
@@ -47,17 +41,18 @@
 
 ## Blockers / Gotchas
 
-**Learnings file at 149 lines (CRITICAL — over 80-line limit):**
-- Must run `/remember` to consolidate older learnings before adding more
-- File grew from 144 to 149 lines this session
+**Validator passes but D-3 fails:**
+- Validator checks entry existence (R-4), not format (D-3)
+- Precommit will pass, but design compliance fails
+- Must enhance validator before committing partial work
 
-**Memory index implementation blocked on recovery:**
-- Agent's partial work left validators failing (146 errors)
-- Must follow recovery plan: add index entries for all semantic headers, mark genuinely structural with `.`
+**Learnings at 125 lines (soft limit 80):**
+- Consider `/remember` after this task completes
+- Not blocking current work
 
-**Design table interpretation:**
-- Classification tables in design docs are LITERAL constraints, not guidelines
-- When agent escalates "ambiguity," verify against design source first
+**Learning from RCA:**
+- Don't conflate "validator passes" with "design compliant"
+- Don't dismiss critical vet feedback by reframing as less-severe finding
 
 ---
-*Handoff by Sonnet. Process failure diagnosed. Recovery plan and skill fixes outlined.*
+*Session reconciled. Memory index D-3 non-compliant, ~145 entries need descriptions.*
