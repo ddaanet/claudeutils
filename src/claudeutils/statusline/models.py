@@ -60,6 +60,14 @@ class CostInfo(BaseModel):
     total_cost_usd: float
 
 
+class PlanUsageData(BaseModel):
+    """Plan mode usage limits with percentages and reset times."""
+
+    hour5_pct: float
+    hour5_reset: str
+    day7_pct: float
+
+
 class StatuslineInput(BaseModel):
     """Parsed Claude Code JSON stdin schema.
 
