@@ -281,6 +281,18 @@ plans/<stream-name>/
 
 **Impact:** Flexible runbook structure for different complexity levels.
 
+## Cycle Numbering Gaps Relaxed
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Gaps in cycle numbering are warnings, not errors. Duplicates and invalid start numbers remain errors.
+
+**Rationale:** Document order defines execution sequence — numbers are stable identifiers, not sequence indicators. Treating gaps as fatal errors caused excessive editing churn (10+ edits per gap).
+
+**Implementation:** `prepare-runbook.py` validation downgraded gap detection from ERROR to WARNING.
+
+**Impact:** Reduced editing friction during runbook creation while maintaining validation for actual errors.
+
 ## No Human Escalation During Refactoring
 
 **Decision Date:** 2026-01-31
@@ -392,3 +404,227 @@ plans/<stream-name>/
 **Rationale:** Tier 1/2 pattern — caller reads report, applies fixes with full context. No need for another agent round-trip.
 
 **Impact:** Faster fix cycles without redundant context loading.
+
+## Design and Planning Patterns
+
+### Outline-First Design Workflow
+
+**Outline-first design workflow:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Produce freeform outline first, iterate with user via incremental deltas, then generate full design after validation.
+
+**Anti-pattern:** Producing full design.md in a single pass, then discovering user wanted different approach.
+
+**Escape hatch:** If user already specified approach/decisions/scope, compress outline+discussion into single validation.
+
+**Rationale:** Early validation prevents wasted effort on wrong direction. Iterative refinement captures user intent accurately.
+
+**Impact:** Higher quality designs aligned with user expectations, less re-work.
+
+### Model Selection for Design Guidance
+
+**Model selection design guidance:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Haiku for explicit edits with exact text provided, sonnet for generating markdown from design guidance.
+
+**Anti-pattern:** Assigning haiku to tasks requiring interpretation of design intent ("add escape hatch if...").
+
+**Rationale:** Haiku executes what's specified, sonnet interprets intent and produces explicit text.
+
+**Trade-off:** Sonnet costs more but prevents re-work from under-specified haiku tasks.
+
+**Impact:** Appropriate model selection reduces execution errors and re-work.
+
+### Design Review Uses Opus
+
+**Decision Date:** 2026-02-04 (superseded by design-vet-agent)
+
+**Original Decision:** Use `Task(subagent_type="general-purpose", model="opus")` for design review.
+
+**Current Decision:** Use `Task(subagent_type="design-vet-agent")` — dedicated agent with opus model.
+
+**Anti-pattern:** Using vet-agent for design review (vet is implementation-focused — code quality, patterns, correctness).
+
+**Rationale:** General-purpose agent strengths (architecture analysis, multi-file exploration, complex investigation) align with design review needs.
+
+**Benefits:** Artifact-return pattern (detailed report to file), specialized review protocol, consistent with vet-agent/vet-fix-agent structure.
+
+**Impact:** Three-agent vet system: vet-agent (code, sonnet), vet-fix-agent (code + fixes, sonnet), design-vet-agent (architecture, opus).
+
+### Vet Catches Structure Misalignments
+
+**Vet catches structure misalignments:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Vet agent validates file paths AND structural assumptions via Glob/Read during review.
+
+**Anti-pattern:** Writing runbook steps based on assumed structure ("lines ~47-78") without reading actual files.
+
+**Example:** plan-adhoc Point 0.5 actually at line 95, plan-tdd uses "Actions:" not "Steps:".
+
+**Impact:** Prevented execution failures from incorrect section identification. Vet review with path validation is a blocker-prevention mechanism, not just quality check.
+
+**Critical:** Always validate structural assumptions during vet reviews.
+
+## Orchestration Patterns
+
+### Agent-Creator Reviews in Orchestration
+
+**Agent-creator reviews in orchestration:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Task agent creates file from spec, then `plugin-dev:agent-creator` reviews and fixes (YAML syntax, description quality, prompt structure).
+
+**Anti-pattern:** Only using agent-creator for interactive agent creation from scratch.
+
+**Mechanism:** Custom `## Orchestrator Instructions` in runbook specifies per-step subagent_type override. prepare-runbook.py already extracts custom orchestrator sections.
+
+**Confirmed empirically:** agent-creator is cooperative in review mode, has Write access.
+
+**Impact:** Higher quality agent files through specialized review.
+
+### Template Commit Contradiction
+
+**Template commit contradiction:**
+
+**Decision Date:** 2026-02-04
+
+**Problem:** quiet-task.md says "NEVER commit unless task explicitly requires" while prepare-runbook.py appends "Commit all changes before reporting success".
+
+**Root cause:** Baseline template designed for ad-hoc delegation (no auto-commit), but orchestrated execution requires clean tree after every step.
+
+**Fix:** Qualified quiet-task.md line 112 to add "or a clean-tree requirement is specified".
+
+**Broader lesson:** Appended context at bottom of agent file has weak positional authority vs bolded NEVER in core constraints section — contradictions resolve in favor of the structurally prominent directive.
+
+**Impact:** Resolved directive conflict, clarified when commits are required.
+
+### Orchestrator Model Mismatch
+
+**Orchestrator model mismatch:**
+
+**Decision Date:** 2026-02-04
+
+**Problem:** Using orchestrator's own model (haiku) for all step agent Task invocations.
+
+**Root cause:** Orchestrate skill said "model: [from orchestrator metadata, typically haiku]" — ambiguous, conflated orchestrator model with step execution model.
+
+**Correct pattern:** Read each step file's "Execution Model" field and pass that to Task tool's model parameter.
+
+**Impact:** Haiku step agents skip complex behaviors (vet delegation, commit sequences) that sonnet would follow.
+
+**Fix:** Clarified orchestrate skill Section 3.1 — model comes from step file, not orchestrator default.
+
+## Testing and TDD Patterns
+
+### Happy Path First TDD
+
+**Happy path first TDD:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Start with simplest happy path that exercises real behavior; test edge cases only when they need special handling.
+
+**Anti-pattern:** Testing empty/degenerate cases first (cycle 1: empty list returns []; stub never replaced).
+
+**Rationale:** Empty-first ordering produces stubs that satisfy tests but never get replaced with real implementations.
+
+**Impact:** Test-driven implementations that exercise actual behavior from first cycle.
+
+## Documentation and Knowledge Management
+
+### Seeding Before Auto-Generation
+
+**Seeding before auto-generation:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Seed indexes with entries pointing to existing permanent docs before expecting auto-generation to fill them.
+
+**Anti-pattern:** Leaving knowledge indexes empty until consolidation runs.
+
+**Rationale:** Non-empty index is immediately useful; seeding and consolidation are complementary bootstrap mechanisms.
+
+**Impact:** Immediate value from indexes while consolidation builds them incrementally.
+
+### Index Entries Require Backing Documentation
+
+**Index entries require backing documentation:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Learnings → learnings.md → /remember → permanent doc → index entry.
+
+**Anti-pattern:** Adding memory-index entries for concepts without permanent docs.
+
+**Rationale:** Index entries are discovery surfaces for on-demand knowledge; they must point somewhere.
+
+**Impact:** Index serves as reliable discovery mechanism, not aspirational wishlist.
+
+### Template Merge Semantics
+
+**Template merge semantics:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Partial templates with explicit merge semantics — PRESERVE existing sections, ADD new items, REPLACE only specified content.
+
+**Anti-pattern:** Generic templates that imply "replace structure with this form" (causes learnings deletion).
+
+**Rationale:** "Template" implies blank slate; explicit semantics (preserve/add/replace) prevent unintended overwrites.
+
+**Impact:** Safe template usage without data loss.
+
+## Requirements and Execution
+
+### Requirements Immutable During Execution
+
+**Requirements immutable during execution:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Requirements MUST NOT be updated if task execution made them outdated; updating requires explicit user confirmation.
+
+**Anti-pattern:** Updating requirement files during task execution when implementation discovers they're outdated.
+
+**Rationale:** Requirements document intent and decisions at planning time; execution discovering they're wrong means either (1) requirements need user review/approval before updating, or (2) implementation needs to match requirements despite being outdated.
+
+**Impact:** Clear separation between planning (requirements) and execution (implementation).
+
+## Knowledge Discovery and Context
+
+### Ambient Awareness Beats Invocation
+
+**Ambient awareness beats invocation:**
+
+**Decision Date:** 2026-02-04
+
+**Research:** From Vercel study: Ambient context (100%) outperformed skill invocation (79%).
+
+**Problem:** Skills not triggered 56% of cases — decision about "when to invoke" is failure point.
+
+**Correct pattern:** Embed critical knowledge in loaded context (CLAUDE.md, memory-index).
+
+**Directive:** "Prefer retrieval-led reasoning over pre-training knowledge" (memory-index.md header).
+
+**Impact:** Always-available context beats sometimes-invoked skills.
+
+### Task Prose Keys Pattern
+
+**Task prose keys pattern:**
+
+**Decision Date:** 2026-02-04
+
+**Pattern:** Task names serve as identifiers (no hash tokens needed).
+
+**Implementation:** git log -S for on-demand history search, case-insensitive matching.
+
+**Benefit:** Near-zero marginal cost, natural language keys, context recovery via task-context.sh.
+
+**Impact:** Task names are both human-readable and machine-searchable identifiers.

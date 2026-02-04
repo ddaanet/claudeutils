@@ -89,6 +89,10 @@ TDD: presentation vs behavior — test behavior defer presentation quality to ve
 
 ## Architecture Sections
 
+Command-Line Parsing — flags are exact tokens exact match not prose substring, agents/decisions/architecture.md
+Flags are exact tokens — exact token match not prose substring CLI parsing, agents/decisions/architecture.md
+Project Structure — root marker for scripts CLAUDE.md not agents directory, agents/decisions/architecture.md
+Root marker for scripts — CLAUDE.md not agents directory subdirectory issue, agents/decisions/architecture.md
 Agent Development — agent frontmatter YAML requires multi-line syntax for examples
 Agent Processing — AgentId becomes SessionId for child agents, true tree recursion
 CLI Conventions — Path.cwd consistency, errors to stderr, entry point configuration
@@ -116,6 +120,27 @@ Token Counting — model as first positional, alias support, API integration
 
 ## Workflow Sections
 
+Cycle numbering gaps relaxed — gaps warnings document order defines sequence, agents/decisions/workflows.md
+Design and Planning Patterns — outline-first workflow model selection design review vet structure, agents/decisions/workflows.md
+Outline-first design workflow — freeform outline iterate deltas validate full design, agents/decisions/workflows.md
+Model selection for design guidance — haiku explicit edits sonnet interprets intent, agents/decisions/workflows.md
+Design review uses opus — design-vet-agent architecture analysis not vet-agent, agents/decisions/workflows.md
+Vet catches structure misalignments — validates file paths structural assumptions prevents blockers, agents/decisions/workflows.md
+Orchestration Patterns — agent-creator reviews template contradiction orchestrator model, agents/decisions/workflows.md
+Agent-creator reviews in orchestration — create spec agent-creator reviews YAML syntax, agents/decisions/workflows.md
+Template commit contradiction — appended context weak authority bolded NEVER structural, agents/decisions/workflows.md
+Orchestrator model mismatch — read step file execution model not orchestrator default, agents/decisions/workflows.md
+Testing and TDD Patterns — happy path first TDD cycle numbering gaps, agents/decisions/workflows.md
+Happy path first TDD — simplest happy path real behavior edge cases later, agents/decisions/workflows.md
+Documentation and Knowledge Management — seeding index entries template merge, agents/decisions/workflows.md
+Seeding before auto-generation — seed indexes existing docs consolidation complementary, agents/decisions/workflows.md
+Index entries require backing documentation — learnings learnings.md permanent doc index entry, agents/decisions/workflows.md
+Template merge semantics — explicit preserve add replace prevent overwrites, agents/decisions/workflows.md
+Requirements and Execution — requirements immutable during execution user confirmation, agents/decisions/workflows.md
+Requirements immutable during execution — updating requires user confirmation planning execution, agents/decisions/workflows.md
+Knowledge Discovery and Context — ambient awareness beats invocation task prose keys, agents/decisions/workflows.md
+Ambient awareness beats invocation — embed critical knowledge loaded context CLAUDE.md, agents/decisions/workflows.md
+Task prose keys pattern — task names searchable identifiers git log search, agents/decisions/workflows.md
 Checkpoint Process for Runbooks — two-step fix and vet checkpoints at natural boundaries
 Defense-in-Depth: Commit Verification — multiple layers at tdd-task and orchestrate skill levels
 Design Phase: Output Optimization — minimize designer output tokens, planner elaborates details

@@ -785,3 +785,37 @@ description: |
 **Status:** Resolved in agent-core configuration.
 
 **Impact:** Heredocs work correctly in sandbox mode.
+
+## Command-Line Parsing
+
+### Flags Are Exact Tokens
+
+**Flags are exact tokens:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Flags are exact tokens (`--commit`), not prose containing flag-like words.
+
+**Anti-pattern:** Parsing `/handoff describe commit` as having `--commit` flag (substring match).
+
+**Correct pattern:** User prose after command is guidance for the skill, not flags. When ambiguous, assume no flag.
+
+**Rationale:** Flags are CLI syntax; prose is user guidance. Substring matching leads to false positives.
+
+**Impact:** Clear separation between flags and prose arguments.
+
+## Project Structure
+
+### Root Marker for Scripts
+
+**Root marker for scripts:**
+
+**Decision Date:** 2026-02-04
+
+**Decision:** Use `CLAUDE.md` as project root marker in `find_project_root()`.
+
+**Anti-pattern:** Using `agents/` as project root marker.
+
+**Rationale:** Subdirectories may contain their own `agents/` folders (e.g., `agent-core/agents/`), causing scripts to stop at wrong level.
+
+**Impact:** Scripts correctly identify project root regardless of subdirectory structure.
