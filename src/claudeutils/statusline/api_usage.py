@@ -4,6 +4,7 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
+from claudeutils.account.switchback import read_switchback_plist
 from claudeutils.statusline.models import ApiUsageData
 
 
@@ -73,3 +74,18 @@ def get_api_usage() -> ApiUsageData | None:
         week_sonnet=week_aggregated["sonnet"],
         week_haiku=week_aggregated["haiku"],
     )
+
+
+def get_switchback_time() -> str | None:
+    """Get switchback time from plist and format as MM/DD HH:MM.
+
+    Calls read_switchback_plist() to retrieve the switchback datetime
+    and formats it as MM/DD HH:MM for display.
+
+    Returns:
+        Formatted switchback time string or None if plist not available.
+    """
+    switchback_dt = read_switchback_plist()
+    if switchback_dt is None:
+        return None
+    return switchback_dt.strftime("%m/%d %H:%M")

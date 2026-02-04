@@ -1,9 +1,10 @@
 """Tests for API usage parsing from stats-cache.json."""
 
 import json
+from datetime import UTC, datetime
 from unittest.mock import patch
 
-from claudeutils.statusline.api_usage import get_api_usage
+from claudeutils.statusline.api_usage import get_api_usage, get_switchback_time
 from claudeutils.statusline.models import ApiUsageData
 
 
@@ -123,3 +124,17 @@ def test_get_api_usage_week_aggregation() -> None:
         assert result.week_opus == 700  # 7 days * 100
         assert result.week_sonnet == 700  # 7 days * 100
         assert result.week_haiku == 700  # 7 days * 100
+
+
+def test_get_switchback_time() -> None:
+    """Format switchback time as MM/DD HH:MM.
+
+    Mocks read_switchback_plist() to return datetime(2026, 2, 3, 14, 30),
+    asserts get_switchback_time() returns "02/03 14:30".
+    """
+    test_datetime = datetime(2026, 2, 3, 14, 30, tzinfo=UTC)
+    with patch("claudeutils.statusline.api_usage.read_switchback_plist") as mock_read:
+        mock_read.return_value = test_datetime
+
+        result = get_switchback_time()
+        assert result == "02/03 14:30"
