@@ -2,8 +2,10 @@
 
 import plistlib
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from claudeutils.account import create_switchback_plist
+from claudeutils.account.switchback import read_switchback_plist
 
 
 def test_create_switchback_plist(tmp_path: Path) -> None:
@@ -56,3 +58,43 @@ def test_create_switchback_plist_includes_month_day(tmp_path: Path) -> None:
     calendar_interval = plist_data["StartCalendarInterval"]
     assert "Month" in calendar_interval, "Month not in StartCalendarInterval"
     assert "Day" in calendar_interval, "Day not in StartCalendarInterval"
+
+
+def test_read_switchback_plist() -> None:
+    """Test that read_switchback_plist() parses plist and returns datetime."""
+    # Mock plist data
+    mock_plist_data = {
+        "Label": "com.anthropic.claude.switchback",
+        "StartCalendarInterval": {
+            "Month": 3,
+            "Day": 15,
+            "Hour": 14,
+            "Minute": 30,
+            "Second": 0,
+        },
+    }
+
+    # Mock Path.home() and instance methods
+    mock_path = MagicMock()
+    mock_path.exists.return_value = True
+
+    # Mock the open context manager
+    mock_file_obj = MagicMock()
+    mock_file_obj.__enter__.return_value = mock_file_obj
+    mock_file_obj.__exit__.return_value = False
+
+    with (
+        patch("claudeutils.account.switchback.Path.home", return_value=mock_path),
+        patch(
+            "claudeutils.account.switchback.plistlib.load", return_value=mock_plist_data
+        ),
+        patch("builtins.open", return_value=mock_file_obj),
+    ):
+        result = read_switchback_plist()
+
+    # Verify result is a datetime with correct month/day/hour/minute
+    assert result is not None
+    assert result.month == 3
+    assert result.day == 15
+    assert result.hour == 14
+    assert result.minute == 30
