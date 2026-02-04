@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from claudeutils.statusline.models import StatuslineInput
+from claudeutils.statusline.models import ContextUsage, StatuslineInput
 
 
 def test_parse_valid_json() -> None:
@@ -53,10 +53,11 @@ def test_parse_valid_json() -> None:
 
 
 def test_parse_null_current_usage() -> None:
-    """StatuslineInput parses JSON with context_window.current_usage=null without error.
+    """StatuslineInput parses JSON with current_usage=null without error.
 
     Validates that current_usage field is optional and accepts null values,
-    supporting resume session case where usage data may not be available (per R2).
+    supporting resume session case where usage data may not be available (per
+    R2).
     """
     json_data: dict[str, Any] = {
         "model": {"display_name": "Claude 3.5 Sonnet"},
@@ -77,3 +78,37 @@ def test_parse_null_current_usage() -> None:
     # Verify model parses and current_usage is None
     assert input_model.context_window.current_usage is None
     assert input_model.context_window.context_window_size == 200000
+
+
+def test_context_usage_has_four_token_fields() -> None:
+    """ContextUsage has 4 token fields and can sum them correctly.
+
+    Validates that ContextUsage model has all 4 token fields:
+    input_tokens, output_tokens, cache_creation_input_tokens,
+    cache_read_input_tokens. Confirms all fields are present and accessible,
+    supporting token accounting (per R2).
+    """
+    usage_data: dict[str, Any] = {
+        "input_tokens": 1000,
+        "output_tokens": 500,
+        "cache_creation_input_tokens": 200,
+        "cache_read_input_tokens": 300,
+    }
+
+    # Instantiate ContextUsage to verify all fields exist
+    usage = ContextUsage(**usage_data)
+
+    # Verify all 4 token fields are present and accessible
+    assert usage.input_tokens == 1000
+    assert usage.output_tokens == 500
+    assert usage.cache_creation_input_tokens == 200
+    assert usage.cache_read_input_tokens == 300
+
+    # Verify fields can be summed (total token accounting)
+    total_tokens = (
+        usage.input_tokens
+        + usage.output_tokens
+        + usage.cache_creation_input_tokens
+        + usage.cache_read_input_tokens
+    )
+    assert total_tokens == 2000
