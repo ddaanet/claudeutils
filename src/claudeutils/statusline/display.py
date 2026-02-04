@@ -2,6 +2,8 @@
 
 from typing import ClassVar
 
+from claudeutils.statusline.models import PlanUsageData
+
 
 class StatuslineFormatter:
     """Formats text with ANSI color codes for terminal display."""
@@ -81,19 +83,20 @@ class StatuslineFormatter:
 
         return self.colored(char, color)
 
-    def limit_display(self, name: str, pct: int, reset: str) -> str:
-        """Format limit display with name, percentage, and reset time.
+    def format_plan_limits(self, data: PlanUsageData) -> str:
+        """Format plan usage limits for 5h and 7d on one line.
 
         Args:
-            name: Limit name (e.g., "claude-opus")
-            pct: Percentage used (0-100)
-            reset: Reset time (e.g., "2026-02-01")
+            data: PlanUsageData with hour5_pct, hour5_reset, day7_pct
 
         Returns:
-            Formatted limit display with vertical bar and reset time
+            Formatted string with "5h {pct}% {bar} {reset} / 7d {pct}% {bar}"
         """
-        bar = self.vertical_bar(pct)
-        return f"{name} {bar} {pct}% │ resets {reset}"
+        hour5_bar = self.vertical_bar(int(data.hour5_pct))
+        day7_bar = self.vertical_bar(int(data.day7_pct))
+        hour5_str = f"5h {int(data.hour5_pct)}% {hour5_bar} {data.hour5_reset}"
+        day7_str = f"7d {int(data.day7_pct)}% {day7_bar}"
+        return f"{hour5_str} / {day7_str}"
 
     def format_tokens(self, tokens: int) -> str:
         """Convert token count to human-readable string.

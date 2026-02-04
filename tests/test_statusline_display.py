@@ -1,6 +1,7 @@
 """Tests for StatuslineFormatter - ANSI colored text output."""
 
 from claudeutils.statusline import StatuslineFormatter
+from claudeutils.statusline.models import PlanUsageData
 
 
 def test_colored_text() -> None:
@@ -73,23 +74,6 @@ def test_vertical_bar() -> None:
     assert "█" in bar_high
 
 
-def test_limit_display() -> None:
-    """StatuslineFormatter.limit_display() formats limit info.
-
-    Displays name, percentage used, and reset time with colors.
-    """
-    formatter = StatuslineFormatter()
-
-    # Test basic formatting
-    result = formatter.limit_display("claude-opus", 75, "2026-02-01")
-    assert isinstance(result, str)
-    assert "claude-opus" in result
-    assert "75" in result
-    assert "2026-02-01" in result
-    # Should contain vertical bar separator
-    assert "│" in result
-
-
 def test_format_tokens() -> None:
     """StatuslineFormatter.format_tokens() converts token counts to humanized.
 
@@ -113,3 +97,36 @@ def test_format_tokens() -> None:
     assert formatter.format_tokens(1500000) == "1.5M"
     assert formatter.format_tokens(2500000) == "2.5M"
     assert formatter.format_tokens(10000000) == "10M"
+
+
+def test_format_plan_limits() -> None:
+    """StatuslineFormatter.format_plan_limits() formats plan usage with limits.
+
+    Formats 5h and 7d limits on one line with percentages, bars, and reset time.
+    """
+    formatter = StatuslineFormatter()
+
+    # Test basic formatting with specific percentages
+    data = PlanUsageData(hour5_pct=87, hour5_reset="14:23", day7_pct=42)
+    result = formatter.format_plan_limits(data)
+    assert isinstance(result, str)
+
+    # Must contain percentages
+    assert "87" in result
+    assert "42" in result
+
+    # Must contain reset time
+    assert "14:23" in result
+
+    # Must contain vertical bars (at least 2)
+    assert (
+        result.count("▁")
+        + result.count("▂")
+        + result.count("▃")
+        + result.count("▄")
+        + result.count("▅")
+        + result.count("▆")
+        + result.count("▇")
+        + result.count("█")
+        >= 2
+    )
