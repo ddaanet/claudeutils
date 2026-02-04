@@ -8,7 +8,7 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
-| claude-tools-recovery | planned | Re-testing phase |
+| claude-tools-recovery | complete | Account/provider/model CLI wired |
 | claude-tools-rewrite | planned | Paused (stubs) |
 | commit-unification | designed | May be superseded by commit-rca-fixes |
 | continuation-passing | requirements | Opus design needed |
@@ -26,11 +26,11 @@ Plan lifecycle tracking. Updated when plans change status.
 
 ## Complete (Archived)
 
-*17 plans completed and deleted. Git history preserves all designs/reports.*
+*18 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `claude-tools-recovery` — Account/provider/model CLI wiring
 - `design-workflow-enhancement` — Outline-first design workflow
 - `feedback-fixes` — Handoff quality, tdd-task restructure
-- `task-prose-keys` — Prose key validation

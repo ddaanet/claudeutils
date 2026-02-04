@@ -1,37 +1,33 @@
 # Session Handoff: 2026-02-04
 
-**Status:** Status skill and jobs.md workflow updated. Unified plans listing, nested pending task format, precommit validation.
+**Status:** claude-tools-recovery completed. Statusline-wiring confirmed as follow-up, not merge candidate.
 
 ## Completed This Session
 
-**Status display format changes (execute-rule.md):**
-- Pending list: nested format with plan directory, status, notes
-- Jobs section → "Unscheduled Plans" (only plans without associated pending tasks)
-- Removed directory-based status detection fallback (jobs.md is authoritative)
+**Decision: Keep plans separate (not merge)**
+- Analyzed statusline-wiring design (R6: "use existing rewritten infrastructure")
+- Analyzed claude-tools-recovery design (D3: "statusline display modules deferred as follow-up")
+- Decision: statusline-wiring IS the follow-up, not a merge candidate
+- Rationale: Recovery 95% done, only functional review remained; different scopes
 
-**jobs.md unified format:**
-- Single "Plans" table with all plans (including one-off documents)
-- Removed separate "One-off documents" section
-- Added Notes column for context
-- Complete (Archived) section unchanged
+**claude-tools-recovery functional review:**
+- ✓ `account status` — Mode/provider detection, issue reporting
+- ✓ `account-mode`, `account-provider` files — Read correctly
+- ✓ `model list` — 13 models with tier/arena/pricing
+- ✗ `statusline` — Stub "OK" (expected, per D3 out-of-scope)
+- Result: PASS for recovery scope
 
-**New validation script (agent-core/bin/validate-jobs.py):**
-- Cross-checks jobs.md Plans table against plans/ directory
-- Plans in directory must exist in jobs.md
-- Non-complete plans in jobs.md must exist in directory
-- Special handling for plans/claude/ subdirectory
-- Added to precommit recipe
-
-**Files modified:**
-- agent-core/fragments/execute-rule.md (STATUS format, removed fallback)
-- agents/jobs.md (unified format)
-- agent-core/bin/validate-jobs.py (new)
-- justfile (added validate-jobs.py to precommit)
+**Status workflow update (prior):**
+- Unified jobs.md Plans table
+- Nested pending task format in STATUS
+- validate-jobs.py precommit validation
 
 ## Pending Tasks
 
 - [ ] **Plan statusline wiring** — `/plan-tdd plans/statusline-wiring/design.md`
   - Plan: statusline-wiring | Status: designed
+- [ ] **Delete claude-tools-recovery artifacts** — Remove plan directory (work complete, archived in git)
+  - Plan: claude-tools-recovery | Status: complete
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing
 - [ ] **Update plan-tdd/plan-adhoc skills** — Auto-run prepare-runbook.py with sandbox bypass, handoff, commit
 - [ ] **Continuation passing design-review** — validate outline against requirements | opus
@@ -47,22 +43,26 @@
 
 ## Blockers / Gotchas
 
-**jobs.md is now authoritative for plan status:**
+**Statusline stub is expected:**
+- claude-tools-recovery explicitly deferred statusline display (D3)
+- `statusline` command outputs "OK" — this is NOT a bug
+- statusline-wiring will implement the actual formatting
+
+**jobs.md is authoritative for plan status:**
 - No directory-based status inference
-- All plans must be listed in jobs.md Plans table
-- validate-jobs.py enforces this in precommit
+- validate-jobs.py enforces in precommit
 
 ## Reference Files
 
-- **agent-core/fragments/execute-rule.md** — Updated STATUS format documentation
-- **agent-core/bin/validate-jobs.py** — New validation script
-- **agents/jobs.md** — Unified plans table
+- **plans/claude-tools-recovery/design.md** — D3: statusline deferred as follow-up
+- **plans/statusline-wiring/design.md** — R6: use existing infrastructure
+- **plans/claude-tools-recovery/reports/cycle-3-3-notes.md** — Final GREEN cycle
 
 ## Next Steps
 
-- Plan statusline wiring TDD runbook
-- Execute statusline runbook with TDD discipline
-- Run /remember to consolidate learnings.md
+- Delete claude-tools-recovery plan directory (archived in git)
+- Plan statusline-wiring TDD runbook
+- Execute statusline runbook
 
 ---
-*Handoff by Sonnet. Status workflow updated: unified jobs.md, nested pending format, precommit validation.*
+*Handoff by Sonnet. Recovery complete, statusline-wiring confirmed as follow-up.*
