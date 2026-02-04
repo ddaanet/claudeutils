@@ -112,3 +112,21 @@ def test_get_thinking_state_enabled() -> None:
         # Verify result
         assert isinstance(result, ThinkingState)
         assert result.enabled is True
+
+
+def test_get_thinking_state_missing_file() -> None:
+    """Test get_thinking_state returns disabled when settings.json missing."""
+    with patch("pathlib.Path.home") as mock_home:
+        # Mock Path.home() and then the missing file
+        mock_path = MagicMock()
+        mock_path.__truediv__.return_value = mock_path
+        mock_path.open.side_effect = FileNotFoundError(
+            "[Errno 2] No such file or directory: '~/.claude/settings.json'"
+        )
+        mock_home.return_value = mock_path
+
+        result = get_thinking_state()
+
+        # Verify result
+        assert isinstance(result, ThinkingState)
+        assert result.enabled is False
