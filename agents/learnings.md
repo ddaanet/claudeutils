@@ -32,3 +32,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Use haiku for execution tasks, delegate architectural analysis to sonnet/opus, verify results
 - Example: Haiku structural header analysis was incorrect (marked semantic headers as structural), sonnet analysis was correct
 - Rationale: Efficient models optimize for speed, may miss nuance in architectural distinctions
+## TDD integration test gap
+- Anti-pattern: Unit tests verify function calls (mock.assert_called) but not behavioral outcomes
+- Root cause: Tests checked execution (function invoked) not integration (results consumed)
+- Correct pattern: For CLI/composition tasks, assert on critical content presence in output, not just structure
+- Example: Cycle 5.4 test verified two-line output exists but didn't check usage data present
+- Fix: Add integration test requirement at phase boundaries (xfail at start, pass at end)
+## Conformance validation for migrations
+- Pattern: Compare Python implementation against original shell spec at completion
+- Benefits: Catches presentation/visual gaps that unit tests miss
+- Process: Delegated to exploration agent, writes detailed conformance matrix
+- Example: statusline-wiring found all 5 requirements met but missing emojis/bars/colors

@@ -1,80 +1,77 @@
 # Session Handoff: 2026-02-04
 
-**Status:** statusline-wiring runbook created (28 cycles, 6 phases). Ready for execution.
+**Status:** Post-execution analysis complete. statusline-wiring validated, parity recovery designed.
 
 ## Completed This Session
 
-**statusline-wiring TDD runbook:**
-- Created 28-cycle runbook with RED/GREEN/REFACTOR discipline
-- Phases: models (3), context (8), plan_usage (3), api_usage (7), CLI (5), display (2)
-- Tier 3 assessment: >25 cycles, 9 files across 3 packages, multi-session with checkpoints
-- Delegated to tdd-plan-reviewer (sonnet): 12 CRITICAL file reference violations found
-- Applied all fixes: test file paths, metadata count (31→28), dependency notation, Common Context enhancements
-- prepare-runbook.py: created agent + 28 steps + orchestrator-plan.md
-- Artifacts staged for commit
+**Post-execution analysis:**
+- TDD process review: 100% compliance (28/28 cycles), 0 violations
+- Conformance validation: Functionally conformant, visually incomplete
+- Delegated opus design for parity recovery: `plans/statusline-parity/design.md`
 
-**Review fixes applied:**
-- Updated test file references: `test_switchback.py` → `test_account_switchback.py` (4 occurrences)
-- Fixed metadata: Total Steps 31 → 28 (actual cycle count)
-- Added dependency: Cycle 4.7 [DEPENDS: 4.2] (requires read_switchback_plist)
-- Enhanced Common Context: test file creation strategy, module creation order, regression scope clarification
+**TDD process review findings (plans/statusline-wiring/reports/tdd-process-review.md):**
+- Perfect RED/GREEN/REFACTOR adherence across all 28 cycles
+- 2:1 test-to-code ratio (~900 lines tests for ~450 lines production)
+- Vet checkpoint caught 3 major integration gaps (not TDD process failures):
+  1. `get_thinking_state()` called but result not stored
+  2. Week aggregation assumed dict order (needed date sorting)
+  3. API usage functions called but results not displayed
+- Root cause: Unit tests verified modules in isolation, not CLI composition
 
-**Design analysis (prior session completion):**
-- Tier assessment: Files ~9, cycles ~25-35, model single (haiku), session multi → Tier 3 full runbook
-- Documentation perimeter loaded: design.md, migration-learnings.md, shell-design-decisions.md, architecture.md
-- Memory index scanned: Pydantic patterns, subprocess patterns, error handling conventions
-- Test structure verified: test_statusline_display.py exists, test_statusline_structure.py exists
+**Conformance validation findings (plans/statusline-wiring/reports/conformance-validation.md):**
+- All 5 requirements (R1-R5) implemented correctly
+- Data gathering, fallbacks, error handling match shell
+- Visual gaps: Missing emojis (🥈📁✅💰🧠), colors, horizontal token bar
+- Enhancement: Python adds R3 switchback display (not in shell)
+
+**Statusline parity design (plans/statusline-parity/design.md):**
+- 7 requirements (R1-R7) for visual elements
+- 7 design decisions with shell line references
+- Tier 2: 12-15 cycles, 8 files, single session
+- Model: Haiku (execution-focused, patterns established)
 
 ## Pending Tasks
 
-- [ ] **Execute statusline-wiring runbook** — Restart session, switch to haiku, run `/orchestrate statusline-wiring` | haiku | restart
-  - Plan: statusline-wiring | Status: planned
-- [ ] **Delete claude-tools-recovery artifacts** — Remove plan directory (work complete, archived in git)
+- [ ] **Execute statusline-parity runbook** — `/plan-tdd plans/statusline-parity/design.md` | sonnet
+  - Plan: statusline-parity | Status: designed
+- [ ] **Update plan-tdd integration tests** — xfail at phase start, pass at phase end | sonnet
+- [ ] **Update design/plan review steps** — validate sub-agent appropriateness
+- [ ] **Validate vet-fix requires design ref** — fail if given runbook reference
+- [ ] **Add vet+fix after intermediate phases** — with requirements and design, precommit-clean tree
+- [ ] **Update review agents** — use script outputting learnings + memory index + fragments
+- [ ] **Delete claude-tools-recovery artifacts** — Remove plan directory (work complete)
   - Plan: claude-tools-recovery | Status: complete
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing
-- [ ] **Update plan-tdd/plan-adhoc skills** — Auto-run prepare-runbook.py with sandbox bypass, handoff, commit
 - [ ] **Continuation passing design-review** — validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
 - [ ] **Validator consolidation** — move validators to claudeutils package with tests
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
-- [ ] **Add execution metadata to step files** — Step files declare dependencies and execution mode
-- [ ] **Orchestrator scope consolidation** — delegate checkpoint phases instead of manual invocation
-- [ ] **Session-log capture research** — extract explore/websearch/context7 results from transcripts | opus
-- [ ] **Run /remember** — Process learnings (learnings.md at 35 lines)
+- [ ] **Run /remember** — Process learnings (learnings.md at ~40 lines)
 
 ## Blockers / Gotchas
 
-**Runbook execution requires restart:**
-- prepare-runbook.py created `.claude/agents/statusline-wiring-task.md`
-- Claude Code only discovers agents at session start
-- Must restart, switch to haiku, then `/orchestrate statusline-wiring`
+**Integration test gap in TDD workflow:**
+- Unit tests verified modules in isolation but missed CLI composition gaps
+- Recommendation: Add integration test requirement for CLI/composition tasks
+- Tests should assert on content presence, not just structure
 
-**Clipboard command failed:**
-- `pbcopy` exited with code 1 (unknown cause)
-- Orchestrate command: `/orchestrate statusline-wiring` (manual entry required)
-
-**Test file creation pattern:**
-- RED phase creates test file with failing test
-- GREEN phase creates source module to pass test
-- Regression verification: skipped for Phases 1-5 (net-new modules), required for Phase 6 (existing display.py)
+**Conformance validation useful for shell→Python migrations:**
+- Compare implementation against original spec at completion
+- Catches presentation gaps that unit tests miss
 
 ## Reference Files
 
-- **plans/statusline-wiring/runbook.md** — 28-cycle TDD runbook (6 phases)
-- **plans/statusline-wiring/reports/runbook-review.md** — tdd-plan-reviewer report (12 critical violations, all fixed)
-- **plans/statusline-wiring/orchestrator-plan.md** — execution index (28 steps)
-- **plans/statusline-wiring/steps/step-*.md** — individual cycle instructions (28 files)
-- **.claude/agents/statusline-wiring-task.md** — plan-specific agent (auto-created)
-- **plans/statusline-wiring/design.md** — comprehensive design with 8 decisions, 6 requirements
+- **plans/statusline-wiring/reports/tdd-process-review.md** — TDD execution analysis (100% compliance, 3 integration gaps)
+- **plans/statusline-wiring/reports/conformance-validation.md** — Shell vs Python comparison (functional ✓, visual ⚠️)
+- **plans/statusline-parity/design.md** — Recovery plan for visual parity (7 requirements, 12-15 cycles)
+- **scratch/home/claude/statusline-command.sh** — Original shell implementation (575 lines)
 
 ## Next Steps
 
-- Restart Claude Code session
-- Switch to haiku model
-- Run `/orchestrate statusline-wiring`
-- Follow TDD discipline through 28 cycles with 4 checkpoints
+- Create TDD runbook for statusline-parity: `/plan-tdd plans/statusline-parity/design.md`
+- Execute with haiku after runbook creation
 
 ---
-*Handoff by Sonnet. Runbook complete and validated, ready for haiku execution.*
+*Handoff by Sonnet. Analysis complete, parity recovery designed.*
