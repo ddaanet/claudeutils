@@ -1,5 +1,6 @@
 """Tests for statusline context module."""
 
+import subprocess
 from unittest.mock import MagicMock, patch
 
 from claudeutils.statusline.context import get_git_status
@@ -76,3 +77,17 @@ def test_get_git_status_dirty() -> None:
         assert calls[0][0][0] == ["git", "rev-parse", "--git-dir"]
         assert calls[1][0][0] == ["git", "branch", "--show-current"]
         assert calls[2][0][0] == ["git", "status", "--porcelain"]
+
+
+def test_get_git_status_not_in_repo() -> None:
+    """Test get_git_status returns defaults when not in git repo."""
+    with patch("subprocess.run") as mock_run:
+        # Mock subprocess to raise CalledProcessError (not in git repo)
+        mock_run.side_effect = subprocess.CalledProcessError(128, "git")
+
+        result = get_git_status()
+
+        # Verify result has branch=None and dirty=False
+        assert isinstance(result, GitStatus)
+        assert result.branch is None
+        assert result.dirty is False
