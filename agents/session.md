@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-04
 
-**Status:** Handoff skill updated for prose key validation system.
+**Status:** STATUS logic updated for plans/claude/ individual file tracking.
 
 ## Completed This Session
 
@@ -8,21 +8,32 @@
 
 **Context:** Commit 8d230d14 replaced hash token system with prose key validation.
 
-**Changes made:**
+**Changes:**
 - Updated `agent-core/skills/handoff/SKILL.md` to remove `#PNDNG` token instruction
-- Changed task format from `- [ ] **Task name** #PNDNG — description | model` to `- [ ] **Task Name** — description | model | restart?`
-- Added field rules explaining task name as prose key identifier
+- Changed task format to use prose keys as identifiers
+- Added field rules explaining task name uniqueness requirements
 - Updated `agent-core/skills/handoff/references/template.md` to remove token examples
-- Clarified that task names must be unique across session.md and disjoint from learning keys
 
-**Commits:**
-- `af23ce4` (agent-core) - Updated handoff skill for prose key validation
-- Submodule pointer staged in parent
+**Commit:** dd45dbb (parent), af23ce4 (agent-core submodule)
 
-**Validation:**
-- ✓ No remaining `#PNDNG` or token references in handoff skill
-- ✓ Format matches execute-rule.md specification
-- ✓ Precommit passes
+### STATUS Logic Update for plans/claude/
+
+**Context:** Commit 1fd12bb configured `.claude/settings.json` to use `plans/claude/` as the plan directory for Claude Code's built-in plan mode. This keeps Claude-generated plans separate from manually created plans while still tracking them.
+
+**Changes made:**
+- Updated `agent-core/fragments/execute-rule.md` STATUS display specification
+- Added special handling for `plans/claude/` directory
+- Individual `.md` files in `plans/claude/` now listed as `claude/<filename> — plan`
+- Excludes `.gitkeep` and other non-plan files
+- Added `plan` status value to status detection list
+
+**Implementation tested:**
+- Logic correctly handles empty `plans/claude/` directory (only .gitkeep)
+- Would list individual plan files when they exist
+- Maintains existing behavior for other `plans/*/` directories
+- Alphabetical sorting preserved across all entries
+
+**Rationale:** Built-in plan mode creates individual plan files rather than directory structures. Tracking them individually provides visibility into Claude-managed vs manually-managed plans.
 
 ## Pending Tasks
 
@@ -34,7 +45,7 @@
 
 ## Blockers / Gotchas
 
-**Learnings at 177 lines (soft limit 80):**
+**Learnings at 176 lines (soft limit 80):**
 - Run `/remember` to consolidate older learnings into permanent documentation
 - Not blocking current work
 
@@ -43,4 +54,4 @@
 - Requirements MUST NOT be updated if task execution made them outdated
 
 ---
-*Handoff by Sonnet. Handoff skill updated for prose key validation.*
+*Handoff by Sonnet. STATUS logic updated for plans/claude/ file tracking.*
