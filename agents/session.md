@@ -1,29 +1,29 @@
 # Session Handoff: 2026-02-04
 
-**Status:** Completed workflow-feedback-loops design with full vet review.
+**Status:** Completed workflow-feedback-loops runbook using dogfooding pattern.
 
 ## Completed This Session
 
-**Workflow feedback loops design:**
-- Created `plans/workflow-feedback-loops/design.md` — 5 feedback checkpoints across design/planning/execution
-- Exploration report: `plans/workflow-feedback-loops/reports/explore-current-feedback.md` (gap analysis)
-- Design review v1: Found 3 major, 3 minor issues
-- Design review v2: All issues fixed by design-vet-agent, assessment "Ready"
+**Workflow feedback loops runbook (dogfooding new process):**
+- Applied new feedback loop process to plan itself (self-referential)
+- Created `plans/workflow-feedback-loops/runbook-outline.md` → delegated vet-fix-agent review
+- Expanded phase-by-phase (4 phases) → parallel vet-fix-agent reviews for each
+- Assembled full runbook via new `agent-core/bin/assemble-runbook.py` script
+- Final review by vet-fix-agent
+- Artifacts created: 12 step files, orchestrator plan, plan-specific agent
 
-**Key design decisions:**
-- Fix-all policy: outline agents + design-vet-agent fix ALL (incl. minor); vet-agent/tdd-plan-reviewer remain review-only
-- Phase-by-phase expansion: Outline provides holistic structure, runbook expands phase-by-phase with review after each
-- Input validation matrix: Each agent validates requirements + design + artifact, rejects wrong document types
-- FP-5 artifact delivery: Orchestrator passes changed file list (not git diff text, not runbook)
+**New script created:**
+- `agent-core/bin/assemble-runbook.py` — Assembles runbook from phase files with metadata
 
-**Two new agents needed:**
-- `outline-review-agent` — reviews design outlines (sonnet)
-- `runbook-outline-review-agent` — reviews runbook outlines (sonnet)
+**Key validation:**
+- All 8 FRs mapped to implementation steps
+- All affected files from design verified via Glob
+- Phase ordering validated (agents → skills → infrastructure)
 
 ## Pending Tasks
 
-- [ ] **Plan workflow-feedback-loops runbook** — `/plan-adhoc plans/workflow-feedback-loops/design.md` | sonnet
-  - Plan: workflow-feedback-loops | Status: designed
+- [ ] **Execute workflow-feedback-loops runbook** — `/orchestrate workflow-feedback-loops` | sonnet | restart
+  - Plan: workflow-feedback-loops | Status: planned
 - [ ] **Execute statusline-parity runbook** — `/plan-tdd plans/statusline-parity/design.md` | sonnet
   - Plan: statusline-parity | Status: designed
 - [ ] **Delete claude-tools-recovery artifacts** — Remove plan directory (work complete)
@@ -35,22 +35,25 @@
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
-- [ ] **Run /remember** — Process learnings (learnings.md at ~53 lines)
+- [ ] **Run /remember** — Process learnings (learnings.md at ~56 lines)
 
 ## Blockers / Gotchas
 
 - **Behavioral change in /design A.5:** Current workflow presents outline inline; new workflow writes to file. User adjustment required.
+- **Runbook header format:** Phase-grouped runbooks need `### Phase N` (H3) and `## Step N.M:` (H2) for prepare-runbook.py compatibility.
 
 ## Reference Files
 
-- **plans/workflow-feedback-loops/design.md** — Full design with 5 feedback checkpoints
-- **plans/workflow-feedback-loops/reports/design-review-v2.md** — Final review (Ready)
-- **plans/workflow-feedback-loops/reports/explore-current-feedback.md** — Gap analysis
+- **plans/workflow-feedback-loops/runbook.md** — Full runbook (12 steps, 4 phases)
+- **plans/workflow-feedback-loops/runbook-outline.md** — Outline with requirements mapping
+- **plans/workflow-feedback-loops/reports/** — Review reports (outline, phases 1-4, final)
+- **agent-core/bin/assemble-runbook.py** — Runbook assembly script (reusable)
 
 ## Next Steps
 
-- Plan runbook for workflow-feedback-loops implementation
-- Load `plugin-dev:agent-development` before planning (2 new agents)
+1. Restart session, switch to sonnet
+2. Paste `/orchestrate workflow-feedback-loops` from clipboard
+3. Execute 12 steps across 4 phases (agents → skills → infrastructure)
 
 ---
-*Handoff by Sonnet. Design complete and vetted.*
+*Handoff by Opus. Runbook ready for execution.*

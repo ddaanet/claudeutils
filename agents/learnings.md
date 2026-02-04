@@ -53,3 +53,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Fix-all for document review (AI has no feelings); critical/major only for implementation (higher risk)
 - Distinction: vet-agent remains review-only (caller has context), outline agents fix everything
 - Rationale: Document fixes are low-risk; implementation fixes may have unintended side effects
+## Dogfooding validates design
+- Pattern: Apply new process to its own planning (self-referential validation)
+- Benefit: Catches design issues before formal implementation
+- Example: workflow-feedback-loops runbook planned using the feedback loop process it describes
+- Insight: Phase-by-phase expansion with delegated reviews worked smoothly
+## Phase-grouped runbook header format
+- Anti-pattern: Using `## Phase N` (H2) and `### Step N.M:` (H3) — prepare-runbook.py can't find steps
+- Correct pattern: Use `### Phase N` (H3) for visual grouping and `## Step N.M:` (H2) for steps
+- Rationale: prepare-runbook.py regex matches `^## Step` — steps must be H2 for extraction
+- Fix: assemble-runbook.py outputs correct format; manual runbooks need header level awareness
