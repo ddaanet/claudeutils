@@ -34,7 +34,8 @@ def test_get_plan_usage() -> None:
 
 
 def test_get_plan_usage_api_failure() -> None:
-    """Test get_plan_usage handles API failures gracefully per D8 (fail-safe)."""
+    """Test get_plan_usage handles API failures gracefully per D8 (fail-
+    safe)."""
     # Mock UsageCache.get() to raise an exception
     with patch("claudeutils.statusline.plan_usage.UsageCache") as mock_cache_class:
         mock_instance = MagicMock()

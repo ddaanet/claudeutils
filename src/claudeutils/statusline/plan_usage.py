@@ -1,5 +1,6 @@
 """Fetch plan mode usage limits from Claude OAuth API with caching."""
 
+import json
 from typing import Any, cast
 
 from claudeutils.account.usage import UsageCache
@@ -31,5 +32,7 @@ def get_plan_usage() -> PlanUsageData | None:
             hour5_reset=str(cast("str", reset_5h)) if reset_5h else "—",
             day7_pct=float(cast("float", percent_7d)) if percent_7d else 0.0,
         )
-    except Exception:
+    except (OSError, json.JSONDecodeError, ValueError, TypeError):
+        return None
+    except Exception:  # noqa: BLE001 - D8: fail-safe, return None for any unexpected error
         return None
