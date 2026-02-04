@@ -8,7 +8,7 @@ from pathlib import Path
 class UsageCache:
     """Cache for Usage API responses with time-to-live (TTL) handling."""
 
-    TTL_SECONDS = 30
+    TTL_SECONDS = 10
 
     def __init__(self) -> None:
         """Initialize UsageCache."""
