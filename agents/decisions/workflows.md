@@ -16,6 +16,8 @@ Workflow-related architectural decisions and patterns.
 - 5 skills: `/design`, `/plan-adhoc`, `/orchestrate`, `/vet`, `/remember`
 - Complete documentation (documented in CLAUDE.md and agent-core)
 
+**Weak orchestrator pattern:**
+
 **Pattern Validation:**
 - Haiku successfully executes runbook steps using runbook-specific agents
 - Error escalation works (haiku → sonnet → opus)
@@ -52,6 +54,8 @@ Workflow-related architectural decisions and patterns.
 - TDD runbook reviewer (`agent-core/agents/tdd-plan-reviewer.md`) for prescriptive code detection
 - Review skill (`agent-core/skills/review-tdd-plan/`) for anti-pattern detection
 
+**TDD workflow:**
+
 **Architecture:**
 - Unified design entry point (`/design` skill) supports both oneshot and TDD modes
 - RED phase: Write failing tests, document intent
@@ -80,6 +84,8 @@ Workflow-related architectural decisions and patterns.
 - Proper execution flow: design → plan → review → prepare → orchestrate
 
 ## Handoff Pattern: Inline Learnings
+
+**Handoff pattern:**
 
 **Decision Date:** 2026-01-27
 
@@ -149,6 +155,8 @@ plans/<stream-name>/
 
 ## TDD Workflow: Commit Squashing Pattern
 
+**TDD commit squashing:**
+
 **Decision Date:** 2026-01-27
 
 **Decision:** Squash TDD cycle commits into single feature commit while preserving granular cycle progression in reports.
@@ -206,6 +214,8 @@ plans/<stream-name>/
 
 ## Orchestration Assessment: Three-Tier Implementation Model
 
+**Three-tier assessment:**
+
 **Decision Date:** 2026-01-31 (updated 2026-01-31)
 
 **Decision:** Plan skills use three-tier assessment to route work appropriately. This supersedes the original binary (direct vs runbook) decision.
@@ -240,6 +250,8 @@ plans/<stream-name>/
 **Impact:** Prevents unnecessary runbook creation for straightforward tasks while surfacing lightweight delegation as middle ground.
 
 ## Checkpoint Process for Runbooks
+
+**Checkpoint process:**
 
 **Decision Date:** 2026-01-31
 
@@ -281,6 +293,8 @@ plans/<stream-name>/
 
 ## Defense-in-Depth: Commit Verification
 
+**Commit verification:**
+
 **Decision Date:** 2026-01-31
 
 **Decision:** Multiple layers of commit verification at different execution levels.
@@ -297,6 +311,8 @@ plans/<stream-name>/
 
 ### Handoff Tail-Call Pattern
 
+**Handoff tail-call:**
+
 **Decision Date:** 2026-02-01
 
 **Decision:** All tiers (1/2/3) must end with `/handoff --commit`, never bare `/commit`.
@@ -310,6 +326,8 @@ plans/<stream-name>/
 **Impact:** Consistent workflow termination across all tier levels.
 
 ### Handoff Commit Assumption
+
+**Handoff commit assumption:**
 
 **Decision Date:** 2026-02-01
 
@@ -327,6 +345,8 @@ plans/<stream-name>/
 
 ### Delegation with Context
 
+**Delegation with context:**
+
 **Decision Date:** 2026-02-01
 
 **Decision:** Don't delegate when context is already loaded.
@@ -342,6 +362,8 @@ plans/<stream-name>/
 **Impact:** Reduces token waste from redundant context loading.
 
 ### Routing Layer Efficiency
+
+**Single-layer complexity:**
 
 **Decision Date:** 2026-02-01
 

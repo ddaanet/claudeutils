@@ -68,6 +68,8 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 ## TDD RED Phase: Behavioral Verification
 
+**TDD RED behavioral:**
+
 **Decision Date:** 2026-01-31
 
 **Decision:** RED phase tests must verify behavior, not just structure.

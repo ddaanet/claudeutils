@@ -1,53 +1,73 @@
-# Session Handoff: 2026-02-02
+# Session Handoff: 2026-02-04
 
-**Status:** Step file metadata and file reference validation complete (Tier 1 direct). Ready for next task.
+**Status:** Archived runbook-identifiers plan (complete).
 
 ## Completed This Session
 
-**Execution metadata for step files — COMPLETE (Tier 1 direct):**
-- `prepare-runbook.py`: Added `extract_step_metadata()` — extracts `**Execution Model**` and `**Report Path**` from step body into structured header
-- Model values normalized to lowercase, validated against `{haiku, sonnet, opus}`, case-insensitive regex
-- `generate_step_file()` and `generate_cycle_file()` emit metadata header; old `**Common Context**` header line removed (redundant)
-- `orchestrate/SKILL.md` updated: references header metadata instead of searching full body
+### Handoff Skill Update for Prose Keys
 
-**File reference validation — COMPLETE (Tier 1 direct):**
-- `prepare-runbook.py`: Added `extract_file_references()` and `validate_file_references()`
-- Extracts backtick-wrapped file paths from step content (requires `/` separator to filter module names)
-- Strips fenced code blocks before extraction
-- Skips: report paths, `plans/*/reports/`, Create/Write/mkdir contexts
-- Non-fatal warnings to stderr — earlier steps may create files for later steps
-- Vet reviews: `tmp/vet-review-execution-metadata.md`, `tmp/vet-review-file-ref-validation.md`
+**Context:** Commit 8d230d14 replaced hash token system with prose key validation.
 
-**Step file header format (new):**
-```markdown
-# Step N
+**Changes:**
+- Updated `agent-core/skills/handoff/SKILL.md` to remove `#PNDNG` token instruction
+- Changed task format to use prose keys as identifiers
+- Added field rules explaining task name uniqueness requirements
+- Updated `agent-core/skills/handoff/references/template.md` to remove token examples
 
-**Plan**: `plans/<name>/runbook.md`
-**Execution Model**: sonnet
-**Report Path**: `plans/<name>/reports/step-N.md`
+**Commit:** dd45dbb (parent), af23ce4 (agent-core submodule)
 
----
+### STATUS Logic Enhancement for jobs.md Integration
 
-[step content...]
-```
+**Context:** STATUS display was inferring plan status from directory contents only, missing completed plans that are tracked in jobs.md. This caused design-workflow-enhancement to show as "planned" when it was actually complete.
 
-**Complexity triage:**
-- `/design` assessed as Moderate → routed to `/plan-adhoc` (skip design)
-- `/plan-adhoc` assessed as Tier 1 — 3 files, straightforward edits
+**Changes made:**
+- Updated `agent-core/fragments/execute-rule.md` STATUS specification
+- Added jobs.md as authoritative source for plan status
+- Status source priority: jobs.md Complete section → In Progress table → Designed table → Requirements table → directory fallback
+- Added `complete` status value to display completed plans
+- Maintains special handling for `plans/claude/` individual files
+
+**Implementation tested:**
+- Completed plans correctly extracted from jobs.md "Recent:" section
+- In Progress, Designed, Requirements plans parsed from tables using grep/cut/sed
+- design-workflow-enhancement now shows as "complete" instead of "planned"
+- All 6 completed plans from jobs.md appear in STATUS output
+- Alphabetical sorting preserved
+
+**Rationale:** jobs.md is the authoritative lifecycle tracker. STATUS display should reflect that truth, not infer stale status from directory presence.
+
+**Commits:**
+- e9b8458 (parent) - STATUS logic enhancement
+- 447062e (agent-core submodule) - execute-rule.md specification
+
+### Archive runbook-identifiers Plan
+
+**Context:** Cycle numbering gap issue was resolved in commit ebee0b5 (2026-02-02). Plan contained problem statement and vet review of the fix.
+
+**Changes:**
+- Moved runbook-identifiers to jobs.md Complete section (one-off documents)
+- Deleted `plans/runbook-identifiers/` directory
+- Verified learnings.md already captures forward value (lines 14-17: gap relaxation, rationale, fix details)
+
+**Rationale:** Plan was one-off problem investigation and fix, similar to other archived one-off documents. Git history preserves all artifacts.
 
 ## Pending Tasks
 
+- [ ] **Continuation passing design-review** — validate outline against requirements, then proceed to Phase B | opus
+- [ ] **Validator consolidation** — move validators to claudeutils package with tests | sonnet
+- [ ] **Handoff validation design** — complete design, requires continuation-passing + validator-consolidation | opus
 - [ ] **Orchestrator scope consolidation** — delegate checkpoint phases in orchestrate skill | sonnet
-- [ ] **Session-log capture for research artifacts** — extract explore/websearch/context7 results from session transcripts for reuse | opus
+- [ ] **Session-log capture research** — extract explore/websearch/context7 results from transcripts | opus
 
 ## Blockers / Gotchas
 
-**Learnings file at 105 lines (over 80-line soft limit):**
-- Recommendation: Run `/remember` to consolidate older learnings into permanent documentation
+**Learnings at 176 lines (soft limit 80):**
+- Run `/remember` to consolidate older learnings into permanent documentation
+- Not blocking current work
 
-**Existing step files NOT regenerated:**
-- Old step files in `plans/*/steps/` still have old header format
-- Historical artifacts from completed runbooks — new runbooks use new format automatically
+**Requirements immutability rule:**
+- Editing requirement files requires user confirmation
+- Requirements MUST NOT be updated if task execution made them outdated
 
 ---
-*Handoff by Sonnet. Step metadata + file reference validation implemented, all checks passing.*
+*Handoff by Sonnet. Archived complete runbook-identifiers plan.*
