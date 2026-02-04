@@ -1,46 +1,43 @@
 # Session Handoff: 2026-02-04
 
-**Status:** Task prose keys implementation complete.
+**Status:** Continuation passing design — Phase A outline complete, awaiting review.
 
 ## Completed This Session
 
-### Task Prose Keys Implementation — COMPLETE
+### Continuation Passing Design — Phase A (Outline)
 
-**Implementation approach:** Tier 1 (direct implementation) - replaced hash token system with prose key validation.
+**Progress:** Completed research and produced first outline for user validation.
 
-**Changes:**
-- Created `agent-core/bin/validate-tasks.py` - validates task name uniqueness across session.md, learning keys, and git history
-- Updated `agent-core/bin/task-context.sh` - searches by task name instead of token
-- Updated `justfile` precommit - uses validate-tasks.py instead of task-token.py
-- Deleted `agent-core/bin/task-token.py` - obsolete hash token generator
-- Updated `agents/session.md` - removed all hash tokens from tasks
-- Updated `agent-core/fragments/execute-rule.md` - removed token system documentation
+**Research completed:**
+- Read requirements.md (FR-1 through FR-8, NFR-1 through NFR-3, constraints)
+- Explored current skill chaining patterns via quiet-explore agent
+- Analyzed tail-call mechanism in handoff, commit, plan-adhoc, orchestrate skills
+- Loaded plugin-dev:skill-development for skill creation guidance
 
-**Vet review findings:**
-- Initial: 3 major issues (documentation updates, git history validation, usage example)
-- Fixed: Documentation and usage updates applied immediately
-- Vet agent resumed: Applied 2 additional improvements (case-insensitive git search, robust H1 detection)
+**Exploration report:** `plans/continuation-passing/reports/explore-skill-chaining.md`
 
-**Validation:**
-- Duplicate detection works (tested)
-- Learning key conflict detection works (tested)
-- Case-insensitive matching verified
-- Precommit passes with new validator
+**Outline decisions:**
+- Build on existing tail-call pattern (not replace)
+- Parser location: UserPromptSubmit hook (intercepts input, injects additionalContext)
+- Continuation format: Structured JSON (not visible in transcript)
+- Cooperative registry: JSON file listing skills that understand protocol
+- Sub-agent isolation: Hook fires only in main session (Task prompts don't include continuation)
 
-**Deferred:**
-- Merge commit test (FR-6) - relies on git's default unified diff behavior, low risk
-- validator-consolidation requirements doc - outdated but NOT updated per new rule (requirement files need user confirmation)
+**Open questions identified:**
+1. Structured continuation representation (FR-4) in JSON payload
+2. `--` argument separator handling for complex contexts
+3. Error handling mid-chain: abort, skip, or retry
 
-**Reports:**
-- `plans/task-prose-keys/reports/implementation-review.md` - initial vet review
-- `plans/task-prose-keys/reports/final-review.md` - complete coverage summary
+**Scope:** FR-1 through FR-7 in scope; FR-8 (uncooperative wrapping) deferred
+
+**Next action:** Design-review of outline to validate requirements alignment
 
 ## Pending Tasks
 
+- [ ] **Continuation passing design-review** — validate outline against requirements, then proceed to Phase B | opus
+- [ ] **Update design skill** — add separate requirements section, update design-review/plan/vet process; next session will address design process and review tooling | sonnet
 - [ ] **Validator consolidation** — move validators to claudeutils package with tests | sonnet
-- [ ] **Continuation passing design** — complete design from requirements | opus
 - [ ] **Handoff validation design** — complete design, requires continuation-passing + validator-consolidation | opus
-- [ ] **Update design skill** — add separate requirements section, update design-review/plan/vet | sonnet
 - [ ] **Orchestrator scope consolidation** — delegate checkpoint phases in orchestrate skill | sonnet
 - [ ] **Session-log capture research** — extract explore/websearch/context7 results from transcripts | opus
 
@@ -50,10 +47,9 @@
 - Run `/remember` to consolidate older learnings into permanent documentation
 - Not blocking current work
 
-**New rule (2026-02-04):**
+**Requirements immutability rule:**
 - Editing requirement files requires user confirmation
 - Requirements MUST NOT be updated if task execution made them outdated
-- Prevents requirements drift from implementation reality
 
 ---
-*Task prose keys complete. Hash tokens removed, prose key validation active.*
+*Continuation passing Phase A complete. Outline ready for design-review.*
