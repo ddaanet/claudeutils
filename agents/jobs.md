@@ -6,11 +6,12 @@ Plan lifecycle tracking. Updated when plans change status.
 
 ## Complete (Archived)
 
-*13 plans completed and deleted. Git history preserves all designs/reports.*
+*14 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `feedback-fixes` — Handoff quality, tdd-task restructure, submodule-safety hook
 - `task-prose-keys` — Replaced hash tokens with prose key validation (validate-tasks.py)
 
 **One-off documents (complete):**
@@ -31,7 +32,6 @@ Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>
 | Plan | Notes |
 |------|-------|
 | commit-unification | May be superseded by commit-rca-fixes |
-| feedback-fixes | Awaiting runbook |
 | prompt-composer | Oldest plan, at risk |
 
 ## Requirements

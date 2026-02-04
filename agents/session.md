@@ -39,11 +39,10 @@
 
 - [ ] **Validator consolidation** — move validators to claudeutils package with tests | sonnet
 - [ ] **Continuation passing design** — complete design from requirements | opus
-- [ ] **Handoff validation design** — complete design, requires continuation passing | opus
+- [ ] **Handoff validation design** — complete design, requires continuation-passing + validator-consolidation | opus
 - [ ] **Update design skill** — add separate requirements section, update design-review/plan/vet | sonnet
 - [ ] **Orchestrator scope consolidation** — delegate checkpoint phases in orchestrate skill | sonnet
 - [ ] **Session-log capture research** — extract explore/websearch/context7 results from transcripts | opus
-- [ ] **Account tools gap** — `claudeutils account api` needs API key in keychain | sonnet
 
 ## Blockers / Gotchas
 
