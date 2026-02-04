@@ -23,7 +23,7 @@ cache:
 precommit:
     #!{{ bash_prolog }}
     sync
-    agent-core/bin/task-token.py agents/session.md
+    agent-core/bin/validate-tasks.py agents/session.md agents/learnings.md
     agent-core/bin/validate-learnings.py agents/learnings.md
     agent-core/bin/validate-memory-index.py agents/memory-index.md
     gmake --no-print-directory -C agent-core check

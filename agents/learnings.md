@@ -157,3 +157,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Leaving knowledge indexes empty until consolidation runs
 - Correct pattern: Seed indexes with entries pointing to existing permanent docs before expecting auto-generation to fill them
 - Rationale: Non-empty index is immediately useful; seeding and consolidation are complementary bootstrap mechanisms
+## Requirements are immutable during execution
+- Anti-pattern: Updating requirement files during task execution when implementation discovers they're outdated
+- Correct pattern: Requirements MUST NOT be updated if task execution made them outdated; updating requires explicit user confirmation
+- Rationale: Requirements document intent and decisions at planning time; execution discovering they're wrong means either (1) requirements need user review/approval before updating, or (2) implementation needs to match requirements despite being outdated

@@ -1,58 +1,60 @@
 # Session Handoff: 2026-02-04
 
-**Status:** Memory index update complete. Skill constraint binding fixes applied.
+**Status:** Task prose keys implementation complete.
 
 ## Completed This Session
 
-### Memory Index D-3 Compliance — COMPLETE
+### Task Prose Keys Implementation — COMPLETE
 
-**Commits:** `78b5eb2` (claudeutils), `b21a1af` (agent-core)
+**Implementation approach:** Tier 1 (direct implementation) - replaced hash token system with prose key validation.
 
-Previous session had partial work with incorrect status. This session:
-- Verified work was actually complete (127 semantic headers indexed with keyword descriptions)
-- Amended commit messages to reflect true completion status
-- Validated: `just precommit` passes (0 errors, 27 soft-limit warnings for word count)
+**Changes:**
+- Created `agent-core/bin/validate-tasks.py` - validates task name uniqueness across session.md, learning keys, and git history
+- Updated `agent-core/bin/task-context.sh` - searches by task name instead of token
+- Updated `justfile` precommit - uses validate-tasks.py instead of task-token.py
+- Deleted `agent-core/bin/task-token.py` - obsolete hash token generator
+- Updated `agents/session.md` - removed all hash tokens from tasks
+- Updated `agent-core/fragments/execute-rule.md` - removed token system documentation
 
-**Coverage:** 127 semantic headers across 5 files:
-- `agents/decisions/architecture.md` — 67 headers
-- `agents/decisions/workflows.md` — 19 headers
-- `agents/decisions/testing.md` — 9 headers
-- `agents/decisions/cli.md` — 7 headers
-- `agents/learnings.md` — 25 headers
+**Vet review findings:**
+- Initial: 3 major issues (documentation updates, git history validation, usage example)
+- Fixed: Documentation and usage updates applied immediately
+- Vet agent resumed: Applied 2 additional improvements (case-insensitive git search, robust H1 detection)
 
-### Skill Constraint Binding Fixes — COMPLETE
+**Validation:**
+- Duplicate detection works (tested)
+- Learning key conflict detection works (tested)
+- Case-insensitive matching verified
+- Precommit passes with new validator
 
-**Commit:** `bbb9ec3` (claudeutils), `32b3072` (agent-core)
+**Deferred:**
+- Merge commit test (FR-6) - relies on git's default unified diff behavior, low risk
+- validator-consolidation requirements doc - outdated but NOT updated per new rule (requirement files need user confirmation)
 
-Applied 4 fixes from `plans/memory-index-update/reports/recovery-plan.md`:
-1. `/design` — Classification tables are binding constraints
-2. `/design` — Distinguish guidance vs constraints in output
-3. `/plan-adhoc` — Design constraints non-negotiable in delegation
-4. `/plan-adhoc` — Escalation handling for false ambiguity claims
-
-**Root cause addressed:** Planners were reinterpreting explicit design rules as negotiable guidelines.
+**Reports:**
+- `plans/task-prose-keys/reports/implementation-review.md` - initial vet review
+- `plans/task-prose-keys/reports/final-review.md` - complete coverage summary
 
 ## Pending Tasks
 
-- [ ] **Validator consolidation** #pEmoW — move validators to claudeutils package with tests | sonnet
-- [ ] **Task prose keys** #POn2Z — replace hash tokens with prose keys, merge-aware uniqueness | sonnet
-- [ ] **Continuation passing design** #wW6G2 — complete design from requirements | opus
-- [ ] **Handoff validation design** #JZWhk — complete design, requires continuation passing | opus
-- [ ] **Update design skill** #ba5CS — add separate requirements section, update design-review/plan/vet | sonnet
-- [ ] **Orchestrator scope consolidation** #E7u8A — delegate checkpoint phases in orchestrate skill | sonnet
-- [ ] **Session-log capture research** #7EsHS — extract explore/websearch/context7 results from transcripts | opus
-- [ ] **Account tools gap** #1m1i1 — `claudeutils account api` needs API key in keychain | sonnet
+- [ ] **Validator consolidation** — move validators to claudeutils package with tests | sonnet
+- [ ] **Continuation passing design** — complete design from requirements | opus
+- [ ] **Handoff validation design** — complete design, requires continuation passing | opus
+- [ ] **Update design skill** — add separate requirements section, update design-review/plan/vet | sonnet
+- [ ] **Orchestrator scope consolidation** — delegate checkpoint phases in orchestrate skill | sonnet
+- [ ] **Session-log capture research** — extract explore/websearch/context7 results from transcripts | opus
+- [ ] **Account tools gap** — `claudeutils account api` needs API key in keychain | sonnet
 
 ## Blockers / Gotchas
 
-**Learnings at 130 lines (soft limit 80):**
+**Learnings at 130+ lines (soft limit 80):**
 - Run `/remember` to consolidate older learnings into permanent documentation
 - Not blocking current work
 
-**Reports from recovery (untracked):**
-- `plans/memory-index-update/reports/changes-analysis.md`
-- `plans/memory-index-update/reports/recovery-summary.md`
-- `plans/memory-index-update/reports/skill-fixes-vet.md`
+**New rule (2026-02-04):**
+- Editing requirement files requires user confirmation
+- Requirements MUST NOT be updated if task execution made them outdated
+- Prevents requirements drift from implementation reality
 
 ---
-*Two tasks completed. Memory index fully D-3 compliant. Skill fixes prevent future design reinterpretation.*
+*Task prose keys complete. Hash tokens removed, prose key validation active.*
