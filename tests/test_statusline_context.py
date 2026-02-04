@@ -172,3 +172,54 @@ def test_calculate_context_tokens_from_current_usage() -> None:
 
     # Should sum to 100 + 50 + 25 + 25 = 200
     assert result == 200
+
+
+def test_calculate_context_tokens_from_transcript() -> None:
+    """Parses transcript JSONL when current_usage is None.
+
+    When current_usage is None, should fall back to reading transcript file and
+    parsing JSONL for assistant messages with tokens.
+    """
+    # Create transcript JSONL with assistant message containing tokens
+    transcript_content = (
+        '{"type": "assistant", "isSidechain": false, "tokens": '
+        '{"inputTokens": 50, "outputTokens": 100, '
+        '"cacheCreationInputTokens": 25, "cacheReadInputTokens": 25}}\n'
+    )
+
+    # Create StatuslineInput with current_usage=None (forces transcript fallback)
+    context_window = ContextWindowInfo(current_usage=None, context_window_size=200000)
+    input_data = StatuslineInput(
+        model=ModelInfo(display_name="Claude 3"),
+        workspace=WorkspaceInfo(current_dir="/home/user"),
+        transcript_path="/home/user/.claude/transcript.md",
+        context_window=context_window,
+        cost=CostInfo(total_cost_usd=0.05),
+        version="1.0.0",
+        session_id="sess-123",
+    )
+
+    # Mock Path.stat() and Path.open() to return transcript JSONL
+    with patch("claudeutils.statusline.context.Path") as mock_path_class:
+        # Mock the Path instance
+        mock_path_instance = MagicMock()
+
+        # Mock stat() to return file size
+        mock_stat = MagicMock()
+        mock_stat.st_size = len(transcript_content)
+        mock_path_instance.stat.return_value = mock_stat
+
+        # Mock open() to return file content
+        mock_file = MagicMock()
+        mock_file.__enter__.return_value.read.return_value = transcript_content
+        mock_file.__enter__.return_value.seek = MagicMock()
+        mock_path_instance.open.return_value = mock_file
+
+        # Make Path() return our mock instance
+        mock_path_class.return_value = mock_path_instance
+
+        # Call calculate_context_tokens
+        result = calculate_context_tokens(input_data)
+
+        # Should sum to 50 + 100 + 25 + 25 = 200
+        assert result == 200
