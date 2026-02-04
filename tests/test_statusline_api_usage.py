@@ -51,6 +51,17 @@ def test_get_api_usage() -> None:
         assert result.today_haiku == 500
 
 
+def test_get_api_usage_missing_file() -> None:
+    """get_api_usage() returns None when stats-cache.json doesn't exist.
+
+    Mocks Path.open to raise FileNotFoundError, asserts get_api_usage() returns
+    None without raising exception.
+    """
+    with patch("pathlib.Path.open", side_effect=FileNotFoundError):
+        result = get_api_usage()
+        assert result is None
+
+
 def test_get_api_usage_week_aggregation() -> None:
     """get_api_usage() sums last 7 days of token counts for week_* fields.
 
