@@ -398,5 +398,5 @@ claudeutils tokens <model> <file>
 - `agents/session.md` - **Current work context** (read this for active tasks)
 - `CLAUDE.md` - Core rules and role/rule definitions
 - `agents/TEST_DATA.md` - Data types and sample entries for coding
-- `agents/design-decisions.md` - Architectural and implementation decisions
+- `agents/decisions/` - Architectural and implementation decisions
 - `agents/ROADMAP.md` - Future enhancement ideas

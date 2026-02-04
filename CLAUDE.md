@@ -16,7 +16,7 @@
 - **agents/decisions/cli.md** - CLI patterns and conventions
 - **agents/decisions/testing.md** - Testing conventions and patterns
 - **agents/decisions/workflows.md** - Oneshot and TDD workflow patterns
-- **agents/implementation-notes.md** - Detailed implementation decisions (read when implementing similar features)
+- **agents/decisions/implementation-notes.md** - Detailed implementation decisions (read when implementing similar features)
 
 ### Current Work
 - @agents/session.md - Current session handoff context (update only on handoff)

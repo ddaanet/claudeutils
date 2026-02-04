@@ -11,6 +11,11 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 ## Behavioral Rules
 
 Delegation with context — don't delegate when context already loaded, token economy
+Never auto-commit in interactive sessions — only commit on explicit user request, use commit skill protocol always
+Loaded skill overrides fresh-session framing — skill content in context is actionable, execute immediately not pause
+Design tables are binding constraints — read design classifications literally, apply judgment only where design says to
+Header titles not index entries — index entries need keyword-rich descriptions not just title repetition
+Skill rules placement: point of violation — place "don't do X" rules with "do Y" instructions where decisions made
 
 ## Workflow Patterns
 
@@ -86,6 +91,15 @@ Testing strategy for markdown cleanup — TDD approach with red green cycles and
 Success metrics — all tests pass, no regressions, clear errors, complete documentation
 TDD RED phase: behavioral verification — verify behavior not just structure with mocking fixtures
 TDD: presentation vs behavior — test behavior defer presentation quality to vet checkpoints
+Commits are sync points — every commit synchronizes files submodules context session.md state
+@ references limitation — CLAUDE.md @ syntax only works in CLAUDE.md not skills agents tasks
+SessionStart hook limitation — output discarded for new interactive sessions, works after clear compact resume
+UserPromptSubmit hook filtering — fires on every prompt, no matcher support, all filtering must be script-internal
+Hook capture impractical for subagents — hooks don't fire in Task tool subagents, matcher causes noise
+MCP tools unavailable in subagents — Context7 and other MCP tools only available in main session not Task subagents
+Title-words beat kebab-case — title-words have 17% drift vs kebab-case 31% drift, hyphens tokenize separately
+Bare lines beat list markers — flat keyword lists without markers save 14% tokens vs list markers
+Default semantic, mark structural — semantic headers default, structural get dot prefix for safe failure mode
 
 ## Architecture Sections
 

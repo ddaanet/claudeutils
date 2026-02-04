@@ -106,7 +106,7 @@ plans/
 - Edge case validation
 - Regression testing for markdown processing
 
-**Decision:** Formatter comparison completed (remark-cli selected). Decision recorded in `agents/design-decisions.md`.
+**Decision:** Formatter comparison completed (remark-cli selected). Decision recorded in `agents/decisions/`.
 
 ---
 
@@ -119,13 +119,13 @@ The following plans have been completed and removed from this directory:
 - **plan-token-check-command.md** - Token counter implementation (complete)
 - **plan-orchestration-update.md** - Orchestration patterns (formalized in agents/workflow.md)
 - **agent-context-v2.md** - Agent context architecture migration (completed)
-- **formatter-comparison.md** - Markdown formatter evaluation (decision in agents/design-decisions.md)
+- **formatter-comparison.md** - Markdown formatter evaluation (decision in agents/decisions/)
 - **tidy-brewing-adleman.md** - Incomplete cost optimization analysis
 - **markdown-fence-aware-processing.md** - Historical problem definition
 - **plan-claude-wrapper.md** - Superseded sketch
 
 **Rationale:** Completed plans archived to reduce clutter. Key decisions and patterns extracted to:
-- `agents/design-decisions.md` - Architectural decisions
+- `agents/decisions/` - Architectural decisions
 - `agents/workflow.md` - Workflow patterns
 - Git history - Full context preservation
 
@@ -151,7 +151,7 @@ The following plans have been completed and removed from this directory:
 - Update session.md with progress
 
 ### 4. Completion
-- Extract valuable decisions to `agents/design-decisions.md`
+- Extract valuable decisions to `agents/decisions/`
 - Delete plan-specific agent (`.claude/agents/*-task.md`)
 - Archive or delete plan directory (per project convention)
 
@@ -207,7 +207,7 @@ model: sonnet  # default model for steps
 
 - **CLAUDE.md** - Agent instructions, workflow selection
 - **agents/workflow.md** - Complete oneshot workflow guide
-- **agents/design-decisions.md** - Architectural decisions
+- **agents/decisions/** - Architectural decisions
 - **agents/session.md** - Current session handoff context
 - **agent-core/bin/prepare-runbook.py** - Runbook artifact generator
 
@@ -221,7 +221,7 @@ model: sonnet  # default model for steps
 - No pending tasks in session.md
 
 ### What to Preserve
-- Architectural decisions → `agents/design-decisions.md`
+- Architectural decisions → `agents/decisions/`
 - Workflow patterns → `agents/workflow.md`
 - Test data → Keep in place or move to `tests/fixtures/`
 - Everything else → Git history
