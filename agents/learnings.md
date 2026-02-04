@@ -161,3 +161,16 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Updating requirement files during task execution when implementation discovers they're outdated
 - Correct pattern: Requirements MUST NOT be updated if task execution made them outdated; updating requires explicit user confirmation
 - Rationale: Requirements document intent and decisions at planning time; execution discovering they're wrong means either (1) requirements need user review/approval before updating, or (2) implementation needs to match requirements despite being outdated
+## Task prose keys pattern
+- Pattern: Task names serve as identifiers (no hash tokens needed)
+- Implementation: git log -S for on-demand history search, case-insensitive matching
+- Benefit: Near-zero marginal cost, natural language keys, context recovery via task-context.sh
+## Index entries require backing documentation
+- Anti-pattern: Adding memory-index entries for concepts without permanent docs
+- Correct pattern: Learnings → learnings.md → /remember → permanent doc → index entry
+- Rationale: Index entries are discovery surfaces for on-demand knowledge; they must point somewhere
+## Tool batching unsolved
+- Documentation (tool-batching.md fragment) doesn't reliably change behavior
+- Direct interactive guidance is often ignored
+- Hookify rules add per-tool-call context bloat (session bloat)
+- Cost-benefit unclear: planning tokens for batching may exceed cached re-read savings

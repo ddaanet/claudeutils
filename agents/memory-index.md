@@ -10,7 +10,6 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 ## Behavioral Rules
 
-Tool batching unsolved — documentation unreliable, hookify bloats context, batching benefit unclear
 Delegation with context — don't delegate when context already loaded, token economy
 
 ## Workflow Patterns
@@ -87,10 +86,6 @@ Testing strategy for markdown cleanup — TDD approach with red green cycles and
 Success metrics — all tests pass, no regressions, clear errors, complete documentation
 TDD RED phase: behavioral verification — verify behavior not just structure with mocking fixtures
 TDD: presentation vs behavior — test behavior defer presentation quality to vet checkpoints
-
-## Tool & Infrastructure
-
-Commit RCA fixes active — submodule awareness, artifact staging, orchestrator stop rule fixes
 
 ## Architecture Sections
 

@@ -6,9 +6,12 @@ Plan lifecycle tracking. Updated when plans change status.
 
 ## Complete (Archived)
 
-*12 plans completed and deleted 2026-02-04. Git history preserves all designs/reports.*
+*13 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
+
+**Recent:**
+- `task-prose-keys` — Replaced hash tokens with prose key validation (validate-tasks.py)
 
 **One-off documents (complete):**
 - `majestic-herding-rain.md` — Gitmoji integration (implemented in commit skill)
@@ -35,12 +38,11 @@ Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>
 
 | Plan | Task Key | Notes |
 |------|----------|-------|
-| continuation-passing | #wW6G2 | Opus design needed |
+| continuation-passing | — | Opus design needed |
 | handoff-lite-issue | — | Issue investigation |
-| handoff-validation | #JZWhk | Requires continuation-passing |
+| handoff-validation | — | Requires continuation-passing |
 | markdown | — | Markdown cleanup test corpus |
 | requirements-skill | — | New skill |
 | runbook-identifiers | — | Purpose unclear |
-| task-prose-keys | #POn2Z | Replace hash tokens |
-| validator-consolidation | #pEmoW | Move to claudeutils package |
+| validator-consolidation | — | Move to claudeutils package |
 
