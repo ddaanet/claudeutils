@@ -69,7 +69,6 @@ class StatuslineFormatter:
         Returns:
             Formatted string with medal emoji, color, and abbreviated name
         """
-        _ = thinking_enabled  # Used in cycle 1.3 for thinking indicator
         tier = self._extract_model_tier(display_name)
         if tier is None:
             return display_name
@@ -78,8 +77,11 @@ class StatuslineFormatter:
         color = self.MODEL_COLORS[tier]
         name = self.MODEL_NAMES[tier]
 
+        # Add thinking indicator if thinking is disabled
+        thinking_indicator = "😶" if not thinking_enabled else ""
+
         colored_name = self.colored(name, color)
-        return f"{emoji} {colored_name}"
+        return f"{emoji}{thinking_indicator} {colored_name}"
 
     def colored(self, text: str, color: str) -> str:
         """Wrap text in ANSI color codes.

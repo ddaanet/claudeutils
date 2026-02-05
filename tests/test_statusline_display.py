@@ -185,3 +185,37 @@ def test_format_model() -> None:
     assert "🥈" not in unknown_result
     assert "🥉" not in unknown_result
     assert "Unknown Model" in unknown_result
+
+
+def test_format_model_thinking_disabled() -> None:
+    """Format model with thinking disabled indicator (😶 emoji).
+
+    StatuslineFormatter.format_model() adds thinking indicator when
+    thinking_enabled=False. When thinking disabled, output includes 😶 emoji
+    after medal and before name. Format: {medal}{thinking_indicator} {name}
+    """
+    formatter = StatuslineFormatter()
+
+    # Test Sonnet with thinking disabled
+    sonnet_no_think = formatter.format_model("Claude Sonnet 4", thinking_enabled=False)
+    assert "😶" in sonnet_no_think  # Thinking disabled indicator
+    assert "🥈" in sonnet_no_think  # Silver medal emoji still present
+    assert "Sonnet" in sonnet_no_think
+
+    # Test Sonnet with thinking enabled (default)
+    sonnet_think = formatter.format_model("Claude Sonnet 4", thinking_enabled=True)
+    assert "😶" not in sonnet_think  # No thinking indicator
+    assert "🥈" in sonnet_think  # Medal emoji present
+    assert "Sonnet" in sonnet_think
+
+    # Test Opus with thinking disabled
+    opus_no_think = formatter.format_model("Claude Opus 4", thinking_enabled=False)
+    assert "😶" in opus_no_think
+    assert "🥇" in opus_no_think
+    assert "Opus" in opus_no_think
+
+    # Test Haiku with thinking disabled
+    haiku_no_think = formatter.format_model("Claude Haiku 4", thinking_enabled=False)
+    assert "😶" in haiku_no_think
+    assert "🥉" in haiku_no_think
+    assert "Haiku" in haiku_no_think
