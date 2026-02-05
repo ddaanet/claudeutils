@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 from claudeutils.statusline.context import (
     calculate_context_tokens,
     get_git_status,
+    get_python_env,
     get_thinking_state,
 )
 from claudeutils.statusline.models import (
@@ -15,6 +16,7 @@ from claudeutils.statusline.models import (
     CostInfo,
     GitStatus,
     ModelInfo,
+    PythonEnv,
     StatuslineInput,
     ThinkingState,
     WorkspaceInfo,
@@ -261,3 +263,60 @@ def test_calculate_context_tokens_missing_transcript() -> None:
 
         # Should return 0 (fail-safe default)
         assert result == 0
+
+
+def test_get_python_env() -> None:
+    """Test get_python_env detects Python environments from variables.
+
+    Tests multiple scenarios:
+    - VIRTUAL_ENV set: extracts basename as environment name
+    - CONDA_DEFAULT_ENV set: uses environment name as-is
+    - Both set: Conda takes precedence
+    - Neither set: returns PythonEnv with name=None
+    - Empty values: treated as absent
+    """
+    # Test case 1: VIRTUAL_ENV with full path
+    with patch.dict("os.environ", {"VIRTUAL_ENV": "/path/to/myenv"}, clear=True):
+        result = get_python_env()
+        assert isinstance(result, PythonEnv)
+        assert result.name == "myenv"
+
+    # Test case 2: CONDA_DEFAULT_ENV
+    with patch.dict("os.environ", {"CONDA_DEFAULT_ENV": "conda-env"}, clear=True):
+        result = get_python_env()
+        assert isinstance(result, PythonEnv)
+        assert result.name == "conda-env"
+
+    # Test case 3: Both set (Conda takes precedence)
+    with patch.dict(
+        "os.environ",
+        {"VIRTUAL_ENV": "/path/to/venv", "CONDA_DEFAULT_ENV": "conda-env"},
+        clear=True,
+    ):
+        result = get_python_env()
+        assert isinstance(result, PythonEnv)
+        assert result.name == "conda-env"
+
+    # Test case 4: Neither set
+    with patch.dict("os.environ", {}, clear=True):
+        result = get_python_env()
+        assert isinstance(result, PythonEnv)
+        assert result.name is None
+
+    # Test case 5: VIRTUAL_ENV empty string
+    with patch.dict("os.environ", {"VIRTUAL_ENV": ""}, clear=True):
+        result = get_python_env()
+        assert isinstance(result, PythonEnv)
+        assert result.name is None
+
+    # Test case 6: CONDA_DEFAULT_ENV empty string
+    with patch.dict("os.environ", {"CONDA_DEFAULT_ENV": ""}, clear=True):
+        result = get_python_env()
+        assert isinstance(result, PythonEnv)
+        assert result.name is None
+
+    # Test case 7: VIRTUAL_ENV basename extraction
+    with patch.dict("os.environ", {"VIRTUAL_ENV": "/Users/david/venv"}, clear=True):
+        result = get_python_env()
+        assert isinstance(result, PythonEnv)
+        assert result.name == "venv"

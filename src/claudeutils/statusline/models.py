@@ -10,6 +10,12 @@ class GitStatus(BaseModel):
     dirty: bool
 
 
+class PythonEnv(BaseModel):
+    """Detected Python environment information."""
+
+    name: str | None = None
+
+
 class ThinkingState(BaseModel):
     """Claude Code thinking state information."""
 

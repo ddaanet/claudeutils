@@ -1,10 +1,16 @@
 """Context calculation for statusline display."""
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
-from claudeutils.statusline.models import GitStatus, StatuslineInput, ThinkingState
+from claudeutils.statusline.models import (
+    GitStatus,
+    PythonEnv,
+    StatuslineInput,
+    ThinkingState,
+)
 
 # Transcript parsing constants
 _TRANSCRIPT_READ_SIZE = 1024 * 1024  # 1MB read window for transcript
@@ -51,6 +57,32 @@ def get_git_status() -> GitStatus:
     except (subprocess.CalledProcessError, FileNotFoundError):
         # Not in a git repository or git not found
         return GitStatus(branch=None, dirty=False)
+
+
+def get_python_env() -> PythonEnv:
+    """Detect active Python environment from environment variables.
+
+    Checks for Conda and virtual environment indicators in order of precedence:
+    1. CONDA_DEFAULT_ENV (Conda environment takes priority)
+    2. VIRTUAL_ENV (virtualenv or venv activation)
+
+    Returns:
+        PythonEnv model with environment name, or name=None if no environment detected.
+        For VIRTUAL_ENV, extracts basename from path (e.g., /path/to/venv → venv).
+    """
+    # Check CONDA_DEFAULT_ENV first (takes precedence)
+    conda_env = os.environ.get("CONDA_DEFAULT_ENV", "").strip()
+    if conda_env:
+        return PythonEnv(name=conda_env)
+
+    # Check VIRTUAL_ENV (extract basename from path)
+    venv_path = os.environ.get("VIRTUAL_ENV", "").strip()
+    if venv_path:
+        venv_name = Path(venv_path).name
+        return PythonEnv(name=venv_name)
+
+    # No environment detected
+    return PythonEnv(name=None)
 
 
 def parse_transcript_context(transcript_path: str) -> int:
