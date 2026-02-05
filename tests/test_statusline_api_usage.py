@@ -16,9 +16,11 @@ def test_get_api_usage() -> None:
     today_haiku counts correctly aggregated from model tokens.
     """
     # Sample stats-cache.json structure with dailyModelTokens
+    # Use actual today's date for "today" entry
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
     stats_cache_data = {
         "dailyModelTokens": {
-            "2026-02-04": {
+            today: {
                 "claude-3-5-sonnet-20241022": 1500,
                 "claude-3-opus-20250219": 2000,
                 "claude-3-5-haiku-20241022": 500,

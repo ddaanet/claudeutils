@@ -1,38 +1,37 @@
 # Session Handoff: 2026-02-05
 
-**Status:** Executed workflow-feedback-loops runbook (12 steps, 4 phases). All FRs satisfied.
+**Status:** RCA and workflow fixes for TDD planning process. Statusline-parity runbook generation paused for fixes.
 
 ## Completed This Session
 
-**Workflow feedback loops implementation:**
-- Executed 12 steps across 4 phases via `/orchestrate workflow-feedback-loops`
-- 15 commits from b3e3da8 to e41ed2a
-- Final vet review: Ready, no critical/major issues
+**RCA: Prescriptive code in TDD GREEN phases**
+- Triggered via `/reflect` after tdd-plan-reviewer flagged all 7 cycles in runbook-phase-1.md
+- Root cause: `/plan-tdd` skill Phase 3.3 template ambiguous — allowed code blocks where behavioral descriptions needed
+- Fix: Updated skill with explicit Behavior/Approach sections, added "CRITICAL — No prescriptive code" warning
+- Learning added to learnings.md
 
-**Phase 1 — New agents:**
-- `outline-review-agent` — Reviews design outlines (FP-1), fix-all policy
-- `runbook-outline-review-agent` — Reviews runbook outlines (FP-3), fix-all policy
+**RCA: Review recommendations not transmitted to expansion step**
+- Outline review produced valuable recommendations (lines 120-134) but they sat in report file, ignored
+- Root cause: No mechanism to transmit guidance from review to next workflow step
+- Fix: `runbook-outline-review-agent` now appends "## Expansion Guidance" section to outline.md itself
+- Rationale: Phase expansion already reads outline; inline guidance ensures consumption
 
-**Phase 2 — Enhanced agents:**
-- `design-vet-agent` — Added requirements validation, fix-all policy, enhanced traceability
-- `vet-agent` — Added outline validation, requirements inheritance check (review-only preserved)
-- `tdd-plan-reviewer` — Added outline validation, requirements inheritance (review-only preserved)
-- `vet-fix-agent` — Added runbook rejection, requires requirements context
+**Fixed tdd-plan-reviewer false positive**
+- Issue: Agent flagged "missing outline review" when reviewing phase files, but outline review had already happened
+- Fix: Added "Phase file exception" — skip outline check for `runbook-phase-N.md` (intermediate artifacts)
 
-**Phase 3 — Skill updates:**
-- `/design` — Phase A.5 writes outline to file (behavioral change), FP-1 checkpoint added
-- `/plan-adhoc` — Point 0.75 (runbook outline), phase-by-phase expansion with reviews
-- `/plan-tdd` — Phase 1.5 (runbook outline), phase-by-phase cycle expansion
-- `/orchestrate` — Enhanced phase checkpoints with requirements context
-
-**Phase 4 — Infrastructure:**
-- `prepare-runbook.py` — Phase metadata extraction from `### Phase N` headers
-- `workflows.md` — Runbook outline format documented
+**Statusline-parity artifacts created:**
+- `plans/statusline-parity/runbook-outline.md` — Reviewed, guidance appended
+- `plans/statusline-parity/runbook-phase-1.md` — 7 cycles, corrected GREEN phases (behavioral descriptions)
+- `plans/statusline-parity/runbook-phase-2.md` — 3 cycles (token bar), needs review
+- Phases 3-5 not yet generated
 
 ## Pending Tasks
 
-- [ ] **Execute statusline-parity runbook** — `/plan-tdd plans/statusline-parity/design.md` | sonnet
-  - Plan: statusline-parity | Status: designed
+- [ ] **Continue statusline-parity runbook generation** — Generate phases 3-5, review, assemble | sonnet
+  - Plan: statusline-parity | Status: in-progress (phase 1-2 expanded)
+  - Phase 1: 7 cycles (corrected), Phase 2: 3 cycles (needs review)
+  - Phases 3-5: Not yet generated
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing | haiku
 - [ ] **Continuation passing design-review** — validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
@@ -40,34 +39,29 @@
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
-- [ ] **Run /remember** — Process learnings (learnings.md at ~66 lines)
-- [ ] **Orchestrate evolution design** — Absorb planning from validated outline, finalize phase with handoff-haiku pattern | opus
+- [ ] **Run /remember** — Process learnings (learnings.md at 77 lines, approaching 80 limit)
+- [ ] **Orchestrate evolution design** — Absorb planning, finalize phase pattern | opus
   - Plan: orchestrate-evolution | Status: requirements
-  - Input: validated design outline (from /design A.5 + FP-1)
-  - One restart: load custom agents after prepare-runbook
-  - Finalize phase: observations (haiku-style), cleanup, commit, status
-  - Keep /plan-tdd, /plan-adhoc for monitoring (not deprecated)
-  - Learning extraction (per-session) vs consolidation (/remember) separate
-  - All-phases R+F pass: review+fix after all phases complete (not just per-phase)
-  - Step generation: prepare-runbook.py from phase-assembled runbooks (assemble-runbook.py output)
 - [ ] **Delete claude-tools-recovery artifacts** — blocked on orchestrate finalize phase
-- [ ] **Fix memory-index validator code block exclusion** — Validator flags headers inside code fences; fix to skip code blocks, then revert dot-prefix workaround in workflows.md template
+- [ ] **Fix memory-index validator code block exclusion** — skip headers inside code fences
 
 ## Blockers / Gotchas
 
-- **Behavioral change in /design A.5:** Outline now writes to `plans/<job>/outline.md` instead of inline. User sees outline via `open` command, provides feedback in chat.
-- **Runbook header format:** Phase-grouped runbooks need `### Phase N` (H3) and `## Step N.M:` (H2) for prepare-runbook.py compatibility.
+- **TDD GREEN phase discipline:** GREEN phases describe BEHAVIOR and provide HINTS, never prescriptive code. Test code in RED is fine (that's what you write), implementation code in GREEN violates TDD.
+- **Recommendations transmission:** Review agent recommendations must be appended to the artifact being consumed, not just written to report file.
+- **Phase file review:** Don't check for outline review when reviewing `runbook-phase-N.md` files — outline review already happened before phase expansion.
 
 ## Reference Files
 
-- **plans/workflow-feedback-loops/reports/final-vet-review.md** — Comprehensive review of all 12 steps
-- **plans/workflow-feedback-loops/runbook.md** — Full runbook (12 steps, 4 phases)
-- **agents/decisions/workflows.md** — New Runbook Artifacts section with outline format
+- **plans/statusline-parity/reports/runbook-outline-review.md** — Outline review with recommendations
+- **plans/statusline-parity/reports/phase-1-review.md** — Identified prescriptive code violations
+- **agent-core/skills/plan-tdd/SKILL.md** — Updated Phase 3.3 GREEN template
+- **agent-core/agents/runbook-outline-review-agent.md** — Added expansion guidance transmission
 
 ## Next Steps
 
-1. First pending: `/plan-tdd plans/statusline-parity/design.md`
-2. Consider `/remember` soon (learnings.md at 66 lines, limit 80)
+1. Continue: Generate phases 3-5 for statusline-parity, review each, assemble
+2. Soon: `/remember` (learnings.md at 77 lines, limit 80)
 
 ---
-*Handoff by Sonnet. Runbook executed successfully.*
+*Handoff by Opus. RCA fixes applied to TDD workflow.*

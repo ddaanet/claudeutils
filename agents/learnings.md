@@ -63,3 +63,15 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Use `### Phase N` (H3) for visual grouping and `## Step N.M:` (H2) for steps
 - Rationale: prepare-runbook.py regex matches `^## Step` — steps must be H2 for extraction
 - Fix: assemble-runbook.py outputs correct format; manual runbooks need header level awareness
+## TDD GREEN behavioral descriptions
+- Anti-pattern: Writing complete implementation code in GREEN phase that can be copied verbatim
+- Correct pattern: Describe behavioral requirements, provide approach hints, specify file location
+- Rationale: TDD discipline requires executor to WRITE code satisfying tests, not transcribe prescribed code
+- Fix: Updated /plan-tdd skill Phase 3.3 template with explicit Behavior/Approach/Hint structure
+- Rule clarification: GREEN says WHAT code must DO, not HOW to write it
+## Recommendations inline transmission
+- Anti-pattern: Review agent writes recommendations to report file that gets ignored
+- Correct pattern: Append "Expansion Guidance" section to the artifact being consumed (inline)
+- Rationale: Phase expansion reads outline; guidance co-located ensures consumption
+- Fix: Updated runbook-outline-review-agent to append guidance to outline.md, not just report
+- Related: Phase file reviews should skip outline-existence check (outline review already happened)
