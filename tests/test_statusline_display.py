@@ -151,3 +151,37 @@ def test_extract_model_tier() -> None:
 
     # Test unknown model
     assert formatter._extract_model_tier("Unknown Model") is None
+
+
+def test_format_model() -> None:
+    """Format model with emoji and color coding.
+
+    StatuslineFormatter.format_model() returns model display with medal emoji,
+    color coding, and abbreviated name based on model tier.
+    """
+    formatter = StatuslineFormatter()
+
+    # Test Sonnet: yellow color and silver medal emoji
+    sonnet_result = formatter.format_model("Claude Sonnet 4")
+    assert "🥈" in sonnet_result  # Silver medal emoji
+    assert "Sonnet" in sonnet_result  # Abbreviated name
+    assert "\033[33m" in sonnet_result  # Yellow ANSI code
+
+    # Test Opus: magenta color and gold medal emoji
+    opus_result = formatter.format_model("Claude Opus 4")
+    assert "🥇" in opus_result  # Gold medal emoji
+    assert "Opus" in opus_result  # Abbreviated name
+    assert "\033[35m" in opus_result  # Magenta ANSI code
+
+    # Test Haiku: green color and bronze medal emoji
+    haiku_result = formatter.format_model("Claude Haiku 4")
+    assert "🥉" in haiku_result  # Bronze medal emoji
+    assert "Haiku" in haiku_result  # Abbreviated name
+    assert "\033[32m" in haiku_result  # Green ANSI code
+
+    # Test unknown model: no emoji, just full display name
+    unknown_result = formatter.format_model("Unknown Model")
+    assert "🥇" not in unknown_result
+    assert "🥈" not in unknown_result
+    assert "🥉" not in unknown_result
+    assert "Unknown Model" in unknown_result

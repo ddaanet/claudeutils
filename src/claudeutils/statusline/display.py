@@ -20,6 +20,27 @@ class StatuslineFormatter:
     }
     RESET: ClassVar[str] = "\033[0m"
 
+    # Model tier to emoji mapping
+    MODEL_EMOJI: ClassVar[dict[str, str]] = {
+        "opus": "🥇",
+        "sonnet": "🥈",
+        "haiku": "🥉",
+    }
+
+    # Model tier to color mapping
+    MODEL_COLORS: ClassVar[dict[str, str]] = {
+        "opus": "magenta",
+        "sonnet": "yellow",
+        "haiku": "green",
+    }
+
+    # Model tier to abbreviated name mapping
+    MODEL_NAMES: ClassVar[dict[str, str]] = {
+        "opus": "Opus",
+        "sonnet": "Sonnet",
+        "haiku": "Haiku",
+    }
+
     def _extract_model_tier(self, display_name: str) -> str | None:
         """Extract model tier from display name.
 
@@ -37,6 +58,28 @@ class StatuslineFormatter:
         if "haiku" in lower_name:
             return "haiku"
         return None
+
+    def format_model(self, display_name: str, *, thinking_enabled: bool = True) -> str:
+        """Format model with emoji and color coding.
+
+        Args:
+            display_name: Model display name (e.g., "Claude Opus 4")
+            thinking_enabled: Whether thinking mode is enabled (used in cycle 1.3)
+
+        Returns:
+            Formatted string with medal emoji, color, and abbreviated name
+        """
+        _ = thinking_enabled  # Used in cycle 1.3 for thinking indicator
+        tier = self._extract_model_tier(display_name)
+        if tier is None:
+            return display_name
+
+        emoji = self.MODEL_EMOJI[tier]
+        color = self.MODEL_COLORS[tier]
+        name = self.MODEL_NAMES[tier]
+
+        colored_name = self.colored(name, color)
+        return f"{emoji} {colored_name}"
 
     def colored(self, text: str, color: str) -> str:
         """Wrap text in ANSI color codes.
