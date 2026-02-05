@@ -1,47 +1,39 @@
 # Session Handoff: 2026-02-05
 
-**Status:** Statusline-parity runbook planning complete (14 cycles, 4 phases). plan-tdd skill updated with workflow corrections.
+**Status:** RCA complete. Commit skill and handoff skill updated with vet+alignment requirements.
 
 ## Completed This Session
 
-**Statusline-parity planning restarted:**
-- Deleted invalid artifacts (runbook-phase-*.md from previous failed planning)
-- Generated phase files via delegated expansion (haiku agents in parallel)
-- Phase-by-phase reviews completed (tdd-plan-reviewer)
-- Phase 5 (TTL update) removed — already complete per commit 22b60da
-- Final: 14 cycles across 4 phases (Phase 1: 7, Phase 2: 3, Phase 3: 1, Phase 4: 3)
+**Enhance prepare-runbook.py for phase files:**
+- Added `assemble_phase_files()` — detects runbook-phase-*.md, sorts by phase number, prepends TDD frontmatter
+- Fixed cycle extraction — H2-only termination (allows H3 subsections like ### RED Phase)
+- Updated validation — accepts "error condition" as alternative to "stop condition"
+- Vet-fix-agent review applied fixes: phase numbering gap detection, empty file detection
+- Commits: 7d225df, 3aa7511 (parent), d4a108f (agent-core submodule)
+- Artifacts generated: statusline-parity now has 15 step files, orchestrator-plan.md, agent ready
 
-**RCA: Manual runbook assembly:**
-- Deviation: Manually assembled runbook.md using cat + Write
-- Correct pattern: Phase files remain separate → holistic review reads batched → prepare-runbook.py assembles
-- Rationale: Batched reads of N files = same efficiency as single file read
-- Fix: Updated plan-tdd Phase 4/5 to prohibit manual assembly, clarify prepare-runbook.py handles assembly
-- Learning appended to learnings.md
+**RCA: Haiku commit workflow deviations:**
+- Root cause chain: Opus delegated without execution plan → haiku had no alignment criteria → no vet checkpoint → attempted commit without review
+- Identified 6 deviations total (4 haiku behavioral + 2 systemic)
+- Key insight: "All output requires vet+fix with alignment" (model-agnostic, not haiku-specific)
 
-**RCA: Uncritical assumption acceptance:**
-- Deviation: Accepted user's premise "single file more efficient for review" without questioning
-- Correct pattern: Question efficiency assumptions — batched tool calls are equally efficient
-- Fix: Documented in reflection, updated skill to note batched read efficiency
-
-**plan-tdd skill updates:**
-- Phase 4: Removed "or manual concatenation" option, clarified prepare-runbook.py handles assembly
-- Phase 5: Clarified holistic review reads phase files via batched reads (no monolithic assembly)
-- Fixed step numbering (6→5, 7→6)
-- Added clarification that structure template is reference, not manual creation guide
-- Vetted by vet-agent: plans/statusline-parity/reports/plan-tdd-skill-review.md
+**Skill fixes applied:**
+- Commit skill Step 0b: Vet checkpoint for ALL models with alignment verification requirement
+- Commit skill Step 0: Model-specific handoff selection (haiku → /handoff-haiku)
+- Handoff skill: Haiku task requirements table — runbook/acceptance criteria/test command with examples
+- Rationale: Without criteria, alignment verification impossible; vet cannot check drift
 
 ## Pending Tasks
 
-- [ ] **Enhance prepare-runbook.py for phase files** — Accept directory, detect runbook-phase-*.md, assemble + generate | haiku
 - [ ] **Execute statusline-parity runbook** — `/orchestrate statusline-parity` | haiku | restart
-  - Plan: statusline-parity | Status: planned (14 cycles ready)
+  - Plan: statusline-parity | Status: planned | 15 cycles ready
+- [ ] **Consolidate learnings** — learnings.md at 81 lines, run `/remember`
 - [ ] **Learnings consolidation design Phase C** — Generate full design.md from outline | opus
-  - Plan: learnings-consolidation | Status: designed (outline complete)
-- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements (batched reads, no manual assembly) | sonnet
-- [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing | haiku
+  - Plan: learnings-consolidation | Status: designed
+- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements (batched reads, no manual assembly)
 - [ ] **Continuation passing design-review** — Validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
-- [ ] **Validator consolidation** — Move validators to claudeutils package with tests | sonnet
+- [ ] **Validator consolidation** — Move validators to claudeutils package with tests
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — Complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
@@ -50,25 +42,24 @@
 - [ ] **Delete claude-tools-recovery artifacts** — Blocked on orchestrate finalize phase
 - [ ] **Fix memory-index validator code block exclusion** — Skip headers inside code fences
 - [ ] **Add claudeutils config file** — Record API key by content or file path | haiku
+- [ ] **Research CLI control tool** — Agent model change, clear session, restart Claude (tmux?) | sonnet
 
 ## Blockers / Gotchas
 
-- **prepare-runbook.py needs enhancement** — Currently expects single runbook.md, needs phase-aware input mode
-- **Skills must be loaded for planning** — plugin-dev:skill-development, plugin-dev:agent-development (for learnings-consolidation)
-- **Memory refactoring anti-pattern** — Never "make room" by deleting content; split files instead
-- **Batched reads are equally efficient** — Multiple Read calls in one message = same as single file read
+- **Alignment requires criteria** — Cannot vet without runbook/acceptance criteria; haiku tasks need explicit specification
+- **learnings.md at limit** — 81 lines, consolidation needed before more learnings
+- **Vet report structure** — UNFIXABLE items should be prominent, not buried after "Needs Minor Changes"
 
 ## Reference Files
 
-- **plans/statusline-parity/runbook-phase-*.md** — Phase files ready for prepare-runbook.py
-- **plans/statusline-parity/reports/phase-*-review.md** — Phase review reports
-- **plans/statusline-parity/reports/plan-tdd-skill-review.md** — Skill update vet review
-- **.claude/skills/plan-tdd/SKILL.md** — Updated Phase 4/5 with workflow corrections
+- **plans/statusline-parity/reports/prepare-runbook-enhancement-review.md** — Vet review with fixes applied
+- **.claude/skills/commit/SKILL.md** — Step 0b vet checkpoint (all models, alignment-focused)
+- **.claude/skills/handoff/SKILL.md** — Haiku task requirements table
 
 ## Next Steps
 
-1. Enhance prepare-runbook.py: add phase-aware input mode (detects runbook-phase-*.md)
-2. Execute statusline-parity: restart session, switch to haiku, `/orchestrate statusline-parity`
+1. Run `/remember` to consolidate learnings (at 81 lines)
+2. Execute statusline-parity: restart, switch to haiku, `/orchestrate statusline-parity`
 
 ---
-*Handoff by Sonnet. Planning complete, tool enhancement pending before execution.*
+*Handoff by Opus. RCA complete, workflow fixes committed.*

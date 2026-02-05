@@ -64,3 +64,18 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Manual assembly error-prone: wrong cycle count, missing metadata, inconsistent formatting
 - Review agent can read multiple phase files — doesn't need pre-assembled input
 - Fix: Updated plan-tdd Phase 4/5 to clarify prepare-runbook.py handles assembly, planner provides phase files
+## Output requires vet+fix with alignment
+- Anti-pattern: Implement task → commit without verification
+- Correct pattern: Implement → vet-fix-agent review with alignment check → escalate UNFIXABLE → handoff → commit
+- Alignment = verify output matches design/requirements/acceptance criteria
+- Reports exempt: They ARE the verification artifacts
+- Model-agnostic: Applies to haiku, sonnet, opus equally
+- Delegation requires specification: If delegating implementation, provide criteria for alignment verification
+- Fix: Added Step 0b (vet checkpoint) to commit skill — all models, alignment-focused
+## Delegation without plan causes drift
+- Anti-pattern: Opus specifies "do X | haiku" without runbook/acceptance criteria
+- Correct pattern: Opus provides runbook OR acceptance criteria when delegating implementation
+- Consequence: Without criteria, executing agent cannot verify alignment, vet cannot check drift
+- Haiku-specific: Handoff uses `/handoff-haiku` not `/handoff` (no learnings judgment)
+- Root cause of session deviation: Task had model spec but no execution spec
+- Fix: Handoff skill now requires haiku tasks to include acceptance criteria (table + examples)
