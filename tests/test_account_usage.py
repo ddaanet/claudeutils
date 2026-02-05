@@ -44,3 +44,25 @@ def test_usage_cache_put(tmp_path: Path) -> None:
     # Verify get() retrieves it when fresh
     result = cache.get()
     assert result == test_data
+
+
+def test_usage_cache_ttl() -> None:
+    """Test that UsageCache TTL constant is set to exactly 10 seconds.
+
+    Verifies the cache expiration timeout matches the design specification (D7).
+    This ensures cached usage data is refreshed frequently enough to keep
+    displayed account status current during active CLI sessions.
+
+    Checks:
+    - TTL value equals 10 (not 30, not any other value)
+    - TTL is an integer (not float or string)
+    - TTL is positive (non-zero, greater than zero)
+    """
+    # Verify TTL constant value is exactly 10
+    assert UsageCache.TTL_SECONDS == 10
+
+    # Verify TTL is an integer type
+    assert isinstance(UsageCache.TTL_SECONDS, int)
+
+    # Verify TTL is positive
+    assert UsageCache.TTL_SECONDS > 0
