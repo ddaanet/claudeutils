@@ -1,37 +1,43 @@
 # Session Handoff: 2026-02-05
 
-**Status:** Learnings consolidation design outline complete. Requirements updated with all design insights.
+**Status:** Statusline-parity runbook planning complete (14 cycles, 4 phases). plan-tdd skill updated with workflow corrections.
 
 ## Completed This Session
 
-**Learnings consolidation design (Phase A-B):**
-- Read requirements, explored codebase (handoff/remember skills, git blame patterns)
-- Produced outline with iterative user feedback (4 review cycles)
-- Key design decisions captured:
-  - Two-test model: trigger (IF consolidate) vs freshness (WHAT to consolidate)
-  - Sub-agent pattern: prolog skill reference (not Skill tool, not embedded)
-  - Memory refactoring: in scope, triggered by target file limit
-  - Pre-consolidation checks: supersession, contradiction, redundancy detection
-  - Git handling: `git blame -C -C` for renames, merge commits normal workflow
-  - Output format: Markdown (not JSON)
-- Updated requirements.md with all resolved questions, insights, and implementation components
-- Added "Required Skills for Planning" section (plugin-dev:skill-development, agent-development)
+**Statusline-parity planning restarted:**
+- Deleted invalid artifacts (runbook-phase-*.md from previous failed planning)
+- Generated phase files via delegated expansion (haiku agents in parallel)
+- Phase-by-phase reviews completed (tdd-plan-reviewer)
+- Phase 5 (TTL update) removed — already complete per commit 22b60da
+- Final: 14 cycles across 4 phases (Phase 1: 7, Phase 2: 3, Phase 3: 1, Phase 4: 3)
 
-**RCA: Restart vs model change:**
-- Deviation: Said "Restart: yes" for model change
-- Fix: Added restart trigger definition to execute-rule.md (structural changes only)
+**RCA: Manual runbook assembly:**
+- Deviation: Manually assembled runbook.md using cat + Write
+- Correct pattern: Phase files remain separate → holistic review reads batched → prepare-runbook.py assembles
+- Rationale: Batched reads of N files = same efficiency as single file read
+- Fix: Updated plan-tdd Phase 4/5 to prohibit manual assembly, clarify prepare-runbook.py handles assembly
+- Learning appended to learnings.md
 
-**RCA: Skill dependencies in requirements:**
-- Deviation: Didn't load plugin-dev skills despite requirements mentioning sub-agent
-- Fix: Added skill dependency scan to design skill A.0 checkpoint
+**RCA: Uncritical assumption acceptance:**
+- Deviation: Accepted user's premise "single file more efficient for review" without questioning
+- Correct pattern: Question efficiency assumptions — batched tool calls are equally efficient
+- Fix: Documented in reflection, updated skill to note batched read efficiency
+
+**plan-tdd skill updates:**
+- Phase 4: Removed "or manual concatenation" option, clarified prepare-runbook.py handles assembly
+- Phase 5: Clarified holistic review reads phase files via batched reads (no monolithic assembly)
+- Fixed step numbering (6→5, 7→6)
+- Added clarification that structure template is reference, not manual creation guide
+- Vetted by vet-agent: plans/statusline-parity/reports/plan-tdd-skill-review.md
 
 ## Pending Tasks
 
+- [ ] **Enhance prepare-runbook.py for phase files** — Accept directory, detect runbook-phase-*.md, assemble + generate | haiku
+- [ ] **Execute statusline-parity runbook** — `/orchestrate statusline-parity` | haiku | restart
+  - Plan: statusline-parity | Status: planned (14 cycles ready)
 - [ ] **Learnings consolidation design Phase C** — Generate full design.md from outline | opus
   - Plan: learnings-consolidation | Status: designed (outline complete)
-- [ ] **Restart statusline-parity planning** — Delete invalid artifacts, resume from Phase 3 step 2 | sonnet
-  - Plan: statusline-parity | Status: designed
-- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements | sonnet
+- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements (batched reads, no manual assembly) | sonnet
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing | haiku
 - [ ] **Continuation passing design-review** — Validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
@@ -47,22 +53,22 @@
 
 ## Blockers / Gotchas
 
-- **Learnings consolidation outline ready** — Proceed to Phase C (design.md) when resuming
-- **Skills must be loaded for planning** — plugin-dev:skill-development, plugin-dev:agent-development
+- **prepare-runbook.py needs enhancement** — Currently expects single runbook.md, needs phase-aware input mode
+- **Skills must be loaded for planning** — plugin-dev:skill-development, plugin-dev:agent-development (for learnings-consolidation)
 - **Memory refactoring anti-pattern** — Never "make room" by deleting content; split files instead
+- **Batched reads are equally efficient** — Multiple Read calls in one message = same as single file read
 
 ## Reference Files
 
-- **plans/learnings-consolidation/requirements.md** — Updated with all design insights
-- **plans/learnings-consolidation/outline.md** — Complete outline for Phase C
-- **plans/learnings-consolidation/reports/** — Review reports from outline iterations
-- **agent-core/fragments/execute-rule.md** — Added restart trigger definition
-- **agent-core/skills/design/SKILL.md** — Added skill dependency scan to A.0
+- **plans/statusline-parity/runbook-phase-*.md** — Phase files ready for prepare-runbook.py
+- **plans/statusline-parity/reports/phase-*-review.md** — Phase review reports
+- **plans/statusline-parity/reports/plan-tdd-skill-review.md** — Skill update vet review
+- **.claude/skills/plan-tdd/SKILL.md** — Updated Phase 4/5 with workflow corrections
 
 ## Next Steps
 
-1. Resume learnings-consolidation: Phase C (generate design.md from outline)
-2. Load required skills before planning: plugin-dev:skill-development, plugin-dev:agent-development
+1. Enhance prepare-runbook.py: add phase-aware input mode (detects runbook-phase-*.md)
+2. Execute statusline-parity: restart session, switch to haiku, `/orchestrate statusline-parity`
 
 ---
-*Handoff by Sonnet. Design outline complete, requirements consolidated.*
+*Handoff by Sonnet. Planning complete, tool enhancement pending before execution.*

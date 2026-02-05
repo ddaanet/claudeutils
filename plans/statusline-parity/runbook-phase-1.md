@@ -1,392 +1,438 @@
-# Phase 1: Display Formatting
+# Phase 1: Display Formatting (7 cycles)
 
-**Objective:** Implement emoji and color formatting methods in StatuslineFormatter
+## Cycle 1.1: Extract Model Tier Helper
 
-**Files:**
-- Source: `src/claudeutils/statusline/display.py`
-- Tests: `tests/test_statusline_display.py`
+**Objective**: Create helper function to extract model tier from display_name
 
-**Shell reference:** `scratch/home/claude/statusline-command.sh` lines 416-441 (model), 443-463 (directory/git), 474-480 (cost)
-
----
-
-## Cycle 1.1: Model Tier Extraction
-
-**Objective:** Extract model tier from display_name for emoji/color lookup
-
-**Script Evaluation:** Direct execution (TDD cycle)
-**Execution Model:** Haiku
+**Script Evaluation**: Direct execution (TDD cycle)
+**Execution Model**: Haiku
 
 **Implementation:**
 
-**RED Phase:**
+### RED Phase
 
-**Test:** `test_extract_model_tier`
+**Test:** `test_extract_model_tier` in `tests/test_statusline_display.py`
+
 **Assertions:**
-- `_extract_model_tier("Claude Sonnet 4")` returns `"sonnet"`
 - `_extract_model_tier("Claude Opus 4")` returns `"opus"`
+- `_extract_model_tier("Claude Sonnet 4")` returns `"sonnet"`
 - `_extract_model_tier("Claude Haiku 4")` returns `"haiku"`
+- `_extract_model_tier("claude opus 3.5")` returns `"opus"` (case-insensitive)
 - `_extract_model_tier("Unknown Model")` returns `None`
 
 **Expected failure:** `AttributeError: module 'claudeutils.statusline.display' has no attribute '_extract_model_tier'`
 
-**Why it fails:** Helper function not yet implemented
+**Why it fails:** Function doesn't exist yet
 
 **Verify RED:** `pytest tests/test_statusline_display.py::test_extract_model_tier -v`
 
 ---
 
-**GREEN Phase:**
+### GREEN Phase
 
-**Implementation:** Add `_extract_model_tier()` helper to StatuslineFormatter
+**Implementation:** Add `_extract_model_tier()` helper to StatuslineFormatter class
 
 **Behavior:**
-- Substring matching against display_name.lower()
-- Check "opus" → return "opus"
-- Check "sonnet" → return "sonnet"
-- Check "haiku" → return "haiku"
-- No match → return None
+- Check if "opus" in display_name.lower() → return "opus"
+- Check if "sonnet" in display_name.lower() → return "sonnet"
+- Check if "haiku" in display_name.lower() → return "haiku"
+- Otherwise → return None
 
-**Approach:** Simple if-elif chain with substring checks (shell lines 416-433 use similar pattern)
+**Approach:** Substring matching per D4 (shell lines 416-433 pattern)
 
 **Changes:**
 - File: `src/claudeutils/statusline/display.py`
-  Action: Add private static method `_extract_model_tier(display_name: str) -> str | None`
-  Location hint: Near top of StatuslineFormatter class, before public methods
+  Action: Add `_extract_model_tier(display_name: str) -> str | None` method to StatuslineFormatter
+  Location hint: Before existing format methods
 
 **Verify GREEN:** `pytest tests/test_statusline_display.py::test_extract_model_tier -v`
 - Must pass
 
-**Verify no regression:** `pytest tests/test_statusline_display.py -v`
+**Verify no regression:** `just test`
 - All existing tests pass
-
-**Expected Outcome:** GREEN verification, no regressions
-**Report Path:** plans/statusline-parity/reports/cycle-1-1-notes.md
 
 ---
 
-## Cycle 1.2: Model Formatting with Emoji and Color
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED (AttributeError), passes during GREEN, no breaks
+**Report Path**: plans/statusline-parity/reports/cycle-1-1-notes.md
 
-**Objective:** Format model display with medal emoji, color, and abbreviated name
+---
 
-**Script Evaluation:** Direct execution (TDD cycle)
-**Execution Model:** Haiku
+## Cycle 1.2: Format Model with Emoji and Color
+
+**Objective**: Add `format_model()` method with medal emoji and color coding
+
+**Script Evaluation**: Direct execution (TDD cycle)
+**Execution Model**: Haiku
 
 **Implementation:**
 
-**RED Phase:**
+### RED Phase
 
-**Test:** `test_format_model`
+**Test:** `test_format_model` in `tests/test_statusline_display.py`
+
 **Assertions:**
-- `format_model("Claude Sonnet 4", thinking_enabled=True)` returns string containing `🥈` emoji
-- Output contains substring "Sonnet" (abbreviated, not "Claude Sonnet 4")
-- Output includes ANSI yellow color code (`\033[33m`)
-- `format_model("Claude Opus 4", thinking_enabled=True)` returns string containing `🥇` emoji
-- `format_model("Claude Haiku 4", thinking_enabled=True)` returns string containing `🥉` emoji
-- `format_model("Unknown Model", thinking_enabled=True)` returns "Unknown Model" with no emoji
+- `format_model("Claude Sonnet 4", thinking_enabled=True)` returns string containing "🥈" emoji
+- Output contains "Sonnet" (abbreviated name)
+- Output contains ANSI yellow color code (`\033[33m`)
+- `format_model("Claude Opus 4", thinking_enabled=True)` returns string containing "🥇" emoji
+- Output contains ANSI magenta color code (`\033[35m`)
+- `format_model("Claude Haiku 4", thinking_enabled=True)` returns string containing "🥉" emoji
+- Output contains ANSI green color code (`\033[32m`)
+- `format_model("Unknown Model", thinking_enabled=True)` returns full display_name with no emoji
 
 **Expected failure:** `AttributeError: 'StatuslineFormatter' object has no attribute 'format_model'`
 
-**Why it fails:** Method not yet implemented
+**Why it fails:** Method doesn't exist yet
 
 **Verify RED:** `pytest tests/test_statusline_display.py::test_format_model -v`
 
 ---
 
-**GREEN Phase:**
+### GREEN Phase
 
 **Implementation:** Add `format_model()` method to StatuslineFormatter
 
 **Behavior:**
 - Extract tier using `_extract_model_tier()`
-- Look up emoji from MODEL_EMOJI dict (`{"opus": "🥇", "sonnet": "🥈", "haiku": "🥉"}`)
-- Look up color from MODEL_COLORS dict (`{"opus": "magenta", "sonnet": "yellow", "haiku": "green"}`)
-- Abbreviate name to tier (e.g., "Sonnet" not "Claude Sonnet 4")
-- Return colored emoji + abbreviated name
+- If tier exists: Look up emoji from MODEL_EMOJI dict, look up color from MODEL_COLORS dict, abbreviate name
+- If tier is None: Return full display_name with no emoji or color
+- Apply color using existing `_color()` helper
+- Return formatted string: `{emoji} {colored_name}`
 
-**Approach:** Dict lookups with fallback to display_name if tier unknown (shell lines 416-433)
+**Approach:** Map tier to emoji/color per D1. Shell reference lines 416-428 for emoji mapping.
 
 **Changes:**
 - File: `src/claudeutils/statusline/display.py`
-  Action: Add class constants MODEL_EMOJI and MODEL_COLORS dicts, implement format_model() method
-  Location hint: After existing COLORS dict, method after _extract_model_tier()
+  Action: Add class constants MODEL_EMOJI and MODEL_COLORS dicts, add format_model() method
+  Location hint: After _extract_model_tier()
 
 **Verify GREEN:** `pytest tests/test_statusline_display.py::test_format_model -v`
 - Must pass
 
-**Verify no regression:** `pytest tests/test_statusline_display.py -v`
+**Verify no regression:** `just test`
 - All existing tests pass
-
-**Expected Outcome:** GREEN verification, no regressions
-**Report Path:** plans/statusline-parity/reports/cycle-1-2-notes.md
 
 ---
 
-## Cycle 1.3: Model Thinking Indicator
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED (AttributeError), passes during GREEN, no breaks
+**Report Path**: plans/statusline-parity/reports/cycle-1-2-notes.md
 
-**Objective:** Add 😶 indicator when thinking disabled
+---
 
-**Script Evaluation:** Direct execution (TDD cycle)
-**Execution Model:** Haiku
+## Cycle 1.3: Format Model Thinking Indicator
+
+**Objective**: Extend `format_model()` to show 😶 when thinking disabled
+
+**Script Evaluation**: Direct execution (TDD cycle)
+**Execution Model**: Haiku
 
 **Implementation:**
 
-**RED Phase:**
+### RED Phase
 
-**Test:** `test_format_model_thinking_disabled`
+**Test:** `test_format_model_thinking_disabled` in `tests/test_statusline_display.py`
+
 **Assertions:**
-- `format_model("Claude Sonnet 4", thinking_enabled=False)` returns string containing `😶` emoji
-- Output contains both `🥈` and `😶` emojis
-- `format_model("Claude Sonnet 4", thinking_enabled=True)` does NOT contain `😶` emoji
+- `format_model("Claude Sonnet 4", thinking_enabled=False)` returns string containing "😶" emoji
+- Output format is `{medal}{thinking_indicator} {name}` (e.g., "🥈😶 Sonnet")
+- `format_model("Claude Sonnet 4", thinking_enabled=True)` does NOT contain "😶" emoji
+- Output format is `{medal} {name}` (e.g., "🥈 Sonnet")
 
-**Expected failure:** Test assertion failure — output missing `😶` when `thinking_enabled=False`
+**Expected failure:** Test expects "😶" but output doesn't contain it when `thinking_enabled=False`
 
-**Why it fails:** format_model() does not check thinking_enabled parameter
+**Why it fails:** `format_model()` doesn't handle thinking_enabled parameter yet
 
 **Verify RED:** `pytest tests/test_statusline_display.py::test_format_model_thinking_disabled -v`
 
 ---
 
-**GREEN Phase:**
+### GREEN Phase
 
-**Implementation:** Extend format_model() to include thinking indicator
+**Implementation:** Extend `format_model()` to accept and use thinking_enabled parameter
 
 **Behavior:**
-- When `thinking_enabled=False`, append `😶` after medal emoji
-- When `thinking_enabled=True`, omit indicator
-- Format: `🥈😶 Sonnet` or `🥈 Sonnet`
+- Accept `thinking_enabled: bool` parameter
+- If `thinking_enabled is False`: Insert "😶" emoji after medal emoji
+- If `thinking_enabled is True`: No thinking indicator
+- Format: `{medal}{thinking_indicator} {name}` where thinking_indicator is "" or "😶"
 
-**Approach:** Conditional string concatenation (shell lines 437-438)
+**Approach:** Conditional emoji insertion per D1. Shell reference lines 437-438 for thinking indicator.
 
 **Changes:**
 - File: `src/claudeutils/statusline/display.py`
-  Action: Update format_model() signature to accept thinking_enabled parameter, add conditional logic
-  Location hint: Modify existing format_model() method body
+  Action: Add thinking_enabled parameter to format_model(), add conditional thinking indicator logic
+  Location hint: Within format_model() method
 
 **Verify GREEN:** `pytest tests/test_statusline_display.py::test_format_model_thinking_disabled -v`
 - Must pass
 
-**Verify no regression:** `pytest tests/test_statusline_display.py -v`
+**Verify no regression:** `just test`
 - All existing tests pass
-
-**Expected Outcome:** GREEN verification, no regressions
-**Report Path:** plans/statusline-parity/reports/cycle-1-3-notes.md
 
 ---
 
-## Cycle 1.4: Directory Formatting
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED (no thinking indicator), passes during GREEN, no breaks
+**Report Path**: plans/statusline-parity/reports/cycle-1-3-notes.md
 
-**Objective:** Format directory display with 📁 emoji and CYAN color
+---
 
-**Script Evaluation:** Direct execution (TDD cycle)
-**Execution Model:** Haiku
+## Cycle 1.4: Format Directory with Emoji
+
+**Objective**: Add `format_directory()` method with 📁 prefix and CYAN color
+
+**Script Evaluation**: Direct execution (TDD cycle)
+**Execution Model**: Haiku
 
 **Implementation:**
 
-**RED Phase:**
+### RED Phase
 
-**Test:** `test_format_directory`
+**Test:** `test_format_directory` in `tests/test_statusline_display.py`
+
 **Assertions:**
-- `format_directory("claudeutils")` returns string containing `📁` emoji
-- Output contains substring "claudeutils"
-- Output includes ANSI cyan color code (`\033[36m`)
+- `format_directory("claudeutils")` returns string containing "📁" emoji
+- Output contains directory name "claudeutils"
+- Output contains ANSI cyan color code (`\033[36m`)
+- Format is `{emoji} {colored_name}` (e.g., "📁 claudeutils")
 
 **Expected failure:** `AttributeError: 'StatuslineFormatter' object has no attribute 'format_directory'`
 
-**Why it fails:** Method not yet implemented
+**Why it fails:** Method doesn't exist yet
 
 **Verify RED:** `pytest tests/test_statusline_display.py::test_format_directory -v`
 
 ---
 
-**GREEN Phase:**
+### GREEN Phase
 
-**Implementation:** Add format_directory() method to StatuslineFormatter
+**Implementation:** Add `format_directory()` method to StatuslineFormatter
 
 **Behavior:**
-- Prepend 📁 emoji
+- Accept directory name as string
+- Prefix with "📁" emoji
 - Apply CYAN color to directory name
-- Return formatted string
+- Return formatted string: `📁 {cyan_name}`
 
-**Approach:** Similar pattern to format_model() — emoji + colored text (shell lines 443-448)
+**Approach:** Simple emoji prefix + color application per D1. Shell reference line 448.
 
 **Changes:**
 - File: `src/claudeutils/statusline/display.py`
-  Action: Implement format_directory() method
-  Location hint: After format_model() method
+  Action: Add format_directory(name: str) method
+  Location hint: After format_model()
 
 **Verify GREEN:** `pytest tests/test_statusline_display.py::test_format_directory -v`
 - Must pass
 
-**Verify no regression:** `pytest tests/test_statusline_display.py -v`
+**Verify no regression:** `just test`
 - All existing tests pass
-
-**Expected Outcome:** GREEN verification, no regressions
-**Report Path:** plans/statusline-parity/reports/cycle-1-4-notes.md
 
 ---
 
-## Cycle 1.5: Git Status Formatting
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED (AttributeError), passes during GREEN, no breaks
+**Report Path**: plans/statusline-parity/reports/cycle-1-4-notes.md
 
-**Objective:** Format git status with ✅/🟡 emoji and colored branch name
+---
 
-**Script Evaluation:** Direct execution (TDD cycle)
-**Execution Model:** Haiku
+## Cycle 1.5: Format Git Status with Emoji
+
+**Objective**: Add `format_git_status()` method with ✅/🟡 emoji and branch color
+
+**Script Evaluation**: Direct execution (TDD cycle)
+**Execution Model**: Haiku
 
 **Implementation:**
 
-**RED Phase:**
+### RED Phase
 
-**Test:** `test_format_git_status`
+**Test:** `test_format_git_status` in `tests/test_statusline_display.py`
+
 **Assertions:**
-- `format_git_status(GitStatus(branch="main", dirty=False))` returns string containing `✅` emoji
-- Output includes ANSI green color code for clean status
-- `format_git_status(GitStatus(branch="main", dirty=True))` returns string containing `🟡` emoji
-- Output includes ANSI yellow color code and bold for dirty status
-- Both outputs contain substring "main"
+- `format_git_status(GitStatus(branch="main", dirty=False))` returns string containing "✅" emoji
+- Output contains "main" branch name
+- Output contains ANSI green color code (`\033[32m`)
+- `format_git_status(GitStatus(branch="feature", dirty=True))` returns string containing "🟡" emoji
+- Output contains "feature" branch name
+- Output contains ANSI yellow color code (`\033[33m`) and bold code (`\033[1m`)
+- Format is `{emoji} {colored_branch}` (e.g., "✅ main" or "🟡 feature")
 
 **Expected failure:** `AttributeError: 'StatuslineFormatter' object has no attribute 'format_git_status'`
 
-**Why it fails:** Method not yet implemented
+**Why it fails:** Method doesn't exist yet
 
 **Verify RED:** `pytest tests/test_statusline_display.py::test_format_git_status -v`
 
 ---
 
-**GREEN Phase:**
+### GREEN Phase
 
-**Implementation:** Add format_git_status() method to StatuslineFormatter
+**Implementation:** Add `format_git_status()` method to StatuslineFormatter
 
 **Behavior:**
-- Clean status: ✅ emoji + GREEN branch name
-- Dirty status: 🟡 emoji + YELLOW BOLD branch name
-- Return formatted string
+- Accept GitStatus model (branch: str, dirty: bool)
+- If dirty is False: Use "✅" emoji, apply GREEN color to branch
+- If dirty is True: Use "🟡" emoji, apply YELLOW + BOLD to branch
+- Return formatted string: `{emoji} {colored_branch}`
 
-**Approach:** Conditional emoji/color based on dirty flag (shell lines 450-463)
+**Approach:** Conditional emoji and color per dirty state. Shell reference lines 459-461.
 
 **Changes:**
 - File: `src/claudeutils/statusline/display.py`
-  Action: Implement format_git_status() method accepting GitStatus model
-  Location hint: After format_directory() method
+  Action: Add format_git_status(status: GitStatus) method
+  Location hint: After format_directory()
 
 **Verify GREEN:** `pytest tests/test_statusline_display.py::test_format_git_status -v`
 - Must pass
 
-**Verify no regression:** `pytest tests/test_statusline_display.py -v`
+**Verify no regression:** `just test`
 - All existing tests pass
-
-**Expected Outcome:** GREEN verification, no regressions
-**Report Path:** plans/statusline-parity/reports/cycle-1-5-notes.md
 
 ---
 
-## Cycle 1.6: Cost Formatting
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED (AttributeError), passes during GREEN, no breaks
+**Report Path**: plans/statusline-parity/reports/cycle-1-5-notes.md
 
-**Objective:** Format cost display with 💰 emoji prefix
+---
 
-**Script Evaluation:** Direct execution (TDD cycle)
-**Execution Model:** Haiku
+## Cycle 1.6: Format Cost with Emoji
+
+**Objective**: Add `format_cost()` method with 💰 prefix
+
+**Script Evaluation**: Direct execution (TDD cycle)
+**Execution Model**: Haiku
 
 **Implementation:**
 
-**RED Phase:**
+### RED Phase
 
-**Test:** `test_format_cost`
+**Test:** `test_format_cost` in `tests/test_statusline_display.py`
+
 **Assertions:**
-- `format_cost(0.05)` returns string containing `💰` emoji
-- Output contains "$0.05" (2 decimal places)
-- `format_cost(1.234)` returns string containing "$1.23" (rounded)
+- `format_cost(0.05)` returns string containing "💰" emoji
+- Output contains "$0.05" formatted with 2 decimal places
+- Format is `{emoji} ${amount:.2f}` (e.g., "💰 $0.05")
+- `format_cost(1.234)` returns "💰 $1.23" (rounded to 2 decimals)
 
 **Expected failure:** `AttributeError: 'StatuslineFormatter' object has no attribute 'format_cost'`
 
-**Why it fails:** Method not yet implemented
+**Why it fails:** Method doesn't exist yet
 
 **Verify RED:** `pytest tests/test_statusline_display.py::test_format_cost -v`
 
 ---
 
-**GREEN Phase:**
+### GREEN Phase
 
-**Implementation:** Add format_cost() method to StatuslineFormatter
+**Implementation:** Add `format_cost()` method to StatuslineFormatter
 
 **Behavior:**
-- Prepend 💰 emoji
-- Format amount as `$X.XX` with 2 decimal places
-- Return formatted string
+- Accept cost as float
+- Format as dollar amount with 2 decimal places
+- Prefix with "💰" emoji
+- Return formatted string: `💰 ${amount:.2f}`
 
-**Approach:** String formatting with f-string (shell lines 474-480)
+**Approach:** Simple emoji prefix + dollar formatting per D1. Shell reference line 475.
 
 **Changes:**
 - File: `src/claudeutils/statusline/display.py`
-  Action: Implement format_cost() method
-  Location hint: After format_git_status() method
+  Action: Add format_cost(amount: float) method
+  Location hint: After format_git_status()
 
 **Verify GREEN:** `pytest tests/test_statusline_display.py::test_format_cost -v`
 - Must pass
 
-**Verify no regression:** `pytest tests/test_statusline_display.py -v`
+**Verify no regression:** `just test`
 - All existing tests pass
-
-**Expected Outcome:** GREEN verification, no regressions
-**Report Path:** plans/statusline-parity/reports/cycle-1-6-notes.md
 
 ---
 
-## Cycle 1.7: Mode Formatting
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED (AttributeError), passes during GREEN, no breaks
+**Report Path**: plans/statusline-parity/reports/cycle-1-6-notes.md
 
-**Objective:** Format mode line with 🎫/💳 emoji and colored mode name
+---
 
-**Script Evaluation:** Direct execution (TDD cycle)
-**Execution Model:** Haiku
+## Cycle 1.7: Format Mode with Emoji
+
+**Objective**: Add `format_mode()` method with 🎫/💳 emoji and color
+
+**Script Evaluation**: Direct execution (TDD cycle)
+**Execution Model**: Haiku
 
 **Implementation:**
 
-**RED Phase:**
+### RED Phase
 
-**Test:** `test_format_mode`
+**Test:** `test_format_mode` in `tests/test_statusline_display.py`
+
 **Assertions:**
-- `format_mode("plan")` returns string containing `🎫` emoji
-- Output includes ANSI green color code
-- Output contains substring "Plan" (capitalized)
-- `format_mode("api")` returns string containing `💳` emoji
-- Output includes ANSI yellow color code
-- Output contains substring "API" (uppercase)
+- `format_mode("plan")` returns string containing "🎫" emoji
+- Output contains "Plan" (capitalized)
+- Output contains ANSI green color code (`\033[32m`)
+- `format_mode("api")` returns string containing "💳" emoji
+- Output contains "API" (capitalized)
+- Output contains ANSI yellow color code (`\033[33m`)
+- Format is `{emoji} {colored_mode}` (e.g., "🎫 Plan" or "💳 API")
 
 **Expected failure:** `AttributeError: 'StatuslineFormatter' object has no attribute 'format_mode'`
 
-**Why it fails:** Method not yet implemented
+**Why it fails:** Method doesn't exist yet
 
 **Verify RED:** `pytest tests/test_statusline_display.py::test_format_mode -v`
 
 ---
 
-**GREEN Phase:**
+### GREEN Phase
 
-**Implementation:** Add format_mode() method to StatuslineFormatter
+**Implementation:** Add `format_mode()` method to StatuslineFormatter
 
 **Behavior:**
-- Plan mode: 🎫 emoji + GREEN "Plan"
-- API mode: 💳 emoji + YELLOW "API"
-- Return formatted string
+- Accept mode as string ("plan" or "api")
+- If mode is "plan": Use "🎫" emoji, capitalize to "Plan", apply GREEN color
+- If mode is "api": Use "💳" emoji, capitalize to "API", apply YELLOW color
+- Return formatted string: `{emoji} {colored_mode}`
 
-**Approach:** Conditional emoji/color based on mode string (shell lines 627-642)
+**Approach:** Conditional emoji and color per mode type. Shell reference lines 632-637.
 
 **Changes:**
 - File: `src/claudeutils/statusline/display.py`
-  Action: Implement format_mode() method
-  Location hint: After format_cost() method
+  Action: Add format_mode(mode: str) method
+  Location hint: After format_cost()
 
 **Verify GREEN:** `pytest tests/test_statusline_display.py::test_format_mode -v`
 - Must pass
 
-**Verify no regression:** `pytest tests/test_statusline_display.py -v`
+**Verify no regression:** `just test`
 - All existing tests pass
 
-**Expected Outcome:** GREEN verification, no regressions
-**Report Path:** plans/statusline-parity/reports/cycle-1-7-notes.md
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED (AttributeError), passes during GREEN, no breaks
+**Report Path**: plans/statusline-parity/reports/cycle-1-7-notes.md
 
 ---
 
 **Light Checkpoint** (end of Phase 1)
-1. Fix: Run `just dev`. Sonnet quiet-task diagnoses and fixes failures. Commit when passing.
-2. Functional: Review Phase 1 implementations against design. Check for stubs.
+
+1. **Fix:** Run `just dev`. Sonnet quiet-task diagnoses and fixes failures. Commit when passing.
+2. **Functional:** Review Phase 1 implementations against design. Check for stubs (constant returns, no computation). If stubs found, STOP and report. If all functional, proceed to Phase 2.

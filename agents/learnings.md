@@ -57,3 +57,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Scan requirements for skill dependency indicators during A.0, load immediately
 - Indicators: "sub-agent" → agent-development, "invoke skill" → skill-development, etc.
 - Fix: Added skill dependency scan to design skill A.0 checkpoint
+## Manual runbook assembly bypasses automation
+- Anti-pattern: Using `cat` + `Write` to assemble phase files into runbook.md during planning
+- Correct pattern: Leave phase files separate, holistic review reads multiple files, prepare-runbook.py assembles
+- Rationale: Assembly logic (metadata calc, cycle numbering validation) belongs in prepare-runbook.py, not manual process
+- Manual assembly error-prone: wrong cycle count, missing metadata, inconsistent formatting
+- Review agent can read multiple phase files — doesn't need pre-assembled input
+- Fix: Updated plan-tdd Phase 4/5 to clarify prepare-runbook.py handles assembly, planner provides phase files
