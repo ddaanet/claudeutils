@@ -317,29 +317,129 @@ def test_horizontal_token_bar() -> None:
 
     StatuslineFormatter.horizontal_token_bar() generates a horizontal progress
     bar for token usage using 8-level Unicode block characters, with each full
-    block representing 25k tokens.
+    block representing 25k tokens. Each block has per-block color progression.
     """
     formatter = StatuslineFormatter()
+    brgreen = "\033[92m"
+    green = "\033[32m"
+    blue = "\033[34m"
+    yellow = "\033[33m"
+    red = "\033[31m"
+    reset = "\033[0m"
 
     # Test no tokens (empty)
     assert formatter.horizontal_token_bar(0) == "[]"
 
-    # Test single full block (25k tokens)
-    assert formatter.horizontal_token_bar(25000) == "[█]"
+    # Test single full block (25k tokens) - brgreen color
+    result_25k = formatter.horizontal_token_bar(25000)
+    assert brgreen in result_25k
+    assert "█" in result_25k
+    assert reset in result_25k
 
     # Test single half-block (12.5k tokens = 1/2 of 25k = level 4/8)
-    assert formatter.horizontal_token_bar(12500) == "[▌]"
+    result_12k = formatter.horizontal_token_bar(12500)
+    assert brgreen in result_12k
+    assert "▌" in result_12k
+    assert reset in result_12k
 
-    # Test two full blocks (50k tokens)
-    assert formatter.horizontal_token_bar(50000) == "[██]"
+    # Test two full blocks (50k tokens) - brgreen + green
+    result_50k = formatter.horizontal_token_bar(50000)
+    assert brgreen in result_50k
+    assert green in result_50k
+    assert "█" in result_50k
+    assert reset in result_50k
 
-    # Test one full + one half (37.5k = 1.5 blocks)
-    assert formatter.horizontal_token_bar(37500) == "[█▌]"
+    # Test one full + one half (37.5k = 1.5 blocks) - brgreen + green
+    result_37k = formatter.horizontal_token_bar(37500)
+    assert brgreen in result_37k
+    assert green in result_37k
+    assert "█" in result_37k
+    assert "▌" in result_37k
+    assert reset in result_37k
 
     # Test four full blocks (100k tokens)
-    assert formatter.horizontal_token_bar(100000) == "[████]"
+    result_100k = formatter.horizontal_token_bar(100000)
+    assert brgreen in result_100k
+    assert green in result_100k
+    assert blue in result_100k
+    assert yellow in result_100k
+    assert "█" in result_100k
+    assert reset in result_100k
 
     # Test five full + partial (143750 tokens = 5.75 blocks)
-    # 143750 / 25000 = 5.75, remainder = 18750
-    # 18750 / 25000 = 0.75 * 8 = 6.0 = level 6 (▊)
-    assert formatter.horizontal_token_bar(143750) == "[█████▊]"
+    result_143k = formatter.horizontal_token_bar(143750)
+    assert brgreen in result_143k
+    assert green in result_143k
+    assert blue in result_143k
+    assert yellow in result_143k
+    assert red in result_143k
+    assert "▊" in result_143k
+    assert reset in result_143k
+
+
+def test_horizontal_token_bar_color() -> None:
+    """Horizontal token bar with per-block color progression.
+
+    StatuslineFormatter.horizontal_token_bar() applies color to each block based
+    on its position, with thresholds every 25k tokens.
+    """
+    formatter = StatuslineFormatter()
+
+    # ANSI color codes from thresholds
+    brgreen = "\033[92m"  # Block 1 (0-25k)
+    green = "\033[32m"  # Block 2 (25k-50k)
+    blue = "\033[34m"  # Block 3 (50k-75k)
+    yellow = "\033[33m"  # Block 4 (75k-100k)
+    red = "\033[31m"  # Block 5 (100k-125k)
+    brred = "\033[91m"  # Block 6+ (>= 125k)
+    blink = "\033[5m"  # Blink modifier
+    reset = "\033[0m"
+
+    # Test single block (12.5k < 25k)
+    result_12k = formatter.horizontal_token_bar(12500)
+    assert brgreen in result_12k
+    assert "▌" in result_12k
+    assert reset in result_12k
+
+    # Test two blocks: brgreen + green (37.5k = 1.5 blocks)
+    result_37k = formatter.horizontal_token_bar(37500)
+    assert brgreen in result_37k
+    assert green in result_37k
+    assert "█" in result_37k
+    assert "▌" in result_37k
+    assert reset in result_37k
+
+    # Test three blocks (62.5k = 2.5 blocks)
+    result_62k = formatter.horizontal_token_bar(62500)
+    assert brgreen in result_62k
+    assert green in result_62k
+    assert blue in result_62k
+    assert reset in result_62k
+
+    # Test four blocks (87.5k = 3.5 blocks)
+    result_87k = formatter.horizontal_token_bar(87500)
+    assert brgreen in result_87k
+    assert green in result_87k
+    assert blue in result_87k
+    assert yellow in result_87k
+    assert reset in result_87k
+
+    # Test five blocks (112.5k = 4.5 blocks)
+    result_112k = formatter.horizontal_token_bar(112500)
+    assert brgreen in result_112k
+    assert green in result_112k
+    assert blue in result_112k
+    assert yellow in result_112k
+    assert red in result_112k
+    assert reset in result_112k
+
+    # Test six blocks with critical coloring (137.5k)
+    result_137k = formatter.horizontal_token_bar(137500)
+    assert brgreen in result_137k
+    assert green in result_137k
+    assert blue in result_137k
+    assert yellow in result_137k
+    assert red in result_137k
+    assert brred in result_137k
+    assert blink in result_137k
+    assert reset in result_137k

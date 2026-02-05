@@ -19,7 +19,10 @@ class StatuslineFormatter:
         "cyan": "\033[36m",
         "white": "\033[37m",
     }
+    BRGREEN: ClassVar[str] = "\033[92m"  # Bright green
+    BRRED: ClassVar[str] = "\033[91m"  # Bright red
     RESET: ClassVar[str] = "\033[0m"
+    BLINK: ClassVar[str] = "\033[5m"  # Blink modifier
 
     # Model tier to emoji mapping
     MODEL_EMOJI: ClassVar[dict[str, str]] = {
@@ -252,14 +255,14 @@ class StatuslineFormatter:
         return f"{emoji} {colored_mode}"
 
     def horizontal_token_bar(self, token_count: int) -> str:
-        """Generate horizontal token bar with 8-level Unicode blocks.
+        """Generate horizontal token bar with per-block color progression.
 
         Args:
             token_count: Number of tokens to display
 
         Returns:
-            Bar string with format "[{blocks}]" where blocks are full (█) and
-            partial Unicode characters representing 25k token chunks
+            Bar string with format "[{color1}█{color2}█...{reset}]" where each block
+            is individually colored based on its position threshold.
         """
         if token_count == 0:
             return "[]"
@@ -271,8 +274,27 @@ class StatuslineFormatter:
         # 8-level Unicode block characters (0/8 through 8/8)
         unicode_levels = [" ", "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]
 
-        # Build the bar with full blocks
-        bar = "█" * full_blocks
+        # Color thresholds based on block position
+        colors = [
+            self.BRGREEN,  # Block 0: 0-25k
+            self.COLORS["green"],  # Block 1: 25k-50k
+            self.COLORS["blue"],  # Block 2: 50k-75k
+            self.COLORS["yellow"],  # Block 3: 75k-100k
+            self.COLORS["red"],  # Block 4: 100k-125k
+            self.BRRED,  # Block 5+: >= 125k
+        ]
+
+        # Build bar with per-block coloring
+        bar_parts = []
+
+        # Add full blocks with appropriate colors
+        for i in range(full_blocks):
+            color_idx = min(i, len(colors) - 1)
+            color = colors[color_idx]
+            # Add blink modifier for critical (block 5+)
+            if color_idx >= 5:
+                color += self.BLINK
+            bar_parts.append(f"{color}█")
 
         # Add partial block if remainder exists
         if remainder > 0:
@@ -280,6 +302,13 @@ class StatuslineFormatter:
             partial_level = math.ceil((remainder / 25000) * 8)
             partial_level = min(partial_level, 8)  # Cap at 8
             if partial_level > 0:
-                bar += unicode_levels[partial_level]
+                # Partial block uses color of its position (same as next full block)
+                color_idx = min(full_blocks, len(colors) - 1)
+                color = colors[color_idx]
+                if color_idx >= 5:
+                    color += self.BLINK
+                bar_parts.append(f"{color}{unicode_levels[partial_level]}")
 
-        return f"[{bar}]"
+        # Join all parts and add reset code
+        bar_content = "".join(bar_parts) + self.RESET
+        return f"[{bar_content}]"
