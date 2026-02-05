@@ -93,3 +93,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Autofix: Apply fixes immediately (don't rely on caller reading recommendations)
 - Outline: Use staged expansion with alignment correction to prevent drift
 - Complexity gate: Check before expansion, callback if too large (new insight)
+## Consolidation gates reduce orchestrator overhead
+- Anti-pattern: Trivial cycles left as standalone steps (config change, single constant)
+- Correct pattern: Merge trivial work with adjacent complexity at two gates
+- Gate 1 (Phase 1.6): After outline — merge trivial phases with adjacent phases
+- Gate 2 (Phase 4.5): After assembly — merge isolated cycles with related features
+- Constraints: Never cross phases, keep merged cycles ≤5 assertions, preserve test isolation
+- Rationale: Haiku can handle "update constant X then implement feature Y" in one delegation
