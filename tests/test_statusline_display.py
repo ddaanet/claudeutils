@@ -130,3 +130,24 @@ def test_format_plan_limits() -> None:
         + result.count("█")
         >= 2
     )
+
+
+def test_extract_model_tier() -> None:
+    """Extract model tier from display name.
+
+    StatuslineFormatter._extract_model_tier() extracts tier ("opus", "sonnet",
+    "haiku") from model display names, case-insensitive. Returns None for
+    unknown models.
+    """
+    formatter = StatuslineFormatter()
+
+    # Test exact matches
+    assert formatter._extract_model_tier("Claude Opus 4") == "opus"
+    assert formatter._extract_model_tier("Claude Sonnet 4") == "sonnet"
+    assert formatter._extract_model_tier("Claude Haiku 4") == "haiku"
+
+    # Test case-insensitive matching
+    assert formatter._extract_model_tier("claude opus 3.5") == "opus"
+
+    # Test unknown model
+    assert formatter._extract_model_tier("Unknown Model") is None

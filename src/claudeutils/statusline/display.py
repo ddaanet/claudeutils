@@ -20,6 +20,24 @@ class StatuslineFormatter:
     }
     RESET: ClassVar[str] = "\033[0m"
 
+    def _extract_model_tier(self, display_name: str) -> str | None:
+        """Extract model tier from display name.
+
+        Args:
+            display_name: Model display name (e.g., "Claude Opus 4")
+
+        Returns:
+            Model tier ("opus", "sonnet", "haiku") or None if not found
+        """
+        lower_name = display_name.lower()
+        if "opus" in lower_name:
+            return "opus"
+        if "sonnet" in lower_name:
+            return "sonnet"
+        if "haiku" in lower_name:
+            return "haiku"
+        return None
+
     def colored(self, text: str, color: str) -> str:
         """Wrap text in ANSI color codes.
 
