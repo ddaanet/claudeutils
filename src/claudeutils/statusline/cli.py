@@ -91,9 +91,10 @@ def statusline() -> None:
             )
 
             # Format line 2: mode + usage info
-            line2 = f"mode: {account_state.mode}"
+            formatted_mode = formatter.format_mode(account_state.mode)
+            line2 = formatted_mode
             if usage_line:
-                line2 = f"{line2} | {usage_line}"
+                line2 = f"{line2}  {usage_line}"
 
             click.echo(line1)
             click.echo(line2)
