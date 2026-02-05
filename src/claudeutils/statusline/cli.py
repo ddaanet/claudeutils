@@ -9,6 +9,7 @@ from claudeutils.statusline.api_usage import get_api_usage, get_switchback_time
 from claudeutils.statusline.context import (
     calculate_context_tokens,
     get_git_status,
+    get_python_env,
     get_thinking_state,
 )
 from claudeutils.statusline.display import StatuslineFormatter
@@ -66,6 +67,7 @@ def statusline() -> None:
         if input_data.strip():
             parsed_input = StatuslineInput.model_validate_json(input_data)
             git_status = get_git_status()
+            python_env = get_python_env()
             thinking_state = get_thinking_state()
             context_tokens = calculate_context_tokens(parsed_input)
 
@@ -73,7 +75,7 @@ def statusline() -> None:
             account_state = get_account_state()
             usage_line = _format_usage_line(account_state.mode)
 
-            # Format line 1: model + directory + git branch + cost + context
+            # Format line 1 components
             formatter = StatuslineFormatter()
             formatted_model = formatter.format_model(
                 parsed_input.model.display_name, thinking_enabled=thinking_state.enabled
@@ -82,12 +84,16 @@ def statusline() -> None:
                 parsed_input.workspace.current_dir
             )
             formatted_git = formatter.format_git_status(git_status)
+            formatted_python = formatter.format_python_env(python_env)
             formatted_cost = formatter.format_cost(parsed_input.cost.total_cost_usd)
             formatted_context = formatter.format_context(context_tokens)
-            line1 = (
-                f"{formatted_model} {formatted_dir} {formatted_git} "
-                f"{formatted_cost} {formatted_context}"
-            )
+
+            # Build line 1 with double-space separator (matches shell)
+            line1_parts = [formatted_model, formatted_dir, formatted_git]
+            if formatted_python:
+                line1_parts.append(formatted_python)
+            line1_parts.extend([formatted_cost, formatted_context])
+            line1 = "  ".join(line1_parts)
 
             # Format line 2: mode + usage info
             formatted_mode = formatter.format_mode(account_state.mode)
@@ -95,10 +101,10 @@ def statusline() -> None:
             if usage_line:
                 line2 = f"{line2}  {usage_line}"
 
-            click.echo(line1)
-            click.echo(line2)
+            click.echo(line1, color=True)
+            click.echo(line2, color=True)
         else:
-            click.echo("")
-            click.echo("")
+            click.echo("", color=True)
+            click.echo("", color=True)
     except Exception as e:  # noqa: BLE001 - R5: Always exit 0, catch all exceptions
         click.echo(f"Error: {e}", err=True)

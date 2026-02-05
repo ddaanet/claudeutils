@@ -1,9 +1,8 @@
 """ANSI colored text formatter for statusline display."""
 
-import math
 from typing import ClassVar
 
-from claudeutils.statusline.models import GitStatus, PlanUsageData
+from claudeutils.statusline.models import GitStatus, PlanUsageData, PythonEnv
 
 
 class StatuslineFormatter:
@@ -21,6 +20,7 @@ class StatuslineFormatter:
     }
     BRGREEN: ClassVar[str] = "\033[92m"  # Bright green
     BRRED: ClassVar[str] = "\033[91m"  # Bright red
+    BOLD: ClassVar[str] = "\033[1m"  # Bold modifier
     RESET: ClassVar[str] = "\033[0m"
     BLINK: ClassVar[str] = "\033[5m"  # Blink modifier
 
@@ -84,19 +84,26 @@ class StatuslineFormatter:
         # Add thinking indicator if thinking is disabled
         thinking_indicator = "😶" if not thinking_enabled else ""
 
-        colored_name = self.colored(name, color)
+        # Opus gets bold+magenta (matches shell: ${BOLD}${MAGENTA})
+        if tier == "opus":
+            color_code = f"{self.BOLD}{self.COLORS[color]}"
+            colored_name = f"{color_code}{name}{self.RESET}"
+        else:
+            colored_name = self.colored(name, color)
         return f"{emoji}{thinking_indicator} {colored_name}"
 
-    def format_directory(self, name: str) -> str:
+    def format_directory(self, path: str) -> str:
         """Format directory with emoji and CYAN color.
 
         Args:
-            name: Directory name
+            path: Directory path (basename will be extracted)
 
         Returns:
-            Formatted string with directory emoji and colored name
+            Formatted string with directory emoji and colored basename
         """
-        colored_name = self.colored(name, "cyan")
+        # Extract basename from path (matches shell: ${CURRENT_DIR##*/})
+        basename = path.rstrip("/").rsplit("/", 1)[-1] if "/" in path else path
+        colored_name = self.colored(basename, "cyan")
         return f"📁 {colored_name}"
 
     def format_git_status(self, status: GitStatus) -> str:
@@ -130,6 +137,19 @@ class StatuslineFormatter:
             Formatted string with 💰 emoji prefix and dollar amount (2 decimals)
         """
         return f"💰 ${amount:.2f}"
+
+    def format_python_env(self, env: PythonEnv) -> str:
+        """Format Python environment with emoji.
+
+        Args:
+            env: PythonEnv model with environment name
+
+        Returns:
+            Formatted string with 🐍 emoji and env name, or empty if no env
+        """
+        if env.name is None:
+            return ""
+        return f"🐍 {env.name}"
 
     def colored(self, text: str, color: str) -> str:
         """Wrap text in ANSI color codes.
@@ -265,14 +285,14 @@ class StatuslineFormatter:
             is individually colored based on its position threshold.
         """
         if token_count == 0:
-            return "[]"
+            return ""
 
         # Each full block represents 25k tokens
         full_blocks = token_count // 25000
         remainder = token_count % 25000
 
-        # 8-level Unicode block characters (0/8 through 8/8)
-        unicode_levels = [" ", "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]
+        # 8-level Unicode block characters (matches shell case 0-7)
+        unicode_levels = ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]
 
         # Color thresholds based on block position
         colors = [
@@ -298,20 +318,18 @@ class StatuslineFormatter:
 
         # Add partial block if remainder exists
         if remainder > 0:
-            # Map remainder to 8-level scale (0-8), using ceiling to round up
-            partial_level = math.ceil((remainder / 25000) * 8)
-            partial_level = min(partial_level, 8)  # Cap at 8
-            if partial_level > 0:
-                # Partial block uses color of its position (same as next full block)
-                color_idx = min(full_blocks, len(colors) - 1)
-                color = colors[color_idx]
-                if color_idx >= 5:
-                    color += self.BLINK
-                bar_parts.append(f"{color}{unicode_levels[partial_level]}")
+            # Shell formula: (partial * 8 + 12500) / 25000
+            partial_idx = (remainder * 8 + 12500) // 25000
+            partial_idx = min(partial_idx, 7)  # Cap at 7
+            # Partial block uses color of its position (same as next full block)
+            color_idx = min(full_blocks, len(colors) - 1)
+            color = colors[color_idx]
+            if color_idx >= 5:
+                color += self.BLINK
+            bar_parts.append(f"{color}{unicode_levels[partial_idx]}")
 
-        # Join all parts and add reset code
-        bar_content = "".join(bar_parts) + self.RESET
-        return f"[{bar_content}]"
+        # Join all parts and add reset code (no brackets, matches shell)
+        return "".join(bar_parts) + self.RESET
 
     def format_context(self, token_count: int) -> str:
         """Format context with threshold-colored token count and bar.
@@ -322,13 +340,13 @@ class StatuslineFormatter:
         Returns:
             Formatted string with 🧠 emoji, threshold-colored count, and bar
         """
-        # Format token count with kilos/millions logic
+        # Format token count with kilos/millions logic (integer kilos, matches shell)
         if token_count < 1000:
             formatted_count = str(token_count)
         elif token_count < 1000000:
-            # Kilos: use decimal for non-round values
-            k = token_count / 1000
-            formatted_count = f"{int(k)}k" if k == int(k) else f"{k:.1f}k"
+            # Kilos: integer only (shell uses printf "%3.0fk")
+            k = token_count // 1000
+            formatted_count = f"{k}k"
         else:
             # Millions: always 1 decimal
             m = token_count / 1000000

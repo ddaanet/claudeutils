@@ -150,17 +150,21 @@ def get_thinking_state() -> ThinkingState:
 
     Returns:
         ThinkingState with enabled flag from alwaysThinkingEnabled field.
-        Returns enabled=False if settings file doesn't exist or can't be parsed.
+        Returns enabled=True if settings file doesn't exist, can't be parsed,
+        or field is null/missing (thinking enabled by default).
     """
     try:
         settings_path = Path.home() / ".claude" / "settings.json"
         with settings_path.open() as f:
             settings = json.load(f)
-        enabled = settings.get("alwaysThinkingEnabled", False)
-        return ThinkingState(enabled=enabled)
+        # Default to True if null or missing (matches shell behavior)
+        enabled = settings.get("alwaysThinkingEnabled")
+        if enabled is None:
+            return ThinkingState(enabled=True)
+        return ThinkingState(enabled=bool(enabled))
     except (FileNotFoundError, json.JSONDecodeError, KeyError):
-        # Settings file not found or can't be parsed
-        return ThinkingState(enabled=False)
+        # Settings file not found or can't be parsed - default to enabled
+        return ThinkingState(enabled=True)
 
 
 def calculate_context_tokens(input_data: StatuslineInput) -> int:

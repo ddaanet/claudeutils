@@ -93,3 +93,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Consequence: Critical bug (format_context threshold condition) remained undetected for one cycle until checkpoint delegated
 - Rule clarity: Orchestrate skill 3.4 is clear "Checkpoint at phase boundary" with vet-fix-agent delegation — deviation was behavioral
 - Fix: Phase 2→3 checkpoint now executed (overdue), critical fix applied to format_context() threshold logic
+## Prose skill gates skipped
+- Anti-pattern: Skill loads → agent jumps to first bash command, skipping prose-only judgment steps
+- Root cause: Execution mode optimizes for "next tool call" — steps without tool calls get scanned but not executed
+- Recurrence: 3 instances (phase boundary checkpoints, vet-before-commit, session freshness check)
+- Structural pattern: All three are prose gates between concrete execution steps in skill definitions
+- "Behavioral" diagnosis masks this: calling it "rationalization" implies discipline fix, but the cause is structural
+- Fix direction: Give gates concrete first actions (script, explicit tool call) or restructure to block first tool call

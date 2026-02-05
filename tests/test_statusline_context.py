@@ -130,7 +130,10 @@ def test_get_thinking_state_enabled() -> None:
 
 
 def test_get_thinking_state_missing_file() -> None:
-    """Test get_thinking_state returns disabled when settings.json missing."""
+    """Test get_thinking_state returns enabled when settings.json missing.
+
+    Matches shell behavior: thinking enabled by default (no 😶 indicator).
+    """
     with patch("pathlib.Path.home") as mock_home:
         # Mock Path.home() and then the missing file
         mock_path = MagicMock()
@@ -142,9 +145,9 @@ def test_get_thinking_state_missing_file() -> None:
 
         result = get_thinking_state()
 
-        # Verify result
+        # Verify result - enabled by default (matches shell)
         assert isinstance(result, ThinkingState)
-        assert result.enabled is False
+        assert result.enabled is True
 
 
 def test_calculate_context_tokens_from_current_usage() -> None:

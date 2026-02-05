@@ -25,6 +25,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | runbook-identifiers | complete | Cycle numbering gaps relaxed |
 | statusline-parity | complete | All 14 cycles, 5 phases executed and validated |
 | statusline-wiring | complete | 28 cycles executed, functionally conformant |
+| reflect-rca-prose-gates | requirements | Structural fix for skill gate skipping |
 | validator-consolidation | requirements | Move to claudeutils package |
 
 ## Complete (Archived)

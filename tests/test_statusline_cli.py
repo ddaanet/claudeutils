@@ -12,6 +12,7 @@ from claudeutils.statusline.models import (
     CostInfo,
     GitStatus,
     ModelInfo,
+    PythonEnv,
     StatuslineInput,
     ThinkingState,
     WorkspaceInfo,
@@ -266,12 +267,14 @@ def test_cli_visual_line_structure() -> None:
 
     with (
         patch("claudeutils.statusline.cli.get_git_status") as mock_git,
+        patch("claudeutils.statusline.cli.get_python_env") as mock_python,
         patch("claudeutils.statusline.cli.get_thinking_state") as mock_thinking,
         patch("claudeutils.statusline.cli.calculate_context_tokens") as mock_context,
         patch("claudeutils.statusline.cli.get_account_state") as mock_account,
         patch("claudeutils.statusline.cli.get_plan_usage") as mock_plan,
     ):
         mock_git.return_value = GitStatus(branch="main", dirty=False)
+        mock_python.return_value = PythonEnv(name=".venv")
         mock_thinking.return_value = ThinkingState(enabled=True)
         mock_context.return_value = 50000
         mock_account.return_value.mode = "plan"
@@ -293,12 +296,13 @@ def test_cli_visual_line_structure() -> None:
         assert "💰" in line1, "Line 1 missing cost emoji"
         assert "🧠" in line1, "Line 1 missing brain emoji"
 
-        # Verify abbreviations
+        # Verify abbreviations and Opus bold styling
         assert "Opus" in line1, "Line 1 should contain 'Opus' abbreviation"
+        assert "\033[1m" in line1, "Opus should be bold (matches shell)"
 
-        # Verify token bar structure
-        assert "[" in line1, "Line 1 should have left bracket"
-        assert "]" in line1, "Line 1 should have right bracket"
+        # Verify no brackets around token bar (matches shell reference)
+        # Token bar uses Unicode blocks directly without wrapping brackets
+        assert "]" not in line1, "Line 1 should not have bracket (matches shell)"
 
         # Verify Line 2 structure
         has_mode_emoji = "🎫" in line2 or "💳" in line2

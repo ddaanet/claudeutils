@@ -307,13 +307,16 @@ def test_format_cost() -> None:
 @pytest.mark.parametrize(
     ("tokens", "expected_colors", "expected_chars"),
     [
-        # Empty bar
+        # Empty bar (no brackets, matches shell)
         (0, [], []),
         # Single block tests (brgreen)
-        (12500, ["\033[92m"], ["▌"]),  # Half block
+        # Shell formula: idx = ((partial * 8 + 12500) / 25000)
+        # 12500: idx = 4 → ▋
+        (12500, ["\033[92m"], ["▋"]),
         (25000, ["\033[92m"], ["█"]),  # Full block
         # Two blocks (brgreen + green)
-        (37500, ["\033[92m", "\033[32m"], ["█", "▌"]),
+        # 37500: 1 full + 12500 partial, idx = 4 → ▋
+        (37500, ["\033[92m", "\033[32m"], ["█", "▋"]),
         (50000, ["\033[92m", "\033[32m"], ["█"]),
         # Three blocks (brgreen + green + blue)
         (62500, ["\033[92m", "\033[32m", "\033[34m"], []),
@@ -322,7 +325,8 @@ def test_format_cost() -> None:
         (100000, ["\033[92m", "\033[32m", "\033[34m", "\033[33m"], ["█"]),
         # Five blocks (brgreen + green + blue + yellow + red)
         (112500, ["\033[92m", "\033[32m", "\033[34m", "\033[33m", "\033[31m"], []),
-        (143750, ["\033[92m", "\033[32m", "\033[34m", "\033[33m", "\033[31m"], ["▊"]),
+        # 143750: 5 full + 18750 partial, idx = ((18750*8+12500)/25000) = 6 → ▉
+        (143750, ["\033[92m", "\033[32m", "\033[34m", "\033[33m", "\033[31m"], ["▉"]),
         # Six blocks with critical coloring
         (
             137500,
@@ -342,17 +346,15 @@ def test_format_cost() -> None:
 def test_horizontal_token_bar(
     tokens: int, expected_colors: list[str], expected_chars: list[str]
 ) -> None:
-    """Horizontal token bar with 8-level Unicode blocks and color progression.
+    """Test horizontal token bar with Unicode blocks.
 
-    StatuslineFormatter.horizontal_token_bar() generates a horizontal progress
-    bar for token usage using 8-level Unicode block characters, with each full
-    block representing 25k tokens. Each block has per-block color progression.
+    No brackets (matches shell).
     """
     formatter = StatuslineFormatter()
     result = formatter.horizontal_token_bar(tokens)
 
     if tokens == 0:
-        assert result == "[]"
+        assert result == ""
         return
 
     # Check for expected colors
@@ -370,17 +372,13 @@ def test_horizontal_token_bar(
 @pytest.mark.parametrize(
     ("tokens", "expected_count", "expected_color"),
     [
-        (1500, "1.5k", "\033[92m"),  # BRGREEN
+        (1500, "1k", "\033[92m"),  # BRGREEN - integer kilos (matches shell)
         (45000, "45k", "\033[32m"),  # GREEN
         (1200000, "1.2M", "\033[91m"),  # BRRED
     ],
 )
 def test_format_context(tokens: int, expected_count: str, expected_color: str) -> None:
-    """Format context with threshold-colored token count and bar.
-
-    StatuslineFormatter.format_context() returns 🧠 emoji, colored token count,
-    and horizontal bar. Colors vary by threshold.
-    """
+    """Test format_context with emoji, colored count, and bar (no brackets)."""
     formatter = StatuslineFormatter()
     result = formatter.format_context(tokens)
 
@@ -389,9 +387,10 @@ def test_format_context(tokens: int, expected_count: str, expected_color: str) -
     assert expected_count in result
     assert expected_color in result
 
-    # Check bar brackets (always present)
-    assert "[" in result
-    assert "]" in result
+    # No enclosing brackets around bar (matches shell reference)
+    # Note: ANSI codes contain [ character, so check for actual bracket patterns
+    assert not result.endswith("]"), "Result should not end with bracket"
+    assert "[]" not in result, "Result should not have empty brackets"
 
     # Extra check for critical color (1.2M case)
     if tokens == 1200000:
