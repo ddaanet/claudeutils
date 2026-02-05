@@ -1,32 +1,47 @@
 # Session Handoff: 2026-02-05
 
-**Status:** Consolidation gates added to TDD workflow. Phase 1.6 and 4.5 enable merging trivial work with adjacent complexity.
+**Status:** Review agents converted to fix-all mode with escalation. Plan-tdd skill updated to remove manual fix steps.
 
 ## Completed This Session
 
-**Added rescheduling points for runbook expansion:**
-- Phase 1.6: Consolidation Gate — Outline (merge trivial phases with adjacent work)
-- Phase 4.5: Consolidation Gate — Runbook (merge isolated trivial cycles)
-- Updated review-tdd-plan skill with consolidation quality check (Section 8)
-- Updated tdd-plan-reviewer agent with consolidation focus
-- Updated runbook-outline-review-agent with consolidation guidance in Expansion Guidance section
+**Review agent pattern overhaul:**
+- Converted tdd-plan-reviewer from review-only to fix-all mode (added Edit tool)
+- Updated all document review agents with consistent core directive: "Write review (audit trail) → Fix ALL issues → Escalate unfixable → Return filepath"
+- Agents affected: tdd-plan-reviewer, outline-review-agent, runbook-outline-review-agent, design-vet-agent
 
-**Files modified:**
-- `agent-core/skills/plan-tdd/SKILL.md` — Added Phase 1.6 and 4.5
-- `agent-core/skills/review-tdd-plan/SKILL.md` — Added Section 8: Consolidation Quality
-- `agent-core/agents/tdd-plan-reviewer.md` — Added consolidation to Key Focus
-- `agent-core/agents/runbook-outline-review-agent.md` — Added consolidation guidance
+**Plan-tdd skill updates:**
+- Phase 3: Removed manual "Apply fixes" step → Now "Handle review outcome" with escalation check
+- Phase 5: Same — review agent fixes, caller checks for escalation
+- Review agent now autofixes everything, caller only handles unfixable issues
+
+**review-tdd-plan skill updates:**
+- Added "Phase 4: Apply Fixes" section with fix-all policy
+- Updated report structure with FIXED/UNFIXABLE status
+- Updated output format with escalation notes
+- Added audit trail rationale
+
+**Design skill update:**
+- Phase A.6: Added escalation handling language for outline-review-agent
+
+**RCA completed:**
+- Diagnosed /plan-tdd deviation: generated all phase files without per-phase review
+- Root cause: Behavioral — rationalized batching as efficiency despite clear iterative workflow
+- Learning documented: "Per-phase review is iterative not batch" + "Review agent pattern: audit + fix-all + escalate"
+
+**Statusline-parity partial work:**
+- Created 4 phase files (runbook-phase-1.md through runbook-phase-4.md) — UNREVIEWED
+- Created runbook-phases-combined.md (invalid artifact, should delete)
+- Updated runbook-outline.md with consolidation (merged Phase 3 into Phase 4)
 
 ## Pending Tasks
 
-- [ ] **Restart statusline-parity planning** — `/plan-tdd statusline-parity` with new workflow | sonnet
-  - Plan: statusline-parity | Status: designed (outline exists, needs re-expansion with new format)
+- [ ] **Restart statusline-parity planning** — Delete invalid artifacts, resume /plan-tdd from Phase 3 step 2 | sonnet
+  - Delete: `plans/statusline-parity/runbook-phases-combined.md`
+  - Phase files exist but need review via tdd-plan-reviewer (fix-all mode)
+- [ ] **Run /remember** — Process learnings (learnings.md at 116 lines, CRITICAL)
 - [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements to general planning | sonnet
-  - Prose step descriptions (not verbose details)
-  - Phase 2.5 complexity-before-expansion gate with callback mechanism
-  - Fast paths for trivial work
-  - Consolidation gates (Phase 1.6, 4.5 equivalent)
-  - Maintains parity between TDD and general workflows
+  - Review agent fix-all pattern (no manual apply fixes)
+  - Escalation handling for unfixable issues
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing | haiku
 - [ ] **Continuation passing design-review** — validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
@@ -34,7 +49,6 @@
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
-- [ ] **Run /remember** — Process learnings (learnings.md at 96 lines, OVER 80 limit)
 - [ ] **Orchestrate evolution design** — Absorb planning, finalize phase pattern | opus
   - Plan: orchestrate-evolution | Status: requirements
 - [ ] **Delete claude-tools-recovery artifacts** — blocked on orchestrate finalize phase
@@ -42,23 +56,22 @@
 
 ## Blockers / Gotchas
 
-- **learnings.md at 96 lines** — Over 80 limit, `/remember` needed soon
-- **Prose quality is critical** — Vague prose ("works correctly") causes haiku test quality issues
-- **Callback mechanism untested** — New complexity gate needs validation on real runbook
-- **Consolidation gates untested** — New Phase 1.6/4.5 need validation on real runbook
+- **learnings.md at 116 lines** — CRITICAL: Over 80 limit, `/remember` needed immediately
+- **Statusline-parity phase files unreviewed** — Must run tdd-plan-reviewer on each before assembly
+- **Review agent escalation untested** — New ESCALATION return format needs validation
 
 ## Reference Files
 
-- **agent-core/skills/plan-tdd/SKILL.md** — Now includes Phase 1.6, 2.5, 4.5
-- **agent-core/skills/review-tdd-plan/SKILL.md** — Now includes consolidation quality checks
-- **agent-core/agents/tdd-plan-reviewer.md** — Updated key focus with consolidation
-- **plans/statusline-parity/runbook-outline.md** — Still valid, re-expand with new format
+- **agent-core/agents/tdd-plan-reviewer.md** — Now fix-all mode with escalation
+- **agent-core/skills/plan-tdd/SKILL.md** — Phase 3/5 updated for fix-all workflow
+- **agent-core/skills/review-tdd-plan/SKILL.md** — Added Phase 4 (Apply Fixes), updated output format
+- **plans/statusline-parity/runbook-phase-*.md** — Exist but unreviewed
 
 ## Next Steps
 
-1. Restart statusline-parity planning (validates new consolidation gates)
-2. Soon: `/remember` (learnings at 96 lines, over limit)
-3. After statusline-parity: Align plan-adhoc with TDD workflow updates
+1. `/remember` (learnings at 116 lines — critical)
+2. Resume statusline-parity: delete invalid artifacts, run reviews on phase files
+3. Align plan-adhoc with review agent fix-all pattern
 
 ---
-*Handoff by Sonnet. Consolidation gates complete.*
+*Handoff by Opus. Review agents now fix-all with escalation.*

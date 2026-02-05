@@ -100,3 +100,17 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Gate 2 (Phase 4.5): After assembly — merge isolated cycles with related features
 - Constraints: Never cross phases, keep merged cycles ≤5 assertions, preserve test isolation
 - Rationale: Haiku can handle "update constant X then implement feature Y" in one delegation
+## Per-phase review iterative
+- Anti-pattern: Generate all phase files, then review/fix at end (batch optimization)
+- Correct pattern: For each phase: generate → delegate to tdd-plan-reviewer (fix-all) → check for escalation → proceed
+- Root cause: Agent rationalized "saving time" by batching file generation
+- Rule text: "/plan-tdd Phase 3: **For each phase identified in the outline:** 1. Generate... 2. Review and fix... 3. Handle outcome"
+- Key insight: "For each phase" means iterative loop, not parallel generation
+- Review agent behavior: Write review (audit) → Fix all → Escalate unfixable
+## Review agent fix-all pattern
+- Anti-pattern: Review-only agents require caller to apply fixes (context loss, extra step)
+- Correct pattern: Review agents autofix everything, escalate unfixable
+- Three functions: (1) Write review as audit trail (2) Fix ALL issues directly (3) Escalate unfixable to caller
+- Why review even when fixing: Audit trail enables deviation monitoring and process improvement
+- Escalation format: Return filepath + "ESCALATION: N unfixable issues require attention"
+- Applies to: tdd-plan-reviewer, outline-review-agent, runbook-outline-review-agent, design-vet-agent

@@ -65,47 +65,35 @@
 
 ---
 
-### Phase 3: Environment Detection (1 cycle)
+### Phase 3: CLI Integration and Validation (4 cycles)
 
-**Objective:** Add Python environment detection
+**Objective:** Add Python environment detection, integrate formatter methods into CLI, and validate visual parity
 
 **Cycles:**
 - **3.1 (RED):** `get_python_env()` and `PythonEnv` model - Test VIRTUAL_ENV/CONDA_DEFAULT_ENV detection
 - **3.1 (GREEN):** Implementation in context.py and models.py
+- **3.2 (RED):** CLI Line 1 composition - Test integrated format methods (model, directory, git, cost, context)
+- **3.2 (GREEN):** Replace string concatenation with formatter method calls in cli.py
+- **3.3 (RED):** CLI Line 2 composition - Test mode line with format_mode() and usage data
+- **3.3 (GREEN):** Integrate format_mode() into Line 2 composition
+- **3.4 (RED):** Integration validation - Test end-to-end visual parity against shell output
+- **3.4 (GREEN):** Fix any presentation gaps, verify all requirements met
 
-**Complexity:** 1 cycle (RED/GREEN pair), simple environment variable check
-
-**Model:** Haiku (straightforward implementation)
-
----
-
-### Phase 4: CLI Integration and Validation (3 cycles)
-
-**Objective:** Integrate formatter methods into CLI and validate visual parity
-
-**Cycles:**
-- **4.1 (RED):** CLI Line 1 composition - Test integrated format methods (model, directory, git, cost, context)
-- **4.1 (GREEN):** Replace string concatenation with formatter method calls in cli.py
-- **4.2 (RED):** CLI Line 2 composition - Test mode line with format_mode() and usage data
-- **4.2 (GREEN):** Integrate format_mode() into Line 2 composition
-- **4.3 (RED):** Integration validation - Test end-to-end visual parity against shell output
-- **4.3 (GREEN):** Fix any presentation gaps, verify all requirements met
-
-**Complexity:** 3 cycles (RED/GREEN pairs), composition and validation
+**Complexity:** 4 cycles (RED/GREEN pairs), environment detection + composition and validation
 
 **Model:** Haiku (integration and testing)
 
-**Checkpoint:** Full (end of Phase 4)
+**Checkpoint:** Full (end of Phase 3)
 
 ---
 
-### Phase 5: TTL Update (1 cycle)
+### Phase 4: TTL Update (1 cycle)
 
 **Objective:** Update UsageCache TTL to match design spec
 
 **Cycles:**
-- **5.1 (RED):** Test UsageCache TTL is 10 seconds
-- **5.1 (GREEN):** Update TTL constant from 30s to 10s in usage.py
+- **4.1 (RED):** Test UsageCache TTL is 10 seconds
+- **4.1 (GREEN):** Update TTL constant from 30s to 10s in usage.py
 
 **Complexity:** 1 cycle (RED/GREEN pair), single constant change
 
