@@ -74,12 +74,21 @@ def statusline() -> None:
             usage_line = _format_usage_line(account_state.mode)
 
             # Format line 1: model + directory + git branch + cost + context
-            model_name = parsed_input.model.display_name
-            dir_name = parsed_input.workspace.current_dir
-            branch = git_status.branch if git_status.branch else "no-branch"
-            cost = f"${parsed_input.cost.total_cost_usd:.2f}"
-            context_str = f"{context_tokens}t" if context_tokens else "0t"
-            line1 = f"{model_name} {dir_name} {branch} {cost} {context_str}"
+            formatter = StatuslineFormatter()
+            thinking_state = get_thinking_state()
+            formatted_model = formatter.format_model(
+                parsed_input.model.display_name, thinking_enabled=thinking_state.enabled
+            )
+            formatted_dir = formatter.format_directory(
+                parsed_input.workspace.current_dir
+            )
+            formatted_git = formatter.format_git_status(git_status)
+            formatted_cost = formatter.format_cost(parsed_input.cost.total_cost_usd)
+            formatted_context = formatter.format_context(context_tokens)
+            line1 = (
+                f"{formatted_model} {formatted_dir} {formatted_git} "
+                f"{formatted_cost} {formatted_context}"
+            )
 
             # Format line 2: mode + usage info
             line2 = f"mode: {account_state.mode}"
