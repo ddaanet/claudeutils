@@ -264,3 +264,49 @@ def test_format_git_status() -> None:
     assert "\033[33m" in result_dirty  # Yellow ANSI code
     assert "\033[1m" in result_dirty  # Bold ANSI code
     assert "\033[0m" in result_dirty  # Reset code
+
+
+def test_format_mode() -> None:
+    """Format mode with emoji and color.
+
+    StatuslineFormatter.format_mode() returns mode display with 🎫 emoji for
+    "plan" mode and 💳 emoji for "api" mode. Mode name is colored green for
+    "plan" and yellow for "api". Format: {emoji} {colored_mode}
+    """
+    formatter = StatuslineFormatter()
+
+    # Test "plan" mode
+    plan_result = formatter.format_mode("plan")
+    assert "🎫" in plan_result  # Plan emoji
+    assert "Plan" in plan_result  # Capitalized mode name
+    assert "\033[32m" in plan_result  # Green ANSI code
+    assert plan_result.startswith("🎫")  # Emoji first
+
+    # Test "api" mode
+    api_result = formatter.format_mode("api")
+    assert "💳" in api_result  # API emoji
+    assert "API" in api_result  # Capitalized mode name
+    assert "\033[33m" in api_result  # Yellow ANSI code
+    assert api_result.startswith("💳")  # Emoji first
+
+
+def test_format_cost() -> None:
+    """Format cost with emoji and dollar amount.
+
+    StatuslineFormatter.format_cost() returns cost display with 💰 emoji prefix
+    and formatted dollar amount with 2 decimal places. Format: {emoji}
+    ${amount:.2f}
+    """
+    formatter = StatuslineFormatter()
+
+    # Test basic cost formatting
+    result = formatter.format_cost(0.05)
+    assert "💰" in result  # Cost emoji
+    assert "$0.05" in result  # Formatted cost with 2 decimals
+    assert result == "💰 $0.05"  # Exact format
+
+    # Test rounding to 2 decimals
+    result_rounded = formatter.format_cost(1.234)
+    assert "💰" in result_rounded
+    assert "$1.23" in result_rounded
+    assert result_rounded == "💰 $1.23"

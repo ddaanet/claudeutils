@@ -116,6 +116,17 @@ class StatuslineFormatter:
 
         return f"{emoji} {colored_branch}"
 
+    def format_cost(self, amount: float) -> str:
+        """Format cost with emoji and dollar amount.
+
+        Args:
+            amount: Cost amount as float
+
+        Returns:
+            Formatted string with 💰 emoji prefix and dollar amount (2 decimals)
+        """
+        return f"💰 ${amount:.2f}"
+
     def colored(self, text: str, color: str) -> str:
         """Wrap text in ANSI color codes.
 
@@ -214,3 +225,27 @@ class StatuslineFormatter:
         if m == int(m):
             return f"{int(m)}M"
         return f"{m:.1f}M"
+
+    def format_mode(self, mode: str) -> str:
+        """Format mode with emoji and color.
+
+        Args:
+            mode: Mode name ("plan" or "api")
+
+        Returns:
+            Formatted string with emoji and colored mode name
+        """
+        if mode == "plan":
+            emoji = "🎫"
+            mode_name = "Plan"
+            color = "green"
+        elif mode == "api":
+            emoji = "💳"
+            mode_name = "API"
+            color = "yellow"
+        else:
+            # Fallback for unknown modes
+            return mode
+
+        colored_mode = self.colored(mode_name, color)
+        return f"{emoji} {colored_mode}"
