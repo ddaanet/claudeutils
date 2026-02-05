@@ -9,7 +9,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | Plan | Status | Notes |
 |------|--------|-------|
 | claude-tools-recovery | complete | Account/provider/model CLI wired |
-| workflow-feedback-loops | planned | 12 steps, 4 phases, dogfooded |
+| workflow-feedback-loops | complete | Feedback loop infrastructure (12 steps, 4 phases) |
 | claude-tools-rewrite | planned | Paused (stubs) |
 | commit-unification | designed | May be superseded by commit-rca-fixes |
 | continuation-passing | requirements | Opus design needed |
@@ -33,6 +33,6 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --oneline -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `workflow-feedback-loops` — Feedback loop infrastructure (12 steps, 4 phases)
 - `statusline-wiring` — Statusline CLI with TDD (28 cycles, 6 phases)
 - `claude-tools-recovery` — Account/provider/model CLI wiring
-- `design-workflow-enhancement` — Outline-first design workflow

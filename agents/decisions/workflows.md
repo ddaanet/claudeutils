@@ -553,30 +553,30 @@ plans/<stream-name>/
 **Design:** plans/<job>/design.md
 **Type:** tdd | general
 
-## Requirements Mapping
+.## Requirements Mapping
 
 | Requirement | Phase | Steps/Cycles | Notes |
 |-------------|-------|--------------|-------|
 | FR-1 | 1 | 1.1, 1.2 | Core functionality |
 | FR-2 | 2 | 2.1-2.3 | Error handling |
 
-## Phase Structure
+.## Phase Structure
 
-### Phase 1: <name>
+.### Phase 1: <name>
 **Objective:** <what this phase accomplishes>
 **Complexity:** Low/Medium/High
 **Steps:**
 - 1.1: <title>
 - 1.2: <title>
 
-### Phase 2: <name>
+.### Phase 2: <name>
 **Objective:** <what this phase accomplishes>
 **Complexity:** Low/Medium/High
 **Steps:**
 - 2.1: <title>
 - 2.2: <title>
 
-## Key Decisions Reference
+.## Key Decisions Reference
 - Decision 1: <from design> → affects Phase 1
 - Decision 2: <from design> → affects Phase 2
 ```

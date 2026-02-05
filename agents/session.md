@@ -1,29 +1,36 @@
-# Session Handoff: 2026-02-04
+# Session Handoff: 2026-02-05
 
-**Status:** Completed workflow-feedback-loops runbook using dogfooding pattern.
+**Status:** Executed workflow-feedback-loops runbook (12 steps, 4 phases). All FRs satisfied.
 
 ## Completed This Session
 
-**Workflow feedback loops runbook (dogfooding new process):**
-- Applied new feedback loop process to plan itself (self-referential)
-- Created `plans/workflow-feedback-loops/runbook-outline.md` → delegated vet-fix-agent review
-- Expanded phase-by-phase (4 phases) → parallel vet-fix-agent reviews for each
-- Assembled full runbook via new `agent-core/bin/assemble-runbook.py` script
-- Final review by vet-fix-agent
-- Artifacts created: 12 step files, orchestrator plan, plan-specific agent
+**Workflow feedback loops implementation:**
+- Executed 12 steps across 4 phases via `/orchestrate workflow-feedback-loops`
+- 15 commits from b3e3da8 to e41ed2a
+- Final vet review: Ready, no critical/major issues
 
-**New script created:**
-- `agent-core/bin/assemble-runbook.py` — Assembles runbook from phase files with metadata
+**Phase 1 — New agents:**
+- `outline-review-agent` — Reviews design outlines (FP-1), fix-all policy
+- `runbook-outline-review-agent` — Reviews runbook outlines (FP-3), fix-all policy
 
-**Key validation:**
-- All 8 FRs mapped to implementation steps
-- All affected files from design verified via Glob
-- Phase ordering validated (agents → skills → infrastructure)
+**Phase 2 — Enhanced agents:**
+- `design-vet-agent` — Added requirements validation, fix-all policy, enhanced traceability
+- `vet-agent` — Added outline validation, requirements inheritance check (review-only preserved)
+- `tdd-plan-reviewer` — Added outline validation, requirements inheritance (review-only preserved)
+- `vet-fix-agent` — Added runbook rejection, requires requirements context
+
+**Phase 3 — Skill updates:**
+- `/design` — Phase A.5 writes outline to file (behavioral change), FP-1 checkpoint added
+- `/plan-adhoc` — Point 0.75 (runbook outline), phase-by-phase expansion with reviews
+- `/plan-tdd` — Phase 1.5 (runbook outline), phase-by-phase cycle expansion
+- `/orchestrate` — Enhanced phase checkpoints with requirements context
+
+**Phase 4 — Infrastructure:**
+- `prepare-runbook.py` — Phase metadata extraction from `### Phase N` headers
+- `workflows.md` — Runbook outline format documented
 
 ## Pending Tasks
 
-- [ ] **Execute workflow-feedback-loops runbook** — `/orchestrate workflow-feedback-loops` | sonnet | restart
-  - Plan: workflow-feedback-loops | Status: planned
 - [ ] **Execute statusline-parity runbook** — `/plan-tdd plans/statusline-parity/design.md` | sonnet
   - Plan: statusline-parity | Status: designed
 - [ ] **Delete claude-tools-recovery artifacts** — Remove plan directory (work complete)
@@ -35,25 +42,25 @@
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
-- [ ] **Run /remember** — Process learnings (learnings.md at ~56 lines)
+- [ ] **Run /remember** — Process learnings (learnings.md at ~66 lines)
+- [ ] **Enhance plan skills for phase-grouped runbooks** — Add R+F checkpoint for all phases together, update prepare-runbook.py to handle phase-by-phase assembled runbooks
+- [ ] **Fix memory-index validator code block exclusion** — Validator flags headers inside code fences; fix to skip code blocks, then revert dot-prefix workaround in workflows.md template
 
 ## Blockers / Gotchas
 
-- **Behavioral change in /design A.5:** Current workflow presents outline inline; new workflow writes to file. User adjustment required.
+- **Behavioral change in /design A.5:** Outline now writes to `plans/<job>/outline.md` instead of inline. User sees outline via `open` command, provides feedback in chat.
 - **Runbook header format:** Phase-grouped runbooks need `### Phase N` (H3) and `## Step N.M:` (H2) for prepare-runbook.py compatibility.
 
 ## Reference Files
 
+- **plans/workflow-feedback-loops/reports/final-vet-review.md** — Comprehensive review of all 12 steps
 - **plans/workflow-feedback-loops/runbook.md** — Full runbook (12 steps, 4 phases)
-- **plans/workflow-feedback-loops/runbook-outline.md** — Outline with requirements mapping
-- **plans/workflow-feedback-loops/reports/** — Review reports (outline, phases 1-4, final)
-- **agent-core/bin/assemble-runbook.py** — Runbook assembly script (reusable)
+- **agents/decisions/workflows.md** — New Runbook Artifacts section with outline format
 
 ## Next Steps
 
-1. Restart session, switch to sonnet
-2. Paste `/orchestrate workflow-feedback-loops` from clipboard
-3. Execute 12 steps across 4 phases (agents → skills → infrastructure)
+1. First pending: `/plan-tdd plans/statusline-parity/design.md`
+2. Consider `/remember` soon (learnings.md at 66 lines, limit 80)
 
 ---
-*Handoff by Opus. Runbook ready for execution.*
+*Handoff by Sonnet. Runbook executed successfully.*

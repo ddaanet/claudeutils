@@ -168,3 +168,5 @@ TDD Workflow Integration — extend weak orchestrator for TDD with cycle-based r
 TDD Workflow: Commit Squashing Pattern — squash cycle commits into single feature commit
 TDD: Presentation vs Behavior — test behavior defer presentation to vet checkpoints
 Workflow Efficiency — delegation with context and vet agent context usage
+Runbook Artifacts — runbook outline format requirements mapping phase structure, agents/decisions/workflows.md
+Runbook Outline Format — structured format for runbook planning with requirements mapping, agents/decisions/workflows.md
