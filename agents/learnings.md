@@ -75,3 +75,21 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: Phase expansion reads outline; guidance co-located ensures consumption
 - Fix: Updated runbook-outline-review-agent to append guidance to outline.md, not just report
 - Related: Phase file reviews should skip outline-existence check (outline review already happened)
+## Prose test descriptions save tokens
+- Anti-pattern: Full test code in runbook RED phases (copy-paste pattern)
+- Correct pattern: Prose descriptions with specific assertions (haiku generates test code)
+- Token math: Prose saves ~80% planning output tokens, haiku generates tests during execution anyway
+- Quality gate: Prose must be behaviorally specific — "contains 🥈 emoji" not "returns correct value"
+- Validation: tdd-plan-reviewer checks prose quality (vague descriptions flagged)
+## Complexity before expansion (callback mechanism)
+- Anti-pattern: Expand all cycles regardless of complexity, discover problems late
+- Correct pattern: Check complexity BEFORE expansion; callback to previous level if too large
+- Callback levels: step → outline → design → design outline → requirements (human input)
+- Fast paths: Pattern cycles get template+variations; trivial phases get inline instructions
+- Key insight: Complexity assessment is planning concern (sonnet/opus), not executor concern (haiku)
+- Rationale: Haiku optimizes for completion, not scope management; catch structure problems early
+## Workflow feedback loop insights
+- Alignment: Review all agent output against requirements from clean context
+- Autofix: Apply fixes immediately (don't rely on caller reading recommendations)
+- Outline: Use staged expansion with alignment correction to prevent drift
+- Complexity gate: Check before expansion, callback if too large (new insight)

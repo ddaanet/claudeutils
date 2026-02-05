@@ -1,37 +1,47 @@
 # Session Handoff: 2026-02-05
 
-**Status:** RCA and workflow fixes for TDD planning process. Statusline-parity runbook generation paused for fixes.
+**Status:** TDD workflow overhaul complete. Prose-based test descriptions, complexity gates, callback mechanisms added.
 
 ## Completed This Session
 
-**RCA: Prescriptive code in TDD GREEN phases**
-- Triggered via `/reflect` after tdd-plan-reviewer flagged all 7 cycles in runbook-phase-1.md
-- Root cause: `/plan-tdd` skill Phase 3.3 template ambiguous — allowed code blocks where behavioral descriptions needed
-- Fix: Updated skill with explicit Behavior/Approach sections, added "CRITICAL — No prescriptive code" warning
-- Learning added to learnings.md
+**TDD Workflow Overhaul (Opus analysis → skill updates)**
 
-**RCA: Review recommendations not transmitted to expansion step**
-- Outline review produced valuable recommendations (lines 120-134) but they sat in report file, ignored
-- Root cause: No mechanism to transmit guidance from review to next workflow step
-- Fix: `runbook-outline-review-agent` now appends "## Expansion Guidance" section to outline.md itself
-- Rationale: Phase expansion already reads outline; inline guidance ensures consumption
+Analyzed token economics of full test code vs prose descriptions:
+- Sonnet output: $15/M tokens (expensive)
+- Haiku execution: $5/M tokens (cheap, even with rework)
+- Decision: Prose test descriptions in runbooks, haiku generates tests
 
-**Fixed tdd-plan-reviewer false positive**
-- Issue: Agent flagged "missing outline review" when reviewing phase files, but outline review had already happened
-- Fix: Added "Phase file exception" — skip outline check for `runbook-phase-N.md` (intermediate artifacts)
+**Updated /plan-tdd skill:**
+- Added Phase 2.5: Complexity check before expansion
+  - Fast paths: Pattern cycles → template+variations, trivial phases → inline
+  - Callback mechanism: step → outline → design → requirements (escalates if too large)
+- Changed RED phase format: Prose test descriptions (not full code)
+  - Prose must be behaviorally specific ("contains 🥈 emoji" not "works correctly")
+  - Saves ~80% planning output tokens
 
-**Statusline-parity artifacts created:**
-- `plans/statusline-parity/runbook-outline.md` — Reviewed, guidance appended
-- `plans/statusline-parity/runbook-phase-1.md` — 7 cycles, corrected GREEN phases (behavioral descriptions)
-- `plans/statusline-parity/runbook-phase-2.md` — 3 cycles (token bar), needs review
-- Phases 3-5 not yet generated
+**Updated /review-tdd-plan skill:**
+- Added check 5.5: Prose test quality validation
+- Updated check 5: Prose-aware weak assertion detection
+- Updated Phase 3: Validate prose is specific enough for haiku to implement
+
+**Updated tdd-plan-reviewer agent:**
+- Key focus updated to include prose quality validation
+- Both GREEN (no implementation code) and RED (prose not full code) checks
+
+**Removed statusline-parity artifacts:**
+- Deleted runbook-phase-1.md through runbook-phase-5.md
+- Deleted phase review reports
+- Preserved: design.md, runbook-outline.md, runbook-outline-review.md
+
+**Recorded 4 learnings:**
+- Prose test descriptions save tokens
+- Complexity before expansion (callback mechanism)
+- Workflow feedback loop insights (alignment, autofix, outline, complexity gate)
 
 ## Pending Tasks
 
-- [ ] **Continue statusline-parity runbook generation** — Generate phases 3-5, review, assemble | sonnet
-  - Plan: statusline-parity | Status: in-progress (phase 1-2 expanded)
-  - Phase 1: 7 cycles (corrected), Phase 2: 3 cycles (needs review)
-  - Phases 3-5: Not yet generated
+- [ ] **Restart statusline-parity planning** — `/plan-tdd statusline-parity` with new workflow | sonnet
+  - Plan: statusline-parity | Status: designed (outline exists, needs re-expansion with new format)
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing | haiku
 - [ ] **Continuation passing design-review** — validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
@@ -39,7 +49,7 @@
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
-- [ ] **Run /remember** — Process learnings (learnings.md at 77 lines, approaching 80 limit)
+- [ ] **Run /remember** — Process learnings (learnings.md at 92 lines, OVER 80 limit)
 - [ ] **Orchestrate evolution design** — Absorb planning, finalize phase pattern | opus
   - Plan: orchestrate-evolution | Status: requirements
 - [ ] **Delete claude-tools-recovery artifacts** — blocked on orchestrate finalize phase
@@ -47,21 +57,22 @@
 
 ## Blockers / Gotchas
 
-- **TDD GREEN phase discipline:** GREEN phases describe BEHAVIOR and provide HINTS, never prescriptive code. Test code in RED is fine (that's what you write), implementation code in GREEN violates TDD.
-- **Recommendations transmission:** Review agent recommendations must be appended to the artifact being consumed, not just written to report file.
-- **Phase file review:** Don't check for outline review when reviewing `runbook-phase-N.md` files — outline review already happened before phase expansion.
+- **learnings.md at 92 lines** — Over 80 limit, `/remember` needed soon
+- **Prose quality is critical** — Vague prose ("works correctly") causes haiku test quality issues
+- **Callback mechanism untested** — New complexity gate needs validation on real runbook
 
 ## Reference Files
 
-- **plans/statusline-parity/reports/runbook-outline-review.md** — Outline review with recommendations
-- **plans/statusline-parity/reports/phase-1-review.md** — Identified prescriptive code violations
-- **agent-core/skills/plan-tdd/SKILL.md** — Updated Phase 3.3 GREEN template
-- **agent-core/agents/runbook-outline-review-agent.md** — Added expansion guidance transmission
+- **agent-core/skills/plan-tdd/SKILL.md** — Updated with Phase 2.5, prose RED format
+- **agent-core/skills/review-tdd-plan/SKILL.md** — Updated with prose quality checks
+- **agent-core/agents/tdd-plan-reviewer.md** — Updated key focus
+- **plans/statusline-parity/runbook-outline.md** — Still valid, re-expand with new format
 
 ## Next Steps
 
-1. Continue: Generate phases 3-5 for statusline-parity, review each, assemble
-2. Soon: `/remember` (learnings.md at 77 lines, limit 80)
+1. Commit this work (TDD workflow overhaul)
+2. Soon: `/remember` (learnings at 92 lines, over limit)
+3. Next: Restart statusline-parity planning with new prose-based format
 
 ---
-*Handoff by Opus. RCA fixes applied to TDD workflow.*
+*Handoff by Opus. TDD workflow overhauled for token efficiency.*
