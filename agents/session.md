@@ -1,54 +1,39 @@
-# Session Handoff: 2026-02-05
+# Session Handoff: 2026-02-06
 
-**Status:** Statusline parity fixes applied — 8 issues fixed, RCA on process deviation completed.
+**Status:** Learnings consolidation design complete (Phase C). Design reviewed by opus, all fixes applied.
 
 ## Completed This Session
 
-**Statusline shell parity fixes (8 issues):**
-- Directory: `format_directory()` now extracts basename from path (was showing full path)
-- Python env: `get_python_env()` wired into CLI, `format_python_env()` added to display
-- Token format: Integer kilos (`43k` not `43.3k`), matches shell's `printf "%3.0fk"`
-- Thinking state: Default to `True` when null/missing (shell behavior, was defaulting `False`)
-- Token bar: Removed brackets, bare Unicode chars matching shell
-- Partial block formula: Shell-matching rounding `(partial * 8 + 12500) / 25000`
-- ANSI colors: Added `color=True` to `click.echo()` — was stripping all escape codes
-- Opus bold: Added `BOLD + MAGENTA` for Opus tier (shell uses `${BOLD}${MAGENTA}`)
-- Double-space separators between line 1 sections (matches shell)
+**Learnings consolidation design (Phase C):**
+- Generated full `plans/learnings-consolidation/design.md` from validated outline
+- Two parallel quiet-explore agents for codebase research (workflow map + agent patterns)
+- Loaded `plugin-dev:skill-development` and `plugin-dev:agent-development` for agent/skill guidance
+- Design covers: learning-ages.py script, remember-task agent, memory-refactor agent, handoff step 4c, remember skill update, tests
+- 7 design decisions (D-1 through D-7) with rationale
+- All 12 requirements (FR-1–9, NFR-1–3) traced to design elements
+- Design-vet-agent review: 0 critical, 2 major (both fixed), 5 minor (all fixed)
+  - Major: D-4 prolog→embedded protocol, D-6 retry mechanism specified
+  - Minor: cross-references, output format, staleness algorithm, tool constraints, traceability table
 
-**Test updates:**
-- Updated expectations across test_statusline_display.py, test_statusline_cli.py, test_statusline_context.py
-- All 385/385 tests passing, `just dev` clean
-
-**Test plan outline:**
-- Wrote `plans/statusline-parity/test-plan-outline.md` — 8 gap areas identified
-- Gaps: format_directory paths, format_python_env, Opus bold assertion, integer kilos boundaries, thinking state null, double-space separators, Python env conditional in CLI, ANSI color preservation
-
-**RCA: Prose gates invisible to execution-mode cognition:**
-- Triggered by: Skipped commit skill Step 0 (session freshness check)
-- Surface diagnosis: "Behavioral" — but 3 recurrences prove discipline fixes insufficient
-- Structural root cause: Prose-only judgment steps have no tool call → execution-mode cognition skips them
-- Fix directions: Concrete gate actions, gate-before-command structure, hook enforcement
-- Report: `plans/reflect-rca-prose-gates/rca.md`
-- Learning appended to learnings.md
-
-**Files modified:**
-- Core: cli.py, display.py, context.py
-- Tests: test_statusline_display.py, test_statusline_cli.py, test_statusline_context.py
-- Plans: test-plan-outline.md, reflect-rca-prose-gates/rca.md
+**Reports generated:**
+- `plans/learnings-consolidation/reports/explore-current-workflow.md` — workflow map
+- `plans/learnings-consolidation/reports/explore-agent-patterns.md` — agent/skill patterns
+- `plans/learnings-consolidation/reports/design-review.md` — opus design review
 
 ## Pending Tasks
 
-- [ ] **Consolidate learnings** — learnings.md at 101 lines (soft limit 80), run `/remember`
+- [ ] **Plan learnings consolidation** — `/plan-adhoc plans/learnings-consolidation/design.md`
+  - Plan: learnings-consolidation | Status: designed
+- [ ] **Consolidate learnings** — learnings.md at 103 lines (soft limit 80), run `/remember`
 - [ ] **Write missing parity tests** — 8 gap areas in `plans/statusline-parity/test-plan-outline.md`
 - [ ] **Investigate prose gates fix** — Structural fix for skill gate skipping pattern
-  - Plan: reflect-rca-prose-gates | RCA complete, fix directions identified
-- [ ] **Learnings consolidation design Phase C** — Generate full design.md from outline | opus
-  - Plan: learnings-consolidation | Status: designed
-- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements (batched reads, no manual assembly)
+  - Plan: reflect-rca-prose-gates | Status: requirements
+- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements
+- [ ] **Update design skill** — Checkpoint commit before and after design-vet-agent
 - [ ] **Continuation passing design-review** — Validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
 - [ ] **Evaluate plugin migration** — Symlink situation causing pain
-- [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink, message to edit agent-core
+- [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink
 - [ ] **Validator consolidation** — Move validators to claudeutils package with tests
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — Complete design, requires continuation-passing | opus
@@ -58,18 +43,19 @@
 
 ## Blockers / Gotchas
 
-- **learnings.md at 101 lines** — Well past 80-line soft limit. `/remember` is the highest priority pending task.
-- **Prose gates pattern** — Skill steps without concrete tool calls get skipped in execution mode. Affects commit, orchestrate, vet workflows. See RCA report for analysis.
+- **learnings.md at 103 lines** — 23 over 80-line soft limit. `/remember` high priority.
+- **Prose gates pattern** — Skill steps without concrete tool calls get skipped in execution mode.
 
 ## Reference Files
 
-- **plans/statusline-parity/test-plan-outline.md** — Missing test coverage gaps
-- **plans/reflect-rca-prose-gates/rca.md** — Full RCA on prose gate skipping pattern
-- **scratch/home/claude/statusline-command.sh** — Shell reference for parity comparison
+- **plans/learnings-consolidation/design.md** — Full design document
+- **plans/learnings-consolidation/reports/design-review.md** — Opus review (0 critical, 2 major fixed)
+- **plans/learnings-consolidation/reports/explore-current-workflow.md** — Workflow map
+- **plans/learnings-consolidation/reports/explore-agent-patterns.md** — Agent patterns
 
 ## Next Steps
 
-Run `/remember` to consolidate learnings (101 lines, 21 over limit). Then write missing parity tests from test-plan-outline.md.
+Plan learnings consolidation via `/plan-adhoc plans/learnings-consolidation/design.md`. Or consolidate learnings first (`/remember`) since file is 23 lines over limit.
 
 ---
-*Handoff by Sonnet. 8 parity fixes + RCA on prose gates process deviation.*
+*Handoff by Sonnet. Phase C design complete with opus review.*
