@@ -343,7 +343,7 @@ class StatuslineFormatter:
             count_color = self.COLORS["blue"]
         elif token_count < 100000:
             count_color = self.COLORS["yellow"]
-        elif token_count < 125000 or token_count < 150000:
+        elif token_count < 150000:
             count_color = self.COLORS["red"]
         else:
             count_color = self.BRRED + self.BLINK

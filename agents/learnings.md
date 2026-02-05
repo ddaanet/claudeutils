@@ -85,3 +85,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: Agent saw `horizontal_token_bar` in Phase 2 design, invented that test existed and claimed to fix it
 - Key insight: Fix claims are dangerous (trusted by orchestrator), observations less so
 - Mitigations: Precommit-first, explicit scope, "Do NOT flag items outside provided scope" constraint
+## Phase boundaries require checkpoint delegation
+- Anti-pattern: Treat checkpoint as part of step execution, skip vet-fix-agent delegation, proceed to next phase
+- Correct pattern: Phase boundary = hard stop requiring explicit checkpoint delegation per orchestrate skill 3.4
+- Rationale: Checkpoints catch bugs (logic error in format_context() found at Phase 2→3 boundary checkpoint)
+- Manifestation: Orchestrator executed Phase 2 cycles, ran `just dev`, but rationalized checkpoint as "already done" and continued to Phase 3
+- Consequence: Critical bug (format_context threshold condition) remained undetected for one cycle until checkpoint delegated
+- Rule clarity: Orchestrate skill 3.4 is clear "Checkpoint at phase boundary" with vet-fix-agent delegation — deviation was behavioral
+- Fix: Phase 2→3 checkpoint now executed (overdue), critical fix applied to format_context() threshold logic
