@@ -5,6 +5,7 @@ from unittest.mock import patch
 from click.testing import CliRunner
 
 from claudeutils.statusline.cli import statusline
+from claudeutils.statusline.display import StatuslineFormatter
 from claudeutils.statusline.models import (
     ContextUsage,
     ContextWindowInfo,
@@ -238,3 +239,76 @@ def test_statusline_exits_zero_on_error() -> None:
         assert "Error:" in result.output, (
             f"Error message should be present in output. Output: '{result.output}'"
         )
+
+
+def test_cli_visual_line_structure() -> None:
+    """Test that CLI outputs correct line structure with all visual elements."""
+    input_data = StatuslineInput(
+        model=ModelInfo(display_name="Claude Opus 4"),
+        workspace=WorkspaceInfo(current_dir="/Users/david/code/claudeutils"),
+        transcript_path="/path/to/transcript.md",
+        context_window=ContextWindowInfo(
+            current_usage=ContextUsage(
+                input_tokens=1000,
+                output_tokens=500,
+                cache_creation_input_tokens=0,
+                cache_read_input_tokens=0,
+            ),
+            context_window_size=200000,
+        ),
+        cost=CostInfo(total_cost_usd=1.23),
+        version="1.0.0",
+        session_id="test-session-123",
+    )
+
+    json_str = input_data.model_dump_json()
+    runner = CliRunner()
+
+    with (
+        patch("claudeutils.statusline.cli.get_git_status") as mock_git,
+        patch("claudeutils.statusline.cli.get_thinking_state") as mock_thinking,
+        patch("claudeutils.statusline.cli.calculate_context_tokens") as mock_context,
+        patch("claudeutils.statusline.cli.get_account_state") as mock_account,
+        patch("claudeutils.statusline.cli.get_plan_usage") as mock_plan,
+    ):
+        mock_git.return_value = GitStatus(branch="main", dirty=False)
+        mock_thinking.return_value = ThinkingState(enabled=True)
+        mock_context.return_value = 50000
+        mock_account.return_value.mode = "plan"
+        mock_plan.return_value = None
+
+        result = runner.invoke(statusline, input=json_str)
+
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
+        lines = result.output.strip().split("\n")
+        assert len(lines) == 2, f"Expected 2 lines, got {len(lines)}: {lines}"
+
+        line1 = lines[0]
+        line2 = lines[1]
+
+        # Verify Line 1 has all required emoji
+        assert "🥇" in line1, "Line 1 missing Opus medal emoji"
+        assert "📁" in line1, "Line 1 missing directory emoji"
+        assert "✅" in line1, "Line 1 missing clean git status emoji"
+        assert "💰" in line1, "Line 1 missing cost emoji"
+        assert "🧠" in line1, "Line 1 missing brain emoji"
+
+        # Verify abbreviations
+        assert "Opus" in line1, "Line 1 should contain 'Opus' abbreviation"
+
+        # Verify token bar structure
+        assert "[" in line1, "Line 1 should have left bracket"
+        assert "]" in line1, "Line 1 should have right bracket"
+
+        # Verify Line 2 structure
+        has_mode_emoji = "🎫" in line2 or "💳" in line2
+        assert has_mode_emoji, "Line 2 should contain mode emoji"
+
+
+def test_cli_formatter_blink_code() -> None:
+    """Test that formatter includes blink code for high token counts."""
+    formatter = StatuslineFormatter()
+    high_token_output = formatter.format_context(160000)
+    has_blink_code = "\x1b[5m" in high_token_output
+    assert has_blink_code, "Formatter should include blink for high token count"
+    assert "160k" in high_token_output, "Formatter should display high token count"
