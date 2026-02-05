@@ -33,9 +33,7 @@
 
 - [ ] **Execute statusline-parity runbook** — `/plan-tdd plans/statusline-parity/design.md` | sonnet
   - Plan: statusline-parity | Status: designed
-- [ ] **Delete claude-tools-recovery artifacts** — Remove plan directory (work complete)
-  - Plan: claude-tools-recovery | Status: complete
-- [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing
+- [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing | haiku
 - [ ] **Continuation passing design-review** — validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
 - [ ] **Validator consolidation** — move validators to claudeutils package with tests
@@ -43,7 +41,16 @@
 - [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
 - [ ] **Run /remember** — Process learnings (learnings.md at ~66 lines)
-- [ ] **Enhance plan skills for phase-grouped runbooks** — Add R+F checkpoint for all phases together, update prepare-runbook.py to handle phase-by-phase assembled runbooks
+- [ ] **Orchestrate evolution design** — Absorb planning from validated outline, finalize phase with handoff-haiku pattern | opus
+  - Plan: orchestrate-evolution | Status: requirements
+  - Input: validated design outline (from /design A.5 + FP-1)
+  - One restart: load custom agents after prepare-runbook
+  - Finalize phase: observations (haiku-style), cleanup, commit, status
+  - Keep /plan-tdd, /plan-adhoc for monitoring (not deprecated)
+  - Learning extraction (per-session) vs consolidation (/remember) separate
+  - All-phases R+F pass: review+fix after all phases complete (not just per-phase)
+  - Step generation: prepare-runbook.py from phase-assembled runbooks (assemble-runbook.py output)
+- [ ] **Delete claude-tools-recovery artifacts** — blocked on orchestrate finalize phase
 - [ ] **Fix memory-index validator code block exclusion** — Validator flags headers inside code fences; fix to skip code blocks, then revert dot-prefix workaround in workflows.md template
 
 ## Blockers / Gotchas
