@@ -2,7 +2,7 @@
 
 from typing import ClassVar
 
-from claudeutils.statusline.models import PlanUsageData
+from claudeutils.statusline.models import GitStatus, PlanUsageData
 
 
 class StatuslineFormatter:
@@ -94,6 +94,27 @@ class StatuslineFormatter:
         """
         colored_name = self.colored(name, "cyan")
         return f"📁 {colored_name}"
+
+    def format_git_status(self, status: GitStatus) -> str:
+        """Format git status with emoji and colored branch name.
+
+        Args:
+            status: GitStatus model with branch name and dirty flag
+
+        Returns:
+            Formatted string with emoji and colored branch name
+        """
+        branch = status.branch or "unknown"
+        if status.dirty:
+            # Dirty state: yellow + bold
+            emoji = "🟡"
+            colored_branch = f"\033[33m\033[1m{branch}\033[0m"
+        else:
+            # Clean state: green
+            emoji = "✅"
+            colored_branch = self.colored(branch, "green")
+
+        return f"{emoji} {colored_branch}"
 
     def colored(self, text: str, color: str) -> str:
         """Wrap text in ANSI color codes.

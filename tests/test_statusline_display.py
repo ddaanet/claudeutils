@@ -1,7 +1,7 @@
 """Tests for StatuslineFormatter - ANSI colored text output."""
 
 from claudeutils.statusline import StatuslineFormatter
-from claudeutils.statusline.models import PlanUsageData
+from claudeutils.statusline.models import GitStatus, PlanUsageData
 
 
 def test_colored_text() -> None:
@@ -236,3 +236,31 @@ def test_format_directory() -> None:
     assert "claudeutils" in result  # Directory name
     assert "\033[36m" in result  # Cyan ANSI code
     assert "\033[0m" in result  # Reset code
+
+
+def test_format_git_status() -> None:
+    """Format git status with emoji and branch color.
+
+    StatuslineFormatter.format_git_status() returns git status display with ✅
+    emoji for clean state and 🟡 emoji for dirty state. Branch name is colored
+    green for clean (✅) and yellow+bold for dirty (🟡). Format: {emoji}
+    {colored_branch}
+    """
+    formatter = StatuslineFormatter()
+
+    # Test clean state (dirty=False)
+    clean_status = GitStatus(branch="main", dirty=False)
+    result_clean = formatter.format_git_status(clean_status)
+    assert "✅" in result_clean  # Clean status emoji
+    assert "main" in result_clean  # Branch name
+    assert "\033[32m" in result_clean  # Green ANSI code
+    assert "\033[0m" in result_clean  # Reset code
+
+    # Test dirty state (dirty=True)
+    dirty_status = GitStatus(branch="feature", dirty=True)
+    result_dirty = formatter.format_git_status(dirty_status)
+    assert "🟡" in result_dirty  # Dirty status emoji
+    assert "feature" in result_dirty  # Branch name
+    assert "\033[33m" in result_dirty  # Yellow ANSI code
+    assert "\033[1m" in result_dirty  # Bold ANSI code
+    assert "\033[0m" in result_dirty  # Reset code
