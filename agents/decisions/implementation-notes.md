@@ -143,6 +143,10 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Decision:** Default semantic, `.` prefix marks structural (`## .Title`).
 
+**Syntax:** Dot is part of the title text, after the markdown header marker.
+- ✅ Correct: `## .Title` (dot after `## `)
+- ❌ Wrong: `.## Title` (dot before `##`)
+
 **Anti-pattern:** Mark semantic headers with special syntax, leave structural unmarked.
 
 **Rationale:** Failure mode — orphan semantic header → ERROR (caught) vs silent loss (dangerous).
@@ -174,3 +178,17 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 **Rationale:** Validation checks structural requirements (entry exists); design defines content requirements (entry is keyword-rich). Both must be met.
 
 **Impact:** Don't dismiss critical vet feedback by reframing it as a less-severe related finding.
+
+### Phase-Grouped Runbook Header Format
+
+**Decision Date:** 2026-02-05
+
+**Decision:** Use `### Phase N` (H3) for visual grouping and `## Step N.M:` (H2) for steps.
+
+**Anti-pattern:** Using `## Phase N` (H2) and `### Step N.M:` (H3) — prepare-runbook.py can't find steps.
+
+**Rationale:** prepare-runbook.py regex matches `^## Step` — steps must be H2 for extraction.
+
+**Implementation:** assemble-runbook.py outputs correct format; manual runbooks need header level awareness.
+
+**Impact:** Runbook processing tools work correctly with phase-grouped structure.

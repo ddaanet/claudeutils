@@ -4,11 +4,15 @@ Prefer retrieval-led reasoning over pre-training knowledge.
 
 Condensed knowledge catalog. Read referenced files when working in related areas.
 
+**Consumption pattern:** This index is loaded via CLAUDE.md @-reference—it's already in your context. Do NOT grep or re-read this file. Scan the loaded content mentally, identify relevant entries, then Read the referenced file directly.
+
+**File organization:** Sections are grouped by target file. The section heading specifies the file; entries within that section point to that file. When an entry is relevant, read the referenced file.
+
 **Append-only.** Never remove or consolidate entries — each entry is a keyword-rich discovery surface for on-demand knowledge. Growth is bounded by consolidation rate (~5-10 entries/session) and total token cost is modest (200 entries ≈ 5000 tokens).
 
 **Do not index content already loaded via CLAUDE.md.** Fragments referenced by `@` are in every conversation. Index entries for those add noise without aiding discovery. Only index knowledge that requires on-demand loading.
 
-## Behavioral Rules
+## Behavioral Rules (fragments — already loaded)
 
 Delegation with context — don't delegate when context already loaded, token economy
 Never auto-commit in interactive sessions — only commit on explicit user request, use commit skill protocol always
@@ -17,7 +21,37 @@ Design tables are binding constraints — read design classifications literally,
 Header titles not index entries — index entries need keyword-rich descriptions not just title repetition
 Skill rules placement: point of violation — place "don't do X" rules with "do Y" instructions where decisions made
 
-## Workflow Patterns
+## agents/decisions/architecture.md
+
+Command-Line Parsing — flags are exact tokens exact match not prose substring
+Flags are exact tokens — exact token match not prose substring CLI parsing
+Project Structure — root marker for scripts CLAUDE.md not agents directory
+Root marker for scripts — CLAUDE.md not agents directory subdirectory issue
+Agent Development — agent frontmatter YAML requires multi-line syntax for examples
+Agent Processing — AgentId becomes SessionId for child agents, true tree recursion
+CLI Conventions — Path.cwd consistency, errors to stderr, entry point configuration
+Claude Code Rule Files — rules with paths frontmatter for automatic context injection
+Code Quality — docformatter wrapping, extract helpers for complexity, no suppression shortcuts
+Content Parsing — handle string and array formats, title extraction and formatting
+Data Models — Pydantic BaseModel for validation, FeedbackType StrEnum for type safety
+Error Handling — graceful degradation, skip malformed entries, optional field defaults
+Feedback Processing Pipeline — three-stage collect analyze rules, filtering module foundation
+Filtering Logic — trivial message detection, feedback extraction layering, noise patterns
+Markdown Formatter Selection — remark-cli idempotent CommonMark compliance over Prettier
+Memory Index Pruning — append-only with no pruning, keyword-rich discovery surface
+Mock Patching — patch where object is used not where defined
+Model Terminology — premium standard efficient naming instead of T1 T2 T3
+Module Architecture — minimal init, private helpers cohesion, module split pattern
+Output Formats — text and JSON support for feedback and token commands
+Path Handling — path encoding algorithm, history directory resolution
+Session Discovery — UUID session pattern, sorted glob results, first-line parsing
+Shell Environment — heredoc sandbox compatibility with TMPPREFIX export
+Skill Discovery — multi-layer discovery pattern with CLAUDE.md rules workflow descriptions
+Symlink Management — verify symlinks after formatters, use sync-to-parent to restore
+Test Organization — mirror source structure, separate CLI tests by subcommand
+Token Counting — model as first positional, alias support, API integration
+
+## agents/decisions/workflows.md
 
 Oneshot workflow pattern — weak orchestrator with runbook-specific agents for ad-hoc tasks
 Handoff tail-call pattern — always end with handoff commit regardless of tier
@@ -26,8 +60,76 @@ Phase-grouped TDD runbooks — support flat H2 and phase-grouped H2 H3 cycle hea
 No human escalation during refactoring — opus handles architectural changes within design bounds
 Routing layer efficiency — single-layer complexity assessment, avoid double assessment
 Vet agent context usage — leverage vet context for fixes instead of new agents
+Cycle numbering gaps relaxed — gaps warnings document order defines sequence
+Design and Planning Patterns — outline-first workflow model selection design review vet structure
+Outline-first design workflow — freeform outline iterate deltas validate full design
+Model selection for design guidance — haiku explicit edits sonnet interprets intent
+Design review uses opus — design-vet-agent architecture analysis not vet-agent
+Vet catches structure misalignments — validates file paths structural assumptions prevents blockers
+Orchestration Patterns — agent-creator reviews template contradiction orchestrator model
+Agent-creator reviews in orchestration — create spec agent-creator reviews YAML syntax
+Template commit contradiction — appended context weak authority bolded NEVER structural
+Orchestrator model mismatch — read step file execution model not orchestrator default
+Testing and TDD Patterns — happy path first TDD cycle numbering gaps
+Happy path first TDD — simplest happy path real behavior edge cases later
+Documentation and Knowledge Management — seeding index entries template merge
+Seeding before auto-generation — seed indexes existing docs consolidation complementary
+Index entries require backing documentation — learnings learnings.md permanent doc index entry
+Template merge semantics — explicit preserve add replace prevent overwrites
+Requirements and Execution — requirements immutable during execution user confirmation
+Requirements immutable during execution — updating requires user confirmation planning execution
+Knowledge Discovery and Context — ambient awareness beats invocation task prose keys
+Ambient awareness beats invocation — embed critical knowledge loaded context CLAUDE.md
+Task prose keys pattern — task names searchable identifiers git log search
+Checkpoint Process for Runbooks — two-step fix and vet checkpoints at natural boundaries
+Defense-in-Depth: Commit Verification — multiple layers at tdd-task and orchestrate skill levels
+Design Phase: Output Optimization — minimize designer output tokens, planner elaborates details
+Handoff Pattern: Inline Learnings — store learnings inline in session.md not separate files
+Handoff Workflow — tail-call pattern and commit assumption for all tiers
+Orchestration Assessment: Three-Tier Implementation Model — direct lightweight and full runbook routing
+Orchestrator Execution Mode — execution mode metadata overrides system prompt parallelization directives
+Planning Pattern: Three-Stream Problem Documentation — parallel work streams with problem and session files
+TDD Workflow Integration — extend weak orchestrator for TDD with cycle-based runbooks
+TDD Workflow: Commit Squashing Pattern — squash cycle commits into single feature commit
+Workflow Efficiency — delegation with context and vet agent context usage
+Runbook Artifacts — runbook outline format requirements mapping phase structure
+Runbook Outline Format — structured format for runbook planning with requirements mapping
+Commit RCA Fixes Active — submodule awareness artifact staging orchestrator stop rule
+Precommit Is Read-Only — validation not transformation session.md exempt for token expansion
+Outline Enables Phase-by-Phase Expansion — holistic outline then incremental phase expansion with reviews
+Phase-by-Phase Review Pattern — generate review fix-all check-escalation proceed iterative not batch
+Review Agent Fix-All Pattern — audit trail autofix everything escalate unfixable to caller
+Recommendations Inline Transmission — append guidance to consumed artifact not separate report
+Prose Test Descriptions Save Tokens — behavioral prose descriptions save 80% tokens over full test code
+Complexity Before Expansion — check complexity callback to previous level if too large
+Consolidation Gates Reduce Orchestrator Overhead — merge trivial work with adjacent complexity at two gates
+Workflow Feedback Loop Insights — alignment autofix outline complexity gate principles
+Dogfooding Validates Design — apply new process to its own planning for validation
+TDD GREEN Behavioral Descriptions — behavior approach hint structure not prescriptive code
+Efficient Model Analysis Requires Verification — haiku execution sonnet opus architecture verify results
 
-## Technical Decisions
+## agents/decisions/testing.md
+
+TDD Approach — behavioral verification not structure, presentation deferred to vet
+TDD RED Phase: Behavioral Verification — verify behavior with mocking fixtures not just structure
+TDD: Presentation vs Behavior — test behavior defer presentation to vet checkpoints
+TDD Integration Test Gap — assert behavioral outcomes not just execution structure at phase boundaries
+Conformance Validation for Migrations — compare implementation against original spec presentation gaps
+
+## agents/decisions/implementation-notes.md
+
+@ references limitation — CLAUDE.md @ syntax only works in CLAUDE.md not skills agents tasks
+SessionStart hook limitation — output discarded for new interactive sessions, works after clear compact resume
+UserPromptSubmit hook filtering — fires on every prompt, no matcher support, all filtering must be script-internal
+Hook capture impractical for subagents — hooks don't fire in Task tool subagents, matcher causes noise
+MCP tools unavailable in subagents — Context7 and other MCP tools only available in main session not Task subagents
+Title-words beat kebab-case — title-words have 17% drift vs kebab-case 31% drift, hyphens tokenize separately
+Bare lines beat list markers — flat keyword lists without markers save 14% tokens vs list markers
+Default semantic, mark structural — semantic headers default, structural get dot prefix for safe failure mode
+Commits are sync points — every commit synchronizes files submodules context session.md state
+Phase-Grouped Runbook Header Format — H3 phase grouping H2 steps for prepare-runbook.py extraction
+
+## Technical Decisions (mixed — check entry for specific file)
 
 Minimal `__init__.py` — keep empty, prefer explicit imports from specific modules
 Private helpers stay with callers — cohesion over extraction, clear module boundaries
@@ -89,84 +191,3 @@ Test module split strategy — mirror source module structure, separate CLI test
 Mock patching pattern — patch where object is used not where defined
 Testing strategy for markdown cleanup — TDD approach with red green cycles and integration tests
 Success metrics — all tests pass, no regressions, clear errors, complete documentation
-TDD RED phase: behavioral verification — verify behavior not just structure with mocking fixtures
-TDD: presentation vs behavior — test behavior defer presentation quality to vet checkpoints
-Commits are sync points — every commit synchronizes files submodules context session.md state
-@ references limitation — CLAUDE.md @ syntax only works in CLAUDE.md not skills agents tasks
-SessionStart hook limitation — output discarded for new interactive sessions, works after clear compact resume
-UserPromptSubmit hook filtering — fires on every prompt, no matcher support, all filtering must be script-internal
-Hook capture impractical for subagents — hooks don't fire in Task tool subagents, matcher causes noise
-MCP tools unavailable in subagents — Context7 and other MCP tools only available in main session not Task subagents
-Title-words beat kebab-case — title-words have 17% drift vs kebab-case 31% drift, hyphens tokenize separately
-Bare lines beat list markers — flat keyword lists without markers save 14% tokens vs list markers
-Default semantic, mark structural — semantic headers default, structural get dot prefix for safe failure mode
-
-## Architecture Sections
-
-Command-Line Parsing — flags are exact tokens exact match not prose substring, agents/decisions/architecture.md
-Flags are exact tokens — exact token match not prose substring CLI parsing, agents/decisions/architecture.md
-Project Structure — root marker for scripts CLAUDE.md not agents directory, agents/decisions/architecture.md
-Root marker for scripts — CLAUDE.md not agents directory subdirectory issue, agents/decisions/architecture.md
-Agent Development — agent frontmatter YAML requires multi-line syntax for examples
-Agent Processing — AgentId becomes SessionId for child agents, true tree recursion
-CLI Conventions — Path.cwd consistency, errors to stderr, entry point configuration
-Claude Code Rule Files — rules with paths frontmatter for automatic context injection
-Code Quality — docformatter wrapping, extract helpers for complexity, no suppression shortcuts
-Content Parsing — handle string and array formats, title extraction and formatting
-Data Models — Pydantic BaseModel for validation, FeedbackType StrEnum for type safety
-Error Handling — graceful degradation, skip malformed entries, optional field defaults
-Feedback Processing Pipeline — three-stage collect analyze rules, filtering module foundation
-Filtering Logic — trivial message detection, feedback extraction layering, noise patterns
-Markdown Formatter Selection — remark-cli idempotent CommonMark compliance over Prettier
-Memory Index Pruning — append-only with no pruning, keyword-rich discovery surface
-Mock Patching — patch where object is used not where defined
-Model Terminology — premium standard efficient naming instead of T1 T2 T3
-Module Architecture — minimal init, private helpers cohesion, module split pattern
-Output Formats — text and JSON support for feedback and token commands
-Path Handling — path encoding algorithm, history directory resolution
-Session Discovery — UUID session pattern, sorted glob results, first-line parsing
-Shell Environment — heredoc sandbox compatibility with TMPPREFIX export
-Skill Discovery — multi-layer discovery pattern with CLAUDE.md rules workflow descriptions
-Symlink Management — verify symlinks after formatters, use sync-to-parent to restore
-TDD Approach — behavioral verification not structure, presentation deferred to vet
-Test Organization — mirror source structure, separate CLI tests by subcommand
-Token Counting — model as first positional, alias support, API integration
-
-## Workflow Sections
-
-Cycle numbering gaps relaxed — gaps warnings document order defines sequence, agents/decisions/workflows.md
-Design and Planning Patterns — outline-first workflow model selection design review vet structure, agents/decisions/workflows.md
-Outline-first design workflow — freeform outline iterate deltas validate full design, agents/decisions/workflows.md
-Model selection for design guidance — haiku explicit edits sonnet interprets intent, agents/decisions/workflows.md
-Design review uses opus — design-vet-agent architecture analysis not vet-agent, agents/decisions/workflows.md
-Vet catches structure misalignments — validates file paths structural assumptions prevents blockers, agents/decisions/workflows.md
-Orchestration Patterns — agent-creator reviews template contradiction orchestrator model, agents/decisions/workflows.md
-Agent-creator reviews in orchestration — create spec agent-creator reviews YAML syntax, agents/decisions/workflows.md
-Template commit contradiction — appended context weak authority bolded NEVER structural, agents/decisions/workflows.md
-Orchestrator model mismatch — read step file execution model not orchestrator default, agents/decisions/workflows.md
-Testing and TDD Patterns — happy path first TDD cycle numbering gaps, agents/decisions/workflows.md
-Happy path first TDD — simplest happy path real behavior edge cases later, agents/decisions/workflows.md
-Documentation and Knowledge Management — seeding index entries template merge, agents/decisions/workflows.md
-Seeding before auto-generation — seed indexes existing docs consolidation complementary, agents/decisions/workflows.md
-Index entries require backing documentation — learnings learnings.md permanent doc index entry, agents/decisions/workflows.md
-Template merge semantics — explicit preserve add replace prevent overwrites, agents/decisions/workflows.md
-Requirements and Execution — requirements immutable during execution user confirmation, agents/decisions/workflows.md
-Requirements immutable during execution — updating requires user confirmation planning execution, agents/decisions/workflows.md
-Knowledge Discovery and Context — ambient awareness beats invocation task prose keys, agents/decisions/workflows.md
-Ambient awareness beats invocation — embed critical knowledge loaded context CLAUDE.md, agents/decisions/workflows.md
-Task prose keys pattern — task names searchable identifiers git log search, agents/decisions/workflows.md
-Checkpoint Process for Runbooks — two-step fix and vet checkpoints at natural boundaries
-Defense-in-Depth: Commit Verification — multiple layers at tdd-task and orchestrate skill levels
-Design Phase: Output Optimization — minimize designer output tokens, planner elaborates details
-Handoff Pattern: Inline Learnings — store learnings inline in session.md not separate files
-Handoff Workflow — tail-call pattern and commit assumption for all tiers
-Orchestration Assessment: Three-Tier Implementation Model — direct lightweight and full runbook routing
-Orchestrator Execution Mode — execution mode metadata overrides system prompt parallelization directives
-Planning Pattern: Three-Stream Problem Documentation — parallel work streams with problem and session files
-TDD RED Phase: Behavioral Verification — verify behavior with mocking fixtures not just structure
-TDD Workflow Integration — extend weak orchestrator for TDD with cycle-based runbooks
-TDD Workflow: Commit Squashing Pattern — squash cycle commits into single feature commit
-TDD: Presentation vs Behavior — test behavior defer presentation to vet checkpoints
-Workflow Efficiency — delegation with context and vet agent context usage
-Runbook Artifacts — runbook outline format requirements mapping phase structure, agents/decisions/workflows.md
-Runbook Outline Format — structured format for runbook planning with requirements mapping, agents/decisions/workflows.md

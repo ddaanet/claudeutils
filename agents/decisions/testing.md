@@ -106,3 +106,35 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 **Rationale:** Presentation tests are brittle and self-evident.
 
 **Impact:** Focus TDD cycles on functionality, handle presentation in batch during vet checkpoints.
+
+## TDD Integration Test Gap
+
+**Decision Date:** 2026-02-05
+
+**Decision:** Add integration test requirement at phase boundaries for CLI/composition tasks.
+
+**Anti-pattern:** Unit tests verify function calls (mock.assert_called) but not behavioral outcomes.
+
+**Root cause:** Tests checked execution (function invoked) not integration (results consumed).
+
+**Correct pattern:** For CLI/composition tasks, assert on critical content presence in output, not just structure.
+
+**Example:** Cycle 5.4 test verified two-line output exists but didn't check usage data present.
+
+**Implementation:** xfail integration test at phase start, pass at phase end.
+
+**Impact:** Ensures behavioral outcomes are tested, not just execution paths.
+
+## Conformance Validation for Migrations
+
+**Decision Date:** 2026-02-05
+
+**Decision:** Compare Python implementation against original shell spec at completion.
+
+**Pattern:** Delegated to exploration agent, writes detailed conformance matrix.
+
+**Benefits:** Catches presentation/visual gaps that unit tests miss.
+
+**Example:** statusline-wiring found all 5 requirements met but missing emojis/bars/colors.
+
+**Impact:** Behavioral equivalence verification beyond functional testing.
