@@ -2,6 +2,7 @@
 
 **Plan**: `plans/workflow-feedback-loops/runbook.md`
 **Execution Model**: sonnet
+**Phase**: 1
 
 ---
 
@@ -42,6 +43,3 @@ Create `agent-core/agents/runbook-outline-review-agent.md` with:
 - Valid YAML frontmatter with all required fields
 - System prompt includes input validation, review criteria, fix-all policy
 - Runbook outline format from design is referenced
-
-
-### Phase 2: Enhanced Agents

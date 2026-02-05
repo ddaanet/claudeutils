@@ -2,6 +2,7 @@
 
 **Plan**: `plans/workflow-feedback-loops/runbook.md`
 **Execution Model**: sonnet
+**Phase**: 3
 
 ---
 
@@ -41,6 +42,3 @@ Edit `agent-core/skills/orchestrate/SKILL.md`:
 - Changed files list pattern documented
 - Runbook exclusion explicit
 - Phase boundary detection documented
-
-
-### Phase 4: Infrastructure

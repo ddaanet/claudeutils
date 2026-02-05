@@ -2,6 +2,7 @@
 
 **Plan**: `plans/workflow-feedback-loops/runbook.md`
 **Execution Model**: sonnet
+**Phase**: 3
 
 ---
 

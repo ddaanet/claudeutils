@@ -2,6 +2,7 @@
 
 **Plan**: `plans/workflow-feedback-loops/runbook.md`
 **Execution Model**: sonnet
+**Phase**: 2
 
 ---
 
@@ -36,6 +37,3 @@ Edit `agent-core/agents/vet-fix-agent.md`:
 - Step 0 includes runbook rejection logic
 - Documentation requires requirements in prompt
 - Scope is explicit (implementation only)
-
-
-### Phase 3: Skill Changes
