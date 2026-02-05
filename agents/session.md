@@ -1,31 +1,20 @@
 # Session Handoff: 2026-02-05
 
-**Status:** Learnings consolidated. Memory-index restructured by target file.
+**Status:** Memory-index validator enhanced with autofix for section placement and ordering.
 
 ## Completed This Session
 
-**Learnings consolidation (/remember):**
-- Consolidated 18 learnings from 116-line learnings.md to permanent docs
-- `agents/decisions/workflows.md`: 18 new sections (commit patterns, planning patterns, TDD patterns, model selection)
-- `agents/decisions/testing.md`: 2 new sections (integration test gap, conformance validation)
-- `agents/decisions/implementation-notes.md`: 1 new section (phase-grouped header format)
-- learnings.md trimmed to 23 lines (from 116)
-
-**Memory-index restructure (RCA-driven):**
-- Diagnosed issue: Skills instructing "scan memory-index.md" caused agents to grep already-loaded content
-- Fix: Restructured sections by target file (e.g., `## agents/decisions/workflows.md`)
-- Updated plan-tdd, plan-adhoc skills: "check loaded memory-index context" + "do NOT grep"
-- Added consumption pattern guidance to memory-index header
-- Removed false "400 lines" claim after checking actual file sizes (architecture.md: 821, workflows.md: 886)
+**Memory-index validator autofix:**
+- Added section placement validation: entries must be in section matching source file
+- Added ordering validation: entries within section must match source file line order
+- Added `--fix` flag for autofix: rewrites index with correct placement and ordering
+- Ran autofix: 4 placement errors, 3 ordering errors corrected
+- Created new sections: `agents/decisions/cli.md`, `agents/decisions/testing.md`
+- Exempt sections preserved: "Behavioral Rules", "Technical Decisions"
 
 **Files modified:**
-- `agents/memory-index.md` — Restructured by file, consumption guidance added
-- `agents/decisions/workflows.md` — 18 new decision sections
-- `agents/decisions/testing.md` — 2 new sections
-- `agents/decisions/implementation-notes.md` — 1 new section
-- `agent-core/skills/plan-tdd/SKILL.md` — Memory discovery wording
-- `agent-core/skills/plan-adhoc/SKILL.md` — Memory discovery wording
-- `agents/learnings.md` — Trimmed + 2 new learnings
+- `agent-core/bin/validate-memory-index.py` — +210 lines (autofix logic)
+- `agents/memory-index.md` — Rewritten with correct section placement and ordering
 
 ## Pending Tasks
 
@@ -57,10 +46,8 @@
 
 ## Reference Files
 
-- **agents/memory-index.md** — Now organized by target file with consumption guidance
-- **agents/decisions/workflows.md** — Contains most consolidated learnings (now 886 lines)
-- **agent-core/skills/plan-tdd/SKILL.md** — Updated memory discovery step
-- **agent-core/skills/plan-adhoc/SKILL.md** — Updated memory discovery step
+- **agent-core/bin/validate-memory-index.py** — Now includes autofix with `--fix` flag
+- **agents/memory-index.md** — Organized by target file, entries in file order
 
 ## Next Steps
 
@@ -69,4 +56,4 @@
 3. Align plan-adhoc with review agent fix-all pattern
 
 ---
-*Handoff by Opus. Memory-index restructured, learnings consolidated.*
+*Handoff by Opus. Memory-index validator autofix added.*
