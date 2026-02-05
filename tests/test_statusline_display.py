@@ -219,3 +219,20 @@ def test_format_model_thinking_disabled() -> None:
     assert "😶" in haiku_no_think
     assert "🥉" in haiku_no_think
     assert "Haiku" in haiku_no_think
+
+
+def test_format_directory() -> None:
+    """Format directory with emoji and CYAN color.
+
+    StatuslineFormatter.format_directory() returns directory display with 📁
+    emoji prefix and CYAN color applied to the directory name. Format: {emoji}
+    {colored_name}
+    """
+    formatter = StatuslineFormatter()
+
+    # Test basic directory formatting
+    result = formatter.format_directory("claudeutils")
+    assert "📁" in result  # Directory emoji
+    assert "claudeutils" in result  # Directory name
+    assert "\033[36m" in result  # Cyan ANSI code
+    assert "\033[0m" in result  # Reset code

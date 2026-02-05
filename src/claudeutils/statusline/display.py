@@ -83,6 +83,18 @@ class StatuslineFormatter:
         colored_name = self.colored(name, color)
         return f"{emoji}{thinking_indicator} {colored_name}"
 
+    def format_directory(self, name: str) -> str:
+        """Format directory with emoji and CYAN color.
+
+        Args:
+            name: Directory name
+
+        Returns:
+            Formatted string with directory emoji and colored name
+        """
+        colored_name = self.colored(name, "cyan")
+        return f"📁 {colored_name}"
+
     def colored(self, text: str, color: str) -> str:
         """Wrap text in ANSI color codes.
 
