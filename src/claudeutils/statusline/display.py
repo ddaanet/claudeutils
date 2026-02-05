@@ -312,3 +312,47 @@ class StatuslineFormatter:
         # Join all parts and add reset code
         bar_content = "".join(bar_parts) + self.RESET
         return f"[{bar_content}]"
+
+    def format_context(self, token_count: int) -> str:
+        """Format context with threshold-colored token count and bar.
+
+        Args:
+            token_count: Number of tokens in context
+
+        Returns:
+            Formatted string with 🧠 emoji, threshold-colored count, and bar
+        """
+        # Format token count with kilos/millions logic
+        if token_count < 1000:
+            formatted_count = str(token_count)
+        elif token_count < 1000000:
+            # Kilos: use decimal for non-round values
+            k = token_count / 1000
+            formatted_count = f"{int(k)}k" if k == int(k) else f"{k:.1f}k"
+        else:
+            # Millions: always 1 decimal
+            m = token_count / 1000000
+            formatted_count = f"{m:.1f}M"
+
+        # Apply threshold-based coloring to token count
+        if token_count < 25000:
+            count_color = self.BRGREEN
+        elif token_count < 50000:
+            count_color = self.COLORS["green"]
+        elif token_count < 75000:
+            count_color = self.COLORS["blue"]
+        elif token_count < 100000:
+            count_color = self.COLORS["yellow"]
+        elif token_count < 125000 or token_count < 150000:
+            count_color = self.COLORS["red"]
+        else:
+            count_color = self.BRRED + self.BLINK
+
+        # Build colored count string
+        colored_count = f"{count_color}{formatted_count}{self.RESET}"
+
+        # Get bar visualization
+        bar = self.horizontal_token_bar(token_count)
+
+        # Compose final string: emoji, colored count, bar
+        return f"🧠 {colored_count} {bar}"

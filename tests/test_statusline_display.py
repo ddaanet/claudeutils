@@ -1,5 +1,7 @@
 """Tests for StatuslineFormatter - ANSI colored text output."""
 
+import pytest
+
 from claudeutils.statusline import StatuslineFormatter
 from claudeutils.statusline.models import GitStatus, PlanUsageData
 
@@ -132,7 +134,17 @@ def test_format_plan_limits() -> None:
     )
 
 
-def test_extract_model_tier() -> None:
+@pytest.mark.parametrize(
+    ("model_name", "expected_tier"),
+    [
+        ("Claude Opus 4", "opus"),
+        ("Claude Sonnet 4", "sonnet"),
+        ("Claude Haiku 4", "haiku"),
+        ("claude opus 3.5", "opus"),  # Case-insensitive
+        ("Unknown Model", None),  # Unknown model
+    ],
+)
+def test_extract_model_tier(model_name: str, expected_tier: str | None) -> None:
     """Extract model tier from display name.
 
     StatuslineFormatter._extract_model_tier() extracts tier ("opus", "sonnet",
@@ -140,46 +152,35 @@ def test_extract_model_tier() -> None:
     unknown models.
     """
     formatter = StatuslineFormatter()
-
-    # Test exact matches
-    assert formatter._extract_model_tier("Claude Opus 4") == "opus"
-    assert formatter._extract_model_tier("Claude Sonnet 4") == "sonnet"
-    assert formatter._extract_model_tier("Claude Haiku 4") == "haiku"
-
-    # Test case-insensitive matching
-    assert formatter._extract_model_tier("claude opus 3.5") == "opus"
-
-    # Test unknown model
-    assert formatter._extract_model_tier("Unknown Model") is None
+    assert formatter._extract_model_tier(model_name) == expected_tier
 
 
-def test_format_model() -> None:
+@pytest.mark.parametrize(
+    ("model_name", "expected_emoji", "expected_text", "expected_color"),
+    [
+        ("Claude Sonnet 4", "🥈", "Sonnet", "\033[33m"),  # Yellow
+        ("Claude Opus 4", "🥇", "Opus", "\033[35m"),  # Magenta
+        ("Claude Haiku 4", "🥉", "Haiku", "\033[32m"),  # Green
+    ],
+)
+def test_format_model(
+    model_name: str, expected_emoji: str, expected_text: str, expected_color: str
+) -> None:
     """Format model with emoji and color coding.
 
     StatuslineFormatter.format_model() returns model display with medal emoji,
     color coding, and abbreviated name based on model tier.
     """
     formatter = StatuslineFormatter()
+    result = formatter.format_model(model_name)
+    assert expected_emoji in result
+    assert expected_text in result
+    assert expected_color in result
 
-    # Test Sonnet: yellow color and silver medal emoji
-    sonnet_result = formatter.format_model("Claude Sonnet 4")
-    assert "🥈" in sonnet_result  # Silver medal emoji
-    assert "Sonnet" in sonnet_result  # Abbreviated name
-    assert "\033[33m" in sonnet_result  # Yellow ANSI code
 
-    # Test Opus: magenta color and gold medal emoji
-    opus_result = formatter.format_model("Claude Opus 4")
-    assert "🥇" in opus_result  # Gold medal emoji
-    assert "Opus" in opus_result  # Abbreviated name
-    assert "\033[35m" in opus_result  # Magenta ANSI code
-
-    # Test Haiku: green color and bronze medal emoji
-    haiku_result = formatter.format_model("Claude Haiku 4")
-    assert "🥉" in haiku_result  # Bronze medal emoji
-    assert "Haiku" in haiku_result  # Abbreviated name
-    assert "\033[32m" in haiku_result  # Green ANSI code
-
-    # Test unknown model: no emoji, just full display name
+def test_format_model_unknown() -> None:
+    """Format unknown model without emoji."""
+    formatter = StatuslineFormatter()
     unknown_result = formatter.format_model("Unknown Model")
     assert "🥇" not in unknown_result
     assert "🥈" not in unknown_result
@@ -187,38 +188,29 @@ def test_format_model() -> None:
     assert "Unknown Model" in unknown_result
 
 
-def test_format_model_thinking_disabled() -> None:
+@pytest.mark.parametrize(
+    ("model_name", "medal_emoji"),
+    [
+        ("Claude Sonnet 4", "🥈"),
+        ("Claude Opus 4", "🥇"),
+        ("Claude Haiku 4", "🥉"),
+    ],
+)
+def test_format_model_thinking_disabled(model_name: str, medal_emoji: str) -> None:
     """Format model with thinking disabled indicator (😶 emoji).
 
     StatuslineFormatter.format_model() adds thinking indicator when
-    thinking_enabled=False. When thinking disabled, output includes 😶 emoji
-    after medal and before name. Format: {medal}{thinking_indicator} {name}
+    thinking_enabled=False. Format: {medal}{thinking_indicator} {name}
     """
     formatter = StatuslineFormatter()
 
-    # Test Sonnet with thinking disabled
-    sonnet_no_think = formatter.format_model("Claude Sonnet 4", thinking_enabled=False)
-    assert "😶" in sonnet_no_think  # Thinking disabled indicator
-    assert "🥈" in sonnet_no_think  # Silver medal emoji still present
-    assert "Sonnet" in sonnet_no_think
+    result_no_think = formatter.format_model(model_name, thinking_enabled=False)
+    assert "😶" in result_no_think
+    assert medal_emoji in result_no_think
 
-    # Test Sonnet with thinking enabled (default)
-    sonnet_think = formatter.format_model("Claude Sonnet 4", thinking_enabled=True)
-    assert "😶" not in sonnet_think  # No thinking indicator
-    assert "🥈" in sonnet_think  # Medal emoji present
-    assert "Sonnet" in sonnet_think
-
-    # Test Opus with thinking disabled
-    opus_no_think = formatter.format_model("Claude Opus 4", thinking_enabled=False)
-    assert "😶" in opus_no_think
-    assert "🥇" in opus_no_think
-    assert "Opus" in opus_no_think
-
-    # Test Haiku with thinking disabled
-    haiku_no_think = formatter.format_model("Claude Haiku 4", thinking_enabled=False)
-    assert "😶" in haiku_no_think
-    assert "🥉" in haiku_no_think
-    assert "Haiku" in haiku_no_think
+    result_think = formatter.format_model(model_name, thinking_enabled=True)
+    assert "😶" not in result_think
+    assert medal_emoji in result_think
 
 
 def test_format_directory() -> None:
@@ -312,134 +304,95 @@ def test_format_cost() -> None:
     assert result_rounded == "💰 $1.23"
 
 
-def test_horizontal_token_bar() -> None:
-    """Horizontal token bar with 8-level Unicode blocks.
+@pytest.mark.parametrize(
+    ("tokens", "expected_colors", "expected_chars"),
+    [
+        # Empty bar
+        (0, [], []),
+        # Single block tests (brgreen)
+        (12500, ["\033[92m"], ["▌"]),  # Half block
+        (25000, ["\033[92m"], ["█"]),  # Full block
+        # Two blocks (brgreen + green)
+        (37500, ["\033[92m", "\033[32m"], ["█", "▌"]),
+        (50000, ["\033[92m", "\033[32m"], ["█"]),
+        # Three blocks (brgreen + green + blue)
+        (62500, ["\033[92m", "\033[32m", "\033[34m"], []),
+        # Four blocks (brgreen + green + blue + yellow)
+        (87500, ["\033[92m", "\033[32m", "\033[34m", "\033[33m"], []),
+        (100000, ["\033[92m", "\033[32m", "\033[34m", "\033[33m"], ["█"]),
+        # Five blocks (brgreen + green + blue + yellow + red)
+        (112500, ["\033[92m", "\033[32m", "\033[34m", "\033[33m", "\033[31m"], []),
+        (143750, ["\033[92m", "\033[32m", "\033[34m", "\033[33m", "\033[31m"], ["▊"]),
+        # Six blocks with critical coloring
+        (
+            137500,
+            [
+                "\033[92m",
+                "\033[32m",
+                "\033[34m",
+                "\033[33m",
+                "\033[31m",
+                "\033[91m",
+                "\033[5m",
+            ],
+            [],
+        ),
+    ],
+)
+def test_horizontal_token_bar(
+    tokens: int, expected_colors: list[str], expected_chars: list[str]
+) -> None:
+    """Horizontal token bar with 8-level Unicode blocks and color progression.
 
     StatuslineFormatter.horizontal_token_bar() generates a horizontal progress
     bar for token usage using 8-level Unicode block characters, with each full
     block representing 25k tokens. Each block has per-block color progression.
     """
     formatter = StatuslineFormatter()
-    brgreen = "\033[92m"
-    green = "\033[32m"
-    blue = "\033[34m"
-    yellow = "\033[33m"
-    red = "\033[31m"
-    reset = "\033[0m"
+    result = formatter.horizontal_token_bar(tokens)
 
-    # Test no tokens (empty)
-    assert formatter.horizontal_token_bar(0) == "[]"
+    if tokens == 0:
+        assert result == "[]"
+        return
 
-    # Test single full block (25k tokens) - brgreen color
-    result_25k = formatter.horizontal_token_bar(25000)
-    assert brgreen in result_25k
-    assert "█" in result_25k
-    assert reset in result_25k
+    # Check for expected colors
+    for color in expected_colors:
+        assert color in result
 
-    # Test single half-block (12.5k tokens = 1/2 of 25k = level 4/8)
-    result_12k = formatter.horizontal_token_bar(12500)
-    assert brgreen in result_12k
-    assert "▌" in result_12k
-    assert reset in result_12k
+    # Check for expected characters
+    for char in expected_chars:
+        assert char in result
 
-    # Test two full blocks (50k tokens) - brgreen + green
-    result_50k = formatter.horizontal_token_bar(50000)
-    assert brgreen in result_50k
-    assert green in result_50k
-    assert "█" in result_50k
-    assert reset in result_50k
-
-    # Test one full + one half (37.5k = 1.5 blocks) - brgreen + green
-    result_37k = formatter.horizontal_token_bar(37500)
-    assert brgreen in result_37k
-    assert green in result_37k
-    assert "█" in result_37k
-    assert "▌" in result_37k
-    assert reset in result_37k
-
-    # Test four full blocks (100k tokens)
-    result_100k = formatter.horizontal_token_bar(100000)
-    assert brgreen in result_100k
-    assert green in result_100k
-    assert blue in result_100k
-    assert yellow in result_100k
-    assert "█" in result_100k
-    assert reset in result_100k
-
-    # Test five full + partial (143750 tokens = 5.75 blocks)
-    result_143k = formatter.horizontal_token_bar(143750)
-    assert brgreen in result_143k
-    assert green in result_143k
-    assert blue in result_143k
-    assert yellow in result_143k
-    assert red in result_143k
-    assert "▊" in result_143k
-    assert reset in result_143k
+    # All results should have reset code
+    assert "\033[0m" in result
 
 
-def test_horizontal_token_bar_color() -> None:
-    """Horizontal token bar with per-block color progression.
+@pytest.mark.parametrize(
+    ("tokens", "expected_count", "expected_color"),
+    [
+        (1500, "1.5k", "\033[92m"),  # BRGREEN
+        (45000, "45k", "\033[32m"),  # GREEN
+        (1200000, "1.2M", "\033[91m"),  # BRRED
+    ],
+)
+def test_format_context(tokens: int, expected_count: str, expected_color: str) -> None:
+    """Format context with threshold-colored token count and bar.
 
-    StatuslineFormatter.horizontal_token_bar() applies color to each block based
-    on its position, with thresholds every 25k tokens.
+    StatuslineFormatter.format_context() returns 🧠 emoji, colored token count,
+    and horizontal bar. Colors vary by threshold.
     """
     formatter = StatuslineFormatter()
+    result = formatter.format_context(tokens)
 
-    # ANSI color codes from thresholds
-    brgreen = "\033[92m"  # Block 1 (0-25k)
-    green = "\033[32m"  # Block 2 (25k-50k)
-    blue = "\033[34m"  # Block 3 (50k-75k)
-    yellow = "\033[33m"  # Block 4 (75k-100k)
-    red = "\033[31m"  # Block 5 (100k-125k)
-    brred = "\033[91m"  # Block 6+ (>= 125k)
-    blink = "\033[5m"  # Blink modifier
-    reset = "\033[0m"
+    # Check emoji and count
+    assert "🧠" in result
+    assert expected_count in result
+    assert expected_color in result
 
-    # Test single block (12.5k < 25k)
-    result_12k = formatter.horizontal_token_bar(12500)
-    assert brgreen in result_12k
-    assert "▌" in result_12k
-    assert reset in result_12k
+    # Check bar brackets (always present)
+    assert "[" in result
+    assert "]" in result
 
-    # Test two blocks: brgreen + green (37.5k = 1.5 blocks)
-    result_37k = formatter.horizontal_token_bar(37500)
-    assert brgreen in result_37k
-    assert green in result_37k
-    assert "█" in result_37k
-    assert "▌" in result_37k
-    assert reset in result_37k
-
-    # Test three blocks (62.5k = 2.5 blocks)
-    result_62k = formatter.horizontal_token_bar(62500)
-    assert brgreen in result_62k
-    assert green in result_62k
-    assert blue in result_62k
-    assert reset in result_62k
-
-    # Test four blocks (87.5k = 3.5 blocks)
-    result_87k = formatter.horizontal_token_bar(87500)
-    assert brgreen in result_87k
-    assert green in result_87k
-    assert blue in result_87k
-    assert yellow in result_87k
-    assert reset in result_87k
-
-    # Test five blocks (112.5k = 4.5 blocks)
-    result_112k = formatter.horizontal_token_bar(112500)
-    assert brgreen in result_112k
-    assert green in result_112k
-    assert blue in result_112k
-    assert yellow in result_112k
-    assert red in result_112k
-    assert reset in result_112k
-
-    # Test six blocks with critical coloring (137.5k)
-    result_137k = formatter.horizontal_token_bar(137500)
-    assert brgreen in result_137k
-    assert green in result_137k
-    assert blue in result_137k
-    assert yellow in result_137k
-    assert red in result_137k
-    assert brred in result_137k
-    assert blink in result_137k
-    assert reset in result_137k
+    # Extra check for critical color (1.2M case)
+    if tokens == 1200000:
+        assert "\033[5m" in result  # BLINK
