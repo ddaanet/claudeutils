@@ -2,7 +2,7 @@
 
 Data models, code quality standards, and feedback processing pipeline.
 
-## Data Models
+## .Data Models
 
 ### Pydantic for Validation
 
@@ -27,7 +27,7 @@ Data models, code quality standards, and feedback processing pipeline.
 
 **Impact:** IDE autocomplete, validation errors for invalid types
 
-## Code Quality
+## .Code Quality
 
 ### Docformatter vs. Ruff D205 Conflict
 
@@ -87,7 +87,7 @@ This triggers ruff D205 because docformatter doesn't add the blank line that ruf
 
 **Impact:** Zero runtime overhead, significant development-time benefit
 
-## Feedback Processing Pipeline
+## .Feedback Processing Pipeline
 
 ### Pipeline Architecture
 

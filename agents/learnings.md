@@ -31,3 +31,18 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: "Normalize deviance" principle — warnings create false sense of compliance
 - Example: memory-index word count changed from warning to hard error, exposed 62 violations
 - Trade-off: Hard limits force immediate resolution but may need tuning (word count 8-12 may be too strict)
+## Organizational sections and index pollution
+- Anti-pattern: Index entries pointing to organizational sections (H2 with only H3 subsections)
+- Correct pattern: Mark organizational sections structural (`.` prefix), autofix removes corresponding entries
+- Judgment location: Decision happens at source (decision file), not at index — once structural, removal is automatic
+- Recursive rule: Applies at all heading levels (H2, H3, H4) — any heading with no direct content before sub-headings
+## Index entry key preservation
+- Anti-pattern: Shortening index entry by changing key (part before em-dash)
+- Correct pattern: Shorten description (after em-dash), preserve key exactly as header title
+- Rationale: Validator matches index keys to decision file headers — changed key = orphan entry error
+- Example: "Never auto-commit in interactive sessions — ..." → keep full key, shorten description only
+## Batch edit token efficiency
+- Marker format (`<<<` `>>>` `===`) saves 13% tokens vs JSON
+- No quotes, braces, colons, or escaping needed
+- Multi-line content handled naturally without escaping
+- Script location: `agent-core/bin/batch-edit.py`

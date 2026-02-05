@@ -2,7 +2,7 @@
 
 Testing conventions and patterns for claudeutils codebase.
 
-## Test Organization
+## .Test Organization
 
 ### Test Module Split Strategy
 
@@ -24,7 +24,7 @@ tests/
 
 **Rationale:** Maintain 400-line limit while keeping related tests together
 
-## Mock Patching
+## .Mock Patching
 
 ### Mock Patching Pattern
 
@@ -42,7 +42,7 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 **Applied:** Mock patches target `claudeutils.discovery.*` and `claudeutils.extraction.*` for functions used in those modules
 
-## TDD Approach
+## .TDD Approach
 
 ### Testing Strategy for Markdown Cleanup
 

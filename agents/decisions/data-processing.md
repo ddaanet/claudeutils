@@ -2,7 +2,7 @@
 
 Module structure, path handling, data models, and general architectural decisions.
 
-## Module Architecture
+## .Module Architecture
 
 ### Minimal `__init__.py`
 
@@ -38,7 +38,7 @@ from claudeutils.extraction import extract_feedback_recursively
 
 **Impact:** 6 source modules + 6 test modules, all under limit
 
-## Path Handling
+## .Path Handling
 
 ### Path Encoding Algorithm
 
@@ -58,7 +58,7 @@ from claudeutils.extraction import extract_feedback_recursively
 
 **Implementation:** `paths.py:get_project_history_dir()`
 
-## Content Parsing
+## .Content Parsing
 
 ### Title Extraction
 
@@ -80,7 +80,7 @@ from claudeutils.extraction import extract_feedback_recursively
 
 **Implementation:** `parsing.py:format_title()`
 
-## Filtering Logic
+## .Filtering Logic
 
 ### Trivial Message Detection
 
@@ -108,7 +108,7 @@ from claudeutils.extraction import extract_feedback_recursively
 
 **Implementation:** `parsing.py:extract_feedback_from_entry()`
 
-## Session Discovery
+## .Session Discovery
 
 ### UUID Session Pattern
 
@@ -134,7 +134,7 @@ from claudeutils.extraction import extract_feedback_recursively
 
 **Performance:** O(1) per session file
 
-## Agent Processing
+## .Agent Processing
 
 ### Recursive Pattern: AgentId → SessionId
 
@@ -158,7 +158,7 @@ from claudeutils.extraction import extract_feedback_recursively
 
 **Implementation:** `discovery.py:_process_agent_file()`
 
-## Error Handling
+## .Error Handling
 
 ### Graceful Degradation
 

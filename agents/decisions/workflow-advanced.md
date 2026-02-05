@@ -2,7 +2,7 @@
 
 Requirements handling, knowledge management, and specialized workflow patterns.
 
-## Documentation and Knowledge Management
+## .Documentation and Knowledge Management
 
 ### Seeding Before Auto-Generation
 
@@ -46,7 +46,7 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Safe template usage without data loss.
 
-## Requirements and Execution
+## .Requirements and Execution
 
 ### Requirements Immutable During Execution
 
@@ -62,7 +62,7 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Clear separation between planning (requirements) and execution (implementation).
 
-## Knowledge Discovery and Context
+## .Knowledge Discovery and Context
 
 ### Ambient Awareness Beats Invocation
 

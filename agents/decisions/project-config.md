@@ -2,7 +2,7 @@
 
 Project-level configuration decisions for Claude Code, models, skills, and development environment.
 
-## Memory Index Pruning
+## .Memory Index Pruning
 
 ### Growth + Consolidation Model
 
@@ -29,7 +29,7 @@ Project-level configuration decisions for Claude Code, models, skills, and devel
 
 **Impact:** memory-index.md header updated (append-only), consolidation-patterns.md updated, no changes to /remember skill logic.
 
-## Claude Code Rule Files
+## .Claude Code Rule Files
 
 ### Rule Files for Context Injection
 
@@ -60,7 +60,7 @@ Project-level configuration decisions for Claude Code, models, skills, and devel
 - Automatic context loading when editing domain files
 - Removed 13 lines of Pre-Edit Checks table from CLAUDE.md
 
-## Model Terminology
+## .Model Terminology
 
 ### Premium/Standard/Efficient Naming
 
@@ -85,7 +85,7 @@ Project-level configuration decisions for Claude Code, models, skills, and devel
 - No ambiguity in documentation and skill instructions
 - Easier for users to understand model choices
 
-## Skill Discovery
+## .Skill Discovery
 
 ### Multi-Layer Discovery Pattern
 
@@ -109,7 +109,7 @@ Project-level configuration decisions for Claude Code, models, skills, and devel
 
 **Impact:** Ensures skills are discoverable and used appropriately.
 
-## Agent Development
+## .Agent Development
 
 ### Agent Frontmatter YAML Validation
 
@@ -136,7 +136,7 @@ description: |
 
 **Impact:** Prevents agent registration failures due to invalid YAML.
 
-## Symlink Management
+## .Symlink Management
 
 ### Symlink Persistence
 
@@ -154,7 +154,7 @@ description: |
 
 **Impact:** Use `just sync-to-parent` to restore symlinks after formatting operations.
 
-## Shell Environment
+## .Shell Environment
 
 ### Heredoc Sandbox Compatibility
 
@@ -172,7 +172,7 @@ description: |
 
 **Impact:** Heredocs work correctly in sandbox mode.
 
-## Command-Line Parsing
+## .Command-Line Parsing
 
 ### Flags Are Exact Tokens
 
@@ -190,7 +190,7 @@ description: |
 
 **Impact:** Clear separation between flags and prose arguments.
 
-## Project Structure
+## .Project Structure
 
 ### Root Marker for Scripts
 

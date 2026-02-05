@@ -2,7 +2,7 @@
 
 Patterns for efficient workflow execution, delegation, and resource usage.
 
-## Handoff Workflow
+## .Handoff Workflow
 
 ### Handoff Tail-Call Pattern
 
@@ -36,7 +36,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Prevents duplicate commit attempts in subsequent sessions.
 
-## Workflow Efficiency
+## .Workflow Efficiency
 
 ### Delegation with Context
 
@@ -88,7 +88,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Faster fix cycles without redundant context loading.
 
-## Design and Planning Patterns
+## .Design and Planning Patterns
 
 ### Outline-First Design Workflow
 
@@ -154,7 +154,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Critical:** Always validate structural assumptions during vet reviews.
 
-## Orchestration Patterns
+## .Orchestration Patterns
 
 ### Agent-Creator Reviews in Orchestration
 
@@ -204,7 +204,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Fix:** Clarified orchestrate skill Section 3.1 — model comes from step file, not orchestrator default.
 
-## Testing and TDD Patterns
+## .Testing and TDD Patterns
 
 ### Happy Path First TDD
 
@@ -220,7 +220,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Test-driven implementations that exercise actual behavior from first cycle.
 
-## Runbook Artifacts
+## .Runbook Artifacts
 
 ### Runbook Outline Format
 

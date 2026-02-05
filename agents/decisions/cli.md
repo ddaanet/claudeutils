@@ -2,7 +2,7 @@
 
 CLI-specific patterns and conventions for claudeutils command-line interface.
 
-## CLI Conventions
+## .CLI Conventions
 
 ### Path.cwd() vs os.getcwd()
 
@@ -30,7 +30,7 @@ CLI-specific patterns and conventions for claudeutils command-line interface.
 
 **Impact:** Direct command usage after install
 
-## Output Formats
+## .Output Formats
 
 ### Feedback Processing Output Formats
 

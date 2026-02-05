@@ -2,7 +2,7 @@
 
 Token counting, markdown cleanup, and formatter selection decisions.
 
-## Token Counting
+## .Token Counting
 
 ### Model as First Positional Argument
 
@@ -77,7 +77,7 @@ Token counting, markdown cleanup, and formatter selection decisions.
 
 **Future:** May add built-in glob support in later version
 
-## Markdown Cleanup Architecture
+## .Markdown Cleanup Architecture
 
 **Decision Date:** 2026-01-04
 
@@ -107,7 +107,7 @@ These patterns break dprint formatting or produce suboptimal output.
 Claude output → markdown.py (structure) → dprint (style) → final output
 ```
 
-### Design Decisions
+### .Design Decisions
 
 #### Extend vs. New Functions
 
@@ -212,7 +212,7 @@ Current preprocessor is a separate step. Ideally, this should be a dprint plugin
 4. Deprecate preprocessor, migrate users
 5. Remove preprocessor once plugin is stable
 
-## Markdown Formatter Selection
+## .Markdown Formatter Selection
 
 ### remark-cli Over Prettier
 
