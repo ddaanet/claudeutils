@@ -66,7 +66,7 @@ def statusline() -> None:
         if input_data.strip():
             parsed_input = StatuslineInput.model_validate_json(input_data)
             git_status = get_git_status()
-            get_thinking_state()  # Called for completeness per design
+            thinking_state = get_thinking_state()
             context_tokens = calculate_context_tokens(parsed_input)
 
             # Get account state and usage info
@@ -75,7 +75,6 @@ def statusline() -> None:
 
             # Format line 1: model + directory + git branch + cost + context
             formatter = StatuslineFormatter()
-            thinking_state = get_thinking_state()
             formatted_model = formatter.format_model(
                 parsed_input.model.display_name, thinking_enabled=thinking_state.enabled
             )
