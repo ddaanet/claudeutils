@@ -1,94 +1,68 @@
 # Session Handoff: 2026-02-05
 
-**Status:** Memory-index validation complete. Organizational sections marked structural, word count tuned to 8-15.
+**Status:** Learnings consolidation design outline complete. Requirements updated with all design insights.
 
 ## Completed This Session
 
-**Decision file validator created:**
-- New `agent-core/bin/validate-decision-files.py` — detects sections with no direct content (only subsections)
-- Hard error requiring agent decision: mark structural (`.` prefix) OR add substantive content
-- Recursive at all heading levels (H2, H3, H4)
-- Integrated into precommit
+**Learnings consolidation design (Phase A-B):**
+- Read requirements, explored codebase (handoff/remember skills, git blame patterns)
+- Produced outline with iterative user feedback (4 review cycles)
+- Key design decisions captured:
+  - Two-test model: trigger (IF consolidate) vs freshness (WHAT to consolidate)
+  - Sub-agent pattern: prolog skill reference (not Skill tool, not embedded)
+  - Memory refactoring: in scope, triggered by target file limit
+  - Pre-consolidation checks: supersession, contradiction, redundancy detection
+  - Git handling: `git blame -C -C` for renames, merge commits normal workflow
+  - Output format: Markdown (not JSON)
+- Updated requirements.md with all resolved questions, insights, and implementation components
+- Added "Required Skills for Planning" section (plugin-dev:skill-development, agent-development)
 
-**Memory-index validator updated:**
-- Word count limit: 8-15 (was 8-12) — reduced violations from 62 to 10
-- Entries pointing to structural sections → hard error + autofix remove
-- Skip structural entries in orphan check (consistency after autofix)
+**RCA: Restart vs model change:**
+- Deviation: Said "Restart: yes" for model change
+- Fix: Added restart trigger definition to execute-rule.md (structural changes only)
 
-**Organizational sections marked structural:**
-- 37 sections marked (36 H2 + 1 H3) across 8 decision files
-- Memory-index autofix removed 35 corresponding summary entries
-- Index reduced from ~165 to 130 entries (removed redundant grouping entries)
-
-**Word count violations fixed:**
-- 10 entries shortened from 16-19 words to ≤15
-- Key lesson: shorten descriptions, not keys (keys must match decision file headers)
-
-**Batch edit script created:**
-- `agent-core/bin/batch-edit.py` — applies multiple edits from marker format
-- Format: file path, `<<<`, old text, `>>>`, new text, `===`
-- 13% token savings vs JSON (553 vs 637 tokens for 10 edits)
-
-**Legendary RCA cascade (4 consecutive /reflect invocations):**
-
-1. **Stale learning caused false belief** — Said "400-line soft limit" when it's hard. Stale learning "not enforced" remained after commit 22878d3 added enforcement. Fix: commits must remove invalidated learnings atomically.
-
-2. **Fix incomplete — no behavioral trigger** — Added learning but no constraint with trigger. "Where someone bypasses" is nonsense — if agent ignores step 0, they ignore step 1c. Meta-rules don't work; validation with aligned requirements does. Fix: added handoff step 4b with explicit trigger.
-
-3. **"Scan" language triggers tool calls** — Wrote "scan learnings.md" when it's @-referenced (already loaded). Original learning was narrow (memory-index only). Fix: generalized to all @-referenced files, use "check loaded context."
-
-4. **Didn't load skill-development skill** — Edited skill without loading required skill, then DID IT AGAIN immediately after completing RCA on that exact violation. Rule file path didn't cover `agent-core/skills/`. Fix: added path, removed redundant CLAUDE.md rule.
-
-**Key insights:**
-- Defense in depth within same skill is nonsensical (agent ignoring one step ignores all)
-- Narrow learnings waste context (N specific < 1 general)
-- Constraint placement matters: handoff is natural learnings review point
-- Immediately violating the rule you just RCA'd is humbling
-
-**Learnings consolidation design discussed:**
-- Full discussion captured in `plans/learnings-consolidation/requirements.md`
-- Key decisions: git-active days, tiered thresholds, handoff integration
+**RCA: Skill dependencies in requirements:**
+- Deviation: Didn't load plugin-dev skills despite requirements mentioning sub-agent
+- Fix: Added skill dependency scan to design skill A.0 checkpoint
 
 ## Pending Tasks
 
-- [ ] **Automate learnings consolidation** — Design and implement automated consolidation | opus
-  - Plan: learnings-consolidation | Status: requirements
-- [ ] **Restart statusline-parity planning** — Delete invalid artifacts, resume /plan-tdd from Phase 3 step 2 | sonnet
-  - Delete: `plans/statusline-parity/runbook-phases-combined.md`
-- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements to general planning | sonnet
+- [ ] **Learnings consolidation design Phase C** — Generate full design.md from outline | opus
+  - Plan: learnings-consolidation | Status: designed (outline complete)
+- [ ] **Restart statusline-parity planning** — Delete invalid artifacts, resume from Phase 3 step 2 | sonnet
+  - Plan: statusline-parity | Status: designed
+- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements | sonnet
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing | haiku
-- [ ] **Continuation passing design-review** — validate outline against requirements | opus
+- [ ] **Continuation passing design-review** — Validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
-- [ ] **Validator consolidation** — move validators to claudeutils package with tests
+- [ ] **Validator consolidation** — Move validators to claudeutils package with tests | sonnet
   - Plan: validator-consolidation | Status: requirements
-- [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
+- [ ] **Handoff validation design** — Complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
-  - Note: tasks and learnings must be validated for completeness
-  - Note: learnings must be general (principle-level), not incident-specific. Narrow learnings waste context (N specific learnings vs 1 general rule). Validate by checking: "does this learning apply beyond the specific case?" Meta-rules don't work; validation with aligned requirements does.
 - [ ] **Orchestrate evolution design** — Absorb planning, finalize phase pattern | opus
   - Plan: orchestrate-evolution | Status: requirements
-- [ ] **Delete claude-tools-recovery artifacts** — blocked on orchestrate finalize phase
-- [ ] **Fix memory-index validator code block exclusion** — skip headers inside code fences
-- [ ] **Add claudeutils config file** — record API key by content or file path | haiku
+- [ ] **Delete claude-tools-recovery artifacts** — Blocked on orchestrate finalize phase
+- [ ] **Fix memory-index validator code block exclusion** — Skip headers inside code fences
+- [ ] **Add claudeutils config file** — Record API key by content or file path | haiku
 
 ## Blockers / Gotchas
 
-- **Statusline-parity phase files unreviewed** — Must run tdd-plan-reviewer on each before assembly
-- **Review agent escalation untested** — New ESCALATION return format needs validation
-- **Index entry keys must match headers** — When shortening entries, preserve key (before em-dash), shorten description only
+- **Learnings consolidation outline ready** — Proceed to Phase C (design.md) when resuming
+- **Skills must be loaded for planning** — plugin-dev:skill-development, plugin-dev:agent-development
+- **Memory refactoring anti-pattern** — Never "make room" by deleting content; split files instead
 
 ## Reference Files
 
-- **agent-core/bin/validate-decision-files.py** — Organizational section detection, hard error
-- **agent-core/bin/validate-memory-index.py** — Word count 8-15, structural section removal
-- **agent-core/bin/batch-edit.py** — Token-efficient multi-edit (marker format)
-- **agents/decisions/** — 37 sections now marked structural with `.` prefix
+- **plans/learnings-consolidation/requirements.md** — Updated with all design insights
+- **plans/learnings-consolidation/outline.md** — Complete outline for Phase C
+- **plans/learnings-consolidation/reports/** — Review reports from outline iterations
+- **agent-core/fragments/execute-rule.md** — Added restart trigger definition
+- **agent-core/skills/design/SKILL.md** — Added skill dependency scan to A.0
 
 ## Next Steps
 
-1. Resume statusline-parity: delete invalid artifacts, run reviews on phase files
-2. Align plan-adhoc with review agent fix-all pattern
-3. Consider validator consolidation into claudeutils package
+1. Resume learnings-consolidation: Phase C (generate design.md from outline)
+2. Load required skills before planning: plugin-dev:skill-development, plugin-dev:agent-development
 
 ---
-*Handoff by Sonnet. Memory-index validation complete, batch-edit tooling added.*
+*Handoff by Sonnet. Design outline complete, requirements consolidated.*

@@ -11,7 +11,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Hookify rules add per-tool-call context bloat (session bloat)
 - Cost-benefit unclear: planning tokens for batching may exceed cached re-read savings
 - Pending exploration: contextual block with contract (batch-level hook rules)
-## "Scan" language triggers unnecessary tool calls
+## "Scan" triggers unnecessary tools
 - Anti-pattern: "Scan X.md" or "check X.md for..." where X is @-referenced via CLAUDE.md
 - Correct pattern: "Check loaded X context" — content already in memory, no Read/Grep needed
 - Applies to: memory-index.md, learnings.md, session.md, any @-referenced file
@@ -47,3 +47,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: When a change invalidates a learning, remove/update that learning atomically
 - Constraint added: handoff skill step 4b, commit-delegation.md step 3
 - Trigger: Changes to enforcement (validators, scripts) or behavioral rules (fragments, skills)
+## Restart vs model change
+- Anti-pattern: Saying "Restart: yes" because task needs different model
+- Correct pattern: Restart only for structural changes (agents, hooks, plugins, MCP, API config)
+- Model changes: Use `/model` command at runtime, no restart needed
+- Fix: Added "Restart triggers" definition to execute-rule.md
+## Skill dependencies in requirements
+- Anti-pattern: Deferring skill loading to A.1 judgment when requirements explicitly mention agent/skill creation
+- Correct pattern: Scan requirements for skill dependency indicators during A.0, load immediately
+- Indicators: "sub-agent" → agent-development, "invoke skill" → skill-development, etc.
+- Fix: Added skill dependency scan to design skill A.0 checkpoint
