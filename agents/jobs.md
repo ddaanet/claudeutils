@@ -15,6 +15,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | continuation-passing | requirements | Opus design needed |
 | handoff-lite-issue | requirements | Issue investigation |
 | handoff-validation | requirements | Requires continuation-passing |
+| learnings-consolidation | requirements | Automate during handoff, git-active days |
 | majestic-herding-rain | complete | Gitmoji integration |
 | markdown | requirements | Markdown cleanup test corpus |
 | prompt-composer | designed | Oldest plan, at risk |

@@ -1,6 +1,7 @@
 ---
 paths:
   - ".claude/skills/**/*"
+  - "agent-core/skills/**/*"
 ---
 
 # Skill Development Context

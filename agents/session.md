@@ -29,9 +29,30 @@
 - Format: file path, `<<<`, old text, `>>>`, new text, `===`
 - 13% token savings vs JSON (553 vs 637 tokens for 10 edits)
 
+**Legendary RCA cascade (4 consecutive /reflect invocations):**
+
+1. **Stale learning caused false belief** — Said "400-line soft limit" when it's hard. Stale learning "not enforced" remained after commit 22878d3 added enforcement. Fix: commits must remove invalidated learnings atomically.
+
+2. **Fix incomplete — no behavioral trigger** — Added learning but no constraint with trigger. "Where someone bypasses" is nonsense — if agent ignores step 0, they ignore step 1c. Meta-rules don't work; validation with aligned requirements does. Fix: added handoff step 4b with explicit trigger.
+
+3. **"Scan" language triggers tool calls** — Wrote "scan learnings.md" when it's @-referenced (already loaded). Original learning was narrow (memory-index only). Fix: generalized to all @-referenced files, use "check loaded context."
+
+4. **Didn't load skill-development skill** — Edited skill without loading required skill, then DID IT AGAIN immediately after completing RCA on that exact violation. Rule file path didn't cover `agent-core/skills/`. Fix: added path, removed redundant CLAUDE.md rule.
+
+**Key insights:**
+- Defense in depth within same skill is nonsensical (agent ignoring one step ignores all)
+- Narrow learnings waste context (N specific < 1 general)
+- Constraint placement matters: handoff is natural learnings review point
+- Immediately violating the rule you just RCA'd is humbling
+
+**Learnings consolidation design discussed:**
+- Full discussion captured in `plans/learnings-consolidation/requirements.md`
+- Key decisions: git-active days, tiered thresholds, handoff integration
+
 ## Pending Tasks
 
-- [ ] **Automate learnings consolidation** — Replace manual /remember with sonnet sub-agent | opus
+- [ ] **Automate learnings consolidation** — Design and implement automated consolidation | opus
+  - Plan: learnings-consolidation | Status: requirements
 - [ ] **Restart statusline-parity planning** — Delete invalid artifacts, resume /plan-tdd from Phase 3 step 2 | sonnet
   - Delete: `plans/statusline-parity/runbook-phases-combined.md`
 - [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements to general planning | sonnet
@@ -42,6 +63,8 @@
   - Plan: validator-consolidation | Status: requirements
 - [ ] **Handoff validation design** — complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
+  - Note: tasks and learnings must be validated for completeness
+  - Note: learnings must be general (principle-level), not incident-specific. Narrow learnings waste context (N specific learnings vs 1 general rule). Validate by checking: "does this learning apply beyond the specific case?" Meta-rules don't work; validation with aligned requirements does.
 - [ ] **Orchestrate evolution design** — Absorb planning, finalize phase pattern | opus
   - Plan: orchestrate-evolution | Status: requirements
 - [ ] **Delete claude-tools-recovery artifacts** — blocked on orchestrate finalize phase

@@ -11,15 +11,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Hookify rules add per-tool-call context bloat (session bloat)
 - Cost-benefit unclear: planning tokens for batching may exceed cached re-read savings
 - Pending exploration: contextual block with contract (batch-level hook rules)
-## Memory index consumption pattern
-- Anti-pattern: Skills instructing agents to "scan memory-index.md" (causes grepping already-loaded content)
-- Correct pattern: Memory index is loaded via CLAUDE.md @-reference — scan mentally, then Read referenced files
-- Fix: Updated plan-tdd, plan-adhoc skills to say "check loaded memory-index context"
-- Structure: Sections grouped by target file, file path in heading not per-entry
-## Decision file size not enforced
-- Current state: architecture.md (821 lines), workflows.md (886 lines) exceed soft 400-line limit
-- Line-limits check only applies to Python source (`src/`, `tests/`), not markdown
-- Pending: Split large decision files or extend enforcement
+## "Scan" language triggers unnecessary tool calls
+- Anti-pattern: "Scan X.md" or "check X.md for..." where X is @-referenced via CLAUDE.md
+- Correct pattern: "Check loaded X context" — content already in memory, no Read/Grep needed
+- Applies to: memory-index.md, learnings.md, session.md, any @-referenced file
+- Fix: Updated plan-tdd, plan-adhoc, commit skill to use "check loaded context" language
 ## Structural header dot syntax
 - Anti-pattern: `.## Title` (dot before markdown marker)
 - Correct pattern: `## .Title` (dot is part of title text, after `## `)
@@ -46,3 +42,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - No quotes, braces, colons, or escaping needed
 - Multi-line content handled naturally without escaping
 - Script location: `agent-core/bin/batch-edit.py`
+## Commits must remove invalidated learnings
+- Anti-pattern: Adding enforcement without removing the "not enforced" learning in same commit
+- Correct pattern: When a change invalidates a learning, remove/update that learning atomically
+- Constraint added: handoff skill step 4b, commit-delegation.md step 3
+- Trigger: Changes to enforcement (validators, scripts) or behavioral rules (fragments, skills)

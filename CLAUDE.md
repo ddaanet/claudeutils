@@ -78,18 +78,4 @@ When user says "pending: task description":
 **agent-core justfile:**
 @.cache/just-help-agent-core.txt
 
-### Skill Development
-
-**Rule:** When creating, editing, or discussing skills, start by loading the `plugin-dev:skill-development` skill.
-
-**Location:** All skills live in `agent-core/skills/`. They are symlinked from `.claude/skills/`. Run `just sync-to-parent` in `agent-core/` to update symlinks (requires `dangerouslyDisableSandbox: true`).
-
-**Why:** The skill-development skill provides:
-- Skill structure and frontmatter guidance
-- Progressive disclosure patterns
-- Triggering condition best practices
-- Integration with Claude Code plugin system
-
-**Usage:** Invoke the skill before beginning skill work to load context and patterns.
-
 @agent-core/fragments/tool-batching.md
