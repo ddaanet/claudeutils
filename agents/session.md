@@ -42,6 +42,14 @@ Analyzed token economics of full test code vs prose descriptions:
 
 - [ ] **Restart statusline-parity planning** — `/plan-tdd statusline-parity` with new workflow | sonnet
   - Plan: statusline-parity | Status: designed (outline exists, needs re-expansion with new format)
+- [ ] **Add rescheduling points for runbook expansion** — Consolidation gates after outline and full runbook generation | sonnet
+  - Enable plan-tdd/review-tdd-plan to merge trivial fast-pathed expansions with related features
+  - Rather than standalone trivial steps, batch simple work with adjacent complexity
+- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements to general planning | sonnet
+  - Prose step descriptions (not verbose details)
+  - Phase 2.5 complexity-before-expansion gate with callback mechanism
+  - Fast paths for trivial work
+  - Maintains parity between TDD and general workflows
 - [ ] **Fix prepare-runbook.py artifact hygiene** — Clean steps/ directory before writing | haiku
 - [ ] **Continuation passing design-review** — validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
@@ -70,9 +78,9 @@ Analyzed token economics of full test code vs prose descriptions:
 
 ## Next Steps
 
-1. Commit this work (TDD workflow overhaul)
+1. Restart statusline-parity planning with new prose-based format
 2. Soon: `/remember` (learnings at 92 lines, over limit)
-3. Next: Restart statusline-parity planning with new prose-based format
+3. After statusline-parity: Add rescheduling points, align plan-adhoc
 
 ---
-*Handoff by Opus. TDD workflow overhauled for token efficiency.*
+*Handoff by Opus. Added workflow enhancement tasks.*
