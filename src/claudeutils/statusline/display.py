@@ -1,5 +1,6 @@
 """ANSI colored text formatter for statusline display."""
 
+import math
 from typing import ClassVar
 
 from claudeutils.statusline.models import GitStatus, PlanUsageData
@@ -249,3 +250,36 @@ class StatuslineFormatter:
 
         colored_mode = self.colored(mode_name, color)
         return f"{emoji} {colored_mode}"
+
+    def horizontal_token_bar(self, token_count: int) -> str:
+        """Generate horizontal token bar with 8-level Unicode blocks.
+
+        Args:
+            token_count: Number of tokens to display
+
+        Returns:
+            Bar string with format "[{blocks}]" where blocks are full (█) and
+            partial Unicode characters representing 25k token chunks
+        """
+        if token_count == 0:
+            return "[]"
+
+        # Each full block represents 25k tokens
+        full_blocks = token_count // 25000
+        remainder = token_count % 25000
+
+        # 8-level Unicode block characters (0/8 through 8/8)
+        unicode_levels = [" ", "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]
+
+        # Build the bar with full blocks
+        bar = "█" * full_blocks
+
+        # Add partial block if remainder exists
+        if remainder > 0:
+            # Map remainder to 8-level scale (0-8), using ceiling to round up
+            partial_level = math.ceil((remainder / 25000) * 8)
+            partial_level = min(partial_level, 8)  # Cap at 8
+            if partial_level > 0:
+                bar += unicode_levels[partial_level]
+
+        return f"[{bar}]"

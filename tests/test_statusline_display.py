@@ -310,3 +310,36 @@ def test_format_cost() -> None:
     assert "💰" in result_rounded
     assert "$1.23" in result_rounded
     assert result_rounded == "💰 $1.23"
+
+
+def test_horizontal_token_bar() -> None:
+    """Horizontal token bar with 8-level Unicode blocks.
+
+    StatuslineFormatter.horizontal_token_bar() generates a horizontal progress
+    bar for token usage using 8-level Unicode block characters, with each full
+    block representing 25k tokens.
+    """
+    formatter = StatuslineFormatter()
+
+    # Test no tokens (empty)
+    assert formatter.horizontal_token_bar(0) == "[]"
+
+    # Test single full block (25k tokens)
+    assert formatter.horizontal_token_bar(25000) == "[█]"
+
+    # Test single half-block (12.5k tokens = 1/2 of 25k = level 4/8)
+    assert formatter.horizontal_token_bar(12500) == "[▌]"
+
+    # Test two full blocks (50k tokens)
+    assert formatter.horizontal_token_bar(50000) == "[██]"
+
+    # Test one full + one half (37.5k = 1.5 blocks)
+    assert formatter.horizontal_token_bar(37500) == "[█▌]"
+
+    # Test four full blocks (100k tokens)
+    assert formatter.horizontal_token_bar(100000) == "[████]"
+
+    # Test five full + partial (143750 tokens = 5.75 blocks)
+    # 143750 / 25000 = 5.75, remainder = 18750
+    # 18750 / 25000 = 0.75 * 8 = 6.0 = level 6 (▊)
+    assert formatter.horizontal_token_bar(143750) == "[█████▊]"
