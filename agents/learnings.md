@@ -25,3 +25,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: `## .Title` (dot is part of title text, after `## `)
 - Fix: Added explicit ✅/❌ examples to implementation-notes.md
 - Rationale: "Prefix" is ambiguous — examples prevent misinterpretation
+## Hard limits vs soft limits
+- Anti-pattern: Validators that print warnings but don't fail build
+- Correct pattern: Either fail build (hard error) or don't check (no validation)
+- Rationale: "Normalize deviance" principle — warnings create false sense of compliance
+- Example: memory-index word count changed from warning to hard error, exposed 62 violations
+- Trade-off: Hard limits force immediate resolution but may need tuning (word count 8-12 may be too strict)

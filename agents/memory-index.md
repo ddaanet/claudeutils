@@ -13,6 +13,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 **Do not index content already loaded via CLAUDE.md.** Fragments referenced by `@` are in every conversation. Index entries for those add noise without aiding discovery. Only index knowledge that requires on-demand loading.
 
 
+
 ## Behavioral Rules (fragments — already loaded)
 
 Delegation with context — don't delegate when context already loaded, token economy
@@ -85,7 +86,12 @@ Mock patching pattern — patch where object is used not where defined
 Testing strategy for markdown cleanup — TDD approach with red green cycles and integration tests
 Success metrics — all tests pass, no regressions, clear errors, complete documentation
 
-## agents/decisions/architecture.md
+## agents/decisions/cli.md
+
+CLI Conventions — Path.cwd consistency, errors to stderr, entry point configuration
+Output Formats — text and JSON support for feedback and token commands
+
+## agents/decisions/data-processing.md
 
 Module Architecture — minimal init, private helpers cohesion, module split pattern
 Path Handling — path encoding algorithm, history directory resolution
@@ -94,27 +100,6 @@ Filtering Logic — trivial message detection, feedback extraction layering, noi
 Session Discovery — UUID session pattern, sorted glob results, first-line parsing
 Agent Processing — AgentId becomes SessionId for child agents, true tree recursion
 Error Handling — graceful degradation, skip malformed entries, optional field defaults
-Data Models — Pydantic BaseModel for validation, FeedbackType StrEnum for type safety
-Code Quality — docformatter wrapping, extract helpers for complexity, no suppression shortcuts
-Feedback Processing Pipeline — three-stage collect analyze rules, filtering module foundation
-Token Counting — model as first positional, alias support, API integration
-Markdown Formatter Selection — remark-cli idempotent CommonMark compliance over Prettier
-Memory Index Pruning — append-only with no pruning, keyword-rich discovery surface
-Claude Code Rule Files — rules with paths frontmatter for automatic context injection
-Model Terminology — premium standard efficient naming instead of T1 T2 T3
-Skill Discovery — multi-layer discovery pattern with CLAUDE.md rules workflow descriptions
-Agent Development — agent frontmatter YAML requires multi-line syntax for examples
-Symlink Management — verify symlinks after formatters, use sync-to-parent to restore
-Shell Environment — heredoc sandbox compatibility with TMPPREFIX export
-Command-Line Parsing — flags are exact tokens exact match not prose substring
-Flags are exact tokens — exact token match not prose substring CLI parsing
-Project Structure — root marker for scripts CLAUDE.md not agents directory
-Root marker for scripts — CLAUDE.md not agents directory subdirectory issue
-
-## agents/decisions/cli.md
-
-CLI Conventions — Path.cwd consistency, errors to stderr, entry point configuration
-Output Formats — text and JSON support for feedback and token commands
 
 ## agents/decisions/implementation-notes.md
 
@@ -129,6 +114,25 @@ Bare lines beat list markers — flat keyword lists without markers save 14% tok
 Default semantic, mark structural — semantic headers default, structural get dot prefix for safe failure mode
 Phase-Grouped Runbook Header Format — H3 phase grouping H2 steps for prepare-runbook.py extraction
 
+## agents/decisions/markdown-tooling.md
+
+Token Counting — model as first positional, alias support, API integration
+Markdown Formatter Selection — remark-cli idempotent CommonMark compliance over Prettier
+
+## agents/decisions/project-config.md
+
+Memory Index Pruning — append-only with no pruning, keyword-rich discovery surface
+Claude Code Rule Files — rules with paths frontmatter for automatic context injection
+Model Terminology — premium standard efficient naming instead of T1 T2 T3
+Skill Discovery — multi-layer discovery pattern with CLAUDE.md rules workflow descriptions
+Agent Development — agent frontmatter YAML requires multi-line syntax for examples
+Symlink Management — verify symlinks after formatters, use sync-to-parent to restore
+Shell Environment — heredoc sandbox compatibility with TMPPREFIX export
+Command-Line Parsing — flags are exact tokens exact match not prose substring
+Flags are exact tokens — exact token match not prose substring CLI parsing
+Project Structure — root marker for scripts CLAUDE.md not agents directory
+Root marker for scripts — CLAUDE.md not agents directory subdirectory issue
+
 ## agents/decisions/testing.md
 
 Test Organization — mirror source structure, separate CLI tests by subcommand
@@ -139,40 +143,14 @@ TDD: Presentation vs Behavior — test behavior defer presentation to vet checkp
 TDD Integration Test Gap — assert behavioral outcomes not just execution structure at phase boundaries
 Conformance Validation for Migrations — compare implementation against original spec presentation gaps
 
-## agents/decisions/workflows.md
+## agents/decisions/validation-quality.md
 
-Oneshot workflow pattern — weak orchestrator with runbook-specific agents for ad-hoc tasks
-TDD Workflow Integration — extend weak orchestrator for TDD with cycle-based runbooks
-Handoff Pattern: Inline Learnings — store learnings inline in session.md not separate files
-Design Phase: Output Optimization — minimize designer output tokens, planner elaborates details
-Planning Pattern: Three-Stream Problem Documentation — parallel work streams with problem and session files
-TDD Workflow: Commit Squashing Pattern — squash cycle commits into single feature commit
-Orchestrator Execution Mode — execution mode metadata overrides system prompt parallelization directives
-Orchestration Assessment: Three-Tier Implementation Model — direct lightweight and full runbook routing
-Checkpoint Process for Runbooks — two-step fix and vet checkpoints at natural boundaries
-Phase-grouped TDD runbooks — support flat H2 and phase-grouped H2 H3 cycle headers
-Cycle numbering gaps relaxed — gaps warnings document order defines sequence
-No human escalation during refactoring — opus handles architectural changes within design bounds
-Defense-in-Depth: Commit Verification — multiple layers at tdd-task and orchestrate skill levels
-Handoff Workflow — tail-call pattern and commit assumption for all tiers
-Handoff tail-call pattern — always end with handoff commit regardless of tier
-Handoff commit assumption — session.md reflects post-commit state with commit flag
-Workflow Efficiency — delegation with context and vet agent context usage
-Routing layer efficiency — single-layer complexity assessment, avoid double assessment
-Vet agent context usage — leverage vet context for fixes instead of new agents
-Design and Planning Patterns — outline-first workflow model selection design review vet structure
-Outline-first design workflow — freeform outline iterate deltas validate full design
-Model selection for design guidance — haiku explicit edits sonnet interprets intent
-Design review uses opus — design-vet-agent architecture analysis not vet-agent
-Vet catches structure misalignments — validates file paths structural assumptions prevents blockers
-Orchestration Patterns — agent-creator reviews template contradiction orchestrator model
-Agent-creator reviews in orchestration — create spec agent-creator reviews YAML syntax
-Template commit contradiction — appended context weak authority bolded NEVER structural
-Orchestrator model mismatch — read step file execution model not orchestrator default
-Testing and TDD Patterns — happy path first TDD cycle numbering gaps
-Happy path first TDD — simplest happy path real behavior edge cases later
-Runbook Artifacts — runbook outline format requirements mapping phase structure
-Runbook Outline Format — structured format for runbook planning with requirements mapping
+Data Models — Pydantic BaseModel for validation, FeedbackType StrEnum for type safety
+Code Quality — docformatter wrapping, extract helpers for complexity, no suppression shortcuts
+Feedback Processing Pipeline — three-stage collect analyze rules, filtering module foundation
+
+## agents/decisions/workflow-advanced.md
+
 Documentation and Knowledge Management — seeding index entries template merge
 Seeding before auto-generation — seed indexes existing docs consolidation complementary
 Index entries require backing documentation — learnings learnings.md permanent doc index entry
@@ -195,3 +173,41 @@ Workflow Feedback Loop Insights — alignment autofix outline complexity gate pr
 Dogfooding Validates Design — apply new process to its own planning for validation
 TDD GREEN Behavioral Descriptions — behavior approach hint structure not prescriptive code
 Efficient Model Analysis Requires Verification — haiku execution sonnet opus architecture verify results
+
+## agents/decisions/workflow-core.md
+
+Oneshot workflow pattern — weak orchestrator with runbook-specific agents for ad-hoc tasks
+TDD Workflow Integration — extend weak orchestrator for TDD with cycle-based runbooks
+Handoff Pattern: Inline Learnings — store learnings inline in session.md not separate files
+Design Phase: Output Optimization — minimize designer output tokens, planner elaborates details
+Planning Pattern: Three-Stream Problem Documentation — parallel work streams with problem and session files
+TDD Workflow: Commit Squashing Pattern — squash cycle commits into single feature commit
+Orchestrator Execution Mode — execution mode metadata overrides system prompt parallelization directives
+Orchestration Assessment: Three-Tier Implementation Model — direct lightweight and full runbook routing
+Checkpoint Process for Runbooks — two-step fix and vet checkpoints at natural boundaries
+Phase-grouped TDD runbooks — support flat H2 and phase-grouped H2 H3 cycle headers
+Cycle numbering gaps relaxed — gaps warnings document order defines sequence
+No human escalation during refactoring — opus handles architectural changes within design bounds
+Defense-in-Depth: Commit Verification — multiple layers at tdd-task and orchestrate skill levels
+
+## agents/decisions/workflow-optimization.md
+
+Handoff Workflow — tail-call pattern and commit assumption for all tiers
+Handoff tail-call pattern — always end with handoff commit regardless of tier
+Handoff commit assumption — session.md reflects post-commit state with commit flag
+Workflow Efficiency — delegation with context and vet agent context usage
+Routing layer efficiency — single-layer complexity assessment, avoid double assessment
+Vet agent context usage — leverage vet context for fixes instead of new agents
+Design and Planning Patterns — outline-first workflow model selection design review vet structure
+Outline-first design workflow — freeform outline iterate deltas validate full design
+Model selection for design guidance — haiku explicit edits sonnet interprets intent
+Design review uses opus — design-vet-agent architecture analysis not vet-agent
+Vet catches structure misalignments — validates file paths structural assumptions prevents blockers
+Orchestration Patterns — agent-creator reviews template contradiction orchestrator model
+Agent-creator reviews in orchestration — create spec agent-creator reviews YAML syntax
+Template commit contradiction — appended context weak authority bolded NEVER structural
+Orchestrator model mismatch — read step file execution model not orchestrator default
+Testing and TDD Patterns — happy path first TDD cycle numbering gaps
+Happy path first TDD — simplest happy path real behavior edge cases later
+Runbook Artifacts — runbook outline format requirements mapping phase structure
+Runbook Outline Format — structured format for runbook planning with requirements mapping

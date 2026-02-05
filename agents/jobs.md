@@ -9,8 +9,8 @@ Plan lifecycle tracking. Updated when plans change status.
 | Plan | Status | Notes |
 |------|--------|-------|
 | claude-tools-recovery | complete | Account/provider/model CLI wired |
+| claude-tools-rewrite | complete | Infrastructure complete, recovery and parity are followups |
 | workflow-feedback-loops | complete | Feedback loop infrastructure (12 steps, 4 phases) |
-| claude-tools-rewrite | planned | Paused (stubs) |
 | commit-unification | designed | May be superseded by commit-rca-fixes |
 | continuation-passing | requirements | Opus design needed |
 | handoff-lite-issue | requirements | Issue investigation |
