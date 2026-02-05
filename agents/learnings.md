@@ -79,3 +79,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Haiku-specific: Handoff uses `/handoff-haiku` not `/handoff` (no learnings judgment)
 - Root cause of session deviation: Task had model spec but no execution spec
 - Fix: Handoff skill now requires haiku tasks to include acceptance criteria (table + examples)
+## Vet-fix-agent confabulation from design docs
+- Anti-pattern: Give vet-fix-agent full design.md when reviewing phase checkpoint — agent may confabulate issues from future phases
+- Correct pattern: Precommit-first grounds agent in real work; explicit IN/OUT scope prevents confabulating future-phase issues
+- Rationale: Agent saw `horizontal_token_bar` in Phase 2 design, invented that test existed and claimed to fix it
+- Key insight: Fix claims are dangerous (trusted by orchestrator), observations less so
+- Mitigations: Precommit-first, explicit scope, "Do NOT flag items outside provided scope" constraint

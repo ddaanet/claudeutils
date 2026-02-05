@@ -1,32 +1,38 @@
 # Session Handoff: 2026-02-05
 
-**Status:** RCA complete. Commit skill and handoff skill updated with vet+alignment requirements.
+**Status:** RCA complete. Vet-fix-agent and orchestrate skill enhanced with checkpoint improvements.
 
 ## Completed This Session
 
-**Enhance prepare-runbook.py for phase files:**
-- Added `assemble_phase_files()` — detects runbook-phase-*.md, sorts by phase number, prepends TDD frontmatter
-- Fixed cycle extraction — H2-only termination (allows H3 subsections like ### RED Phase)
-- Updated validation — accepts "error condition" as alternative to "stop condition"
-- Vet-fix-agent review applied fixes: phase numbering gap detection, empty file detection
-- Commits: 7d225df, 3aa7511 (parent), d4a108f (agent-core submodule)
-- Artifacts generated: statusline-parity now has 15 step files, orchestrator-plan.md, agent ready
+**Statusline-parity Phase 1 execution (partial):**
+- Cycles 1.1-1.7 complete (7 commits: a06a928..f7643fe)
+- Phase 1 checkpoint executed — vet-fix-agent found/fixed out-of-scope test (9232f0a)
+- Implementation: `_extract_model_tier`, `format_model`, `format_directory`, `format_git_status`, `format_cost`, `format_mode`
 
-**RCA: Haiku commit workflow deviations:**
-- Root cause chain: Opus delegated without execution plan → haiku had no alignment criteria → no vet checkpoint → attempted commit without review
-- Identified 6 deviations total (4 haiku behavioral + 2 systemic)
-- Key insight: "All output requires vet+fix with alignment" (model-agnostic, not haiku-specific)
+**RCA: Vet-fix-agent confabulation at checkpoint:**
+- Agent claimed to fix `test_horizontal_token_bar` at lines 315-343 in 312-line file
+- Root cause: Agent read design.md which mentions Phase 2 features, confabulated that test existed
+- Confabulation was **fix claim**, not just observation — dangerous because orchestrator trusted it
+- Key insight: Precommit-first grounds agent in real work; explicit phase scope prevents future-phase confabulation
 
-**Skill fixes applied:**
-- Commit skill Step 0b: Vet checkpoint for ALL models with alignment verification requirement
-- Commit skill Step 0: Model-specific handoff selection (haiku → /handoff-haiku)
-- Handoff skill: Haiku task requirements table — runbook/acceptance criteria/test command with examples
-- Rationale: Without criteria, alignment verification impossible; vet cannot check drift
+**Vet-fix-agent enhancements:**
+- Added test quality depth: behavior-focused, meaningful assertions, edge cases
+- Added design anchoring: verify implementation matches design decisions, flag deviations
+- Added integration review: duplication across files/methods, pattern consistency, cross-cutting concerns
+- Explicit scope constraint: "Do NOT flag items outside provided scope"
+
+**Orchestrate skill checkpoint update:**
+- Precommit-first: `just dev` runs before review (grounds agent)
+- Explicit phase scope: IN/OUT method lists prevent confabulation
+- Structured review: test quality, implementation quality, integration, design anchoring
+- Return protocol: filepath or "UNFIXABLE: [description]"
 
 ## Pending Tasks
 
-- [ ] **Execute statusline-parity runbook** — `/orchestrate statusline-parity` | haiku | restart
-  - Plan: statusline-parity | Status: planned | 15 cycles ready
+- [ ] **Resume statusline-parity Phase 2** — Continue from step 2-1 | haiku | restart
+  - Plan: statusline-parity | Status: in-progress | Phase 1 complete, 8 cycles remaining
+- [ ] **Evaluate plugin migration** — Symlink situation causing pain
+- [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink, message to edit agent-core
 - [ ] **Consolidate learnings** — learnings.md at 81 lines, run `/remember`
 - [ ] **Learnings consolidation design Phase C** — Generate full design.md from outline | opus
   - Plan: learnings-consolidation | Status: designed
@@ -39,27 +45,23 @@
   - Plan: handoff-validation | Status: requirements
 - [ ] **Orchestrate evolution design** — Absorb planning, finalize phase pattern | opus
   - Plan: orchestrate-evolution | Status: requirements
-- [ ] **Delete claude-tools-recovery artifacts** — Blocked on orchestrate finalize phase
-- [ ] **Fix memory-index validator code block exclusion** — Skip headers inside code fences
-- [ ] **Add claudeutils config file** — Record API key by content or file path | haiku
-- [ ] **Research CLI control tool** — Agent model change, clear session, restart Claude (tmux?) | sonnet
 
 ## Blockers / Gotchas
 
+- **Vet-fix-agent confabulation risk** — Agent can confabulate fixes from design docs. Mitigated by: precommit-first grounding, explicit phase scope, scope constraint in agent
 - **Alignment requires criteria** — Cannot vet without runbook/acceptance criteria; haiku tasks need explicit specification
 - **learnings.md at limit** — 81 lines, consolidation needed before more learnings
-- **Vet report structure** — UNFIXABLE items should be prominent, not buried after "Needs Minor Changes"
 
 ## Reference Files
 
-- **plans/statusline-parity/reports/prepare-runbook-enhancement-review.md** — Vet review with fixes applied
-- **.claude/skills/commit/SKILL.md** — Step 0b vet checkpoint (all models, alignment-focused)
-- **.claude/skills/handoff/SKILL.md** — Haiku task requirements table
+- **agent-core/agents/vet-fix-agent.md** — Enhanced with design anchoring, test quality, integration review
+- **agent-core/skills/orchestrate/SKILL.md** — Section 3.4 checkpoint with precommit-first, phase scope
+- **plans/statusline-parity/reports/checkpoint-1-vet.md** — Contains confabulated fix claim (example of failure mode)
 
 ## Next Steps
 
-1. Run `/remember` to consolidate learnings (at 81 lines)
-2. Execute statusline-parity: restart, switch to haiku, `/orchestrate statusline-parity`
+1. Restart, switch to haiku, continue: `/orchestrate statusline-parity` (resume Phase 2)
+2. Run `/remember` when learnings consolidated
 
 ---
-*Handoff by Opus. RCA complete, workflow fixes committed.*
+*Handoff by Opus. Checkpoint RCA complete, vet-fix-agent and orchestrate skill enhanced.*
