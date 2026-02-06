@@ -63,6 +63,14 @@ wt-new name base="HEAD":
     main_dir="$PWD"
     visible git worktree add "$wt_dir" -b "$branch" "{{base}}"
     (cd "$wt_dir" && visible git submodule update --init --reference "$main_dir/agent-core")
+    # Put agent-core on a branch (not detached HEAD)
+    (cd "$wt_dir/agent-core" && visible git checkout -b "wt/{{name}}")
+    # Create .venv so direnv can load it
+    (cd "$wt_dir" && visible uv sync)
+    # Allow direnv in worktree
+    (cd "$wt_dir" && direnv allow 2>/dev/null) || true
+    # Commit initial worktree state
+    (cd "$wt_dir" && visible git add -A && visible git commit -m "Initial worktree state")
     echo ""
     echo "${GREEN}✓${NORMAL} Worktree ready: $wt_dir"
     echo "  Launch: ${COMMAND}cd $wt_dir && claude${NORMAL}"
@@ -92,6 +100,42 @@ wt-rm name:
             echo "${RED}Branch $branch has unmerged changes. Use: git branch -D $branch${NORMAL}"
     fi
     echo "${GREEN}✓${NORMAL} Worktree removed: $wt_dir"
+
+# Merge a worktree branch back and resolve submodule + session.md
+[no-exit-message]
+wt-merge name:
+    #!{{ bash_prolog }}
+    repo_name=$(basename "$PWD")
+    wt_dir="../${repo_name}-{{name}}"
+    branch="wt/{{name}}"
+    if ! git rev-parse --verify "$branch" >/dev/null 2>&1; then
+        fail "Branch not found: $branch"
+    fi
+    # Step 1: Fetch agent-core commits from worktree into main's submodule
+    if [ -d "$wt_dir/agent-core" ] && (cd "$wt_dir/agent-core" && git rev-parse --verify "$branch" >/dev/null 2>&1); then
+        (cd agent-core && visible git fetch "$wt_dir/agent-core" "$branch:$branch")
+        (cd agent-core && visible git merge --no-edit "$branch")
+        (cd agent-core && visible git branch -d "$branch")
+        visible git add agent-core
+    fi
+    # Step 2: Merge parent branch, auto-resolve session.md with ours
+    if ! git merge --no-edit "$branch"; then
+        if git diff --name-only --diff-filter=U | grep -q "agents/session.md"; then
+            visible git checkout --ours agents/session.md
+            visible git add agents/session.md
+        fi
+        # Fail if other conflicts remain
+        remaining=$(git diff --name-only --diff-filter=U)
+        if [ -n "$remaining" ]; then
+            echo "${RED}Unresolved conflicts:${NORMAL}"
+            echo "$remaining"
+            fail "Resolve conflicts, then: git commit --no-edit"
+        fi
+        visible git commit --no-edit
+    fi
+    echo ""
+    echo "${GREEN}✓${NORMAL} Merged $branch"
+    echo "  Cleanup: ${COMMAND}just wt-rm {{name}}${NORMAL}"
 
 # Format, check with complexity disabled, test
 [no-exit-message]
