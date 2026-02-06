@@ -1,5 +1,6 @@
 """Tests for statusline CLI command."""
 
+import re
 from unittest.mock import patch
 
 from click.testing import CliRunner
@@ -365,8 +366,6 @@ def test_cli_double_space_separators() -> None:
         line1 = result.output.strip().split("\n")[0]
 
         # Remove ANSI codes to check spacing pattern
-        import re
-
         clean_line = re.sub(r"\033\[[0-9;]+m", "", line1)
 
         # Verify double-space separators between sections

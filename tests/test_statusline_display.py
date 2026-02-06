@@ -179,7 +179,7 @@ def test_format_model(
 
 
 def test_format_model_opus_bold() -> None:
-    """Format model applies bold styling to Opus.
+    r"""Format model applies bold styling to Opus.
 
     Opus has both magenta color (\033[35m) and bold (\033[1m).
     Sonnet and Haiku do NOT have bold styling.
