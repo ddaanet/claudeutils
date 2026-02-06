@@ -4,7 +4,7 @@
 
 ## Pending Tasks
 
-- [ ] **Fix quiet-explore agent usage pattern** — persistent artifacts for reuse across context/audit, not ephemeral tmp/
+- [x] **Fix quiet-explore agent usage pattern** — persistent artifacts for reuse across context/audit, not ephemeral tmp/
 
 ## Blockers / Gotchas
 
