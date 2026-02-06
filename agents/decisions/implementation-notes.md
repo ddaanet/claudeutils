@@ -192,3 +192,22 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 **Implementation:** assemble-runbook.py outputs correct format; manual runbooks need header level awareness.
 
 **Impact:** Runbook processing tools work correctly with phase-grouped structure.
+
+## Prose Gate D+B Hybrid Fix
+
+**Decision Date:** 2026-02-06
+
+**Problem:** Skill steps with only prose judgment (no tool call) get skipped during execution. Manifested in 3 cases: commit skill session freshness (Step 0), commit skill vet checkpoint (Step 0b), orchestrate skill phase boundary (3.4).
+
+**Root cause:** Execution-mode cognition optimizes for "next tool call." Steps without tool calls register as contextual commentary, not actionable work.
+
+**Fix (D+B Hybrid):** Combines Option D (Read/Bash anchor) with Option B (restructure into adjacent step):
+1. Eliminate standalone prose gates — merge each gate into its adjacent action step
+2. Anchor with tool call — each gate's first instruction is a Read or Bash call providing data for evaluation
+3. Explicit control flow — gate evaluation uses if/then with explicit branch targets
+
+**Convention:** Every skill step must open with a concrete tool call (Read/Bash/Glob). Prose-only judgment steps are a structural anti-pattern.
+
+**Design:** `plans/reflect-rca-prose-gates/outline.md`
+
+**Impact:** Prevents prose gates from being skipped; establishes convention for future skill design.

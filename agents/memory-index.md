@@ -99,6 +99,7 @@ Title-words beat kebab-case — title-words have 17% drift vs kebab-case 31% dri
 Bare lines beat list markers — flat keywords without markers save 14% tokens
 Default semantic, mark structural — semantic default, structural gets dot prefix
 Phase-Grouped Runbook Header Format — H3 phase grouping H2 steps for prepare-runbook.py extraction
+Prose Gate D+B Hybrid Fix — merge gates into action steps, anchor with tool call
 
 ## agents/decisions/project-config.md
 

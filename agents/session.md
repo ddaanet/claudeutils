@@ -1,30 +1,28 @@
 # Session Handoff: 2026-02-06
 
-**Status:** Wave 1-2 complete. Test files fixed, 3 opus research reports produced.
+**Status:** Prose gates D+B hybrid fix implemented. Vet requirement simplified.
 
 ## Completed This Session
 
-**Wave 1 — Test file line limit fix (commit 05903cd):**
-- Split test_statusline_cli.py (499L) → cli (240L) + cli_visual (276L)
-- Split test_statusline_display.py (494L) → display (375L) + display_bars (124L)
-- All 49 tests pass, precommit unblocked
-
-**Wave 2 — Opus research (3 parallel background agents):**
-- Parity RCA: 5 root causes (no conformance validation, vet scope limitation, precommit bypass, no pre-write size check, false validation claims). 5 gaps remain. 4 iterations not 3 — final was interactive because integration still untested. Concurrent workflow evolution factor appended but not analyzed by RCA agent.
-- Prose gates fix: Read-anchor design — each prose gate gets mandatory Read/Bash call as first instruction. Convention: "Every skill step MUST begin with a concrete tool call."
-- Workflow skills audit: 12 action items (4 high). Missing checkpoint commit before design-vet-agent. plan-adhoc assembly contradicts "no manual assembly" decision. Consolidation and complexity gates missing from plan-adhoc.
-
-**Task dependency analysis:**
-- 15 pending tasks, 8 tracked plans, parallelization schedule in tmp/task-analysis.md
-- Dependency graph, 5 parallel groups, rate-limit-aware reactive scheduling
+**Prose gates D+B hybrid fix (commit 5bd9f22):**
+- Critical analysis of original Option D design — identified weakness (Read anchor alone insufficient)
+- D+B hybrid: merge gates into action steps (Option B) + anchor with tool call (Option D)
+- Commit skill: steps 0+0b+1 → single Step 1 with Gate A (Read session.md) + Gate B (git diff)
+- Orchestrate skill: 3.3+3.4 → merged 3.3 with Read anchor for phase boundary detection
+- Vet requirement: simplified to single vet-fix-agent, apply ALL fixes (no importance filtering)
+- Vet-fix-agent: removed critical/major-only constraint across 8 locations in agent definition
+- Decision documented in implementation-notes.md, learnings updated, memory-index entry added
+- Vet review passed (0 critical/major remaining after fixes)
+- Reflect RCA: fix wasn't testable in-session (skill loaded old version pre-edit, requires restart)
 
 ## Pending Tasks
 
 - [ ] **Analyze parity test quality failures** — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
-- [ ] **Investigate prose gates fix** — Design complete (plans/reflect-rca-prose-gates/design.md). Needs: implement Read-anchor pattern in 3 skills
-  - Plan: reflect-rca-prose-gates | Status: designed
 - [ ] **Align plan-adhoc with plan-tdd updates** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: port 7 changes (3 high priority)
 - [ ] **Update design skill** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: add checkpoint commit at C.2, fix C.4 wording
+- [ ] **Update design skill to direct workflow/skill/agent edits to opus**
+- [ ] **Command to write last agent output to file** — save output tokens
+- [ ] **Check workflow skills for redundant vet-fix-agent prompts** — skills may pass "apply critical/major" in delegation prompts, now contradicts agent definition
 - [ ] **Continuation passing design** — Validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
 - [ ] **Evaluate plugin migration** — Symlink situation causing pain
@@ -46,23 +44,23 @@
 
 ## Blockers / Gotchas
 
-**Prose gates pattern:** Design ready (Read-anchor), implementation pending. 3 skills need patching.
+**Prose gates fix requires restart to test.** Skill files loaded at session start; mid-session edits not picked up. First real test is next `/commit` invocation after restart.
 
-**Parity RCA concurrent evolution:** Workflow skills changed during parity execution — factor not yet analyzed. May explain iteration count.
+**Parity RCA concurrent evolution:** Workflow skills changed during parity execution — factor not yet analyzed.
 
 **Key dependency chain:** continuation-passing → handoff-validation → orchestrate-evolution (serial opus sessions)
 
 ## Reference Files
 
-- **tmp/task-analysis.md** — Dependency graph, parallelization groups, scheduling strategy (ephemeral)
-- **plans/reflect-rca-parity-iterations/rca.md** — Parity RCA (5 root causes, 5 gaps, workflow evolution addendum)
-- **plans/reflect-rca-prose-gates/design.md** — Prose gates Read-anchor design
+- **plans/reflect-rca-prose-gates/outline.md** — D+B hybrid design (refined from critical analysis)
+- **plans/reflect-rca-prose-gates/reports/vet-review.md** — Vet review of implementation
+- **plans/reflect-rca-parity-iterations/rca.md** — Parity RCA (5 root causes, 5 gaps)
 - **plans/workflow-skills-audit/audit.md** — Plan-adhoc alignment + design skill audit (12 items)
-- **agents/jobs.md** — Plan lifecycle tracking (29 archived, 8 active)
+- **agents/jobs.md** — Plan lifecycle tracking
 
 ## Next Steps
 
-Wave 3: Validator consolidation + symlink hook (sonnet, parallel). Or act on Wave 2 findings first (prose gates implementation, plan-adhoc porting, design skill checkpoint).
+Restart session to activate prose gates fix. Then: vet-fix-agent prompt audit (quick), or plan-adhoc alignment (moderate), or continuation-passing design (opus).
 
 ---
-*Handoff by Sonnet. Wave 1-2 complete, 3 opus reports produced.*
+*Handoff by Sonnet. Prose gates fix + vet simplification complete.*

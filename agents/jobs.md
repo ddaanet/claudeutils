@@ -16,7 +16,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | requirements-skill | requirements | Evaluate with opus |
 | reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
-| reflect-rca-prose-gates | designed | Structural fix for skill gate skipping |
+| reflect-rca-prose-gates | complete | D+B hybrid fix implemented |
 | validator-consolidation | requirements | Move to claudeutils package |
 
 ## Complete (Archived)

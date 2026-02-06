@@ -71,7 +71,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Reports exempt: They ARE the verification artifacts
 - Model-agnostic: Applies to haiku, sonnet, opus equally
 - Delegation requires specification: If delegating implementation, provide criteria for alignment verification
-- Fix: Added Step 0b (vet checkpoint) to commit skill — all models, alignment-focused
+- Fix: Commit skill Step 1 Gate B (vet checkpoint) — all models, alignment-focused
 ## Delegation without plan causes drift
 - Anti-pattern: Opus specifies "do X | haiku" without runbook/acceptance criteria
 - Correct pattern: Opus provides runbook OR acceptance criteria when delegating implementation
@@ -87,19 +87,15 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Mitigations: Precommit-first, explicit scope, "Do NOT flag items outside provided scope" constraint
 ## Phase boundaries require checkpoint delegation
 - Anti-pattern: Treat checkpoint as part of step execution, skip vet-fix-agent delegation, proceed to next phase
-- Correct pattern: Phase boundary = hard stop requiring explicit checkpoint delegation per orchestrate skill 3.4
+- Correct pattern: Phase boundary = hard stop requiring explicit checkpoint delegation per orchestrate skill 3.3
 - Rationale: Checkpoints catch bugs (logic error in format_context() found at Phase 2→3 boundary checkpoint)
-- Manifestation: Orchestrator executed Phase 2 cycles, ran `just dev`, but rationalized checkpoint as "already done" and continued to Phase 3
-- Consequence: Critical bug (format_context threshold condition) remained undetected for one cycle until checkpoint delegated
-- Rule clarity: Orchestrate skill 3.4 is clear "Checkpoint at phase boundary" with vet-fix-agent delegation — deviation was behavioral
-- Fix: Phase 2→3 checkpoint now executed (overdue), critical fix applied to format_context() threshold logic
-## Prose skill gates skipped
-- Anti-pattern: Skill loads → agent jumps to first bash command, skipping prose-only judgment steps
-- Root cause: Execution mode optimizes for "next tool call" — steps without tool calls get scanned but not executed
-- Recurrence: 3 instances (phase boundary checkpoints, vet-before-commit, session freshness check)
-- Structural pattern: All three are prose gates between concrete execution steps in skill definitions
-- "Behavioral" diagnosis masks this: calling it "rationalization" implies discipline fix, but the cause is structural
-- Fix direction: Give gates concrete first actions (script, explicit tool call) or restructure to block first tool call
+- Fix: D+B hybrid merged phase boundary into 3.3 with Read anchor for phase detection
+## Prose gate D+B hybrid fix
+- Root cause: Execution mode optimizes for "next tool call" — prose-only steps get scanned but not executed
+- Fix: Merge gates into adjacent action steps + anchor each gate with Read/Bash tool call
+- Commit skill: Steps 0+0b+1 → single Step 1 (Gate A: Read session.md, Gate B: git diff, then validation)
+- Orchestrate skill: 3.3+3.4 → merged 3.3 (tree check + Read next step for phase boundary)
+- Convention: Every skill step must open with a tool call — documented in implementation-notes.md
 ## Deliverables in gitignored tmp/
 - Anti-pattern: Writing actionable reports (RCA, designs, audits) to tmp/ which is gitignored
 - Correct pattern: Research deliverables go to plans/ directories where they're tracked. Only ephemeral scheduling/diagnostic artifacts belong in tmp/
