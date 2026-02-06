@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-06
 
-**Status:** Removed pytest-quiet workaround, created handoff-uncommitted worktree.
+**Status:** Worktree session.md pre-commit via git plumbing, pytest-quiet cleanup, handoff-uncommitted merge.
 
 ## Completed This Session
 
@@ -12,11 +12,16 @@
 **Worktree setup:**
 - Created `wt/handoff-uncommitted` for handoff skill multi-handoff fix
 
+**Worktree session.md pre-commit:**
+- `wt-new` recipe gains `session=""` parameter — git plumbing (hash-object → read-tree → update-index → write-tree → commit-tree) pre-commits focused session.md to branch before worktree creation
+- MODE 5 flow updated: write focused session.md to `tmp/` locally (no sandbox), pass path to recipe
+- Focused session.md template simplified — removed "reset + stage + commit" bootstrap instruction
+- Sandbox note clarified: only `just wt-new` needs bypass, not the session.md Write
+- Files: `justfile` (lines 55-87), `agent-core/fragments/execute-rule.md` (MODE 5), `.cache/just-help.txt`
+
 ## Pending Tasks
 
 - [ ] **Align plan-adhoc with plan-tdd updates** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: port 7 changes (3 high priority)
-- [ ] **Update design skill** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: add checkpoint commit at C.2, fix C.4 wording
-- [ ] **Update design skill to direct workflow/skill/agent edits to opus**
 - [ ] **Continuation passing design** — Validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
 - [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink | restart
@@ -40,11 +45,11 @@
 - [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Command to write last agent output to file** → `wt/agent-output-cmd` — save output tokens
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
-- [x] **Fix handoff skill for multiple handoffs before commit** — Merged from wt/handoff-uncommitted
+- [ ] **Update design skill** → `wt/update-design-skill` — Add checkpoint commit at C.2, fix C.4 wording, direct workflow/skill/agent edits to opus
 
 ## Blockers / Gotchas
 
-**Worktree sandbox exemptions needed.** `just wt-new`, `just wt-rm`, `just wt-merge` all write outside project directory. Need `dangerouslyDisableSandbox: true` for each.
+**Worktree sandbox exemptions needed.** `just wt-new`, `just wt-rm`, `just wt-merge` write outside project directory. Need `dangerouslyDisableSandbox: true`. Session.md write eliminated — pre-committed to branch via git plumbing in recipe.
 
 **Key dependency chain:** continuation-passing → handoff-validation → orchestrate-evolution (serial opus sessions)
 
@@ -52,13 +57,13 @@
 
 ## Reference Files
 
-- **justfile** — `wt-new`, `wt-ls`, `wt-rm`, `wt-merge` recipes (lines 53-140)
-- **agent-core/fragments/execute-rule.md** — MODE 5 (single-task + parallel), Worktree Tasks section, STATUS Worktree display
+- **justfile** — `wt-new` (lines 55-87, git plumbing session pre-commit), `wt-rm`, `wt-merge`
+- **agent-core/fragments/execute-rule.md** — MODE 5 (local session.md write + recipe pre-commit flow)
 - **plans/workflow-skills-audit/audit.md** — Plan-adhoc alignment + design skill audit (12 items)
 
 ## Next Steps
 
-Merge `wt/handoff-uncommitted` when ready (`just wt-merge handoff-uncommitted`). Quick wins: plan-adhoc alignment. Use `wt` for parallel execution of independent sonnet tasks.
+Quick wins: plan-adhoc alignment. Use `wt` for parallel execution of independent sonnet tasks.
 
 ---
 *Handoff by Sonnet. Justfile cleanup + worktree setup.*

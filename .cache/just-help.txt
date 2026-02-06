@@ -1,15 +1,15 @@
 Available recipes:
-    help                    # List available recipes
-    dev                     # Format and run all checks
-    cache                   # Rebuild cached just help output (if justfiles changed)
-    precommit               # Run all checks
-    test *ARGS              # Run test suite
-    line-limits             # Check file line limits
-    wt-new name base="HEAD" # Create a git worktree for parallel work
-    wt-ls                   # List active git worktrees
-    wt-rm name              # Remove a git worktree and its branch
-    wt-merge name           # Merge a worktree branch back and resolve submodule + session.md
-    lint                    # Format, check with complexity disabled, test
-    check                   # Check code style
-    format                  # Format code
-    release *ARGS           # Use --rollback to revert local changes from a crashed dry-run
+    help                               # List available recipes
+    dev                                # Format and run all checks
+    cache                              # Rebuild cached just help output (if justfiles changed)
+    precommit                          # Run all checks
+    test *ARGS                         # Run test suite
+    line-limits                        # Check file line limits
+    wt-new name base="HEAD" session="" # Create a git worktree for parallel work
+    wt-ls                              # List active git worktrees
+    wt-rm name                         # Remove a git worktree and its branch
+    wt-merge name                      # Merge a worktree branch back and resolve submodule + session.md
+    lint                               # Format, check with complexity disabled, test
+    check                              # Check code style
+    format                             # Format code
+    release *ARGS                      # Use --rollback to revert local changes from a crashed dry-run

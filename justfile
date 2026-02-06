@@ -52,7 +52,7 @@ line-limits:
 
 # Create a git worktree for parallel work
 [no-exit-message]
-wt-new name base="HEAD":
+wt-new name base="HEAD" session="":
     #!{{ bash_prolog }}
     repo_name=$(basename "$PWD")
     wt_dir="../${repo_name}-{{name}}"
@@ -61,7 +61,22 @@ wt-new name base="HEAD":
         fail "Worktree already exists: $wt_dir"
     fi
     main_dir="$PWD"
-    visible git worktree add "$wt_dir" -b "$branch" "{{base}}"
+    if [ -n "{{session}}" ]; then
+        # Pre-commit focused session.md to branch before worktree creation
+        blob=$(git hash-object -w "{{session}}")
+        tmp_index=$(mktemp -p tmp/)
+        trap "rm -f '$tmp_index'" EXIT ERR
+        GIT_INDEX_FILE="$tmp_index" git read-tree "{{base}}"
+        GIT_INDEX_FILE="$tmp_index" git update-index --cacheinfo "100644,$blob,agents/session.md"
+        new_tree=$(GIT_INDEX_FILE="$tmp_index" git write-tree)
+        rm -f "$tmp_index"
+        trap - EXIT ERR
+        new_commit=$(git commit-tree "$new_tree" -p "$(git rev-parse "{{base}}")" -m "wt: focused session.md")
+        git branch "$branch" "$new_commit"
+        visible git worktree add "$wt_dir" "$branch"
+    else
+        visible git worktree add "$wt_dir" -b "$branch" "{{base}}"
+    fi
     (cd "$wt_dir" && visible git submodule update --init --reference "$main_dir/agent-core")
     # Put agent-core on a branch (not detached HEAD)
     (cd "$wt_dir/agent-core" && visible git checkout -b "wt/{{name}}")
