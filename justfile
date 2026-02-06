@@ -69,8 +69,6 @@ wt-new name base="HEAD":
     (cd "$wt_dir" && visible uv sync)
     # Allow direnv in worktree
     (cd "$wt_dir" && direnv allow 2>/dev/null) || true
-    # Commit initial worktree state
-    (cd "$wt_dir" && visible git add -A && visible git commit -m "Initial worktree state")
     echo ""
     echo "${GREEN}✓${NORMAL} Worktree ready: $wt_dir"
     echo "  Launch: ${COMMAND}cd $wt_dir && claude${NORMAL}"
