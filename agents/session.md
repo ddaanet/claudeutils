@@ -1,31 +1,27 @@
 # Session Handoff: 2026-02-06
 
-**Status:** Learnings consolidation design complete (Phase C). Design reviewed by opus, all fixes applied.
+**Status:** Missing parity tests written (8 gap areas). All tests pass (393/393).
 
 ## Completed This Session
 
-**Learnings consolidation design (Phase C):**
-- Generated full `plans/learnings-consolidation/design.md` from validated outline
-- Two parallel quiet-explore agents for codebase research (workflow map + agent patterns)
-- Loaded `plugin-dev:skill-development` and `plugin-dev:agent-development` for agent/skill guidance
-- Design covers: learning-ages.py script, remember-task agent, memory-refactor agent, handoff step 4c, remember skill update, tests
-- 7 design decisions (D-1 through D-7) with rationale
-- All 12 requirements (FR-1–9, NFR-1–3) traced to design elements
-- Design-vet-agent review: 0 critical, 2 major (both fixed), 5 minor (all fixed)
-  - Major: D-4 prolog→embedded protocol, D-6 retry mechanism specified
-  - Minor: cross-references, output format, staleness algorithm, tool constraints, traceability table
-
-**Reports generated:**
-- `plans/learnings-consolidation/reports/explore-current-workflow.md` — workflow map
-- `plans/learnings-consolidation/reports/explore-agent-patterns.md` — agent/skill patterns
-- `plans/learnings-consolidation/reports/design-review.md` — opus design review
+**Parity tests written (8 gap areas):**
+- Added `test_format_directory_basename_extraction()` — full path, trailing slash, single segment, root edge cases
+- Added `test_format_python_env()` — active env, no env, conda env formatting
+- Added `test_format_model_opus_bold()` — Opus bold+magenta, Sonnet/Haiku no bold
+- Added `test_format_context_integer_kilos()` — boundary tests: 999→"999", 1000→"1k", 1999→"1k", 50500→"50k"
+- Added `test_get_thinking_state_null_handling()` — null value, missing key, explicit false
+- Added `test_cli_double_space_separators()` — verifies `"  "` between sections
+- Added `test_cli_python_env_conditional()` — with/without env inclusion
+- Added `test_cli_ansi_color_preservation()` — ANSI codes survive `click.echo()`
+- All 8 gap areas from `plans/statusline-parity/test-plan-outline.md` now covered
+- Fixed import: Added `PythonEnv` to `test_statusline_display.py` imports
+- Full suite: 393/393 tests pass
 
 ## Pending Tasks
 
 - [ ] **Plan learnings consolidation** — `/plan-adhoc plans/learnings-consolidation/design.md`
   - Plan: learnings-consolidation | Status: designed
 - [ ] **Consolidate learnings** — learnings.md at 103 lines (soft limit 80), run `/remember`
-- [ ] **Write missing parity tests** — 8 gap areas in `plans/statusline-parity/test-plan-outline.md`
 - [ ] **Investigate prose gates fix** — Structural fix for skill gate skipping pattern
   - Plan: reflect-rca-prose-gates | Status: requirements
 - [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements
@@ -48,14 +44,14 @@
 
 ## Reference Files
 
-- **plans/learnings-consolidation/design.md** — Full design document
-- **plans/learnings-consolidation/reports/design-review.md** — Opus review (0 critical, 2 major fixed)
-- **plans/learnings-consolidation/reports/explore-current-workflow.md** — Workflow map
-- **plans/learnings-consolidation/reports/explore-agent-patterns.md** — Agent patterns
+- **plans/statusline-parity/test-plan-outline.md** — Original gap analysis (all 8 areas now covered)
+- **tests/test_statusline_display.py** — 4 new test functions added
+- **tests/test_statusline_context.py** — 1 new test function added
+- **tests/test_statusline_cli.py** — 3 new test functions added
 
 ## Next Steps
 
 Plan learnings consolidation via `/plan-adhoc plans/learnings-consolidation/design.md`. Or consolidate learnings first (`/remember`) since file is 23 lines over limit.
 
 ---
-*Handoff by Sonnet. Phase C design complete with opus review.*
+*Handoff by Sonnet. Parity tests complete, all pass.*
