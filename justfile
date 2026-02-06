@@ -106,7 +106,7 @@ wt-rm name:
 wt-merge name:
     #!{{ bash_prolog }}
     repo_name=$(basename "$PWD")
-    wt_dir="../${repo_name}-{{name}}"
+    wt_dir="$(cd .. && pwd)/${repo_name}-{{name}}"
     branch="wt/{{name}}"
     if ! git rev-parse --verify "$branch" >/dev/null 2>&1; then
         fail "Branch not found: $branch"
