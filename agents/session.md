@@ -1,21 +1,16 @@
 # Session Handoff: 2026-02-06
 
-**Status:** Plan archival and scheduling complete.
+**Status:** Plan archival complete. One pending task added.
 
 ## Completed This Session
 
 **Plan lifecycle maintenance:**
 - Archived 7 completed plan directories (handoff-lite-issue, claude-tools-recovery, claude-tools-rewrite, learnings-consolidation, statusline-parity, statusline-wiring, workflow-feedback-loops)
+- Deleted 3 completed plan files (majestic-herding-rain.md, review-requirements-consistency.md, robust-waddling-bunny.md)
 - Scheduled 5 unscheduled plans as pending tasks with status notes
-- Updated jobs.md: removed 11 completed plans from active table, updated archive count (18→29)
-- Updated requirements-skill note: evaluate with opus for dumping requirements/design after conversation without proceeding to plan outline
-
-**Plan status investigation:**
-- **commit-unification** (designed): Ready for /plan-adhoc, may be superseded by commit-rca-fixes
-- **prompt-composer** (designed): Extensive design with Phase 1 ready, but plan is old - needs viability evaluation
-- **markdown** (requirements): Test corpus for markdown formatters, needs scoping
-- **requirements-skill** (requirements): Evaluate with opus for post-conversation requirements capture
-- **handoff-lite-issue** (archived): RCA transcript, analysis complete, no implementation needed
+- Updated jobs.md: removed 11 completed plans from active table, archive count 18→29
+- Fixed linting issues in test files (import positioning, docstring format)
+- Commit 74c522e: Archive and scheduling complete
 
 ## Pending Tasks
 
@@ -41,22 +36,25 @@
   - Plan: markdown | Status: requirements
 - [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation without proceeding to plan outline
   - Plan: requirements-skill | Status: requirements | Notes: Will evaluate viability with opus
+- [ ] **Analyze parity test quality failures** — Investigate why parity tests added line limit violations and lint issues
 
 ## Blockers / Gotchas
 
 - **Prose gates pattern** — Skill steps without concrete tool calls get skipped in execution mode (observed 3x: checkpoints, vet-before-commit, session freshness). Root cause is structural, not behavioral.
 
+## Blockers / Gotchas
+
+**Test file line limits:** test_statusline_cli.py (499 lines) and test_statusline_display.py (494 lines) exceed 400-line limit after parity tests were added in previous session. Precommit blocks until addressed.
+
 ## Reference Files
 
 - **agents/jobs.md** — Plan lifecycle tracking (29 archived plans, 8 active)
-- **plans/commit-unification/design.md** — Commit skill unification design
-- **plans/prompt-composer/README.md** — Prompt composer system overview
-- **plans/markdown/test-corpus.md** — Markdown formatter test cases
-- **plans/requirements-skill/requirements.md** — Requirements skill research
+- **tests/test_statusline_cli.py** — 499 lines (exceeds 400 limit)
+- **tests/test_statusline_display.py** — 494 lines (exceeds 400 limit)
 
 ## Next Steps
 
-Review pending tasks and execute next priority work.
+Address test file line limits or analyze why parity tests bypassed quality checks.
 
 ---
-*Handoff by Sonnet. Plan archival and scheduling complete.*
+*Handoff by Sonnet. Plan archival complete, pending task added.*
