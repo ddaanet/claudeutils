@@ -8,7 +8,6 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
-| claude/prancy-greeting-wand | requirements | Built-in plan mode file |
 | commit-unification | designed | May be superseded by commit-rca-fixes |
 | continuation-passing | requirements | Opus design needed |
 | handoff-validation | requirements | Requires continuation-passing |

@@ -4,6 +4,7 @@
 # Volatile work files
 /scratch/
 /tmp/
+/plans/claude/
 
 # Python files
 __pycache__/
