@@ -1,30 +1,30 @@
 # Session Handoff: 2026-02-06
 
-**Status:** Task analysis complete. Test file line limits fixed. Commits unblocked.
+**Status:** Wave 1-2 complete. Test files fixed, 3 opus research reports produced.
 
 ## Completed This Session
 
-**Pending task analysis:**
-- Inventoried 14 pending tasks, 8 tracked plans, 1 commit blocker
-- Dependency analysis: physical (file contention), logical (output dependencies), temporal (ordering)
-- Identified 5 parallel groups (A-E) with max 3 concurrent sonnet sessions
-- Opus session sequencing: continuation-passing → handoff-validation (serial) + requirements-skill (parallel)
-- Background session scheduling strategy with rate-limit-aware reactive model
-- Output: `tmp/task-analysis.md`
+**Wave 1 — Test file line limit fix (commit 05903cd):**
+- Split test_statusline_cli.py (499L) → cli (240L) + cli_visual (276L)
+- Split test_statusline_display.py (494L) → display (375L) + display_bars (124L)
+- All 49 tests pass, precommit unblocked
 
-**Test file line limit fix:**
-- Split test_statusline_cli.py (499L) → test_statusline_cli.py (240L) + test_statusline_cli_visual.py (276L)
-- Split test_statusline_display.py (494L) → test_statusline_display.py (375L) + test_statusline_display_bars.py (124L)
-- All 49 tests pass, precommit succeeds
+**Wave 2 — Opus research (3 parallel background agents):**
+- Parity RCA: 5 root causes (no conformance validation, vet scope limitation, precommit bypass, no pre-write size check, false validation claims). 5 gaps remain. 4 iterations not 3 — final was interactive because integration still untested. Concurrent workflow evolution factor appended but not analyzed by RCA agent.
+- Prose gates fix: Read-anchor design — each prose gate gets mandatory Read/Bash call as first instruction. Convention: "Every skill step MUST begin with a concrete tool call."
+- Workflow skills audit: 12 action items (4 high). Missing checkpoint commit before design-vet-agent. plan-adhoc assembly contradicts "no manual assembly" decision. Consolidation and complexity gates missing from plan-adhoc.
+
+**Task dependency analysis:**
+- 15 pending tasks, 8 tracked plans, parallelization schedule in tmp/task-analysis.md
+- Dependency graph, 5 parallel groups, rate-limit-aware reactive scheduling
 
 ## Pending Tasks
 
-- [x] **Fix test file line limits** — Split both files under 400L. Precommit unblocked.
-- [ ] **Analyze parity test quality failures** — Why parity tests bypassed quality checks (line limits, lint). Related to test limit fix.
-- [ ] **Investigate prose gates fix** — Structural fix for skill gate skipping pattern
-  - Plan: reflect-rca-prose-gates | Status: requirements
-- [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements
-- [ ] **Update design skill** — Checkpoint commit before and after design-vet-agent
+- [ ] **Analyze parity test quality failures** — RCA complete (tmp/rca-parity-iterations.md). Needs: act on 5 gaps, factor in workflow evolution
+- [ ] **Investigate prose gates fix** — Design complete (tmp/design-prose-gates-fix.md). Needs: implement Read-anchor pattern in 3 skills
+  - Plan: reflect-rca-prose-gates | Status: designed
+- [ ] **Align plan-adhoc with plan-tdd updates** — Audit complete (tmp/workflow-skills-audit.md). Needs: port 7 changes (3 high priority)
+- [ ] **Update design skill** — Audit complete (tmp/workflow-skills-audit.md). Needs: add checkpoint commit at C.2, fix C.4 wording
 - [ ] **Continuation passing design** — Validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
 - [ ] **Evaluate plugin migration** — Symlink situation causing pain
@@ -41,25 +41,28 @@
   - Plan: prompt-composer | Status: designed | Notes: Phase 1 ready but plan is old
 - [ ] **Scope markdown test corpus work** — Formatter test cases, determine approach
   - Plan: markdown | Status: requirements
-- [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation without proceeding to plan outline | opus
+- [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation | opus
   - Plan: requirements-skill | Status: requirements
 
 ## Blockers / Gotchas
 
-**Prose gates pattern:** Skill steps without concrete tool calls get skipped in execution mode (observed 3x). Root cause is structural, not behavioral.
+**Prose gates pattern:** Design ready (Read-anchor), implementation pending. 3 skills need patching.
+
+**Parity RCA concurrent evolution:** Workflow skills changed during parity execution — factor not yet analyzed. May explain iteration count.
 
 **Key dependency chain:** continuation-passing → handoff-validation → orchestrate-evolution (serial opus sessions)
 
 ## Reference Files
 
-- **tmp/task-analysis.md** — Full dependency graph, parallelization groups, scheduling strategy
+- **tmp/task-analysis.md** — Dependency graph, parallelization groups, scheduling strategy
+- **tmp/rca-parity-iterations.md** — Parity RCA (5 root causes, 5 gaps, workflow evolution addendum)
+- **tmp/design-prose-gates-fix.md** — Prose gates Read-anchor design
+- **tmp/workflow-skills-audit.md** — Plan-adhoc alignment + design skill audit (12 items)
 - **agents/jobs.md** — Plan lifecycle tracking (29 archived, 8 active)
-- **tests/test_statusline_cli_visual.py** — New file from split
-- **tests/test_statusline_display_bars.py** — New file from split
 
 ## Next Steps
 
-Parity test quality analysis (why tests bypassed quality checks). Then Wave 2 parallel work.
+Wave 3: Validator consolidation + symlink hook (sonnet, parallel). Or act on Wave 2 findings first (prose gates implementation, plan-adhoc porting, design skill checkpoint).
 
 ---
-*Handoff by Sonnet. Analysis + test file split.*
+*Handoff by Sonnet. Wave 1-2 complete, 3 opus reports produced.*
