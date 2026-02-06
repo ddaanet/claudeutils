@@ -15,7 +15,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | continuation-passing | requirements | Opus design needed |
 | handoff-lite-issue | requirements | Issue investigation |
 | handoff-validation | requirements | Requires continuation-passing |
-| learnings-consolidation | planned | Runbook complete (7 steps, 4 phases) |
+| learnings-consolidation | complete | Learnings consolidation infrastructure (7 steps, 4 phases) |
 | majestic-herding-rain | complete | Gitmoji integration |
 | markdown | requirements | Markdown cleanup test corpus |
 | prompt-composer | designed | Oldest plan, at risk |
