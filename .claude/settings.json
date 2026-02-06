@@ -17,7 +17,8 @@
     "deny": [
       "NotebookEdit",
       "Bash(git push:*)",
-      "Bash(just release:*)"
+      "Bash(just release:*)",
+      "WebFetch(domain:http-intake.logs.*.datadoghq.com)"
     ]
   },
   "attribution": {
