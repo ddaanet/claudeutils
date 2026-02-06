@@ -1,22 +1,27 @@
 # Session Handoff: 2026-02-06
 
-**Status:** Prose gates D+B hybrid fix implemented. Vet requirement simplified.
+**Status:** Git worktree parallel session support implemented. Recipes tested, workflow integration added.
 
 ## Completed This Session
 
-**Prose gates D+B hybrid fix (commit 5bd9f22):**
-- Critical analysis of original Option D design — identified weakness (Read anchor alone insufficient)
-- D+B hybrid: merge gates into action steps (Option B) + anchor with tool call (Option D)
-- Commit skill: steps 0+0b+1 → single Step 1 with Gate A (Read session.md) + Gate B (git diff)
-- Orchestrate skill: 3.3+3.4 → merged 3.3 with Read anchor for phase boundary detection
-- Vet requirement: simplified to single vet-fix-agent, apply ALL fixes (no importance filtering)
-- Vet-fix-agent: removed critical/major-only constraint across 8 locations in agent definition
-- Decision documented in implementation-notes.md, learnings updated, memory-index entry added
-- Vet review passed (0 critical/major remaining after fixes)
-- Reflect RCA: fix wasn't testable in-session (skill loaded old version pre-edit, requires restart)
+**Worktree parallel session infrastructure:**
+- Researched git worktree + submodule patterns (web + local), Agent Teams (experimental), GitButler virtual branching
+- Implemented 3 justfile recipes: `wt-new`, `wt-ls`, `wt-rm`
+- Key discoveries during testing:
+  - Unpushed submodule commits: `git submodule update --init` fails → fix: `--reference` to local checkout
+  - Worktree removal with submodules: `git worktree remove` refuses → fix: `--force` flag (deinit insufficient)
+- Full create-verify-remove cycle tested and working
+- execute-rule.md: parallel task detection in STATUS, MODE 5 WORKTREE SETUP (`wt` shortcut), focused session.md pattern
+- Cache rebuilt, precommit passes
+
+**Sandbox requirements for worktree operations:**
+- `just wt-new` and `just wt-rm` write outside project directory (`../claudeutils-*`)
+- Need `dangerouslyDisableSandbox: true` for both
+- User acknowledged: "i can add sandbox exemption"
 
 ## Pending Tasks
 
+- [ ] **Fix quiet-explore agent usage pattern** — persistent artifacts for reuse across context/audit, not ephemeral tmp/
 - [ ] **Analyze parity test quality failures** — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Align plan-adhoc with plan-tdd updates** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: port 7 changes (3 high priority)
 - [ ] **Update design skill** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: add checkpoint commit at C.2, fix C.4 wording
@@ -44,23 +49,22 @@
 
 ## Blockers / Gotchas
 
-**Prose gates fix requires restart to test.** Skill files loaded at session start; mid-session edits not picked up. First real test is next `/commit` invocation after restart.
+**Worktree sandbox exemption pending.** User needs to add `Bash(just wt-new:*)` and `Bash(just wt-rm:*)` to permissions.allow, plus `dangerouslyDisableSandbox: true` exemption for these commands.
 
-**Parity RCA concurrent evolution:** Workflow skills changed during parity execution — factor not yet analyzed.
+**Prose gates fix requires restart to test.** Skill files loaded at session start; mid-session edits not picked up.
 
 **Key dependency chain:** continuation-passing → handoff-validation → orchestrate-evolution (serial opus sessions)
 
 ## Reference Files
 
-- **plans/reflect-rca-prose-gates/outline.md** — D+B hybrid design (refined from critical analysis)
-- **plans/reflect-rca-prose-gates/reports/vet-review.md** — Vet review of implementation
-- **plans/reflect-rca-parity-iterations/rca.md** — Parity RCA (5 root causes, 5 gaps)
+- **justfile** — `wt-new`, `wt-ls`, `wt-rm` recipes (lines 53-90)
+- **agent-core/fragments/execute-rule.md** — MODE 5 WORKTREE SETUP, parallel detection, `wt` shortcut
+- **plans/reflect-rca-prose-gates/outline.md** — D+B hybrid design
 - **plans/workflow-skills-audit/audit.md** — Plan-adhoc alignment + design skill audit (12 items)
-- **agents/jobs.md** — Plan lifecycle tracking
 
 ## Next Steps
 
-Restart session to activate prose gates fix. Then: vet-fix-agent prompt audit (quick), or plan-adhoc alignment (moderate), or continuation-passing design (opus).
+Quick wins: vet-fix-agent prompt audit, quiet-explore pattern fix. Moderate: plan-adhoc alignment. Use `wt` for parallel execution of independent sonnet tasks.
 
 ---
-*Handoff by Sonnet. Prose gates fix + vet simplification complete.*
+*Handoff by Sonnet. Worktree infrastructure implemented and tested.*

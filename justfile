@@ -50,6 +50,49 @@ line-limits:
     run-line-limits
     report-end-safe "Line limits"
 
+# Create a git worktree for parallel work
+[no-exit-message]
+wt-new name base="HEAD":
+    #!{{ bash_prolog }}
+    repo_name=$(basename "$PWD")
+    wt_dir="../${repo_name}-{{name}}"
+    branch="wt/{{name}}"
+    if [ -d "$wt_dir" ]; then
+        fail "Worktree already exists: $wt_dir"
+    fi
+    main_dir="$PWD"
+    visible git worktree add "$wt_dir" -b "$branch" "{{base}}"
+    (cd "$wt_dir" && visible git submodule update --init --reference "$main_dir/agent-core")
+    echo ""
+    echo "${GREEN}✓${NORMAL} Worktree ready: $wt_dir"
+    echo "  Launch: ${COMMAND}cd $wt_dir && claude${NORMAL}"
+
+# List active git worktrees
+wt-ls:
+    @git worktree list
+
+# Remove a git worktree and its branch
+[no-exit-message]
+wt-rm name:
+    #!{{ bash_prolog }}
+    repo_name=$(basename "$PWD")
+    wt_dir="../${repo_name}-{{name}}"
+    branch="wt/{{name}}"
+    if [ ! -d "$wt_dir" ]; then
+        fail "Worktree not found: $wt_dir"
+    fi
+    # Check for uncommitted changes (warn before force-removing)
+    if ! (cd "$wt_dir" && git diff --quiet HEAD); then
+        echo "${RED}Warning: $wt_dir has uncommitted changes${NORMAL}"
+    fi
+    # --force required: git can't remove worktrees containing submodules
+    visible git worktree remove --force "$wt_dir"
+    if git rev-parse --verify "$branch" >/dev/null 2>&1; then
+        visible git branch -d "$branch" || \
+            echo "${RED}Branch $branch has unmerged changes. Use: git branch -D $branch${NORMAL}"
+    fi
+    echo "${GREEN}✓${NORMAL} Worktree removed: $wt_dir"
+
 # Format, check with complexity disabled, test
 [no-exit-message]
 lint: format

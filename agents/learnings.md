@@ -101,3 +101,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Research deliverables go to plans/ directories where they're tracked. Only ephemeral scheduling/diagnostic artifacts belong in tmp/
 - Rationale: Commits are sync points — session.md references must resolve in the same commit. Gitignored paths break state synchronization across sessions
 - Distinction: tmp/ = throwaway (execution logs, scratch). plans/ = actionable (designs, RCA reports, audits)
+## Git worktree submodule gotchas
+- Unpushed submodule commits: `git submodule update --init` clones from remote, fails if commit not pushed
+- Fix: `--reference <local-checkout>` uses local objects as alternates, avoids remote fetch
+- Worktree removal: `git worktree remove` refuses with submodules (even after `deinit -f --all`)
+- Fix: `--force` flag required; warn user about uncommitted changes before forcing
+- Symlinks work: relative symlinks (../../agent-core/...) resolve correctly per-worktree after submodule init
