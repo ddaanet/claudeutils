@@ -21,15 +21,11 @@
 ## Pending Tasks
 
 - [x] **Fix quiet-explore agent usage pattern** — persistent artifacts for reuse across context/audit, not ephemeral tmp/
-- [ ] **Analyze parity test quality failures** — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Align plan-adhoc with plan-tdd updates** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: port 7 changes (3 high priority)
 - [ ] **Update design skill** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: add checkpoint commit at C.2, fix C.4 wording
 - [ ] **Update design skill to direct workflow/skill/agent edits to opus**
-- [ ] **Command to write last agent output to file** — save output tokens
-- [ ] **Check workflow skills for redundant vet-fix-agent prompts** — skills may pass "apply critical/major" in delegation prompts, now contradicts agent definition
 - [ ] **Continuation passing design** — Validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
-- [ ] **Evaluate plugin migration** — Symlink situation causing pain
 - [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink | restart
 - [ ] **Validator consolidation** — Move validators to claudeutils package with tests
   - Plan: validator-consolidation | Status: requirements
@@ -45,6 +41,13 @@
   - Plan: markdown | Status: requirements
 - [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation | opus
   - Plan: requirements-skill | Status: requirements
+
+## Worktree Tasks
+
+- [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
+- [x] **Check workflow skills for redundant vet-fix-agent prompts** — Updated 9 locations across 3 skill files
+- [ ] **Command to write last agent output to file** → `wt/agent-output-cmd` — save output tokens
+- [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
 
 ## Blockers / Gotchas
 

@@ -107,3 +107,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Worktree removal: `git worktree remove` refuses with submodules (even after `deinit -f --all`)
 - Fix: `--force` flag required; warn user about uncommitted changes before forcing
 - Symlinks work: relative symlinks (../../agent-core/...) resolve correctly per-worktree after submodule init
+## Recipe failure → retry recipe
+- Anti-pattern: Recipe fails partway, agent manually completes remaining steps with ad-hoc commands
+- Correct pattern: Fix obstruction (e.g., remove stale lock), retry the recipe from scratch
+- Rationale: Recipes are atomic units — manually finishing bypasses error handling, ordering, side effects
+- Fix: Added "Partial failure recovery" rule to project-tooling.md
