@@ -1,66 +1,54 @@
-# Session Handoff: 2026-02-06
+# Session: Worktree — Plugin migration design
 
-**Status:** Worktree workflow complete — create, merge, remove lifecycle fully automated.
+**Status:** Outline complete, pending user approval on plugin name. Design document next.
 
 ## Completed This Session
 
-**Worktree improvements (ad42af0):**
-- `wt-new`: agent-core on branch (not detached HEAD), `uv sync`, `direnv allow`, initial commit
-- `wt-merge`: three-layer merge recipe — fetch agent-core commits into main's submodule, merge parent branch, auto-resolve session.md with `--ours`
-- execute-rule.md: Worktree section in STATUS, MODE 5 single-task `wt <task-name>` support, Worktree Tasks section in session.md
-- Handoff template: optional Worktree Tasks section
+**Evaluation & Research:**
+- Audited current symlink setup: 16 skills, 12+ agents, 4 hooks symlinked via `just sync-to-parent`
+- Evaluated plugin capabilities: skills/agents/hooks → auto-discovery ✓, fragments → no plugin equivalent ✗
+- Researched plugin dev story: `--plugin-dir` gives live editing, marketplace install uses content-addressed cache
+- Confirmed `$CLAUDE_PLUGIN_ROOT` available (official plugins use it)
+- Identified platform gap: plugins cannot inject CLAUDE.md context
 
-**Quiet-explore fix (worktree merge):**
-- Merged `wt/quiet-explore` — agent definition updated for persistent output paths (plans/ not tmp/)
-- Fixed `wt-merge` bug: relative `$wt_dir` broke after `cd agent-core` (now absolute path)
+**Outline:**
+- Produced `plans/plugin-migration/outline.md` with 8 components, requirements (FR-1–FR-9, NFR-1/2), validation table
+- Opus outline-review-agent reviewed: 4 major + 8 minor issues found and fixed
+- Added implementation order, rollback strategy, scope boundaries
 
-**Previous sessions (already committed):**
-- Worktree improvements: `wt-new`, `wt-ls`, `wt-rm`, `wt-merge` recipes
-- Gitignore `plans/claude/` as ephemeral plan-mode files
+**Resolved decisions:**
+- Fragment directory: `agents/rules/` (Opus brainstorm — clear, short, unambiguous)
+- Hook ownership: ALL hooks move to plugin (including `/tmp` blocking — it's part of the package)
+- Init idempotency: Always idempotent, never destroy CLAUDE.md
+- Bash prolog: Imported via justfile `import`
+- Agent namespace: Plugin agents prefixed, no collision with local `*-task.md`
+- Settings.json residual: Keeps permissions/sandbox config, hooks section removed
+
+**Naming research:**
+- 7 rounds of Opus brainstorming, 60+ candidates evaluated
+- Research persisted to `plans/plugin-migration/reports/naming-research.md`
+- Frontrunners: `tenet` (opinionated beliefs), `lathe` (production system), `rebar` (structural reinforcement)
+- Identity dimensions: opinionated, automated production, corrective feedback, quality at cost, institutional memory
+- No name chosen yet — user wants more iteration
 
 ## Pending Tasks
 
-- [x] **Fix quiet-explore agent usage pattern** — persistent artifacts for reuse across context/audit, not ephemeral tmp/
-- [ ] **Analyze parity test quality failures** — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
-- [ ] **Align plan-adhoc with plan-tdd updates** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: port 7 changes (3 high priority)
-- [ ] **Update design skill** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: add checkpoint commit at C.2, fix C.4 wording
-- [ ] **Update design skill to direct workflow/skill/agent edits to opus**
-- [ ] **Command to write last agent output to file** — save output tokens
-- [ ] **Check workflow skills for redundant vet-fix-agent prompts** — skills may pass "apply critical/major" in delegation prompts, now contradicts agent definition
-- [ ] **Continuation passing design** — Validate outline against requirements | opus
-  - Plan: continuation-passing | Status: requirements
-- [ ] **Evaluate plugin migration** — Symlink situation causing pain
-- [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink | restart
-- [ ] **Validator consolidation** — Move validators to claudeutils package with tests
-  - Plan: validator-consolidation | Status: requirements
-- [ ] **Handoff validation design** — Complete design, requires continuation-passing | opus
-  - Plan: handoff-validation | Status: requirements
-- [ ] **Orchestrate evolution design** — Absorb planning, finalize phase pattern | opus
-  - Plan: orchestrate-evolution | Status: requirements
-- [ ] **Plan commit unification** — Merge commit skills, inline gitmoji
-  - Plan: commit-unification | Status: designed | Notes: May be superseded by commit-rca-fixes
-- [ ] **Evaluate prompt-composer relevance** — Oldest plan, extensive design, assess viability
-  - Plan: prompt-composer | Status: designed | Notes: Phase 1 ready but plan is old
-- [ ] **Scope markdown test corpus work** — Formatter test cases, determine approach
-  - Plan: markdown | Status: requirements
-- [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation | opus
-  - Plan: requirements-skill | Status: requirements
+- [ ] **Choose plugin name** — Continue brainstorming with constraints in `plans/plugin-migration/reports/naming-research.md`
+- [ ] **Generate design document** — `/design` Phase C: expand outline to full `plans/plugin-migration/design.md`
+- [ ] **Plan plugin migration** — `/plan-adhoc plans/plugin-migration/design.md` after design complete
 
 ## Blockers / Gotchas
 
-**Worktree sandbox exemptions needed.** `just wt-new`, `just wt-rm`, `just wt-merge` all write outside project directory. Need `dangerouslyDisableSandbox: true` for each.
+**Plugin name undecided:** Blocks design.md finalization (name appears throughout). Can start design with placeholder.
 
-**Key dependency chain:** continuation-passing → handoff-validation → orchestrate-evolution (serial opus sessions)
+**Platform gaps:**
+- Plugins cannot contribute to CLAUDE.md always-loaded context — fragments require migration command + `@` references
+- No PostUpgrade hook — UserPromptSubmit version check is workaround
+- SessionStart hook output discarded for new sessions (known limitation)
 
 ## Reference Files
 
-- **justfile** — `wt-new`, `wt-ls`, `wt-rm`, `wt-merge` recipes (lines 53-140)
-- **agent-core/fragments/execute-rule.md** — MODE 5 (single-task + parallel), Worktree Tasks section, STATUS Worktree display
-- **plans/workflow-skills-audit/audit.md** — Plan-adhoc alignment + design skill audit (12 items)
-
-## Next Steps
-
-Quick wins: vet-fix-agent prompt audit, quiet-explore pattern fix. Moderate: plan-adhoc alignment. Use `wt` for parallel execution of independent sonnet tasks.
-
----
-*Handoff by Sonnet. Full worktree lifecycle: create → work → merge → remove.*
+- **plans/plugin-migration/outline.md** — Reviewed outline with requirements and validation
+- **plans/plugin-migration/reports/outline-review.md** — Opus review report (4 major, 8 minor fixes)
+- **plans/plugin-migration/reports/naming-research.md** — Full naming constraints, rejected names, scoring matrix
+- **.claude/settings.json** — Current hook/plugin configuration
