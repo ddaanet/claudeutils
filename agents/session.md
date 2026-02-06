@@ -1,26 +1,19 @@
 # Session Handoff: 2026-02-06
 
-**Status:** Worktree workflow complete — create, merge, remove lifecycle fully automated.
+**Status:** Removed pytest-quiet workaround, created handoff-uncommitted worktree.
 
 ## Completed This Session
 
-**Worktree improvements (ad42af0):**
-- `wt-new`: agent-core on branch (not detached HEAD), `uv sync`, `direnv allow`, initial commit
-- `wt-merge`: three-layer merge recipe — fetch agent-core commits into main's submodule, merge parent branch, auto-resolve session.md with `--ours`
-- execute-rule.md: Worktree section in STATUS, MODE 5 single-task `wt <task-name>` support, Worktree Tasks section in session.md
-- Handoff template: optional Worktree Tasks section
+**Remove pytest-quiet workaround:**
+- Replaced `safe pytest-quiet` with `safe pytest -q` in precommit and lint recipes
+- Removed `pytest-quiet` function (lines 356-365) — pytest-markdown-report bug is fixed, exit codes now correct
+- Files: `justfile` (lines 33, 153, removed function)
 
-**Quiet-explore fix (worktree merge):**
-- Merged `wt/quiet-explore` — agent definition updated for persistent output paths (plans/ not tmp/)
-- Fixed `wt-merge` bug: relative `$wt_dir` broke after `cd agent-core` (now absolute path)
-
-**Previous sessions (already committed):**
-- Worktree improvements: `wt-new`, `wt-ls`, `wt-rm`, `wt-merge` recipes
-- Gitignore `plans/claude/` as ephemeral plan-mode files
+**Worktree setup:**
+- Created `wt/handoff-uncommitted` for handoff skill multi-handoff fix
 
 ## Pending Tasks
 
-- [x] **Fix quiet-explore agent usage pattern** — persistent artifacts for reuse across context/audit, not ephemeral tmp/
 - [ ] **Align plan-adhoc with plan-tdd updates** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: port 7 changes (3 high priority)
 - [ ] **Update design skill** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: add checkpoint commit at C.2, fix C.4 wording
 - [ ] **Update design skill to direct workflow/skill/agent edits to opus**
@@ -45,15 +38,17 @@
 ## Worktree Tasks
 
 - [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
-- [x] **Check workflow skills for redundant vet-fix-agent prompts** — Updated 9 locations across 3 skill files
 - [ ] **Command to write last agent output to file** → `wt/agent-output-cmd` — save output tokens
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
+- [ ] **Fix handoff skill for multiple handoffs before commit** → `wt/handoff-uncommitted` — Clarify uncommitted session.md changes preserved across handoffs
 
 ## Blockers / Gotchas
 
 **Worktree sandbox exemptions needed.** `just wt-new`, `just wt-rm`, `just wt-merge` all write outside project directory. Need `dangerouslyDisableSandbox: true` for each.
 
 **Key dependency chain:** continuation-passing → handoff-validation → orchestrate-evolution (serial opus sessions)
+
+**orchestrate-evolution missing from jobs.md** — needs entry added.
 
 ## Reference Files
 
@@ -63,7 +58,7 @@
 
 ## Next Steps
 
-Quick wins: vet-fix-agent prompt audit, quiet-explore pattern fix. Moderate: plan-adhoc alignment. Use `wt` for parallel execution of independent sonnet tasks.
+Merge `wt/handoff-uncommitted` when ready (`just wt-merge handoff-uncommitted`). Quick wins: plan-adhoc alignment. Use `wt` for parallel execution of independent sonnet tasks.
 
 ---
-*Handoff by Sonnet. Full worktree lifecycle: create → work → merge → remove.*
+*Handoff by Sonnet. Justfile cleanup + worktree setup.*

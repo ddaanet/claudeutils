@@ -30,7 +30,7 @@ precommit:
     agent-core/bin/validate-jobs.py
     gmake --no-print-directory -C agent-core check
     run-checks
-    safe pytest-quiet
+    safe pytest -q
     run-line-limits
     report-end-safe "Precommit"
 
@@ -150,7 +150,7 @@ lint: format
     report "ruff check" ruff check -q --ignore=$ruff_ignores
     report "docformatter -c" docformatter -c src tests
     report "mypy" mypy
-    safe pytest-quiet
+    safe pytest -q
     report-end-safe "Lint"
 
 # Check code style
@@ -350,17 +350,6 @@ report () {
     if [ -s "$tmpfile" ]; then
         echo "${HEADER_STYLE}# $header${NORMAL}"
         cat "$tmpfile"
-    fi
-}
-
-pytest-quiet () {
-    # Bug: pytest -q exits 0 even if tests fail
-    set-tmpfile
-    pytest -q > "$tmpfile"
-    if grep -q "^Re-run failed: " "$tmpfile"; then
-        show "# pytest"
-        cat "$tmpfile"
-        return 1
     fi
 }
 
