@@ -40,7 +40,7 @@
 - [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Command to write last agent output to file** → `wt/agent-output-cmd` — save output tokens
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
-- [ ] **Fix handoff skill for multiple handoffs before commit** → `wt/handoff-uncommitted` — Clarify uncommitted session.md changes preserved across handoffs
+- [x] **Fix handoff skill for multiple handoffs before commit** — Merged from wt/handoff-uncommitted
 
 ## Blockers / Gotchas
 
