@@ -150,6 +150,51 @@ def test_get_thinking_state_missing_file() -> None:
         assert result.enabled is True
 
 
+def test_get_thinking_state_null_handling() -> None:
+    """Test get_thinking_state handles null and missing key gracefully.
+
+    When alwaysThinkingEnabled is null or absent, defaults to enabled=True.
+    """
+    # Test case 1: alwaysThinkingEnabled: null
+    settings_data_null = {"alwaysThinkingEnabled": None}
+    with patch("pathlib.Path.open", create=True) as mock_open:
+        mock_file = MagicMock()
+        mock_file.__enter__.return_value.read.return_value = json.dumps(
+            settings_data_null
+        )
+        mock_open.return_value = mock_file
+
+        result = get_thinking_state()
+        assert isinstance(result, ThinkingState)
+        assert result.enabled is True
+
+    # Test case 2: alwaysThinkingEnabled key absent
+    settings_data_absent = {"otherKey": "value"}
+    with patch("pathlib.Path.open", create=True) as mock_open:
+        mock_file = MagicMock()
+        mock_file.__enter__.return_value.read.return_value = json.dumps(
+            settings_data_absent
+        )
+        mock_open.return_value = mock_file
+
+        result = get_thinking_state()
+        assert isinstance(result, ThinkingState)
+        assert result.enabled is True
+
+    # Test case 3: alwaysThinkingEnabled: false (explicit disable)
+    settings_data_false = {"alwaysThinkingEnabled": False}
+    with patch("pathlib.Path.open", create=True) as mock_open:
+        mock_file = MagicMock()
+        mock_file.__enter__.return_value.read.return_value = json.dumps(
+            settings_data_false
+        )
+        mock_open.return_value = mock_file
+
+        result = get_thinking_state()
+        assert isinstance(result, ThinkingState)
+        assert result.enabled is False
+
+
 def test_calculate_context_tokens_from_current_usage() -> None:
     """Test calculate_context_tokens sums 4 token fields from current_usage."""
     # Create StatuslineInput with current_usage containing 4 token values

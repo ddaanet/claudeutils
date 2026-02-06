@@ -3,7 +3,7 @@
 import pytest
 
 from claudeutils.statusline import StatuslineFormatter
-from claudeutils.statusline.models import GitStatus, PlanUsageData
+from claudeutils.statusline.models import GitStatus, PlanUsageData, PythonEnv
 
 
 def test_colored_text() -> None:
@@ -178,6 +178,28 @@ def test_format_model(
     assert expected_color in result
 
 
+def test_format_model_opus_bold() -> None:
+    """Format model applies bold styling to Opus.
+
+    Opus has both magenta color (\033[35m) and bold (\033[1m).
+    Sonnet and Haiku do NOT have bold styling.
+    """
+    formatter = StatuslineFormatter()
+
+    # Opus has both magenta and bold
+    opus_result = formatter.format_model("Claude Opus 4")
+    assert "\033[1m" in opus_result  # Bold
+    assert "\033[35m" in opus_result  # Magenta
+
+    # Sonnet does NOT have bold
+    sonnet_result = formatter.format_model("Claude Sonnet 4")
+    assert "\033[1m" not in sonnet_result
+
+    # Haiku does NOT have bold
+    haiku_result = formatter.format_model("Claude Haiku 4")
+    assert "\033[1m" not in haiku_result
+
+
 def test_format_model_unknown() -> None:
     """Format unknown model without emoji."""
     formatter = StatuslineFormatter()
@@ -228,6 +250,55 @@ def test_format_directory() -> None:
     assert "claudeutils" in result  # Directory name
     assert "\033[36m" in result  # Cyan ANSI code
     assert "\033[0m" in result  # Reset code
+
+
+def test_format_directory_basename_extraction() -> None:
+    """Format directory extracts basename from full paths.
+
+    Tests path-splitting logic for various path formats.
+    """
+    formatter = StatuslineFormatter()
+
+    # Full path → basename
+    result = formatter.format_directory("/Users/david/code/claudeutils")
+    assert "claudeutils" in result
+    assert "/Users" not in result
+
+    # Trailing slash → basename
+    result = formatter.format_directory("/Users/david/code/claudeutils/")
+    assert "claudeutils" in result
+    assert "/Users" not in result
+
+    # Single segment (no slash) → unchanged
+    result = formatter.format_directory("claudeutils")
+    assert "claudeutils" in result
+
+    # Root edge case
+    result = formatter.format_directory("/")
+    assert "📁" in result  # Should still have emoji
+
+
+def test_format_python_env() -> None:
+    """Format Python environment with emoji and name.
+
+    StatuslineFormatter.format_python_env() returns environment display with 🐍
+    emoji and environment name. Returns empty string when no environment.
+    """
+    formatter = StatuslineFormatter()
+
+    # Active env
+    result = formatter.format_python_env(PythonEnv(name=".venv"))
+    assert "🐍" in result
+    assert ".venv" in result
+
+    # No env
+    result = formatter.format_python_env(PythonEnv(name=None))
+    assert result == ""
+
+    # Conda env
+    result = formatter.format_python_env(PythonEnv(name="conda-env"))
+    assert "🐍" in result
+    assert "conda-env" in result
 
 
 def test_format_git_status() -> None:
@@ -395,3 +466,29 @@ def test_format_context(tokens: int, expected_count: str, expected_color: str) -
     # Extra check for critical color (1.2M case)
     if tokens == 1200000:
         assert "\033[5m" in result  # BLINK
+
+
+def test_format_context_integer_kilos() -> None:
+    """Test format_context uses integer kilos (truncation, not rounding).
+
+    Verifies boundary behavior for kilo thresholds.
+    """
+    formatter = StatuslineFormatter()
+
+    # 1999 → "1k" (truncation, not rounding)
+    result = formatter.format_context(1999)
+    assert "1k" in result
+
+    # 999 → "999" (below kilo threshold)
+    result = formatter.format_context(999)
+    assert "999" in result
+    assert "k" not in result
+
+    # 1000 → "1k" (exact boundary)
+    result = formatter.format_context(1000)
+    assert "1k" in result
+
+    # 50500 → "50k" (not "50.5k")
+    result = formatter.format_context(50500)
+    assert "50k" in result
+    assert "50.5" not in result

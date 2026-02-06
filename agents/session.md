@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-06
 
-**Status:** Learnings consolidation complete (all 7 steps executed).
+**Status:** Learnings consolidation complete (all 7 steps executed). Parity tests complete (all 8 gap areas).
 
 ## Completed This Session
 
@@ -51,10 +51,22 @@
 - Phase checkpoints: main 5dc9397 (Phase 1-2), agent-core 2f06e62 (Phase 3 critical fix)
 - Final vet: main 7bc69da
 
+**Parity tests written (8 gap areas):**
+- Added `test_format_directory_basename_extraction()` — full path, trailing slash, single segment, root edge cases
+- Added `test_format_python_env()` — active env, no env, conda env formatting
+- Added `test_format_model_opus_bold()` — Opus bold+magenta, Sonnet/Haiku no bold
+- Added `test_format_context_integer_kilos()` — boundary tests: 999→"999", 1000→"1k", 1999→"1k", 50500→"50k"
+- Added `test_get_thinking_state_null_handling()` — null value, missing key, explicit false
+- Added `test_cli_double_space_separators()` — verifies `"  "` between sections
+- Added `test_cli_python_env_conditional()` — with/without env inclusion
+- Added `test_cli_ansi_color_preservation()` — ANSI codes survive `click.echo()`
+- All 8 gap areas from `plans/statusline-parity/test-plan-outline.md` now covered
+- Fixed import: Added `PythonEnv` to `test_statusline_display.py` imports
+- Full suite: 393/393 tests pass
+
 ## Pending Tasks
 
 - [ ] **Consolidate learnings** — learnings.md at 102 lines (soft limit 80), run `/remember`
-- [ ] **Write missing parity tests** — 8 gap areas in `plans/statusline-parity/test-plan-outline.md`
 - [ ] **Investigate prose gates fix** — Structural fix for skill gate skipping pattern
   - Plan: reflect-rca-prose-gates | Status: requirements
 - [ ] **Align plan-adhoc with plan-tdd updates** — Port workflow improvements
@@ -86,10 +98,14 @@
 - **agent-core/agents/remember-task.md** — Autonomous consolidation agent
 - **agent-core/agents/memory-refactor.md** — File splitting agent (400-line limit)
 - **tests/test_learning_ages.py** — 16 unit/integration tests
+- **plans/statusline-parity/test-plan-outline.md** — Original gap analysis (all 8 areas now covered)
+- **tests/test_statusline_display.py** — 4 new test functions added
+- **tests/test_statusline_context.py** — 1 new test function added
+- **tests/test_statusline_cli.py** — 3 new test functions added
 
 ## Next Steps
 
 Run `/remember` to consolidate learnings.md (102 lines, 22 over soft limit).
 
 ---
-*Handoff by Sonnet. Learnings consolidation infrastructure complete and tested.*
+*Handoff by Sonnet. Learnings consolidation infrastructure complete and tested. Parity tests complete, all pass.*
