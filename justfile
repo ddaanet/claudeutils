@@ -115,10 +115,16 @@ wt-merge name:
         (cd agent-core && visible git merge --no-edit "$branch")
         (cd agent-core && visible git branch -d "$branch")
         visible git add agent-core
+        visible git commit -m "Merge agent-core from $branch"
     fi
-    # Step 2: Merge parent branch, auto-resolve session.md with ours
+    # Step 2: Merge parent branch, auto-resolve agent-core + session.md
     if ! git merge --no-edit "$branch"; then
-        if git diff --name-only --diff-filter=U | grep -q "agents/session.md"; then
+        # agent-core already merged in Step 1 — keep ours
+        if git diff --name-only --diff-filter=U | grep -q "^agent-core$"; then
+            visible git checkout --ours agent-core
+            visible git add agent-core
+        fi
+        if git diff --name-only --diff-filter=U | grep -q "^agents/session.md$"; then
             visible git checkout --ours agents/session.md
             visible git add agents/session.md
         fi
