@@ -20,11 +20,11 @@
 
 ## Pending Tasks
 
-- [ ] **Analyze parity test quality failures** — RCA complete (tmp/rca-parity-iterations.md). Needs: act on 5 gaps, factor in workflow evolution
-- [ ] **Investigate prose gates fix** — Design complete (tmp/design-prose-gates-fix.md). Needs: implement Read-anchor pattern in 3 skills
+- [ ] **Analyze parity test quality failures** — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
+- [ ] **Investigate prose gates fix** — Design complete (plans/reflect-rca-prose-gates/design.md). Needs: implement Read-anchor pattern in 3 skills
   - Plan: reflect-rca-prose-gates | Status: designed
-- [ ] **Align plan-adhoc with plan-tdd updates** — Audit complete (tmp/workflow-skills-audit.md). Needs: port 7 changes (3 high priority)
-- [ ] **Update design skill** — Audit complete (tmp/workflow-skills-audit.md). Needs: add checkpoint commit at C.2, fix C.4 wording
+- [ ] **Align plan-adhoc with plan-tdd updates** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: port 7 changes (3 high priority)
+- [ ] **Update design skill** — Audit complete (plans/workflow-skills-audit/audit.md). Needs: add checkpoint commit at C.2, fix C.4 wording
 - [ ] **Continuation passing design** — Validate outline against requirements | opus
   - Plan: continuation-passing | Status: requirements
 - [ ] **Evaluate plugin migration** — Symlink situation causing pain
@@ -54,10 +54,10 @@
 
 ## Reference Files
 
-- **tmp/task-analysis.md** — Dependency graph, parallelization groups, scheduling strategy
-- **tmp/rca-parity-iterations.md** — Parity RCA (5 root causes, 5 gaps, workflow evolution addendum)
-- **tmp/design-prose-gates-fix.md** — Prose gates Read-anchor design
-- **tmp/workflow-skills-audit.md** — Plan-adhoc alignment + design skill audit (12 items)
+- **tmp/task-analysis.md** — Dependency graph, parallelization groups, scheduling strategy (ephemeral)
+- **plans/reflect-rca-parity-iterations/rca.md** — Parity RCA (5 root causes, 5 gaps, workflow evolution addendum)
+- **plans/reflect-rca-prose-gates/design.md** — Prose gates Read-anchor design
+- **plans/workflow-skills-audit/audit.md** — Plan-adhoc alignment + design skill audit (12 items)
 - **agents/jobs.md** — Plan lifecycle tracking (29 archived, 8 active)
 
 ## Next Steps

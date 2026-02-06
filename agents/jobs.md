@@ -14,7 +14,9 @@ Plan lifecycle tracking. Updated when plans change status.
 | markdown | requirements | Markdown cleanup test corpus |
 | prompt-composer | designed | Oldest plan, at risk |
 | requirements-skill | requirements | Evaluate with opus |
-| reflect-rca-prose-gates | requirements | Structural fix for skill gate skipping |
+| reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
+| workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
+| reflect-rca-prose-gates | designed | Structural fix for skill gate skipping |
 | validator-consolidation | requirements | Move to claudeutils package |
 
 ## Complete (Archived)

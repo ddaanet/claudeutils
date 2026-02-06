@@ -100,3 +100,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Structural pattern: All three are prose gates between concrete execution steps in skill definitions
 - "Behavioral" diagnosis masks this: calling it "rationalization" implies discipline fix, but the cause is structural
 - Fix direction: Give gates concrete first actions (script, explicit tool call) or restructure to block first tool call
+## Deliverables in gitignored tmp/
+- Anti-pattern: Writing actionable reports (RCA, designs, audits) to tmp/ which is gitignored
+- Correct pattern: Research deliverables go to plans/ directories where they're tracked. Only ephemeral scheduling/diagnostic artifacts belong in tmp/
+- Rationale: Commits are sync points — session.md references must resolve in the same commit. Gitignored paths break state synchronization across sessions
+- Distinction: tmp/ = throwaway (execution logs, scratch). plans/ = actionable (designs, RCA reports, audits)
