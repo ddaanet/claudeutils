@@ -49,7 +49,7 @@ def validate(path: Path, root: Path, max_words: int = MAX_WORDS) -> list[str]:
     """
     full_path = root / path
     try:
-        with open(full_path) as f:
+        with full_path.open() as f:
             lines = f.readlines()
     except FileNotFoundError:
         return []

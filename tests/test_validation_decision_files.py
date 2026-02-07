@@ -1,12 +1,13 @@
 """Tests for decision files validator."""
 
-import pytest
 from pathlib import Path
 
 from claudeutils.validation.decision_files import validate
 
 
-def test_section_with_content_before_subheadings_no_violation(tmp_path):
+def test_section_with_content_before_subheadings_no_violation(
+    tmp_path: Path,
+) -> None:
     """Test: section with sufficient content before sub-headings → no violation."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -38,7 +39,9 @@ Details.
     assert errors == []
 
 
-def test_organizational_section_with_only_subheadings_violation(tmp_path):
+def test_organizational_section_with_only_subheadings_violation(
+    tmp_path: Path,
+) -> None:
     """Test: section with only sub-headings → violation (needs structural marker)."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -63,7 +66,7 @@ More content.
     assert "Mark structural: '## .Organizational Section'" in errors[0]
 
 
-def test_structural_marker_dot_prefix_no_violation(tmp_path):
+def test_structural_marker_dot_prefix_no_violation(tmp_path: Path) -> None:
     """Test: structural marker (. prefix) → no violation."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -84,7 +87,7 @@ More content.
     assert errors == []
 
 
-def test_content_threshold_two_substantive_lines(tmp_path):
+def test_content_threshold_two_substantive_lines(tmp_path: Path) -> None:
     """Test: content threshold (≤2 substantive lines before sub-heading → violation)."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -106,7 +109,9 @@ Content here.
     assert "has no direct content" in errors[0]
 
 
-def test_content_threshold_three_substantive_lines_no_violation(tmp_path):
+def test_content_threshold_three_substantive_lines_no_violation(
+    tmp_path: Path,
+) -> None:
     """Test: ≥3 substantive lines before sub-heading → no violation."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -127,7 +132,7 @@ Content here.
     assert errors == []
 
 
-def test_empty_lines_dont_count_as_substantive(tmp_path):
+def test_empty_lines_dont_count_as_substantive(tmp_path: Path) -> None:
     """Test: empty lines are not counted as substantive content."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -150,7 +155,7 @@ Content here.
     assert "Section" in errors[0]
 
 
-def test_comments_dont_count_as_substantive(tmp_path):
+def test_comments_dont_count_as_substantive(tmp_path: Path) -> None:
     """Test: HTML comments are not counted as substantive content."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -171,7 +176,7 @@ Content here.
     assert "Section" in errors[0]
 
 
-def test_nested_heading_levels_handled_correctly(tmp_path):
+def test_nested_heading_levels_handled_correctly(tmp_path: Path) -> None:
     """Test: nested heading levels handled correctly."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -204,7 +209,7 @@ Details.
     assert "Organizational Section" in errors[0]
 
 
-def test_no_decision_files_no_errors(tmp_path):
+def test_no_decision_files_no_errors(tmp_path: Path) -> None:
     """Test: no decision files → no errors."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -213,7 +218,7 @@ def test_no_decision_files_no_errors(tmp_path):
     assert errors == []
 
 
-def test_multiple_violations_reported(tmp_path):
+def test_multiple_violations_reported(tmp_path: Path) -> None:
     """Test: multiple violations reported."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -246,7 +251,7 @@ Details.
     assert any("Organizational Section Two" in e for e in errors)
 
 
-def test_h2_and_h3_violations_detected(tmp_path):
+def test_h2_and_h3_violations_detected(tmp_path: Path) -> None:
     """Test: violations at both H2 and H3 levels detected."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -268,7 +273,7 @@ Content here.
     assert "Organizational H2" in errors[0]
 
 
-def test_heading_levels_correctly_identified(tmp_path):
+def test_heading_levels_correctly_identified(tmp_path: Path) -> None:
     """Test: correct heading levels reported in error messages."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -290,7 +295,7 @@ More.
     assert "## .Section H2" in errors[0]  # Should show H2 marker
 
 
-def test_malformed_file_gracefully_handled(tmp_path):
+def test_malformed_file_gracefully_handled(tmp_path: Path) -> None:
     """Test: malformed file handled gracefully."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -305,7 +310,7 @@ def test_malformed_file_gracefully_handled(tmp_path):
     assert errors == []
 
 
-def test_multiple_files_violations(tmp_path):
+def test_multiple_files_violations(tmp_path: Path) -> None:
     """Test: violations across multiple files reported."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -334,7 +339,7 @@ Content.
     assert any("decision2.md" in e for e in errors)
 
 
-def test_h4_and_h5_headings_supported(tmp_path):
+def test_h4_and_h5_headings_supported(tmp_path: Path) -> None:
     """Test: H4 and H5 headings are properly supported."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)
@@ -367,7 +372,7 @@ Content.
     assert "Section Two" in errors[0]
 
 
-def test_h1_headings_not_validated(tmp_path):
+def test_h1_headings_not_validated(tmp_path: Path) -> None:
     """Test: H1 headings are not validated (min level H2)."""
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True, exist_ok=True)

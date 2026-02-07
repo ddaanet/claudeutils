@@ -26,4 +26,5 @@ def find_project_root(start: Path | None = None) -> Path:
             return current
         current = current.parent
 
-    raise FileNotFoundError("Could not find project root (CLAUDE.md marker not found)")
+    msg = "Could not find project root (CLAUDE.md marker not found)"
+    raise FileNotFoundError(msg)

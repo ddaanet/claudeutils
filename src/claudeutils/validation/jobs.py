@@ -101,15 +101,18 @@ def validate(root: Path) -> list[str]:
 
     # Check for plans in directory but not in jobs.md
     missing_from_jobs = dir_plans - set(jobs_plans.keys())
-    for plan in sorted(missing_from_jobs):
-        errors.append(f"Plan '{plan}' exists in plans/ but not in jobs.md")
+    errors.extend(
+        [
+            f"Plan '{plan}' exists in plans/ but not in jobs.md"
+            for plan in sorted(missing_from_jobs)
+        ]
+    )
 
     # Check for plans in jobs.md but not in directory (excluding complete plans)
     for plan, status in jobs_plans.items():
         if status != "complete" and plan not in dir_plans:
             errors.append(
-                f"Plan '{plan}' in jobs.md (status: {status}) "
-                f"but not found in plans/"
+                f"Plan '{plan}' in jobs.md (status: {status}) but not found in plans/"
             )
 
     return errors

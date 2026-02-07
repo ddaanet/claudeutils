@@ -1,12 +1,11 @@
 """Tests for learnings validator."""
 
-import pytest
 from pathlib import Path
 
 from claudeutils.validation.learnings import validate
 
 
-def test_valid_learnings_file_returns_no_errors(tmp_path):
+def test_valid_learnings_file_returns_no_errors(tmp_path: Path) -> None:
     """Test that valid learnings file returns no errors."""
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
@@ -26,7 +25,9 @@ More content here.
     assert errors == []
 
 
-def test_title_exceeding_max_word_count_returns_error(tmp_path):
+def test_title_exceeding_max_word_count_returns_error(
+    tmp_path: Path,
+) -> None:
     """Test that title exceeding max word count returns error."""
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
@@ -49,7 +50,7 @@ Content here.
     assert "line 12" in errors[0]
 
 
-def test_duplicate_titles_detected_case_insensitive(tmp_path):
+def test_duplicate_titles_detected_case_insensitive(tmp_path: Path) -> None:
     """Test that duplicate titles are detected (case-insensitive)."""
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
@@ -76,7 +77,7 @@ Different content but same title.
     assert "first at line 12" in errors[0]
 
 
-def test_preamble_first_10_lines_skipped(tmp_path):
+def test_preamble_first_10_lines_skipped(tmp_path: Path) -> None:
     """Test that preamble (first 10 lines) is skipped."""
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
@@ -96,7 +97,7 @@ Content here.
     assert errors == []
 
 
-def test_empty_file_returns_no_errors(tmp_path):
+def test_empty_file_returns_no_errors(tmp_path: Path) -> None:
     """Test that empty file returns no errors."""
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("")
@@ -104,13 +105,13 @@ def test_empty_file_returns_no_errors(tmp_path):
     assert errors == []
 
 
-def test_missing_file_returns_no_errors(tmp_path):
+def test_missing_file_returns_no_errors(tmp_path: Path) -> None:
     """Test that missing file returns no errors (graceful degradation)."""
     errors = validate(Path("nonexistent.md"), tmp_path)
     assert errors == []
 
 
-def test_multiple_errors_reported(tmp_path):
+def test_multiple_errors_reported(tmp_path: Path) -> None:
     """Test that multiple errors are all reported."""
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings

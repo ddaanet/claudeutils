@@ -1,12 +1,11 @@
 """Tests for jobs validator."""
 
-import pytest
 from pathlib import Path
 
 from claudeutils.validation.jobs import validate
 
 
-def test_valid_jobs_md_with_matching_plans(tmp_path):
+def test_valid_jobs_md_with_matching_plans(tmp_path: Path) -> None:
     """Test that valid jobs.md with matching plans/ returns no errors."""
     # Create jobs.md
     jobs_file = tmp_path / "agents" / "jobs.md"
@@ -29,7 +28,7 @@ def test_valid_jobs_md_with_matching_plans(tmp_path):
     assert errors == []
 
 
-def test_plan_in_directory_but_not_in_jobs_md(tmp_path):
+def test_plan_in_directory_but_not_in_jobs_md(tmp_path: Path) -> None:
     """Test: plan in directory but not in jobs.md → error."""
     # Create jobs.md
     jobs_file = tmp_path / "agents" / "jobs.md"
@@ -54,7 +53,9 @@ def test_plan_in_directory_but_not_in_jobs_md(tmp_path):
     assert "not in jobs.md" in errors[0]
 
 
-def test_plan_in_jobs_md_but_not_in_directory_non_complete(tmp_path):
+def test_plan_in_jobs_md_but_not_in_directory_non_complete(
+    tmp_path: Path,
+) -> None:
     """Test: plan in jobs.md but not in directory (non-complete) → error."""
     # Create jobs.md
     jobs_file = tmp_path / "agents" / "jobs.md"
@@ -79,7 +80,7 @@ def test_plan_in_jobs_md_but_not_in_directory_non_complete(tmp_path):
     assert "not found in plans/" in errors[0]
 
 
-def test_complete_plans_exempt_from_directory_check(tmp_path):
+def test_complete_plans_exempt_from_directory_check(tmp_path: Path) -> None:
     """Test: complete plans exempt from directory check."""
     # Create jobs.md
     jobs_file = tmp_path / "agents" / "jobs.md"
@@ -101,7 +102,7 @@ def test_complete_plans_exempt_from_directory_check(tmp_path):
     assert errors == []
 
 
-def test_table_parsing_handles_standard_format(tmp_path):
+def test_table_parsing_handles_standard_format(tmp_path: Path) -> None:
     """Test: table parsing handles standard format."""
     # Create jobs.md with various formats
     jobs_file = tmp_path / "agents" / "jobs.md"
@@ -131,7 +132,7 @@ Other sections here.
     assert errors == []
 
 
-def test_missing_jobs_md_returns_error(tmp_path):
+def test_missing_jobs_md_returns_error(tmp_path: Path) -> None:
     """Test: missing jobs.md → error."""
     # Don't create jobs.md
     (tmp_path / "agents").mkdir(parents=True, exist_ok=True)
@@ -141,7 +142,7 @@ def test_missing_jobs_md_returns_error(tmp_path):
     assert "not found" in errors[0]
 
 
-def test_md_file_in_plans_directory(tmp_path):
+def test_md_file_in_plans_directory(tmp_path: Path) -> None:
     """Test: .md files in plans/ are treated as plans (by stem)."""
     # Create jobs.md
     jobs_file = tmp_path / "agents" / "jobs.md"
@@ -164,7 +165,7 @@ def test_md_file_in_plans_directory(tmp_path):
     assert errors == []
 
 
-def test_readme_md_in_plans_ignored(tmp_path):
+def test_readme_md_in_plans_ignored(tmp_path: Path) -> None:
     """Test: README.md in plans/ is ignored."""
     # Create jobs.md
     jobs_file = tmp_path / "agents" / "jobs.md"
@@ -186,7 +187,7 @@ def test_readme_md_in_plans_ignored(tmp_path):
     assert errors == []
 
 
-def test_dotfiles_in_plans_ignored(tmp_path):
+def test_dotfiles_in_plans_ignored(tmp_path: Path) -> None:
     """Test: dotfiles in plans/ are ignored."""
     # Create jobs.md
     jobs_file = tmp_path / "agents" / "jobs.md"
@@ -209,7 +210,7 @@ def test_dotfiles_in_plans_ignored(tmp_path):
     assert errors == []
 
 
-def test_plans_claude_directory_ignored(tmp_path):
+def test_plans_claude_directory_ignored(tmp_path: Path) -> None:
     """Test: plans/claude/ directory is ignored."""
     # Create jobs.md
     jobs_file = tmp_path / "agents" / "jobs.md"
@@ -231,7 +232,7 @@ def test_plans_claude_directory_ignored(tmp_path):
     assert errors == []
 
 
-def test_multiple_errors_reported(tmp_path):
+def test_multiple_errors_reported(tmp_path: Path) -> None:
     """Test: multiple errors are all reported."""
     # Create jobs.md
     jobs_file = tmp_path / "agents" / "jobs.md"

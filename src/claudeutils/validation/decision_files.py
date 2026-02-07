@@ -38,6 +38,64 @@ def parse_heading(line: str) -> tuple[int, str, bool] | None:
     return level, title, is_structural
 
 
+def count_substantive_content(
+    content_lines: list[str], first_subheading_idx: int
+) -> int:
+    """Count substantive lines before first sub-heading.
+
+    Args:
+        content_lines: Lines of content in the section.
+        first_subheading_idx: Index of first sub-heading.
+
+    Returns:
+        Number of substantive lines (non-empty, non-comment).
+    """
+    before_subheading = content_lines[:first_subheading_idx]
+    substantive = [
+        line
+        for line in before_subheading
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    return len(substantive)
+
+
+def collect_section_content(
+    lines: list[str], start_idx: int, level: int
+) -> tuple[list[str], int | None, int]:
+    """Collect content lines until next heading at same or higher level.
+
+    Args:
+        lines: All lines in the file.
+        start_idx: Index to start collecting from.
+        level: Level of the current section heading.
+
+    Returns:
+        Tuple of (content_lines, first_subheading_idx, end_idx).
+        content_lines: Lines in the section.
+        first_subheading_idx: Index of first sub-heading, or None if no sub-headings.
+        end_idx: Index where collection stopped.
+    """
+    content_lines: list[str] = []
+    first_subheading_idx: int | None = None
+    i = start_idx
+    n = len(lines)
+
+    while i < n:
+        next_parsed = parse_heading(lines[i])
+        if next_parsed:
+            next_level = next_parsed[0]
+            # Same or higher level = end of this section
+            if next_level <= level:
+                break
+            # Sub-heading found
+            if first_subheading_idx is None:
+                first_subheading_idx = len(content_lines)
+        content_lines.append(lines[i])
+        i += 1
+
+    return content_lines, first_subheading_idx, i
+
+
 def analyze_file(filepath: Path) -> list[tuple[int, str, int]]:
     """Analyze a file for organizational sections missing structural marker.
 
@@ -71,36 +129,19 @@ def analyze_file(filepath: Path) -> list[tuple[int, str, int]]:
             continue
 
         # Collect content until next heading at same or higher level
-        content_lines: list[str] = []
-        first_subheading_idx: int | None = None
-
-        while i < n:
-            next_parsed = parse_heading(lines[i])
-            if next_parsed:
-                next_level = next_parsed[0]
-                # Same or higher level = end of this section
-                if next_level <= level:
-                    break
-                # Sub-heading found
-                if first_subheading_idx is None:
-                    first_subheading_idx = len(content_lines)
-            content_lines.append(lines[i])
-            i += 1
+        content_lines, first_subheading_idx, i = collect_section_content(
+            lines, i, level
+        )
 
         # No sub-headings = not organizational (all content is direct)
         if first_subheading_idx is None:
             continue
 
-        # Count substantive lines before first sub-heading
-        before_subheading = content_lines[:first_subheading_idx]
-        substantive = [
-            line
-            for line in before_subheading
-            if line.strip() and not line.strip().startswith("<!--")
-        ]
-
         # Organizational if few substantive lines before sub-heading
-        if len(substantive) <= CONTENT_THRESHOLD:
+        substantive_count = count_substantive_content(
+            content_lines, first_subheading_idx
+        )
+        if substantive_count <= CONTENT_THRESHOLD:
             violations.append((heading_line, title, level))
 
     return violations
