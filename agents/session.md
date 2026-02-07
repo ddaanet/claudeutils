@@ -30,6 +30,7 @@
 - [ ] **Rewrite last-output prototype with TDD as claudeutils subcommand** — Port agent-output-cmd prototype to proper TDD implementation in claudeutils package
 - [ ] **Update commit and handoff to branch after precommit** — Move git branching point from beginning to after precommit passes
 - [ ] **History cleanup tooling** — Research git history rewriting, prototype reusable scripts, consider reusable agent. Items: collapse runbook checkpoint commits (preserve session.md handoffs), fix history from wt-merge incident. Allow rewrite on feature branches between releases, may tighten to prevent rewrite of main.
+- [ ] **Rewrite agent-core ad-hoc scripts via TDD** — Port all ad-hoc scripts in agent-core/ to claudeutils package through TDD. Add precommit check and process gating: allow quick prototyping but schedule proper rewrite.
 
 ## Worktree Tasks
 
