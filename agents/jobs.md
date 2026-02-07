@@ -18,12 +18,13 @@ Plan lifecycle tracking. Updated when plans change status.
 
 ## Complete (Archived)
 
-*33 plans completed and deleted. Git history preserves all designs/reports.*
+*34 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
 - `commit-unification` — Unified commit skills, inlined gitmoji, decoupled handoff
+- `position-bias` — Fragment reordering by position bias + token budget script
 - `prompt-composer` — Superseded by fragment system; research distilled
 - `reflect-rca-prose-gates` — D+B hybrid fix implemented
 - `statusline-wiring` — Statusline CLI with TDD (28 cycles, 6 phases)
