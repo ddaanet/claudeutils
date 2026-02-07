@@ -1,6 +1,6 @@
 # Session: Worktree — Plugin migration design
 
-**Status:** Outline complete, pending user approval on plugin name. Design document next.
+**Status:** Plugin name chosen (`edify`). Design document next.
 
 ## Completed This Session
 
@@ -24,22 +24,20 @@
 - Agent namespace: Plugin agents prefixed, no collision with local `*-task.md`
 - Settings.json residual: Keeps permissions/sandbox config, hooks section removed
 
-**Naming research:**
-- 7 rounds of Opus brainstorming, 60+ candidates evaluated
-- Research persisted to `plans/plugin-migration/reports/naming-research.md`
-- Frontrunners: `tenet` (opinionated beliefs), `lathe` (production system), `rebar` (structural reinforcement)
-- Identity dimensions: opinionated, automated production, corrective feedback, quality at cost, institutional memory
-- No name chosen yet — user wants more iteration
+**Naming:**
+- Plugin name chosen: **`edify`** — Latin *aedificare* = "to build" + "to instruct"
+- 11 rounds, 70+ candidates evaluated across 4 Opus brainstorm sessions
+- Key concepts: prose, iterative expansion with corrective feedback, construction, continuous memory
+- Marketplace research: official plugins use kebab-case compounds; our plugin is methodology (product-like naming)
+- Runner-up `rubric` (13/15) killed by Rubric Labs collision in AI space
+- Full research: `plans/plugin-migration/reports/naming-research.md`
 
 ## Pending Tasks
 
-- [ ] **Choose plugin name** — Continue brainstorming with constraints in `plans/plugin-migration/reports/naming-research.md`
 - [ ] **Generate design document** — `/design` Phase C: expand outline to full `plans/plugin-migration/design.md`
 - [ ] **Plan plugin migration** — `/plan-adhoc plans/plugin-migration/design.md` after design complete
 
 ## Blockers / Gotchas
-
-**Plugin name undecided:** Blocks design.md finalization (name appears throughout). Can start design with placeholder.
 
 **Platform gaps:**
 - Plugins cannot contribute to CLAUDE.md always-loaded context — fragments require migration command + `@` references
@@ -50,5 +48,6 @@
 
 - **plans/plugin-migration/outline.md** — Reviewed outline with requirements and validation
 - **plans/plugin-migration/reports/outline-review.md** — Opus review report (4 major, 8 minor fixes)
-- **plans/plugin-migration/reports/naming-research.md** — Full naming constraints, rejected names, scoring matrix
+- **plans/plugin-migration/reports/naming-research.md** — Full naming research with decision
+- **tmp/marketplace-naming-research.md** — Plugin ecosystem naming patterns
 - **.claude/settings.json** — Current hook/plugin configuration
