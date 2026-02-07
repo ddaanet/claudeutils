@@ -8,6 +8,7 @@
 - `wt/release-prep-skill` — Design and implement skill for release preparation workflow
 - `wt/fix-wt-status` — Fix incorrect status message in new worktrees (says to reset session.md when already pre-committed)
 - `wt/update-design-skill` — Add checkpoint commit at C.2, fix C.4 wording, direct workflow/skill/agent edits to opus
+- `wt/memory-index-recall` — Empirical testing of memory index recall effectiveness
 
 **Worktree management:**
 - Removed and recreated `wt/update-design-skill` with improved focused session.md (added task details section)
@@ -34,6 +35,7 @@
 - [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation | opus
   - Plan: requirements-skill | Status: requirements
 - [ ] **Rewrite last-output prototype with TDD as claudeutils subcommand** — Port agent-output-cmd prototype to proper TDD implementation in claudeutils package
+- [ ] **Update commit and handoff to branch after precommit** — Move git branching point from beginning to after precommit passes
 
 ## Worktree Tasks
 
@@ -42,6 +44,7 @@
 - [ ] **Update design skill** → `wt/update-design-skill` — Add checkpoint commit at C.2, fix C.4 wording, direct workflow/skill/agent edits to opus
 - [ ] **Create skill to prepare a project for release** → `wt/release-prep-skill` — Design and implement skill for release preparation workflow
 - [ ] **Fix initial status in new wt reporting incorrect reset instruction** → `wt/fix-wt-status` — Status incorrectly says to reset session.md and stage all before executing
+- [ ] **Empirical testing of memory index recall** → `wt/memory-index-recall` — Design testing methodology for memory index effectiveness | opus
 
 ## Blockers / Gotchas
 
