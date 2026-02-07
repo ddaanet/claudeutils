@@ -12,20 +12,20 @@ Plan lifecycle tracking. Updated when plans change status.
 | continuation-passing | requirements | Opus design needed |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
-| prompt-composer | designed | Oldest plan, at risk |
 | requirements-skill | requirements | Evaluate with opus |
 | reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
-| reflect-rca-prose-gates | complete | D+B hybrid fix implemented |
 | validator-consolidation | requirements | Move to claudeutils package |
 
 ## Complete (Archived)
 
-*29 plans completed and deleted. Git history preserves all designs/reports.*
+*31 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `prompt-composer` — Superseded by fragment system; research distilled
+- `reflect-rca-prose-gates` — D+B hybrid fix implemented
 - `statusline-wiring` — Statusline CLI with TDD (28 cycles, 6 phases)
 - `statusline-parity` — All 14 cycles, 5 phases executed and validated
 - `learnings-consolidation` — Learnings consolidation infrastructure (7 steps, 4 phases)
