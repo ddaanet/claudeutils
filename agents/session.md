@@ -13,6 +13,7 @@
 **Worktree management:**
 - Removed and recreated `wt/update-design-skill` with improved focused session.md (added task details section)
 - Merged `wt/agent-output-cmd` — session log scraping prototype (698646e)
+- Merged `wt/update-design-skill` — design skill improvements (6aa5335)
 
 ## Pending Tasks
 
@@ -41,7 +42,6 @@
 
 - [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
-- [ ] **Update design skill** → `wt/update-design-skill` — Add checkpoint commit at C.2, fix C.4 wording, direct workflow/skill/agent edits to opus
 - [ ] **Create skill to prepare a project for release** → `wt/release-prep-skill` — Design and implement skill for release preparation workflow
 - [ ] **Fix initial status in new wt reporting incorrect reset instruction** → `wt/fix-wt-status` — Status incorrectly says to reset session.md and stage all before executing
 - [ ] **Empirical testing of memory index recall** → `wt/memory-index-recall` — Design testing methodology for memory index effectiveness | opus
