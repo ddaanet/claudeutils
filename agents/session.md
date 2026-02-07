@@ -37,7 +37,6 @@
 - [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
 - [ ] **Empirical testing of memory index recall** → `wt/memory-index-recall` — Design testing methodology for memory index effectiveness | opus
-- [ ] **Validator consolidation** → `wt/validator-consolidation` — Move validators to claudeutils package with tests
 - [ ] **Scope markdown test corpus work** → `wt/markdown-test-corpus` — Formatter test cases, determine approach
 - [ ] **Design support for domain-specific and optional project-specific validation** → `wt/domain-validation-design` — Start with plugin-dev review agents | opus
 
