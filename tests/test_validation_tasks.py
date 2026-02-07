@@ -1,5 +1,6 @@
 """Tests for tasks validator."""
 
+import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -120,7 +121,7 @@ class TestExtractLearningKeys:
 
     def test_empty_file_no_keys(self) -> None:
         """Test that empty file returns no keys."""
-        lines = []
+        lines: list[str] = []
         keys = extract_learning_keys(lines)
         assert keys == set()
 
@@ -129,23 +130,16 @@ class TestGetSessionFromCommit:
     """Tests for get_session_from_commit function."""
 
     @patch("claudeutils.validation.tasks.subprocess.run")
-    def test_get_session_from_commit_success(
-        self, mock_run: MagicMock
-    ) -> None:
+    def test_get_session_from_commit_success(self, mock_run: MagicMock) -> None:
         """Test successful retrieval of session from commit."""
-        mock_run.return_value = MagicMock(
-            stdout="line 1\nline 2\nline 3", returncode=0
-        )
+        mock_run.return_value = MagicMock(stdout="line 1\nline 2\nline 3", returncode=0)
         result = get_session_from_commit("HEAD", Path("agents/session.md"))
         assert result == ["line 1", "line 2", "line 3"]
         mock_run.assert_called_once()
 
     @patch("claudeutils.validation.tasks.subprocess.run")
-    def test_get_session_from_commit_not_found(
-        self, mock_run: MagicMock
-    ) -> None:
+    def test_get_session_from_commit_not_found(self, mock_run: MagicMock) -> None:
         """Test graceful handling when commit file not found."""
-        import subprocess
         mock_run.side_effect = subprocess.CalledProcessError(1, "git")
         result = get_session_from_commit("MISSING_REF", Path("agents/session.md"))
         assert result == []
@@ -186,11 +180,8 @@ class TestGetStagedSession:
         assert result == ["staged line 1", "staged line 2"]
 
     @patch("claudeutils.validation.tasks.subprocess.run")
-    def test_get_staged_session_not_staged(
-        self, mock_run: MagicMock
-    ) -> None:
+    def test_get_staged_session_not_staged(self, mock_run: MagicMock) -> None:
         """Test graceful handling when file not staged."""
-        import subprocess
         mock_run.side_effect = subprocess.CalledProcessError(1, "git")
         result = get_staged_session(Path("agents/session.md"))
         assert result == []
@@ -209,11 +200,12 @@ class TestGetNewTasks:
         mock_get_staged: MagicMock,
     ) -> None:
         """Test new task detection in regular commit."""
-        mock_get_merge.return_value = None
-        mock_get_staged.return_value = [
+        lines: list[str] = [
             "- [ ] **Task One** — desc",
             "- [ ] **Task Two** — desc",
         ]
+        mock_get_merge.return_value = None
+        mock_get_staged.return_value = lines
         mock_get_session.return_value = [
             "- [ ] **Task One** — desc",
         ]
@@ -236,7 +228,9 @@ class TestGetNewTasks:
         A task is new only if absent from ALL parents.
         """
         mock_get_merge.return_value = ("parent1", "parent2")
-        mock_run.return_value = MagicMock(returncode=0, stdout="commit parent1 parent2\n")
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="commit parent1 parent2\n"
+        )
         mock_get_staged.return_value = [
             "- [ ] **Task One** — desc",
             "- [ ] **Task Two** — desc",
@@ -256,20 +250,18 @@ class TestGetNewTasks:
         assert "Task Two" not in result
 
     @patch("claudeutils.validation.tasks.subprocess.run")
-    def test_get_new_tasks_octopus_merge_error(
-        self, mock_run: MagicMock
-    ) -> None:
+    def test_get_new_tasks_octopus_merge_error(self, mock_run: MagicMock) -> None:
         """Test octopus merge detection raises error."""
-        with patch("claudeutils.validation.tasks.get_merge_parents") as mock_merge:
-            with patch("claudeutils.validation.tasks.get_staged_session") as mock_staged:
-                mock_merge.return_value = ("p1", "p2")
-                mock_staged.return_value = []
-                # Simulate octopus merge with 3 parents
-                mock_run.return_value = MagicMock(
-                    returncode=0, stdout="commit p1 p2 p3\n"
-                )
-                with pytest.raises(SystemExit):
-                    get_new_tasks(Path("agents/session.md"))
+        with (
+            patch("claudeutils.validation.tasks.get_merge_parents") as mock_merge,
+            patch("claudeutils.validation.tasks.get_staged_session") as mock_staged,
+        ):
+            mock_merge.return_value = ("p1", "p2")
+            mock_staged.return_value = []
+            # Simulate octopus merge with 3 parents
+            mock_run.return_value = MagicMock(returncode=0, stdout="commit p1 p2 p3\n")
+            with pytest.raises(SystemExit):
+                get_new_tasks(Path("agents/session.md"))
 
 
 class TestCheckHistory:
@@ -278,9 +270,7 @@ class TestCheckHistory:
     @patch("claudeutils.validation.tasks.subprocess.run")
     def test_check_history_found(self, mock_run: MagicMock) -> None:
         """Test task name found in history."""
-        mock_run.return_value = MagicMock(
-            stdout="hash1\nhash2", returncode=0
-        )
+        mock_run.return_value = MagicMock(stdout="hash1\nhash2", returncode=0)
         result = check_history("Task Name")
         assert result is True
 
@@ -421,14 +411,18 @@ Content here.
         assert "New Task" in errors[0]
 
     def test_missing_session_file_returns_no_errors(self, tmp_path: Path) -> None:
-        """Test that missing session file returns no errors (graceful degradation)."""
+        """Test that missing session file returns no errors.
+
+        Graceful degradation behavior.
+        """
         errors = validate("nonexistent.md", "nonexistent.md", tmp_path)
         assert errors == []
 
-    def test_missing_learnings_file_still_validates_tasks(
-        self, tmp_path: Path
-    ) -> None:
-        """Test that missing learnings file doesn't prevent task validation."""
+    def test_missing_learnings_file_still_validates_tasks(self, tmp_path: Path) -> None:
+        """Test that missing learnings file validation continues.
+
+        Missing learnings file doesn't prevent task validation.
+        """
         session_file = tmp_path / "session.md"
         session_file.write_text("""# Session Handoff
 

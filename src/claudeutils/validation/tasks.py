@@ -112,10 +112,10 @@ def get_merge_parents() -> tuple[str, str] | None:
             check=True,
         )
         head = result.stdout.strip()
-
-        return (head, merge_head)
     except subprocess.CalledProcessError:
         return None
+    else:
+        return (head, merge_head)
 
 
 def get_staged_session(session_path: Path) -> list[str]:
@@ -143,8 +143,10 @@ def get_new_tasks(session_path: Path) -> list[str]:
     """Get task names that are new (not present in any parent).
 
     For regular commits: compares against HEAD.
-    For merge commits: compares against both parents. A task is "new" only if
-    present in current session.md but not present in either parent (C-1).
+    For merge commits: compares against both parents.
+
+    A task is "new" only if present in current session.md but not present in
+    either parent (C-1).
 
     Args:
         session_path: Path to session file.
@@ -209,7 +211,9 @@ def get_new_tasks(session_path: Path) -> list[str]:
 
 
 def check_history(task_name: str) -> bool:
-    """Check if task name exists in git history using git log -S (case-insensitive).
+    """Check if task name exists in git history using git log -S.
+
+    Case-insensitive search using --regexp-ignore-case.
 
     Args:
         task_name: Task name to search for.
@@ -239,9 +243,7 @@ def check_history(task_name: str) -> bool:
         return False
 
 
-def validate(
-    session_path: str, learnings_path: str, root: Path
-) -> list[str]:
+def validate(session_path: str, learnings_path: str, root: Path) -> list[str]:
     """Validate task names. Returns list of error strings.
 
     Args:
@@ -298,10 +300,10 @@ def validate(
 
     # Check git history for new tasks only
     new_tasks = get_new_tasks(full_session_path)
-    for task_name in new_tasks:
-        if check_history(task_name):
-            errors.append(
-                f"  new task name exists in git history: **{task_name}**"
-            )
+    errors.extend(
+        f"  new task name exists in git history: **{task_name}**"
+        for task_name in new_tasks
+        if check_history(task_name)
+    )
 
     return errors

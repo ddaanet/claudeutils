@@ -169,7 +169,10 @@ Test Unique Header just some words without em-dash separator
 
 
 def test_entry_in_wrong_section_autofixed(tmp_path: Path) -> None:
-    """Test that entry in wrong section is autofixed (no error if autofix=True)."""
+    """Test that entry in wrong section is autofixed.
+
+    No error if autofix=True.
+    """
     decisions_dir = tmp_path / "agents" / "decisions"
     decisions_dir.mkdir(parents=True)
 
@@ -241,18 +244,20 @@ Second Header — Entry in middle position with valid content today
     lines = content.splitlines()
     # Find the lines in the file section
     section_idx = next(
-        i for i, l in enumerate(lines) if "agents/decisions/test-decision.md" in l
+        i for i, line in enumerate(lines) if "agents/decisions/test-decision.md" in line
     )
-    entry_lines = [l for l in lines[section_idx:] if l and not l.startswith("##")]
+    entry_lines = [
+        line for line in lines[section_idx:] if line and not line.startswith("##")
+    ]
     # Should be ordered by first header, second header, third header
     first_idx = next(
-        i for i, l in enumerate(entry_lines) if l.startswith("First Header")
+        i for i, line in enumerate(entry_lines) if line.startswith("First Header")
     )
     second_idx = next(
-        i for i, l in enumerate(entry_lines) if l.startswith("Second Header")
+        i for i, line in enumerate(entry_lines) if line.startswith("Second Header")
     )
     third_idx = next(
-        i for i, l in enumerate(entry_lines) if l.startswith("Third Header")
+        i for i, line in enumerate(entry_lines) if line.startswith("Third Header")
     )
     assert first_idx < second_idx < third_idx
 
@@ -444,11 +449,9 @@ First Header — Entry in wrong order here too needs reordering now
 
     # Verify Third Header moved to correct section
     lines = content.splitlines()
-    file1_section_idx = next(
-        i for i, l in enumerate(lines) if "agents/decisions/file-one.md" in l
-    )
+    next(i for i, line in enumerate(lines) if "agents/decisions/file-one.md" in line)
     file2_section_idx = next(
-        i for i, l in enumerate(lines) if "agents/decisions/file-two.md" in l
+        i for i, line in enumerate(lines) if "agents/decisions/file-two.md" in line
     )
     # Third Header should be between file1 section header and file2 section header
     for i in range(file2_section_idx, len(lines)):
