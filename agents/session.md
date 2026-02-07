@@ -1,23 +1,17 @@
-# Session Handoff: 2026-02-06
+# Session Handoff: 2026-02-07
 
-**Status:** Worktree session.md pre-commit via git plumbing, pytest-quiet cleanup, handoff-uncommitted merge.
+**Status:** Three new worktrees created for parallel execution.
 
 ## Completed This Session
 
-**Remove pytest-quiet workaround:**
-- Replaced `safe pytest-quiet` with `safe pytest -q` in precommit and lint recipes
-- Removed `pytest-quiet` function (lines 356-365) — pytest-markdown-report bug is fixed, exit codes now correct
-- Files: `justfile` (lines 33, 153, removed function)
+**New worktrees created:**
+- `wt/release-prep-skill` — Design and implement skill for release preparation workflow
+- `wt/fix-wt-status` — Fix incorrect status message in new worktrees (says to reset session.md when already pre-committed)
+- `wt/update-design-skill` — Add checkpoint commit at C.2, fix C.4 wording, direct workflow/skill/agent edits to opus
 
-**Worktree setup:**
-- Created `wt/handoff-uncommitted` for handoff skill multi-handoff fix
-
-**Worktree session.md pre-commit:**
-- `wt-new` recipe gains `session=""` parameter — git plumbing (hash-object → read-tree → update-index → write-tree → commit-tree) pre-commits focused session.md to branch before worktree creation
-- MODE 5 flow updated: write focused session.md to `tmp/` locally (no sandbox), pass path to recipe
-- Focused session.md template simplified — removed "reset + stage + commit" bootstrap instruction
-- Sandbox note clarified: only `just wt-new` needs bypass, not the session.md Write
-- Files: `justfile` (lines 55-87), `agent-core/fragments/execute-rule.md` (MODE 5), `.cache/just-help.txt`
+**Worktree management:**
+- Removed and recreated `wt/update-design-skill` with improved focused session.md (added task details section)
+- Merged `wt/agent-output-cmd` — session log scraping prototype (698646e)
 
 ## Pending Tasks
 
@@ -39,13 +33,15 @@
   - Plan: markdown | Status: requirements
 - [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation | opus
   - Plan: requirements-skill | Status: requirements
+- [ ] **Rewrite last-output prototype with TDD as claudeutils subcommand** — Port agent-output-cmd prototype to proper TDD implementation in claudeutils package
 
 ## Worktree Tasks
 
 - [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
-- [ ] **Command to write last agent output to file** → `wt/agent-output-cmd` — save output tokens
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
 - [ ] **Update design skill** → `wt/update-design-skill` — Add checkpoint commit at C.2, fix C.4 wording, direct workflow/skill/agent edits to opus
+- [ ] **Create skill to prepare a project for release** → `wt/release-prep-skill` — Design and implement skill for release preparation workflow
+- [ ] **Fix initial status in new wt reporting incorrect reset instruction** → `wt/fix-wt-status` — Status incorrectly says to reset session.md and stage all before executing
 
 ## Blockers / Gotchas
 
