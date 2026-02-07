@@ -37,7 +37,6 @@
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
 - [ ] **Empirical testing of memory index recall** → `wt/memory-index-recall` — Design testing methodology for memory index effectiveness | opus
 - [ ] **Validator consolidation** → `wt/validator-consolidation` — Move validators to claudeutils package with tests
-- [ ] **Evaluate prompt-composer relevance** → `wt/prompt-composer-eval` — Assess viability of oldest plan
 - [ ] **Scope markdown test corpus work** → `wt/markdown-test-corpus` — Formatter test cases, determine approach
 - [ ] **Design support for domain-specific and optional project-specific validation** → `wt/domain-validation-design` — Start with plugin-dev review agents | opus
 
