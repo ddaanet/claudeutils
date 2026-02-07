@@ -1,10 +1,19 @@
-# Session: Worktree — Fix agent-core justfile links
+# Session Handoff: 2026-02-08
 
-**Status:** Focused worktree for parallel execution.
+**Status:** Task complete. All agent-core agents now linked in .claude/agents/.
+
+## Completed This Session
+
+**Agent symlink maintenance:**
+- Identified missing agent symlinks: remember-task.md, memory-refactor.md
+- Ran `just sync-to-parent` to sync all agent-core agents and skills
+- Verified both previously missing agents now properly linked
+
+**Root cause:** The justfile recipe was correct but hadn't been run since new agents were added to agent-core/agents/. Running sync-to-parent created all missing links.
 
 ## Pending Tasks
 
-- [ ] **Fix agent-core justfile to link all agents and skills** — Missing at least remember-task and memory-refactor
+*None — this was a focused worktree task.*
 
 ## Blockers / Gotchas
 
@@ -12,15 +21,13 @@
 
 ## Reference Files
 
-- **agent-core/justfile** — sync-to-parent recipe
-- **agent-core/agents/** — Agent definitions to link
-- **agent-core/skills/** — Skill definitions to link
-- **.claude/agents/** — Symlink target directory
-- **.claude/skills/** — Symlink target directory
+- **agent-core/justfile** — sync-to-parent recipe (lines 8-93)
+- **.claude/agents/** — All 14 agent symlinks now present
+- **.claude/skills/** — All 17 skill symlinks verified
 
 ## Next Steps
 
-Audit agent-core/{agents,skills}/ directories and compare against .claude/{agents,skills}/ to identify missing links.
+Merge worktree back to main branch using `just wt-merge <slug>`.
 
 ---
-*Focused worktree for agent-core justfile link fixes.*
+*Worktree task complete. Ready for merge.*
