@@ -112,3 +112,23 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Fix obstruction (e.g., remove stale lock), retry the recipe from scratch
 - Rationale: Recipes are atomic units — manually finishing bypasses error handling, ordering, side effects
 - Fix: Added "Partial failure recovery" rule to project-tooling.md
+## Rephrase feedback before applying in design sessions
+- Anti-pattern: Receive user feedback, immediately apply changes, present result
+- Correct pattern: Receive feedback → rephrase understanding → ask for validation → apply
+- Rationale: Misinterpreting feedback in /design leads to wrong architectural decisions; rephrase catches misunderstandings early
+- Scope: Especially important in /design, but generally applicable
+## Sub-agent rules file injection limitation
+- Anti-pattern: Assuming vet-fix-agent (sub-agent via Task) receives rules file context injection
+- Correct pattern: Rules files fire in main session only; sub-agents don't receive injection
+- Consequence: Domain context must be carried explicitly — planner writes it into runbook, orchestrator passes through task prompt
+- Related: Hooks also don't fire in sub-agents (documented in claude-config-layout.md)
+## Planning-time domain detection principle
+- Anti-pattern: Expecting weak orchestrator (haiku) to detect domain and route to specialist agents
+- Correct pattern: Planner (opus/sonnet) detects domain, encodes domain skill references in runbook vet steps
+- Rationale: Weak orchestrator executes mechanically; domain detection requires intelligence; Dunning-Kruger prevents runtime self-assessment of knowledge gaps
+- Pattern: "encode concerns at planning time, not orchestration time"
+## Structured criteria manage single-agent cognitive load
+- Anti-pattern: Splitting review across multiple agents (quality + alignment + domain = 3 invocations)
+- Correct pattern: Single vet-fix-agent with domain skill file providing explicit checklists and good/bad examples
+- Rationale: One agent per concern is expensive; structured skill files provide bounded criteria (not unbounded reasoning)
+- Trade-off: Cost over theoretical fidelity; skill file quality determines review quality

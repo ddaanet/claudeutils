@@ -9,6 +9,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | Plan | Status | Notes |
 |------|--------|-------|
 | commit-unification | designed | May be superseded by commit-rca-fixes |
+| domain-validation | designed | Planning-time domain detection, skill-directed vet |
 | continuation-passing | requirements | Opus design needed |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |

@@ -127,7 +127,7 @@ What's fixable (with instructions) vs UNFIXABLE (escalate).
 
 **Rationale:** Explicit checklists with examples provide structured criteria that vet-fix-agent can apply mechanically. This manages cognitive load without requiring separate agents.
 
-**Not user-invocable.** This skill is consumed by vet-fix-agent via file read, not invoked interactively. It may have frontmatter `user-invocable: false` if that field exists, otherwise the filename/location makes its role clear.
+**Not user-invocable.** This skill is consumed by vet-fix-agent via explicit file read in the task prompt, not invoked interactively via `/` command. Include `user-invocable: false` in frontmatter to prevent interactive discovery.
 
 ### D-2: Planning-Time Domain Detection
 
@@ -152,7 +152,7 @@ Delegate to vet-fix-agent:
 - Write report to `plans/<job>/reports/vet-step-N.md`
 ```
 
-**Planner awareness update:** Plan skills (`/plan-adhoc`, `/plan-tdd`) should document that when writing vet checkpoint steps, the planner should check if domain validation skills exist for the artifact types being reviewed.
+**Planner awareness update:** Add a "Domain Validation" subsection to the vet checkpoint guidance in both `/plan-adhoc` (under vet checkpoint instructions) and `/plan-tdd` (under Phase N checkpoint pattern). The subsection should instruct the planner: "When writing vet checkpoint steps, check if a domain validation skill exists at `agent-core/skills/<domain>-validation/SKILL.md` for the artifact types being reviewed. If found, include a 'Domain validation' line in the vet-fix-agent delegation referencing the skill file and specifying the artifact type."
 
 ### D-3: Rules File for Planner Discovery
 
@@ -162,11 +162,6 @@ Delegate to vet-fix-agent:
 ---
 paths:
   - ".claude/plugins/**/*"
-  - ".claude/skills/**/*"
-  - ".claude/agents/**/*"
-  - ".claude/hooks/**/*"
-  - "agent-core/skills/**/*"
-  - "agent-core/agents/**/*"
 ---
 
 # Plugin Development Validation
@@ -183,6 +178,8 @@ Include in vet-fix-agent delegation:
 **Purpose:** Surfaces domain context to the planner. The planner sees this when working with matching file paths and includes domain validation references in runbook vet steps.
 
 **No orchestrator logic.** The rules file doesn't instruct the orchestrator — it informs the planner during runbook generation.
+
+**Path scope note:** The rules file targets `.claude/plugins/**/*` only. Broader paths like `.claude/skills/**/*` and `.claude/agents/**/*` are already covered by existing rules files (`skill-development.md`, `agent-development.md`). Those existing rules guide *creation* of skills/agents; this rules file guides *validation* of plugin components. The planner receives both when paths overlap (e.g., creating a plugin skill triggers both `skill-development.md` and `plugin-dev-validation.md`), which is the correct behavior — creation guidance and validation guidance are complementary.
 
 ### D-4: Plugin-Dev Validation Criteria
 
@@ -238,6 +235,23 @@ Adding a new validation domain:
 
 **That's it.** No new agents, no code changes, no framework. Domain = validation skill file + rules file.
 
+## Requirements Traceability
+
+| Requirement | Addressed | Design Reference |
+|-------------|-----------|------------------|
+| FR-1: Domain-specific validation | Yes | D-1 (skill file format), D-4 (plugin-dev criteria) |
+| FR-2: Optional project-specific validation | Yes | D-6 (opt-in/out mechanism) |
+| FR-3: Plugin-dev as first use case | Yes | D-4 (criteria extraction from plugin-dev skills) |
+| FR-4: Agent discovery of applicable validations | Yes | D-2 (planning-time detection), D-3 (rules file) |
+| FR-5: Validation rules placement | Yes | D-1 (skill files read by vet-fix-agent) |
+| FR-6: Project opt-in mechanism | Yes | D-6 (implicit path matching + explicit rules) |
+| FR-7: Integration with vet/review workflows | Yes | D-5 (existing agents unchanged), Architecture (additive criteria) |
+| FR-8: Extensibility model for new domains | Yes | D-7 (3-step template) |
+| NFR-1: Weak orchestrator compatible | Yes | Architecture (planning-time detection, haiku copies verbatim) |
+| NFR-2: No agent proliferation | Yes | Architecture (one vet-fix-agent, enriched via skill files) |
+| NFR-3: No fidelity loss | Yes | Architecture (vet-fix-agent reads skill files directly) |
+| NFR-4: Autofix | Yes | Architecture (domain reviewer applies fixes directly) |
+
 ## Implementation Notes
 
 ### Affected Files
@@ -247,8 +261,9 @@ Adding a new validation domain:
 - `.claude/rules/plugin-dev-validation.md` — Rules file for planner discovery
 
 **Modified files:**
-- Plan skills (`agent-core/skills/plan-adhoc/`, `agent-core/skills/plan-tdd/`) — Add awareness that domain validation skills exist and should be referenced in vet checkpoint steps
-- `agents/decisions/workflow-core.md` or `agents/decisions/workflow-advanced.md` — Document domain validation pattern
+- `agent-core/skills/plan-adhoc/SKILL.md` — Add "Domain Validation" subsection to vet checkpoint guidance
+- `agent-core/skills/plan-tdd/SKILL.md` — Add "Domain Validation" subsection to checkpoint pattern
+- `agents/decisions/workflow-advanced.md` — Document domain validation pattern as a decision record
 
 **Unchanged files:**
 - `agent-core/agents/vet-fix-agent.md` — No changes (reads domain skill files naturally)
@@ -257,9 +272,9 @@ Adding a new validation domain:
 
 ### Testing Strategy
 
-- **Manual validation:** Create a plugin skill, run vet with domain criteria reference, verify domain-specific issues are caught
-- **Comparison test:** Review same artifact with and without domain criteria — domain version should catch additional issues
-- **Planner integration:** Verify planner includes domain skill reference in runbook vet steps when rules file is active
+- **Manual validation:** Create a plugin skill with known issues (missing frontmatter fields, incorrect structure). Run vet-fix-agent with domain criteria reference. **Success:** domain-specific issues identified and fixed that generic vet would miss.
+- **Comparison test:** Review same artifact with and without domain criteria. **Success:** domain-enriched review catches at least 2 additional issues (e.g., missing progressive disclosure, incorrect triggering conditions).
+- **Planner integration:** Run `/plan-adhoc` on a task involving plugin component creation with rules file active. **Success:** generated runbook vet checkpoint steps include domain validation skill reference and artifact type specification.
 
 ### Risk Assessment
 
@@ -290,5 +305,5 @@ Adding a new validation domain:
 ## Next Steps
 
 - Route to `/plan-adhoc` for runbook generation (general workflow — not TDD, infrastructure/documentation work)
-- Load `plugin-dev:skill-development` before planning (validation skill is itself a skill artifact)
+- **Skill loading directive:** Load `plugin-dev:skill-development` before planning — the validation skill file is itself a skill artifact and must follow skill development conventions
 - Execution model: sonnet for skill file creation, sonnet for rules file, sonnet for plan skill updates
