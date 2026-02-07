@@ -112,7 +112,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Fix obstruction (e.g., remove stale lock), retry the recipe from scratch
 - Rationale: Recipes are atomic units — manually finishing bypasses error handling, ordering, side effects
 - Fix: Added "Partial failure recovery" rule to project-tooling.md
-## Rephrase feedback before applying in design sessions
+## Rephrase feedback before applying
 - Anti-pattern: Receive user feedback, immediately apply changes, present result
 - Correct pattern: Receive feedback → rephrase understanding → ask for validation → apply
 - Rationale: Misinterpreting feedback in /design leads to wrong architectural decisions; rephrase catches misunderstandings early
@@ -127,7 +127,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Planner (opus/sonnet) detects domain, encodes domain skill references in runbook vet steps
 - Rationale: Weak orchestrator executes mechanically; domain detection requires intelligence; Dunning-Kruger prevents runtime self-assessment of knowledge gaps
 - Pattern: "encode concerns at planning time, not orchestration time"
-## Structured criteria manage single-agent cognitive load
+## Structured criteria manage overload
 - Anti-pattern: Splitting review across multiple agents (quality + alignment + domain = 3 invocations)
 - Correct pattern: Single vet-fix-agent with domain skill file providing explicit checklists and good/bad examples
 - Rationale: One agent per concern is expensive; structured skill files provide bounded criteria (not unbounded reasoning)
