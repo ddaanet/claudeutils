@@ -23,11 +23,7 @@ cache:
 precommit:
     #!{{ bash_prolog }}
     sync
-    agent-core/bin/validate-tasks.py agents/session.md agents/learnings.md
-    agent-core/bin/validate-learnings.py agents/learnings.md
-    agent-core/bin/validate-decision-files.py
-    agent-core/bin/validate-memory-index.py agents/memory-index.md
-    agent-core/bin/validate-jobs.py
+    claudeutils validate
     gmake --no-print-directory -C agent-core check
     run-checks
     safe pytest -q

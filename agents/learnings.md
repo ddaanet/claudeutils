@@ -117,3 +117,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Guard with `git diff --quiet --cached || git commit ...`
 - Broader pattern: Recipe success ≠ task success — verify git state after recipe (unmerged commits, stale branches)
 - Fix: justfile line 133 guarded, 4 stale worktrees recovered
+## Agent scope creep in orchestration
+- Anti-pattern: Prompt says "execute step N" without scope constraint — agent reads ahead and executes step N+1
+- Correct pattern: Prompt must include "Execute ONLY this step. Do NOT read or execute other step files."
+- Secondary: Orchestrator must verify agent return describes only the assigned step, not additional work
+- Related: Checkpoint delegations must include explicit "commit all changes before returning"

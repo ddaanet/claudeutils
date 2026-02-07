@@ -14,15 +14,16 @@ Plan lifecycle tracking. Updated when plans change status.
 | requirements-skill | requirements | Evaluate with opus |
 | reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
-| validator-consolidation | requirements | Move to claudeutils package |
+| validator-consolidation | complete | Validators consolidated to claudeutils package |
 
 ## Complete (Archived)
 
-*34 plans completed and deleted. Git history preserves all designs/reports.*
+*35 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `validator-consolidation` — Validators consolidated to claudeutils package
 - `commit-unification` — Unified commit skills, inlined gitmoji, decoupled handoff
 - `position-bias` — Fragment reordering by position bias + token budget script
 - `prompt-composer` — Superseded by fragment system; research distilled
