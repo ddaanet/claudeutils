@@ -7,9 +7,9 @@ from claudeutils.validation.memory_index import validate as validate_memory_inde
 from claudeutils.validation.tasks import validate as validate_tasks
 
 __all__ = [
+    "validate_decision_files",
+    "validate_jobs",
     "validate_learnings",
     "validate_memory_index",
     "validate_tasks",
-    "validate_decision_files",
-    "validate_jobs",
 ]

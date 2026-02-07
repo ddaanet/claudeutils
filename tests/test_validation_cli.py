@@ -1,7 +1,7 @@
 """Tests for the validation CLI command group."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
@@ -13,18 +13,13 @@ def test_validate_all_validators(tmp_path: Path) -> None:
     runner = CliRunner()
 
     # Mock all validator functions to return no errors
-    with patch(
-        "claudeutils.validation.cli.validate_learnings", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_memory_index", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_tasks", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_decision_files", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_jobs", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch("claudeutils.validation.cli.validate_learnings", return_value=[]),
+        patch("claudeutils.validation.cli.validate_memory_index", return_value=[]),
+        patch("claudeutils.validation.cli.validate_tasks", return_value=[]),
+        patch("claudeutils.validation.cli.validate_decision_files", return_value=[]),
+        patch("claudeutils.validation.cli.validate_jobs", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate"])
 
@@ -32,13 +27,15 @@ def test_validate_all_validators(tmp_path: Path) -> None:
 
 
 def test_validate_learnings_subcommand(tmp_path: Path) -> None:
-    """Test that 'claudeutils validate learnings' runs only learnings validator."""
+    """Test that 'claudeutils validate learnings' runs only learnings validator.
+
+    Verifies individual subcommand execution.
+    """
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_learnings", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch("claudeutils.validation.cli.validate_learnings", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate", "learnings"])
 
@@ -46,13 +43,16 @@ def test_validate_learnings_subcommand(tmp_path: Path) -> None:
 
 
 def test_validate_memory_index_subcommand(tmp_path: Path) -> None:
-    """Test that 'claudeutils validate memory-index' runs only memory-index validator."""
+    """Test memory-index validator subcommand.
+
+    Verifies 'claudeutils validate memory-index' runs only the memory-index
+    validator.
+    """
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_memory_index", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch("claudeutils.validation.cli.validate_memory_index", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate", "memory-index"])
 
@@ -63,10 +63,9 @@ def test_validate_tasks_subcommand(tmp_path: Path) -> None:
     """Test that 'claudeutils validate tasks' runs only tasks validator."""
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_tasks", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch("claudeutils.validation.cli.validate_tasks", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate", "tasks"])
 
@@ -74,13 +73,15 @@ def test_validate_tasks_subcommand(tmp_path: Path) -> None:
 
 
 def test_validate_decisions_subcommand(tmp_path: Path) -> None:
-    """Test that 'claudeutils validate decisions' runs only decisions validator."""
+    """Test that 'claudeutils validate decisions' runs only decisions validator.
+
+    Verifies individual subcommand execution.
+    """
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_decision_files", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch("claudeutils.validation.cli.validate_decision_files", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate", "decisions"])
 
@@ -91,10 +92,9 @@ def test_validate_jobs_subcommand(tmp_path: Path) -> None:
     """Test that 'claudeutils validate jobs' runs only jobs validator."""
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_jobs", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch("claudeutils.validation.cli.validate_jobs", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate", "jobs"])
 
@@ -105,19 +105,16 @@ def test_validate_exit_code_1_on_failure(tmp_path: Path) -> None:
     """Test that exit code is 1 when validation fails."""
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_learnings",
-        return_value=["Error: title too long"],
-    ), patch(
-        "claudeutils.validation.cli.validate_memory_index", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_tasks", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_decision_files", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_jobs", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch(
+            "claudeutils.validation.cli.validate_learnings",
+            return_value=["Error: title too long"],
+        ),
+        patch("claudeutils.validation.cli.validate_memory_index", return_value=[]),
+        patch("claudeutils.validation.cli.validate_tasks", return_value=[]),
+        patch("claudeutils.validation.cli.validate_decision_files", return_value=[]),
+        patch("claudeutils.validation.cli.validate_jobs", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate"])
 
@@ -128,19 +125,16 @@ def test_validate_error_output_to_stderr(tmp_path: Path) -> None:
     """Test that errors are output to stderr."""
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_learnings",
-        return_value=["agents/learnings.md:5: title too long"],
-    ), patch(
-        "claudeutils.validation.cli.validate_memory_index", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_tasks", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_decision_files", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_jobs", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch(
+            "claudeutils.validation.cli.validate_learnings",
+            return_value=["agents/learnings.md:5: title too long"],
+        ),
+        patch("claudeutils.validation.cli.validate_memory_index", return_value=[]),
+        patch("claudeutils.validation.cli.validate_tasks", return_value=[]),
+        patch("claudeutils.validation.cli.validate_decision_files", return_value=[]),
+        patch("claudeutils.validation.cli.validate_jobs", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate"])
 
@@ -153,11 +147,12 @@ def test_validate_subcommand_exit_code_1_on_failure(tmp_path: Path) -> None:
     """Test that subcommand exits with code 1 when validation fails."""
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_learnings",
-        return_value=["agents/learnings.md:5: title too long"],
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch(
+            "claudeutils.validation.cli.validate_learnings",
+            return_value=["agents/learnings.md:5: title too long"],
+        ),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate", "learnings"])
 
@@ -169,10 +164,9 @@ def test_validate_subcommand_exit_code_0_on_success(tmp_path: Path) -> None:
     """Test that subcommand exits with code 0 when validation passes."""
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_learnings", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch("claudeutils.validation.cli.validate_learnings", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate", "learnings"])
 
@@ -180,23 +174,25 @@ def test_validate_subcommand_exit_code_0_on_success(tmp_path: Path) -> None:
 
 
 def test_validate_all_mode_multiple_errors(tmp_path: Path) -> None:
-    """Test that 'validate all' collects and prints errors from multiple validators."""
+    """Test 'validate all' collects errors from multiple validators.
+
+    Verifies error aggregation across validators.
+    """
     runner = CliRunner()
 
-    with patch(
-        "claudeutils.validation.cli.validate_learnings",
-        return_value=["agents/learnings.md:5: title too long"],
-    ), patch(
-        "claudeutils.validation.cli.validate_memory_index",
-        return_value=["agents/memory-index.md:10: orphan entry"],
-    ), patch(
-        "claudeutils.validation.cli.validate_tasks", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_decision_files", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_jobs", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch(
+            "claudeutils.validation.cli.validate_learnings",
+            return_value=["agents/learnings.md:5: title too long"],
+        ),
+        patch(
+            "claudeutils.validation.cli.validate_memory_index",
+            return_value=["agents/memory-index.md:10: orphan entry"],
+        ),
+        patch("claudeutils.validation.cli.validate_tasks", return_value=[]),
+        patch("claudeutils.validation.cli.validate_decision_files", return_value=[]),
+        patch("claudeutils.validation.cli.validate_jobs", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate"])
 
@@ -208,32 +204,34 @@ def test_validate_all_mode_multiple_errors(tmp_path: Path) -> None:
 
 
 def test_validate_all_mode_no_short_circuit(tmp_path: Path) -> None:
-    """Test that 'validate all' doesn't short-circuit after first failure."""
+    """Test that 'validate all' doesn't short-circuit after first failure.
+
+    Verifies all validators run even when early validators fail.
+    """
     runner = CliRunner()
     call_count = {"count": 0}
 
-    def mock_learnings_validator(*args, **kwargs):
+    def mock_learnings_validator(*args: object, **kwargs: object) -> list[str]:
         call_count["count"] += 1
         return ["error"]
 
-    def mock_memory_index_validator(*args, **kwargs):
+    def mock_memory_index_validator(*args: object, **kwargs: object) -> list[str]:
         call_count["count"] += 1
         return ["error"]
 
-    with patch(
-        "claudeutils.validation.cli.validate_learnings",
-        side_effect=mock_learnings_validator,
-    ), patch(
-        "claudeutils.validation.cli.validate_memory_index",
-        side_effect=mock_memory_index_validator,
-    ), patch(
-        "claudeutils.validation.cli.validate_tasks", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_decision_files", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.validate_jobs", return_value=[]
-    ), patch(
-        "claudeutils.validation.cli.find_project_root", return_value=tmp_path
+    with (
+        patch(
+            "claudeutils.validation.cli.validate_learnings",
+            side_effect=mock_learnings_validator,
+        ),
+        patch(
+            "claudeutils.validation.cli.validate_memory_index",
+            side_effect=mock_memory_index_validator,
+        ),
+        patch("claudeutils.validation.cli.validate_tasks", return_value=[]),
+        patch("claudeutils.validation.cli.validate_decision_files", return_value=[]),
+        patch("claudeutils.validation.cli.validate_jobs", return_value=[]),
+        patch("claudeutils.validation.cli.find_project_root", return_value=tmp_path),
     ):
         result = runner.invoke(cli, ["validate"])
 

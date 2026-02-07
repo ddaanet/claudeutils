@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-07
 
-**Status:** Validator consolidation planned. Runbook ready for execution.
+**Status:** Validator consolidation complete. Orchestration architecture fix pending.
 
 ## Completed This Session
 
@@ -13,20 +13,29 @@
 - Full 8-step runbook generated, reviewed by vet-agent, all fixes applied
 - Artifacts prepared: agent, 8 step files, orchestrator plan
 
+**Execution:**
+- All 8 steps executed (steps 3+4 conflated by agent scope creep, but all work completed)
+- Phase checkpoints at steps 4, 6, 8 all passed with vet-fix-agent review
+- Package structure: `src/claudeutils/validation/` with 5 validators + CLI
+- CLI integration: `claudeutils validate` subcommand wired to main CLI
+- Justfile integration: precommit now uses `claudeutils validate`
+- Old scripts removed: agent-core/bin/validate-*.py deleted
+- All tests passing: 509/509 total, 100/100 validation tests
+- RCA performed: agent scope creep identified, learning appended
+
 **Key artifacts:**
 - `plans/validator-consolidation/runbook.md` — Full runbook
-- `plans/validator-consolidation/runbook-outline.md` — Reviewed outline
-- `plans/validator-consolidation/reports/` — Outline review, runbook review
-- `.claude/agents/validator-consolidation-task.md` — Plan-specific agent
-- `plans/validator-consolidation/steps/step-{1..8}.md` — Step files
-- `plans/validator-consolidation/orchestrator-plan.md` — Orchestrator plan
+- `plans/validator-consolidation/reports/checkpoint-{1,2,3}-vet.md` — Phase reviews
+- `src/claudeutils/validation/` — New validation package (5 validators + CLI)
+- `tests/test_validation_*.py` — Comprehensive test suite
 
 ## Pending Tasks
 
-- [ ] **Execute validator consolidation** — `/orchestrate validator-consolidation` | haiku | restart
-  - Plan: validator-consolidation | Status: planned
-  - 8 steps, 3 phases: foundation+simple validators → complex validators → CLI+integration
-  - Phase checkpoints at steps 4, 6, 8
+- [ ] **Fix orchestration architecture** — Generate per-step task files to prevent scope creep | sonnet
+  - Root cause: Shared plan-specific agent can read all step files → agents execute multiple steps
+  - Fix: prepare-runbook.py should generate separate `.claude/agents/<plan>-step-N.md` files
+  - Each step agent only sees its assigned step content, cannot read ahead
+  - Update orchestrate skill to invoke step-specific agents instead of shared plan agent
 
 ## Reference Files
 
