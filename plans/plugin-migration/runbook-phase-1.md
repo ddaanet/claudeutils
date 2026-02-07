@@ -1,40 +1,25 @@
 # Phase 1: Plugin Manifest
 
-**Purpose:** Create the minimal plugin manifest and version marker to enable plugin discovery.
+**Purpose:** Create plugin manifest and version marker to enable Claude Code plugin discovery
 
-**Dependencies:** None (first phase)
+**Dependencies:** Phase 0 (edify-plugin directory exists)
 
-**Model:** Haiku (inline execution, no delegation)
+**Model:** Haiku
 
-**Prerequisites:**
-
-Before starting Phase 1, verify documentation loaded:
-- Design document: `plans/plugin-migration/design.md` (already read)
-- Skills loaded: `plugin-dev:plugin-structure` and `plugin-dev:hook-development` (required by design "Documentation Perimeter")
-
-If skills not loaded, invoke:
-```
-/skill plugin-dev:plugin-structure
-/skill plugin-dev:hook-development
-```
+**Estimated Complexity:** Trivial (2 simple files, ~15 lines total)
 
 ---
 
-## Step 1.1: Create plugin manifest
+## Step 1.1: Create Plugin Infrastructure
 
-**Objective:** Create minimal plugin manifest at `agent-core/.claude-plugin/plugin.json` with name, version, and description.
-
-**Execution Model:** Haiku (inline execution)
+**Objective:** Create plugin.json manifest and .version marker for plugin discovery and fragment version tracking.
 
 **Implementation:**
 
-Create directory and plugin manifest:
-
+1. **Create plugin manifest directory and file:**
 ```bash
-mkdir -p agent-core/.claude-plugin
-cat > agent-core/.claude-plugin/plugin.json << 'EOF'
-
-```json
+mkdir -p edify-plugin/.claude-plugin
+cat > edify-plugin/.claude-plugin/plugin.json <<'EOF'
 {
   "name": "edify",
   "version": "1.0.0",
@@ -43,81 +28,73 @@ cat > agent-core/.claude-plugin/plugin.json << 'EOF'
 EOF
 ```
 
-**Design Reference:**
-- D-1: Plugin name = `edify` (Latin *aedificare* = "to build" + "to instruct")
-- Design Component 1: Minimal manifest (auto-discovery handles skills/agents/hooks from conventional directories)
+**Manifest design notes:**
+- Minimal structure per D-1 (name + version + description only)
+- Plugin name = `edify` (Latin *aedificare* = "to build" + "to instruct")
+- Auto-discovery handles skills/agents/hooks from conventional directories
+- No custom path overrides needed (edify-plugin already uses standard layout)
+
+2. **Create version marker:**
+```bash
+printf '1.0.0' > edify-plugin/.version
+```
+
+**Version marker purpose:**
+- Source version for fragment staleness detection (Component 7)
+- Compared against project's `.edify-version` by version-check hook
+- Semantic versioning: major = breaking CLAUDE.md structure, minor = new fragment, patch = content fix
+
+3. **Validate file creation:**
+```bash
+# Verify plugin.json exists and parses as valid JSON
+test -f edify-plugin/.claude-plugin/plugin.json && jq . edify-plugin/.claude-plugin/plugin.json
+
+# Verify .version exists with correct content (5 bytes, no trailing newline)
+test -f edify-plugin/.version && [ "$(cat edify-plugin/.version)" = "1.0.0" ] && [ "$(wc -c < edify-plugin/.version)" -eq 5 ]
+```
+
+**Expected Outcome:**
+- `edify-plugin/.claude-plugin/plugin.json` created with valid JSON
+- `edify-plugin/.version` created with `1.0.0` content (exactly 5 bytes)
+- Both validation commands exit 0
+- Files ready for plugin auto-discovery after Phase 2-3 (skills/agents/hooks)
+
+**Unexpected Result Handling:**
+- If `.claude-plugin/` creation fails: check permissions on edify-plugin/ directory
+- If JSON validation fails: check syntax (trailing commas, quotes, malformed JSON)
+- If .version validation fails: verify exact string `1.0.0` with no trailing newline
+- If `jq` not installed: install with `brew install jq` or use `python3 -m json.tool` instead
 
 **Validation:**
-- File exists at `agent-core/.claude-plugin/plugin.json`
-- JSON parses correctly: `jq . agent-core/.claude-plugin/plugin.json`
-- Contains required fields: `name`, `version`, `description`
-
-**Expected Outcome:** Plugin manifest file created with valid JSON structure.
-
-**Error Conditions:**
-- `.claude-plugin/` directory creation fails → Check permissions on `agent-core/` directory
-- JSON syntax error → Fix JSON structure
-- `jq` not installed → Install with `brew install jq` or package manager
+- `[ -f edify-plugin/.claude-plugin/plugin.json ]` returns true
+- `[ -f edify-plugin/.version ]` returns true
+- `jq . edify-plugin/.claude-plugin/plugin.json` succeeds (valid JSON)
+- `cat edify-plugin/.version` outputs exactly `1.0.0`
+- `wc -c < edify-plugin/.version` outputs `5` (no trailing newline)
 
 **Success Criteria:**
-- File exists at correct path
-- JSON is well-formed
-- `jq` validation passes
+- Both files created successfully
+- plugin.json parses as valid JSON with required fields (name, version, description)
+- .version contains semver string with exact byte count
+- Ready for plugin discovery components (Phase 2-3)
+
+**Report Path:** `plans/plugin-migration/reports/phase-1-execution.md`
 
 ---
 
-## Step 1.2: Create fragment version marker
+## Common Context
 
-**Objective:** Create fragment version marker at `agent-core/.version` with initial version `1.0.0`.
+**Affected Files:**
+- `edify-plugin/.claude-plugin/` (directory creation)
+- `edify-plugin/.claude-plugin/plugin.json` (new file)
+- `edify-plugin/.version` (new file)
 
-**Execution Model:** Haiku (inline execution)
+**Key Constraints:**
+- plugin.json must be valid JSON (Claude Code plugin loader requirement)
+- .version must contain semver string for version-check hook comparison
+- Minimal plugin.json per D-1 (name + version + description only)
+- Auto-discovery from conventional directories (no path overrides in manifest)
 
-**Implementation:**
-
-Create `.version` file using `printf` to avoid trailing newline:
-
-```bash
-printf '1.0.0' > agent-core/.version
-```
-
-**Design Reference:**
-- Design Component 3: Fragment versioning system
-- Version bump protocol: major = breaking CLAUDE.md structure, minor = new fragment, patch = content fix
-
-**Validation:**
-- File exists at `agent-core/.version`
-- Contains exactly `1.0.0` with no trailing newline: `[ "$(cat agent-core/.version)" = "1.0.0" ]`
-- Byte count is exactly 5: `[ "$(wc -c < agent-core/.version)" -eq 5 ]`
-
-**Expected Outcome:** Version marker file created with initial version.
-
-**Error Conditions:**
-- File write fails → Check permissions
-- Wrong content → Verify exact string `1.0.0`
-
-**Success Criteria:**
-- File exists at correct path
-- Content is exactly `1.0.0` (5 bytes, no trailing newline)
-- Byte count validation passes
-
----
-
-## Phase 1 Checkpoint
-
-**Verification:**
-
-Run these commands to verify Phase 1 completion:
-
-```bash
-# Verify plugin.json exists and is valid JSON
-test -f agent-core/.claude-plugin/plugin.json && jq . agent-core/.claude-plugin/plugin.json
-
-# Verify .version exists with correct content
-test -f agent-core/.version && [ "$(cat agent-core/.version)" = "1.0.0" ]
-```
-
-**Success:** Both commands exit 0
-
-**On failure:** Review error messages, fix issues, re-run verification
-
-**Next:** Proceed to Phase 2 (Skills and Agents)
+**Stop Conditions:**
+- If edify-plugin/ directory doesn't exist (Phase 0 not complete)
+- If JSON validation fails repeatedly (syntax error in manifest)

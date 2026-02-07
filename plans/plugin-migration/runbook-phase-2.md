@@ -10,7 +10,7 @@
 
 ## Step 2.1: Verify agent structure
 
-**Objective:** Confirm `agent-core/agents/` contains 14 agent `.md` files and structure matches plugin auto-discovery requirements.
+**Objective:** Confirm `edify-plugin/agents/` contains 14 agent `.md` files and structure matches plugin auto-discovery requirements.
 
 **Execution Model:** Haiku (inline verification)
 
@@ -20,17 +20,17 @@ Verify agent structure:
 
 ```bash
 # Count agent .md files
-agent_count=$(find agent-core/agents -maxdepth 1 -name "*.md" -type f | wc -l)
+agent_count=$(find edify-plugin/agents -maxdepth 1 -name "*.md" -type f | wc -l)
 echo "Agent count: $agent_count"
 
 # List agent files
-find agent-core/agents -maxdepth 1 -name "*.md" -type f | sort
+find edify-plugin/agents -maxdepth 1 -name "*.md" -type f | sort
 ```
 
 **Expected count:** 14 agent files
 
 **Design Reference:**
-- Design Component 1: "Plugin agents are discovered from `agent-core/agents/`. Plan-specific agents (`*-task.md`) live in `.claude/agents/` as regular files."
+- Design Component 1: "Plugin agents are discovered from `edify-plugin/agents/`. Plan-specific agents (`*-task.md`) live in `.claude/agents/` as regular files."
 - Plugin auto-discovery: All `.md` files in `agents/` directory load automatically
 
 **Validation:**
@@ -38,21 +38,21 @@ find agent-core/agents -maxdepth 1 -name "*.md" -type f | sort
 - All files are `.md` extension
 - Files are at `agents/` root level (not nested in subdirectories)
 
-**Expected Outcome:** 14 agent `.md` files confirmed at `agent-core/agents/`.
+**Expected Outcome:** 14 agent `.md` files confirmed at `edify-plugin/agents/`.
 
 **Error Conditions:**
 - Count mismatch → Investigate missing or extra files
 - Nested subdirectories found → Agents must be at root level for auto-discovery
 
 **Success Criteria:**
-- Exactly 14 `.md` files in `agent-core/agents/`
+- Exactly 14 `.md` files in `edify-plugin/agents/`
 - All agents at root level (no subdirectories)
 
 ---
 
 ## Step 2.2: Verify skill structure
 
-**Objective:** Confirm `agent-core/skills/` contains 16 skill subdirectories, each with `SKILL.md` file.
+**Objective:** Confirm `edify-plugin/skills/` contains 16 skill subdirectories, each with `SKILL.md` file.
 
 **Execution Model:** Haiku (inline verification)
 
@@ -62,18 +62,18 @@ Verify skill structure:
 
 ```bash
 # Count skill directories
-skill_count=$(find agent-core/skills -mindepth 1 -maxdepth 1 -type d | wc -l)
+skill_count=$(find edify-plugin/skills -mindepth 1 -maxdepth 1 -type d | wc -l)
 echo "Skill directory count: $skill_count"
 
 # Count SKILL.md files
-skill_md_count=$(find agent-core/skills -name "SKILL.md" | wc -l)
+skill_md_count=$(find edify-plugin/skills -name "SKILL.md" | wc -l)
 echo "SKILL.md count: $skill_md_count"
 
 # List skill directories
-find agent-core/skills -mindepth 1 -maxdepth 1 -type d | sort
+find edify-plugin/skills -mindepth 1 -maxdepth 1 -type d | sort
 
 # Verify each directory has SKILL.md
-for dir in agent-core/skills/*/; do
+for dir in edify-plugin/skills/*/; do
   if [ ! -f "$dir/SKILL.md" ]; then
     echo "Missing SKILL.md in: $dir"
   fi
@@ -101,7 +101,7 @@ done
 - Skills at root level (not in subdirectories) → Won't auto-discover
 
 **Success Criteria:**
-- Exactly 16 subdirectories in `agent-core/skills/`
+- Exactly 16 subdirectories in `edify-plugin/skills/`
 - Every subdirectory contains `SKILL.md`
 - No orphan SKILL.md files outside skill directories
 
@@ -109,7 +109,7 @@ done
 
 ## Step 2.3: Create /edify:init skill
 
-**Objective:** Create `/edify:init` skill at `agent-core/skills/init/SKILL.md` for dev mode scaffolding.
+**Objective:** Create `/edify:init` skill at `edify-plugin/skills/init/SKILL.md` for dev mode scaffolding.
 
 **Execution Model:** Sonnet (skill design)
 
@@ -118,10 +118,10 @@ done
 Create skill directory and SKILL.md:
 
 ```bash
-mkdir -p agent-core/skills/init
+mkdir -p edify-plugin/skills/init
 ```
 
-Then create `agent-core/skills/init/SKILL.md` with:
+Then create `edify-plugin/skills/init/SKILL.md` with:
 
 **YAML frontmatter:**
 ```yaml
@@ -145,17 +145,17 @@ version: 1.0.0
    - After cloning project with agent-core submodule
 
 3. **Behavior:**
-   - Detect installation mode (check `agent-core/` directory exists)
+   - Detect installation mode (check `edify-plugin/` directory exists)
    - Create `agents/` directory if missing
    - Create `agents/session.md` from template if missing
    - Create `agents/learnings.md` from template if missing
    - Create `agents/jobs.md` from template if missing
-   - If no CLAUDE.md: copy template with `@agent-core/fragments/` references
+   - If no CLAUDE.md: copy template with `@edify-plugin/fragments/` references
    - If CLAUDE.md exists: no modification (preserve user content)
    - Write `.edify-version` with current plugin version
 
 4. **Consumer mode handling:**
-   - Detect consumer mode (no `agent-core/` directory)
+   - Detect consumer mode (no `edify-plugin/` directory)
    - Add TODO markers: "Consumer mode fragment copying not yet implemented"
    - Exit with clear message directing to dev mode setup
 
@@ -170,7 +170,7 @@ version: 1.0.0
 - Component 4: `/edify:init` scaffolding behavior
 
 **Validation:**
-- Skill file exists at `agent-core/skills/init/SKILL.md`
+- Skill file exists at `edify-plugin/skills/init/SKILL.md`
 - YAML frontmatter is valid
 - Skill description triggers on "scaffold", "setup", "init"
 - Dev mode logic is complete
@@ -193,7 +193,7 @@ version: 1.0.0
 
 ## Step 2.4: Create /edify:update skill
 
-**Objective:** Create `/edify:update` skill at `agent-core/skills/update/SKILL.md` for fragment sync.
+**Objective:** Create `/edify:update` skill at `edify-plugin/skills/update/SKILL.md` for fragment sync.
 
 **Execution Model:** Sonnet (skill design)
 
@@ -202,10 +202,10 @@ version: 1.0.0
 Create skill directory and SKILL.md:
 
 ```bash
-mkdir -p agent-core/skills/update
+mkdir -p edify-plugin/skills/update
 ```
 
-Then create `agent-core/skills/update/SKILL.md` with:
+Then create `edify-plugin/skills/update/SKILL.md` with:
 
 **YAML frontmatter:**
 ```yaml
@@ -220,7 +220,7 @@ version: 1.0.0
 
 1. **Purpose section:**
    - Syncs fragments when plugin updates
-   - Dev mode: No-op (fragments read directly via `@agent-core/fragments/`)
+   - Dev mode: No-op (fragments read directly via `@edify-plugin/fragments/`)
    - Consumer mode: Copies updated fragments to `agents/rules/`
 
 2. **When to Use:**
@@ -229,22 +229,22 @@ version: 1.0.0
    - After plugin upgrade
 
 3. **Behavior (dev mode):**
-   - Check installation mode (verify `agent-core/` directory exists)
-   - Read current `.edify-version` and `agent-core/.version`
+   - Check installation mode (verify `edify-plugin/` directory exists)
+   - Read current `.edify-version` and `edify-plugin/.version`
    - If versions match: "Already up to date"
    - If versions differ: "Dev mode uses direct references, no sync needed. Updated .edify-version marker."
    - Write current version to `.edify-version`
    - Exit successfully
 
 4. **Behavior (consumer mode):**
-   - Check installation mode (no `agent-core/` directory)
+   - Check installation mode (no `edify-plugin/` directory)
    - Add TODO markers: "Consumer mode fragment copying not yet implemented"
    - Copy fragments from `$CLAUDE_PLUGIN_ROOT/fragments/` to `agents/rules/`
    - Update `@` references in CLAUDE.md
    - Write current version to `.edify-version`
 
 5. **Version marker update:**
-   - Always update `.edify-version` to match `agent-core/.version` (or `$CLAUDE_PLUGIN_ROOT/.version` in consumer mode)
+   - Always update `.edify-version` to match `edify-plugin/.version` (or `$CLAUDE_PLUGIN_ROOT/.version` in consumer mode)
    - Clear temp file: `tmp/.edify-version-checked` (resets once-per-session gate)
 
 **Design References:**
@@ -253,7 +253,7 @@ version: 1.0.0
 - Fragment versioning: dev mode reads directly, consumer mode copies
 
 **Validation:**
-- Skill file exists at `agent-core/skills/update/SKILL.md`
+- Skill file exists at `edify-plugin/skills/update/SKILL.md`
 - YAML frontmatter is valid
 - Skill description triggers on "update", "sync", "fragments"
 - Dev mode logic is complete (version marker update)
@@ -282,17 +282,17 @@ Run these commands to verify Phase 2 completion:
 
 ```bash
 # Verify agent structure
-agent_count=$(find agent-core/agents -maxdepth 1 -name "*.md" -type f | wc -l)
+agent_count=$(find edify-plugin/agents -maxdepth 1 -name "*.md" -type f | wc -l)
 [ "$agent_count" -eq 14 ] && echo "✓ Agent structure verified" || echo "✗ Agent count mismatch"
 
 # Verify skill structure
-skill_count=$(find agent-core/skills -mindepth 1 -maxdepth 1 -type d | wc -l)
-skill_md_count=$(find agent-core/skills -name "SKILL.md" | wc -l)
+skill_count=$(find edify-plugin/skills -mindepth 1 -maxdepth 1 -type d | wc -l)
+skill_md_count=$(find edify-plugin/skills -name "SKILL.md" | wc -l)
 [ "$skill_count" -eq 18 ] && [ "$skill_md_count" -eq 18 ] && echo "✓ Skill structure verified (16 existing + 2 new)" || echo "✗ Skill count mismatch"
 
 # Verify new skills exist
-test -f agent-core/skills/init/SKILL.md && echo "✓ /edify:init skill created" || echo "✗ /edify:init missing"
-test -f agent-core/skills/update/SKILL.md && echo "✓ /edify:update skill created" || echo "✗ /edify:update missing"
+test -f edify-plugin/skills/init/SKILL.md && echo "✓ /edify:init skill created" || echo "✗ /edify:init missing"
+test -f edify-plugin/skills/update/SKILL.md && echo "✓ /edify:update skill created" || echo "✗ /edify:update missing"
 
 # Test plugin discovery (requires restart)
 echo "Manual test required:"

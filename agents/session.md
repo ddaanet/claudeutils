@@ -1,6 +1,6 @@
-# Session: Plugin Migration — Runbook Planning (Partial)
+# Session: Plugin Migration — Runbook Complete
 
-**Status:** Runbook outline reviewed, Phase 0 drafted and reviewed. Planning paused for commit.
+**Status:** All 7 phases expanded and path-corrected. Ready for prepare-runbook.py assembly.
 
 ## Completed This Session
 
@@ -20,23 +20,29 @@
 - runbook-outline-review-agent found and fixed critical gap: directory rename must be explicit step
 - Review report: plans/plugin-migration/reports/outline-review-2.md
 
-**Phase 0 Drafted and Vetted:**
-- Created runbook-phase-0.md with directory rename implementation
-- vet-agent found 13 issues (5 critical, 5 major, 3 minor) including:
-  - Missing .claude/rules/*.md path updates
-  - Missing 6 plan-specific agent files
-  - Missing 41 references in plans/ directories
-  - Makefile target rename needed
-  - Incomplete grep pattern (excluded critical directories)
-- Vet report: plans/plugin-migration/reports/phase-0-review.md
+**Phase 0 Fixed (13 Issues from Vet):**
+- Applied all vet fixes: .claude/rules/ updates, plan-specific agents, Makefile, cache rename timing
+- Added 6 file categories: core config, rules, agents, session, cache, historical docs
+- Expanded from 9 steps to 16 steps with comprehensive validation
+- Baseline grep → rename → categorical updates → post-grep comparison
+- All 31 symlinks validated (not just one sample)
+- Complexity upgraded from Trivial to Moderate
+
+**Phases 1-6 Expanded:**
+- Phase 1: Plugin manifest + version marker (consolidated to single step)
+- Phase 2: Skills/agents verification + /edify:init + /edify:update creation
+- Phase 3: hooks.json (direct format per D-4) + version-check hook + delete symlink-redirect
+- Phase 4: portable.just extraction + root justfile import
+- Phase 5: Symlink cleanup + config/doc updates + comprehensive validation (NFR-1, NFR-2)
+- Phase 6: Cache regeneration (both root and edify-plugin)
+- All phases updated: agent-core → edify-plugin throughout
 
 ## Pending Tasks
 
-- [ ] **Apply Phase 0 vet fixes and continue phase expansion** — Load vet report, apply all fixes to Phase 0, then expand Phases 1-6 | sonnet
-  - Phase 0 needs: .claude/rules/ updates, plan-specific agents, Makefile changes, comprehensive symlink validation
-  - After Phase 0 complete: expand and review Phases 1-6 (each phase → vet → fix → next)
-  - Each phase review should use vet-agent (review-only mode)
-  - Final step: prepare-runbook.py → handoff → commit
+- [ ] **Run prepare-runbook.py and review** — Assemble phases into runbook.md, validate cycle numbering, review metadata | haiku
+  - Command: `edify-plugin/bin/prepare-runbook.py plans/plugin-migration/runbook-outline.md` (requires `dangerouslyDisableSandbox: true`)
+  - Review output for errors, check metadata calculation
+  - Handoff and commit after successful assembly
 
 ## Blockers / Gotchas
 

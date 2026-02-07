@@ -10,108 +10,110 @@
 
 ## Step 3.1: Create hooks.json
 
-**Objective:** Create `agent-core/hooks/hooks.json` with plugin hook configuration using wrapper format.
+**Objective:** Create `edify-plugin/hooks/hooks.json` with plugin hook configuration using direct format (per D-4).
 
 **Execution Model:** Haiku (inline execution)
 
 **Implementation:**
 
-Create `agent-core/hooks/hooks.json`:
+Create `edify-plugin/hooks/hooks.json`:
 
 ```bash
-cat > agent-core/hooks/hooks.json << 'EOF'
+cat > edify-plugin/hooks/hooks.json << 'EOF'
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/pretooluse-block-tmp.sh",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/submodule-safety.py",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/submodule-safety.py",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/userpromptsubmit-shortcuts.py",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/userpromptsubmit-version-check.py",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
+  "PreToolUse": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/pretooluse-block-tmp.sh",
+          "timeout": 5
+        }
+      ]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/submodule-safety.py",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/submodule-safety.py",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/userpromptsubmit-shortcuts.py",
+          "timeout": 5
+        },
+        {
+          "type": "command",
+          "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/userpromptsubmit-version-check.py",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
 }
 EOF
 ```
 
 **Design References:**
-- D-4: `hooks.json` separate file, not inline in `plugin.json`
-- Design Component 2: Hook migration with wrapper format
+- D-4: `hooks.json` separate file with DIRECT format `{"PreToolUse": [...]}` (not wrapper format)
+- Design Component 2: Hook migration with `$CLAUDE_PLUGIN_ROOT` paths
 - Design Component 2 table: Hook script changes (all scripts stay unchanged except symlink-redirect deletion)
+
+**Format note:**
+- Direct format: hook events at root level (correct for `hooks/hooks.json` file)
+- Wrapper format (`{"hooks": {...}}`) only used for inline hooks in `plugin.json`
+- This file uses direct format per D-4 decision
 
 **Path resolution:**
 - `$CLAUDE_PLUGIN_ROOT` resolves to plugin directory at runtime
-- Dev mode (`--plugin-dir ./agent-core`): resolves to `agent-core/`
+- Dev mode (`--plugin-dir ./edify-plugin`): resolves to `edify-plugin/`
 - Consumer mode (marketplace): resolves to cached plugin directory
 
 **Validation:**
-- File exists at `agent-core/hooks/hooks.json`
-- JSON is well-formed: `jq . agent-core/hooks/hooks.json`
-- Contains `hooks` field at root level
-- All hook events present: PreToolUse, PostToolUse, UserPromptSubmit
+- File exists at `edify-plugin/hooks/hooks.json`
+- JSON is well-formed: `jq . edify-plugin/hooks/hooks.json`
+- Root level contains hook event keys (PreToolUse, PostToolUse, UserPromptSubmit) - NO wrapper `hooks` field
 - All scripts referenced exist (check in Step 3.2 after deletion)
 
-**Expected Outcome:** Plugin hook configuration file created with wrapper format.
+**Expected Outcome:** Plugin hook configuration file created with direct format.
 
 **Error Conditions:**
 - JSON syntax error → Fix JSON structure
 - `jq` not installed → Install with `brew install jq`
-- Missing wrapper structure → Verify `hooks` field wraps events
+- Wrapper format used → Must be direct format per D-4
 
 **Success Criteria:**
-- File exists at `agent-core/hooks/hooks.json`
+- File exists at `edify-plugin/hooks/hooks.json`
 - JSON validates with `jq`
-- Plugin hooks.json format (root `hooks` field, no description wrapper)
+- Direct format (hook events at root, no wrapper `hooks` field)
 - All referenced scripts exist (verified after Step 3.2)
 
 ---
 
 ## Step 3.2: Delete obsolete hook script
 
-**Objective:** Delete `agent-core/hooks/pretooluse-symlink-redirect.sh` (purpose eliminated by plugin auto-discovery).
+**Objective:** Delete `edify-plugin/hooks/pretooluse-symlink-redirect.sh` (purpose eliminated by plugin auto-discovery).
 
 **Execution Model:** Haiku (inline execution)
 
@@ -120,7 +122,7 @@ EOF
 Remove symlink-redirect hook:
 
 ```bash
-rm agent-core/hooks/pretooluse-symlink-redirect.sh
+rm edify-plugin/hooks/pretooluse-symlink-redirect.sh
 ```
 
 **Design Reference:**
@@ -128,17 +130,17 @@ rm agent-core/hooks/pretooluse-symlink-redirect.sh
 - Design "Affected Files (Delete)" section: Lists this file for deletion
 
 **Rationale:**
-This hook prevented editing agent-core files via symlinks. With plugin auto-discovery, skills/agents/hooks load directly from agent-core (no symlinks), so the hook's purpose is eliminated.
+This hook prevented editing edify-plugin files via symlinks. With plugin auto-discovery, skills/agents/hooks load directly from edify-plugin (no symlinks), so the hook's purpose is eliminated.
 
 **Validation:**
-- File no longer exists: `[ ! -f agent-core/hooks/pretooluse-symlink-redirect.sh ]`
+- File no longer exists: `[ ! -f edify-plugin/hooks/pretooluse-symlink-redirect.sh ]`
 - Remaining hooks present: `pretooluse-block-tmp.sh`, `submodule-safety.py`, `userpromptsubmit-shortcuts.py`, `userpromptsubmit-version-check.py`
 
 **Expected Outcome:** Symlink-redirect hook script deleted.
 
 **Error Conditions:**
 - File doesn't exist (already deleted) → Success (idempotent)
-- Permission denied → Check write permissions on `agent-core/hooks/`
+- Permission denied → Check write permissions on `edify-plugin/hooks/`
 
 **Success Criteria:**
 - `pretooluse-symlink-redirect.sh` no longer exists
@@ -148,7 +150,7 @@ This hook prevented editing agent-core files via symlinks. With plugin auto-disc
 
 ## Step 3.3: Create version check hook
 
-**Objective:** Create `agent-core/hooks/userpromptsubmit-version-check.py` with once-per-session version mismatch detection.
+**Objective:** Create `edify-plugin/hooks/userpromptsubmit-version-check.py` with once-per-session version mismatch detection.
 
 **Execution Model:** Haiku (inline execution)
 
@@ -157,7 +159,7 @@ This hook prevented editing agent-core files via symlinks. With plugin auto-disc
 Create version check hook script:
 
 ```bash
-cat > agent-core/hooks/userpromptsubmit-version-check.py << 'EOF'
+cat > edify-plugin/hooks/userpromptsubmit-version-check.py << 'EOF'
 #!/usr/bin/env python3
 """
 UserPromptSubmit hook: Check if project's .edify-version matches plugin .version.
@@ -174,7 +176,7 @@ def main():
     hook_input = json.load(sys.stdin)
 
     project_dir = Path(os.environ.get("CLAUDE_PROJECT_DIR", "."))
-    plugin_root = Path(os.environ.get("CLAUDE_PLUGIN_ROOT", "agent-core"))
+    plugin_root = Path(os.environ.get("CLAUDE_PLUGIN_ROOT", "edify-plugin"))
 
     # Temp file for once-per-session gating
     temp_file = project_dir / "tmp" / ".edify-version-checked"
@@ -223,7 +225,7 @@ if __name__ == "__main__":
     main()
 EOF
 
-chmod +x agent-core/hooks/userpromptsubmit-version-check.py
+chmod +x edify-plugin/hooks/userpromptsubmit-version-check.py
 ```
 
 **Design References:**
@@ -241,9 +243,9 @@ chmod +x agent-core/hooks/userpromptsubmit-version-check.py
 **Temp file path:** `$CLAUDE_PROJECT_DIR/tmp/.edify-version-checked` (follows project tmp/ convention per CLAUDE.md, not system `/tmp/`; also avoids conflict with pretooluse-block-tmp.sh hook which blocks /tmp writes)
 
 **Validation:**
-- File exists at `agent-core/hooks/userpromptsubmit-version-check.py`
-- File is executable: `[ -x agent-core/hooks/userpromptsubmit-version-check.py ]`
-- Python syntax valid: `python3 -m py_compile agent-core/hooks/userpromptsubmit-version-check.py`
+- File exists at `edify-plugin/hooks/userpromptsubmit-version-check.py`
+- File is executable: `[ -x edify-plugin/hooks/userpromptsubmit-version-check.py ]`
+- Python syntax valid: `python3 -m py_compile edify-plugin/hooks/userpromptsubmit-version-check.py`
 - Script uses project `tmp/` directory (not system `/tmp/`)
 
 **Expected Outcome:** Version check hook script created and executable.
@@ -269,28 +271,28 @@ Run these commands to verify Phase 3 completion:
 
 ```bash
 # Verify hooks.json exists and is valid
-test -f agent-core/hooks/hooks.json && jq . agent-core/hooks/hooks.json > /dev/null && echo "✓ hooks.json valid" || echo "✗ hooks.json invalid"
+test -f edify-plugin/hooks/hooks.json && jq . edify-plugin/hooks/hooks.json > /dev/null && echo "✓ hooks.json valid" || echo "✗ hooks.json invalid"
 
 # Verify symlink-redirect deleted
-[ ! -f agent-core/hooks/pretooluse-symlink-redirect.sh ] && echo "✓ Obsolete hook deleted" || echo "✗ Symlink-redirect still exists"
+[ ! -f edify-plugin/hooks/pretooluse-symlink-redirect.sh ] && echo "✓ Obsolete hook deleted" || echo "✗ Symlink-redirect still exists"
 
 # Verify version check hook exists and is executable
-test -x agent-core/hooks/userpromptsubmit-version-check.py && echo "✓ Version check hook created" || echo "✗ Version check hook missing or not executable"
+test -x edify-plugin/hooks/userpromptsubmit-version-check.py && echo "✓ Version check hook created" || echo "✗ Version check hook missing or not executable"
 
 # Verify all referenced scripts exist
 for script in pretooluse-block-tmp.sh submodule-safety.py userpromptsubmit-shortcuts.py userpromptsubmit-version-check.py; do
-  test -f "agent-core/hooks/$script" && echo "✓ $script exists" || echo "✗ $script missing"
+  test -f "edify-plugin/hooks/$script" && echo "✓ $script exists" || echo "✗ $script missing"
 done
 
 # Verify Python syntax for all Python hooks
 for script in submodule-safety.py userpromptsubmit-shortcuts.py userpromptsubmit-version-check.py; do
-  python3 -m py_compile "agent-core/hooks/$script" && echo "✓ $script syntax valid" || echo "✗ $script syntax error"
+  python3 -m py_compile "edify-plugin/hooks/$script" && echo "✓ $script syntax valid" || echo "✗ $script syntax error"
 done
 ```
 
 **Manual test (requires restart):**
 1. Exit current Claude Code session
-2. Restart: `claude --plugin-dir ./agent-core`
+2. Restart: `claude --plugin-dir ./edify-plugin`
 3. Verify hooks load without errors (check startup output)
 4. Test each hook event:
    - **PreToolUse (Write/Edit):** Try `echo "test" > tmp/test.txt` → pretooluse-block-tmp.sh should block `/tmp/` writes
