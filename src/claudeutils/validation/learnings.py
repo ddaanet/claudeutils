@@ -56,7 +56,7 @@ def validate(path: Path, root: Path, max_words: int = MAX_WORDS) -> list[str]:
 
     titles = extract_titles(lines)
     errors = []
-    seen = {}
+    seen: dict[str, int] = {}
 
     for lineno, title in titles:
         # Word count check
