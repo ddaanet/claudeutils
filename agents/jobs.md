@@ -17,7 +17,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | reflect-rca-prose-gates | complete | D+B hybrid fix implemented |
-| plugin-migration | designed | Name chosen: `edify`. Design.md next |
+| plugin-migration | designed | Design complete. Plan next |
 | submodule-commit-tooling | requirements | Submodule commit workflow |
 | validator-consolidation | requirements | Move to claudeutils package |
 
