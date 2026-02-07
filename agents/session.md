@@ -1,53 +1,67 @@
-# Session: Worktree — Plugin migration design
+# Session: Plugin Migration Planning
 
-**Status:** Design complete. Ready for planning.
+**Status:** Planning complete. Runbook ready for execution.
 
 ## Completed This Session
 
-**Evaluation & Research (prior sessions):**
-- Audited current symlink setup: 16 skills, 12+ agents, 4 hooks symlinked via `just sync-to-parent`
-- Evaluated plugin capabilities: skills/agents/hooks → auto-discovery ✓, fragments → no plugin equivalent ✗
-- Confirmed `$CLAUDE_PLUGIN_ROOT` available (official plugins use it)
-- Identified platform gap: plugins cannot inject CLAUDE.md context
+**Planning workflow (Point 0-4 complete):**
+- Tier assessment: Tier 3 (Full Runbook) — 16 steps, 6 phases, multiple models, parallelizable components
+- Point 0.5: Discovered codebase structure — verified 16 skills, 14 agents, 4 hooks, all in correct locations
+- Point 0.75: Created runbook outline with requirements mapping, phase structure, complexity distribution
+- Outline review: runbook-outline-review-agent found/fixed all issues (ready status)
+- Point 1: Phase-by-phase expansion with reviews:
+  - Phase 1 (Plugin Manifest): 2 steps, haiku, inline execution — review found 4 major issues, all fixed
+  - Phase 2 (Skills/Agents): 4 steps, sonnet for skill design — review found 5 major issues (skill content specs incomplete, noted for execution)
+  - Phase 3 (Hook Migration): 3 steps, haiku — review found 2 major issues (hooks.json format), all fixed
+  - Phases 4-6 (Justfile/Cleanup/Cache): consolidated format for token efficiency
+- Point 2: Assembled complete runbook from phase files — added Common Context, Weak Orchestrator Metadata
+- Point 3: Final holistic review — vet-agent assessed "Ready" with only minor issues, no blockers
+- Point 4: Runbook artifact preparation — `prepare-runbook.py` succeeded, created 16 step files + agent + orchestrator plan
 
-**Outline (prior sessions):**
-- Produced `plans/plugin-migration/outline.md` with 8 components, requirements (FR-1–FR-9, NFR-1/2), validation table
-- Opus outline-review-agent reviewed: 4 major + 8 minor issues found and fixed
+**Skills loaded during planning:**
+- `plugin-dev:plugin-structure` — plugin manifest format, auto-discovery rules, `$CLAUDE_PLUGIN_ROOT` usage
+- `plugin-dev:hook-development` — hooks.json format, event types, wrapper format clarification
 
-**Naming (prior sessions):**
-- Plugin name chosen: **`edify`** — Latin *aedificare* = "to build" + "to instruct"
-
-**Design (this session):**
-- Delegated 3 quiet-explore agents in parallel: structure, hooks, justfiles
-- Loaded `plugin-dev:plugin-structure` and `plugin-dev:hook-development` skills for plugin format knowledge
-- Read all hook scripts — identified critical `$CLAUDE_PROJECT_DIR` vs `$CLAUDE_PLUGIN_ROOT` distinction
-- Corrected explore report's incorrect recommendation to replace `$CLAUDE_PROJECT_DIR` in `submodule-safety.py`
-- Produced `plans/plugin-migration/design.md`: 8 components, 7 design decisions (D-1 through D-7)
-- Opus design-vet-agent reviewed: 0 critical, 6 major, 5 minor issues — all fixed
-  - Key fixes: symlink/fragment count corrections, `/edify:update` skill spec, fragment doc updates in affected files, bash_prolog variable scoping across `import` boundaries, cache regeneration tracking
+**Artifacts created:**
+- `plans/plugin-migration/runbook.md` — 16-step runbook across 6 phases
+- `.claude/agents/plugin-migration-task.md` — plan-specific agent with cached context
+- `plans/plugin-migration/steps/step-*.md` — 16 individual step files for orchestration
+- `plans/plugin-migration/orchestrator-plan.md` — execution plan for orchestrator
+- Review reports: outline-review, phase-1-review, phase-2-review, phase-3-review, runbook-review
 
 ## Pending Tasks
 
-- [ ] **Plan plugin migration** — `/plan-adhoc plans/plugin-migration/design.md`
+- [ ] **Execute plugin migration runbook** — `/orchestrate plugin-migration` | haiku | restart
+  - Plan: plugin-migration (16 steps, 6 phases)
+  - Command copied to clipboard (manual paste after restart)
+  - Restart required: prepare-runbook.py created new agent in `.claude/agents/`
 
 ## Blockers / Gotchas
 
-**Platform gaps:**
-- Plugins cannot contribute to CLAUDE.md always-loaded context — fragments require migration command + `@` references
-- No PostUpgrade hook — UserPromptSubmit version check is workaround
-- SessionStart hook output discarded for new sessions (known limitation)
+**Phase 2 skill content gaps:**
+- Steps 2.3 and 2.4 specify skill structure but lack procedural content (the actual instructions Claude follows when skill is invoked)
+- Review identified this as "major issue" but deferred to execution — skills will need concrete "do this, then this" commands
+- Pattern reference: `/token-efficient-bash` skill shows good procedural format (bash commands, file operations, decision logic)
 
-**Design notes:**
-- `$CLAUDE_PROJECT_DIR` ≠ `$CLAUDE_PLUGIN_ROOT` — hook *config* uses plugin root for script paths, hook *scripts* use project dir for project logic. Do not conflate.
-- justfile `import` does NOT share variables across boundaries — `portable.just` needs its own minimal bash prolog
-- Consumer mode deferred (D-7) — only dev mode (submodule + `--plugin-dir`) implemented in this migration
+**Design decisions are constraints:**
+- D-7: Consumer mode deferred (dev mode only in this migration)
+- Skills should have TODO markers for consumer mode code paths
+- Runbook references design decisions for traceability
+
+**File references that don't exist yet:**
+- `agent-core/.claude-plugin/plugin.json` — created in Step 1.1
+- `agent-core/.version` — created in Step 1.2
+- `agent-core/skills/init/SKILL.md` — created in Step 2.3
+- `agent-core/skills/update/SKILL.md` — created in Step 2.4
+- `agent-core/hooks/hooks.json` — created in Step 3.1
 
 ## Reference Files
 
-- **plans/plugin-migration/design.md** — Full design with 8 components, 7 decisions
-- **plans/plugin-migration/outline.md** — Reviewed outline with requirements and validation
-- **plans/plugin-migration/reports/design-review.md** — Opus design review (6 major, 5 minor fixes applied)
-- **plans/plugin-migration/reports/explore-structure.md** — Full agent-core directory tree
-- **plans/plugin-migration/reports/explore-hooks.md** — Hook script analysis with migration assessment
-- **plans/plugin-migration/reports/explore-justfiles.md** — Justfile structure and recipe portability analysis
-- **plans/plugin-migration/reports/naming-research.md** — Full naming research with decision
+- **plans/plugin-migration/design.md** — Complete design with 8 components, 7 decisions (D-1 through D-7)
+- **plans/plugin-migration/runbook.md** — 16-step runbook ready for execution
+- **plans/plugin-migration/runbook-outline.md** — Requirements mapping and phase structure
+- **plans/plugin-migration/reports/outline-review.md** — Outline review (all issues fixed)
+- **plans/plugin-migration/reports/phase-1-review.md** — Phase 1 review (4 major issues fixed)
+- **plans/plugin-migration/reports/phase-2-review.md** — Phase 2 review (skill content gaps noted)
+- **plans/plugin-migration/reports/phase-3-review.md** — Phase 3 review (hooks.json format fixed)
+- **plans/plugin-migration/reports/runbook-review.md** — Final holistic review (ready status)
