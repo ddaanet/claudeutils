@@ -130,7 +130,7 @@ wt-merge name:
         (cd agent-core && visible git merge --no-edit "$branch")
         (cd agent-core && visible git branch -d "$branch")
         visible git add agent-core
-        visible git commit -m "Merge agent-core from $branch"
+        git diff --quiet --cached || visible git commit -m "Merge agent-core from $branch"
     fi
     # Step 2: Merge parent branch, auto-resolve agent-core + session.md
     if ! git merge --no-edit "$branch"; then

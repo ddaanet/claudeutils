@@ -112,3 +112,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Fix obstruction (e.g., remove stale lock), retry the recipe from scratch
 - Rationale: Recipes are atomic units — manually finishing bypasses error handling, ordering, side effects
 - Fix: Added "Partial failure recovery" rule to project-tooling.md
+## wt-merge empty submodule failure
+- Anti-pattern: `git commit` in `set -e` script with nothing staged → exits 1, kills script before next step
+- Correct pattern: Guard with `git diff --quiet --cached || git commit ...`
+- Broader pattern: Recipe success ≠ task success — verify git state after recipe (unmerged commits, stale branches)
+- Fix: justfile line 133 guarded, 4 stale worktrees recovered
