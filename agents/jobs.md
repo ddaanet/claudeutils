@@ -12,6 +12,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | continuation-passing | requirements | Opus design needed |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
+| memory-index-recall | complete | Memory index recall analysis tool (7 modules, 50 tests) |
 | prompt-composer | designed | Oldest plan, at risk |
 | requirements-skill | requirements | Evaluate with opus |
 | reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
