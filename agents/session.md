@@ -1,35 +1,28 @@
 # Session Handoff: 2026-02-07
 
-**Status:** Prompt-composer plan evaluated, closed, research distilled. New task created.
+**Status:** Position bias task complete. No pending tasks on this worktree.
 
 ## Completed This Session
 
-**Prompt-composer evaluation:**
-- Assessed viability of oldest plan (designed Dec 2025, 14 semantic modules, generation pipeline)
-- Verdict: **Superseded** — fragment system (`agent-core/fragments/` + `@` references) solved the core modular composition problem with zero tooling overhead
-- Distilled 5 research areas to `agents/decisions/prompt-structure-research.md`
-- Added 7 memory index entries under new `prompt-structure-research.md` section
-
-**Artifact cleanup:**
-- Deleted orphaned `agents/modules/` (14 semantic sources + MODULE_INVENTORY.md)
-- Deleted obsolete `agents/compose.sh` and `agents/compose.yaml`
-- Moved prompt-composer and reflect-rca-prose-gates to Complete (Archived) in jobs.md
-
-## Pending Tasks
-
-- [ ] **Position bias exploitation and token budget tracking** — Apply research findings to current fragment architecture | opus
-  - Plan: (new, needs design) | Notes: Based on prompt-composer research distillation
-  - Research: `agents/decisions/prompt-structure-research.md`
-  - Scope: Fragment ordering by criticality (primacy/recency), formal token counting for context budget
+**Position bias exploitation and token budget tracking:**
+- Assessed as moderate complexity → Tier 1 direct implementation (skipped design, planning)
+- Reordered CLAUDE.md fragment `@` references by position bias research:
+  - PRIMACY: workflows-terminology, communication, execute-rule, delegation (session-defining)
+  - EARLY-MID: Documentation Structure, session/learnings/jobs, memory-index (informational)
+  - MIDDLE: error-handling, vet-requirement, token-economy, commit-skill-usage, no-estimates, code-removal, tmp-directory (operational)
+  - RECENCY: bash-strict-mode, sandbox-exemptions, claude-config-layout, design-decisions, project-tooling, tool-batching (reference)
+- Renamed sections: "Communication Rules" + "Session Management" → "Core Behavioral Rules" + "Operational Rules" + "Reference & Tooling"
+- Created `agent-core/bin/context-budget.py` — expands `@` references, counts per-fragment tokens (heuristic chars/4 or --precise API), reports against 30k budget
+- Measured: ~15k tokens heuristic, well under 30k threshold
+- Documented ordering rationale in `agents/decisions/prompt-structure-research.md` (new section with zone classification table)
+- Added memory-index entry for Fragment Ordering Rationale
+- Vet review: Ready, all fixes applied (TypedDict type annotation, scaffold double-counting fix, comment clarity)
 
 ## Reference Files
 
-- **agents/decisions/prompt-structure-research.md** — Distilled research: position bias, rule format, model capabilities, rule budget, context loading
-- **plans/prompt-composer/** — Original design docs (kept for reference, git history)
-
-## Next Steps
-
-New task needs `/design` to determine scope and approach. Key question: is position bias exploitation a fragment reordering exercise, a tooling task (token counter), or both?
+- **agents/decisions/prompt-structure-research.md** — Research + ordering rationale
+- **agent-core/bin/context-budget.py** — Token budget measurement script
+- **plans/position-bias/reports/** — Exploration report, vet review
 
 ---
-*Handoff by Sonnet. Worktree session — prompt-composer evaluation complete.*
+*Handoff by Sonnet. Worktree session — position bias task complete.*

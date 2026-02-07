@@ -4,6 +4,23 @@
 
 ---
 
+## Core Behavioral Rules
+
+@agent-core/fragments/communication.md
+
+@agent-core/fragments/execute-rule.md
+
+**Pending task notation:**
+
+When user says "pending: task description":
+- Do NOT execute the task now
+- Keep in context and write to session.md Pending Tasks section on next handoff
+- Acknowledge receipt: "Added to pending tasks"
+
+@agent-core/fragments/delegation.md
+
+---
+
 ## Documentation Structure
 
 **Progressive discovery:** Don't preload all documentation. Read specific guides only when needed.
@@ -29,9 +46,11 @@
 
 ---
 
-## Communication Rules
+## Operational Rules
 
-@agent-core/fragments/communication.md
+@agent-core/fragments/error-handling.md
+
+@agent-core/fragments/vet-requirement.md
 
 @agent-core/fragments/token-economy.md
 
@@ -39,34 +58,19 @@
 
 @agent-core/fragments/no-estimates.md
 
-@agent-core/fragments/error-handling.md
-
 @agent-core/fragments/code-removal.md
 
-@agent-core/fragments/bash-strict-mode.md
-
 @agent-core/fragments/tmp-directory.md
+
+## Reference & Tooling
+
+@agent-core/fragments/bash-strict-mode.md
 
 @agent-core/fragments/sandbox-exemptions.md
 
 @agent-core/fragments/claude-config-layout.md
 
-@agent-core/fragments/vet-requirement.md
-
 @agent-core/fragments/design-decisions.md
-
-## Session Management
-
-@agent-core/fragments/execute-rule.md
-
-**Pending task notation:**
-
-When user says "pending: task description":
-- Do NOT execute the task now
-- Keep in context and write to session.md Pending Tasks section on next handoff
-- Acknowledge receipt: "Added to pending tasks"
-
-@agent-core/fragments/delegation.md
 
 @agent-core/fragments/project-tooling.md
 

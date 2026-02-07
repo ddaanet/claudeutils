@@ -96,6 +96,7 @@ Rule Budget Constraints — adherence degrades above 200 rules, ~150 user limit
 Context Loading Behavior — LLMs only read explicitly provided context
 Tool Landscape (Dec 2025) — no tool combines position bias variants budgeting
 Applicability to Current Architecture — fragment ordering token counting opportunities
+Fragment Ordering Rationale (Feb 2026) — primacy for session-defining, recency for reference, context-budget.py for tracking
 
 ## agents/decisions/implementation-notes.md
 

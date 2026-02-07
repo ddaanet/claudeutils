@@ -89,6 +89,27 @@ No existing tool combines position bias optimization + model-specific variants +
 ## Applicability to Current Architecture
 
 The fragment system (`agent-core/fragments/` + CLAUDE.md `@` references) solves modular composition. Remaining opportunities:
-- **Position optimization** — order fragments/rules by criticality (primacy/recency)
-- **Token budget tracking** — formal counting to prevent context bloat
+- ~~**Position optimization** — order fragments/rules by criticality (primacy/recency)~~ **Done** (Feb 2026)
+- ~~**Token budget tracking** — formal counting to prevent context bloat~~ **Done** (Feb 2026)
 - **Model-specific variants** — if haiku execution quality becomes a problem
+
+---
+
+## Fragment Ordering Rationale (Feb 2026)
+
+CLAUDE.md sections ordered by position bias research (primacy strongest, recency secondary, middle weakest).
+
+**Zone classification:**
+
+| Zone | Section | Fragments | Rationale |
+|------|---------|-----------|-----------|
+| PRIMACY | Core Behavioral Rules | communication, execute-rule, delegation | Session-defining: interaction model, modes, shortcuts, core principle |
+| EARLY-MID | Documentation Structure | session.md, learnings.md, jobs.md, memory-index | Informational scaffolding, progressive discovery |
+| MIDDLE | Operational Rules | error-handling, vet-requirement, token-economy, commit-skill-usage, no-estimates, code-removal, tmp-directory | Important policies, not session-defining |
+| RECENCY | Reference & Tooling | bash-strict-mode, sandbox-exemptions, claude-config-layout, design-decisions, project-tooling, tool-batching | Reference material, "how to work" (fresh before action) |
+
+`workflows-terminology` stays at absolute primacy (line 1) as entry point.
+
+**Token budget:** ~15k tokens heuristic (well under 30k threshold). Measured by `agent-core/bin/context-budget.py`.
+
+**Future:** If adherence issues emerge in specific zones, consider further reordering within zones or promoting individual fragments.
