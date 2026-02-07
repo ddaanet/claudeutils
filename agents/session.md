@@ -1,16 +1,29 @@
-# Session: Worktree — Plan commit unification
+# Session Handoff: 2026-02-07
 
-**Status:** Focused worktree for parallel execution.
+## Completed This Session
+
+**Status updates:**
+- Verified commit-unification implementation (already complete in agent-core submodule 26d7f37)
+- Updated jobs.md: moved commit-unification from "designed" to "complete"
+- Updated session.md to reflect completion
 
 ## Pending Tasks
 
-- [ ] **Plan commit unification** — Merge commit skills, inline gitmoji
-  - Plan: commit-unification | Status: designed | Notes: May be superseded by commit-rca-fixes
+None.
 
 ## Context
 
-Design exists for unifying commit workflow skills and inlining gitmoji selection. Note: this may be superseded by commit-rca-fixes work.
+Commit-unification was scheduled for planning but discovered to be already implemented:
+- Design: `plans/commit-unification/design.md`
+- Implementation: agent-core commit 26d7f37
+- All functional requirements satisfied (verified via file inspection)
+
+Status tracking updated to reflect actual completion state.
 
 ## Reference Files
 
-- **plans/commit-unification/** — Design and plan files
+- **agents/jobs.md** — Plan lifecycle tracking (commit-unification now in Complete section)
+
+## Next Steps
+
+Check for next available task using `#status` or `s`.
