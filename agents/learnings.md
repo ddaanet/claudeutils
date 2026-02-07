@@ -107,3 +107,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Worktree removal: `git worktree remove` refuses with submodules (even after `deinit -f --all`)
 - Fix: `--force` flag required; warn user about uncommitted changes before forcing
 - Symlinks work: relative symlinks (../../agent-core/...) resolve correctly per-worktree after submodule init
+## Plugin-dev skill fallback
+- When plugin-dev guidance is incomplete or inconsistent, fallback to claude-code-guide agent
+- Example: hooks.json format conflict — plugin-dev:hook-development said wrapper format for hooks.json, claude-code-guide clarified direct format is correct
+- Pattern: plugin-dev skills are curated snapshots, claude-code-guide has live docs access

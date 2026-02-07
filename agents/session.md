@@ -1,67 +1,50 @@
-# Session: Plugin Migration Planning
+# Session: Plugin Migration — Design Update
 
-**Status:** Planning complete. Runbook ready for execution.
+**Status:** Design updated. Runbook invalidated — replanning needed.
 
 ## Completed This Session
 
-**Planning workflow (Point 0-4 complete):**
-- Tier assessment: Tier 3 (Full Runbook) — 16 steps, 6 phases, multiple models, parallelizable components
-- Point 0.5: Discovered codebase structure — verified 16 skills, 14 agents, 4 hooks, all in correct locations
-- Point 0.75: Created runbook outline with requirements mapping, phase structure, complexity distribution
-- Outline review: runbook-outline-review-agent found/fixed all issues (ready status)
-- Point 1: Phase-by-phase expansion with reviews:
-  - Phase 1 (Plugin Manifest): 2 steps, haiku, inline execution — review found 4 major issues, all fixed
-  - Phase 2 (Skills/Agents): 4 steps, sonnet for skill design — review found 5 major issues (skill content specs incomplete, noted for execution)
-  - Phase 3 (Hook Migration): 3 steps, haiku — review found 2 major issues (hooks.json format), all fixed
-  - Phases 4-6 (Justfile/Cleanup/Cache): consolidated format for token efficiency
-- Point 2: Assembled complete runbook from phase files — added Common Context, Weak Orchestrator Metadata
-- Point 3: Final holistic review — vet-agent assessed "Ready" with only minor issues, no blockers
-- Point 4: Runbook artifact preparation — `prepare-runbook.py` succeeded, created 16 step files + agent + orchestrator plan
+**Design update (naming + format fixes):**
+- Established naming hierarchy: edify = product, edify-plugin = git repo (was agent-core), edify = marketplace plugin name
+- Opus brainstormed repo names — edify-plugin ranked #1 (self-documenting, doesn't foreclose "edify-core" for Python package)
+- Resolved hooks.json format conflict via claude-code-guide: `hooks/hooks.json` uses direct format (`{"PreToolUse": [...]}`), wrapper format only for inline in `plugin.json`
+- Bulk renamed all `agent-core/` → `edify-plugin/` in design.md
+- Added D-7: future Python package dependency (dual venv strategy, dual memory)
+- Renumbered D-8: consumer mode deferred (was D-7)
+- Updated D-1: full naming hierarchy table
+- Updated D-4: format note clarifying direct vs wrapper hooks.json
 
-**Skills loaded during planning:**
-- `plugin-dev:plugin-structure` — plugin manifest format, auto-discovery rules, `$CLAUDE_PLUGIN_ROOT` usage
-- `plugin-dev:hook-development` — hooks.json format, event types, wrapper format clarification
-
-**Artifacts created:**
-- `plans/plugin-migration/runbook.md` — 16-step runbook across 6 phases
-- `.claude/agents/plugin-migration-task.md` — plan-specific agent with cached context
-- `plans/plugin-migration/steps/step-*.md` — 16 individual step files for orchestration
-- `plans/plugin-migration/orchestrator-plan.md` — execution plan for orchestrator
-- Review reports: outline-review, phase-1-review, phase-2-review, phase-3-review, runbook-review
+**Previous session (planning — now invalidated):**
+- 16-step runbook across 6 phases was created but references stale `agent-core/` paths
+- Step files at `plans/plugin-migration/steps/step-*.md` — all need path updates
+- Plan-specific agent at `.claude/agents/plugin-migration-task.md` — stale
 
 ## Pending Tasks
 
-- [ ] **Execute plugin migration runbook** — `/orchestrate plugin-migration` | haiku | restart
-  - Plan: plugin-migration (16 steps, 6 phases)
-  - Command copied to clipboard (manual paste after restart)
-  - Restart required: prepare-runbook.py created new agent in `.claude/agents/`
+- [ ] **Replan plugin migration runbook** — `/plan-adhoc plans/plugin-migration/design.md` | sonnet
+  - Previous runbook invalidated: agent-core → edify-plugin rename, hooks.json format change, new D-7/D-8
+  - Directory rename (agent-core → edify-plugin) must be a runbook step
+  - Load `plugin-dev:plugin-structure` and `plugin-dev:hook-development` before planning
 
 ## Blockers / Gotchas
 
-**Phase 2 skill content gaps:**
-- Steps 2.3 and 2.4 specify skill structure but lack procedural content (the actual instructions Claude follows when skill is invoked)
-- Review identified this as "major issue" but deferred to execution — skills will need concrete "do this, then this" commands
-- Pattern reference: `/token-efficient-bash` skill shows good procedural format (bash commands, file operations, decision logic)
+**Runbook invalidation scope:**
+- All 16 step files reference `agent-core/` paths — cannot just patch, need full replan
+- hooks.json format changed (wrapper → direct) — affects Phase 3 steps
+- New design decisions D-7 (Python dep) and D-8 (consumer mode) may affect step ordering
 
-**Design decisions are constraints:**
-- D-7: Consumer mode deferred (dev mode only in this migration)
-- Skills should have TODO markers for consumer mode code paths
-- Runbook references design decisions for traceability
+**hooks.json format — authoritative source:**
+- `hooks/hooks.json` (standalone file) = direct format: `{"PreToolUse": [...]}`
+- Inline in `plugin.json` = wrapper format: `{"name": "...", "hooks": {"PreToolUse": [...]}}`
+- plugin-dev:hook-development skill is WRONG on this — use claude-code-guide as fallback
 
-**File references that don't exist yet:**
-- `agent-core/.claude-plugin/plugin.json` — created in Step 1.1
-- `agent-core/.version` — created in Step 1.2
-- `agent-core/skills/init/SKILL.md` — created in Step 2.3
-- `agent-core/skills/update/SKILL.md` — created in Step 2.4
-- `agent-core/hooks/hooks.json` — created in Step 3.1
+**Phase 2 skill content gaps (carried forward):**
+- Steps 2.3 and 2.4 specify skill structure but lack procedural content
+- Pattern reference: `/token-efficient-bash` skill shows good procedural format
 
 ## Reference Files
 
-- **plans/plugin-migration/design.md** — Complete design with 8 components, 7 decisions (D-1 through D-7)
-- **plans/plugin-migration/runbook.md** — 16-step runbook ready for execution
-- **plans/plugin-migration/runbook-outline.md** — Requirements mapping and phase structure
-- **plans/plugin-migration/reports/outline-review.md** — Outline review (all issues fixed)
-- **plans/plugin-migration/reports/phase-1-review.md** — Phase 1 review (4 major issues fixed)
-- **plans/plugin-migration/reports/phase-2-review.md** — Phase 2 review (skill content gaps noted)
-- **plans/plugin-migration/reports/phase-3-review.md** — Phase 3 review (hooks.json format fixed)
-- **plans/plugin-migration/reports/runbook-review.md** — Final holistic review (ready status)
+- **plans/plugin-migration/design.md** — Updated design with 8 components, 8 decisions (D-1 through D-8)
+- **plans/plugin-migration/runbook.md** — STALE: 16-step runbook with old agent-core paths
+- **plans/plugin-migration/outline.md** — Original outline (uses pre-decision naming)
+- **plans/plugin-migration/reports/** — Exploration and review reports from planning
