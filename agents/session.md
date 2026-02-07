@@ -18,6 +18,7 @@
 - Merged `wt/update-design-skill` — design skill improvements (6aa5335)
 - Merged `wt/fix-wt-status` — no changes (already up to date)
 - Merged `wt/plan-adhoc-alignment` — ported 7 plan-tdd updates to plan-adhoc (3908834)
+- Merged `wt/release-prep-skill` — new release preparation skill (bf4b441, 403 lines)
 
 ## Pending Tasks
 
@@ -37,7 +38,6 @@
 
 - [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
-- [ ] **Create skill to prepare a project for release** → `wt/release-prep-skill` — Design and implement skill for release preparation workflow
 - [ ] **Empirical testing of memory index recall** → `wt/memory-index-recall` — Design testing methodology for memory index effectiveness | opus
 - [ ] **Validator consolidation** → `wt/validator-consolidation` — Move validators to claudeutils package with tests
 - [ ] **Plan commit unification** → `wt/commit-unification` — Merge commit skills, inline gitmoji
