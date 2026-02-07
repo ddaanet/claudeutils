@@ -1,28 +1,15 @@
 # Session: Worktree — Update design skill
 
-**Status:** Focused worktree for parallel execution.
+**Status:** Task complete. Ready to merge back.
 
-## Pending Tasks
+## Completed This Session
 
-- [ ] **Update design skill** — Add checkpoint commit at C.2, fix C.4 wording, direct workflow/skill/agent edits to opus
-
-## Tasks Details
-
-**Checkpoint commit at C.2:**
-- After design outline is complete and reviewed, create a checkpoint commit
-- Ensures design progress is saved before moving to full design expansion
-
-**Fix C.4 wording:**
-- Review and clarify C.4 step instructions for better clarity
-
-**Direct workflow/skill/agent edits to opus:**
-- When design involves changes to workflows, skills, or agents, delegate those edits to opus
-- Ensures architectural changes get appropriate scrutiny
-
-## Blockers / Gotchas
-
-None specific to this task.
+- [x] **Update design skill** — Three changes to `agent-core/skills/design/SKILL.md`:
+  - C.2 Checkpoint Commit: New step between C.1 and C.3 to commit design before vet review
+  - C.4 → "Check for Unfixable Issues": Clarified vet agent applies fixes directly, step handles UNFIXABLE residual only
+  - Execution model directives: Opus required for workflow/skill/agent edits, parallel to plugin-dev directives
 
 ## Reference Files
 
-- **agent-core/skills/design.md** — Design skill definition
+- **agent-core/skills/design/SKILL.md** — Design skill (modified)
+- **tmp/vet-design-skill.md** — Vet report (all issues fixed, no UNFIXABLE)
