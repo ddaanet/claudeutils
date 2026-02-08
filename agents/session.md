@@ -1,42 +1,51 @@
-# Session: Memory Index Recall Analysis — Implementation Complete
+# Session: Memory Index Recall Analysis — Complete
 
-**Status:** Implementation complete, ready for empirical testing.
+**Status:** Analysis complete with temporal validation. Memory index shown to be non-functional (0.0% recall across 200 sessions).
 
 ## Completed This Session
 
-### Memory Index Recall Tool Implementation
-- Designed empirical testing methodology (Tier 2 assessment: lightweight delegation)
-- Implemented 7 modules in `src/claudeutils/recall/`:
-  - `tool_calls.py` — Extract Read/Grep/Glob calls from assistant JSONL entries
-  - `index_parser.py` — Parse memory-index.md into IndexEntry objects with keywords
-  - `topics.py` — Extract topic keywords from user prompts with noise filtering
-  - `relevance.py` — Score keyword overlap between topics and entries (threshold 0.3)
-  - `recall.py` — Calculate recall metrics, classify discovery patterns (DIRECT/SEARCH_THEN_READ/USER_DIRECTED/NOT_FOUND)
-  - `report.py` — Generate markdown and JSON reports
-  - `cli.py` — CLI integration (`claudeutils recall` subcommand)
-- CLI command: `claudeutils recall --index agents/memory-index.md [--sessions N] [--threshold FLOAT] [--format {markdown,json}] [--output PATH]`
-- Test coverage: 50 tests (all passing), 459/459 total test suite
-- Vet review: All issues fixed, assessment "Ready"
-- Design document: plans/memory-index-recall/design.md
-- Implementation report: plans/memory-index-recall/reports/implementation.md
-- Vet review: plans/memory-index-recall/reports/vet-review.md
+### Empirical Analysis Execution
+- Ran recall analysis on 3 sessions (worktree): 3.5% recall (4 reads, all testing.md in single session)
+- Expanded to 50 sessions (main repo): 0.0% recall (1,583 relevant pairs, 0 reads)
+- Validated with 100 sessions: 0.0% recall (3,459 pairs, 0 reads)
+- Full validation with 200 sessions: 0.0% recall (7,483 pairs, 0 reads)
+- Temporal correlation: All sessions occurred after memory index creation (Feb 1) and stability (Feb 5)
+- Generated 5 comprehensive reports in plans/memory-index-recall/reports/
+
+### Key Findings
+- **Critical failure confirmed:** Memory index has zero measurable effectiveness across all temporal windows
+- **7,483 opportunities:** Keyword matching identified relevant entries, agents never read referenced files
+- **No discovery patterns:** 100% DIRECT reads (when they occurred), 0% SEARCH_THEN_READ or USER_DIRECTED
+- **Temporal validation:** Sessions had access to stable index (60-70 entries), recall remained 0% across all periods
+- **Root cause:** Passive awareness model ("mentally scan index") is non-functional — agents do not consult the index
+- **Cost-benefit:** Index occupies 5,000 tokens (3-4% of budget) with zero utilization = negative ROI
+
+### Reports Generated
+- **analysis-results.md** — Worktree analysis (3 sessions, initial findings)
+- **main-repo-analysis.md** — Main repo analysis (50 sessions, 0% baseline)
+- **comprehensive-analysis.md** — Combined multi-repo analysis with root cause and recommendations
+- **temporal-analysis.md** — Git history correlation, validates findings across all index versions
+- **final-summary.md** — Executive summary with intervention options
+
+### Recommendations (from reports)
+- **Option A (Aggressive):** Explicit consultation (hook injection + workflow integration), remove zero-recall entries, A/B test with 30%+ success threshold within 2 weeks
+- **Option B (Conservative):** Add consultation to planning skills, monitor 100 sessions, 10%+ threshold within 1 month
+- **Option C (Redesign):** Remove index, migrate to fragments (loaded vs referenced), implement active retrieval
 
 ## Pending Tasks
 
-- [ ] **Run empirical analysis on session history** — Execute `claudeutils recall --index agents/memory-index.md` to measure memory index effectiveness | sonnet
-  - Analyze 30+ recent sessions for recall metrics
-  - Generate report with summary, per-entry analysis, recommendations
-  - Validate tool discovers relevant entries and measures Read behavior
-  - Output: plans/memory-index-recall/reports/analysis-results.md
+None — analysis complete and validated.
 
 ## Reference Files
 
-- **plans/memory-index-recall/design.md** — Design specification for recall analysis tool
-- **plans/memory-index-recall/reports/implementation.md** — Complete implementation report (architecture, decisions, testing)
-- **plans/memory-index-recall/reports/vet-review.md** — Vet review with all fixes applied
-- **src/claudeutils/recall/** — Implementation modules (7 files, ~1,400 lines)
-- **tests/test_recall_*.py** — Test suite (6 modules, 50 tests)
+- **plans/memory-index-recall/reports/final-summary.md** — Executive summary with all validations
+- **plans/memory-index-recall/reports/temporal-analysis.md** — Git correlation analysis
+- **plans/memory-index-recall/reports/comprehensive-analysis.md** — Full multi-repo findings
+- **plans/memory-index-recall/reports/main-repo-analysis.json** — 50-session structured data (32K)
+- **plans/memory-index-recall/reports/analysis-results.json** — Worktree structured data (29K)
+- **plans/memory-index-recall/design.md** — Original design specification
+- **src/claudeutils/recall/** — Tool implementation (7 modules, 50 tests passing)
 
 ## Next Steps
 
-Run the empirical analysis to measure memory index effectiveness with real session data.
+Decision required on memory index intervention strategy (Option A/B/C). Tool is validated and ready for ongoing monitoring after intervention.

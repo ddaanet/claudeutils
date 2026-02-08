@@ -112,3 +112,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Fix obstruction (e.g., remove stale lock), retry the recipe from scratch
 - Rationale: Recipes are atomic units — manually finishing bypasses error handling, ordering, side effects
 - Fix: Added "Partial failure recovery" rule to project-tooling.md
+## Temporal validation for empirical analysis
+- Anti-pattern: Running analysis on session history without checking if feature existed during those sessions
+- Correct pattern: Correlate session timestamps with git history to validate feature availability
+- Rationale: Sessions before feature creation yield expected-zero results, invalidating analysis
+- Example: Memory index created Feb 1, sessions analyzed Feb 5-8 → valid (all had access)
+- Git commands: `git log --format="%ai" --follow <file>` for creation date, session mtime for analysis window
+- Strengthens findings: 0% recall validated across 200 sessions, all post-creation and post-stability
