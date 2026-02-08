@@ -131,10 +131,30 @@ monkeypatch.setattr("pkg.a.foo", mock)  # ❌ Won't work
 
 **Decision:** Compare Python implementation against original shell spec at completion.
 
+### Tests as Executable Contracts
+
+When design includes external reference (shell prototype, API spec, visual mockup), tests bake expected behavior into assertions. The reference is consumed at authoring time, and tests become permanent living documentation. For example, statusline-parity tests should assert exact expected strings from the shell reference (e.g., `🥈 sonnet \033[35m…`), not just structure such as "contains emoji".
+
+### Exact Expected Strings Requirement
+
+For conformance work, test assertions must include exact expected output from the reference. This eliminates translation loss between specification and implementation. It also addresses root cause RC5: "Visual Parity Validated" false completion claims become detectable when tests include exact expected strings from the reference.
+
+### Conformance Exception to Prose Descriptions
+
+Standard TDD uses prose descriptions instead of full test code (per workflow-advanced.md). Conformance work is an exception: prose descriptions MUST include exact expected strings from the reference. This is not full test code — it is precise prose.
+
+**Example contrast:**
+
+| Standard prose | Conformance prose |
+|---|---|
+| "Assert output contains formatted model with emoji and color" | "Assert output contains `🥈` followed by `\033[35msonnet\033[0m` with double-space separator" |
+
+### Conformance Pattern
+
 **Pattern:** Delegated to exploration agent, writes detailed conformance matrix.
 
 **Benefits:** Catches presentation/visual gaps that unit tests miss.
 
 **Example:** statusline-wiring found all 5 requirements met but missing emojis/bars/colors.
 
-**Impact:** Behavioral equivalence verification beyond functional testing.
+**Impact:** Behavioral equivalence verification beyond functional testing, with exact specifications preventing translation loss.
