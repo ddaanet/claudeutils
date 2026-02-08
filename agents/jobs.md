@@ -8,7 +8,7 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
-| continuation-passing | requirements | Opus design needed |
+| continuation-passing | requirements | Outline validated, Phase C (design.md) pending |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
 | requirements-skill | requirements | Evaluate with opus |

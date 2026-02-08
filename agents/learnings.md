@@ -122,3 +122,12 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Prompt must include "Execute ONLY this step. Do NOT read or execute other step files."
 - Secondary: Orchestrator must verify agent return describes only the assigned step, not additional work
 - Related: Checkpoint delegations must include explicit "commit all changes before returning"
+## Hook skill discovery via filesystem
+- Anti-pattern: Hardcoded skill list in hook scripts (must be manually maintained)
+- Correct pattern: Hook scans `$CLAUDE_PROJECT_DIR/.claude/skills/**/SKILL.md` frontmatter + resolves enabled plugin skills via `~/.claude/settings.json` → `enabledPlugins` → `~/.claude/plugins/installed_plugins.json` → install paths
+- Limitation: Built-in skills not discoverable (embedded in binary) — small fallback list needed
+- Performance: Cache registry to temp file, check mtime on subsequent calls
+## Default exit as continuation pattern
+- Anti-pattern: Each skill hardcodes its exit tail-call (e.g., "invoke /handoff --commit")
+- Correct pattern: Hook always provides continuation — user chain + last skill's `default-exit` from frontmatter. Skills consume next entry, no hardcoded exits.
+- Rationale: Single mechanism for all chaining (user-specified and default). Skills become simpler. Exit behavior managed centrally by continuation system.
