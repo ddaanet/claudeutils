@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-08
 
-**Status:** Design complete for domain-specific validation. Ready for planning.
+**Status:** Domain-specific validation implementation complete. Ready for testing.
 
 ## Completed This Session
 
@@ -10,7 +10,15 @@
 - Design document: planning-time domain detection, skill-directed vet (commit: b3be594)
 - Design vet review: Ready, 3 major + 4 minor fixed by design-vet-agent
 
-**Key architectural decisions (from iterative user discussion):**
+**Domain-Specific Validation Implementation (Tier 2: Lightweight Delegation):**
+- Tier assessment: 6 files, design complete, single model → Tier 2 (no full runbook needed)
+- Loaded plugin-dev:skill-development per design requirement
+- Delegated to quiet-task (sonnet): created validation skill + rules file + plan skill updates + decision doc
+- Vet review: 3 major + 3 minor issues fixed, assessment "Ready"
+- Files created: `agent-core/skills/plugin-dev-validation/SKILL.md`, `.claude/rules/plugin-dev-validation.md`
+- Files modified: plan-adhoc skill, plan-tdd skill, `agents/decisions/workflow-advanced.md`
+
+**Key architectural decisions (from design):**
 - Planning-time domain detection — planner encodes domain in runbook, not orchestrator
 - Vet-fix-agent reads domain skill files directly — no agent proliferation, no hub skill
 - Single agent with structured criteria — cognitive overload managed by explicit checklists in skill files
@@ -20,17 +28,23 @@
 
 ## Pending Tasks
 
-- [ ] **Plan domain-specific validation implementation** — `/plan-adhoc plans/domain-validation/design.md` | sonnet
+- [ ] **Test domain validation effectiveness** — Create plugin skill with known issues, run vet-fix-agent with domain criteria, verify domain-specific issues caught | sonnet
+  - Manual validation: plugin skill with missing frontmatter, no progressive disclosure, passive voice
+  - Comparison test: same artifact with/without domain criteria (expect ≥2 additional issues)
+  - Planner integration: `/plan-adhoc` on plugin task, verify vet checkpoint includes domain validation reference
 
 ## Reference Files
 
 - `plans/domain-validation/design.md` — Full design document (7 design decisions)
-- `plans/domain-validation/outline.md` — Converged outline with constraints
-- `plans/domain-validation/reports/explore-review-agents.md` — Review agent ecosystem mapping
-- `plans/domain-validation/reports/explore-validation-patterns.md` — Validation pattern analysis
-- `plans/domain-validation/reports/design-review.md` — Design vet review (Ready)
-- `plans/domain-validation/reports/outline-review.md` — Outline review
+- `plans/domain-validation/reports/implementation.md` — Implementation report (6 files, tier assessment, criteria extraction)
+- `plans/domain-validation/reports/vet-implementation.md` — Vet review (Ready, 3 major + 3 minor fixed)
+- `agent-core/skills/plugin-dev-validation/SKILL.md` — Domain validation criteria (5 artifact types)
+- `.claude/rules/plugin-dev-validation.md` — Rules file for planner discovery
+- `agents/decisions/workflow-advanced.md` — Domain validation pattern documented
 
 ## Next Steps
 
-Run `/plan-adhoc plans/domain-validation/design.md` to generate runbook. Design specifies: load `plugin-dev:skill-development` before planning (validation skill is itself a skill artifact). Execution model: sonnet.
+Test domain validation effectiveness per design testing strategy:
+1. Create test plugin skill with known issues
+2. Run vet-fix-agent with domain criteria reference
+3. Verify domain-specific issues caught that generic vet would miss

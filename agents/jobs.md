@@ -9,7 +9,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | Plan | Status | Notes |
 |------|--------|-------|
 | commit-unification | designed | May be superseded by commit-rca-fixes |
-| domain-validation | designed | Planning-time domain detection, skill-directed vet |
+| domain-validation | complete | Domain-specific validation infrastructure |
 | continuation-passing | requirements | Opus design needed |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
@@ -27,6 +27,7 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `domain-validation` — Domain-specific validation infrastructure (validation skill, rules file, plan skill updates)
 - `statusline-wiring` — Statusline CLI with TDD (28 cycles, 6 phases)
 - `statusline-parity` — All 14 cycles, 5 phases executed and validated
 - `learnings-consolidation` — Learnings consolidation infrastructure (7 steps, 4 phases)
