@@ -15,6 +15,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 
 
+
 ## Behavioral Rules (fragments — already loaded)
 
 Delegation with context — don't delegate when context already loaded, token economy
@@ -112,21 +113,6 @@ TDD RED Phase: Behavioral Verification — verify behavior with mocking fixtures
 TDD: Presentation vs Behavior — test behavior defer presentation to vet checkpoints
 TDD Integration Test Gap — assert behavioral outcomes not just execution structure at phase boundaries
 Conformance Validation for Migrations — compare implementation against original spec presentation gaps
-Tests as Executable Contracts — bake expected behavior into assertions for conformance work
-Exact Expected Strings Requirement — conformance tests must include exact expected output strings from reference
-Conformance Exception to Prose Descriptions — prose descriptions in conformance work must include exact expected strings
-Conformance Pattern — conformance matrix catches presentation visual gaps that unit tests miss
-
-## agents/decisions/defense-in-depth.md
-
-Defense-in-Depth Pattern — layered multiple independent checks prevent single-point failures
-Layer 1 Outer Defense — execution flow via D+B hybrid ensures prose gates actually execute
-Layer 2 Middle Defense — precommit catches line limits lint test failures hard validation
-Layer 3 Inner Defense — vet-fix-agent alignment verification before commit semantic review
-Layer 4 Deepest Defense — conformance tests catch spec-to-implementation drift for external references
-Gap 3 Gap 5 Interaction — prose gates skipping interacts with WIP-only bypass creating vulnerability
-Defense-in-Depth Application — multiple layers compensate for individual gate weaknesses
-Defense Layer Checklist — design review checklist for new quality gate evaluation
 
 ## agents/decisions/workflow-advanced.md
 
@@ -143,7 +129,6 @@ Phase-by-Phase Review Pattern — generate review fix-all check-escalation proce
 Review Agent Fix-All Pattern — audit trail autofix everything escalate unfixable to caller
 Recommendations Inline Transmission — append guidance to consumed artifact not separate report
 Prose Test Descriptions Save Tokens — prose descriptions save 80% over full test code
-Conformance Prose Exception — conformance work must include exact expected strings from reference
 Complexity Before Expansion — check complexity callback to previous level if too large
 Consolidation Gates Reduce Orchestrator Overhead — merge trivial work with adjacent complexity at two gates
 Workflow Feedback Loop Insights — alignment autofix outline complexity gate principles
@@ -182,19 +167,3 @@ Template commit contradiction — appended context weak authority bolded NEVER s
 Orchestrator model mismatch — read step file execution model not orchestrator default
 Happy path first TDD — simplest happy path real behavior edge cases later
 Runbook Outline Format — structured format for runbook planning with requirements mapping
-
-## agent-core/skills/commit/SKILL.md
-
-WIP-only Restriction — `--test` and `--lint` flags scope limited to work-in-progress commits only
-WIP Commit Pattern — TDD GREEN phase use `--test` flag then REFACTOR phase use full precommit
-Tool-call-first Convention — commit skill Step 1 opens with Read not prose judgment
-
-## agent-core/skills/plan-tdd/SKILL.md
-
-Planning-time File Size Awareness — planner considers implementation file size before cycle expansion
-File Size Planning Integration — TDD cycles grouped to meet 400-line module limits during planning
-
-## agent-core/agents/vet-fix-agent.md
-
-Vet Alignment Standard — vet-fix-agent includes conformance checking as standard criterion
-Vet Alignment Scope — full alignment verification includes output matches design requirements criteria
