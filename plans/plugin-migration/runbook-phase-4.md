@@ -140,6 +140,7 @@ precommit-base:
 - claude/claude0 use `--plugin-dir ./edify-plugin`
 - wt-new uses `--reference "$main_dir/edify-plugin"`
 - precommit-base calls validators at `edify-plugin/bin/`
+- precommit-base works: `just --justfile edify-plugin/just/portable.just precommit-base`
 
 **Expected Outcome:** portable.just created with extracted recipes and minimal prolog.
 
@@ -149,10 +150,10 @@ precommit-base:
 - If submodule reference wrong: must use edify-plugin not agent-core
 
 **Success Criteria:**
-- portable.just exists and parses correctly
-- All 7 recipes extracted (claude, claude0, wt-new, wt-ls, wt-rm, wt-merge, precommit-base)
-- Minimal prolog (no project-specific functions)
+- portable.just exists and parses correctly with all 7 recipes (claude, claude0, wt-new, wt-ls, wt-rm, wt-merge, precommit-base)
+- Minimal prolog (no project-specific functions — only fail, visible, colors)
 - All edify-plugin paths updated
+- precommit-base validator calls work
 
 ---
 
@@ -183,7 +184,7 @@ Delete these recipe definitions (now provided by import):
 
 3. **Update precommit recipe to call precommit-base:**
 
-Change `precommit` recipe to:
+Change `precommit` recipe to use dependency pattern (base validators run first, then project-specific):
 
 ```just
 precommit: precommit-base
@@ -192,6 +193,8 @@ precommit: precommit-base
     mypy
     pytest
 ```
+
+Note: The dependency `precommit: precommit-base` ensures base validators run before project-specific checks.
 
 4. **Keep project-specific recipes:**
 
@@ -208,7 +211,7 @@ These remain in root justfile:
 
 5. **Keep full bash_prolog:**
 
-Root justfile retains full bash prolog (sync, run-checks, pytest-quiet, etc.) for project-specific recipes.
+Root justfile retains full bash prolog with project-specific helpers (sync, run-checks, pytest-quiet) — not just the minimal fail/visible/colors subset used by portable.just.
 
 **Design References:**
 - D-5: justfile import mechanism
@@ -220,6 +223,7 @@ Root justfile retains full bash prolog (sync, run-checks, pytest-quiet, etc.) fo
 - Migrated recipes removed: `! grep -E "^(claude|claude0|wt-new|wt-ls|wt-rm|wt-merge):" justfile`
 - Project recipes remain: `grep -E "^(help|dev|cache|test):" justfile`
 - Justfile parses: `just --list` runs without error
+- End-to-end test: `just --list` shows both imported and local recipes, `just claude` invokes imported recipe
 
 **Expected Outcome:**
 - Root justfile imports portable.just

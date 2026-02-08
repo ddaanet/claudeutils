@@ -1,65 +1,78 @@
-# Session: Plugin Migration — Runbook Expansion + RCA
+# Session: Plugin Migration — Runbook Vetting + RCA (x2)
 
-**Status:** All 7 phases expanded. RCA completed on skipped vet reviews.
+**Status:** All phases vetted (44 issues fixed). Ready for runbook assembly and execution.
 
 ## Completed This Session
 
-**Phase 0 Vet Fixes Applied (13 issues):**
-- Added 6 file categories: core config, rules, agents, session, cache, historical docs
-- Expanded from 9 → 16 steps with comprehensive validation (baseline grep, symlink validation, @ reference checks)
-- Complexity upgraded: Trivial → Moderate
-- Key additions: .claude/rules/ updates, plan-specific agents, Makefile targets, cache rename timing fix
+**Retroactive vet reviews completed:**
+- Phase 1: 4 minor issues fixed (validation improvements, complexity reassessment)
+- Phase 2: 5 major, 5 minor fixed, 1 UNFIXABLE (consumer mode TODO marker format requires design decision)
+- Phase 3: 3 major, 2 minor fixed (hooks.json format corrections, temp file path clarification)
+- Phase 4: 3 major, 2 minor fixed (precommit validation, recipe extraction verification)
+- Phase 5: 2 critical, 5 major, 4 minor fixed (hook validation reframing, NFR qualitative assessment)
+- Phase 6: 1 critical, 1 major, 1 minor fixed — then REVERTED (vet error: validated against current state not execution-time state)
 
-**Phases 1-6 Expanded (ed157ac):**
-- Phase 1: Consolidated 2 steps → 1 (plugin manifest + version marker)
-- Phase 2: Skills/agents verification + /edify:init + /edify:update (existing, updated paths)
-- Phase 3: hooks.json fixed to direct format per D-4 (was wrapper), version-check hook, symlink-redirect deletion
-- Phase 4: portable.just extraction + root justfile import (new file)
-- Phase 5: Symlink cleanup + config/doc updates + NFR validation (new file)
-- Phase 6: Cache regeneration (new file)
-- All phases: agent-core → edify-plugin path corrections throughout
+**Phase 6 vet error analysis:**
+- Vet-fix-agent changed `just-help-edify-plugin.txt` → `just-help-agent-core.txt` (incorrect)
+- Root cause: Validated against current filesystem instead of post-Phase 0 state (Phase 0 renames cache file)
+- Error detected by orchestrator, manually reverted all 6 occurrences
 
-**RCA: Batch Expansion Without Vet (this session):**
-- Identified batch momentum pattern: once first artifact skips review, switching cost increases for each subsequent
-- Rationalization escalation: "Phase 0 was the hard one" → each subsequent phase treated as routine
-- Gate B structural gap: boolean presence check (any report?) not coverage ratio (artifacts:reports 1:1)
-- "Proceed" scope finding: activates execution mode which optimizes throughput over process compliance
-- Learning added to learnings.md, fix tasks added to Pending Tasks
+**Two RCAs completed:**
+
+**RCA #1: Sequential Task Launch (plans/reflect-rca-sequential-task-launch/rca.md)**
+- Deviation: Launched Phase 1 vet, waited for completion, started Phase 2 sequentially instead of batching all 6 Task calls
+- Root cause: Tool batching rule doesn't explicitly cover Task tool parallelization
+- Wall-clock impact: ~14 min delay (sequential = sum(times) vs parallel = max(times))
+- Learning added: Sequential Task launch breaks parallelism
+
+**RCA #2: Vet-Fix-Agent Context-Blind Validation**
+- Deviation: Phase 6 vet "fixed" correct references by validating against wrong state
+- Root cause: No execution context provided in delegation prompt, no UNFIXABLE escalation protocol
+- Phase 2 also had UNFIXABLE issue that didn't escalate (manual detection required)
+- Learning added: Vet-fix-agent context-blind validation
 
 ## Pending Tasks
 
-- [ ] **Vet expanded runbook phases** — Retroactive vet review of phases 1-6 (skipped during batch expansion) | sonnet
-  - Phase 0 already vetted (13 issues found and fixed)
-  - Phases 1-6 need vet-fix-agent review before assembly
 - [ ] **Strengthen commit Gate B coverage check** — Gate B is boolean (any report?) not coverage ratio (artifacts:reports 1:1) | sonnet
   - Commit skill Step 1 Gate B: count new/modified production artifacts, verify each has vet report
 - [ ] **Review reflect skill: task output for skill/fragment fixes** — RCA should produce pending tasks for skill/fragment updates, not inline fixes, for context economy | sonnet
   - Current: reflect skill applies fixes in-session (Exit Path 1) consuming context budget
   - Better: produce tasks in session.md for separate session execution
+- [ ] **Strengthen vet-fix-agent delegation pattern** — Add execution context provision and UNFIXABLE detection | sonnet
+  - Sub-tasks:
+    1. Add execution context to vet-fix-agent prompts (include phase dependencies, state transitions)
+    2. Add UNFIXABLE detection to orchestrator (read report, grep for markers, escalate if found)
+    3. Document vet-fix-agent limitations in memory-index.md (context-blind by default)
+    4. Evaluate meta-review necessity (when should vet output be vetted?)
+  - Analysis: plans/reflect-rca-sequential-task-launch/rca.md
+- [ ] **Update tool-batching.md for Task tool parallelization** — Add explicit Task tool guidance with examples | sonnet
+  - Add "Task Tool Parallelization" section to agent-core/fragments/tool-batching.md
+  - Include example: vet 6 phase files in parallel (6 Task calls in single message)
+  - Show anti-pattern (sequential launch) vs correct pattern (batched launch)
 - [ ] **Run prepare-runbook.py and review** — Assemble phases into runbook.md, validate cycle numbering, review metadata | haiku
   - Command: `edify-plugin/bin/prepare-runbook.py plans/plugin-migration/runbook-outline.md` (requires `dangerouslyDisableSandbox: true`)
-  - Blocked by: Vet expanded runbook phases (must complete first)
+  - Ready to execute (vet task complete)
 
 ## Blockers / Gotchas
 
-**Batch momentum normalizes deviance:**
-- Phase 0 vet found 13 issues proving reviews catch real issues
-- Subsequent phases rationalized as "lower risk" and skipped vet
-- Same mechanism as prose gate problem — vet requirement is prose gate that execution mode skips
-- Mitigation: retroactive vet before assembly
+**Vet-fix-agent temporal reasoning limitation:**
+- Agent validates against current filesystem state, not execution-time state
+- Phase 6 error example: Current state has `agent-core`, but Phase 0 renames to `edify-plugin` before Phase 6 runs
+- Mitigation: Provide execution context in delegation prompts (dependencies, state transitions)
 
-**Phase 0 complexity underestimated:**
-- Initial "trivial git mv" → 13 issues found across 6 file categories
-- Suggests remaining phases will also have issues (reinforces need for retroactive vet)
+**UNFIXABLE detection is manual:**
+- Vet reports mark issues as UNFIXABLE but don't escalate
+- Orchestrator must read report and grep for markers
+- Phase 2 had UNFIXABLE issue (consumer mode TODO format) that went unnoticed until manual review
 
-**Historical plan documentation:**
+**Historical plan documentation scope:**
 - 41 references in plans/ subdirectories need agent-core → edify-plugin update
-- Phase 0 step 12 addresses this but decision needed on scope
+- Phase 0 step 12 addresses this but decision needed on whether to update archived plans
 
 ## Reference Files
 
 - **plans/plugin-migration/design.md** — Design with 8 components, 8 decisions (D-1 through D-8)
 - **plans/plugin-migration/runbook-outline.md** — Complete outline (7 phases, 17 steps)
-- **plans/plugin-migration/runbook-phase-{0-6}.md** — All phase files (Phase 0 vetted, Phases 1-6 need vet)
-- **plans/plugin-migration/reports/phase-0-review.md** — Phase 0 vet review (13 issues, all applied)
-- **plans/plugin-migration/reports/outline-review-2.md** — Outline review
+- **plans/plugin-migration/runbook-phase-{0-6}.md** — All phase files (all vetted)
+- **plans/plugin-migration/reports/phase-{0-6}-review.md** — All vet reviews (44 total issues across all phases)
+- **plans/reflect-rca-sequential-task-launch/rca.md** — RCA covering both deviations (Task parallelization + vet context issues)

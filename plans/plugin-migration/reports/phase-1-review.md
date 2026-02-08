@@ -1,13 +1,17 @@
-# Vet Review: Phase 1 Runbook
+# Vet Review: Phase 1 Runbook - Plugin Manifest
 
-**Scope**: plans/plugin-migration/runbook-phase-1.md
-**Date**: 2026-02-07T00:00:00Z
+**Scope**: Phase 1 runbook file at `plans/plugin-migration/runbook-phase-1.md`
+**Date**: 2026-02-08T05:30:00Z
+**Mode**: review + fix
 
 ## Summary
 
-Phase 1 runbook defines creation of plugin manifest and version marker files. Both steps are straightforward file creation tasks. Runbook structure is clear with explicit validation commands and success criteria. Design alignment is strong with correct references to D-1 and Component 1.
+Phase 1 creates plugin manifest and version marker for Claude Code plugin discovery. Review found **4 issues**: all minor (validation improvements, error message clarity, complexity reassessment). The core implementation is sound — file creation commands, validation logic, and design alignment are correct.
 
-**Overall Assessment**: Needs Minor Changes
+**Issues Found:** 4 (0 critical, 0 major, 4 minor)
+**Fixes Applied:** 4
+
+**Overall Assessment**: Ready (all issues fixed)
 
 ## Issues Found
 
@@ -17,107 +21,91 @@ None.
 
 ### Major Issues
 
-1. **Missing .version content specification**
-   - Location: runbook-phase-1.md:67
-   - Problem: Design Component 3 states "plain text, single line, no trailing newline" but step 1.2 says "(Plain text, single line, no trailing newline)" in parentheses as if optional or clarifying
-   - Suggestion: Be explicit in Implementation section: "Create file with content `1.0.0` using `printf` to avoid trailing newline: `printf '1.0.0' > agent-core/.version`"
-
-2. **Weak validation for .version content**
-   - Location: runbook-phase-1.md:87
-   - Problem: `cat agent-core/.version` outputs the content but doesn't verify absence of trailing newline or extra whitespace
-   - Suggestion: Add validation command that checks exact byte content: `[ "$(cat agent-core/.version | wc -c)" -eq 5 ]` (5 bytes = "1.0.0" with no newline)
-
-3. **Report Path marked N/A inconsistently**
-   - Location: runbook-phase-1.md:49, 89
-   - Problem: Both steps say "N/A (trivial step, no report needed)" but this violates quiet execution pattern for delegated tasks
-   - Suggestion: Either specify report path (e.g., `plans/plugin-migration/reports/phase-1-execution.md`) or clarify that these steps are executed inline (not delegated) and therefore don't need report paths
-
-4. **Missing plugin-dev skill load checkpoint**
-   - Location: runbook-phase-1.md (beginning)
-   - Problem: Design "Documentation Perimeter" specifies loading `plugin-dev:plugin-structure` and `plugin-dev:hook-development` skills before planning, but Phase 1 doesn't verify these are loaded
-   - Suggestion: Add prerequisite check at start of Phase 1: verify skills loaded OR load them explicitly
+None.
 
 ### Minor Issues
 
-1. **Inconsistent heading case**
-   - Location: runbook-phase-1.md:11, 53
-   - Note: Step headings use "Create plugin.json" vs "Create .version marker" — first is file-focused, second is artifact-focused
-   - Suggestion: Standardize to artifact-focused: "1.1: Create plugin manifest" and "1.2: Create fragment version marker"
+1. **Validation command uses short-circuit AND instead of separate tests**
+   - Location: runbook-phase-1.md:50
+   - Note: `test -f ... && jq . ...` makes validation harder to debug — if file missing, jq never runs. Separate commands provide clearer diagnostics.
+   - Suggestion: Split into two commands with explicit failure messages
+   - **Status**: FIXED — Split validation into two separate commands with clear error context
 
-2. **Missing jq installation check**
-   - Location: runbook-phase-1.md:35
-   - Note: Validation requires `jq` but doesn't check if it's installed
-   - Suggestion: Add to error conditions: "jq not installed → Install with brew/apt/package manager"
+2. **Byte count validation on same line as content check**
+   - Location: runbook-phase-1.md:53
+   - Note: Chaining three checks with && makes debugging difficult — which condition failed?
+   - Suggestion: Separate into distinct validation steps
+   - **Status**: FIXED — Split into three separate test commands
 
-3. **Checkpoint success criteria duplicates step validation**
-   - Location: runbook-phase-1.md:93-109
-   - Note: Phase 1 Checkpoint verification commands are identical to step 1.1 and 1.2 validation commands
-   - Suggestion: Checkpoint could reference step validation instead of duplicating: "Verify both Step 1.1 and Step 1.2 validation commands pass"
+3. **Missing jq installation test before usage**
+   - Location: runbook-phase-1.md:66 (error handling mentions jq missing but no proactive check)
+   - Note: Running validation that mentions "if jq not installed" implies jq is optional, but the validation step requires it
+   - Suggestion: Add explicit jq availability check before validation, or make jq fallback automatic
+   - **Status**: FIXED — Added automatic fallback to python3 -m json.tool if jq unavailable
 
-4. **No directory creation guidance**
-   - Location: runbook-phase-1.md:19
-   - Note: Step 1.1 creates `agent-core/.claude-plugin/plugin.json` but doesn't explicitly state to create `.claude-plugin/` directory first
-   - Suggestion: Add to Implementation: "Create directory `agent-core/.claude-plugin/` if it doesn't exist"
+4. **Complexity classification underestimates file count and validation scope**
+   - Location: runbook-phase-1.md:9
+   - Note: "Trivial" suggests <5 minutes work, but phase includes: directory creation, 2 file creation with specific formats, JSON validation with jq/python fallback, byte-count verification, and comprehensive error handling guidance (6 error scenarios). This is closer to "Simple" (well-defined, single concern, 5-15 min).
+   - Suggestion: Reassess as "Simple" to set accurate execution expectations
+   - **Status**: FIXED — Updated complexity from "Trivial" to "Simple"
 
-5. **Error condition too vague**
-   - Location: runbook-phase-1.md:42
-   - Note: "Directory creation fails → Check permissions" doesn't specify which directory
-   - Suggestion: "`.claude-plugin/` directory creation fails → Check permissions on agent-core/ directory"
+## Fixes Applied
+
+**Phase 1 file: `plans/plugin-migration/runbook-phase-1.md`**
+
+1. Line 9: Complexity assessment updated from "Trivial" to "Simple" — phase includes validation, error handling, and format verification beyond basic file creation
+2. Lines 48-54: Validation steps split into separate commands for clear diagnostics — JSON validation and version checks now provide specific error context
+3. Lines 48-54: Added automatic jq fallback to python3 -m json.tool — validation no longer assumes jq installed
+4. Lines 62-67: Unexpected result handling updated to match new validation structure — reflects separated validation steps
 
 ## Requirements Validation
 
-**Outline Review Status**: Present at `plans/plugin-migration/reports/runbook-outline-review.md`
+**Design reference:** `plans/plugin-migration/design.md`
 
-**Requirements Coverage**:
+| Design Component | Phase 1 Coverage | Status |
+|------------------|------------------|--------|
+| C-1 Plugin Manifest (D-1 minimal structure) | plugin.json with name/version/description | Satisfied — runbook-phase-1.md:19-29 |
+| C-1 Auto-discovery (conventional directories) | Manifest explanation at line 31-35 | Satisfied — design note confirms no custom paths |
+| C-3 Fragment Version Marker | .version file creation at line 37-45 | Satisfied — correct format (no trailing newline) |
+| C-3 Version semantics | Design note at line 42-45 | Satisfied — semantic versioning rules documented |
 
-| Requirement | Status | Evidence |
-|-------------|--------|----------|
-| FR-1 (plugin auto-discovery) | Partial | plugin.json enables discovery, but Phase 1 only creates manifest (hooks/skills in later phases) |
-| D-1 (plugin name = edify) | Satisfied | runbook-phase-1.md:30 references D-1, plugin.json uses name "edify" |
-| Component 1 (minimal manifest) | Satisfied | runbook-phase-1.md:31 references Component 1, manifest has only name/version/description |
-| Component 3 (versioning) | Satisfied | .version marker created per Component 3 spec |
+**Gaps:** None — Phase 1 satisfies its design scope completely.
 
-**Gaps**: None for Phase 1 scope. FR-1 full satisfaction requires later phases.
+**Alignment with Phase 0 patterns:**
 
-## Outline Validation
-
-**Outline Review Status**: Present at `plans/plugin-migration/reports/runbook-outline-review.md`
-
-**Requirements Coverage** (from `plans/plugin-migration/runbook-outline.md`):
-
-Phase 1 maps to outline Section 1.1 (plugin.json) and Section 1.2 (.version marker). Both requirements covered.
-
-**Coverage notes**:
-- Outline Section 1.1 mapped to FR-1 + D-1 + Component 1 — runbook satisfies
-- Outline Section 1.2 mapped to Component 3 — runbook satisfies
-- No missing coverage identified
+| Pattern | Phase 0 | Phase 1 | Status |
+|---------|---------|---------|--------|
+| Implementation + Validation structure | Steps separated, explicit validation | Same pattern | ✓ |
+| Unexpected result handling | 6 scenarios documented | 4 scenarios documented | ✓ |
+| File existence validation | `test -f` commands | `test -f` commands | ✓ |
+| Report path specified | Yes | Yes | ✓ |
+| Design notes inline | Yes (symlink explanation) | Yes (manifest purpose) | ✓ |
+| Path correctness | edify-plugin/ throughout | edify-plugin/ throughout | ✓ |
 
 ---
 
 ## Positive Observations
 
-- **Clear validation commands** — Each step includes executable bash commands for verification, not prose descriptions
-- **Explicit design references** — D-1 and Component 1 cited with rationale, making design traceability easy
-- **Idempotent validation** — All validation commands can be re-run safely (`test -f`, `jq .`, content checks)
-- **Simple scope** — Phase 1 appropriately limited to two trivial file creation tasks
-- **Checkpoint structure** — Phase boundary checkpoint clearly separates Phase 1 from Phase 2
-- **Error conditions specified** — Each step includes error conditions and remediation guidance
+- **Correct paths:** All references use `edify-plugin/` consistently (no agent-core leakage)
+- **Design alignment:** Manifest structure matches D-1 exactly (minimal: name + version + description)
+- **Version marker format:** Correctly specifies no trailing newline (printf not echo) with byte-count validation
+- **Clear purpose:** Design notes explain why minimal manifest works (auto-discovery from conventional paths)
+- **Semantic versioning:** Documents version bump protocol for future reference
+- **Validation criteria:** Specific commands with expected output
+- **Error handling:** Covers common failure modes (permissions, JSON syntax, jq missing)
+- **Dependencies:** Correctly specifies Phase 0 prerequisite
+- **Idempotent-ready:** Commands can be re-run safely (mkdir -p, overwrite files)
 
 ## Recommendations
 
-1. **Standardize report path handling** — Decide if Phase 1 steps are inline execution (no delegation, no report) or quiet execution (delegated, report to file). If inline, remove "Report Path: N/A" sections entirely (not needed for inline work). If delegated, specify actual report path.
+None — phase is well-structured and aligned with design. All identified issues have been fixed.
 
-2. **Add prerequisite validation** — Include skill load check at start: verify `plugin-dev:plugin-structure` and `plugin-dev:hook-development` are loaded per design "Documentation Perimeter" requirements.
+## Post-Fix Verification
 
-3. **Strengthen .version validation** — Use byte-count check (`wc -c`) to verify no trailing newline, not just visual inspection via `cat`.
+Verified fixes:
+1. Complexity updated to "Simple" — sets accurate expectations
+2. Validation commands separated — clearer error diagnostics on failure
+3. jq fallback automatic — no manual intervention needed if jq missing
+4. Error handling updated — matches new validation structure
 
-4. **Clarify directory creation** — Make explicit that `.claude-plugin/` directory must be created (or use `mkdir -p` pattern in implementation guidance).
-
-## Next Steps
-
-1. **Fix major issue #1** — Add explicit `printf` command to Step 1.2 Implementation to ensure no trailing newline
-2. **Fix major issue #2** — Add byte-count validation to Step 1.2 Validation section
-3. **Fix major issue #3** — Clarify report path handling (inline vs delegated execution model)
-4. **Fix major issue #4** — Add prerequisite validation checkpoint at start of Phase 1
-5. **Address minor issues** — Standardize heading case, add jq check, make directory creation explicit
-6. **Re-run validation** — After fixes, verify all validation commands execute cleanly
+Phase 1 ready for execution.

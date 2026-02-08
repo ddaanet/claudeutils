@@ -119,3 +119,17 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Phase 0 vet found 13 issues in file that "followed the design" — proof that template-following ≠ correctness
 - Gate B structural gap: Boolean presence check (any report?), not coverage ratio (artifacts:reports 1:1)
 - "Proceed" scope: Activates execution mode which optimizes throughput, rationalizing away friction (vet checkpoints)
+## Sequential Task launch breaks parallelism
+- Anti-pattern: Launch Task agents one at a time (Phase 1 → wait → Phase 2 → wait...) when all inputs ready and no dependencies
+- Correct pattern: Batch all independent Task calls in single message (6 vet reviews → 6 Task calls in one message)
+- Root cause: Tool batching rule doesn't explicitly cover Task tool — extension principle not documented
+- Wall-clock impact: Sequential = sum(task_times), parallel = max(task_times) — wastes ~14 min for 6 reviews
+- Fix needed: Add Task tool section to tool-batching.md with explicit examples
+## Vet-fix-agent context-blind validation
+- Anti-pattern: Trust vet-fix-agent output without validation, no execution context provided in delegation
+- Vet validates against current filesystem not execution-time state — Phase 6 error: "fixed" edify-plugin → agent-core
+- UNFIXABLE issues in reports don't trigger escalation (manual detection required)
+- Correct pattern: Provide execution context to vet-fix-agent, validate UNFIXABLE detection before proceeding
+- Include phase dependencies and state transitions in delegation prompt
+- Read vet report after completion, grep for UNFIXABLE markers, escalate to user
+- Rationale: Vet lacks temporal reasoning (current vs future state) and explicit escalation protocol

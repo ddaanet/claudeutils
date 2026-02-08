@@ -142,46 +142,49 @@ version: 1.0.0
 2. **When to Use:**
    - New project setup
    - Adding edify to existing project
-   - After cloning project with agent-core submodule
+   - After cloning project with edify-plugin submodule
 
 3. **Behavior:**
-   - Detect installation mode (check `edify-plugin/` directory exists)
-   - Create `agents/` directory if missing
-   - Create `agents/session.md` from template if missing
-   - Create `agents/learnings.md` from template if missing
-   - Create `agents/jobs.md` from template if missing
-   - If no CLAUDE.md: copy template with `@edify-plugin/fragments/` references
+   - Detect installation mode: `test -d edify-plugin` (check `edify-plugin/` directory exists)
+   - Create `agents/` directory if missing: `mkdir -p agents`
+   - Create `agents/session.md` from template if missing: copy from `edify-plugin/templates/session.template.md`
+   - Create `agents/learnings.md` from template if missing: copy from `edify-plugin/templates/learnings.template.md`
+   - Create `agents/jobs.md` from template if missing: copy from `edify-plugin/templates/jobs.template.md`
+   - If no CLAUDE.md: copy `edify-plugin/templates/CLAUDE.template.md` with `@edify-plugin/fragments/` references
    - If CLAUDE.md exists: no modification (preserve user content)
-   - Write `.edify-version` with current plugin version
+   - Write `.edify-version` with current plugin version from `edify-plugin/.version`
+   - Use Bash tool for all file operations (mkdir, cp, version writes)
 
 4. **Consumer mode handling:**
-   - Detect consumer mode (no `edify-plugin/` directory)
-   - Add TODO markers: "Consumer mode fragment copying not yet implemented"
+   - Detect consumer mode: `test ! -d edify-plugin` (no `edify-plugin/` directory)
+   - Add TODO markers: "Consumer mode fragment copying not yet implemented" (per D-7: Consumer Mode Deferred)
    - Exit with clear message directing to dev mode setup
 
 5. **Idempotency guarantees:**
-   - Every operation checks before acting
+   - Every operation checks before acting (if file exists, skip copy)
    - Re-running applies only missing pieces
    - No data destruction risk
+   - **Why init-specific**: Init scaffolds missing structure (safe to re-run); update overwrites (explicit sync action)
 
 **Design References:**
+- Component 1: Plugin auto-discovery (skills/*/SKILL.md pattern)
+- Component 4: `/edify:init` scaffolding behavior
 - D-3: Fragment distribution via skill, not script
 - D-7: Consumer mode deferred (dev mode only in this migration)
-- Component 4: `/edify:init` scaffolding behavior
 
 **Validation:**
 - Skill file exists at `edify-plugin/skills/init/SKILL.md`
-- YAML frontmatter is valid
+- YAML frontmatter is valid: contains required fields (name, description, version), name is `edify:init`, version follows semver (1.0.0), no YAML parse errors
 - Skill description triggers on "scaffold", "setup", "init"
-- Dev mode logic is complete
-- Consumer mode has TODO markers
+- Dev mode logic is complete with explicit bash commands
+- Consumer mode has TODO markers referencing D-7
 
 **Expected Outcome:** `/edify:init` skill created with dev mode implementation.
 
 **Error Conditions:**
-- Invalid YAML frontmatter → Fix syntax
-- Missing template references → Add paths to templates
-- Logic errors → Review behavior against design
+- Invalid YAML frontmatter → Fix syntax, validate with `python -c 'import yaml; yaml.safe_load(open("..."))'`
+- Missing template files → Verify templates exist in `edify-plugin/templates/`, copy template from upstream if missing
+- Logic errors → Review behavior against design Component 4 and D-3
 
 **Success Criteria:**
 - Skill file exists and is well-formed
@@ -229,35 +232,38 @@ version: 1.0.0
    - After plugin upgrade
 
 3. **Behavior (dev mode):**
-   - Check installation mode (verify `edify-plugin/` directory exists)
-   - Read current `.edify-version` and `edify-plugin/.version`
+   - Check installation mode: `test -d edify-plugin` (verify `edify-plugin/` directory exists)
+   - Read current `$CLAUDE_PROJECT_DIR/.edify-version` and plugin version from `edify-plugin/.version`
    - If versions match: "Already up to date"
    - If versions differ: "Dev mode uses direct references, no sync needed. Updated .edify-version marker."
-   - Write current version to `.edify-version`
+   - Write current version to `$CLAUDE_PROJECT_DIR/.edify-version`
+   - Skill removes temp file `tmp/.edify-version-checked` to reset once-per-session gate after version update
    - Exit successfully
+   - Use Bash tool for all file operations (version reads, version write, temp file removal)
 
 4. **Behavior (consumer mode):**
-   - Check installation mode (no `edify-plugin/` directory)
-   - Add TODO markers: "Consumer mode fragment copying not yet implemented"
+   - Check installation mode: `test ! -d edify-plugin` (no `edify-plugin/` directory)
+   - Add TODO markers: "Consumer mode fragment copying not yet implemented" (per D-7: Consumer Mode Deferred)
    - Copy fragments from `$CLAUDE_PLUGIN_ROOT/fragments/` to `agents/rules/`
    - Update `@` references in CLAUDE.md
-   - Write current version to `.edify-version`
+   - Write current version to `$CLAUDE_PROJECT_DIR/.edify-version`
 
 5. **Version marker update:**
-   - Always update `.edify-version` to match `edify-plugin/.version` (or `$CLAUDE_PLUGIN_ROOT/.version` in consumer mode)
-   - Clear temp file: `tmp/.edify-version-checked` (resets once-per-session gate)
+   - Always update `.edify-version` to match plugin version source (`edify-plugin/.version` in dev mode, `$CLAUDE_PLUGIN_ROOT/.version` in consumer mode)
+   - Removes `tmp/.edify-version-checked` after update to allow version check hook to fire again
 
 **Design References:**
-- Design Component 4: `/edify:update` skill behavior
+- Component 1: Plugin auto-discovery (skills/*/SKILL.md pattern)
+- Component 4: `/edify:update` skill behavior
 - D-7: Consumer mode deferred
 - Fragment versioning: dev mode reads directly, consumer mode copies
 
 **Validation:**
 - Skill file exists at `edify-plugin/skills/update/SKILL.md`
-- YAML frontmatter is valid
+- YAML frontmatter is valid: contains required fields (name, description, version), name is `edify:update`, version follows semver (1.0.0), no YAML parse errors
 - Skill description triggers on "update", "sync", "fragments"
-- Dev mode logic is complete (version marker update)
-- Consumer mode has TODO markers
+- Dev mode logic is complete with explicit bash commands (version marker update only)
+- Consumer mode has TODO markers referencing D-7
 
 **Expected Outcome:** `/edify:update` skill created with dev mode as no-op.
 
@@ -294,11 +300,18 @@ skill_md_count=$(find edify-plugin/skills -name "SKILL.md" | wc -l)
 test -f edify-plugin/skills/init/SKILL.md && echo "✓ /edify:init skill created" || echo "✗ /edify:init missing"
 test -f edify-plugin/skills/update/SKILL.md && echo "✓ /edify:update skill created" || echo "✗ /edify:update missing"
 
+# Verify YAML frontmatter is valid
+for skill in init update; do
+  python3 -c "import yaml; yaml.safe_load(open('edify-plugin/skills/$skill/SKILL.md'))" && \
+    echo "✓ $skill YAML valid" || echo "✗ $skill YAML invalid"
+done
+
 # Test plugin discovery (requires restart)
 echo "Manual test required:"
-echo "  1. Restart Claude Code session"
-echo "  2. Run: claude --plugin-dir ./agent-core"
+echo "  1. Exit current Claude Code session"
+echo "  2. Restart: claude --plugin-dir ./edify-plugin"
 echo "  3. Verify /edify:init and /edify:update appear in /help output"
+echo "  4. Verify skills are invokable (run /edify:init --help or similar)"
 ```
 
 **Success:** All verification commands pass, skills discoverable after restart

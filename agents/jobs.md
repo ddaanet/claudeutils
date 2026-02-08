@@ -17,7 +17,8 @@ Plan lifecycle tracking. Updated when plans change status.
 | reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | reflect-rca-prose-gates | complete | D+B hybrid fix implemented |
-| plugin-migration | planned | Outline + Phase 0 draft. Needs fixes + Phases 1-6 expansion |
+| plugin-migration | planned | All 7 phases vetted (44 issues fixed). Ready for runbook assembly |
+| reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
 | submodule-commit-tooling | requirements | Submodule commit workflow |
 | validator-consolidation | requirements | Move to claudeutils package |
 

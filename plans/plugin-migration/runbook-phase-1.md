@@ -6,7 +6,7 @@
 
 **Model:** Haiku
 
-**Estimated Complexity:** Trivial (2 simple files, ~15 lines total)
+**Estimated Complexity:** Simple (2 files with validation, error handling, format verification)
 
 ---
 
@@ -46,11 +46,24 @@ printf '1.0.0' > edify-plugin/.version
 
 3. **Validate file creation:**
 ```bash
-# Verify plugin.json exists and parses as valid JSON
-test -f edify-plugin/.claude-plugin/plugin.json && jq . edify-plugin/.claude-plugin/plugin.json
+# Verify plugin.json exists
+test -f edify-plugin/.claude-plugin/plugin.json
 
-# Verify .version exists with correct content (5 bytes, no trailing newline)
-test -f edify-plugin/.version && [ "$(cat edify-plugin/.version)" = "1.0.0" ] && [ "$(wc -c < edify-plugin/.version)" -eq 5 ]
+# Verify plugin.json parses as valid JSON (fallback to python if jq unavailable)
+if command -v jq >/dev/null 2>&1; then
+  jq . edify-plugin/.claude-plugin/plugin.json >/dev/null
+else
+  python3 -m json.tool edify-plugin/.claude-plugin/plugin.json >/dev/null
+fi
+
+# Verify .version exists
+test -f edify-plugin/.version
+
+# Verify .version contains exact string "1.0.0"
+[ "$(cat edify-plugin/.version)" = "1.0.0" ]
+
+# Verify .version has exactly 5 bytes (no trailing newline)
+[ "$(wc -c < edify-plugin/.version)" -eq 5 ]
 ```
 
 **Expected Outcome:**
@@ -61,16 +74,18 @@ test -f edify-plugin/.version && [ "$(cat edify-plugin/.version)" = "1.0.0" ] &&
 
 **Unexpected Result Handling:**
 - If `.claude-plugin/` creation fails: check permissions on edify-plugin/ directory
+- If plugin.json file test fails: verify directory creation succeeded, check write permissions
 - If JSON validation fails: check syntax (trailing commas, quotes, malformed JSON)
-- If .version validation fails: verify exact string `1.0.0` with no trailing newline
-- If `jq` not installed: install with `brew install jq` or use `python3 -m json.tool` instead
+- If .version file test fails: verify write permissions on edify-plugin/ directory
+- If .version content test fails: verify exact string `1.0.0` with no trailing newline (use `printf` not `echo`)
+- If .version byte count fails: check for trailing newline, spaces, or other hidden characters
 
 **Validation:**
-- `[ -f edify-plugin/.claude-plugin/plugin.json ]` returns true
-- `[ -f edify-plugin/.version ]` returns true
-- `jq . edify-plugin/.claude-plugin/plugin.json` succeeds (valid JSON)
-- `cat edify-plugin/.version` outputs exactly `1.0.0`
-- `wc -c < edify-plugin/.version` outputs `5` (no trailing newline)
+- `test -f edify-plugin/.claude-plugin/plugin.json` returns true
+- `test -f edify-plugin/.version` returns true
+- JSON validation succeeds (jq or python3 -m json.tool exit 0)
+- `[ "$(cat edify-plugin/.version)" = "1.0.0" ]` returns true
+- `[ "$(wc -c < edify-plugin/.version)" -eq 5 ]` returns true (no trailing newline)
 
 **Success Criteria:**
 - Both files created successfully

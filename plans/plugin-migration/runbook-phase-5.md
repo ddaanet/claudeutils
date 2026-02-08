@@ -25,11 +25,11 @@ find .claude/agents -type l | wc -l
 find .claude/hooks -type l | wc -l
 ```
 
-**Expected counts (per design):**
-- Total: ~32 symlinks
-- `.claude/skills/`: 16 symlinks
-- `.claude/agents/`: 12 symlinks (preserve `*-task.md` regular files)
-- `.claude/hooks/`: 4 symlinks
+**Expected counts (based on current state):**
+- Total: ~32 symlinks (may vary by project)
+- `.claude/skills/`: ~16 symlinks
+- `.claude/agents/`: ~12 symlinks (preserve `*-task.md` regular files)
+- `.claude/hooks/`: ~4 symlinks
 
 2. **Remove symlinks from .claude/skills/:**
 ```bash

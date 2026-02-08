@@ -34,7 +34,7 @@ This regenerates:
 
 **Root cache (should show imported recipes):**
 ```bash
-cat .cache/just-help.txt | grep -E "(claude|wt-new|wt-ls|wt-rm|wt-merge|precommit-base)"
+cat .cache/just-help.txt | grep -E "^[[:space:]]+(claude|wt-new|wt-ls|wt-rm|wt-merge|precommit-base)"
 ```
 
 **Expected:** All imported recipes appear (claude, claude0, wt-new, wt-ls, wt-rm, wt-merge, precommit-base)
