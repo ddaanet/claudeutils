@@ -198,6 +198,20 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Significant token savings in planning phase without quality loss.
 
+**Conformance exception:**
+
+For conformance-type work with exact specifications (external reference, API spec, visual mockup), prose descriptions MUST include the exact expected strings from the reference.
+
+This is not full test code — it is precise prose that preserves the specification.
+
+**Example contrast:**
+
+| Standard prose | Conformance prose |
+|----------------|-------------------|
+| "Assert output contains formatted model with emoji and color" | "Assert output contains `🥈` followed by `\033[35msonnet\033[0m` with double-space separator" |
+
+**Rationale:** Standard prose is efficient for behavioral tests. For conformance work, the specification IS the exact string — abstracting it introduces translation loss. Precise prose preserves spec fidelity while maintaining token efficiency (still more compact than full test code).
+
 ### Complexity Before Expansion
 
 **Decision Date:** 2026-02-05
