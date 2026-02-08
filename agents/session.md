@@ -18,8 +18,6 @@
 
 ## Pending Tasks
 
-- [ ] **Continuation passing design** — Validate outline against requirements | opus
-  - Plan: continuation-passing | Status: requirements
 - [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink | restart
 - [ ] **Handoff validation design** — Complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
@@ -34,6 +32,8 @@
 
 ## Worktree Tasks
 
+- [ ] **Fix agent-core justfile to link all agents and skills** → `wt/agent-core-links` — Missing at least remember-task and memory-refactor
+- [ ] **Continuation passing design** → `wt/continuation-passing` — Validate outline against requirements | opus | Plan: continuation-passing | Status: requirements
 - [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
 - [ ] **Empirical testing of memory index recall** → `wt/memory-index-recall` — Design testing methodology for memory index effectiveness | opus
