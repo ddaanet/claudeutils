@@ -14,7 +14,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | markdown | requirements | Markdown cleanup test corpus |
 | prompt-composer | designed | Oldest plan, at risk |
 | requirements-skill | requirements | Evaluate with opus |
-| reflect-rca-parity-iterations | planned | Spec-to-execution fidelity, 5 root causes, 8 design decisions, 11-step runbook |
+| reflect-rca-parity-iterations | complete | 11 steps executed, 3 checkpoints, all 8 FRs addressed |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | reflect-rca-prose-gates | complete | D+B hybrid fix implemented |
 | validator-consolidation | requirements | Move to claudeutils package |
@@ -26,6 +26,7 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `reflect-rca-parity-iterations` — Parity test quality gap fixes (11 steps, 8 design decisions)
 - `statusline-wiring` — Statusline CLI with TDD (28 cycles, 6 phases)
 - `statusline-parity` — All 14 cycles, 5 phases executed and validated
 - `learnings-consolidation` — Learnings consolidation infrastructure (7 steps, 4 phases)
