@@ -111,3 +111,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - When plugin-dev guidance is incomplete or inconsistent, fallback to claude-code-guide agent
 - Example: hooks.json format conflict — plugin-dev:hook-development said wrapper format for hooks.json, claude-code-guide clarified direct format is correct
 - Pattern: plugin-dev skills are curated snapshots, claude-code-guide has live docs access
+## Per-artifact vet coverage required
+- Anti-pattern: Create/expand multiple runbook phases in sequence → commit all without individual vet reviews
+- Correct pattern: Each phase file is a production artifact → each requires vet-fix-agent review before proceeding
+- Root cause: Batch momentum — once first artifact skips review, switching cost increases for each subsequent one
+- Rationalization escalation: "Phase 0 was the hard one" → each subsequent phase rationalized as lower risk
+- Phase 0 vet found 13 issues in file that "followed the design" — proof that template-following ≠ correctness
+- Gate B structural gap: Boolean presence check (any report?), not coverage ratio (artifacts:reports 1:1)
+- "Proceed" scope: Activates execution mode which optimizes throughput, rationalizing away friction (vet checkpoints)
