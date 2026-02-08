@@ -14,6 +14,8 @@ Plan lifecycle tracking. Updated when plans change status.
 | markdown | requirements | Markdown cleanup test corpus |
 | requirements-skill | requirements | Evaluate with opus |
 | reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
+| orchestrate-evolution | requirements | Absorb planning, finalize phase pattern |
+| wt-merge-skill | requirements | Blocked on continuation-passing |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | validator-consolidation | complete | Validators consolidated to claudeutils package |
 

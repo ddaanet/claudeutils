@@ -142,3 +142,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Single vet-fix-agent with domain skill file providing explicit checklists and good/bad examples
 - Rationale: One agent per concern is expensive; structured skill files provide bounded criteria (not unbounded reasoning)
 - Trade-off: Cost over theoretical fidelity; skill file quality determines review quality
+## No auto-stash, require clean tree
+- Anti-pattern: Using `git stash` to work around dirty tree before merge/rebase operations
+- Correct pattern: Require clean tree to assert process integrity. Exception: session context files (session.md, jobs.md, learnings.md) auto-committed as pre-step
+- Rationale: Stash is fragile (conflicts on pop, lost stashes). Clean tree forces explicit state management
+- Related: wt-merge skill design — clean tree gate with session context exception
+## Always script non-cognitive solutions
+- Anti-pattern: Using agent judgment for deterministic operations (conflict resolution with known pattern, session file updates)
+- Correct pattern: If solution is non-cognitive (deterministic, pattern-based), script it. Always auto-fix when possible.
+- Examples: Session context merge conflicts (keep both sides), worktree task removal from session.md, gitmoji → no judgment needed
+- Corollary: Reserve agent invocations for cognitive work (design, review, ambiguous decisions)

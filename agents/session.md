@@ -1,20 +1,24 @@
-# Session Handoff: 2026-02-07
+# Session Handoff: 2026-02-09
 
-**Status:** Worktree recovery and wt-merge bug fix.
+**Status:** Worktree management and wt-merge skill design.
 
 ## Completed This Session
 
-**wt-merge bug fix:**
-- Root cause: `just wt-merge` uses `set -e`, `git commit` with no submodule changes exits 1, kills script before Step 2 (parent branch merge)
-- Fix: Guard commit with `git diff --quiet --cached ||` (justfile line 133)
-- 4 stale worktrees had been claimed merged but weren't
+**Worktree operations:**
+- Created `wt/continuation-passing` — focused session.md for opus design
+- Created `wt/bash-git-prompt` — spun off from pending task
+- Merged `wt/agent-core-links` (ee19369) — fixed missing agent symlinks in sync-to-parent
+- Merged `wt/domain-validation-design` (966c580) — plugin-dev-validation skill, plan-adhoc/plan-tdd updates, 4 new learnings, domain-validation plan complete
 
-**Worktree recovery:**
-- Merged `wt/commit-unification` — plan marked complete (a96a362)
-- Merged `wt/agent-output-cmd` — session log scraping prototype (c1d0a22)
-- Merged `wt/fix-wt-status` — wt status investigation (88524a7)
-- Merged `wt/plan-adhoc-alignment` — plan-tdd updates ported (1b26519)
-- Removed stale worktrees: release-prep-skill, update-design-skill (already merged, just needed cleanup)
+**wt-merge skill design (discussion → outline):**
+- Outline at `plans/wt-merge-skill/outline.md`
+- Key decisions: clean tree gate (fail non-session, auto-handle session context), full `/handoff, /commit` pre-merge via continuation chain, auto-resolve session context conflicts, amend merge commit
+- `--commit` flag obsolete with continuation passing — replaced by skill chaining
+- Blocked on continuation-passing design
+
+**Prior session (uncommitted handoff):**
+- wt-merge bug fix: guarded `git commit` with `git diff --quiet --cached ||` (justfile line 133)
+- Worktree recovery: merged 4 worktrees (commit-unification, agent-output-cmd, fix-wt-status, plan-adhoc-alignment)
 
 ## Pending Tasks
 
@@ -29,6 +33,10 @@
 - [ ] **Update commit and handoff to branch after precommit** — Move git branching point from beginning to after precommit passes
 - [ ] **History cleanup tooling** — Research git history rewriting, prototype reusable scripts, consider reusable agent. Items: collapse runbook checkpoint commits (preserve session.md handoffs), fix history from wt-merge incident. Allow rewrite on feature branches between releases, may tighten to prevent rewrite of main.
 - [ ] **Rewrite agent-core ad-hoc scripts via TDD** — Port all ad-hoc scripts in agent-core/ to claudeutils package through TDD. Add precommit check and process gating: allow quick prototyping but schedule proper rewrite.
+- [ ] **Package wt-merge as skill** — Clean tree gate, full handoff+commit pre-merge, auto-resolve session conflicts, amend merge commit. Blocked on continuation-passing.
+  - Plan: wt-merge-skill | Status: requirements
+- [ ] **Move worktrees into wt/ directory** — Solves sandbox isolation, update skills and scripts
+- [ ] **Fix precommit failures** — memory_index complexity (C901/PLR0912), line limits (3 files over 400)
 
 ## Worktree Tasks
 
@@ -38,25 +46,24 @@
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
 - [ ] **Empirical testing of memory index recall** → `wt/memory-index-recall` — Design testing methodology for memory index effectiveness | opus
 - [ ] **Scope markdown test corpus work** → `wt/markdown-test-corpus` — Formatter test cases, determine approach
-- [ ] **Design support for domain-specific and optional project-specific validation** → `wt/domain-validation-design` — Start with plugin-dev review agents | opus
 
 ## Blockers / Gotchas
 
-**Worktree sandbox exemptions needed.** `just wt-new`, `just wt-rm`, `just wt-merge` write outside project directory. Need `dangerouslyDisableSandbox: true`. Session.md write eliminated — pre-committed to branch via git plumbing in recipe.
+**Worktree sandbox exemptions needed.** `just wt-new`, `just wt-rm`, `just wt-merge` write outside project directory. Need `dangerouslyDisableSandbox: true`.
 
-**Key dependency chain:** continuation-passing → handoff-validation → orchestrate-evolution (serial opus sessions)
+**Key dependency chain:** continuation-passing → handoff-validation → orchestrate-evolution (serial opus sessions). wt-merge-skill also blocked on continuation-passing.
 
-**orchestrate-evolution missing from jobs.md** — needs entry added.
+**wt-merge dirty tree pattern:** Session context files (session.md, jobs.md, learnings.md) are always dirty during worktree operations. Current workaround: commit before merge, retry recipe. Proper fix: wt-merge skill with clean tree gate.
 
 ## Reference Files
 
-- **justfile** — `wt-new` (lines 55-87, git plumbing session pre-commit), `wt-rm`, `wt-merge`
-- **agent-core/fragments/execute-rule.md** — MODE 5 (local session.md write + recipe pre-commit flow)
-- **plans/workflow-skills-audit/audit.md** — Plan-adhoc alignment + design skill audit (12 items)
+- **plans/wt-merge-skill/outline.md** — wt-merge skill design outline
+- **plans/continuation-passing/outline.md** — Continuation passing design (in wt/continuation-passing worktree)
+- **justfile** — `wt-new` (lines 55-87), `wt-rm`, `wt-merge`
 
 ## Next Steps
 
-Quick wins: plan-adhoc alignment. Use `wt` for parallel execution of independent sonnet tasks.
+Continue with continuation-passing design in worktree (opus). That unblocks handoff-validation, orchestrate-evolution, and wt-merge-skill.
 
 ---
-*Handoff by Sonnet. Justfile cleanup + worktree setup.*
+*Handoff by Sonnet. Worktree management + wt-merge design discussion.*
