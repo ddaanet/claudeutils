@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-09
 
-**Status:** Worktree management and wt-merge skill design.
+**Status:** Worktree merges complete.
 
 ## Completed This Session
 
@@ -9,6 +9,7 @@
 - Created `wt/bash-git-prompt` — spun off from pending task
 - Merged `wt/agent-core-links` (ee19369) — fixed missing agent symlinks in sync-to-parent
 - Merged `wt/domain-validation-design` (966c580) — plugin-dev-validation skill, plan-adhoc/plan-tdd updates, 4 new learnings, domain-validation plan complete
+- Merged `wt/parity-failures` (1be1171) — executed parity gap fixes runbook (11 steps, 3 phases), updated skills with parity improvements
 
 **wt-merge skill design (discussion → outline):**
 - Outline at `plans/wt-merge-skill/outline.md`
@@ -42,7 +43,6 @@
 
 - [ ] **Explore removing bash tool git prompt noise** → `wt/bash-git-prompt` — Research if suppressible via config, hooks, or shell profile
 - [ ] **Continuation passing design** → `wt/continuation-passing` — Validate outline against requirements | opus | Plan: continuation-passing | Status: requirements
-- [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
 - [ ] **Empirical testing of memory index recall** → `wt/memory-index-recall` — Design testing methodology for memory index effectiveness | opus
 - [ ] **Scope markdown test corpus work** → `wt/markdown-test-corpus` — Formatter test cases, determine approach
@@ -66,4 +66,4 @@
 Continue with continuation-passing design in worktree (opus). That unblocks handoff-validation, orchestrate-evolution, and wt-merge-skill.
 
 ---
-*Handoff by Sonnet. Worktree management + wt-merge design discussion.*
+*Handoff by Sonnet. Merged wt/parity-failures worktree.*

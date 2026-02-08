@@ -12,8 +12,8 @@ Plan lifecycle tracking. Updated when plans change status.
 | continuation-passing | requirements | Opus design needed |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
+| reflect-rca-parity-iterations | complete | Parity test quality gap fixes (11 steps, 8 design decisions) |
 | requirements-skill | requirements | Evaluate with opus |
-| reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
 | orchestrate-evolution | requirements | Absorb planning, finalize phase pattern |
 | wt-merge-skill | requirements | Blocked on continuation-passing |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
@@ -26,6 +26,7 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `reflect-rca-parity-iterations` — Parity test quality gap fixes (11 steps, 8 design decisions)
 - `domain-validation` — Domain-specific validation infrastructure (validation skill, rules file, plan skill updates)
 - `validator-consolidation` — Validators consolidated to claudeutils package
 - `commit-unification` — Unified commit skills, inlined gitmoji, decoupled handoff
