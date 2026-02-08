@@ -32,7 +32,7 @@
 
 ## Worktree Tasks
 
-- [ ] **Fix agent-core justfile to link all agents and skills** → `wt/agent-core-links` — Missing at least remember-task and memory-refactor
+- [ ] **Explore removing bash tool git prompt noise** → `wt/bash-git-prompt` — Research if suppressible via config, hooks, or shell profile
 - [ ] **Continuation passing design** → `wt/continuation-passing` — Validate outline against requirements | opus | Plan: continuation-passing | Status: requirements
 - [ ] **Analyze parity test quality failures** → `wt/parity-failures` — RCA complete (plans/reflect-rca-parity-iterations/rca.md). Needs: act on 5 gaps, factor in workflow evolution
 - [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
