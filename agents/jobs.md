@@ -9,6 +9,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | Plan | Status | Notes |
 |------|--------|-------|
 | continuation-passing | requirements | Opus design needed |
+| feature-requests | complete | Claude Code feature requests + fragment redundancy analysis |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
 | requirements-skill | requirements | Evaluate with opus |
