@@ -58,7 +58,7 @@ The `/commit` skill must execute `git diff` to show what changes are being commi
 
 ---
 
-### Gate C: Validation (just precommit)
+### Gate C: Precommit Validation (just precommit)
 
 **Evidence:** ✅ CONFIRMED
 

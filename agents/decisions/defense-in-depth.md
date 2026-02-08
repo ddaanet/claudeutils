@@ -17,21 +17,21 @@ Each layer failed independently and only by combining them do we achieve adequat
 
 **Pattern layers (from outer to inner):**
 
-1. **Outer defense (Execution Flow):** D+B hybrid (merge prose gates with adjacent action steps, anchor with tool call) ensures precommit appears in execution path and is actually executed
+1. **Layer 1 — Outer defense (Execution Flow):** D+B hybrid (merge prose gates with adjacent action steps, anchor with tool call) ensures precommit appears in execution path and is actually executed
    - Prevents: Prose-only validation steps getting optimized/skipped in execution mode
    - Example: Commit skill Step 1 now opens with Read(session.md), not a prose judgment
 
-2. **Middle defense (Automated Checks):** Precommit catches line limits, lint, test failures via hard validation at commit time
+2. **Layer 2 — Middle defense (Automated Checks):** Precommit catches line limits, lint, test failures via hard validation at commit time
    - Prevents: Oversized files, style violations, broken tests from being committed
    - Mechanism: `just precommit` runs `check_line_limits.sh`, linters, and test suite
    - Execution: Runs always unless in WIP-only modes (see Inner defense)
 
-3. **Inner defense (Quality Review):** Vet-fix-agent catches quality, alignment, and implementation issues through semantic review before commit
+3. **Layer 3 — Inner defense (Quality Review):** Vet-fix-agent catches quality, alignment, and implementation issues through semantic review before commit
    - Prevents: Logic errors, integration problems, deviations from design
    - Scope: Full alignment verification (output matches design/requirements/acceptance criteria)
    - Note: Only as good as acceptance criteria specification — requires precise test descriptions for conformance work
 
-4. **Deepest defense (Conformance):** Conformance tests and reference validation catch spec-to-implementation drift
+4. **Layer 4 — Deepest defense (Conformance):** Conformance tests and reference validation catch spec-to-implementation drift
    - Prevents: Implementation that passes all automated checks yet diverges from specification
    - Mechanism: For work with external references (shell scripts, visual mockups, API specs), compare rendered output/behavior directly
    - Example: Conformance validation comparing Python statusline output to shell reference at `scratch/home/claude/statusline-command.sh` would have caught all 8 parity issues immediately
@@ -42,7 +42,7 @@ These two gaps interact to create a vulnerability:
 
 - **Gap 3 (Prose gates skipping):** Without D+B hybrid fix, prose-only steps (like "run precommit as a judgment") get optimized past in execution mode, leading to the check not running at all.
 
-- **Gap 5 (WIP-only bypass):** The commit skill supports `--test` and `--lint` modes which provide legitimate within-path bypasses of line limits, intended for TDD WIP commits. But without scope restriction, these modes can be misused to bypass validation on final commits.
+- **Gap 5 (WIP-only bypass):** The commit skill supports `--test` and `--lint` modes which provide legitimate within-path bypasses of line limits, intended for TDD WIP commits. WIP-only means TDD GREEN phase commits only, before lint/complexity fixes. All other commits must use full `just precommit`. Without this scope restriction, these modes could be misused to bypass validation on final commits.
 
 **Defense-in-depth closes this interaction:**
 

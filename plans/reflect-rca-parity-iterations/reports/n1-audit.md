@@ -283,7 +283,7 @@ Steps that should have a tool call but don't, without clear exemption justificat
 
 **Definition**: Steps that appear non-compliant by mechanical rule but are actually legitimate exemptions.
 
-**Count**: 3 steps (plan-tdd Phases 2.7 and plan-adhoc Point 1.4 are duplicates, so 2 unique).
+**Count**: 3 step instances across 2 files (plan-tdd Phase 2 "Extract design decisions", plan-tdd Phase 2.7 "File size awareness", plan-adhoc Point 1.4 "File size awareness"). The two file size awareness sections are the same pattern in different skills, counting as 2 instances but 1 unique pattern.
 
 **Root cause**: Planning conventions mixed into step-numbered sections. They read like action steps but are meta-guidance to planners about what to track/think about.
 

@@ -200,7 +200,7 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Conformance exception:**
 
-For conformance-type work with exact specifications (external reference, API spec, visual mockup), prose descriptions MUST include the exact expected strings from the reference.
+For conformance-type work (implementation with external reference: shell prototype, API spec, visual mockup, exact output format), prose descriptions MUST include the exact expected strings from the reference.
 
 This is not full test code — it is precise prose that preserves the specification.
 
