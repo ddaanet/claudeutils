@@ -107,9 +107,3 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Worktree removal: `git worktree remove` refuses with submodules (even after `deinit -f --all`)
 - Fix: `--force` flag required; warn user about uncommitted changes before forcing
 - Symlinks work: relative symlinks (../../agent-core/...) resolve correctly per-worktree after submodule init
-## Competing constraints cause haiku protocol violations
-- Anti-pattern: "NEVER commit unless X" + "Commit all changes" in same agent definition — haiku can't resolve
-- Correct pattern: Single unconditional directive; remove NEVER/unless/or chains for haiku agents
-- Recurring: This is the dominant root cause for haiku protocol violations, not missing instructions
-- Fix: Pre-worded commit message in step metadata, unconditional "commit with provided message" protocol
-- Upstream: prepare-runbook.py generates both agent template and step metadata — single fix point
