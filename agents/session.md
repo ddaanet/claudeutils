@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-08
 
-**Status:** Domain-specific validation implementation complete. Ready for testing.
+**Status:** Domain-specific validation complete. All tests passed, ready to merge.
 
 ## Completed This Session
 
@@ -26,25 +26,27 @@
 - Rules files serve the planner — sub-agents don't receive rules file injection
 - Dunning-Kruger avoidance — plan-time detection by intelligent planner, not runtime self-assessment
 
+**Domain-Specific Validation Testing:**
+- Manual validation: Created test skill with 7 known issues, domain vet caught all (6 domain-specific, 1 generic)
+- Comparison test: Generic vet found 5 issues (0 critical), domain vet found 7 issues (3 critical)
+- Critical plugin requirements missed by generic vet: frontmatter, progressive disclosure, triggering conditions
+- Planner integration: Tier 1 assessment correct, vet checkpoint included domain validation reference
+- Test report: `plans/domain-validation/reports/testing.md` (3 test vectors, all passed)
+
 ## Pending Tasks
 
-- [ ] **Test domain validation effectiveness** — Create plugin skill with known issues, run vet-fix-agent with domain criteria, verify domain-specific issues caught | sonnet
-  - Manual validation: plugin skill with missing frontmatter, no progressive disclosure, passive voice
-  - Comparison test: same artifact with/without domain criteria (expect ≥2 additional issues)
-  - Planner integration: `/plan-adhoc` on plugin task, verify vet checkpoint includes domain validation reference
+None.
 
 ## Reference Files
 
 - `plans/domain-validation/design.md` — Full design document (7 design decisions)
 - `plans/domain-validation/reports/implementation.md` — Implementation report (6 files, tier assessment, criteria extraction)
 - `plans/domain-validation/reports/vet-implementation.md` — Vet review (Ready, 3 major + 3 minor fixed)
+- `plans/domain-validation/reports/testing.md` — Test results (3 test vectors, all passed, 86% domain-specific issues)
 - `agent-core/skills/plugin-dev-validation/SKILL.md` — Domain validation criteria (5 artifact types)
 - `.claude/rules/plugin-dev-validation.md` — Rules file for planner discovery
 - `agents/decisions/workflow-advanced.md` — Domain validation pattern documented
 
 ## Next Steps
 
-Test domain validation effectiveness per design testing strategy:
-1. Create test plugin skill with known issues
-2. Run vet-fix-agent with domain criteria reference
-3. Verify domain-specific issues caught that generic vet would miss
+Ready to merge wt/domain-validation-design branch to main.
