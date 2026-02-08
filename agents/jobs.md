@@ -8,6 +8,7 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
+| domain-validation | complete | Domain-specific validation infrastructure |
 | continuation-passing | requirements | Opus design needed |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
@@ -23,6 +24,7 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `domain-validation` — Domain-specific validation infrastructure (validation skill, rules file, plan skill updates)
 - `validator-consolidation` — Validators consolidated to claudeutils package
 - `commit-unification` — Unified commit skills, inlined gitmoji, decoupled handoff
 - `position-bias` — Fragment reordering by position bias + token budget script

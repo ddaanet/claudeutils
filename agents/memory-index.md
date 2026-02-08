@@ -145,6 +145,7 @@ Workflow Feedback Loop Insights — alignment autofix outline complexity gate pr
 Dogfooding Validates Design — apply new process to its own planning for validation
 TDD GREEN Behavioral Descriptions — behavior approach hint structure not prescriptive code
 Efficient Model Analysis Requires Verification — haiku execution sonnet opus architecture verify results
+Domain Validation Pattern — planning-time detection, skill-directed vet, no agent proliferation
 
 ## agents/decisions/workflow-core.md
 
