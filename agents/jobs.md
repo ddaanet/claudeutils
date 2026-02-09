@@ -8,7 +8,6 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
-| continuation-passing | planned | Design + implementation merged (15 steps, parser, registry) |
 | continuation-prepend | requirements | Problem statement only |
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
 | handoff-validation | requirements | Requires continuation-passing |
@@ -23,11 +22,12 @@ Plan lifecycle tracking. Updated when plans change status.
 
 ## Complete (Archived)
 
-*40 plans completed and deleted. Git history preserves all designs/reports.*
+*41 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `continuation-passing` — Continuation passing protocol (15 steps, hook implementation, skill updates, 0% FP rate)
 - `markdown` — Test corpus implementation (16 fixtures, 3 parametrized tests, all 5 FRs satisfied)
 - `memory-index-recall` — Memory index recall analysis tool (7 modules, 50 tests)
 - `reflect-rca-parity-iterations` — Parity test quality gap fixes (11 steps, 8 design decisions)

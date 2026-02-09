@@ -1,38 +1,70 @@
 # Session Handoff: 2026-02-09
 
-**Status:** Worktree focus tooling complete — wt-task recipe with context extraction, 5 plans archived.
+**Status:** Continuation passing merged — submodule + project merged, session conflicts resolved with history preservation.
 
 ## Completed This Session
 
-**Branch migration (8929bb4, ef1659b, fa70ca8):**
+**Continuation passing merge (56bcf83, 3f58441):**
+- Merged agent-core wt/continuation-passing branch (3 new agents, 5 new skills, batch-edit.py, learning-ages.py)
+- Committed submodule update to dev
+- Merged project-level wt/continuation-passing (CLAUDE.md updates, continuation tests, validator refactoring)
+- Resolved 6 conflicts: submodule (staged merged version), 4 code files (accepted theirs), 2 session files (preserved both histories)
+- session.md: Combined HEAD's worktree tooling work + branch's continuation passing work
+- learnings.md: Kept all learnings from both branches (251 lines total)
+
+**From previous session (b19b3b2):**
+
+_Branch migration (8929bb4, ef1659b, fa70ca8):_
 - Switched to main, merged tools-rewrite (fast-forward, 128 files)
 - Deleted local tools-rewrite branch (remote didn't exist)
 - Reset dev branch to match main
-- Committed worktree tooling improvements
 
-**Worktree focus session tooling (8929bb4, ff056c7):**
+_Worktree focus session tooling (8929bb4, ff056c7):_
 - Created `agent-core/bin/focus-session.py` — extracts task from session.md with plan context
 - Handles 5+ document types: rca, requirements, design, problem, runbook/outline
 - Auto-extracts relevant sections (executive summary, fix tasks, requirements, problem statements)
 - Supports both `plans/name` and `Plan: name` reference formats
 - Added `just wt-task <name> "<task>"` recipe for focused worktree creation
 - Tested with vet-fix-agent and plugin-migration tasks
-- Regenerated just help cache
 
-**Settings cleanup (ef1659b):**
+_Settings cleanup (ef1659b):_
 - Removed `/tmp` write restrictions (Edit/Write deny rules)
 - Aligns with tmp-directory.md fragment (use project-local tmp/)
 
-**Plan archival (fa70ca8):**
+_Plan archival (fa70ca8):_
 - Removed 5 completed plan directories (112 files, 18,437 lines)
 - Archived: domain-validation, markdown, memory-index-recall, reflect-rca-parity-iterations, validator-consolidation
 - Updated jobs.md: 35 → 40 completed plans
-- Added markdown and memory-index-recall to Recent list
-- Fixed gitmoji: 🔥 (fire - Remove) not 🗑️ (wastebasket - Deprecate)
 
-**Worktree created:**
+_Worktree created:_
 - `../claudeutils-vet-fix-agent` with focused session.md
-- Includes RCA summary and fix tasks from plans/reflect-rca-sequential-task-launch/
+
+**Continuation passing work (from wt/continuation-passing):**
+
+_Delegation/execution-routing split (RCA-driven):_
+- Split `delegation.md` (131 lines) into two fragments:
+  - `execution-routing.md` (25 lines) — interactive: examine first, do directly, delegate only when needed
+  - `delegation.md` (44 lines) — orchestration: model selection, quiet execution, task agent tools
+- Updated all references: CLAUDE.md, template, READMEs, project-tooling.md, bash-strict-mode.md
+- Net context reduction: 131 → 69 lines loaded per session (-47%)
+
+_Line limit refactoring:_
+- Reduced 3132 → 2083 total lines (-1049, 33% reduction) via slop removal and test factoring
+- 619/619 tests pass (8 tests consolidated via parametrize/dedup)
+
+_Documentation updates:_
+- Created `agent-core/fragments/continuation-passing.md` — protocol reference
+- Updated `agents/decisions/workflow-optimization.md` — 2 new entries (continuation passing pattern, hook-based parsing)
+- Added 6 entries to `agents/memory-index.md`
+
+_Design.md architecture alignment:_
+- D-3: Rewrote to "default exit ownership" — skills manage own default-exit, hook never reads/appends
+- D-6: Removed Mode 1, updated to two parsing modes only
+
+_Previous sessions (15/15 steps total):_
+- Phase 1 (hook): Steps 1.1–1.4 + vet checkpoint
+- Phase 2 (skills): Steps 2.4–2.6 + vet checkpoint
+- Phase 3 (tests+docs): Steps 3.1–3.8 + parser FP fix + re-validation + documentation vet
 
 ## Pending Tasks
 
@@ -85,10 +117,13 @@
 ## Reference Files
 
 - **agent-core/bin/focus-session.py** — Worktree session context extraction script
+- **agent-core/bin/batch-edit.py** — NEW: Token-efficient batch editing (13% savings vs JSON)
+- **agent-core/bin/learning-ages.py** — NEW: Learning age analysis for consolidation
 - **plans/reflect-rca-sequential-task-launch/** — RCA on Task parallelization + vet context issues
-- **plans/feature-requests/** — GH issue research (sandbox, tool overrides)
-- **plans/tweakcc/** — Local instances research
-- **plans/continuation-prepend/** — Problem statement for subroutine call pattern
+- **plans/continuation-passing/design.md** — Design updated for architecture change
+- **agent-core/fragments/execution-routing.md** — Interactive work routing
+- **agent-core/fragments/delegation.md** — Orchestration-only delegation
+- **agent-core/fragments/continuation-passing.md** — Protocol reference for skill developers
 
 ---
-*Handoff by Sonnet. Worktree focus tooling complete, 5 plans archived, dev branch synchronized.*
+*Handoff by Sonnet. Continuation passing merged with history preservation.*

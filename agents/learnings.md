@@ -176,7 +176,6 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Prompt must include "Execute ONLY this step. Do NOT read or execute other step files."
 - Secondary: Orchestrator must verify agent return describes only the assigned step, not additional work
 - Related: Checkpoint delegations must include explicit "commit all changes before returning"
-## Rephrase feedback before applying
 - Anti-pattern: Receive user feedback, immediately apply changes, present result
 - Correct pattern: Receive feedback → rephrase understanding → ask for validation → apply
 - Rationale: Misinterpreting feedback in /design leads to wrong architectural decisions; rephrase catches misunderstandings early
@@ -244,3 +243,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Include phase dependencies and state transitions in delegation prompt
 - Read vet report after completion, grep for UNFIXABLE markers, escalate to user
 - Rationale: Vet lacks temporal reasoning (current vs future state) and explicit escalation protocol
+- Consequence: Skills need both continuation protocol support AND standalone tail-call logic (already the case)
+## Delegation vs execution routing
+- Anti-pattern: Single fragment covering both interactive routing and orchestration delegation — conflicting signals
+- Correct pattern: Split into execution-routing.md (interactive: understand first, do directly) and delegation.md (orchestration: dispatch to agents)
+- Rationale: "Delegate everything" is correct for runbook orchestration, wrong for interactive work
+- Fix: delegation.md 131→44 lines (orchestration only), execution-routing.md 25 lines (interactive routing)

@@ -13,18 +13,17 @@ Checks:
 
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
-from .memory_index_checks import (
+from .memory_index_helpers import (
+    autofix_index,
     check_duplicate_entries,
     check_em_dash_and_word_count,
     check_entry_placement,
     check_entry_sorting,
     check_orphan_entries,
     check_structural_entries,
-)
-from .memory_index_helpers import (
-    autofix_index,
     collect_semantic_headers,
     collect_structural_headers,
 )
@@ -99,40 +98,105 @@ def extract_index_entries(
     return entries
 
 
-def _report_autofix_success(
-    error_lists: tuple[list[str], list[str], list[str]]
-) -> None:
-    """Report successful autofix to stderr."""
-    placement_errors, ordering_errors, structural_entries = error_lists
-    parts = []
-    if placement_errors:
-        parts.append(f"{len(placement_errors)} placement")
-    if ordering_errors:
-        parts.append(f"{len(ordering_errors)} ordering")
-    if structural_entries:
-        parts.append(f"{len(structural_entries)} structural")
-    print(f"Autofixed {' and '.join(parts)} issues", file=sys.stderr)
+def _check_orphan_headers(
+    headers: dict[str, list[tuple[str, int, str]]],
+    entries: dict[str, tuple[int, str, str]],
+) -> list[str]:
+    """Check for semantic headers without index entries."""
+    errors = []
+    for title, locations in sorted(headers.items()):
+        if title not in entries:
+            for filepath, lineno, level in locations:
+                errors.append(
+                    f"  {filepath}:{lineno}: orphan semantic header '{title}' "
+                    f"({level} level) has no memory-index.md entry"
+                )
+    return errors
 
 
 def _check_duplicate_headers(
-    headers: dict[str, list[tuple[str, int, str]]]
+    headers: dict[str, list[tuple[str, int, str]]],
 ) -> list[str]:
     """Check for duplicate headers across files."""
     errors = []
     for title, locations in sorted(headers.items()):
         if len(locations) > 1:
             files = {filepath for filepath, _, _ in locations}
-            if len(files) > 1:  # Only error if duplicates in different files
-                errors.append(
-                    f"  Duplicate header '{title}' found in multiple files:"
-                )
+            if len(files) > 1:  # Only error if duplicates are in different files
+                errors.append(f"  Duplicate header '{title}' found in multiple files:")
                 for filepath, lineno, level in locations:
                     errors.append(f"    {filepath}:{lineno} ({level} level)")
     return errors
 
 
+@dataclass(slots=True)
+class _AutofixContext:
+    """Context for autofix operations."""
+
+    index_path: Path | str
+    root: Path
+    headers: dict[str, list[tuple[str, int, str]]]
+    structural: set[str]
+
+
+def _apply_autofix(
+    ctx: _AutofixContext,
+    placement_count: int,
+    ordering_count: int,
+    structural_count: int,
+) -> bool:
+    """Apply autofix and report summary.
+
+    Returns True if successful.
+    """
+    fixed = autofix_index(ctx.index_path, ctx.root, ctx.headers, ctx.structural)
+    if not fixed:
+        return False
+
+    # Report summary
+    parts = []
+    if placement_count:
+        parts.append(f"{placement_count} placement")
+    if ordering_count:
+        parts.append(f"{ordering_count} ordering")
+    if structural_count:
+        parts.append(f"{structural_count} structural")
+    print(f"Autofixed {' and '.join(parts)} issues", file=sys.stderr)
+    return True
+
+
+def _handle_autofix_errors(
+    placement_errors: list[str],
+    ordering_errors: list[str],
+    structural_entries: list[str],
+    *,
+    autofix: bool,
+    ctx: _AutofixContext,
+) -> list[str]:
+    """Handle autofixable errors — apply autofix or report as errors."""
+    if not (placement_errors or ordering_errors or structural_entries):
+        return []
+
+    all_errors = placement_errors + ordering_errors + structural_entries
+
+    if not autofix:
+        return all_errors
+
+    # Attempt autofix
+    success = _apply_autofix(
+        ctx,
+        placement_count=len(placement_errors),
+        ordering_count=len(ordering_errors),
+        structural_count=len(structural_entries),
+    )
+
+    return [] if success else all_errors
+
+
 def validate(index_path: Path | str, root: Path, *, autofix: bool = True) -> list[str]:
-    """Validate memory index. Returns list of error strings.
+    """Validate memory index.
+
+    Returns list of error strings.
 
     Autofix is enabled by default for section placement, ordering,
     and structural section cleanup.
@@ -151,50 +215,29 @@ def validate(index_path: Path | str, root: Path, *, autofix: bool = True) -> lis
 
     errors = []
 
-    # Check for duplicate index entries
+    # Non-autofixable checks
     errors.extend(check_duplicate_entries(index_path, root))
-
-    # Check D-3 format compliance and word count
     errors.extend(check_em_dash_and_word_count(entries))
+    errors.extend(_check_orphan_headers(headers, entries))
+    errors.extend(check_orphan_entries(entries, headers, structural))
+    errors.extend(_check_duplicate_headers(headers))
 
-    # Check section placement, ordering, and structural entries (autofixable)
+    # Autofixable checks
     placement_errors = check_entry_placement(entries, headers)
     ordering_errors = check_entry_sorting(index_path, root, headers)
     structural_entries = check_structural_entries(entries, structural)
 
-    # Check for orphan semantic headers (headers without index entries)
-    for title, locations in sorted(headers.items()):
-        if title not in entries:
-            for filepath, lineno, level in locations:
-                errors.append(
-                    f"  {filepath}:{lineno}: orphan semantic header '{title}' "
-                    f"({level} level) has no memory-index.md entry"
-                )
-
-    # Check for orphan index entries (entries without matching headers)
-    errors.extend(check_orphan_entries(entries, headers, structural))
-
-    # Check for duplicate headers across files
-    errors.extend(_check_duplicate_headers(headers))
-
-    # Handle placement, ordering, and structural entry errors
-    if placement_errors or ordering_errors or structural_entries:
-        if autofix:
-            fixed = autofix_index(index_path, root, headers, structural)
-            if fixed:
-                _report_autofix_success(
-                    (placement_errors, ordering_errors, structural_entries)
-                )
-                return errors
-
-            # Autofix failed, report as errors
-            errors.extend(placement_errors)
-            errors.extend(ordering_errors)
-            errors.extend(structural_entries)
-        else:
-            # Autofix disabled, report as errors
-            errors.extend(placement_errors)
-            errors.extend(ordering_errors)
-            errors.extend(structural_entries)
+    ctx = _AutofixContext(
+        index_path=index_path, root=root, headers=headers, structural=structural
+    )
+    errors.extend(
+        _handle_autofix_errors(
+            placement_errors,
+            ordering_errors,
+            structural_entries,
+            autofix=autofix,
+            ctx=ctx,
+        )
+    )
 
     return errors
