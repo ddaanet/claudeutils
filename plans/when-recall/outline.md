@@ -6,214 +6,210 @@ Memory index has 0% recall across 200 sessions. Current format (`Key — descrip
 
 ## Approach
 
-Replace passive index entries with `/when` commands — behavioral triggers agents invoke to recall knowledge. Each entry is a skill invocation that resolves to full decision content + recursive navigation.
+Replace passive index entries with `/when` and `/how` commands — behavioral triggers agents invoke to recall knowledge. Each entry resolves to full decision content + navigational links (ancestors + siblings).
 
-Format: `/when <learning-name> | <inline-rule>`
+Index format: `/when trigger | extra triggers`
+
+Triggers are fuzzy-compressed keys. Decision file headings stay as clear prose. Fuzzy matching bridges the density gap — index is compact, headings are readable. Prefix word ("when"/"how") is part of the fuzzy query, disambiguating across operators.
 
 This approach complements existing infrastructure:
-- Existing validator (validate-memory-index.py) extended to handle new format
+- Existing validator extended with fuzzy engine for new format
 - Existing `/remember` skill updated to produce `/when` entries
-- No new index generation agents needed — current manual workflow continues with new format
-- Existing recall analysis tool (src/claudeutils/recall/) measures effectiveness after 30+ sessions
+- Existing recall analysis tool measures effectiveness after 30+ sessions
 
-**Success criteria:** Achieve >10% recall rate (vs 0% baseline) within 30 sessions, indicating agents form retrieval intentions from `/when` triggers.
+**Success criteria:** Achieve >10% recall rate (vs 0% baseline) within 30 sessions.
 
 ## Components
 
-### 1. `/when` skill (agent-core/skills/when/)
+### 1. Resolver script
 
-**SKILL.md** — Entry point for knowledge recall:
-- Trigger: `/when <trigger>` or `/when\n- <trigger1>\n- <trigger2>` for batching
-- Describe recursive navigation with examples
-- Explain `§` navigation operator for section/file-level exploration
-- Delegate to scripts/when.py for resolution
+**Invocation:** `resolver.py when auth fails` / `resolver.py how encode paths`
+- First positional arg = prefix (when/how)
+- Remaining args = trigger text
+- Python prototype, eventually incorporated in claudeutils
 
-**scripts/when.py** — Resolution script (new implementation):
+**Three modes (determined by leading `.`):**
 
-**Core flow:**
-1. Receive trigger argument + index file path
-2. Parse memory-index.md for `/when` entries (three-field format) — script reads structured data, not agent re-reading loaded context
-3. Match argument against triggers (left field of `|`)
-4. Resolve header title (middle field) → decision file section (via file section heading in index)
-5. Read decision file, extract full section content (from header to next same-level header)
-5. Discover related entries:
-   - Sibling entries: same decision file section
-   - Parent section: H2 containing the H3 (if applicable)
-   - Parent file: all entries for the same decision file
-6. Emit formatted output: section content + related `/when` commands (invocable)
+| Mode | Syntax | Resolves to |
+|------|--------|-------------|
+| Trigger | `/when auth fails` | Fuzzy match against index, output section content |
+| Section | `/when .Testing Conventions` | Global unique heading lookup (any H2-Hx level) |
+| File | `/when ..testing.md` | File relative to `agents/decisions/` |
 
-**Navigation levels:**
-- **Entry:** `/when writing mock tests` → "Mock patching pattern" section content + sibling `/when` entries from same file/section
-- **Section:** `/when § .Mock Patching` → full H2 structural section + all child entries (`§` + existing header title)
-- **File:** `/when § testing.md` → full testing.md file + all entries for that file (`§` + filename)
+**Primary path:** Exact invocation — agent sees `/when auth fails` in context, invokes exactly that. Fuzzy matching is recovery for approximate queries, not the main path.
 
-**`§` operator:** Uses existing unique identifiers — structural section titles (`.` prefix) and filenames. Both are already validated unique by precommit. No new naming needed. Avoids collision with `.` prefix notation used for structural headers in decision files.
+**Output format:** Script outputs content directly (no file-path indirection).
 
-**Batching:** `/when\n- writing mock tests\n- splitting modules` → combined output with deduplicated related entries (if both are in same section, siblings shown once)
-
-**Output format:**
 ```
-# Mock Patching Pattern
+# When authentication fails
 
 <full section content from decision file>
 
----
+Broader:
+/when .Security Conventions
+/when ..architecture.md
 
 Related:
-- /when organizing test files     # Test Module Split Strategy (sibling)
-- /when § .Mock Patching          # Full parent section
-- /when § testing.md              # Full testing.md file
+/when session token expiry
+/when credential validation
 ```
 
+**Ancestor links (Broader):** Navigate up the heading hierarchy.
+- Learning at H3 → link parent H2
+- Learning at H4 → link grandparent H2 + parent H3
+- Deeper nesting → all ancestors up to H2
+- Always include `..file.md` link
+
+**Sibling links (Related):** Other entries under the same parent heading. Computed by mapping entries to containing section in decision file.
+
+**Fuzzy engine:** Custom ~80 lines, fzf-style scoring with boundary bonuses. Plain prose triggers (no hyphens — "auth error" = 2 tokens, "auth-error" = 3). Word-overlap as tiebreaker.
+
 **Error handling:**
-- Trigger not found → suggest closest matches (fuzzy match on trigger field)
-- `§` navigation on non-existent section/file → clear error with available options
-- Malformed index entry → skip with warning, continue processing
+- Trigger not found → suggest closest fuzzy matches
+- `.section` not found → list available headings
+- `..file.md` not found → list available files
+- Malformed index entry → skip with warning
 
-### 2. Index format migration (agents/memory-index.md)
+### 2. Skill wrappers
 
-Rewrite all ~169 entries from:
+Two thin skills, same resolver:
+- `/when` skill: invoke `resolver.py when <trigger>`
+- `/how` skill: invoke `resolver.py how <trigger>`
+
+Heading prefix changes based on operator:
+- `/when auth fails` → heading `When authentication fails`
+- `/how encode paths` → heading `How to encode paths`
+
+Discovery surface stays broad (two skills in listings), implementation DRY.
+
+### 3. Index format migration (agents/memory-index.md)
+
+Rewrite all ~122 entries from:
 ```
 Mock patching pattern — patch where object is used not where defined
 ```
 To:
 ```
-/when writing mock tests | Mock patching pattern | patch where used, not defined
+/when writing mock tests | mock patch, test doubles
 ```
 
 Key changes:
-- Trigger (left of first `|`): behavioral phrase (activity verb phrase), not topic title
-- Header title (middle field): exact header from decision file for validation and lookup
-- Description (right of second `|`): keyword-rich context (similar to current format)
-- Separator changes from ` — ` (em-dash) to ` | ` (pipe, twice)
-- Entry still maps 1:1 to a semantic header in decisions file
-- Three-field format enables validation while preserving discovery-optimized triggers
+- Trigger (left of `|`): fuzzy-compressed behavioral phrase
+- Extra triggers (right of `|`): comma-separated synonyms for matching
+- Decision file headings renamed to match triggers (with prefix): `### When writing mock tests`
+- Trigger text can be compressed — fuzzy matching bridges to full heading
+- No description field — if a learning compresses to single-line, promote to fragment
 
-**Exempt sections handling:**
-- "Behavioral Rules (fragments — already loaded)" section: **Remove entirely** — fragments are @-loaded via CLAUDE.md, indexing them is noise
-- "Technical Decisions (mixed — check entry for specific file)" section: **Convert to file-grouped sections** with standard `/when` format
-- All remaining entries convert to three-field `/when` format
+**Exempt sections:**
+- "Behavioral Rules (fragments — already loaded)": remove entirely — fragments are @-loaded, indexing is noise
+- "Technical Decisions (mixed)": convert to file-grouped sections with `/when` format
 
-### 3. Validator update (agent-core/bin/validate-memory-index.py)
+**Migration process:** Sonnet agent rephrases entries. Key compression tool suggests minimal unique triggers. Script-assisted heading renames in decision files.
 
-Update to handle new `/when` format:
-- Parse `/when <trigger> | <header-title> | <description>` (three fields) instead of `Key — description`
-- Use middle field (header-title) for validation against decision file semantic headers
-- Word count validation: **8-20 words total** (increased from 8-15 to accommodate three-field format)
-- Trigger field (left): no validation beyond basic format check (discovery-optimized, flexible phrasing)
-- Header-title field (middle): **strict validation** — must match semantic header in decision file (case-insensitive)
-- Description field (right): keyword-rich context (similar to current validation)
-- Autofix for ordering/placement: uses header-title field (middle) for line number lookup
-- Orphan detection: based on header-title field matching decision file headers
+### 4. Fuzzy engine (shared component)
 
-### 4. Mapping strategy (trigger → header)
+Single implementation, three consumers:
+- **Resolver:** Match trigger query to index entries
+- **Validator:** Verify entry↔heading fuzzy correspondence
+- **Key compression tool:** Suggest minimal unique triggers
 
-**Recommendation: Option A — Inline three-field format**
+**Fuzzy query includes prefix word:** `/how encode path` → query "how encode path" (not "encode path"). Prefix disambiguates when "when" and "how" entries coexist.
 
-Format: `/when <trigger> | <header-title> | <description>`
+### 5. Validator update (agent-core/bin/validate-memory-index.py)
 
-Example:
+Update to handle new format. Uses fuzzy engine (not exact string match) for all validation:
+
+**Bidirectional integrity:**
+- No broken entries: each index trigger fuzzy-expands to exactly one heading
+- No orphaned sections: each heading reachable by exactly one index entry
+- Collision detection: no two triggers resolve to same heading
+
+**Format validation:**
+- Parse `/when trigger | extra triggers` (two fields, pipe-separated)
+- Extra triggers: comma-separated, no empty segments
+- Primary trigger uniqueness across index
+
+### 6. Key compression tool
+
+Given heading corpus, suggest minimal fuzzy-compressed trigger that uniquely resolves:
+
 ```
-/when writing mock tests | Mock patching pattern | patch where used, not defined
-```
-
-**Rationale:**
-- Self-contained — no separate mapping file to maintain
-- Validator can verify trigger → header mapping at precommit
-- Script extracts header-title field (middle) for lookup in decision files
-- Trigger field (left) is what agents type, optimized for discovery
-- Description field (right) provides keyword-rich context in index
-
-**Alternative considered:** Mapping file (Option B) rejected due to synchronization burden — changes to decision file headers would require updates in two places (decision file + mapping file + index), vs three fields in one place (index only + decision file).
-
-**Mapping validation:**
-- Validator checks that middle field (header-title) matches a semantic header in the specified decision file
-- Autofix maintains ordering by source file line number (based on header-title lookup)
-- Orphan detection works on header-title field
-
-### 5. Consumption header update (memory-index.md)
-
-Replace current passive instruction:
-```
-Scan the loaded content mentally, identify relevant entries, then Read the referenced file directly.
+$ compress-key "How to encode paths"
+how encode path        # unique, 3 words
+encode path            # ambiguous (also matches "When encoding paths needed")
 ```
 
-With active invocation guidance:
+Shares fuzzy engine with resolver and validator.
+
+### 7. Consumption header update (memory-index.md)
+
+Replace passive "scan mentally" instruction with active invocation guidance:
 ```
-When you need knowledge about a topic, invoke `/when <trigger>` to retrieve the full decision content.
-Example: `/when writing mock tests` returns the "Mock patching pattern" section + related entries.
+When you need knowledge about a topic, invoke `/when <trigger>` or `/how <trigger>`.
 
-Batching: `/when\n- writing mock tests\n- splitting modules` retrieves multiple sections efficiently.
-
-Navigation (§ operator):
-- Entry-level: `/when <trigger>` → single section + sibling entries
-- Section-level: `/when § <section-title>` → full H2 section + all child entries
-- File-level: `/when § <filename>.md` → entire decision file + all entries
+Navigation:
+/when <trigger>        # section content + related entries
+/when .Section Title   # full section by heading name (any level)
+/when ..file.md        # entire decision file (relative to agents/decisions/)
 ```
 
-**Rationale:** Shifts from passive "scan mentally" (0% effective) to explicit skill invocation with examples and navigation levels.
+### 8. `/remember` skill update
 
-### 6. `/remember` skill update (agent-core/skills/remember/SKILL.md)
-
-**Current behavior (Step 4a):**
-Adds entries in em-dash format: `Key — description`
-
-**Updated behavior:**
-Produce three-field `/when` format: `/when <trigger> | <header-title> | <description>`
-
-**Changes required:**
-- Step 4a: Add guidance for crafting behavioral triggers (activity verb phrases preferred)
-- Examples: "writing mock tests" (good), "mock patching" (acceptable), "mocks" (too vague)
-- Use header title (from decision file) as middle field for validation
-- Preserve keyword-rich description as right field
-- Update examples in skill documentation to show three-field format
-
-**Trigger naming guidelines to add:**
-- Prefer activity phrases: "writing X", "configuring Y", "debugging Z"
-- Use lowercase, no special characters
+Produce `/when` format entries. Add trigger naming guidelines:
+- Plain prose, no hyphens or special characters
+- Optimize for discovery: what would agent type when facing this problem?
 - Keep concise (2-5 words typical)
-- Optimize for discovery: what would agent search for when facing this problem?
+- Use key compression tool to verify uniqueness
 
-## Key Decisions Made
+### 9. Fragment promotion rule
 
-1. **Mapping strategy** — Inline three-field format: `/when <trigger> | <header-title> | <description>` (Section 4)
-2. **Validation strictness** — Header-title field (middle) validated strictly at precommit; trigger field (left) flexible for discovery optimization
-3. **Navigation operator** — `§` operator uses existing unique identifiers: `/when § .Section Title` for section-level, `/when § filename.md` for file-level. Reuses validated identifiers, avoids collision with structural `.` prefix
-4. **Word count limits** — Increased to 8-20 words total (from 8-15) to accommodate three-field format
-5. **Exempt sections** — "Behavioral Rules" section removed entirely; "Technical Decisions" section converted to file-grouped `/when` format
+Promote learning to fragment when:
+```
+token_count(fragment_content) ≤ token_count(index_entry) + margin
+```
+Where margin accounts for `/` (1 token) and `-` (1 token) overhead. If the full content is roughly the same cost as the index entry, it's ambient knowledge — always load it.
 
-## Open Questions for Implementation
+## Key Decisions
 
-1. **Trigger naming guidelines** — How prescriptive should trigger phrasing be? (Activity verbs preferred, but edge cases unclear)
-2. **`§` navigation implementation** — Does `§` resolution happen in when.py script, or via skill logic?
-3. **Batching output format** — How are related `/when` entries deduplicated when multiple queries return overlapping siblings?
+1. **Two-field format** — `/when trigger | extra triggers` (not three-field). Fuzzy matching eliminates need for exact header-title field
+2. **Sections in files** — No file atomization. Read caching research showed prompt prefix caching (not file-level dedup), killing the individual-file rationale
+3. **Two operators** — `/when` (behavioral) + `/how` (procedural). Dropped `/what` and `/why` — passive knowledge, LLMs don't probe for it
+4. **Fuzzy bridge** — Index triggers compressed for density, headings stay as clear prose, fuzzy matching connects them
+5. **Direct content output** — Script outputs content, no file-path indirection for batch Read
+6. **Ancestor + sibling navigation** — Both axes in footer: zoom out (ancestors) and lateral (siblings under same parent)
+7. **Plain prose triggers** — No hyphens. More token-efficient, same semantic content
 
 ## Scope
 
 **In scope:**
-- `/when` skill (SKILL.md + scripts/when.py)
-- Index format migration (all ~169 entries to three-field format)
-- Validator update (validate-memory-index.py)
-- Consumption header rewrite (memory-index.md header instructions)
-- `/remember` skill update (Step 4a: produce three-field format)
-- Behavioral Rules section removal (fragments already @-loaded, indexing is noise)
+- Resolver script (trigger, .section, ..file modes)
+- `/when` and `/how` skill wrappers
+- Fuzzy engine (shared: resolver, validator, compression tool)
+- Index format migration (~122 entries, sonnet-assisted)
+- Decision file heading renames (script-assisted)
+- Validator update with fuzzy validation
+- Key compression tool
+- Consumption header rewrite
+- `/remember` skill update
+- Fragment promotion rule
 
 **Out of scope:**
-- Hook-based auto-injection (future enhancement — may improve recall by injecting `/when` suggestions at relevant moments)
-- Measurement tooling (existing recall analysis tool in src/claudeutils/recall/ works as-is)
-- Decision file content changes (headers and content unchanged; only index format changes)
-- Trigger phrase optimization (initial migration uses best-effort activity phrasing; iteration based on recall data later)
+- Cross-file explicit relations (deferred entirely)
+- Hook-based auto-injection (future enhancement)
+- Measurement tooling (existing recall analysis works as-is)
+- `/what` and `/why` operators (dropped)
 
 ## Risks
 
-**Implementation Risks:**
-- Validator update is invasive (480-line script, heavily relied on) — mitigate with comprehensive test coverage before/after
-- All ~169 entries need rewriting (large mechanical change, risk of mapping errors) — mitigate with validator precommit checks catching mismatches
+**Implementation:**
+- Validator update is invasive (480-line script) — mitigate with test coverage
+- Fuzzy engine correctness critical (three consumers depend on it) — mitigate with extensive test corpus
+- Decision file heading renames are large scope (~122 headings) — mitigate with script + precommit validation
 
-**Effectiveness Risks:**
-- Trigger naming quality varies (some entries map naturally to activities, others don't) — mitigate with best-effort initial phrasing, iterate based on 30-session measurement
-- `/when` may not improve recall if the problem is attention, not format — measurement after 30 sessions determines success; if <10% recall, deeper intervention needed (e.g., hook-based injection)
+**Effectiveness:**
+- Trigger quality varies — iterate based on 30-session measurement
+- `/when` may not improve recall if problem is attention not format — measurement determines; if <10%, deeper intervention needed
 
-**Migration Risks:**
-- Three-field format increases verbosity (3 pipes vs 1 em-dash per entry) — adds ~10% tokens to index; acceptable given 5000 token baseline
-- Trigger field flexibility may lead to inconsistent phrasing — document trigger naming guidelines in `/remember` skill for consistency
+**Migration:**
+- Fuzzy-compressed triggers may create ambiguity if corpus grows — compression tool + validator catch this at precommit
+- Heading renames may break existing @ references or documentation links — search for references before renaming

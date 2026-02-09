@@ -1,48 +1,49 @@
-# Session: `/when` Memory Recall System — Design In Progress
+# Session: `/when` Memory Recall System — Design Phase B Ready
 
-**Status:** Design Phase A complete + fzf research + Read tool caching research done. Outline needs update with architecture evolution + fzf findings before Phase B.
+**Status:** Outline fully updated with architecture decisions from design discussion. Ready for Phase B (user validates outline) → Phase C (full design.md).
 
 ## Completed This Session
 
-### fzf Algorithm Research (committed cf1ed31)
-- Researched fzf's modified Smith-Waterman algorithm: scoring constants, V1/V2 variants, bonus system
-- Evaluated Python implementations: pfzy (pure Python fzy port, MIT), RapidFuzz (C++, Levenshtein family), thefuzz (legacy)
-- Recommendation: fzf-style scoring (pfzy or custom ~80 lines) as primary engine, word-overlap as tiebreaker
-- Key finding: fzf boundary bonuses align well with hyphenated uniquefuzzy keys, but short keys reduce score discrimination
-- Report: `plans/when-recall/reports/fzf-research.md`
+### Design Discussion — Architecture Decisions
+- Extensive discussion resolving all open design questions for `/when` system
+- Settled: two-field index format (`/when trigger | extra triggers`), two operators (`/when` + `/how`), direct content output
+- Settled: `.section` (heading lookup) and `..file` (file relative to `agents/decisions/`) navigation modes
+- Settled: fuzzy matching bridges index density and heading prose clarity — single engine shared by resolver, validator, key compression tool
+- Settled: ancestor + sibling navigation links in output footer
+- Settled: plain prose triggers (no hyphens), custom ~80 line fzf-style fuzzy engine
+- Dropped: file atomization (Read caching research killed rationale), `/what` and `/why` operators, `§` operator, three-field format, batch Read indirection, cross-file explicit relations
 
-### Claude Code Read Tool Caching Research
-- Researched Claude Code Read tool implementation and prompt caching interaction
-- Key finding: **No application-level file deduplication** — each Read appends content block to conversation, reading same file twice = two copies in context
-- "Caching" is prompt prefix caching: conversation prefix matched server-side, cache reads at 10% cost (90% savings)
-- Claude Code achieves 92% prefix reuse rate (92% exploration, 93% planning, 98% execution)
-- @-references (system prompt) vs Read (messages array) — reading @-referenced file via Read adds duplicate copy
-- 20-block lookback window limitation: >20 tool calls between reads can cause cache miss
-- **Impact on `/when` design:** "Memory-as-file enables Read caching" learning needs nuance — benefit is prefix caching (cheap subsequent turns), not free re-reads. Re-reading adds duplicate to context window.
+### Token Cost Measurement
+- Measured all candidate symbols (`..`, `<`, `§`, `@`, `/`, `.`) via Anthropic API: all identical (8 tokens bare, 11 in context)
+- Symbol choice is purely usability — `..` for file, `.` for section
 
-### Prior Session: Architecture Evolution (committed 95dd6ed)
-- 0% recall root cause analysis → passive catalog format
-- Architecture decisions: `§` operator, memory-as-file, `@uniquefuzzy`, resolver-only, two-field index
-- Design Phase A artifacts: outline, exploration report, outline review
+### Corpus Analysis
+- Delegated to haiku quiet-explore agent: pattern classification, "When" compatibility, H3 uniqueness, collision analysis
+- Key findings: 82% noun phrases, 100% H3 uniqueness (no disambiguation needed), 27% incompatible with "When" (→ `/how`), low collision risk
+- Report: `plans/when-recall/reports/corpus-analysis.md`
+
+### Outline Update
+- Rewrote `plans/when-recall/outline.md` with all settled decisions from discussion
+- 9 components: resolver, skill wrappers, index migration, fuzzy engine, validator, key compression tool, consumption header, `/remember` update, fragment promotion rule
 
 ## Pending Tasks
 
-- [ ] **Update outline with architecture evolution** — Apply individual-files, `§` operator, `@uniquefuzzy`, two-field format, resolver-only changes + fzf research findings to `plans/when-recall/outline.md`
 - [ ] **Continue `/when` design** — Phase B (user validates outline) → Phase C (full design.md) | `/design plans/when-recall/outline.md`
 
 ## Blockers / Gotchas
 
-- Outline reflects three-field format from mid-discussion; needs update with final architecture (individual files, `§`, `@uniquefuzzy`, two-field) AND fzf matching engine decision before Phase B
-- Learnings file at 121/80 lines (soft limit exceeded, no entries ≥7 days yet — consolidation deferred)
-- File atomization (169 individual files) significantly increases migration scope vs format-only change
-- "Memory-as-file enables Read caching" learning (learnings.md) is imprecise — benefit is prompt prefix caching not file-level dedup. Update outline to reflect this nuance
+- `/design` skill has no resume logic — invoke manually from Phase B when continuing, don't re-invoke `/design` (would restart from Phase A)
+- Learnings file at 131/80 lines (soft limit exceeded, 0 entries ≥7 days — consolidation deferred)
+- Decision file heading renames (~122 headings) are large migration scope — script-assisted but verify no broken @ references
+- Invalidated learnings removed this session: "Memory-as-file enables Read caching" (file atomization dropped), updated "Namespace collision" (§ dropped, `.`/`..` used as command syntax)
 
 ## Reference Files
 
-- `plans/when-recall/outline.md` — Design outline (needs update)
+- `plans/when-recall/outline.md` — Design outline (updated, ready for Phase B)
+- `plans/when-recall/reports/corpus-analysis.md` — Corpus analysis (pattern classification, H3 uniqueness)
 - `plans/when-recall/reports/fzf-research.md` — fzf algorithm research + evaluation
 - `plans/when-recall/reports/explore-agent-core.md` — Infrastructure exploration
-- `plans/when-recall/reports/outline-review.md` — Outline review
+- `plans/when-recall/reports/outline-review.md` — Outline review (stale — pre-discussion, needs re-review after Phase B)
 - `plans/memory-index-recall/reports/final-summary.md` — Recall analysis (0% baseline)
 - `agent-core/bin/validate-memory-index.py` — Current validator (480 lines, will need update)
-- `agents/memory-index.md` — Current index format (~169 entries)
+- `agents/memory-index.md` — Current index format (~122 entries)

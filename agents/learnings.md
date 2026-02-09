@@ -120,20 +120,27 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Git commands: `git log --format="%ai" --follow <file>` for creation date, session mtime for analysis window
 - Strengthens findings: 0% recall validated across 200 sessions, all post-creation and post-stability
 ## Namespace collision in prefix design
-- Anti-pattern: Proposing `.` prefix for new navigation syntax when `.` already means "structural section" in decision files
+- Anti-pattern: Reusing a symbol for new semantics without checking existing conventions
 - Correct pattern: Check existing notation conventions before introducing new prefix semantics
-- Rationale: `.` prefix on headers is validated by precommit (validate-decision-files.py) — reusing it for navigation creates ambiguity
-- Fix: `§` operator reuses existing unique identifiers (header titles, filenames) instead of inventing new prefix
-## Memory-as-file enables Read caching
-- Anti-pattern: Script extracts section content from multi-section files, outputs as text (no caching)
-- Correct pattern: Each memory = individual file, `/when` outputs `@file` reference, agent Reads (prefix-cached by Claude Code)
-- Rationale: Claude Code uses prompt prefix caching — Read results stay in conversation, subsequent API turns get 90% cheaper cache hits on the stable prefix
-- Correction: "Subsequent reads free" is wrong — re-reading same file adds duplicate copy to context window. Benefit is cheap subsequent turns, not free re-reads
-- Consequence: Script becomes resolver (trigger → filepath), not extractor (trigger → content). Read once per session, not repeatedly
-- Trade-off: ~169 individual files vs 10 multi-section files — directory structure mirrors current sections
+- Rationale: `.` prefix on headers means "structural section" (validated by precommit). Reusing `.` in a different namespace (command syntax like `/when .section`) is safe because contexts don't overlap
+- Resolution: `/when .section` and `/when ..file` use `.`/`..` as command mode switches (not heading prefixes), avoiding collision
 ## Prompt caching not file caching
 - Anti-pattern: Assuming Claude Code deduplicates file reads or maintains a file cache (re-reading = free)
 - Correct pattern: Each Read appends a new content block to conversation; "caching" = prompt prefix matching at API level (92% reuse, 10% cost)
 - Rationale: No application-level dedup. 20-block lookback window limits cache hits when many tool calls intervene
 - @-references (system prompt) are more cache-efficient than Read (messages) for always-needed content
-- Design implication: For `/when`, emit `@file` references for agent to Read once; don't encourage repeated reads of same file
+## Behavioral triggers beat passive knowledge
+- Anti-pattern: `/what` and `/why` operators for definitional/rationale knowledge — LLMs don't proactively seek context
+- Correct pattern: `/when` (behavioral) and `/how` (procedural) only — these prescribe action, creating retrieval intention
+- Rationale: LLMs use what's in context or ignore it; they don't probe for definitions unless specifically instructed
+- Consequence: If a learning can't be phrased as `/when` or `/how`, it's either a fragment (ambient) or lacks actionable content
+## Fuzzy bridge: density and clarity
+- Anti-pattern: Index triggers must exactly match decision file headings (forces verbose triggers or cryptic headings)
+- Correct pattern: Index triggers fuzzy-compressed for density, headings stay as readable prose, fuzzy engine bridges the gap
+- Rationale: "how encode path" fuzzy-matches "How to encode paths" — index saves tokens, headings stay clear
+- Validator uses same fuzzy engine: each trigger must uniquely expand to one heading, each heading reachable by exactly one trigger
+## Design skill lacks resume logic
+- Anti-pattern: Invoking `/design` when design is mid-flight — restarts from Phase A instead of resuming
+- Correct pattern: When design is in progress, manually continue from current phase (read outline, proceed to Phase B/C)
+- Rationale: `/design` is linear A→B→C with no "load existing artifacts" step
+- Impact: For `/when` design, outline was updated directly this session, bypassing `/design` skill
