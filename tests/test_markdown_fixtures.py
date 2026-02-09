@@ -1,5 +1,8 @@
 """Test fixture infrastructure for markdown test corpus."""
 
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -164,7 +167,7 @@ def test_preprocessor_idempotency(fixture_name: str) -> None:
     This validates FR-4: preprocessor output is stable on re-processing.
     """
     # Load fixture pair
-    input_lines, expected_lines = load_fixture_pair(fixture_name)
+    _input_lines, expected_lines = load_fixture_pair(fixture_name)
 
     # Re-process the expected output
     reprocessed_lines = process_lines(expected_lines)
@@ -175,3 +178,66 @@ def test_preprocessor_idempotency(fixture_name: str) -> None:
         f"Original output: {expected_lines}\n"
         f"After re-process: {reprocessed_lines}"
     )
+
+
+@pytest.mark.skipif(
+    not shutil.which("remark"),
+    reason="remark-cli not installed; skipping full pipeline test (FR-3)",
+)
+@pytest.mark.parametrize("fixture_name", _FIXTURE_NAMES)
+def test_full_pipeline_remark(fixture_name: str) -> None:
+    """Test full pipeline: preprocessor → remark-cli → output.
+
+    Validates FR-3: Full pipeline integration tests.
+    For each fixture, run preprocessor output through remark-cli with GFM plugin,
+    verify output is valid markdown and matches expected behavior.
+
+    Skips gracefully if remark-cli is not available.
+    """
+    # Load fixture pair
+    input_lines, expected_lines = load_fixture_pair(fixture_name)
+
+    # Run preprocessor
+    processed_lines = process_lines(input_lines)
+
+    # Write processed output to temporary file
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".md", delete=False, newline=""
+    ) as tmp_file:
+        tmp_path = tmp_file.name
+        tmp_file.writelines(processed_lines)
+
+    try:
+        # Run remark-cli on the processed output
+        result = subprocess.run(
+            ["remark", "--use", "remark-gfm", tmp_path, "--output"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        # remark-cli returns 0 on success (file unchanged or reformatted)
+        # Non-zero exit typically means parse/syntax error
+        assert result.returncode == 0, (
+            f"remark-cli failed for fixture {fixture_name}:\n"
+            f"Exit code: {result.returncode}\n"
+            f"stdout: {result.stdout}\n"
+            f"stderr: {result.stderr}"
+        )
+
+        # Read remark output
+        tmp_path_obj = Path(tmp_path)
+        remark_output = tmp_path_obj.read_text().splitlines(keepends=True)
+
+        # Verify output matches expected (remark may reformat but preserves content)
+        assert remark_output == expected_lines, (
+            f"Pipeline output mismatch for fixture {fixture_name}:\n"
+            f"Expected: {expected_lines}\n"
+            f"Got: {remark_output}"
+        )
+
+    finally:
+        # Cleanup temporary file
+        tmp_path_obj = Path(tmp_path)
+        if tmp_path_obj.exists():
+            tmp_path_obj.unlink()
