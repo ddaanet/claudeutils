@@ -1,8 +1,4 @@
-"""Helper functions for memory index validation.
-
-Contains collection and autofix functions extracted from memory_index.py to keep
-main module under 350 lines.
-"""
+"""Helper functions for memory index validation."""
 
 import re
 from pathlib import Path
@@ -27,14 +23,7 @@ EXEMPT_SECTIONS = {
 
 
 def collect_structural_headers(root: Path) -> set[str]:
-    """Scan indexed files for all structural headers (marked with . prefix).
-
-    Args:
-        root: Project root directory.
-
-    Returns:
-        Set of lowercase titles (without the . prefix).
-    """
+    """Scan indexed files for dot-prefixed structural headers."""
     structural = set()
 
     for glob_pattern in INDEXED_GLOBS:
@@ -48,22 +37,17 @@ def collect_structural_headers(root: Path) -> set[str]:
                 stripped = line.strip()
                 match = STRUCTURAL_HEADER.match(stripped)
                 if match:
-                    # Get everything after "## ." or "### ."
-                    full = stripped.split(" ", 1)[1]  # Remove ##+ prefix
-                    title = full[1:]  # Remove leading .
+                    full = stripped.split(" ", 1)[1]
+                    title = full[1:]
                     structural.add(title.lower())
 
     return structural
 
 
 def collect_semantic_headers(root: Path) -> dict[str, list[tuple[str, int, str]]]:
-    """Scan indexed files for all semantic headers.
+    """Scan indexed files for semantic headers.
 
-    Args:
-        root: Project root directory.
-
-    Returns:
-        Dict: lowercase title → list of (file_path, line_number, header_level).
+    Returns dict: lowercase title -> list of (file_path, line_number, header_level).
     """
     headers: dict[str, list[tuple[str, int, str]]] = {}
 
@@ -81,22 +65,17 @@ def collect_semantic_headers(root: Path) -> dict[str, list[tuple[str, int, str]]
             for i, line in enumerate(lines, 1):
                 stripped = line.strip()
 
-                # Track document intro exemption (only before first ## header)
-                # After first ##, don't re-enter intro (# lines may be code comments)
                 if not seen_first_h2 and DOC_TITLE.match(stripped):
                     in_doc_intro = True
                     continue
 
-                # First ## ends document intro permanently
                 if in_doc_intro and stripped.startswith("## "):
                     in_doc_intro = False
                     seen_first_h2 = True
 
-                # Skip content in document intro
                 if in_doc_intro:
                     continue
 
-                # Match semantic headers
                 m = SEMANTIC_HEADER.match(stripped)
                 if m:
                     level = m.group(1)
@@ -107,63 +86,44 @@ def collect_semantic_headers(root: Path) -> dict[str, list[tuple[str, int, str]]
     return headers
 
 
+def _resolve_index_path(index_path: Path | str, root: Path) -> Path:
+    """Resolve index_path relative to root."""
+    return root / index_path
+
+
 def extract_index_structure(
     index_path: Path | str, root: Path
 ) -> tuple[list[str], list[tuple[str, list[str]]]]:
-    """Extract full index structure for rewriting.
-
-    Args:
-        index_path: Path to memory-index.md (relative to root).
-        root: Project root directory.
-
-    Returns:
-        Tuple of (preamble, sections):
-        - preamble: List of lines before first ## section
-        - sections: List of (section_name, [entry_lines])
-    """
+    """Extract full index structure: (preamble lines, [(section_name, entries)])."""
     try:
-        if isinstance(index_path, str):
-            full_path = root / index_path
-        else:
-            full_path = root / index_path
-        lines = full_path.read_text().splitlines()
+        lines = _resolve_index_path(index_path, root).read_text().splitlines()
     except FileNotFoundError:
         return [], []
 
-    preamble = []
-    sections = []
-    current_section = None
+    preamble: list[str] = []
+    sections: list[tuple[str, list[str]]] = []
+    current_section: str | None = None
     current_entries: list[str] = []
 
     for line in lines:
         stripped = line.strip()
 
-        # Detect section headers
         if stripped.startswith("## ") and not stripped.startswith("### "):
-            # Save previous section if exists
             if current_section is not None:
                 sections.append((current_section, current_entries))
             current_section = stripped[3:]
             current_entries = []
             continue
 
-        # Before first section = preamble
         if current_section is None:
             preamble.append(line)
             continue
 
-        # Skip empty lines
-        if not stripped:
+        if not stripped or stripped.startswith("**"):
             continue
 
-        # Skip bold directives
-        if stripped.startswith("**"):
-            continue
-
-        # Entry line
         current_entries.append(stripped)
 
-    # Don't forget last section
     if current_section is not None:
         sections.append((current_section, current_entries))
 
@@ -175,30 +135,21 @@ def _build_file_entries_map(
     headers: dict[str, list[tuple[str, int, str]]],
     structural: set[str],
 ) -> dict[str, list[tuple[int, str]]]:
-    """Build map from file paths to sorted entries.
-
-    Skip exempt sections and structural entries.
-    """
+    """Build map from file paths to sorted entries."""
     file_entries: dict[str, list[tuple[int, str]]] = {}
 
     for section_name, entry_lines in sections:
         if section_name in EXEMPT_SECTIONS:
             continue
-
         for entry in entry_lines:
             key = entry.split(" — ")[0].lower() if " — " in entry else entry.lower()
-
-            # Skip entries pointing to structural sections
             if key in structural:
                 continue
-
-            # Find which file this entry belongs to
             if key in headers:
                 source_file = headers[key][0][0]
                 source_lineno = headers[key][0][1]
                 file_entries.setdefault(source_file, []).append((source_lineno, entry))
 
-    # Sort entries within each file by source line number
     for entries_list in file_entries.values():
         entries_list.sort()
 
@@ -210,22 +161,14 @@ def _rebuild_index_content(
     sections: list[tuple[str, list[str]]],
     file_entries: dict[str, list[tuple[int, str]]],
 ) -> list[str]:
-    """Rebuild index file content.
+    """Rebuild index: preamble, exempt sections, then file sections sorted."""
+    output = list(preamble)
 
-    Includes preamble, exempt sections, and file sections.
-    """
-    output = []
-
-    # Preamble
-    output.extend(preamble)
-
-    # Exempt sections first (preserve order from original)
     for section_name, entry_lines in sections:
         if section_name in EXEMPT_SECTIONS:
             output.append(f"\n## {section_name}\n")
             output.extend(entry_lines)
 
-    # File sections in sorted order
     for filepath in sorted(file_entries.keys()):
         output.append(f"\n## {filepath}\n")
         for _, entry in file_entries[filepath]:
@@ -240,19 +183,7 @@ def autofix_index(
     headers: dict[str, list[tuple[str, int, str]]],
     structural: set[str] | None = None,
 ) -> bool:
-    """Rewrite memory-index.md with entries in correct sections and order.
-
-    Also removes entries pointing to structural sections.
-
-    Args:
-        index_path: Path to memory-index.md (relative to root).
-        root: Project root directory.
-        headers: Dictionary of semantic headers (from collect_semantic_headers).
-        structural: Set of structural section titles (from collect_structural_headers).
-
-    Returns:
-        True if rewrite succeeded, False otherwise.
-    """
+    """Rewrite memory-index.md with correct sections and order."""
     if structural is None:
         structural = set()
 
@@ -260,14 +191,8 @@ def autofix_index(
     file_entries = _build_file_entries_map(sections, headers, structural)
     output = _rebuild_index_content(preamble, sections, file_entries)
 
-    # Write back
     try:
-        if isinstance(index_path, str):
-            full_path = root / index_path
-        else:
-            full_path = root / index_path
-        content = "\n".join(output) + "\n"
-        full_path.write_text(content)
+        _resolve_index_path(index_path, root).write_text("\n".join(output) + "\n")
     except OSError:
         return False
     else:
@@ -275,56 +200,34 @@ def autofix_index(
 
 
 def check_duplicate_entries(index_path: Path | str, root: Path) -> list[str]:
-    """Check for duplicate index entries.
-
-    Args:
-        index_path: Path to memory-index.md (relative to root).
-        root: Project root directory.
-
-    Returns:
-        List of error messages for duplicate entries.
-    """
+    """Check for duplicate index entries."""
     errors: list[str] = []
     try:
-        if isinstance(index_path, str):
-            full_path = root / index_path
-        else:
-            full_path = root / index_path
-        lines = full_path.read_text().splitlines()
+        lines = _resolve_index_path(index_path, root).read_text().splitlines()
     except FileNotFoundError:
         return errors
 
-    seen_entry_keys: dict[str, int] = {}
+    seen: dict[str, int] = {}
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
-        # Skip non-entry lines
         if not stripped or stripped.startswith(("#", "**", "- ")):
             continue
-        # Extract key
         key = (
             stripped.split(" — ")[0].lower() if " — " in stripped else stripped.lower()
         )
-        # Check for duplicates
-        if key in seen_entry_keys:
+        if key in seen:
             errors.append(
                 f"  memory-index.md:{i}: duplicate index entry '{key}' "
-                f"(first at line {seen_entry_keys[key]})"
+                f"(first at line {seen[key]})"
             )
         else:
-            seen_entry_keys[key] = i
+            seen[key] = i
 
     return errors
 
 
 def check_em_dash_and_word_count(entries: dict[str, tuple[int, str, str]]) -> list[str]:
-    """Check entries for em-dash separator and word count.
-
-    Args:
-        entries: Dictionary of entries from extract_index_entries.
-
-    Returns:
-        List of error messages.
-    """
+    """Check entries for em-dash separator and 8-15 word count."""
     errors = []
     for lineno, full_entry, _section in entries.values():
         if " — " not in full_entry:
@@ -347,15 +250,7 @@ def check_entry_placement(
     entries: dict[str, tuple[int, str, str]],
     headers: dict[str, list[tuple[str, int, str]]],
 ) -> list[str]:
-    """Check that entries are in correct file sections.
-
-    Args:
-        entries: Dictionary of entries from extract_index_entries.
-        headers: Dictionary of semantic headers from collect_semantic_headers.
-
-    Returns:
-        List of error messages for misplaced entries.
-    """
+    """Check that entries are in correct file sections."""
     errors = []
     for key, (lineno, _full_entry, section) in entries.items():
         if section in EXEMPT_SECTIONS:
@@ -376,17 +271,7 @@ def check_entry_sorting(
     root: Path,
     headers: dict[str, list[tuple[str, int, str]]],
 ) -> list[str]:
-    """Check that entries within sections match file order.
-
-    Args:
-        index_path: Path to memory-index.md (relative to root).
-        root: Project root directory.
-        headers: Dictionary of semantic headers from collect_semantic_headers.
-
-    Returns:
-        List of error messages for out-of-order entries.
-    """
-    # Section header that specifies a file path
+    """Check that entries within file sections match source file order."""
     file_section = re.compile(r"^## (agents/decisions/\S+\.md)$")
 
     errors = []
@@ -394,21 +279,16 @@ def check_entry_sorting(
     for section_name, entry_lines in sections:
         if section_name in EXEMPT_SECTIONS:
             continue
-        # Check if this section is a file path
         if not file_section.match(f"## {section_name}"):
             continue
 
-        # Get entries with their source line numbers
         entry_positions = []
         for entry in entry_lines:
             key = entry.split(" — ")[0].lower() if " — " in entry else entry.lower()
             if key in headers:
-                source_lineno = headers[key][0][1]  # Line number in source file
-                entry_positions.append((source_lineno, entry))
+                entry_positions.append((headers[key][0][1], entry))
 
-        # Check if sorted by source line number
-        sorted_positions = sorted(entry_positions)
-        if entry_positions != sorted_positions:
+        if entry_positions != sorted(entry_positions):
             errors.append(f"  Section '{section_name}': entries not in file order")
 
     return errors
@@ -419,23 +299,10 @@ def check_orphan_entries(
     headers: dict[str, list[tuple[str, int, str]]],
     structural: set[str],
 ) -> list[str]:
-    """Check for orphan index entries (no matching headers).
-
-    Args:
-        entries: Dictionary of entries from extract_index_entries.
-        headers: Dictionary of semantic headers from collect_semantic_headers.
-        structural: Set of structural header titles.
-
-    Returns:
-        List of error messages for orphan entries.
-    """
+    """Check for orphan index entries with no matching semantic headers."""
     errors = []
     for key, (lineno, _full_entry, section) in entries.items():
-        # Skip exempt sections
-        if section in EXEMPT_SECTIONS:
-            continue
-        # Skip entries pointing to structural sections (will be removed by autofix)
-        if key in structural:
+        if section in EXEMPT_SECTIONS or key in structural:
             continue
         if key not in headers:
             errors.append(
@@ -448,15 +315,7 @@ def check_orphan_entries(
 def check_structural_entries(
     entries: dict[str, tuple[int, str, str]], structural: set[str]
 ) -> list[str]:
-    """Check for entries pointing to structural sections.
-
-    Args:
-        entries: Dictionary of entries from extract_index_entries.
-        structural: Set of structural header titles.
-
-    Returns:
-        List of error messages for structural entries.
-    """
+    """Check for entries pointing to structural (dot-prefixed) sections."""
     errors = []
     for key, (lineno, _full_entry, section) in entries.items():
         if section in EXEMPT_SECTIONS:
