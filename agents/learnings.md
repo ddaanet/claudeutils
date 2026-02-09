@@ -142,3 +142,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: 86.7% false positive rate in continuation parser despite 100% unit test pass rate
 - Root cause: Skill name patterns (/commit, /handoff) appear in file paths, meta-discussion, XML tags
 - Key insight: Detection accuracy requires context awareness, not just pattern matching
+## Context-aware detection requires helper decomposition
+- Anti-pattern: Monolithic regex with complex lookahead/lookbehind trying to handle all contexts
+- Correct pattern: Decompose into helper functions testing specific contexts (XML, file paths, meta-discussion, invocation patterns)
+- Rationale: Each FP category has distinct characteristics — separate helpers enable targeted filtering
+- Priority: Check invocation patterns FIRST (early exit for true positives), then exclusion filters
+- Conservative default: When uncertain, prefer false negative over false positive (user retypes vs corrupted execution)
