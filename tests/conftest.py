@@ -250,3 +250,16 @@ def cli_base_mocks(
             "claudeutils.tokens_cli.resolve_model_alias", autospec=True
         ),
     }
+
+
+# Markdown Fixtures
+@pytest.fixture(autouse=True, scope="session")
+def markdown_fixtures_dir() -> Path:
+    """Create markdown fixtures directory structure.
+
+    Ensures tests/fixtures/markdown/ directory exists for parametrized test
+    cases. Created once per test session.
+    """
+    fixtures_dir = Path(__file__).parent / "fixtures" / "markdown"
+    fixtures_dir.mkdir(parents=True, exist_ok=True)
+    return fixtures_dir

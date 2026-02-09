@@ -13,7 +13,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
 | domain-validation | complete | Domain-specific validation infrastructure |
 | handoff-validation | requirements | Requires continuation-passing |
-| markdown | requirements | Markdown cleanup test corpus |
+| markdown | complete | Test corpus implementation — 16 fixtures, 3 parametrized tests, all 5 FRs satisfied |
 | memory-index-recall | complete | Memory index recall analysis tool (7 modules, 50 tests) |
 | orchestrate-evolution | requirements | Absorb planning, finalize phase pattern |
 | plugin-migration | planned | All 7 phases vetted (44 issues fixed). Ready for runbook assembly |
