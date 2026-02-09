@@ -112,3 +112,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Fix obstruction (e.g., remove stale lock), retry the recipe from scratch
 - Rationale: Recipes are atomic units — manually finishing bypasses error handling, ordering, side effects
 - Fix: Added "Partial failure recovery" rule to project-tooling.md
+## Lightweight TDD tier assessment
+- Anti-pattern: Using full runbook (Tier 3) for straightforward fixture creation with repetitive pattern
+- Correct pattern: Tier 2 (lightweight TDD) for ~15-20 cycles with same pattern — plan cycle descriptions, delegate individually, checkpoint every 3-5 cycles
+- Rationale: Full runbook overhead (phase files, prepare-runbook.py, orchestrator) not justified for simple repetitive work
+- Example: Markdown test corpus — 16 fixtures following same pattern (input/expected pairs), completed via lightweight TDD
+- Tier boundaries: Tier 1 (1-3 cycles), Tier 2 (4-10 cycles OR 10-20 repetitive), Tier 3 (>20 cycles with complexity)

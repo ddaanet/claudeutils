@@ -1,4 +1,17 @@
-"""Test fixture infrastructure for markdown test corpus."""
+"""Test fixture infrastructure for markdown test corpus.
+
+This module implements parametrized tests for the markdown preprocessor using
+fixture pairs (.input.md and .expected.md files). It validates:
+
+- FR-1: Preprocessor transformations match expected output
+- FR-2: Pass-through verification (unchanged content)
+- FR-3: Full pipeline integration (preprocessor + remark-cli)
+- FR-4: Idempotency (re-processing produces identical output)
+
+Fixtures are discovered automatically from tests/fixtures/markdown/ directory.
+The module includes helper functions for loading fixture pairs and directory
+validation tests to catch infrastructure issues early.
+"""
 
 import shutil
 import subprocess
@@ -202,7 +215,7 @@ def test_full_pipeline_remark(fixture_name: str) -> None:
 
     # Write processed output to temporary file
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".md", delete=False, newline=""
+        mode="w", suffix=".md", delete=False
     ) as tmp_file:
         tmp_path = tmp_file.name
         tmp_file.writelines(processed_lines)
@@ -226,8 +239,8 @@ def test_full_pipeline_remark(fixture_name: str) -> None:
         )
 
         # Read remark output
-        tmp_path_obj = Path(tmp_path)
-        remark_output = tmp_path_obj.read_text().splitlines(keepends=True)
+        tmp_file_path = Path(tmp_path)
+        remark_output = tmp_file_path.read_text().splitlines(keepends=True)
 
         # Verify output matches expected (remark may reformat but preserves content)
         assert remark_output == expected_lines, (
@@ -238,6 +251,6 @@ def test_full_pipeline_remark(fixture_name: str) -> None:
 
     finally:
         # Cleanup temporary file
-        tmp_path_obj = Path(tmp_path)
-        if tmp_path_obj.exists():
-            tmp_path_obj.unlink()
+        tmp_file_path = Path(tmp_path)
+        if tmp_file_path.exists():
+            tmp_file_path.unlink()

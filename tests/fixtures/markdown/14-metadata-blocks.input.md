@@ -6,6 +6,11 @@
 
 Some content here.
 
+**Multiple Single-Line Labels (consecutive):**
+**Label One:** Value one
+**Label Two:** Value two
+**Label Three:** Value three
+
 **Plan Files:**
 - `plans/phase-1.md`
 - `plans/phase-2.md`
