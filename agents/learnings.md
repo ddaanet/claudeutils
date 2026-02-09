@@ -119,3 +119,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: Memory index created Feb 1, sessions analyzed Feb 5-8 → valid (all had access)
 - Git commands: `git log --format="%ai" --follow <file>` for creation date, session mtime for analysis window
 - Strengthens findings: 0% recall validated across 200 sessions, all post-creation and post-stability
+## Namespace collision in prefix design
+- Anti-pattern: Proposing `.` prefix for new navigation syntax when `.` already means "structural section" in decision files
+- Correct pattern: Check existing notation conventions before introducing new prefix semantics
+- Rationale: `.` prefix on headers is validated by precommit (validate-decision-files.py) — reusing it for navigation creates ambiguity
+- Fix: `§` operator reuses existing unique identifiers (header titles, filenames) instead of inventing new prefix
+## Memory-as-file enables Read caching
+- Anti-pattern: Script extracts section content from multi-section files, outputs as text (no caching)
+- Correct pattern: Each memory = individual file, `/when` outputs `@file` reference, agent Reads (cached by Claude Code)
+- Rationale: Claude Code caches file reads within session — first read costs, subsequent reads free
+- Consequence: Script becomes resolver (trigger → filepath), not extractor (trigger → content)
+- Trade-off: ~169 individual files vs 10 multi-section files — directory structure mirrors current sections

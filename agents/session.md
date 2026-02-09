@@ -1,51 +1,49 @@
-# Session: Memory Index Recall Analysis — Complete
+# Session: `/when` Memory Recall System — Design In Progress
 
-**Status:** Analysis complete with temporal validation. Memory index shown to be non-functional (0.0% recall across 200 sessions).
+**Status:** Design Phase A complete (research + outline). Outline needs update with architectural evolution from discussion before Phase B.
 
 ## Completed This Session
 
-### Empirical Analysis Execution
-- Ran recall analysis on 3 sessions (worktree): 3.5% recall (4 reads, all testing.md in single session)
-- Expanded to 50 sessions (main repo): 0.0% recall (1,583 relevant pairs, 0 reads)
-- Validated with 100 sessions: 0.0% recall (3,459 pairs, 0 reads)
-- Full validation with 200 sessions: 0.0% recall (7,483 pairs, 0 reads)
-- Temporal correlation: All sessions occurred after memory index creation (Feb 1) and stability (Feb 5)
-- Generated 5 comprehensive reports in plans/memory-index-recall/reports/
+### Design Discussion + Architecture Evolution
+- Analyzed 0% recall root cause: passive catalog format, agents don't form retrieval intentions
+- Opus brainstorm for prefix naming → selected `when` (most natural conditional, no collision)
+- Evolved from passive format → `/when` skill as recursive knowledge navigator
+- Format evolution through discussion:
+  1. `when <trigger> — <rule>` (passive format change)
+  2. `/when <trigger> | <rule>` (skill invocation)
+  3. `/when <trigger> | <header-title> | <description>` (three-field, validator-friendly)
+  4. **Final:** Memory-as-file + `@uniquefuzzy` + two-field index (see Architecture below)
 
-### Key Findings
-- **Critical failure confirmed:** Memory index has zero measurable effectiveness across all temporal windows
-- **7,483 opportunities:** Keyword matching identified relevant entries, agents never read referenced files
-- **No discovery patterns:** 100% DIRECT reads (when they occurred), 0% SEARCH_THEN_READ or USER_DIRECTED
-- **Temporal validation:** Sessions had access to stable index (60-70 entries), recall remained 0% across all periods
-- **Root cause:** Passive awareness model ("mentally scan index") is non-functional — agents do not consult the index
-- **Cost-benefit:** Index occupies 5,000 tokens (3-4% of budget) with zero utilization = negative ROI
+### Architecture Decisions
+- **`§` navigation operator** — replaces `.`/`..` prefix (avoids collision with structural section `.` notation in decision files)
+- **Memory-as-file** — each decision becomes individual file, enables `@file` Read caching
+- **`@uniquefuzzy` frontmatter** — shortest meaningful unique key per memory file, used for matching
+- **Resolver-only script** — `/when` outputs `@file` references, agent batch-Reads (cached)
+- **`/when §`** — outputs list of `@file` references for section/file-level navigation
+- **Two-field index** — `/when <uniquefuzzy> | <description>` (header title lives in file, not index)
 
-### Reports Generated
-- **analysis-results.md** — Worktree analysis (3 sessions, initial findings)
-- **main-repo-analysis.md** — Main repo analysis (50 sessions, 0% baseline)
-- **comprehensive-analysis.md** — Combined multi-repo analysis with root cause and recommendations
-- **temporal-analysis.md** — Git history correlation, validates findings across all index versions
-- **final-summary.md** — Executive summary with intervention options
-
-### Recommendations (from reports)
-- **Option A (Aggressive):** Explicit consultation (hook injection + workflow integration), remove zero-recall entries, A/B test with 30%+ success threshold within 2 weeks
-- **Option B (Conservative):** Add consultation to planning skills, monitor 100 sessions, 10%+ threshold within 1 month
-- **Option C (Redesign):** Remove index, migrate to fragments (loaded vs referenced), implement active retrieval
+### Design Phase A Artifacts
+- Exploration report: `plans/when-recall/reports/explore-agent-core.md`
+- Outline: `plans/when-recall/outline.md` (reviewed, but needs update with latest architecture)
+- Outline review: `plans/when-recall/reports/outline-review.md`
 
 ## Pending Tasks
 
-None — analysis complete and validated.
+- [ ] **Research fzf algorithm** — Research fzf fuzzy matching algorithm, discuss using as fuzzy find engine for `/when` | sonnet
+- [ ] **Update outline with architecture evolution** — Apply individual-files, `§` operator, `@uniquefuzzy`, two-field format, resolver-only changes to `plans/when-recall/outline.md`
+- [ ] **Continue `/when` design** — Phase B (user validates outline) → Phase C (full design.md) | `/design plans/when-recall/outline.md`
+
+## Blockers / Gotchas
+
+- Outline currently reflects three-field format from mid-discussion; needs update with final architecture (individual files, `§`, `@uniquefuzzy`, two-field) before Phase B
+- Learnings file at 121/80 lines (soft limit exceeded, no entries ≥7 days yet — consolidation deferred)
+- File atomization (169 individual files) significantly increases migration scope vs format-only change
 
 ## Reference Files
 
-- **plans/memory-index-recall/reports/final-summary.md** — Executive summary with all validations
-- **plans/memory-index-recall/reports/temporal-analysis.md** — Git correlation analysis
-- **plans/memory-index-recall/reports/comprehensive-analysis.md** — Full multi-repo findings
-- **plans/memory-index-recall/reports/main-repo-analysis.json** — 50-session structured data (32K)
-- **plans/memory-index-recall/reports/analysis-results.json** — Worktree structured data (29K)
-- **plans/memory-index-recall/design.md** — Original design specification
-- **src/claudeutils/recall/** — Tool implementation (7 modules, 50 tests passing)
-
-## Next Steps
-
-Decision required on memory index intervention strategy (Option A/B/C). Tool is validated and ready for ongoing monitoring after intervention.
+- `plans/when-recall/outline.md` — Design outline (needs update)
+- `plans/when-recall/reports/explore-agent-core.md` — Infrastructure exploration
+- `plans/when-recall/reports/outline-review.md` — Outline review
+- `plans/memory-index-recall/reports/final-summary.md` — Recall analysis (0% baseline)
+- `agent-core/bin/validate-memory-index.py` — Current validator (480 lines, will need update)
+- `agents/memory-index.md` — Current index format (~169 entries)
