@@ -118,3 +118,16 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: Full runbook overhead (phase files, prepare-runbook.py, orchestrator) not justified for simple repetitive work
 - Example: Markdown test corpus — 16 fixtures following same pattern (input/expected pairs), completed via lightweight TDD
 - Tier boundaries: Tier 1 (1-3 cycles), Tier 2 (4-10 cycles OR 10-20 repetitive), Tier 3 (>20 cycles with complexity)
+## Corpus defines correct behavior
+- Anti-pattern: Rewriting fixtures to avoid triggering known bugs (makes tests pass by hiding defects)
+- Correct pattern: Fixtures define correct behavior — failing tests are the signal that code needs fixing
+- Rationale: Test corpus purpose is detecting changes required to process corpus correctly
+## excludedCommands sandbox bypass unreliable
+- Anti-pattern: Relying on `excludedCommands` in settings.json for filesystem/network sandbox bypass
+- Correct pattern: Use `dangerouslyDisableSandbox: true` per-call + `permissions.allow` for prompt skip
+- Evidence: npm added to excludedCommands, still got EPERM on `~/.npm/_cacache/` writes
+- Known issues: #10767 (git SSH), #14162 (DNS), #19135 (logic conflict)
+## Pipeline idempotency over exact match
+- Anti-pattern: Pipeline test asserting remark output matches preprocessor expected fixtures
+- Correct pattern: Assert full pipeline idempotency — `(preprocessor → remark)²` produces same result
+- Rationale: Remark legitimately reformats (table padding, blank lines) — exact match conflates preprocessor correctness with formatter style

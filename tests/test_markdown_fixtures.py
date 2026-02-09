@@ -199,21 +199,20 @@ def test_preprocessor_idempotency(fixture_name: str) -> None:
 )
 @pytest.mark.parametrize("fixture_name", _FIXTURE_NAMES)
 def test_full_pipeline_remark(fixture_name: str) -> None:
-    """Test full pipeline: preprocessor → remark-cli → output.
+    """Test full pipeline idempotency: (preprocessor → remark) twice.
 
     Validates FR-3: Full pipeline integration tests.
-    For each fixture, run preprocessor output through remark-cli with GFM plugin,
-    verify output is valid markdown and matches expected behavior.
+    Runs preprocessor → remark, then preprocessor → remark again on the output.
+    The pipeline is idempotent when both passes produce identical results.
 
     Skips gracefully if remark-cli is not available.
     """
     # Load fixture pair
-    input_lines, expected_lines = load_fixture_pair(fixture_name)
+    input_lines, _ = load_fixture_pair(fixture_name)
 
-    # Run preprocessor
+    # First full pipeline pass: preprocessor → remark
     processed_lines = process_lines(input_lines)
 
-    # Write processed output to temporary file
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".md", delete=False
     ) as tmp_file:
@@ -221,16 +220,12 @@ def test_full_pipeline_remark(fixture_name: str) -> None:
         tmp_file.writelines(processed_lines)
 
     try:
-        # Run remark-cli on the processed output
-        result = subprocess.run(
-            ["remark", "--use", "remark-gfm", tmp_path, "--output"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        tmp_file_path = Path(tmp_path)
+        remark_cmd = ["remark", "--rc-path", ".remarkrc.json", tmp_path, "--output"]
 
-        # remark-cli returns 0 on success (file unchanged or reformatted)
-        # Non-zero exit typically means parse/syntax error
+        result = subprocess.run(
+            remark_cmd, capture_output=True, text=True, check=False
+        )
         assert result.returncode == 0, (
             f"remark-cli failed for fixture {fixture_name}:\n"
             f"Exit code: {result.returncode}\n"
@@ -238,15 +233,24 @@ def test_full_pipeline_remark(fixture_name: str) -> None:
             f"stderr: {result.stderr}"
         )
 
-        # Read remark output
-        tmp_file_path = Path(tmp_path)
-        remark_output = tmp_file_path.read_text().splitlines(keepends=True)
+        first_pass = tmp_file_path.read_text()
 
-        # Verify output matches expected (remark may reformat but preserves content)
-        assert remark_output == expected_lines, (
-            f"Pipeline output mismatch for fixture {fixture_name}:\n"
-            f"Expected: {expected_lines}\n"
-            f"Got: {remark_output}"
+        # Second full pipeline pass: preprocessor → remark on first output
+        second_processed = process_lines(first_pass.splitlines(keepends=True))
+        tmp_file_path.write_text("".join(second_processed))
+
+        result2 = subprocess.run(
+            remark_cmd, capture_output=True, text=True, check=False
+        )
+        assert result2.returncode == 0, (
+            f"remark-cli second pass failed for fixture {fixture_name}:\n"
+            f"Exit code: {result2.returncode}\n"
+            f"stderr: {result2.stderr}"
+        )
+
+        second_pass = tmp_file_path.read_text()
+        assert first_pass == second_pass, (
+            f"Full pipeline not idempotent for fixture {fixture_name}"
         )
 
     finally:

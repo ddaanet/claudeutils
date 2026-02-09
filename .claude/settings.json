@@ -10,6 +10,9 @@
       "Bash(mypy:*)",
       "Bash(docformatter:*)",
       "Bash(pbcopy:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm ls:*)",
       "Bash(agent-core/bin/prepare-runbook.py:*)",
       "Skill",
       "WebSearch"
