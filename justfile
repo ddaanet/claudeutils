@@ -84,6 +84,16 @@ wt-new name base="HEAD" session="":
     echo "${GREEN}✓${NORMAL} Worktree ready: $wt_dir"
     echo "  Launch: ${COMMAND}cd $wt_dir && claude${NORMAL}"
 
+# Create worktree with focused session for a specific task
+[no-exit-message]
+wt-task name task_name base="HEAD":
+    #!{{ bash_prolog }}
+    focused_session="tmp/focused-session-{{name}}.md"
+    mkdir -p tmp
+    agent-core/bin/focus-session.py "{{task_name}}" > "$focused_session"
+    just wt-new "{{name}}" "{{base}}" "$focused_session"
+    rm -f "$focused_session"
+
 # List active git worktrees
 wt-ls:
     @git worktree list

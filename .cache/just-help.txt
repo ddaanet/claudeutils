@@ -6,6 +6,7 @@ Available recipes:
     test *ARGS                         # Run test suite
     line-limits                        # Check file line limits
     wt-new name base="HEAD" session="" # Create a git worktree for parallel work
+    wt-task name task_name base="HEAD" # Create worktree with focused session for a specific task
     wt-ls                              # List active git worktrees
     wt-rm name                         # Remove a git worktree and its branch
     wt-merge name                      # Merge a worktree branch back and resolve submodule + session.md
