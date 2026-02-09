@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+from claudeutils.markdown import process_lines
+
 
 def load_fixture_pair(
     name: str, fixtures_dir: Path | None = None
@@ -113,3 +115,45 @@ def test_fixture_directory_exists() -> None:
     # Directory must be empty initially
     contents = list(fixture_dir.iterdir())
     assert contents == [], f"Fixture directory should be empty but contains: {contents}"
+
+
+# Discover fixture files at module load time
+def _discover_fixture_names() -> list[str]:
+    """Discover fixture names from .input.md files in fixtures directory."""
+    fixture_dir = Path(__file__).parent / "fixtures" / "markdown"
+    input_files = fixture_dir.glob("*.input.md")
+
+    # Extract fixture name by removing .input.md suffix
+    fixture_names = []
+    for input_file in sorted(input_files):
+        # Get filename, strip .input.md extension
+        filename = input_file.name
+        fixture_name = filename.replace(".input.md", "")
+        fixture_names.append(fixture_name)
+
+    return fixture_names
+
+
+# Get fixture names for parametrization
+_FIXTURE_NAMES = _discover_fixture_names()
+
+
+@pytest.mark.parametrize("fixture_name", _FIXTURE_NAMES)
+def test_preprocessor_fixture(fixture_name: str) -> None:
+    """Test preprocessor against fixture pairs.
+
+    For each fixture file, load the input and expected output, run
+    process_lines() on the input, and verify exact match.
+    """
+    # Load fixture pair
+    input_lines, expected_lines = load_fixture_pair(fixture_name)
+
+    # Process input
+    result_lines = process_lines(input_lines)
+
+    # Verify exact match
+    assert result_lines == expected_lines, (
+        f"Fixture {fixture_name} failed:\n"
+        f"Expected: {expected_lines}\n"
+        f"Got: {result_lines}"
+    )
