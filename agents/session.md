@@ -37,9 +37,10 @@
 - [ ] **Package wt-merge as skill** — Clean tree gate, full handoff+commit pre-merge, auto-resolve session conflicts, amend merge commit. Blocked on continuation-passing.
   - Plan: wt-merge-skill | Status: requirements
 - [ ] **Move worktrees into wt/ directory** — Solves sandbox isolation, update skills and scripts
-- [ ] **Fix precommit failures** — memory_index complexity (C901/PLR0912), line limits (3 files over 400)
 
 ## Worktree Tasks
+
+- [ ] **Fix precommit failures** → `wt/complexity-fixes` — memory_index complexity (C901/PLR0912), line limits (3 files over 400)
 
 - [ ] **Explore removing bash tool git prompt noise** → `wt/bash-git-prompt` — Research if suppressible via config, hooks, or shell profile
 - [ ] **Continuation passing design** → `wt/continuation-passing` — Validate outline against requirements | opus | Plan: continuation-passing | Status: requirements
