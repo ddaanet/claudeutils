@@ -1,26 +1,19 @@
 # Session: Plugin Migration — Merge Complete
 
-**Status:** tools-rewrite merged. Plugin migration blocked on prepare-runbook.py phase numbering validation.
+**Status:** tools-rewrite merged into wt/plugin-migration. Ready to resolve prepare-runbook.py phase numbering.
 
 ## Completed This Session
 
-**Merge operations:**
-- Merged `tools-rewrite` branch into `wt/plugin-migration`
-- Resolved session.md conflicts, combined infrastructure and plugin migration contexts
-- agent-core submodule already up-to-date with main
+**Branch merge completed:**
+- Merged `tools-rewrite` into `wt/plugin-migration` (commits 7880476, 09a4c41)
+- Resolved session.md conflicts by combining contexts from both branches
+- Updated agent-core submodule pointer to 1bbd1bf (worktree task tracking + quiet-explore)
+- Removed untracked files from failed initial merge (git clean -fd)
 
-**Prior work from tools-rewrite:**
-- Merged `infrastructure-improvements` branch (df9f903) — 4 workflow infrastructure tasks
-- Merged `wt/complexity-fixes` — precommit fixes complete (complexity + line limits, 509 tests passing)
-- Merged `wt/domain-validation-design` (966c580) — plugin-dev-validation skill, plan updates
-- Merged `wt/parity-failures` (1be1171) — parity gap fixes (11 steps, 3 phases)
-- Merged `wt/agent-core-links` (ee19369) — fixed sync-to-parent agent symlinks
-
-**Plugin migration status:**
-- All 7 phase files generated and vetted (Phase 0-6, 44 issues fixed across all phases)
-- `prepare-runbook.py` expects 1-based phase numbering (phases 1-N)
-- Plugin migration uses 0-based numbering (Phase 0-6)
-- Design intentionally uses Phase 0 for directory rename (foundational step before Phase 1)
+**Context from tools-rewrite merge:**
+- infrastructure-improvements already merged (df9f903) — 4 workflow infrastructure tasks
+- Multiple worktree merges: complexity-fixes, domain-validation-design, parity-failures, agent-core-links
+- All 509 tests passing, precommit clean
 
 ## Pending Tasks
 
