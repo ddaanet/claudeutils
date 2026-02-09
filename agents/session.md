@@ -1,13 +1,16 @@
 # Session Handoff: 2026-02-09
 
-**Status:** Lock file directive scope fixed. `/when` design ready for Phase B.
+**Status:** Branches merged, `/when` design ready for Phase B.
 
 ## Completed This Session
 
-**Fix lock file directive scope:**
-- `agents/rules-commit.md:173-185` — Broadened "Git Lock File Errors" from commit-only to all git operations, added "Do NOT remove lock files" prohibition
-- `agents/learnings.md:112` — Replaced "remove stale lock" example with "delete conflicting untracked file" (avoids contradicting lock removal rule)
-- `commit.semantic.md` — No longer exists (consolidated previously), 2/3 directives fixed
+**Fix lock file directive scope (97a0c7e):**
+- `agents/rules-commit.md:173-185` — Broadened from commit-only to all git operations, added "Do NOT remove lock files"
+- `agents/learnings.md:112` — Replaced "remove stale lock" example with non-lockfile alternative
+
+**Branch merges:**
+- agent-core: Merged `wt/memory-index-recall` into main, pushed (fast-forward 06984d3→49e9d45, 13 commits, 12 files)
+- Parent: Merged `tools-rewrite` into `wt/memory-index-recall` (c211345, 7 files — validation refactoring from complexity-fixes)
 
 ## Pending Tasks
 
@@ -30,4 +33,4 @@
 Continue `/when` design Phase B — present outline to user for validation.
 
 ---
-*Lock file directives fixed across 2 files.*
+*Lock file fix + branch merges (agent-core main, tools-rewrite).*
