@@ -23,6 +23,8 @@ hook_script_path = (
 spec = importlib.util.spec_from_file_location(
     "userpromptsubmit_shortcuts", hook_script_path
 )
+assert spec is not None
+assert spec.loader is not None
 hook_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hook_module)
 
@@ -79,8 +81,8 @@ class TestFindSkillReferences:
 class TestSingleSkillPassThrough:
     """Single skill invocations return None (handled by Claude's skill system).
 
-    Skills manage their own default-exit when standalone or last-in-chain.
-    The continuation parser only activates for multi-skill chains.
+    Skills manage their own default-exit when standalone or last-in-chain. The
+    continuation parser only activates for multi-skill chains.
     """
 
     def test_single_skill_returns_none(self) -> None:
@@ -497,8 +499,10 @@ class TestFalsePositiveFiltering:
         assert len(result["continuation"]) > 0
 
     def test_multiline_continuation_invocation(self) -> None:
-        r"""Multi-line list with 'and\\n- /skill' SHOULD trigger (true
-        positive)."""
+        r"""Multi-line list with 'and\\n- /skill' SHOULD trigger.
+
+        This is a true positive case.
+        """
         registry = {
             "design": {"cooperative": True, "default-exit": ["/commit"]},
             "plan": {"cooperative": True, "default-exit": []},
@@ -509,8 +513,10 @@ class TestFalsePositiveFiltering:
         assert "plan" in continuation_skills
 
     def test_prose_mention_in_sentence(self) -> None:
-        """Skill mention in middle of sentence without delimiter should not
-        trigger."""
+        """Skill mention in middle of sentence should not trigger.
+
+        Without delimiter, this is not a valid skill invocation.
+        """
         registry = {"commit": {"cooperative": True, "default-exit": []}}
         result = parse_continuation(
             "I will work on the /commit functionality later", registry
@@ -526,8 +532,10 @@ class TestFalsePositiveFiltering:
         assert result is None
 
     def test_mid_sentence_lowercase_prose(self) -> None:
-        """Skill reference mid-sentence after lowercase word should not
-        trigger."""
+        """Skill reference mid-sentence after lowercase word.
+
+        Should not trigger in this context.
+        """
         registry = {"commit": {"cooperative": True, "default-exit": []}}
         result = parse_continuation(
             "I will implement the /commit functionality later", registry

@@ -10,6 +10,7 @@ Based on design Component 4 integration test requirements.
 """
 
 import importlib.util
+import re
 from pathlib import Path
 
 import pytest
@@ -24,6 +25,8 @@ hook_script_path = (
 spec = importlib.util.spec_from_file_location(
     "userpromptsubmit_shortcuts", hook_script_path
 )
+assert spec is not None
+assert spec.loader is not None
 hook_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hook_module)
 
@@ -189,7 +192,7 @@ class TestTwoSkillChain:
         assert parsed is not None
         assert parsed["current"]["skill"] == "design"
 
-        # Continuation should have handoff but NOT commit (handoff without --commit is terminal)
+        # Continuation: handoff but NOT commit (handoff without --commit is terminal)
         continuation_skills = [e["skill"] for e in parsed["continuation"]]
         assert "handoff" in continuation_skills
 
@@ -214,8 +217,6 @@ class TestContinuationExtraction:
         args = "some regular args [CONTINUATION: /handoff --commit, /commit]"
 
         # Extract continuation
-        import re
-
         cont_match = re.search(r"\[CONTINUATION:\s*(.+?)\]", args)
         assert cont_match is not None
 
@@ -231,8 +232,6 @@ class TestContinuationExtraction:
         """Test extracting empty continuation."""
         args = "[CONTINUATION: ]"
 
-        import re
-
         cont_match = re.search(r"\[CONTINUATION:\s*(.+?)?\]", args)
         assert cont_match is not None
 
@@ -243,8 +242,6 @@ class TestContinuationExtraction:
     def test_no_continuation_in_args(self) -> None:
         """Test args without continuation marker."""
         args = "just regular args here"
-
-        import re
 
         cont_match = re.search(r"\[CONTINUATION:\s*(.+?)\]", args)
         assert cont_match is None
