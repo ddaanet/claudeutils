@@ -126,7 +126,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Fix: `§` operator reuses existing unique identifiers (header titles, filenames) instead of inventing new prefix
 ## Memory-as-file enables Read caching
 - Anti-pattern: Script extracts section content from multi-section files, outputs as text (no caching)
-- Correct pattern: Each memory = individual file, `/when` outputs `@file` reference, agent Reads (cached by Claude Code)
-- Rationale: Claude Code caches file reads within session — first read costs, subsequent reads free
-- Consequence: Script becomes resolver (trigger → filepath), not extractor (trigger → content)
+- Correct pattern: Each memory = individual file, `/when` outputs `@file` reference, agent Reads (prefix-cached by Claude Code)
+- Rationale: Claude Code uses prompt prefix caching — Read results stay in conversation, subsequent API turns get 90% cheaper cache hits on the stable prefix
+- Correction: "Subsequent reads free" is wrong — re-reading same file adds duplicate copy to context window. Benefit is cheap subsequent turns, not free re-reads
+- Consequence: Script becomes resolver (trigger → filepath), not extractor (trigger → content). Read once per session, not repeatedly
 - Trade-off: ~169 individual files vs 10 multi-section files — directory structure mirrors current sections
+## Prompt caching not file caching
+- Anti-pattern: Assuming Claude Code deduplicates file reads or maintains a file cache (re-reading = free)
+- Correct pattern: Each Read appends a new content block to conversation; "caching" = prompt prefix matching at API level (92% reuse, 10% cost)
+- Rationale: No application-level dedup. 20-block lookback window limits cache hits when many tool calls intervene
+- @-references (system prompt) are more cache-efficient than Read (messages) for always-needed content
+- Design implication: For `/when`, emit `@file` references for agent to Read once; don't encourage repeated reads of same file
