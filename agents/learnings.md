@@ -96,11 +96,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Commit skill: Steps 0+0b+1 → single Step 1 (Gate A: Read session.md, Gate B: git diff, then validation)
 - Orchestrate skill: 3.3+3.4 → merged 3.3 (tree check + Read next step for phase boundary)
 - Convention: Every skill step must open with a tool call — documented in implementation-notes.md
-## Deliverables in gitignored tmp/
-- Anti-pattern: Writing actionable reports (RCA, designs, audits) to tmp/ which is gitignored
-- Correct pattern: Research deliverables go to plans/ directories where they're tracked. Only ephemeral scheduling/diagnostic artifacts belong in tmp/
-- Rationale: Commits are sync points — session.md references must resolve in the same commit. Gitignored paths break state synchronization across sessions
-- Distinction: tmp/ = throwaway (execution logs, scratch). plans/ = actionable (designs, RCA reports, audits)
+## Deliverables go to plans/
+- Repeated: 2026-02-06, 2026-02-08
+- Anti-pattern: Writing actionable artifacts to tmp/ which is gitignored
+- Correct pattern: If artifact will be referenced in a followup session → `plans/`. If not → `tmp/`
+- Decision principle: "Will this be referenced later?" — not "Is this type in a known list?"
+- Recurrence cause: Category-matching heuristic ("this isn't a report/design/audit") defeats the principle. New artifact types (feature request bodies, issue drafts) bypass enumerated categories
+- Contributing: `tmp-directory.md` fragment says "ad-hoc work: use tmp/" without distinguishing tracked vs untracked output
+- Rationale: Commits are sync points — session.md references must resolve in the same commit
 ## Git worktree submodule gotchas
 - Unpushed submodule commits: `git submodule update --init` clones from remote, fails if commit not pushed
 - Fix: `--reference <local-checkout>` uses local objects as alternates, avoids remote fetch
