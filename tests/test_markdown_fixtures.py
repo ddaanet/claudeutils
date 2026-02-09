@@ -153,3 +153,25 @@ def test_preprocessor_fixture(fixture_name: str) -> None:
         f"Expected: {expected_lines}\n"
         f"Got: {result_lines}"
     )
+
+
+@pytest.mark.parametrize("fixture_name", _FIXTURE_NAMES)
+def test_preprocessor_idempotency(fixture_name: str) -> None:
+    """Test idempotency: re-processing output produces identical result.
+
+    For each fixture, verify that running the preprocessor on its
+    expected output yields the same output (idempotent behavior).
+    This validates FR-4: preprocessor output is stable on re-processing.
+    """
+    # Load fixture pair
+    input_lines, expected_lines = load_fixture_pair(fixture_name)
+
+    # Re-process the expected output
+    reprocessed_lines = process_lines(expected_lines)
+
+    # Verify idempotency: re-processing should not change the output
+    assert reprocessed_lines == expected_lines, (
+        f"Fixture {fixture_name} is not idempotent:\n"
+        f"Original output: {expected_lines}\n"
+        f"After re-process: {reprocessed_lines}"
+    )
