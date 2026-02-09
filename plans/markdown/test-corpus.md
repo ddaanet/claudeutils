@@ -208,6 +208,117 @@ These should remain escaped:
 
 **Bold text** with *italic* and `code` and ~~strikethrough~~.
 
+## 13. Dunder References
+
+The formatter MUST preserve or appropriately format Python dunder references (like `__init__.py`, `__name__`):
+
+- Heading with dunder: About __init__.py
+- Multiple dunders in heading: Using __init__.py and __name__
+- Already wrapped dunder: `__init__.py` (should not be double-wrapped)
+- Non-dunder variables like my_var should pass through unchanged
+- Special attributes: __dict__ and __class__
+- Complex case: Using __init__.py in __main__.py
+
+## 14. Metadata Blocks
+
+The formatter MUST preserve metadata block formatting with labels and content:
+
+**Status:** Draft
+**Context:** Testing
+**Author:** Test Suite
+
+Content between metadata blocks.
+
+**Plan Files:**
+- `plans/phase-1.md`
+- `plans/phase-2.md`
+
+**Implementation Date:**
+- 2026-01-04
+
+**Another Single Label:** Content on same line
+
+**Nested:**
+- Item 1
+- Item 2
+
+## 15. Warning Line Prefixes
+
+The formatter MUST preserve warning-line patterns (consecutive lines with emoji or bracket prefixes):
+
+### Emoji Checkmarks
+
+✅ Issue #1: XPASS tests visible
+✅ Issue #2: Setup failures captured
+✅ Issue #3: Module imports work
+
+### Error Markers
+
+❌ Test failed for module A
+❌ Test failed for module B
+
+### Bracket Prefixes
+
+[TODO] Implement feature X
+[TODO] Write comprehensive tests
+[TODO] Update documentation
+
+[WARNING] This is critical
+[WARNING] Handle with care
+
+### Uppercase Colon Prefixes
+
+NOTE: First important note
+NOTE: Second important note
+NOTE: Third important note
+
+ERROR: Configuration missing
+ERROR: Setup incomplete
+
+### Single Lines (no grouping)
+
+Single-line prefixes that don't form consecutive groups should pass through unchanged:
+
+✅ Only one line here
+
+[NOTE] Single bracket line
+
+ERROR: Single error line
+
+## 16. Backtick Space Quoting
+
+The formatter MUST preserve spaces around inline code when significant:
+
+### Cases with Leading Spaces
+
+- Leading space: ` code`
+- Multiple leading: `   code`
+- Only space: `   `
+
+### Cases with Trailing Spaces
+
+- Trailing space: `code `
+- Multiple trailing: `code   `
+- Only space: `   `
+
+### Cases with Both Spaces
+
+- Both ends: ` code `
+- Both multiple: `   code   `
+- Both with symbols: ` $VAR `
+
+### Cases without Spaces (unchanged)
+
+- Normal: `code`
+- No spaces: `const x = 'y'`
+- Path: `~/.bashrc`
+
+### Mixed in Sentence
+
+The empty span ` ` (space only) should preserve spaces.
+Variable ` name ` needs visible spaces.
+The path `./file` should be unchanged.
+
 ---
 
 ## Idempotency Test
