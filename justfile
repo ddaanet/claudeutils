@@ -23,14 +23,10 @@ cache:
 precommit:
     #!{{ bash_prolog }}
     sync
-    agent-core/bin/validate-tasks.py agents/session.md agents/learnings.md
-    agent-core/bin/validate-learnings.py agents/learnings.md
-    agent-core/bin/validate-decision-files.py
-    agent-core/bin/validate-memory-index.py agents/memory-index.md
-    agent-core/bin/validate-jobs.py
+    claudeutils validate
     gmake --no-print-directory -C agent-core check
     run-checks
-    safe pytest-quiet
+    safe pytest -q
     run-line-limits
     report-end-safe "Precommit"
 
@@ -52,7 +48,7 @@ line-limits:
 
 # Create a git worktree for parallel work
 [no-exit-message]
-wt-new name base="HEAD":
+wt-new name base="HEAD" session="":
     #!{{ bash_prolog }}
     repo_name=$(basename "$PWD")
     wt_dir="../${repo_name}-{{name}}"
@@ -61,7 +57,22 @@ wt-new name base="HEAD":
         fail "Worktree already exists: $wt_dir"
     fi
     main_dir="$PWD"
-    visible git worktree add "$wt_dir" -b "$branch" "{{base}}"
+    if [ -n "{{session}}" ]; then
+        # Pre-commit focused session.md to branch before worktree creation
+        blob=$(git hash-object -w "{{session}}")
+        tmp_index=$(mktemp -p tmp/)
+        trap "rm -f '$tmp_index'" EXIT ERR
+        GIT_INDEX_FILE="$tmp_index" git read-tree "{{base}}"
+        GIT_INDEX_FILE="$tmp_index" git update-index --cacheinfo "100644,$blob,agents/session.md"
+        new_tree=$(GIT_INDEX_FILE="$tmp_index" git write-tree)
+        rm -f "$tmp_index"
+        trap - EXIT ERR
+        new_commit=$(git commit-tree "$new_tree" -p "$(git rev-parse "{{base}}")" -m "wt: focused session.md")
+        git branch "$branch" "$new_commit"
+        visible git worktree add "$wt_dir" "$branch"
+    else
+        visible git worktree add "$wt_dir" -b "$branch" "{{base}}"
+    fi
     (cd "$wt_dir" && visible git submodule update --init --reference "$main_dir/agent-core")
     # Put agent-core on a branch (not detached HEAD)
     (cd "$wt_dir/agent-core" && visible git checkout -b "wt/{{name}}")
@@ -69,8 +80,6 @@ wt-new name base="HEAD":
     (cd "$wt_dir" && visible uv sync)
     # Allow direnv in worktree
     (cd "$wt_dir" && direnv allow 2>/dev/null) || true
-    # Commit initial worktree state
-    (cd "$wt_dir" && visible git add -A && visible git commit -m "Initial worktree state")
     echo ""
     echo "${GREEN}✓${NORMAL} Worktree ready: $wt_dir"
     echo "  Launch: ${COMMAND}cd $wt_dir && claude${NORMAL}"
@@ -117,10 +126,16 @@ wt-merge name:
         (cd agent-core && visible git merge --no-edit "$branch")
         (cd agent-core && visible git branch -d "$branch")
         visible git add agent-core
+        git diff --quiet --cached || visible git commit -m "Merge agent-core from $branch"
     fi
-    # Step 2: Merge parent branch, auto-resolve session.md with ours
+    # Step 2: Merge parent branch, auto-resolve agent-core + session.md
     if ! git merge --no-edit "$branch"; then
-        if git diff --name-only --diff-filter=U | grep -q "agents/session.md"; then
+        # agent-core already merged in Step 1 — keep ours
+        if git diff --name-only --diff-filter=U | grep -q "^agent-core$"; then
+            visible git checkout --ours agent-core
+            visible git add agent-core
+        fi
+        if git diff --name-only --diff-filter=U | grep -q "^agents/session.md$"; then
             visible git checkout --ours agents/session.md
             visible git add agents/session.md
         fi
@@ -146,7 +161,7 @@ lint: format
     report "ruff check" ruff check -q --ignore=$ruff_ignores
     report "docformatter -c" docformatter -c src tests
     report "mypy" mypy
-    safe pytest-quiet
+    safe pytest -q
     report-end-safe "Lint"
 
 # Check code style
@@ -346,17 +361,6 @@ report () {
     if [ -s "$tmpfile" ]; then
         echo "${HEADER_STYLE}# $header${NORMAL}"
         cat "$tmpfile"
-    fi
-}
-
-pytest-quiet () {
-    # Bug: pytest -q exits 0 even if tests fail
-    set-tmpfile
-    pytest -q > "$tmpfile"
-    if grep -q "^Re-run failed: " "$tmpfile"; then
-        show "# pytest"
-        cat "$tmpfile"
-        return 1
     fi
 }
 

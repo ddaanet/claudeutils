@@ -8,27 +8,33 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
-| commit-unification | designed | May be superseded by commit-rca-fixes |
+| domain-validation | complete | Domain-specific validation infrastructure |
 | continuation-passing | requirements | Opus design needed |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
-| prompt-composer | designed | Oldest plan, at risk |
+| reflect-rca-parity-iterations | complete | Parity test quality gap fixes (11 steps, 8 design decisions) |
 | requirements-skill | requirements | Evaluate with opus |
-| reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
-| workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
-| reflect-rca-prose-gates | complete | D+B hybrid fix implemented |
+| orchestrate-evolution | requirements | Absorb planning, finalize phase pattern |
 | plugin-migration | planned | All 7 phases vetted (44 issues fixed). Ready for runbook assembly |
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
-| submodule-commit-tooling | requirements | Submodule commit workflow |
-| validator-consolidation | requirements | Move to claudeutils package |
+| wt-merge-skill | requirements | Blocked on continuation-passing |
+| workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
+| validator-consolidation | complete | Validators consolidated to claudeutils package |
 
 ## Complete (Archived)
 
-*29 plans completed and deleted. Git history preserves all designs/reports.*
+*35 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `reflect-rca-parity-iterations` — Parity test quality gap fixes (11 steps, 8 design decisions)
+- `domain-validation` — Domain-specific validation infrastructure (validation skill, rules file, plan skill updates)
+- `validator-consolidation` — Validators consolidated to claudeutils package
+- `commit-unification` — Unified commit skills, inlined gitmoji, decoupled handoff
+- `position-bias` — Fragment reordering by position bias + token budget script
+- `prompt-composer` — Superseded by fragment system; research distilled
+- `reflect-rca-prose-gates` — D+B hybrid fix implemented
 - `statusline-wiring` — Statusline CLI with TDD (28 cycles, 6 phases)
 - `statusline-parity` — All 14 cycles, 5 phases executed and validated
 - `learnings-consolidation` — Learnings consolidation infrastructure (7 steps, 4 phases)
