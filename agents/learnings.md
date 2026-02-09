@@ -202,6 +202,18 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Root cause: Tool batching rule doesn't explicitly cover Task tool — extension principle not documented
 - Wall-clock impact: Sequential = sum(task_times), parallel = max(task_times) — wastes ~14 min for 6 reviews
 - Fix needed: Add Task tool section to tool-batching.md with explicit examples
+## Failed merge leaves untracked debris
+- Anti-pattern: Assume aborted merge is clean — retry merge, get "untracked files would be overwritten"
+- Correct pattern: After merge abort, check for new untracked files materialized during merge attempt
+- Rationale: Git materializes new files from source branch during merge, aborts without cleaning them up
+- Fix: `git clean -fd -- <affected-dirs>` to remove debris, then retry merge
+- Diagnostic: File count (untracked vs files added by source branch) and birth timestamps match merge attempt time
+## Never agent-initiate lock file removal
+- Anti-pattern: Agent removes .git/index.lock after git error suggests "remove the file manually"
+- Correct pattern: Stop on unexpected git lock error, report to user, wait for guidance
+- Rationale: Lock may indicate active git process; removal by agent bypasses "stop on unexpected results" rule
+- Scope: All git operations (merge, commit, rebase) — wait 2s and retry, never delete lock files
+- Contributing factor: Project directives scoped lock handling to commit only, agent over-generalized
 ## Vet-fix-agent context-blind validation
 - Anti-pattern: Trust vet-fix-agent output without validation, no execution context provided in delegation
 - Vet validates against current filesystem not execution-time state — Phase 6 error: "fixed" edify-plugin → agent-core
