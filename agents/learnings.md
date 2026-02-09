@@ -131,3 +131,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Each skill hardcodes its exit tail-call (e.g., "invoke /handoff --commit")
 - Correct pattern: Hook always provides continuation — user chain + last skill's `default-exit` from frontmatter. Skills consume next entry, no hardcoded exits.
 - Rationale: Single mechanism for all chaining (user-specified and default). Skills become simpler. Exit behavior managed centrally by continuation system.
+## Orchestration agents delete unrelated files
+- Anti-pattern: Step agent reads step files for context, then "cleans up" by deleting them
+- Correct pattern: Add explicit scope constraint: "Do NOT delete any step files" in orchestration prompts
+- Rationale: Step 3.2 agent deleted all 15 step files, requiring manual restore via git checkout
+- Fix: Added "Do NOT delete any step files" constraint to all subsequent step delegations
+## Empirical validation for parsers
+- Anti-pattern: Unit tests pass → ship parser (all unit tests use synthetic inputs)
+- Correct pattern: Validate against real corpus before declaring parser complete
+- Rationale: 86.7% false positive rate in continuation parser despite 100% unit test pass rate
+- Root cause: Skill name patterns (/commit, /handoff) appear in file paths, meta-discussion, XML tags
+- Key insight: Detection accuracy requires context awareness, not just pattern matching

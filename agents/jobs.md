@@ -8,7 +8,7 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
-| continuation-passing | planned | Runbook complete, ready for execution |
+| continuation-passing | planned | 12/15 steps done, blocked on parser FP rate (86.7%) |
 | continuation-prepend | requirements | Subroutine calls via prepend; requires continuation-passing |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
