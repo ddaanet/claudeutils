@@ -1,5 +1,7 @@
 """Tests for relevance scoring."""
 
+from pathlib import Path
+
 import pytest
 
 from claudeutils.recall.index_parser import IndexEntry
@@ -58,7 +60,7 @@ def test_score_relevance_no_match() -> None:
     assert score.is_relevant is False
 
 
-def test_score_relevance_threshold(tmp_path) -> None:
+def test_score_relevance_threshold(tmp_path: Path) -> None:
     """Score above threshold is relevant."""
     entry = IndexEntry(
         key="test entry data",
@@ -192,7 +194,7 @@ def test_find_relevant_entries_empty_session_keywords() -> None:
         ),
     ]
 
-    session_keywords = set()
+    session_keywords: set[str] = set()
     relevant = find_relevant_entries(
         "session1", session_keywords, entries, threshold=0.3
     )

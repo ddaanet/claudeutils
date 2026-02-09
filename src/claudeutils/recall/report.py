@@ -51,12 +51,13 @@ def generate_markdown_report(analysis: RecallAnalysis) -> str:
     lines.append("| Entry Key | File | Recall | Direct% | Search% | Sessions |")
     lines.append("|-----------|------|--------|---------|---------|----------|")
 
-    for result in analysis.per_entry_results:
-        lines.append(
-            f"| {result.entry_key} | {result.referenced_file} | "
-            f"{result.recall_percent:.0f}% | {result.direct_percent:.0f}% | "
-            f"{result.search_then_read_percent:.0f}% | {result.total_relevant_sessions} |"
-        )
+    lines.extend(
+        f"| {r.entry_key} | {r.referenced_file} | "
+        f"{r.recall_percent:.0f}% | {r.direct_percent:.0f}% | "
+        f"{r.search_then_read_percent:.0f}% | "
+        f"{r.total_relevant_sessions} |"
+        for r in analysis.per_entry_results
+    )
 
     lines.append("")
 
@@ -68,27 +69,32 @@ def generate_markdown_report(analysis: RecallAnalysis) -> str:
 
     if high_recall:
         lines.append("### High-Recall Entries (effective, keep as-is)\n")
-        for result in high_recall[:5]:  # Show top 5
-            lines.append(
-                f"- **{result.entry_key}** ({result.referenced_file}): "
-                f"{result.recall_percent:.0f}% recall, {result.total_relevant_sessions} sessions"
-            )
+        lines.extend([
+            f"- **{result.entry_key}** ({result.referenced_file}): "
+            f"{result.recall_percent:.0f}% recall, "
+            f"{result.total_relevant_sessions} sessions"
+            for result in high_recall[:5]
+        ])
         lines.append("")
 
     if low_recall:
         lines.append("### Low-Recall Entries (consider rephrase/remove)\n")
-        for result in low_recall[:5]:  # Show bottom 5
-            lines.append(
-                f"- **{result.entry_key}** ({result.referenced_file}): "
-                f"{result.recall_percent:.0f}% recall, {result.total_relevant_sessions} sessions"
-            )
+        lines.extend([
+            f"- **{result.entry_key}** ({result.referenced_file}): "
+            f"{result.recall_percent:.0f}% recall, "
+            f"{result.total_relevant_sessions} sessions"
+            for result in low_recall[:5]
+        ])
         lines.append("")
 
     lines.append("### Summary Statistics\n")
-    lines.append(
-        f"- Average entry recall: "
-        f"{sum(r.recall_percent for r in analysis.per_entry_results) / len(analysis.per_entry_results) if analysis.per_entry_results else 0:.1f}%"
+    avg_recall = (
+        sum(r.recall_percent for r in analysis.per_entry_results)
+        / len(analysis.per_entry_results)
+        if analysis.per_entry_results
+        else 0
     )
+    lines.append(f"- Average entry recall: {avg_recall:.1f}%")
     lines.append(f"- Total entries analyzed: {len(analysis.per_entry_results)}")
     lines.append("")
 

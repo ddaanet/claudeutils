@@ -106,7 +106,7 @@ def parse_memory_index(index_file: Path) -> list[IndexEntry]:
     try:
         content = index_file.read_text()
     except OSError as e:
-        logger.warning(f"Failed to read {index_file}: {e}")
+        logger.warning("Failed to read %s: %s", index_file, e)
         return []
 
     lines = content.split("\n")

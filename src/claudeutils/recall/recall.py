@@ -3,6 +3,7 @@
 import logging
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -47,7 +48,7 @@ class RecallAnalysis(BaseModel):
     pattern_summary: dict[str, int]  # Aggregate pattern counts
 
 
-def _extract_file_from_input(tool_input: dict) -> str | None:
+def _extract_file_from_input(tool_input: dict[str, Any]) -> str | None:
     """Extract file path from tool input dict.
 
     Handles different tool types:
@@ -109,10 +110,10 @@ def _matches_file_or_parent(target_file: str, tool_file: str) -> bool:
 
 
 def classify_discovery_pattern(
-    relevant_entry: RelevanceScore,
+    _relevant_entry: RelevanceScore,
     tool_calls: list[ToolCall],
     referenced_file: str,
-    session_id: str,
+    _session_id: str,
 ) -> DiscoveryPattern:
     """Classify how agent discovered a referenced file.
 
@@ -177,7 +178,7 @@ def calculate_recall(
     entry_map = {entry.key: entry for entry in index_entries}
 
     # Aggregate metrics per entry
-    entry_metrics: dict[str, dict] = {}
+    entry_metrics: dict[str, dict[str, Any]] = {}
 
     for session_id, relevant_list in relevant_entries.items():
         tool_calls = sessions_data.get(session_id, [])

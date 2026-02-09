@@ -8,7 +8,7 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
-| continuation-passing | requirements | Opus design needed |
+| continuation-passing | planned | Design + implementation merged (15 steps, parser, registry) |
 | continuation-prepend | requirements | Problem statement only |
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
 | domain-validation | complete | Domain-specific validation infrastructure |

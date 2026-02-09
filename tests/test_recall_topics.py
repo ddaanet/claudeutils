@@ -80,7 +80,8 @@ def test_extract_topics_array_content(tmp_path: Path) -> None:
     """Extract from array-format message content."""
     session_file = tmp_path / "array_content.jsonl"
     session_file.write_text(
-        '{"type":"user","message":{"content":[{"type":"text","text":"Parse this JSON data"}]},'
+        '{"type":"user","message":{"content":[{"type":"text",'
+        '"text":"Parse this JSON data"}]},'
         '"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"main-123"}\n'
     )
 
