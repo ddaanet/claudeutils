@@ -276,3 +276,50 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Provides holistic view for cross-phase coherence while enabling incremental development with earlier feedback.
 
+## .Continuation Passing
+
+### Continuation Passing Pattern
+
+**Decision Date:** 2026-02-09
+
+**Decision:** Replace hardcoded skill tail-calls with a continuation passing system. UserPromptSubmit hook parses multi-skill chains; skills consume continuations via peel-first-pass-remainder protocol.
+
+**Architecture:** Hook activates only for multi-skill chains (2+ registered skills). Single skills pass through — skills manage their own `default-exit` at runtime.
+
+**Key decisions:**
+- D-1: Hook as parsing layer (multi-skill only) — centralized, reliable, no false positives on single skills
+- D-2: Explicit passing via `[CONTINUATION: ...]` suffix in Skill args — deterministic, no context degradation
+- D-3: Skills own default-exit — used when standalone or last in chain, not appended by hook
+- D-4: Ephemeral lifecycle — continuations never persisted, execution-time only
+- D-5: Sub-agent isolation by convention — continuation excluded from Task tool prompts
+- D-6: Two parsing modes (inline prose, multi-line list) — single skills pass through
+- D-7: Prose-to-explicit translation limited to explicit `/skill` references
+
+**Anti-pattern:** Hardcoded tail-calls (e.g., skill always invokes `/handoff --commit`)
+
+**Correct pattern:** Skill reads continuation from args/additionalContext, peels first entry, tail-calls remainder. When no continuation: skill implements its own default-exit behavior at runtime (skills manage their own standalone exit logic).
+
+**Impact:** Users compose skill chains in natural prose. Skills are decoupled — no knowledge of downstream skills. Backward compatible: solo invocations behave identically to hardcoded exits.
+
+**Reference:** `agent-core/fragments/continuation-passing.md`, `plans/continuation-passing/design.md`
+
+### Hook-Based Parsing Rationale
+
+**Decision Date:** 2026-02-09
+
+**Decision:** Parse continuations in UserPromptSubmit hook rather than fragment instructions or LLM inference.
+
+**Anti-pattern:** Fragment-only approach (CLAUDE.md instruction telling Claude to detect and chain skills)
+
+**Correct pattern:** Hook fires before Claude processes input → deterministic parsing → structured additionalContext injection
+
+**Rationale:**
+- Hook parsing is deterministic (regex + registry lookup)
+- Fragment-based parsing unreliable for structured continuations (FR-4)
+- Hook provides sub-agent isolation guarantee (additionalContext not in Task prompts)
+- Context-aware filtering eliminates false positives (whitespace-or-line-start, path detection, note: prefix)
+
+**Empirical validation:** Tested against 200-prompt corpus from real sessions. 0% false positive rate after architecture change (single-skill pass-through). Original approach had 86.7% FP rate.
+
+**Impact:** Reliable skill chaining without LLM parsing errors.
+

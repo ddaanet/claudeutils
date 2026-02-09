@@ -9,6 +9,8 @@ Plan lifecycle tracking. Updated when plans change status.
 | Plan | Status | Notes |
 |------|--------|-------|
 | continuation-passing | requirements | Opus design needed |
+| continuation-prepend | requirements | Problem statement only |
+| feature-requests | requirements | GH issue research (sandbox, tool overrides) |
 | domain-validation | complete | Domain-specific validation infrastructure |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
@@ -18,6 +20,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | reflect-rca-parity-iterations | complete | Parity test quality gap fixes (11 steps, 8 design decisions) |
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
 | requirements-skill | requirements | Evaluate with opus |
+| tweakcc | requirements | Local instances research |
 | validator-consolidation | complete | Validators consolidated to claudeutils package |
 | when-recall | requirements | `/when` memory recall system — active retrieval replacing passive index |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
