@@ -1,26 +1,30 @@
-# Session: Plugin Migration — Merge Complete
+# Session: Plugin Migration — Runbook Ready
 
-**Status:** tools-rewrite merged into wt/plugin-migration. Ready to resolve prepare-runbook.py phase numbering.
+**Status:** Phase numbering resolved, runbook assembled. Ready to execute plugin migration.
 
 ## Completed This Session
 
-**Branch merge completed:**
-- Merged `tools-rewrite` into `wt/plugin-migration` (commits 7880476, 09a4c41)
-- Resolved session.md conflicts by combining contexts from both branches
-- Updated agent-core submodule pointer to 1bbd1bf (worktree task tracking + quiet-explore)
-- Removed untracked files from failed initial merge (git clean -fd)
+**Design and runbook validation:**
+- Validated design.md and runbook-phase-*.md files post-merge — no conflicts, content correct
+- Updated Phase 0 line number references (justfile lines 19, 76) for accuracy
 
-**Context from tools-rewrite merge:**
-- infrastructure-improvements already merged (df9f903) — 4 workflow infrastructure tasks
-- Multiple worktree merges: complexity-fixes, domain-validation-design, parity-failures, agent-core-links
-- All 509 tests passing, precommit clean
+**prepare-runbook.py enhancements:**
+- Relaxed phase numbering validation: accepts 0-based (Phase 0-6) or 1-based (Phase 1-N)
+- Added general workflow detection: Step headers (not just Cycle headers for TDD)
+- Validation: `start_num` detected from first phase, validates sequential from that base
+- Lines 410-445: Phase detection, validation, and frontmatter generation
+
+**Runbook assembly complete:**
+- Assembled 7 phase files (Phase 0-6) into 15 step files (step-0-1 through step-6-1)
+- Created `.claude/agents/plugin-migration-task.md` (quiet-task baseline)
+- Created `plans/plugin-migration/orchestrator-plan.md`
+- Type: general, Model: haiku
+- Warnings about non-existent files expected (created during execution)
 
 ## Pending Tasks
 
-- [ ] **Resolve prepare-runbook.py phase numbering** — Fix validation to support 0-based or 1-based phase numbering | sonnet
-  - Current: Script enforces 1-based (phases 1-N), fails on plugin migration's 0-based (Phase 0-6)
-  - Options: (1) Renumber phases 0-6 → 1-7, (2) Fix script to accept 0-based, (3) Make validation flexible
-  - File: `agent-core/bin/prepare-runbook.py` lines 403-414
+- [ ] **Execute plugin migration** — `/orchestrate plans/plugin-migration/orchestrator-plan.md` | haiku
+  - Plan: plugin-migration | Status: planned
 - [ ] **Examine pending tasks for batching** — Identify parallelizable task groups for wt/ execution | sonnet
 - [ ] **Handoff validation design** — Complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
@@ -61,13 +65,6 @@
 
 ## Blockers / Gotchas
 
-**Prepare-runbook.py phase numbering mismatch:**
-- Script validation at lines 410-414 expects `range(1, N+1)` (1-based)
-- Plugin migration design uses Phase 0 (directory rename) as foundational step
-- All phase files exist: `runbook-phase-0.md` through `runbook-phase-6.md`
-- Error message: "Phase numbering gaps detected. Missing phases: []" (misleading — no gaps, just wrong base)
-- Cannot proceed with runbook assembly until validation fixed
-
 **Worktree sandbox exemptions needed.** `just wt-new`, `just wt-rm`, `just wt-merge` write outside project directory. Need `dangerouslyDisableSandbox: true`.
 
 **Key dependency chain:** continuation-passing → handoff-validation → orchestrate-evolution (serial opus sessions). wt-merge-skill also blocked on continuation-passing.
@@ -86,12 +83,15 @@
 
 ## Reference Files
 
-- **agent-core/bin/prepare-runbook.py** — Runbook assembly script (lines 403-414: phase numbering validation)
-- **plans/plugin-migration/runbook-phase-{0-6}.md** — All phase files (vetted, ready for assembly)
-- **plans/plugin-migration/reports/phase-{0-6}-review.md** — Vet reviews (44 issues fixed)
+- **agent-core/bin/prepare-runbook.py** — Runbook assembly script (lines 410-445: phase detection, validation, frontmatter)
+- **plans/plugin-migration/orchestrator-plan.md** — Orchestrator plan (15 steps, haiku execution)
+- **plans/plugin-migration/steps/step-*.md** — 15 step files (step-0-1 through step-6-1)
+- **.claude/agents/plugin-migration-task.md** — Plan-specific agent (quiet-task baseline)
 - **plans/plugin-migration/design.md** — Design with Phase 0 as foundational step (D-1 naming hierarchy)
+- **plans/plugin-migration/runbook-phase-{0-6}.md** — Source phase files (7 files, vetted)
+- **plans/plugin-migration/reports/phase-{0-6}-review.md** — Vet reviews (44 issues fixed)
 - **plans/wt-merge-skill/outline.md** — wt-merge skill design outline
 - **plans/continuation-passing/outline.md** — Continuation passing design (in wt/continuation-passing worktree)
 - **plans/reflect-rca-sequential-task-launch/rca.md** — RCA covering Task parallelization + vet context issues
 - **agent-core/fragments/tool-batching.md** — Current tool batching guidance (needs Task tool section)
-- **justfile** — `wt-new` (lines 55-87), `wt-rm`, `wt-merge`
+- **justfile** — `wt-new` (line 76), `wt-rm`, `wt-merge`

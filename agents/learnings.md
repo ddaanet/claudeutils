@@ -107,7 +107,6 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Worktree removal: `git worktree remove` refuses with submodules (even after `deinit -f --all`)
 - Fix: `--force` flag required; warn user about uncommitted changes before forcing
 - Symlinks work: relative symlinks (../../agent-core/...) resolve correctly per-worktree after submodule init
-<<<<<<< HEAD
 ## Recipe failure → retry recipe
 - Anti-pattern: Recipe fails partway, agent manually completes remaining steps with ad-hoc commands
 - Correct pattern: Fix obstruction (e.g., remove stale lock), retry the recipe from scratch
@@ -179,3 +178,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Include phase dependencies and state transitions in delegation prompt
 - Read vet report after completion, grep for UNFIXABLE markers, escalate to user
 - Rationale: Vet lacks temporal reasoning (current vs future state) and explicit escalation protocol
+## Flexible phase numbering support
+- Anti-pattern: Hardcoding phase validation to expect 1-based numbering (phases 1-N)
+- Correct pattern: Detect starting phase number from first file, validate sequential from that base
+- Rationale: Design decisions may use 0-based (Phase 0 = foundational step) or 1-based numbering
+- Implementation: `start_num = phase_nums[0]`, validate against `range(start_num, start_num + len)`
+- Also supports general vs TDD detection: Step headers = general, Cycle headers = TDD
+- Fix: agent-core/bin/prepare-runbook.py lines 410-445

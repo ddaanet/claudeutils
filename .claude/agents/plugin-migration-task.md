@@ -134,40 +134,19 @@ Do not proceed beyond assigned task scope. Do not make assumptions about unstate
 
 ## Common Context
 
-**Requirements:**
-- FR-1: Plugin auto-discovery (no symlinks) — Phases 1-2
-- FR-2: `just claude` with `--plugin-dir` — Phase 4
-- FR-3: `/edify:init` scaffolding — Phase 2
-- FR-4: `/edify:update` fragment sync — Phase 2
-- FR-5: Version check via hook — Phase 3
-- FR-6: Portable justfile recipes — Phase 4
-- FR-7: Symlink cleanup — Phase 5
-- FR-8: Plan-specific agent coexistence — Phase 5
-- FR-9: Hooks migrate to plugin — Phase 3
-- NFR-1: Dev mode performance parity — Phase 5 validation
-- NFR-2: Token overhead parity — Phase 5 validation
+**Affected Files:**
+- `.cache/just-help.txt` (regenerated with imported recipes)
+- `.cache/just-help-edify-plugin.txt` (regenerated without sync-to-parent)
 
 **Key Constraints:**
-- Dev mode only (D-7): Consumer mode deferred to future work
-- Plugin name = `edify` (D-1)
-- Hook scripts unchanged except deletion (D-2)
-- Skills/agents already in correct structure for auto-discovery
+- Must run AFTER Phase 4 (justfile import) and Phase 5 (sync-to-parent removal)
+- Cache generation depends on current justfile content
+- CLAUDE.md loads these files via @ references (must remain valid)
 
-**Project Paths:**
-- Plugin manifest: `agent-core/.claude-plugin/plugin.json`
-- Version marker: `agent-core/.version`
-- Hook config: `agent-core/hooks/hooks.json`
-- Skills: `agent-core/skills/*/SKILL.md` (16 existing + 2 new)
-- Agents: `agent-core/agents/*.md` (14 files)
-- Portable recipes: `agent-core/just/portable.just`
-
-**Conventions:**
-- Use `$CLAUDE_PLUGIN_ROOT` in hook commands for portability
-- Use project `tmp/` directory (not system `/tmp/`)
-- Verify with `jq` for JSON validation
-- Test hooks require restart (hooks load at session start only)
-
----
+**Stop Conditions:**
+- If `just cache` fails (justfile syntax error, Makefile error)
+- If cache files not updated (check modification timestamps)
+- If CLAUDE.md @ references break (cache file paths changed)
 
 ---
 
