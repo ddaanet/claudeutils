@@ -1,0 +1,1118 @@
+{
+  "sessions_analyzed": 50,
+  "relevant_pairs_total": 1583,
+  "pairs_with_read": 0,
+  "overall_recall_percent": 0.0,
+  "pattern_summary": {
+    "direct": 0,
+    "search_then_read": 0,
+    "user_directed": 0,
+    "not_found": 1583
+  },
+  "per_entry_results": [
+    {
+      "entry_key": "Model Capability Differences",
+      "referenced_file": "agents/decisions/prompt-structure-research.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Phase-by-Phase Review Pattern",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Oneshot workflow pattern",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "TDD Workflow Integration",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Handoff Pattern: Inline Learnings",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "Efficient Model Analysis Requires Verification",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Model selection for design guidance",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "Flags are exact tokens",
+      "referenced_file": "agents/decisions/project-config.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Context Loading Behavior",
+      "referenced_file": "agents/decisions/prompt-structure-research.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "Design review uses opus",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "Agent-creator reviews in orchestration",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 20,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 20
+      }
+    },
+    {
+      "entry_key": "Orchestrator model mismatch",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Default semantic, mark structural",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 20,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 20
+      }
+    },
+    {
+      "entry_key": "No human escalation during refactoring",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "@ references limitation",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "Planning Pattern: Three-Stream Problem Documentation",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "TDD Workflow: Commit Squashing Pattern",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Task prose keys pattern",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Hook capture impractical for subagents",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "MCP tools unavailable in subagents",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Root marker for scripts",
+      "referenced_file": "agents/decisions/project-config.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "Template merge semantics",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Requirements immutable during execution",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Prose Test Descriptions Save Tokens",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Complexity Before Expansion",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Dogfooding Validates Design",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "Handoff commit assumption",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "Vet agent context usage",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "Commits are sync points",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "TDD RED Phase: Behavioral Verification",
+      "referenced_file": "agents/decisions/testing.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Commit RCA Fixes Active",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Orchestration Assessment: Three-Tier Implementation Model",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "Runbook Outline Format",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "Index entries require backing documentation",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Precommit Is Read-Only",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "TDD GREEN Behavioral Descriptions",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Design Phase: Output Optimization",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Checkpoint Process for Runbooks",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "Happy path first TDD",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "TDD Integration Test Gap",
+      "referenced_file": "agents/decisions/testing.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Recommendations Inline Transmission",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 22,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 22
+      }
+    },
+    {
+      "entry_key": "Orchestrator Execution Mode",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 21,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 21
+      }
+    },
+    {
+      "entry_key": "Outline-first design workflow",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Ambient awareness beats invocation",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "Vet catches structure misalignments",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 23,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 23
+      }
+    },
+    {
+      "entry_key": "Rule Format Effectiveness",
+      "referenced_file": "agents/decisions/prompt-structure-research.md",
+      "total_relevant_sessions": 19,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 19
+      }
+    },
+    {
+      "entry_key": "Routing layer efficiency",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "SessionStart hook limitation",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 26,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 26
+      }
+    },
+    {
+      "entry_key": "Seeding before auto-generation",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 22,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 22
+      }
+    },
+    {
+      "entry_key": "Workflow Feedback Loop Insights",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 23,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 23
+      }
+    },
+    {
+      "entry_key": "Phase-grouped TDD runbooks",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Phase-Grouped Runbook Header Format",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "Review Agent Fix-All Pattern",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Handoff tail-call pattern",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Consolidation Gates Reduce Orchestrator Overhead",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 11,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 11
+      }
+    },
+    {
+      "entry_key": "Defense-in-Depth: Commit Verification",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Fragment Ordering Rationale (Feb 2026)",
+      "referenced_file": "agents/decisions/prompt-structure-research.md",
+      "total_relevant_sessions": 16,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 16
+      }
+    },
+    {
+      "entry_key": "UserPromptSubmit hook filtering",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 15,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 15
+      }
+    },
+    {
+      "entry_key": "Title-words beat kebab-case",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 16,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 16
+      }
+    },
+    {
+      "entry_key": "TDD: Presentation vs Behavior",
+      "referenced_file": "agents/decisions/testing.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Conformance Validation for Migrations",
+      "referenced_file": "agents/decisions/testing.md",
+      "total_relevant_sessions": 19,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 19
+      }
+    },
+    {
+      "entry_key": "Outline Enables Phase-by-Phase Expansion",
+      "referenced_file": "agents/decisions/workflow-advanced.md",
+      "total_relevant_sessions": 14,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 14
+      }
+    },
+    {
+      "entry_key": "Template commit contradiction",
+      "referenced_file": "agents/decisions/workflow-optimization.md",
+      "total_relevant_sessions": 25,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 25
+      }
+    },
+    {
+      "entry_key": "Prose Gate D+B Hybrid Fix",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 23,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 23
+      }
+    },
+    {
+      "entry_key": "Rule Budget Constraints",
+      "referenced_file": "agents/decisions/prompt-structure-research.md",
+      "total_relevant_sessions": 24,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 24
+      }
+    },
+    {
+      "entry_key": "Bare lines beat list markers",
+      "referenced_file": "agents/decisions/implementation-notes.md",
+      "total_relevant_sessions": 19,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 19
+      }
+    },
+    {
+      "entry_key": "Cycle numbering gaps relaxed",
+      "referenced_file": "agents/decisions/workflow-core.md",
+      "total_relevant_sessions": 9,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 9
+      }
+    },
+    {
+      "entry_key": "Applicability to Current Architecture",
+      "referenced_file": "agents/decisions/prompt-structure-research.md",
+      "total_relevant_sessions": 12,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 12
+      }
+    },
+    {
+      "entry_key": "Tool Landscape (Dec 2025)",
+      "referenced_file": "agents/decisions/prompt-structure-research.md",
+      "total_relevant_sessions": 8,
+      "sessions_with_read": 0,
+      "recall_percent": 0.0,
+      "direct_percent": 0.0,
+      "search_then_read_percent": 0.0,
+      "user_directed_percent": 0.0,
+      "pattern_counts": {
+        "direct": 0,
+        "search_then_read": 0,
+        "user_directed": 0,
+        "not_found": 8
+      }
+    }
+  ]
+}

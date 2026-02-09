@@ -19,8 +19,10 @@ from claudeutils.markdown import process_file
 from claudeutils.model.cli import model
 from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
+from claudeutils.recall.cli import recall
 from claudeutils.statusline.cli import statusline
 from claudeutils.tokens_cli import handle_tokens
+from claudeutils.validation.cli import validate
 
 
 def _handle_compose_error(e: Exception) -> None:
@@ -151,7 +153,9 @@ def list_sessions(project: str | None) -> None:
 
 cli.add_command(account)
 cli.add_command(model)
+cli.add_command(recall)
 cli.add_command(statusline)
+cli.add_command(validate)
 
 
 @cli.command(help="Extract feedback from session")

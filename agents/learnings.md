@@ -109,7 +109,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Symlinks work: relative symlinks (../../agent-core/...) resolve correctly per-worktree after submodule init
 ## Recipe failure → retry recipe
 - Anti-pattern: Recipe fails partway, agent manually completes remaining steps with ad-hoc commands
-- Correct pattern: Fix obstruction (e.g., remove stale lock), retry the recipe from scratch
+- Correct pattern: Fix obstruction (e.g., delete conflicting untracked file), retry the recipe from scratch
 - Rationale: Recipes are atomic units — manually finishing bypasses error handling, ordering, side effects
 - Fix: Added "Partial failure recovery" rule to project-tooling.md
 ## Lightweight TDD tier assessment
@@ -131,3 +131,113 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Pipeline test asserting remark output matches preprocessor expected fixtures
 - Correct pattern: Assert full pipeline idempotency — `(preprocessor → remark)²` produces same result
 - Rationale: Remark legitimately reformats (table padding, blank lines) — exact match conflates preprocessor correctness with formatter style
+## Temporal validation for empirical analysis
+- Anti-pattern: Running analysis on session history without checking if feature existed during those sessions
+- Correct pattern: Correlate session timestamps with git history to validate feature availability
+- Rationale: Sessions before feature creation yield expected-zero results, invalidating analysis
+- Example: Memory index created Feb 1, sessions analyzed Feb 5-8 → valid (all had access)
+- Git commands: `git log --format="%ai" --follow <file>` for creation date, session mtime for analysis window
+- Strengthens findings: 0% recall validated across 200 sessions, all post-creation and post-stability
+## Namespace collision in prefix design
+- Anti-pattern: Reusing a symbol for new semantics without checking existing conventions
+- Correct pattern: Check existing notation conventions before introducing new prefix semantics
+- Rationale: `.` prefix on headers means "structural section" (validated by precommit). Reusing `.` in a different namespace (command syntax like `/when .section`) is safe because contexts don't overlap
+- Resolution: `/when .section` and `/when ..file` use `.`/`..` as command mode switches (not heading prefixes), avoiding collision
+## Prompt caching not file caching
+- Anti-pattern: Assuming Claude Code deduplicates file reads or maintains a file cache (re-reading = free)
+- Correct pattern: Each Read appends a new content block to conversation; "caching" = prompt prefix matching at API level (92% reuse, 10% cost)
+- Rationale: No application-level dedup. 20-block lookback window limits cache hits when many tool calls intervene
+- @-references (system prompt) are more cache-efficient than Read (messages) for always-needed content
+## Behavioral triggers beat passive knowledge
+- Anti-pattern: `/what` and `/why` operators for definitional/rationale knowledge — LLMs don't proactively seek context
+- Correct pattern: `/when` (behavioral) and `/how` (procedural) only — these prescribe action, creating retrieval intention
+- Rationale: LLMs use what's in context or ignore it; they don't probe for definitions unless specifically instructed
+- Consequence: If a learning can't be phrased as `/when` or `/how`, it's either a fragment (ambient) or lacks actionable content
+## Fuzzy bridge: density and clarity
+- Anti-pattern: Index triggers must exactly match decision file headings (forces verbose triggers or cryptic headings)
+- Correct pattern: Index triggers fuzzy-compressed for density, headings stay as readable prose, fuzzy engine bridges the gap
+- Rationale: "how encode path" fuzzy-matches "How to encode paths" — index saves tokens, headings stay clear
+- Validator uses same fuzzy engine: each trigger must uniquely expand to one heading, each heading reachable by exactly one trigger
+## Design skill lacks resume logic
+- Anti-pattern: Invoking `/design` when design is mid-flight — restarts from Phase A instead of resuming
+- Correct pattern: When design is in progress, manually continue from current phase (read outline, proceed to Phase B/C)
+- Rationale: `/design` is linear A→B→C with no "load existing artifacts" step
+- Impact: For `/when` design, outline was updated directly this session, bypassing `/design` skill
+## wt-merge empty submodule failure
+- Anti-pattern: `git commit` in `set -e` script with nothing staged → exits 1, kills script before next step
+- Correct pattern: Guard with `git diff --quiet --cached || git commit ...`
+- Broader pattern: Recipe success ≠ task success — verify git state after recipe (unmerged commits, stale branches)
+- Fix: justfile line 133 guarded, 4 stale worktrees recovered
+## Agent scope creep in orchestration
+- Anti-pattern: Prompt says "execute step N" without scope constraint — agent reads ahead and executes step N+1
+- Correct pattern: Prompt must include "Execute ONLY this step. Do NOT read or execute other step files."
+- Secondary: Orchestrator must verify agent return describes only the assigned step, not additional work
+- Related: Checkpoint delegations must include explicit "commit all changes before returning"
+## Rephrase feedback before applying
+- Anti-pattern: Receive user feedback, immediately apply changes, present result
+- Correct pattern: Receive feedback → rephrase understanding → ask for validation → apply
+- Rationale: Misinterpreting feedback in /design leads to wrong architectural decisions; rephrase catches misunderstandings early
+- Scope: Especially important in /design, but generally applicable
+## Sub-agent rules file injection limitation
+- Anti-pattern: Assuming vet-fix-agent (sub-agent via Task) receives rules file context injection
+- Correct pattern: Rules files fire in main session only; sub-agents don't receive injection
+- Consequence: Domain context must be carried explicitly — planner writes it into runbook, orchestrator passes through task prompt
+- Related: Hooks also don't fire in sub-agents (documented in claude-config-layout.md)
+## Planning-time domain detection principle
+- Anti-pattern: Expecting weak orchestrator (haiku) to detect domain and route to specialist agents
+- Correct pattern: Planner (opus/sonnet) detects domain, encodes domain skill references in runbook vet steps
+- Rationale: Weak orchestrator executes mechanically; domain detection requires intelligence; Dunning-Kruger prevents runtime self-assessment of knowledge gaps
+- Pattern: "encode concerns at planning time, not orchestration time"
+## Structured criteria manage overload
+- Anti-pattern: Splitting review across multiple agents (quality + alignment + domain = 3 invocations)
+- Correct pattern: Single vet-fix-agent with domain skill file providing explicit checklists and good/bad examples
+- Rationale: One agent per concern is expensive; structured skill files provide bounded criteria (not unbounded reasoning)
+- Trade-off: Cost over theoretical fidelity; skill file quality determines review quality
+## No auto-stash, require clean tree
+- Anti-pattern: Using `git stash` to work around dirty tree before merge/rebase operations
+- Correct pattern: Require clean tree to assert process integrity. Exception: session context files (session.md, jobs.md, learnings.md) auto-committed as pre-step
+- Rationale: Stash is fragile (conflicts on pop, lost stashes). Clean tree forces explicit state management
+- Related: wt-merge skill design — clean tree gate with session context exception
+## Always script non-cognitive solutions
+- Anti-pattern: Using agent judgment for deterministic operations (conflict resolution with known pattern, session file updates)
+- Correct pattern: If solution is non-cognitive (deterministic, pattern-based), script it. Always auto-fix when possible.
+- Examples: Session context merge conflicts (keep both sides), worktree task removal from session.md, gitmoji → no judgment needed
+- Corollary: Reserve agent invocations for cognitive work (design, review, ambiguous decisions)
+## Plugin-dev skill fallback
+- When plugin-dev guidance is incomplete or inconsistent, fallback to claude-code-guide agent
+- Example: hooks.json format conflict — plugin-dev:hook-development said wrapper format for hooks.json, claude-code-guide clarified direct format is correct
+- Pattern: plugin-dev skills are curated snapshots, claude-code-guide has live docs access
+## Per-artifact vet coverage required
+- Anti-pattern: Create/expand multiple runbook phases in sequence → commit all without individual vet reviews
+- Correct pattern: Each phase file is a production artifact → each requires vet-fix-agent review before proceeding
+- Root cause: Batch momentum — once first artifact skips review, switching cost increases for each subsequent one
+- Rationalization escalation: "Phase 0 was the hard one" → each subsequent phase rationalized as lower risk
+- Phase 0 vet found 13 issues in file that "followed the design" — proof that template-following ≠ correctness
+- Gate B structural gap: Boolean presence check (any report?), not coverage ratio (artifacts:reports 1:1)
+- "Proceed" scope: Activates execution mode which optimizes throughput, rationalizing away friction (vet checkpoints)
+## Sequential Task launch breaks parallelism
+- Anti-pattern: Launch Task agents one at a time (Phase 1 → wait → Phase 2 → wait...) when all inputs ready and no dependencies
+- Correct pattern: Batch all independent Task calls in single message (6 vet reviews → 6 Task calls in one message)
+- Root cause: Tool batching rule doesn't explicitly cover Task tool — extension principle not documented
+- Wall-clock impact: Sequential = sum(task_times), parallel = max(task_times) — wastes ~14 min for 6 reviews
+- Fix needed: Add Task tool section to tool-batching.md with explicit examples
+## Failed merge leaves untracked debris
+- Anti-pattern: Assume aborted merge is clean — retry merge, get "untracked files would be overwritten"
+- Correct pattern: After merge abort, check for new untracked files materialized during merge attempt
+- Rationale: Git materializes new files from source branch during merge, aborts without cleaning them up
+- Fix: `git clean -fd -- <affected-dirs>` to remove debris, then retry merge
+- Diagnostic: File count (untracked vs files added by source branch) and birth timestamps match merge attempt time
+## Never agent-initiate lock file removal
+- Anti-pattern: Agent removes .git/index.lock after git error suggests "remove the file manually"
+- Correct pattern: Stop on unexpected git lock error, report to user, wait for guidance
+- Rationale: Lock may indicate active git process; removal by agent bypasses "stop on unexpected results" rule
+- Scope: All git operations (merge, commit, rebase) — wait 2s and retry, never delete lock files
+- Contributing factor: Project directives scoped lock handling to commit only, agent over-generalized
+## Vet-fix-agent context-blind validation
+- Anti-pattern: Trust vet-fix-agent output without validation, no execution context provided in delegation
+- Vet validates against current filesystem not execution-time state — Phase 6 error: "fixed" edify-plugin → agent-core
+- UNFIXABLE issues in reports don't trigger escalation (manual detection required)
+- Correct pattern: Provide execution context to vet-fix-agent, validate UNFIXABLE detection before proceeding
+- Include phase dependencies and state transitions in delegation prompt
+- Read vet report after completion, grep for UNFIXABLE markers, escalate to user
+- Rationale: Vet lacks temporal reasoning (current vs future state) and explicit escalation protocol
