@@ -1,17 +1,24 @@
 # Session Handoff: 2026-02-09
 
-**Status:** Worktree merges complete + infrastructure improvements merged.
+**Status:** Infrastructure improvements merged, complexity fixes complete (pending merge).
 
 ## Completed This Session
 
 **Worktree operations:**
 - Created `wt/continuation-passing` — focused session.md for opus design
 - Created `wt/bash-git-prompt` — spun off from pending task
-- Created `wt/complexity-fixes` — project-local worktree for precommit fixes (background agent working)
+- Created `wt/complexity-fixes` — project-local worktree for precommit fixes, background sonnet agent completed all fixes
 - Merged `wt/agent-core-links` (ee19369) — fixed missing agent symlinks in sync-to-parent
 - Merged `wt/domain-validation-design` (966c580) — plugin-dev-validation skill, plan-adhoc/plan-tdd updates, 4 new learnings, domain-validation plan complete
 - Merged `wt/parity-failures` (1be1171) — executed parity gap fixes runbook (11 steps, 3 phases), updated skills with parity improvements
-- Merged `infrastructure-improvements` branch — 4 workflow infrastructure tasks from plugin migration vetting RCAs
+- Merged `infrastructure-improvements` branch (df9f903) — 4 workflow infrastructure tasks from plugin migration vetting RCAs
+
+**Background agent work (wt/complexity-fixes):**
+- Fixed all precommit failures: complexity + line limits
+- Created 3 new files: memory_index_checks.py, test_validation_memory_index_autofix.py, test_validation_tasks_validate.py
+- Modified 5 files to extract helpers and reduce complexity
+- All 509 tests pass, precommit validation clean
+- Ready to merge from wt/complexity-fixes
 
 **wt-merge skill design (discussion → outline):**
 - Outline at `plans/wt-merge-skill/outline.md`
@@ -25,6 +32,7 @@
 
 ## Pending Tasks
 
+- [ ] **Examine pending tasks for batching** — Identify parallelizable task groups for wt/ execution | sonnet
 - [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink | restart
 - [ ] **Handoff validation design** — Complete design, requires continuation-passing | opus
   - Plan: handoff-validation | Status: requirements
@@ -57,8 +65,6 @@
 - [ ] **Move worktrees into wt/ directory** — Solves sandbox isolation, update skills and scripts
 
 ## Worktree Tasks
-
-- [ ] **Fix precommit failures** → `wt/complexity-fixes` — memory_index complexity (C901/PLR0912), line limits (3 files over 400)
 
 - [ ] **Explore removing bash tool git prompt noise** → `wt/bash-git-prompt` — Research if suppressible via config, hooks, or shell profile
 - [ ] **Continuation passing design** → `wt/continuation-passing` — Validate outline against requirements | opus | Plan: continuation-passing | Status: requirements
@@ -94,7 +100,7 @@
 
 ## Next Steps
 
-Continue with continuation-passing design in worktree (opus). That unblocks handoff-validation, orchestrate-evolution, and wt-merge-skill.
+Merge wt/complexity-fixes to complete precommit fixes, then continue with continuation-passing design in worktree (opus).
 
 ---
-*Handoff by Sonnet. Merged infrastructure-improvements branch with workflow improvement tasks.*
+*Handoff by Sonnet. Infrastructure improvements merged, complexity fixes completed in wt/complexity-fixes.*
