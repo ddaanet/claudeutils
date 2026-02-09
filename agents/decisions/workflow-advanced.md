@@ -198,6 +198,20 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Significant token savings in planning phase without quality loss.
 
+**Conformance exception:**
+
+For conformance-type work (implementation with external reference: shell prototype, API spec, visual mockup, exact output format), prose descriptions MUST include the exact expected strings from the reference.
+
+This is not full test code — it is precise prose that preserves the specification.
+
+**Example contrast:**
+
+| Standard prose | Conformance prose |
+|----------------|-------------------|
+| "Assert output contains formatted model with emoji and color" | "Assert output contains `🥈` followed by `\033[35msonnet\033[0m` with double-space separator" |
+
+**Rationale:** Standard prose is efficient for behavioral tests. For conformance work, the specification IS the exact string — abstracting it introduces translation loss. Precise prose preserves spec fidelity while maintaining token efficiency (still more compact than full test code).
+
 ### Complexity Before Expansion
 
 **Decision Date:** 2026-02-05
@@ -293,3 +307,32 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 **Rationale:** Efficient models optimize for speed, may miss nuance in architectural distinctions.
 
 **Impact:** Appropriate model selection for analysis vs execution tasks.
+
+## .Validation Patterns
+
+### Domain Validation Pattern
+
+**Decision Date:** 2026-02-08
+
+**Decision:** Domain-specific validation via skill files read by vet-fix-agent, with planning-time detection encoded in runbook vet steps.
+
+**Pattern:** Planner detects domain (via rules files, design mentions, path patterns) → writes vet step referencing domain validation skill + artifact type → orchestrator copies instruction verbatim → vet-fix-agent reads skill file and applies criteria.
+
+**Architecture:**
+- **Domain validation skill:** `agent-core/skills/<domain>-validation/SKILL.md` — structured review criteria (Critical/Major/Minor + examples)
+- **Rules file:** `.claude/rules/<domain>-validation.md` — path-matched context injection for planner
+- **Planner awareness:** plan-adhoc and plan-tdd include "Domain Validation" subsection in vet checkpoint guidance
+- **No agent proliferation:** One vet-fix-agent, enriched via skill files (not separate domain-specific review agents)
+
+**First use case:** Plugin development validation (skills, agents, hooks, commands, plugin-structure)
+
+**Rationale:**
+- **Planning-time detection:** Intelligent planner (sonnet/opus) detects domain; weak orchestrator (haiku) executes mechanically
+- **Dunning-Kruger avoidance:** Runtime self-assessment unreliable; planner encodes domain context explicitly
+- **Sub-agents don't receive rules:** Rules files fire in main session only; domain context must be explicitly provided in task prompt
+- **Cost management:** One agent with structured criteria cheaper than multiple specialist agents
+- **Autofix trust:** Domain reviewer applies fixes directly (writer context may drift)
+
+**Extensibility:** New domain = validation skill file + rules file + planner awareness (3-step template, no framework)
+
+**Impact:** Domain-specific validation integrated into standard vet workflow without agent proliferation or orchestrator complexity.

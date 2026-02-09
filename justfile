@@ -23,11 +23,7 @@ cache:
 precommit:
     #!{{ bash_prolog }}
     sync
-    agent-core/bin/validate-tasks.py agents/session.md agents/learnings.md
-    agent-core/bin/validate-learnings.py agents/learnings.md
-    agent-core/bin/validate-decision-files.py
-    agent-core/bin/validate-memory-index.py agents/memory-index.md
-    agent-core/bin/validate-jobs.py
+    claudeutils validate
     gmake --no-print-directory -C agent-core check
     run-checks
     safe pytest -q
@@ -130,7 +126,7 @@ wt-merge name:
         (cd agent-core && visible git merge --no-edit "$branch")
         (cd agent-core && visible git branch -d "$branch")
         visible git add agent-core
-        visible git commit -m "Merge agent-core from $branch"
+        git diff --quiet --cached || visible git commit -m "Merge agent-core from $branch"
     fi
     # Step 2: Merge parent branch, auto-resolve agent-core + session.md
     if ! git merge --no-edit "$branch"; then

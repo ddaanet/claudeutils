@@ -15,6 +15,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 
 
+
 ## Behavioral Rules (fragments — already loaded)
 
 Delegation with context — don't delegate when context already loaded, token economy
@@ -87,6 +88,17 @@ Mock patching pattern — patch where object is used not where defined
 Testing strategy for markdown cleanup — TDD approach with red green cycles and integration tests
 Success metrics — all tests pass, no regressions, clear errors, complete documentation
 
+## agents/decisions/prompt-structure-research.md
+
+Position Bias (Serial Position Effects) — primacy strongest, recency secondary, middle weakest
+Rule Format Effectiveness — bullets outperform prose for discrete rules
+Model Capability Differences — opus concise, sonnet clear, haiku explicit steps
+Rule Budget Constraints — adherence degrades above 200 rules, ~150 user limit
+Context Loading Behavior — LLMs only read explicitly provided context
+Tool Landscape (Dec 2025) — no tool combines position bias variants budgeting
+Applicability to Current Architecture — fragment ordering token counting opportunities
+Fragment Ordering Rationale (Feb 2026) — primacy for session-defining, recency for reference, context-budget.py for tracking
+
 ## agents/decisions/implementation-notes.md
 
 @ references limitation — CLAUDE.md @ syntax only works in CLAUDE.md not skills agents tasks
@@ -134,6 +146,7 @@ Workflow Feedback Loop Insights — alignment autofix outline complexity gate pr
 Dogfooding Validates Design — apply new process to its own planning for validation
 TDD GREEN Behavioral Descriptions — behavior approach hint structure not prescriptive code
 Efficient Model Analysis Requires Verification — haiku execution sonnet opus architecture verify results
+Domain Validation Pattern — planning-time detection, skill-directed vet, no agent proliferation
 
 ## agents/decisions/workflow-core.md
 
