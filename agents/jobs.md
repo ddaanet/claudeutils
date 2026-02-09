@@ -11,7 +11,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | commit-unification | designed | May be superseded by commit-rca-fixes |
 | continuation-passing | requirements | Opus design needed |
 | handoff-validation | requirements | Requires continuation-passing |
-| markdown | requirements | Markdown cleanup test corpus |
+| markdown | requirements | Scoped: 5 FRs, fixture-based approach, ready for design |
 | prompt-composer | designed | Oldest plan, at risk |
 | requirements-skill | requirements | Evaluate with opus |
 | reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
