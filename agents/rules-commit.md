@@ -174,10 +174,12 @@ Fix markdown formatter edge cases
 
 ### Git Lock File Errors
 
-If commit fails with a lock file error (`.git/index.lock` exists):
+**Scope:** All git operations (commit, merge, rebase, checkout, etc.) — not commit-only.
+
+If any git command fails with a lock file error (`.git/index.lock` or similar):
 
 1. Wait 2 seconds and retry
 2. If still failing, wait 2 more seconds and retry once more
 3. Only ask the user after two failed retries
 
-This handles transient lock issues from concurrent git operations.
+**Do NOT remove lock files.** Lock removal is never agent-initiated — the lock may indicate an active git process. Always defer to user if retries fail.

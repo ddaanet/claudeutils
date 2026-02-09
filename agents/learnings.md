@@ -109,7 +109,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Symlinks work: relative symlinks (../../agent-core/...) resolve correctly per-worktree after submodule init
 ## Recipe failure → retry recipe
 - Anti-pattern: Recipe fails partway, agent manually completes remaining steps with ad-hoc commands
-- Correct pattern: Fix obstruction (e.g., remove stale lock), retry the recipe from scratch
+- Correct pattern: Fix obstruction (e.g., delete conflicting untracked file), retry the recipe from scratch
 - Rationale: Recipes are atomic units — manually finishing bypasses error handling, ordering, side effects
 - Fix: Added "Partial failure recovery" rule to project-tooling.md
 ## Temporal validation for empirical analysis
