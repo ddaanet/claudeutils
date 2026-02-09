@@ -1,38 +1,38 @@
 # Session Handoff: 2026-02-09
 
-**Status:** Worktree consolidation — merged 5 worktrees, fixed recall lint, agent-core synchronized.
+**Status:** Worktree focus tooling complete — wt-task recipe with context extraction, 5 plans archived.
 
 ## Completed This Session
 
-**Worktree merges (5 branches integrated):**
-- Merged `wt/complexity-fixes` (591ed49) — precommit fixes: complexity + line limits, 3 new files, 5 modified
-- Merged `wt/memory-index-recall` (ee30dfc) — recall analysis tool (7 modules, 50 tests, 2 plans)
-- Merged `wt/bash-git-prompt` (99dcde2) — tweakcc research, feature requests, agent-core no-estimates clarification
-- Merged `wt/continuation-passing` (76e2ebf) — continuation passing implementation (15 steps, parser, registry, skill frontmatter)
-- Merged `wt/markdown-test-corpus` (5e95a75) — 16 fixture pairs, 3 parametrized tests, remark-cli pipeline
+**Branch migration (8929bb4, ef1659b, fa70ca8):**
+- Switched to main, merged tools-rewrite (fast-forward, 128 files)
+- Deleted local tools-rewrite branch (remote didn't exist)
+- Reset dev branch to match main
+- Committed worktree tooling improvements
 
-**Agent-core synchronization:**
-- Merged bash-git-prompt agent-core (1 commit: no-estimates clarification)
-- Merged continuation-passing agent-core (9 commits: parser, registry, skill frontmatter, continuation hook)
-- All previously unmerged agent-core commits verified in main
+**Worktree focus session tooling (8929bb4, ff056c7):**
+- Created `agent-core/bin/focus-session.py` — extracts task from session.md with plan context
+- Handles 5+ document types: rca, requirements, design, problem, runbook/outline
+- Auto-extracts relevant sections (executive summary, fix tasks, requirements, problem statements)
+- Supports both `plans/name` and `Plan: name` reference formats
+- Added `just wt-task <name> "<task>"` recipe for focused worktree creation
+- Tested with vet-fix-agent and plugin-migration tasks
+- Regenerated just help cache
 
-**Recall lint fixes (44f81c9):**
-- Fixed all 35 ruff + 5 mypy issues across 9 files
-- Extracted 5 helper functions for complexity reduction
-- Proper type annotations, %s logging, loop variable renames
-- 50/50 tests passing, ruff clean, mypy clean
+**Settings cleanup (ef1659b):**
+- Removed `/tmp` write restrictions (Edit/Write deny rules)
+- Aligns with tmp-directory.md fragment (use project-local tmp/)
 
-**Jobs.md updated:**
-- Added continuation-prepend, feature-requests, tweakcc plans
-- Updated markdown to complete
+**Plan archival (fa70ca8):**
+- Removed 5 completed plan directories (112 files, 18,437 lines)
+- Archived: domain-validation, markdown, memory-index-recall, reflect-rca-parity-iterations, validator-consolidation
+- Updated jobs.md: 35 → 40 completed plans
+- Added markdown and memory-index-recall to Recent list
+- Fixed gitmoji: 🔥 (fire - Remove) not 🗑️ (wastebasket - Deprecate)
 
-**Worktree cleanup status:**
-- `wt/complexity-fixes` — removed (directory + branch)
-- `wt/recall-lint` — removed (directory + branch)
-- `wt/bash-git-prompt` — merged but worktree NOT removed (user can `just wt-rm bash-git-prompt`)
-- `wt/continuation-passing` — merged but worktree NOT removed
-- `wt/markdown-test-corpus` — merged but worktree NOT removed
-- `wt/memory-index-recall` — merged but worktree NOT removed (user requested preserve)
+**Worktree created:**
+- `../claudeutils-vet-fix-agent` with focused session.md
+- Includes RCA summary and fix tasks from plans/reflect-rca-sequential-task-launch/
 
 ## Pending Tasks
 
@@ -50,6 +50,7 @@
 - [ ] **Strengthen vet-fix-agent delegation pattern** — Add execution context provision and UNFIXABLE detection | sonnet
   - Sub-tasks: execution context, UNFIXABLE detection, documentation, meta-review evaluation
   - Analysis: plans/reflect-rca-sequential-task-launch/rca.md
+  - Worktree: `../claudeutils-vet-fix-agent` (focused session ready)
 - [ ] **Update tool-batching.md for Task tool parallelization** — Add explicit Task tool guidance with examples | sonnet
 - [ ] **Rewrite last-output prototype with TDD as claudeutils subcommand** — Port agent-output-cmd prototype to proper TDD implementation
 - [ ] **Update commit and handoff to branch after precommit** — Move git branching point from beginning to after precommit passes
@@ -67,12 +68,13 @@
 
 ## Blockers / Gotchas
 
-**Worktree sandbox exemptions needed.** `just wt-new`, `just wt-rm`, `just wt-merge` write outside project directory. Need `dangerouslyDisableSandbox: true`.
+**Worktree sandbox exemptions needed.** `just wt-new`, `just wt-rm`, `just wt-merge`, `just wt-task` write outside project directory. Need `dangerouslyDisableSandbox: true`.
 
 **Precommit not fully clean:** continuation-passing and cli.py have line-limit and lint issues:
 - `src/claudeutils/cli.py` (402 lines, exceeds 400)
 - `tests/test_continuation_consumption.py` (523 lines), `test_continuation_registry.py` (512), `test_continuation_parser.py` (566)
-- Mypy type errors in test_continuation_consumption.py
+- Mypy type errors and collection errors in continuation tests
+- Known blocker, not blocking current work
 
 **Key dependency update:** continuation-passing now merged, unblocking:
 - handoff-validation design
@@ -82,12 +84,11 @@
 
 ## Reference Files
 
-- **plans/continuation-passing/** — Full design + implementation (merged)
-- **plans/memory-index-recall/** — Recall analysis design + reports (merged)
-- **plans/markdown/** — Test corpus requirements + reports (merged)
+- **agent-core/bin/focus-session.py** — Worktree session context extraction script
+- **plans/reflect-rca-sequential-task-launch/** — RCA on Task parallelization + vet context issues
 - **plans/feature-requests/** — GH issue research (sandbox, tool overrides)
 - **plans/tweakcc/** — Local instances research
 - **plans/continuation-prepend/** — Problem statement for subroutine call pattern
 
 ---
-*Handoff by Sonnet. 5 worktree merges, agent-core synchronized, recall lint fixed.*
+*Handoff by Sonnet. Worktree focus tooling complete, 5 plans archived, dev branch synchronized.*
