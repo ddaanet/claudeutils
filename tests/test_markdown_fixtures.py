@@ -103,7 +103,7 @@ def test_load_fixture_pair_missing_expected() -> None:
 
 
 def test_fixture_directory_exists() -> None:
-    """Fixture directory should exist and be empty initially."""
+    """Fixture directory should exist."""
     fixture_dir = Path(__file__).parent / "fixtures" / "markdown"
 
     # Directory must exist
@@ -111,10 +111,6 @@ def test_fixture_directory_exists() -> None:
 
     # Directory must be a directory, not a file
     assert fixture_dir.is_dir(), f"Path {fixture_dir} exists but is not a directory"
-
-    # Directory must be empty initially
-    contents = list(fixture_dir.iterdir())
-    assert contents == [], f"Fixture directory should be empty but contains: {contents}"
 
 
 # Discover fixture files at module load time
