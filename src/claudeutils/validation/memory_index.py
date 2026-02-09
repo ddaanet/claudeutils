@@ -15,14 +15,16 @@ import re
 import sys
 from pathlib import Path
 
-from .memory_index_helpers import (
-    autofix_index,
+from .memory_index_checks import (
     check_duplicate_entries,
     check_em_dash_and_word_count,
     check_entry_placement,
     check_entry_sorting,
     check_orphan_entries,
     check_structural_entries,
+)
+from .memory_index_helpers import (
+    autofix_index,
     collect_semantic_headers,
     collect_structural_headers,
 )
@@ -97,7 +99,39 @@ def extract_index_entries(
     return entries
 
 
-def validate(index_path: Path | str, root: Path, autofix: bool = True) -> list[str]:
+def _report_autofix_success(
+    error_lists: tuple[list[str], list[str], list[str]]
+) -> None:
+    """Report successful autofix to stderr."""
+    placement_errors, ordering_errors, structural_entries = error_lists
+    parts = []
+    if placement_errors:
+        parts.append(f"{len(placement_errors)} placement")
+    if ordering_errors:
+        parts.append(f"{len(ordering_errors)} ordering")
+    if structural_entries:
+        parts.append(f"{len(structural_entries)} structural")
+    print(f"Autofixed {' and '.join(parts)} issues", file=sys.stderr)
+
+
+def _check_duplicate_headers(
+    headers: dict[str, list[tuple[str, int, str]]]
+) -> list[str]:
+    """Check for duplicate headers across files."""
+    errors = []
+    for title, locations in sorted(headers.items()):
+        if len(locations) > 1:
+            files = {filepath for filepath, _, _ in locations}
+            if len(files) > 1:  # Only error if duplicates in different files
+                errors.append(
+                    f"  Duplicate header '{title}' found in multiple files:"
+                )
+                for filepath, lineno, level in locations:
+                    errors.append(f"    {filepath}:{lineno} ({level} level)")
+    return errors
+
+
+def validate(index_path: Path | str, root: Path, *, autofix: bool = True) -> list[str]:
     """Validate memory index. Returns list of error strings.
 
     Autofix is enabled by default for section placement, ordering,
@@ -141,27 +175,16 @@ def validate(index_path: Path | str, root: Path, autofix: bool = True) -> list[s
     errors.extend(check_orphan_entries(entries, headers, structural))
 
     # Check for duplicate headers across files
-    for title, locations in sorted(headers.items()):
-        if len(locations) > 1:
-            files = {filepath for filepath, _, _ in locations}
-            if len(files) > 1:  # Only error if duplicates are in different files
-                errors.append(f"  Duplicate header '{title}' found in multiple files:")
-                for filepath, lineno, level in locations:
-                    errors.append(f"    {filepath}:{lineno} ({level} level)")
+    errors.extend(_check_duplicate_headers(headers))
 
     # Handle placement, ordering, and structural entry errors
     if placement_errors or ordering_errors or structural_entries:
         if autofix:
             fixed = autofix_index(index_path, root, headers, structural)
             if fixed:
-                parts = []
-                if placement_errors:
-                    parts.append(f"{len(placement_errors)} placement")
-                if ordering_errors:
-                    parts.append(f"{len(ordering_errors)} ordering")
-                if structural_entries:
-                    parts.append(f"{len(structural_entries)} structural")
-                print(f"Autofixed {' and '.join(parts)} issues", file=sys.stderr)
+                _report_autofix_success(
+                    (placement_errors, ordering_errors, structural_entries)
+                )
                 return errors
 
             # Autofix failed, report as errors
