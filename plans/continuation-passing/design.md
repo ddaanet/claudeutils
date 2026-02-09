@@ -84,11 +84,13 @@ User input: "/design plans/foo, /plan-adhoc and /orchestrate"
 
 ## Key Design Decisions
 
-### D-1: Hook as parsing layer
+### D-1: Hook as parsing layer (multi-skill only)
 
-**Decision:** UserPromptSubmit hook handles all continuation parsing centrally.
+**Decision:** UserPromptSubmit hook handles continuation parsing for multi-skill chains only. Single skill invocations pass through unchanged (hook returns `None`).
 
 **Rationale:** More reliable than LLM parsing within skill context. Centralized logic. Hook fires before Claude processes input, so continuation metadata is available when skill loads. Existing `userpromptsubmit-shortcuts.py` is the natural extension point.
+
+**Architecture change (post-implementation):** Originally the hook handled all skill invocations including single skills (Mode 1). Empirical validation showed 86.7% false positive rate — skill name patterns (`/commit`, `/handoff`) appear in file paths, meta-discussion, and XML tags. Removing single-skill activation reduced FP rate to 0%. Single skills are handled by Claude's built-in skill system; skills manage their own default-exit behavior.
 
 **Alternative rejected:** Fragment-only approach (CLAUDE.md instruction telling Claude to chain). Works for simple cases but unreliable for structured continuations (FR-4) and provides no sub-agent isolation guarantee.
 
@@ -108,25 +110,18 @@ User input: "/design plans/foo, /plan-adhoc and /orchestrate"
 
 **Alternative considered:** JSON format for transport. Rejected: adds parsing complexity, escaping overhead. The comma-separated format within brackets is sufficient — skill args rarely contain `, /skillname` patterns, and registry-based disambiguation resolves ambiguity.
 
-### D-3: Default exit appending
+### D-3: Default exit ownership (revised)
 
-**Decision:** Hook appends the terminal skill's default exit chain to any user continuation. Skills never need fallback logic.
+**Decision:** Skills manage their own default-exit behavior at runtime. The hook never reads or appends default-exit entries.
 
 **Mechanism:**
-- Each cooperative skill declares `default-exit` in frontmatter
-- Hook reads the LAST skill in the user's chain (or the only skill if solo invocation)
-- Last skill's `default-exit` entries are appended to the continuation
+- Each cooperative skill declares `default-exit` in frontmatter as documentation of its standalone exit behavior
+- When standalone (no continuation in args/additionalContext): skill implements its own default-exit logic
+- When last in a continuation chain (empty remainder): skill implements its own default-exit logic
+- When mid-chain (continuation has entries): skill peels first entry and tail-calls it
+- The `default-exit` field in frontmatter documents the skill's behavior but is not used by the hook
 
-**Examples:**
-
-| User input | Last skill | Default exit | Full continuation |
-|------------|-----------|--------------|-------------------|
-| `/design plans/foo` | design | `[/handoff --commit, /commit]` | `[/handoff --commit, /commit]` |
-| `/design, /plan-adhoc` | plan-adhoc | `[/handoff --commit, /commit]` | `[/plan-adhoc, /handoff --commit, /commit]` |
-| `/handoff --commit` | handoff | `[/commit]` | `[/commit]` |
-| `/commit` | commit | `[]` | `[]` (terminal) |
-
-**Backward compatibility:** Solo skill invocations (the common case) get exactly the same exit behavior as today's hardcoded tail-calls. No user-visible change.
+**Architecture change (post-implementation):** Originally the hook appended default-exit entries for all invocations including single skills. This required the hook to activate on every skill invocation, causing false positives. Moving default-exit responsibility to skills eliminates the need for hook activation on single skills. Solo skill invocations produce identical behavior to original hardcoded tail-calls.
 
 ### D-4: Ephemeral continuation lifecycle
 
@@ -152,12 +147,12 @@ User input: "/design plans/foo, /plan-adhoc and /orchestrate"
 - Continuation is read from `additionalContext`/`args`, not from conversation memory
 - Skills construct Task prompts explicitly — no accidental inclusion path
 
-### D-6: Parsing strategy
+### D-6: Parsing strategy (revised)
 
-**Decision:** Three parsing modes, progressively complex.
+**Decision:** Two parsing modes for multi-skill chains. Single skills pass through (hook returns `None`).
 
-**Mode 1 — Single skill (no continuation):**
-Input contains exactly one `/skill` reference (or no `/` prefix at all). Hook passes through unchanged. Default exit appended via `additionalContext`.
+**Single skill — pass-through:**
+Input contains zero or one `/skill` references. Hook returns `None` — Claude's built-in skill system handles it. Skills manage their own default-exit at runtime.
 
 **Mode 2 — Inline prose (FR-1, FR-3):**
 Multiple `/skill` references on one line, separated by `, /` or connecting words (`and`, `then`, `finally`) before `/skill`.
@@ -212,7 +207,7 @@ continuation:
 
 **Fields:**
 - `cooperative: true` — Skill understands continuation passing protocol
-- `default-exit` — Ordered list of skill invocations appended when this skill is terminal in user's chain. Empty list `[]` for terminal skills (e.g., `/commit`).
+- `default-exit` — Ordered list of skill invocations used by the skill itself when standalone or last in a continuation chain. Empty list `[]` for terminal skills (e.g., `/commit`). The hook does NOT read or append these — skills use them at runtime.
 
 ### Initial Cooperative Skills
 
@@ -268,17 +263,16 @@ Tier 3 fires when Tiers 1 and 2 don't match. Non-skill input passes through sile
 
 ```
 Input: user prompt string
-Output: additionalContext JSON with continuation metadata (or no output for non-skill input)
+Output: additionalContext JSON with continuation metadata (or None for pass-through)
 
 1. Scan input for /word patterns
-2. Match each against cooperative skill registry
-3. If no registered skills found → pass through (exit 0)
-4. If exactly one skill → Mode 1 (single skill, append default exit)
-5. If multiple skills → Mode 2/3 (split into current + continuation)
-6. Look up last skill's default-exit from registry
-7. Append default-exit entries to continuation
-8. Emit additionalContext JSON
+2. Match each against cooperative skill registry (with context filtering)
+3. If 0 or 1 registered skills found → return None (pass-through)
+4. If multiple skills → Mode 2/3 (split into current + continuation)
+5. Emit additionalContext JSON
 ```
+
+**Context filtering:** References excluded when preceded by non-whitespace (quoted, in paths), followed by `-` or `/` (file paths), or on lines prefixed with "note:".
 
 ### additionalContext Format
 
@@ -295,20 +289,7 @@ Output: additionalContext JSON with continuation metadata (or no output for non-
 
 **No `systemMessage`:** Unlike Tier 1/2 shortcuts which emit both `additionalContext` and `systemMessage`, Tier 3 continuation output uses only `additionalContext`. Continuation metadata is internal to Claude's processing and should not appear in the user's UI.
 
-**Single-skill case (Mode 1):** For solo invocations (e.g., `/design plans/foo`), the hook emits continuation with just the default exit:
-
-```
-[CONTINUATION-PASSING]
-Current: /design plans/foo
-Continuation: /handoff --commit, /commit
-
-After completing the current skill, invoke the NEXT continuation entry via Skill tool:
-  Skill(skill: "handoff", args: "--commit [CONTINUATION: /commit]")
-
-Do NOT include continuation metadata in Task tool prompts.
-```
-
-This replaces the hardcoded tail-call that was previously in the skill itself.
+**Single-skill case:** Hook returns `None` — no additionalContext emitted. Skills manage their own default-exit at runtime.
 
 ### Cooperative Skill Registry
 

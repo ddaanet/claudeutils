@@ -8,7 +8,7 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
-| continuation-passing | planned | 12/15 steps done, FP rate 0%, documentation remaining |
+| continuation-passing | complete | 15/15 steps, 0% FP rate, hook+skills+tests+docs |
 | continuation-prepend | requirements | Subroutine calls via prepend; requires continuation-passing |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
@@ -24,6 +24,7 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `continuation-passing` — Continuation passing system (hook parser, cooperative skills, 0% FP)
 - `validator-consolidation` — Validators consolidated to claudeutils package
 - `commit-unification` — Unified commit skills, inlined gitmoji, decoupled handoff
 - `position-bias` — Fragment reordering by position bias + token budget script

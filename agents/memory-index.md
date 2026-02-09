@@ -15,6 +15,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 
 
+
 ## Behavioral Rules (fragments — already loaded)
 
 Delegation with context — don't delegate when context already loaded, token economy
@@ -87,17 +88,6 @@ Mock patching pattern — patch where object is used not where defined
 Testing strategy for markdown cleanup — TDD approach with red green cycles and integration tests
 Success metrics — all tests pass, no regressions, clear errors, complete documentation
 
-## agents/decisions/prompt-structure-research.md
-
-Position Bias (Serial Position Effects) — primacy strongest, recency secondary, middle weakest
-Rule Format Effectiveness — bullets outperform prose for discrete rules
-Model Capability Differences — opus concise, sonnet clear, haiku explicit steps
-Rule Budget Constraints — adherence degrades above 200 rules, ~150 user limit
-Context Loading Behavior — LLMs only read explicitly provided context
-Tool Landscape (Dec 2025) — no tool combines position bias variants budgeting
-Applicability to Current Architecture — fragment ordering token counting opportunities
-Fragment Ordering Rationale (Feb 2026) — primacy for session-defining, recency for reference, context-budget.py for tracking
-
 ## agents/decisions/implementation-notes.md
 
 @ references limitation — CLAUDE.md @ syntax only works in CLAUDE.md not skills agents tasks
@@ -116,6 +106,17 @@ Prose Gate D+B Hybrid Fix — merge gates into action steps, anchor with tool ca
 
 Flags are exact tokens — exact token match not prose substring CLI parsing
 Root marker for scripts — CLAUDE.md not agents directory subdirectory issue
+
+## agents/decisions/prompt-structure-research.md
+
+Position Bias (Serial Position Effects) — primacy strongest, recency secondary, middle weakest
+Rule Format Effectiveness — bullets outperform prose for discrete rules
+Model Capability Differences — opus concise, sonnet clear, haiku explicit steps
+Rule Budget Constraints — adherence degrades above 200 rules, ~150 user limit
+Context Loading Behavior — LLMs only read explicitly provided context
+Tool Landscape (Dec 2025) — no tool combines position bias variants budgeting
+Applicability to Current Architecture — fragment ordering token counting opportunities
+Fragment Ordering Rationale (Feb 2026) — primacy for session-defining, recency for reference, context-budget.py for tracking
 
 ## agents/decisions/testing.md
 
@@ -177,3 +178,5 @@ Template commit contradiction — appended context weak authority bolded NEVER s
 Orchestrator model mismatch — read step file execution model not orchestrator default
 Happy path first TDD — simplest happy path real behavior edge cases later
 Runbook Outline Format — structured format for runbook planning with requirements mapping
+Continuation passing pattern — composable skill chains, hook multi-skill only, skills own default-exit
+Hook-based parsing rationale — deterministic regex, empirical 0% FP rate, context filtering

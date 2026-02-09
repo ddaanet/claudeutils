@@ -129,8 +129,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Performance: Cache registry to temp file, check mtime on subsequent calls
 ## Default exit as continuation pattern
 - Anti-pattern: Each skill hardcodes its exit tail-call (e.g., "invoke /handoff --commit")
-- Correct pattern: Hook always provides continuation — user chain + last skill's `default-exit` from frontmatter. Skills consume next entry, no hardcoded exits.
-- Rationale: Single mechanism for all chaining (user-specified and default). Skills become simpler. Exit behavior managed centrally by continuation system.
+- Correct pattern: Hook parses multi-skill chains only. Skills manage own default-exit at runtime (standalone or last-in-chain). Hook does NOT read or append default-exit.
+- Rationale: Single mechanism for multi-skill chaining. Skills remain simple — same default-exit logic whether standalone or last in chain. Hook activation only for multi-skill avoids false positives.
 ## Orchestration agents delete unrelated files
 - Anti-pattern: Step agent reads step files for context, then "cleans up" by deleting them
 - Correct pattern: Add explicit scope constraint: "Do NOT delete any step files" in orchestration prompts
