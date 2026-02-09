@@ -6,6 +6,9 @@
 /tmp/
 /plans/claude/
 
+# Node.js
+/node_modules/
+
 # Python files
 __pycache__/
 list/
