@@ -76,11 +76,15 @@ class TestFindSkillReferences:
         assert "plans" in skill_names or len(refs) == 0  # depends on actual parsing
 
 
-class TestModeSingleSkill:
-    """Tests for Mode 1: Single skill (no continuation)."""
+class TestSingleSkillPassThrough:
+    """Single skill invocations return None (handled by Claude's skill system).
 
-    def test_single_skill_with_args(self) -> None:
-        """Single skill with args gets default exit appended."""
+    Skills manage their own default-exit when standalone or last-in-chain.
+    The continuation parser only activates for multi-skill chains.
+    """
+
+    def test_single_skill_returns_none(self) -> None:
+        """Single skill with default-exit returns None (skill handles exit)."""
         registry = {
             "design": {
                 "cooperative": True,
@@ -88,66 +92,19 @@ class TestModeSingleSkill:
             }
         }
         result = parse_continuation("/design plans/foo", registry)
+        assert result is None
 
-        assert result is not None
-        assert result["current"]["skill"] == "design"
-        assert result["current"]["args"] == "plans/foo"
-        assert len(result["continuation"]) == 2
-        assert result["continuation"][0]["skill"] == "handoff"
-        assert result["continuation"][0]["args"] == "--commit"
-        assert result["continuation"][1]["skill"] == "commit"
-        assert result["continuation"][1]["args"] == ""
-
-    def test_single_skill_no_args(self) -> None:
-        """Single skill with no args gets default exit."""
+    def test_terminal_skill_returns_none(self) -> None:
+        """Terminal skill (no default-exit) returns None."""
         registry = {"commit": {"cooperative": True, "default-exit": []}}
         result = parse_continuation("/commit", registry)
+        assert result is None
 
-        assert result is not None
-        assert result["current"]["skill"] == "commit"
-        assert result["current"]["args"] == ""
-        assert result["continuation"] == []
-
-    def test_single_skill_terminal(self) -> None:
-        """Single terminal skill has empty continuation."""
-        registry = {"commit": {"cooperative": True, "default-exit": []}}
-        result = parse_continuation("/commit", registry)
-
-        assert result is not None
-        assert result["continuation"] == []
-
-    def test_handoff_without_commit_terminal(self) -> None:
-        """Handoff without --commit flag is terminal."""
+    def test_single_skill_with_args_returns_none(self) -> None:
+        """Single skill with complex args returns None."""
         registry = {"handoff": {"cooperative": True, "default-exit": ["/commit"]}}
-        result = parse_continuation("/handoff", registry)
-
-        assert result is not None
-        assert result["current"]["skill"] == "handoff"
-        assert result["continuation"] == []
-
-    def test_handoff_with_commit_appends_exit(self) -> None:
-        """Handoff with --commit flag appends default exit."""
-        registry = {"handoff": {"cooperative": True, "default-exit": ["/commit"]}}
-        result = parse_continuation("/handoff --commit", registry)
-
-        assert result is not None
-        assert result["current"]["skill"] == "handoff"
-        assert result["current"]["args"] == "--commit"
-        assert len(result["continuation"]) == 1
-        assert result["continuation"][0]["skill"] == "commit"
-
-    def test_handoff_with_commit_flag_in_middle(self) -> None:
-        """Handoff with --commit flag surrounded by other args."""
-        registry = {"handoff": {"cooperative": True, "default-exit": ["/commit"]}}
-        result = parse_continuation(
-            "/handoff --no-learnings --commit --force", registry
-        )
-
-        assert result is not None
-        assert result["current"]["skill"] == "handoff"
-        assert "--commit" in result["current"]["args"]
-        assert len(result["continuation"]) == 1
-        assert result["continuation"][0]["skill"] == "commit"
+        result = parse_continuation("/handoff --commit --force", registry)
+        assert result is None
 
 
 class TestModeInlineProse:
@@ -169,11 +126,10 @@ class TestModeInlineProse:
 
         assert result is not None
         assert result["current"]["skill"] == "design"
-        # Parser includes the delimiter in args
         assert "plans/foo" in result["current"]["args"]
-        assert len(result["continuation"]) >= 1
-        # First continuation entry should be 'plan'
-        assert any(e["skill"] == "plan" for e in result["continuation"])
+        # User-specified continuation only (no default-exit appending)
+        assert len(result["continuation"]) == 1
+        assert result["continuation"][0]["skill"] == "plan"
 
     def test_inline_and_delimiter(self) -> None:
         """Parse inline prose with 'and' connector."""
@@ -248,10 +204,11 @@ class TestModeMultiLine:
         assert result is not None
         assert result["current"]["skill"] == "design"
         assert result["current"]["args"] == "foo"
-        # Should have plan, execute, and commit in continuation
+        # User-specified continuation only (no default-exit appending)
         continuation_skills = [e["skill"] for e in result["continuation"]]
         assert "plan" in continuation_skills
         assert "execute" in continuation_skills
+        assert "commit" not in continuation_skills  # default-exit NOT appended
 
     def test_multiline_list_with_args(self) -> None:
         """Parse multi-line list with args for each skill."""
@@ -300,11 +257,8 @@ class TestEdgeCases:
         """Path arguments like /foo/bar not treated as skills."""
         registry = {"design": {"cooperative": True, "default-exit": []}}
         result = parse_continuation("/design /some/path/to/file", registry)
-
-        assert result is not None
-        assert result["current"]["skill"] == "design"
-        # /some/path should be treated as args, not continuation
-        assert "/some" not in str([e["skill"] for e in result["continuation"]])
+        # Single skill — returns None (pass-through)
+        assert result is None
 
     def test_connecting_words_in_args(self) -> None:
         """Connecting words in args don't create false continuations."""
@@ -330,14 +284,11 @@ class TestEdgeCases:
             "design": {"cooperative": True, "default-exit": []},
         }
         result = parse_continuation("/design foo, /unknownskill", registry)
-
-        assert result is not None
-        assert result["current"]["skill"] == "design"
-        # unknownskill should be ignored, not in continuation
-        assert not any(e["skill"] == "unknownskill" for e in result["continuation"])
+        # Only one registered skill found — returns None (single skill)
+        assert result is None
 
     def test_flag_handling_complex(self) -> None:
-        """Complex flag handling in skill args."""
+        """Complex flag handling — single skill returns None."""
         registry = {
             "execute": {
                 "cooperative": True,
@@ -345,19 +296,14 @@ class TestEdgeCases:
             },
         }
         result = parse_continuation("/execute --verbose --check planning", registry)
-
-        assert result is not None
-        assert result["current"]["skill"] == "execute"
-        assert "--verbose" in result["current"]["args"]
-        assert "--check" in result["current"]["args"]
+        # Single skill — returns None (pass-through)
+        assert result is None
 
     def test_empty_continuation_terminal(self) -> None:
-        """Terminal skill (commit) produces empty continuation."""
+        """Terminal skill (commit) returns None."""
         registry = {"commit": {"cooperative": True, "default-exit": []}}
         result = parse_continuation("/commit", registry)
-
-        assert result is not None
-        assert result["continuation"] == []
+        assert result is None
 
 
 class TestFormatContinuationContext:
@@ -441,10 +387,12 @@ class TestRegistryIntegration:
 
         assert result is not None
         assert result["current"]["skill"] == "design"
-        # Should include continuation for remaining skills + defaults
+        # User-specified continuation only (no default-exit appending)
         continuation_skills = [e["skill"] for e in result["continuation"]]
         assert "plan" in continuation_skills
         assert "execute" in continuation_skills
+        assert "handoff" not in continuation_skills  # no default-exit
+        assert "commit" not in continuation_skills  # no default-exit
 
 
 class TestFalsePositiveFiltering:
@@ -521,8 +469,8 @@ class TestFalsePositiveFiltering:
         )
         assert result is None
 
-    def test_prompt_start_invocation(self) -> None:
-        """Prompt starting with /skill SHOULD trigger (true positive)."""
+    def test_prompt_start_single_skill_passthrough(self) -> None:
+        """Single skill at prompt start returns None (no continuation)."""
         registry = {
             "design": {
                 "cooperative": True,
@@ -530,8 +478,7 @@ class TestFalsePositiveFiltering:
             }
         }
         result = parse_continuation("/design plans/foo", registry)
-        assert result is not None
-        assert result["current"]["skill"] == "design"
+        assert result is None
 
     def test_continuation_delimiter_invocation(self) -> None:
         """Continuation with delimiter SHOULD trigger (true positive)."""
@@ -587,12 +534,24 @@ class TestFalsePositiveFiltering:
         )
         assert result is None
 
-    def test_sentence_boundary_allows_invocation(self) -> None:
-        """Skill reference after sentence boundary SHOULD trigger."""
+    def test_sentence_boundary_single_skill_passthrough(self) -> None:
+        """Single skill after sentence boundary returns None."""
         registry = {"design": {"cooperative": True, "default-exit": []}}
         result = parse_continuation("Complete the task. /design plans/foo", registry)
+        assert result is None
+
+    def test_sentence_boundary_multi_skill_triggers(self) -> None:
+        """Multi-skill after sentence boundary SHOULD trigger."""
+        registry = {
+            "design": {"cooperative": True, "default-exit": []},
+            "commit": {"cooperative": True, "default-exit": []},
+        }
+        result = parse_continuation(
+            "Complete the task. /design plans/foo, /commit", registry
+        )
         assert result is not None
         assert result["current"]["skill"] == "design"
+        assert result["continuation"][0]["skill"] == "commit"
 
     def test_directory_path_without_extension(self) -> None:
         """Directory path like /orchestrate-redesign/ should not trigger."""

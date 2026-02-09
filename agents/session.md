@@ -1,70 +1,64 @@
 # Session: Continuation Passing Execution
 
-**Status:** Parser false positives fixed (86.7% → expected <5%). Empirical re-validation recommended before proceeding to documentation.
+**Status:** Parser architecture simplified — single skills pass through, parser only activates for multi-skill chains. 0% FP rate achieved. Ready for documentation steps 3.6–3.8.
 
 ## Completed This Session
 
-**Orchestration progress (12/15 steps complete):**
-- Phase 1 (hook): Steps 1.1–1.4 complete + vet checkpoint
-  - Registry builder, continuation parser (modes 1-3), Tier 3 integration, caching (NFR-2)
-  - Checkpoint fixes: key consistency, logic simplification, input sanitization
-- Phase 2 (skills): Steps 2.4–2.6 complete + vet checkpoint
-  - Frontmatter added to /orchestrate, /handoff, /commit skills
-  - Continuation protocol sections with peel-first-pass-remainder pattern
-  - No code fixes needed at checkpoint
-- Phase 3 (tests+docs): Steps 3.1–3.5 complete
-  - 30 parser tests, 28 registry tests, 34 consumption tests, 10 integration tests (all passing)
-  - Step 3.5 empirical validation: **FAILED** — 86.7% false positive rate
-- Steps 3.6–3.8 remaining (documentation only, not blocked by validation failure)
+**Parser architecture redesign:**
+- Removed Mode 1 (single skill parsing) — single skills now return `None` (pass-through)
+- Skills manage their own default-exit (standalone or last-in-chain)
+- Parser only activates for multi-skill continuation chains (Mode 2/3)
+- Removed default-exit appending from hook — skills own their exit behavior
+- Simplified `_should_exclude_reference()`: whitespace-or-line-start + path check + "note:" prefix
+- Removed 5 complex context helpers (~120 lines): XML detection, file path detection, meta-discussion, invocation pattern, quote detection
+- Replaced with ~25 lines of simple filtering
 
-**Parser false positive fix (completed this session):**
-- Tier 2 lightweight delegation executed (3 sequential components)
-- Added context-aware filtering to `find_skill_references()` in userpromptsubmit-shortcuts.py
-- Five new helper functions: XML detection, file path detection, meta-discussion detection, invocation pattern detection, exclusion orchestrator
-- 15 new negative test cases covering all 3 empirical FP categories (XML 27%, meta 31%, paths 42%)
-- Vet review applied all fixes: enhanced file path regex, added missing keywords, conservative mid-sentence heuristic, named constants
-- All 110 continuation tests passing (48 parser, 28 registry, 34 consumption) — no regressions
-- Implementation aligns with step-3-5 validation report recommendations
+**Empirical validation results:**
+- Re-ran parser against 200-prompt corpus from `~/.claude/projects/*/`
+- Initial run (before architecture change): 3 detections, 2 FP, 1 TP (1.0% overall FP rate)
+- Both FPs were quoted skill references (`"/handoff"`, `"/orchestrate"`)
+- After architecture change: **0 detections, 0 FP** — single-skill prose mentions no longer trigger parser
+- Reports: `plans/continuation-passing/reports/step-3-5-revalidation.md`
 
-**Previous session context (orchestration progress 12/15 steps):**
+**Test updates:**
+- `TestModeSingleSkill` → `TestSingleSkillPassThrough` (3 tests, single skills return None)
+- Updated 6 edge case/FP tests for single-skill → None behavior
+- Added multi-skill sentence boundary test
+- Removed all default-exit assertions from Mode 2/3 and integration tests
+- 118/118 continuation tests passing (46 parser, 28 registry, 34 consumption, 10 integration)
+
+**Previous sessions (orchestration 12/15 steps):**
 - Phase 1 (hook): Steps 1.1–1.4 + vet checkpoint
 - Phase 2 (skills): Steps 2.4–2.6 + vet checkpoint
-- Phase 3 (tests+docs): Steps 3.1–3.5 complete (validation failed initially)
-- Recovery from agent issues: step file deletion, manual commits
+- Phase 3 (tests+docs): Steps 3.1–3.5 + parser FP fix + re-validation
 
 ## Pending Tasks
 
-- [ ] **Empirical re-validation** — Re-run parser against 200-prompt corpus, measure new FP rate | sonnet
-  - Target: <5% FP rate, <5% FN rate
-  - Use same corpus from step-3-5 validation
-  - Write results to `plans/continuation-passing/reports/step-3-5-revalidation.md`
-  - If FP rate still >5%: analyze remaining failures, iterate on filters
 - [ ] **Continuation passing documentation** — Steps 3.6–3.8 (fragment, workflow decisions, skill references) | sonnet
   - Plan: continuation-passing | Status: in-progress
-  - Not blocked by parser fix — can execute independently
+  - Design.md needs updating: D-1 architecture change (single skill pass-through, no default-exit appending)
+  - Skill frontmatter `default-exit` field semantics changed: used by skill at runtime, not by hook
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
   - Plan: continuation-prepend | Status: requirements | Requires continuation-passing
 - [ ] **Error handling framework design** — Design error handling for runbooks, task lists, and CPS skills | opus
 
 ## Blockers / Gotchas
 
-**Empirical re-validation needed:** Parser now has context filters for all 3 FP categories but hasn't been tested against real corpus yet. Current fix is based on design recommendations + comprehensive negative tests.
+**Design.md out of date:** Architecture change (single-skill pass-through, no default-exit appending) not yet reflected in design.md. D-1, D-2, D-6, D-7 decisions may need updating. Documentation task should address this.
 
-**Test file line limit:** `test_continuation_parser.py` now 610 lines (limit: 400). Deferred to future refactor per vet review.
+**Test file line limit:** `test_continuation_parser.py` reduced from 610 to ~530 lines but still above 400-line limit. Deferred to future refactor.
 
-**Learnings.md at 133/80 lines** — consolidation overdue.
+**Learnings.md at 150/80 lines** — consolidation overdue. Well past trigger threshold.
 
 ## Reference Files
 
-- `plans/continuation-passing/reports/parser-fix-execution.md` — **Implementation report: context filtering added, 110 tests passing**
-- `plans/continuation-passing/reports/parser-fix-review.md` — **Vet review: all fixable issues resolved, ready for re-validation**
-- `plans/continuation-passing/reports/step-3-5-empirical-validation.md` — Original validation (86.7% FP), fix recommendations
-- `plans/continuation-passing/reports/explore-parser-implementation.md` — Parser code analysis (detection logic, registry, tier 3)
-- `plans/continuation-passing/design.md` — Design with D-1 through D-7 decisions
-- `plans/continuation-passing/requirements.md` — FR/NFR/C requirements
-- `agent-core/hooks/userpromptsubmit-shortcuts.py` — Modified: lines 78-510 (context filtering)
-- `tests/test_continuation_parser.py` — Modified: 18 new tests (15 negative + 3 edge cases)
+- `plans/continuation-passing/reports/step-3-5-revalidation.md` — **Re-validation: 0% FP after architecture change**
+- `plans/continuation-passing/reports/step-3-5-empirical-validation.md` — Original validation (86.7% FP)
+- `plans/continuation-passing/design.md` — Design (needs update for architecture change)
+- `agent-core/hooks/userpromptsubmit-shortcuts.py` — Simplified: ~52 insertions, ~194 deletions
+- `tests/test_continuation_parser.py` — Updated: single-skill pass-through tests
+- `tests/test_continuation_integration.py` — Updated: removed default-exit assertions
 
 ## Next Steps
 
-Re-run empirical validation against same 200-prompt corpus to measure actual FP rate reduction. If <5% achieved, proceed to documentation steps 3.6-3.8.
+Proceed to documentation steps 3.6–3.8. Update design.md to reflect architecture change before writing fragment and workflow decisions.

@@ -142,9 +142,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: 86.7% false positive rate in continuation parser despite 100% unit test pass rate
 - Root cause: Skill name patterns (/commit, /handoff) appear in file paths, meta-discussion, XML tags
 - Key insight: Detection accuracy requires context awareness, not just pattern matching
-## Context-aware detection requires helper decomposition
-- Anti-pattern: Monolithic regex with complex lookahead/lookbehind trying to handle all contexts
-- Correct pattern: Decompose into helper functions testing specific contexts (XML, file paths, meta-discussion, invocation patterns)
-- Rationale: Each FP category has distinct characteristics — separate helpers enable targeted filtering
-- Priority: Check invocation patterns FIRST (early exit for true positives), then exclusion filters
-- Conservative default: When uncertain, prefer false negative over false positive (user retypes vs corrupted execution)
+## Narrow scope before filtering
+- Anti-pattern: Complex context filtering (XML, file paths, meta-discussion, quotes) to handle all false positive cases
+- Correct pattern: Ask "should this even trigger?" — narrowing activation scope eliminates entire classes of FPs
+- Example: Continuation parser had 86.7% FP rate. Adding 5 context helpers reduced to 1%. Removing single-skill activation reduced to 0%.
+- Key insight: The simplest solution is often architectural (change what triggers) not filtering (detect and exclude)
+## Default exits in skills
+- Anti-pattern: Hook appends default-exit to continuation chain for all skill invocations (including standalone)
+- Correct pattern: Skills manage own default-exit at runtime — used when standalone OR last in continuation chain
+- Rationale: Hook-level default-exit requires intercepting all skill invocations, causing false positives for prose mentions
+- Consequence: Skills need both continuation protocol support AND standalone tail-call logic (already the case)
