@@ -11,28 +11,25 @@ Plan lifecycle tracking. Updated when plans change status.
 | continuation-passing | planned | Design + implementation merged (15 steps, parser, registry) |
 | continuation-prepend | requirements | Problem statement only |
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
-| domain-validation | complete | Domain-specific validation infrastructure |
 | handoff-validation | requirements | Requires continuation-passing |
-| markdown | complete | Test corpus implementation — 16 fixtures, 3 parametrized tests, all 5 FRs satisfied |
-| memory-index-recall | complete | Memory index recall analysis tool (7 modules, 50 tests) |
 | orchestrate-evolution | requirements | Absorb planning, finalize phase pattern |
 | plugin-migration | planned | All 7 phases vetted (44 issues fixed). Ready for runbook assembly |
-| reflect-rca-parity-iterations | complete | Parity test quality gap fixes (11 steps, 8 design decisions) |
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
 | requirements-skill | requirements | Evaluate with opus |
 | tweakcc | requirements | Local instances research |
-| validator-consolidation | complete | Validators consolidated to claudeutils package |
 | when-recall | requirements | `/when` memory recall system — active retrieval replacing passive index |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | wt-merge-skill | requirements | Blocked on continuation-passing |
 
 ## Complete (Archived)
 
-*35 plans completed and deleted. Git history preserves all designs/reports.*
+*40 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `markdown` — Test corpus implementation (16 fixtures, 3 parametrized tests, all 5 FRs satisfied)
+- `memory-index-recall` — Memory index recall analysis tool (7 modules, 50 tests)
 - `reflect-rca-parity-iterations` — Parity test quality gap fixes (11 steps, 8 design decisions)
 - `domain-validation` — Domain-specific validation infrastructure (validation skill, rules file, plan skill updates)
 - `validator-consolidation` — Validators consolidated to claudeutils package
