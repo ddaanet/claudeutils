@@ -1,15 +1,17 @@
 # Session Handoff: 2026-02-09
 
-**Status:** Worktree merges complete.
+**Status:** Worktree merges complete + infrastructure improvements merged.
 
 ## Completed This Session
 
 **Worktree operations:**
 - Created `wt/continuation-passing` — focused session.md for opus design
 - Created `wt/bash-git-prompt` — spun off from pending task
+- Created `wt/complexity-fixes` — project-local worktree for precommit fixes (background agent working)
 - Merged `wt/agent-core-links` (ee19369) — fixed missing agent symlinks in sync-to-parent
 - Merged `wt/domain-validation-design` (966c580) — plugin-dev-validation skill, plan-adhoc/plan-tdd updates, 4 new learnings, domain-validation plan complete
 - Merged `wt/parity-failures` (1be1171) — executed parity gap fixes runbook (11 steps, 3 phases), updated skills with parity improvements
+- Merged `infrastructure-improvements` branch — 4 workflow infrastructure tasks from plugin migration vetting RCAs
 
 **wt-merge skill design (discussion → outline):**
 - Outline at `plans/wt-merge-skill/outline.md`
@@ -30,6 +32,22 @@
   - Plan: orchestrate-evolution | Status: requirements
 - [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation | opus
   - Plan: requirements-skill | Status: requirements
+- [ ] **Strengthen commit Gate B coverage check** — Gate B is boolean (any report?) not coverage ratio (artifacts:reports 1:1) | sonnet
+  - Commit skill Step 1 Gate B: count new/modified production artifacts, verify each has vet report
+- [ ] **Review reflect skill: task output for skill/fragment fixes** — RCA should produce pending tasks for skill/fragment updates, not inline fixes, for context economy | sonnet
+  - Current: reflect skill applies fixes in-session (Exit Path 1) consuming context budget
+  - Better: produce tasks in session.md for separate session execution
+- [ ] **Strengthen vet-fix-agent delegation pattern** — Add execution context provision and UNFIXABLE detection | sonnet
+  - Sub-tasks:
+    1. Add execution context to vet-fix-agent prompts (include phase dependencies, state transitions)
+    2. Add UNFIXABLE detection to orchestrator (read report, grep for markers, escalate if found)
+    3. Document vet-fix-agent limitations in memory-index.md (context-blind by default)
+    4. Evaluate meta-review necessity (when should vet output be vetted?)
+  - Analysis: plans/reflect-rca-sequential-task-launch/rca.md
+- [ ] **Update tool-batching.md for Task tool parallelization** — Add explicit Task tool guidance with examples | sonnet
+  - Add "Task Tool Parallelization" section to agent-core/fragments/tool-batching.md
+  - Include example: vet 6 phase files in parallel (6 Task calls in single message)
+  - Show anti-pattern (sequential launch) vs correct pattern (batched launch)
 - [ ] **Rewrite last-output prototype with TDD as claudeutils subcommand** — Port agent-output-cmd prototype to proper TDD implementation in claudeutils package
 - [ ] **Update commit and handoff to branch after precommit** — Move git branching point from beginning to after precommit passes
 - [ ] **History cleanup tooling** — Research git history rewriting, prototype reusable scripts, consider reusable agent. Items: collapse runbook checkpoint commits (preserve session.md handoffs), fix history from wt-merge incident. Allow rewrite on feature branches between releases, may tighten to prevent rewrite of main.
@@ -56,10 +74,22 @@
 
 **wt-merge dirty tree pattern:** Session context files (session.md, jobs.md, learnings.md) are always dirty during worktree operations. Current workaround: commit before merge, retry recipe. Proper fix: wt-merge skill with clean tree gate.
 
+**Vet-fix-agent temporal reasoning limitation:**
+- Agent validates against current filesystem state, not execution-time state
+- Mitigation: Provide execution context in delegation prompts (dependencies, state transitions)
+- See pending task: "Strengthen vet-fix-agent delegation pattern"
+
+**UNFIXABLE detection is manual:**
+- Vet reports mark issues as UNFIXABLE but don't escalate
+- Orchestrator must read report and grep for markers
+- See pending task: "Strengthen vet-fix-agent delegation pattern" (sub-task 2)
+
 ## Reference Files
 
 - **plans/wt-merge-skill/outline.md** — wt-merge skill design outline
 - **plans/continuation-passing/outline.md** — Continuation passing design (in wt/continuation-passing worktree)
+- **plans/reflect-rca-sequential-task-launch/rca.md** — RCA covering Task parallelization + vet context issues
+- **agent-core/fragments/tool-batching.md** — Current tool batching guidance (needs Task tool section)
 - **justfile** — `wt-new` (lines 55-87), `wt-rm`, `wt-merge`
 
 ## Next Steps
@@ -67,4 +97,4 @@
 Continue with continuation-passing design in worktree (opus). That unblocks handoff-validation, orchestrate-evolution, and wt-merge-skill.
 
 ---
-*Handoff by Sonnet. Merged wt/parity-failures worktree.*
+*Handoff by Sonnet. Merged infrastructure-improvements branch with workflow improvement tasks.*

@@ -15,6 +15,9 @@ Plan lifecycle tracking. Updated when plans change status.
 | reflect-rca-parity-iterations | complete | Parity test quality gap fixes (11 steps, 8 design decisions) |
 | requirements-skill | requirements | Evaluate with opus |
 | orchestrate-evolution | requirements | Absorb planning, finalize phase pattern |
+| plugin-migration | planned | All 7 phases vetted (44 issues fixed). Ready for runbook assembly |
+| reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
+| submodule-commit-tooling | requirements | Submodule commit workflow |
 | wt-merge-skill | requirements | Blocked on continuation-passing |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | validator-consolidation | complete | Validators consolidated to claudeutils package |
