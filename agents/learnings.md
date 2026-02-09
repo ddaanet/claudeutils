@@ -185,3 +185,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Implementation: `start_num = phase_nums[0]`, validate against `range(start_num, start_num + len)`
 - Also supports general vs TDD detection: Step headers = general, Cycle headers = TDD
 - Fix: agent-core/bin/prepare-runbook.py lines 410-445
+## Self-referential runbook modification
+- Anti-pattern: Runbook step uses `find plans/` or `sed -i` on `plans/` directory — includes `plans/<plan-name>/` itself
+- Correct pattern: Exclude plan's own directory (`-not -path 'plans/<plan-name>/*'`) or enumerate specific target directories
+- Detection: Check if any step's file-mutating command scope overlaps `plans/<plan-name>/` (excluding `reports/`)
+- Root cause: Blanket directory operations look correct but scope includes the executing runbook
+- Fix: Added `-not -path` exclusion to Phase 0 step 12; vet criterion added to main repo

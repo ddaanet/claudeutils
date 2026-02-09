@@ -34,7 +34,7 @@ git mv agent-core edify-plugin
 
 4. **Update root justfile:**
    - Search-replace: `agent-core/` → `edify-plugin/`
-   - Affected recipes: `cache` (line 19), `wt-new` (line 76: `--reference "$main_dir/agent-core"`)
+   - Affected recipes: `cache` (line ~25), `wt-new` (line ~65: `--reference "$main_dir/agent-core"`)
    - Critical: wt-new submodule reference must update or worktree creation fails
 
 5. **Update .claude/settings.json:**
@@ -77,7 +77,7 @@ git mv agent-core edify-plugin
       - `plans/commit-unification/` (11 refs across design, report)
       - `plans/workflow-skills-audit/audit.md` (8 refs)
     - **Decision:** Update all historical docs for consistency (non-breaking but reduces confusion)
-    - Execute: `find plans/ -type f -name '*.md' -exec sed -i '' 's/agent-core/edify-plugin/g' {} +`
+    - Execute: `find plans/ -type f -name '*.md' -not -path 'plans/plugin-migration/*' -exec sed -i '' 's/agent-core/edify-plugin/g' {} +`
 
 13. **Post-rename verification grep:**
 ```bash
