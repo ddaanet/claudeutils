@@ -1,27 +1,31 @@
-# Session: Continuation Passing Complete
+# Session: Complexity Refactoring + Continuation Passing Complete
 
-**Status:** Continuation passing plan complete (15/15 steps). All documentation, design updates, and vet checkpoints done.
+**Status:** Memory index complexity refactoring complete. Continuation passing plan complete (15/15 steps).
 
 ## Completed This Session
 
-**Documentation (Steps 3.6–3.8):**
-- Created `agent-core/fragments/continuation-passing.md` — protocol reference (frontmatter, consumption, transport, isolation)
-- Updated `agents/decisions/workflow-optimization.md` — 2 new entries (continuation passing pattern, hook-based parsing rationale)
-- Checked `plugin-dev:skill-development` — no modification needed (third-party plugin, continuation is project-specific)
-- Added 6 entries to `agents/memory-index.md` (4 for fragment, 2 for decisions)
+**Complexity refactoring (this conversation):**
+- Refactored `memory_index.py::validate()` — extracted 3 helpers, reduced C901 from 14 to <10
+- Refactored `memory_index_helpers.py::autofix_index()` — extracted 2 helpers, reduced C901 from 15 to <10
+- Added `_AutofixContext` dataclass with `slots=True` for parameter grouping
+- All 17 validation tests pass, no regressions
+- Vet review: "Ready" status, all fixes applied
+- Report: `tmp/complexity-refactor-vet.md`
 
-**Design.md architecture alignment:**
+**Documentation (previous session - Steps 3.6–3.8):**
+- Created `agent-core/fragments/continuation-passing.md` — protocol reference
+- Updated `agents/decisions/workflow-optimization.md` — 2 new entries
+- Added 6 entries to `agents/memory-index.md`
+
+**Design.md architecture alignment (previous session):**
 - D-1: Added "multi-skill only" qualifier and architecture change note
-- D-3: Rewrote to "default exit ownership" — skills manage own default-exit, hook never reads/appends
+- D-3: Rewrote to "default exit ownership"
 - D-6: Removed Mode 1, updated to two parsing modes only
-- Updated parser logic, additionalContext format, frontmatter field descriptions
 
-**Vet checkpoint:** 6 issues found and fixed (0 critical, 2 major, 4 minor)
-- Terminology consistency: "skill implements its own default-exit behavior" across all docs
-- Added cooperative skill definition, table note for Default Exit column
+**Vet checkpoint (previous session):** 6 issues found and fixed (0 critical, 2 major, 4 minor)
 - Report: `plans/continuation-passing/reports/checkpoint-3-vet.md`
 
-**Previous sessions (15/15 steps total):**
+**Continuation passing phases (completed across multiple sessions):**
 - Phase 1 (hook): Steps 1.1–1.4 + vet checkpoint
 - Phase 2 (skills): Steps 2.4–2.6 + vet checkpoint
 - Phase 3 (tests+docs): Steps 3.1–3.8 + parser FP fix + re-validation + documentation vet

@@ -170,6 +170,70 @@ def extract_index_structure(
     return preamble, sections
 
 
+def _build_file_entries_map(
+    sections: list[tuple[str, list[str]]],
+    headers: dict[str, list[tuple[str, int, str]]],
+    structural: set[str],
+) -> dict[str, list[tuple[int, str]]]:
+    """Build map from file paths to sorted entries.
+
+    Skip exempt sections and structural entries.
+    """
+    file_entries: dict[str, list[tuple[int, str]]] = {}
+
+    for section_name, entry_lines in sections:
+        if section_name in EXEMPT_SECTIONS:
+            continue
+
+        for entry in entry_lines:
+            key = entry.split(" — ")[0].lower() if " — " in entry else entry.lower()
+
+            # Skip entries pointing to structural sections
+            if key in structural:
+                continue
+
+            # Find which file this entry belongs to
+            if key in headers:
+                source_file = headers[key][0][0]
+                source_lineno = headers[key][0][1]
+                file_entries.setdefault(source_file, []).append((source_lineno, entry))
+
+    # Sort entries within each file by source line number
+    for entries_list in file_entries.values():
+        entries_list.sort()
+
+    return file_entries
+
+
+def _rebuild_index_content(
+    preamble: list[str],
+    sections: list[tuple[str, list[str]]],
+    file_entries: dict[str, list[tuple[int, str]]],
+) -> list[str]:
+    """Rebuild index file content.
+
+    Includes preamble, exempt sections, and file sections.
+    """
+    output = []
+
+    # Preamble
+    output.extend(preamble)
+
+    # Exempt sections first (preserve order from original)
+    for section_name, entry_lines in sections:
+        if section_name in EXEMPT_SECTIONS:
+            output.append(f"\n## {section_name}\n")
+            output.extend(entry_lines)
+
+    # File sections in sorted order
+    for filepath in sorted(file_entries.keys()):
+        output.append(f"\n## {filepath}\n")
+        for _, entry in file_entries[filepath]:
+            output.append(entry)
+
+    return output
+
+
 def autofix_index(
     index_path: Path | str,
     root: Path,
@@ -193,50 +257,8 @@ def autofix_index(
         structural = set()
 
     preamble, sections = extract_index_structure(index_path, root)
-
-    # Build map: file path → sorted entries
-    file_entries: dict[str, list[tuple[int, str]]] = {}
-    exempt_entries = {}  # section_name → entries (preserve as-is)
-
-    for section_name, entry_lines in sections:
-        if section_name in EXEMPT_SECTIONS:
-            exempt_entries[section_name] = entry_lines
-            continue
-
-        for entry in entry_lines:
-            key = entry.split(" — ")[0].lower() if " — " in entry else entry.lower()
-
-            # Skip entries pointing to structural sections
-            if key in structural:
-                continue
-
-            # Find which file this entry belongs to
-            if key in headers:
-                source_file = headers[key][0][0]
-                source_lineno = headers[key][0][1]
-                file_entries.setdefault(source_file, []).append((source_lineno, entry))
-
-    # Sort entries within each file by source line number
-    for entries_list in file_entries.values():
-        entries_list.sort()
-
-    # Rebuild the file
-    output = []
-
-    # Preamble
-    output.extend(preamble)
-
-    # Exempt sections first (preserve order from original)
-    for section_name, entry_lines in sections:
-        if section_name in EXEMPT_SECTIONS:
-            output.append(f"\n## {section_name}\n")
-            output.extend(entry_lines)
-
-    # File sections in sorted order
-    for filepath in sorted(file_entries.keys()):
-        output.append(f"\n## {filepath}\n")
-        for _, entry in file_entries[filepath]:
-            output.append(entry)
+    file_entries = _build_file_entries_map(sections, headers, structural)
+    output = _rebuild_index_content(preamble, sections, file_entries)
 
     # Write back
     try:
