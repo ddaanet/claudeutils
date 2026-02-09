@@ -8,7 +8,7 @@ Plan lifecycle tracking. Updated when plans change status.
 
 | Plan | Status | Notes |
 |------|--------|-------|
-| continuation-passing | designed | Design complete, planning pending |
+| continuation-passing | planned | Runbook complete, ready for execution |
 | handoff-validation | requirements | Requires continuation-passing |
 | markdown | requirements | Markdown cleanup test corpus |
 | requirements-skill | requirements | Evaluate with opus |
