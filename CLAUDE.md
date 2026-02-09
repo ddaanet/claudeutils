@@ -17,6 +17,8 @@ When user says "pending: task description":
 - Keep in context and write to session.md Pending Tasks section on next handoff
 - Acknowledge receipt: "Added to pending tasks"
 
+@agent-core/fragments/execution-routing.md
+
 @agent-core/fragments/delegation.md
 
 ---

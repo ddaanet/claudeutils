@@ -152,3 +152,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Skills manage own default-exit at runtime — used when standalone OR last in continuation chain
 - Rationale: Hook-level default-exit requires intercepting all skill invocations, causing false positives for prose mentions
 - Consequence: Skills need both continuation protocol support AND standalone tail-call logic (already the case)
+## Delegation vs execution routing
+- Anti-pattern: Single fragment covering both interactive routing and orchestration delegation — conflicting signals
+- Correct pattern: Split into execution-routing.md (interactive: understand first, do directly) and delegation.md (orchestration: dispatch to agents)
+- Rationale: "Delegate everything" is correct for runbook orchestration, wrong for interactive work
+- Fix: delegation.md 131→44 lines (orchestration only), execution-routing.md 25 lines (interactive routing)
