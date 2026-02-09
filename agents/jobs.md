@@ -14,6 +14,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | markdown | requirements | Markdown cleanup test corpus |
 | requirements-skill | requirements | Evaluate with opus |
 | reflect-rca-parity-iterations | requirements | Spec-to-execution fidelity, 5 root causes |
+| tweakcc | requirements | Drive tweakcc from claudeutils, custom system + tool prompts |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | validator-consolidation | complete | Validators consolidated to claudeutils package |
 

@@ -1,24 +1,31 @@
-# Session: Bash Tool Prompt Noise Research
+# Session: tweakcc Integration Research
 
 ## Completed This Session
 
-### Research: Bash tool prompt anatomy
-- Analyzed three builtin Bash tool prompt files from [claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts) (Piebald AI, extracted from compiled npm JS)
-- Identified ~3095 tokens of builtin content that overlaps/conflicts with project fragments
-- Discovered [tweakcc](https://github.com/Piebald-AI/tweakcc) — patches individual prompt strings in local Claude Code installations
-- Verified sandbox behavior: `/tmp/claude/` is in sandbox write allowlist, Bash writes succeed, `permissions.deny` only affects Write/Edit tools
+### Research: tweakcc mechanics and local instances
+- Analyzed tweakcc patching workflow for native binary (unpack/repack) vs npm (direct JS modification)
+- Discovered Claude installed as native binary at `~/.local/share/claude/versions/2.1.37` (Mach-O arm64)
+- tweakcc installed and configured at `~/.tweakcc/` with 135 system prompt files extracted
+- Confirmed npm local install is the path: `@anthropic-ai/claude-code` as devDependency, direct JS patching, no binary workflow
+- Per-project config via `TWEAKCC_CONFIG_DIR` env var or programmatic API (no native per-project support)
+- Patches don't survive `npm install` — requires postinstall hook for reapplication
+
+### Measured token counts for override targets
+- `tool-description-bash-git-commit-and-pr-creation-instructions.md`: 1731 tokens
+- `tool-description-bash-sandbox-note.md`: 513 tokens
+- `system-prompt-scratchpad-directory.md`: 230 tokens
+- `tool-description-bash.md` (full file): 1246 tokens
+- Total removable (Phase 1): ~2624 tokens per session
+
+### RCA: Estimation deviation
+- Presented prior document estimates as fresh analysis in summary table
+- Root cause: `no-estimates.md` ("report measured data only") conflicted with `token-economy.md` ("reference don't repeat") — token economy provided justification for reusing unverified numbers
+- Fix: Updated `no-estimates.md` with "Reuse is not measurement" clarification
 
 ### Deliverables
-- `plans/feature-requests/gh-issue-tool-overrides.md` — Feature request: override builtin tool description components
-- `plans/feature-requests/gh-issue-sandbox-deny-default.md` — Feature request: sandbox denial should stop agent, not auto-retry
-- `plans/feature-requests/gh-issue-sandbox-allowlist.md` — Feature request: configurable sandbox write allowlist
-- `plans/feature-requests/fragment-redundancy-analysis.md` — Full analysis of fragment vs builtin overlap, tweakcc integration plan
-- `/Users/david/code/claude-code-system-prompts/CLAUDE.md` — PR: Add CLAUDE.md to Piebald's system-prompts repo
-
-### RCA: Track deliverables in plans/
-- Repeated violation (2026-02-06, 2026-02-08) of writing tracked artifacts to gitignored tmp/
-- Root cause: Category-matching heuristic ("not a report/design/audit") defeated principle ("will this be referenced?")
-- Learning updated with decision principle instead of category enumeration
+- `plans/tweakcc/requirements.md` — Two-phase requirements (stopgap: remove builtins, end state: custom system + tool prompts)
+- `plans/tweakcc/research.md` — tweakcc mechanics, patch survival, config structure
+- `plans/tweakcc/local-instances.md` — npm local install, programmatic API, integration patterns
 
 ## Pending Tasks
 
@@ -30,31 +37,22 @@
 - [ ] **Submit CLAUDE.md PR to Piebald-AI** — File written at `/Users/david/code/claude-code-system-prompts/CLAUDE.md`
   - `cd /Users/david/code/claude-code-system-prompts && git checkout -b add-claudemd && git add CLAUDE.md && git commit -m "Add CLAUDE.md for AI agent context" && gh pr create --repo Piebald-AI/claude-code-system-prompts --title "Add CLAUDE.md for AI agent context" --body "Adds CLAUDE.md explaining origin of extracted files and guidance for AI agents."`
 
-- [ ] **Integrate tweakcc with Edify just wrapper** — tweakcc patches prompt strings in local Claude Code. Evaluate as Edify's tool description override mechanism. Key: Edify already runs `--system-prompt` disabled; tweakcc fills gap for tool descriptions. Research: survives npm updates? Post-install hook? Version-control patches?
+- [ ] **tweakcc Phase 1 implementation** — `/design plans/tweakcc/requirements.md` | Drive tweakcc from claudeutils, remove redundant builtins. Requirements written, research complete.
 
-- [ ] **Include custom system prompt injection in Edify just wrapper** — Override/replace builtin tool descriptions and system prompt components when wrapping `claude` CLI
+- [ ] **Extend pretooluse-block-tmp.sh to match Bash commands** — Match Bash tool where command contains `/tmp` path patterns. Closes gap allowing `echo > /tmp/claude/foo`.
 
-- [ ] **Extend pretooluse-block-tmp.sh to match Bash commands** — Match Bash tool where command contains `/tmp` path patterns. Closes gap allowing `echo > /tmp/claude/foo`. Prerequisite for removing `tmp-directory.md` fragment.
-
-- [ ] **Remove tmp-directory.md fragment** — Redundant with pretooluse-block-tmp.sh hook + sandbox note override. Requires: Bash hook extension (above) + tweakcc sandbox note override. See `plans/feature-requests/fragment-redundancy-analysis.md` Phase 2.
-
-- [ ] **PreToolUse hook for bash→specialized tool redirection** — Filter trivial one-liner Bash commands (cat, grep, find without pipes/redirects) and block with guidance to use Read/Grep/Glob. Replaces prompt-level "use specialized tools" guidance with runtime enforcement.
+- [ ] **PreToolUse hook for bash→specialized tool redirection** — Filter trivial one-liner Bash commands (cat, grep, find without pipes/redirects) and block with guidance to use Read/Grep/Glob.
 
 ## Blockers / Gotchas
 
-- Feature requests #1 and #3 (tool overrides, sandbox allowlist) are prerequisites for full fragment cleanup
-- tweakcc integration depends on researching its update-survival and patch format
-- Bash `/tmp` hook extension needs careful regex to avoid false positives on commands that read from `/tmp` (only block writes)
-- Learnings at 126 lines (80 soft limit exceeded, 0 entries ≥7 days — consolidation not yet triggered)
+- tweakcc research clarified: fragments MUST stay in CLAUDE.md for clean/unpatched environments — tweakcc is optimization overlay, not replacement
+- Two-phase vision: stopgap (remove redundant builtins) → end state (custom system + tool prompts via tweakcc)
+- `.anthropic-api-key` file in project root — do NOT commit (created for token counting, should be in .gitignore or deleted)
+- Learnings at 127 lines (80 soft limit exceeded, 0 entries ≥7 days — consolidation not yet triggered)
 
 ## Reference Files
 
-- `plans/feature-requests/` — All feature request bodies and redundancy analysis
-- `/Users/david/code/claude-code-system-prompts/` — Piebald's extracted system prompts (added as working directory)
-- `.claude/hooks/pretooluse-block-tmp.sh` — Current /tmp write blocker (Write/Edit only)
-- `agent-core/fragments/tmp-directory.md` — Fragment targeted for removal
-- `agent-core/fragments/sandbox-exemptions.md` — Sandbox bypass patterns
-
-## Next Steps
-
-Submit the three feature requests and Piebald PR (manual, commands ready in Pending Tasks).
+- `plans/tweakcc/` — Requirements, research, local instances analysis
+- `plans/feature-requests/` — Feature request bodies and redundancy analysis
+- `~/.tweakcc/system-prompts/` — 135 extracted system prompt files (override targets)
+- `/Users/david/code/claude-code-system-prompts/` — Piebald's extracted system prompts

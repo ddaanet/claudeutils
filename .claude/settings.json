@@ -17,10 +17,10 @@
     "deny": [
       "NotebookEdit",
       "Edit(/tmp/*)",
-      "Write(/tmp/*)"
+      "Write(/tmp/*)",
       "Bash(git push:*)",
       "Bash(just release:*)",
-      "WebFetch(domain:http-intake.logs.*.datadoghq.com)",
+      "WebFetch(domain:http-intake.logs.*.datadoghq.com)"
     ]
   },
   "attribution": {
