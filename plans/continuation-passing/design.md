@@ -18,7 +18,7 @@ Skills hardcode their exit tail-calls (e.g., `/design` always invokes `/handoff 
 - FR-1: Prose continuation syntax — addressed by hook parser (delimiter detection + registry lookup)
 - FR-2: Sequential execution — addressed by peel-first-pass-remainder protocol
 - FR-3: Continuation consumption — addressed by cooperative skill protocol
-- FR-4: Structured continuation (multi-line) — addressed by `and\n- /skill` list marker detection
+- FR-4: Structured continuation (multi-line) — simplified from requirements' `then:`/`finally:` format to `and\n- /skill` list marker detection (cross-session capabilities deferred to orchestrate-evolution)
 - FR-5: Prose-to-explicit translation — addressed by registry matching with empirical validation
 - FR-6: Sub-agent isolation — addressed by convention + explicit prohibition in skill protocol
 - FR-7: Cooperative skill protocol — addressed by frontmatter declaration + consumption protocol
@@ -293,6 +293,8 @@ Output: additionalContext JSON with continuation metadata (or no output for non-
 
 **Format choice:** Prose with structured prefix, not raw JSON. Claude processes natural language instructions more reliably than parsing embedded JSON. The `[CONTINUATION-PASSING]` marker enables skills to detect continuation context.
 
+**No `systemMessage`:** Unlike Tier 1/2 shortcuts which emit both `additionalContext` and `systemMessage`, Tier 3 continuation output uses only `additionalContext`. Continuation metadata is internal to Claude's processing and should not appear in the user's UI.
+
 **Single-skill case (Mode 1):** For solo invocations (e.g., `/design plans/foo`), the hook emits continuation with just the default exit:
 
 ```
@@ -362,21 +364,25 @@ BUILTIN_SKILLS = {
 - Add `continuation:` block to YAML frontmatter
 - Add `Skill` to `allowed-tools` if not present (needed for tail-call)
 
+**Skills requiring `Skill` tool addition:** `/design` and `/orchestrate` currently lack `Skill` in their `allowed-tools`. The remaining cooperative skills (`/plan-adhoc`, `/plan-tdd`, `/handoff`, `/commit`) already have it.
+
 ### Component 3: Skill Refactoring
 
 **Files:** 5 SKILL.md files (all except `/commit` which is already terminal)
 
 **Changes per skill:**
-- Remove hardcoded tail-call section (e.g., "CRITICAL: As the final action, invoke `/handoff --commit`")
+- Remove hardcoded tail-call section where present (e.g., "CRITICAL: As the final action, invoke `/handoff --commit`")
 - Add continuation protocol section (~5-8 lines)
 - Remove any intermediate instructions about specific next skills
 
+**Note:** `/orchestrate` has no hardcoded tail-call to remove — its completion section suggests next actions in prose. The change adds the continuation protocol section alongside the existing completion handling.
+
 **Affected skills and their current tail-call locations:**
-- `/design` — C.5 "Handoff and Commit" section
-- `/plan-adhoc` — Tier 1/2/3 tail-call instructions
-- `/plan-tdd` — Phase 5 tail-call instructions
-- `/orchestrate` — End of execution tail-call
-- `/handoff` — "Tail-Call: --commit Flag" section
+- `/design` — C.5 "Handoff and Commit" section (hardcoded `/handoff --commit`)
+- `/plan-adhoc` — Step 3 "Tail-call `/handoff --commit`" section
+- `/plan-tdd` — Step 6 "Tail-call `/handoff --commit`" section
+- `/orchestrate` — Section 6 "Completion" (suggests next action but has no hardcoded Skill tail-call; refactoring adds continuation protocol without removing existing tail-call)
+- `/handoff` — "Tail-Call: --commit Flag" section (tail-calls `/commit` when `--commit` flag present)
 
 ### Component 4: Tests
 
