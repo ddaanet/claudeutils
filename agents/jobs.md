@@ -18,7 +18,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
-| worktree-skill | outlined | Absorbs wt-merge-skill. CLI subcommand + skill, TDD |
+| worktree-skill | designed | Absorbs wt-merge-skill. CLI subcommand + skill, TDD |
 
 ## Complete (Archived)
 

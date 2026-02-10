@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-10
 
-**Status:** All 3 stale worktrees merged/removed. Zero worktrees remaining.
+**Status:** Worktree skill design complete (Phase C). Ready for TDD planning.
 
 ## Completed This Session
 
@@ -19,10 +19,18 @@
 
 **Worktree skill outline updated:** Added source code conflict resolution (take-ours + precommit gate), batch stale removal, submodule fetch path simplification, new test scenarios. Outline-review-agent: 4 minor fixes applied (step numbering, scope clarification, CLI naming). Branch naming reverted to "no prefix" per user requirement.
 
+**Worktree skill design (Phase C):**
+- Design document: `plans/worktree-skill/design.md` (508 lines, 10 design decisions, 8 FRs + 5 NFRs)
+- Checkpoint commit: 8cb48f7
+- Vet review: design-vet-agent (opus) — 0 critical, 3 major fixed, 7 minor fixed, no UNFIXABLE
+- Key decisions: `wt/<slug>/` inside project root (sandbox-compatible), branch=slug (no prefix), direct git plumbing for merge commits (no /commit skill), precommit as correctness oracle
+- Design clarification: submodule/merge commits use `🔀` hardcoded gitmoji, string interpolation only
+- Dependency resolved: focus-session.py — skill generates inline (no script dependency)
+
 ## Pending Tasks
 
-- [ ] **Worktree skill design + implementation** — `/design plans/worktree-skill/outline.md` (Phase C: full design), then `/plan-tdd` | opus
-  - Plan: worktree-skill | Status: outlined
+- [ ] **Worktree skill TDD planning** — `/plan-tdd plans/worktree-skill/design.md` | opus
+  - Plan: worktree-skill | Status: designed | Load `plugin-dev:skill-development` before planning
 - [ ] **Review agent-core orphaned revisions** — Check all agent-core commits reachable from parent repo history but not on current HEAD, merge if needed | sonnet
 - [ ] **Execute plugin migration** — `/orchestrate plans/plugin-migration/orchestrator-plan.md` | haiku
   - Plan: plugin-migration | Status: planned
@@ -58,10 +66,10 @@
 
 ## Reference Files
 
-- **plans/worktree-skill/outline.md** — Worktree skill design outline (iterate from here)
-- **plans/worktree-skill/reports/explore-integration.md** — Full integration point analysis
-- **agent-core/bin/focus-session.py** — Recovered worktree session extraction script
-- **plans/reflect-rca-sequential-task-launch/** — RCA on Task parallelization + vet context issues
+- **plans/worktree-skill/design.md** — Full design document (10 decisions, merge flow, conflict resolution, skill spec)
+- **plans/worktree-skill/reports/design-review.md** — Opus vet review (all fixed, no UNFIXABLE)
+- **plans/worktree-skill/outline.md** — Validated outline (binding scope)
+- **plans/worktree-skill/reports/explore-integration.md** — Integration point analysis
 
 ---
-*Handoff by Sonnet. All worktrees merged + removed.*
+*Handoff by Sonnet. Design complete, TDD planning next.*

@@ -16,7 +16,7 @@ Worktree operations span 5 justfile recipes with known defects: blind `--ours` s
 - FR-4: Source code conflict resolution (take-ours + precommit gate + fallback) — addressed by Conflict Resolution: Source Code
 - FR-5: SKILL.md orchestrating session manipulation, ceremony, parallel detection — addressed by Skill Design
 - FR-6: execute-rule.md Mode 5 update to reference skill — addressed by Documentation Updates
-- FR-7: Delete justfile wt-* recipes — addressed by Migration
+- FR-7: Delete justfile wt-* recipes — addressed by Documentation Updates (Justfile recipe deletion)
 - FR-8: Integration tests with real git repos + submodules — addressed by Testing Strategy
 
 **Non-functional:**
@@ -88,13 +88,16 @@ Creates a new worktree with optional pre-committed focused session.
 
 **Flow:**
 1. Validate: no existing `wt/<slug>/` dir, no existing `<slug>` branch
-2. **If `--session`:** Pre-commit session.md via git plumbing:
+2. **If `--session`:** Pre-commit session.md via git plumbing (uses temp index to avoid polluting main):
+   - `GIT_INDEX_FILE=<tmpfile>` for all index operations below
    - `git hash-object -w <session-path>` → blob
-   - `git read-tree <base>` into temp index
-   - `git update-index --cacheinfo 100644,<blob>,agents/session.md`
-   - `git write-tree` → tree, `git commit-tree` → commit
+   - `git read-tree --index-output=<tmpfile> <base>` (populate temp index from base)
+   - `GIT_INDEX_FILE=<tmpfile> git update-index --cacheinfo 100644,<blob>,agents/session.md`
+   - `GIT_INDEX_FILE=<tmpfile> git write-tree` → tree
+   - `git commit-tree <tree> -p <base> -m "Focused session for <slug>"` → commit
    - `git branch <slug> <commit>`
    - `git worktree add wt/<slug> <slug>`
+   - Clean up temp index file
 3. **Else:** `git worktree add wt/<slug> -b <slug> <base>`
 4. Submodule init: `git -C wt/<slug> submodule update --init --reference <project-root>/agent-core`
 5. Branch submodule: `git -C wt/<slug>/agent-core checkout -b <slug>`
@@ -112,10 +115,11 @@ Creates a new worktree with optional pre-committed focused session.
 Removes worktree and branch.
 
 **Flow:**
-1. Validate `wt/<slug>/` exists
-2. Check uncommitted changes: `git -C wt/<slug> diff --quiet HEAD` — warn to stderr if dirty
-3. `git worktree remove --force wt/<slug>`
-4. `git branch -d <slug>` — if unmerged, warn to stderr (don't force-delete)
+1. Check if `wt/<slug>/` exists (worktree may already be removed, branch-only cleanup is valid)
+2. If worktree exists:
+   a. Check uncommitted changes: `git -C wt/<slug> diff --quiet HEAD` — warn to stderr if dirty
+   b. `git worktree remove --force wt/<slug>`
+3. `git branch -d <slug>` — if unmerged, warn to stderr (don't force-delete)
 
 **Output:** Success message to stderr
 **Exit:** 0 success, 1 error
@@ -194,7 +198,7 @@ The `merge` subcommand orchestrates three phases. Each phase is idempotent — t
 1. `git merge --no-commit --no-ff <slug>`
    - `--no-commit`: allows custom merge commit message
    - `--no-ff`: ensures merge commit even if fast-forwardable (audit trail)
-2. **If clean merge:** commit with message and exit (see step 6)
+2. **If clean merge:** proceed to step 4 (commit)
 3. **If conflicts:** identify and resolve:
    a. Get conflict list: `git diff --name-only --diff-filter=U`
    b. **agent-core conflicts:** `git checkout --ours agent-core && git add agent-core` (already merged in Phase 2)
@@ -239,20 +243,20 @@ Algorithm:
 5. Remove merged worktree entry from Worktree Tasks section (match on slug)
 6. Return merged content
 
-**learnings.md — keep-both:**
+**learnings.md — keep-both (append strategy):**
 
 ```python
 def resolve_learnings_conflict(ours: str, theirs: str) -> str:
-    """Remove conflict markers, preserve all content from both sides."""
+    """Keep ours, append new entries from theirs."""
 ```
 
 Algorithm:
-1. Split both sides on `<<<<<<<`, `=======`, `>>>>>>>`
-2. Concatenate: ours-before-conflict + ours-conflict-section + theirs-conflict-section + after-conflict
-3. Deduplicate identical learning entries (match on `## Title` heading)
+1. Parse learning entries from both sides (split on `## ` headings)
+2. Identify entries in theirs not present in ours (match on `## Title` heading)
+3. Append new entries from theirs to end of ours
 4. Return merged content
 
-Alternative (simpler): Use `git checkout --ours` then append any lines from theirs not already in ours. Since learnings.md is append-only, theirs's additions are always at the end.
+Since learnings.md is append-only, theirs's additions are always at the end. This avoids fragile conflict marker parsing.
 
 **jobs.md — keep-ours with status advancement:**
 
@@ -267,6 +271,8 @@ Algorithm:
 3. Return updated content
 
 **Status ordering:** `requirements` < `designed` < `outlined` < `planned` < `complete`
+
+**Note:** The canonical progression in `agents/jobs.md` lists four statuses (`requirements` -> `designed` -> `planned` -> `complete`). The `outlined` status exists in practice (e.g., worktree-skill) but is not in the canonical progression. This conflict resolution algorithm includes it for correctness. The planner should update `agents/jobs.md` to document `outlined` as a valid intermediate status.
 
 **Application in merge flow:**
 - `git show :2:<path>` → ours version (during merge conflict state)
@@ -347,16 +353,18 @@ The skill has three modes matching execute-rule.md Mode 5:
    - No logical dependency
    - Compatible model tier
    - No restart requirement
-3. For each task in group: execute Mode A steps
-4. Print all launch commands
+3. If no parallel group found (all tasks have dependencies): report "No independent parallel group detected" and stop
+4. For each task in group: execute Mode A steps
+5. Print all launch commands
 
 **Mode C: Merge ceremony** (`wt merge <slug>`)
-1. Invoke `/handoff --commit` (ceremony before merge)
-2. Wait for commit to complete
+1. Invoke `/handoff --commit` (ceremony before merge — ensures clean tree)
+2. Wait for commit to complete. If handoff or commit fails: stop and report (merge requires clean tree)
 3. Invoke: `claudeutils _worktree merge <slug>`
-4. If success: edit session.md — remove task from Worktree Tasks
-5. Invoke: `claudeutils _worktree rm <slug>` (cleanup)
-6. Print result
+4. If merge exit 0: edit session.md — remove task from Worktree Tasks
+5. If merge exit 1 (conflicts or precommit failure): report guidance and stop (user resolves, re-runs)
+6. Invoke: `claudeutils _worktree rm <slug>` (cleanup)
+7. Print result
 
 **Error communication:**
 - Conflict resolution guidance (which files, what to do)
@@ -436,13 +444,14 @@ Each test gets a fresh `git clone` of the fixture repos. This isolates tests wit
 | Scenario | Module | Key Assertions |
 |----------|--------|----------------|
 | Submodule merge (diverged commits) | test_worktree_merge | Both original commits are ancestors of merged HEAD |
-| Submodule merge (fast-forward) | test_worktree_merge | No merge commit created, pointer updated |
+| Submodule merge (already included) | test_worktree_merge | Ancestry check detects local includes worktree changes, merge skipped |
 | Session keep-ours + task extraction | test_worktree_conflicts | New tasks from worktree side present in result |
 | Learnings keep-both | test_worktree_conflicts | All entries from both sides preserved |
 | Jobs status advancement | test_worktree_conflicts | Higher status wins per ordering |
 | Take-ours + precommit gate | test_worktree_merge | Precommit called, result determines success |
 | Conflict resolution + resume | test_worktree_merge | Re-run after manual fix succeeds |
 | Idempotent merge | test_worktree_merge | Running merge twice yields same result |
+| New with --session pre-commit | test_worktree_cli | Worktree created with focused session.md at HEAD, main index unmodified |
 | Clean-tree gate | test_worktree_cli | Dirty tree exits 1, session files exempt |
 | Merge debris cleanup | test_worktree_merge | Untracked files from aborted merge removed |
 | Task recovery from worktree session.md | test_worktree_conflicts | Tasks created during worktree work are preserved |
