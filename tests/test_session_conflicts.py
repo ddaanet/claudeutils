@@ -1,6 +1,9 @@
 """Tests for session.md conflict resolution."""
 
-from claudeutils.worktree.conflicts import resolve_session_conflict
+from claudeutils.worktree.conflicts import (
+    resolve_learnings_conflict,
+    resolve_session_conflict,
+)
 
 
 def test_resolve_session_conflict_extracts_new_tasks() -> None:
@@ -212,3 +215,79 @@ None.
     # No reference to wt/plugin-migration marker should remain
     assert "wt/plugin-migration" not in result
     assert "→ wt/" not in result
+
+
+def test_resolve_learnings_conflict_appends_new_entries() -> None:
+    """Append new learning entries from theirs to ours."""
+    ours = """# Learnings
+
+Institutional knowledge accumulated.
+
+## Tool batching unsolved
+
+- Documentation doesn't reliably change behavior
+- Cost-benefit unclear
+
+## Scan triggers unnecessary tools
+
+- Anti-pattern: "Scan X.md" where X is @-referenced
+- Correct pattern: "Check loaded X context"
+
+## Structural header dot syntax
+
+- Anti-pattern: `.## Title`
+- Correct pattern: `## .Title`
+"""
+
+    theirs = """# Learnings
+
+Institutional knowledge accumulated.
+
+## Tool batching unsolved
+
+- Documentation doesn't reliably change behavior
+- Cost-benefit unclear
+
+## Scan triggers unnecessary tools
+
+- Anti-pattern: "Scan X.md" where X is @-referenced
+- Correct pattern: "Check loaded X context"
+
+## Structural header dot syntax
+
+- Anti-pattern: `.## Title`
+- Correct pattern: `## .Title`
+
+## Vet-fix-agent confabulation from design docs
+
+- Anti-pattern: Give vet-fix-agent full design.md during phase review
+- Correct pattern: Precommit-first, explicit scope prevents confabulation
+"""
+
+    result = resolve_learnings_conflict(ours, theirs)
+
+    # Result should contain all four learning entries
+    assert "## Tool batching unsolved" in result
+    assert "## Scan triggers unnecessary tools" in result
+    assert "## Structural header dot syntax" in result
+    assert "## Vet-fix-agent confabulation from design docs" in result
+
+    # New entry should be appended at end (after "Structural header dot syntax")
+    structural_idx = result.find("## Structural header dot syntax")
+    confab_idx = result.find("## Vet-fix-agent confabulation from design docs")
+    assert structural_idx < confab_idx
+
+    # All entries should preserve exact content (multi-paragraph, code blocks, etc)
+    assert "- Documentation doesn't reliably change behavior" in result
+    assert "- Cost-benefit unclear" in result
+    assert "- Anti-pattern: `.## Title`" in result
+    assert "- Correct pattern: `## .Title`" in result
+    assert (
+        "- Anti-pattern: Give vet-fix-agent full design.md during phase review"
+        in result
+    )
+
+    # No duplication of shared entries
+    assert result.count("## Tool batching unsolved") == 1
+    assert result.count("## Scan triggers unnecessary tools") == 1
+    assert result.count("## Structural header dot syntax") == 1

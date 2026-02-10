@@ -136,3 +136,59 @@ def resolve_session_conflict(ours: str, theirs: str, slug: str | None = None) ->
 
     # Insert new tasks before the next heading (or at end)
     return ours[:insertion_point] + new_tasks_text + ours[insertion_point:]
+
+
+def resolve_learnings_conflict(ours: str, theirs: str) -> str:
+    """Resolve learnings.md merge conflict by appending new entries from theirs.
+
+    Preserves all entries from ours, adds new entries found only in theirs.
+    Uses append-only strategy: entries are identified by heading text.
+
+    Args:
+        ours: The base learnings.md version (keep as base).
+        theirs: The incoming learnings.md version (extract new entries from).
+
+    Returns:
+        Merged learnings.md with new entries appended at end.
+    """
+    # Split both versions on heading delimiter (^## ) with MULTILINE
+    ours_split = re.split(r"^## ", ours, flags=re.MULTILINE)
+    theirs_split = re.split(r"^## ", theirs, flags=re.MULTILINE)
+
+    # First element is preamble (before first heading)
+    ours_preamble = ours_split[0]
+    ours_entries = ours_split[1:]
+
+    theirs_entries = theirs_split[1:]
+
+    # Extract heading text from each entry (first line of each section)
+    def extract_heading(entry: str) -> str | None:
+        """Extract heading from entry (first line before newline or EOF)."""
+        if not entry:
+            return None
+        first_line = entry.split("\n", 1)[0]
+        return first_line.strip() if first_line.strip() else None
+
+    # Build set of ours headings for comparison
+    ours_headings = set()
+    for entry in ours_entries:
+        heading = extract_heading(entry)
+        if heading:
+            ours_headings.add(heading)
+
+    # Identify new entries in theirs (headings present in theirs but not ours)
+    new_entries = []
+    for entry in theirs_entries:
+        heading = extract_heading(entry)
+        if heading and heading not in ours_headings:
+            new_entries.append(f"## {entry}")
+
+    # Reconstruct result: preamble + ours entries + new entries
+    result = ours_preamble
+    for entry in ours_entries:
+        result += f"## {entry}"
+
+    for entry in new_entries:
+        result += entry
+
+    return result
