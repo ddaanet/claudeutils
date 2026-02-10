@@ -110,3 +110,46 @@ def clean_tree() -> None:
     if filtered_output:
         click.echo(filtered_output)
         raise SystemExit(1)
+
+
+@worktree.command(name="add-commit")
+@click.argument("files", nargs=-1, required=True)
+def add_commit(files: tuple[str, ...]) -> None:
+    """Stage files and commit with message from stdin.
+
+    Idempotent: exits 0 silently if nothing staged. If staged changes exist,
+    reads commit message from stdin and outputs commit hash to stdout.
+    """
+    result = subprocess.run(
+        ["git", "diff", "--quiet", "--cached"],
+        check=False,
+    )
+    had_staged_before = result.returncode == 1
+
+    subprocess.run(
+        ["git", "add"] + list(files),
+        check=True,
+    )
+
+    result = subprocess.run(
+        ["git", "diff", "--quiet", "--cached"],
+        check=False,
+    )
+    has_staged_after = result.returncode == 1
+
+    if has_staged_after and (had_staged_before or any(
+        subprocess.run(
+            ["git", "ls-files", "--error-unmatch", file],
+            capture_output=True,
+            check=False,
+        ).returncode == 0
+        for file in files
+    )):
+        message = click.get_text_stream("stdin").read()
+        result = subprocess.run(
+            ["git", "commit", "-m", message],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        click.echo(result.stdout.strip())

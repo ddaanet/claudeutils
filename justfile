@@ -346,6 +346,7 @@ release *ARGS: _fail_if_claudecode dev
 bash_prolog := \
     ( if trace == "true" { "/usr/bin/env bash -xeuo pipefail" } \
     else { "/usr/bin/env bash -euo pipefail" } ) + "\n" + '''
+export PATH="$PWD/node_modules/.bin:$PATH"
 COMMAND="''' + style('command') + '''"
 ERROR="''' + style('error') + '''"
 RED=$'\033[31m'

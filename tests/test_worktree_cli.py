@@ -362,3 +362,55 @@ def test_clean_tree_dirty_source(
     # Should exit 1 with dirty file list
     assert result.exit_code == 1
     assert " M src/claudeutils/cli.py" in result.output
+
+
+def test_add_commit_nothing_staged(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """add-commit with no staged changes exits 0 with no output (idempotent no-op).
+
+    In a clean repo, add-commit should exit 0 silently when nothing is staged.
+    This idempotent behavior is critical for merge flow.
+    """
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    # Initialize git repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    # Create agents directory and session file, then commit it
+    agents_dir = repo_path / "agents"
+    agents_dir.mkdir()
+    (agents_dir / "session.md").write_text("# Session\n")
+    subprocess.run(["git", "add", "agents/session.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Add session file"], check=True, capture_output=True
+    )
+
+    # Run add-commit with message from stdin (nothing staged - file unchanged)
+    runner = CliRunner()
+    result = runner.invoke(
+        worktree,
+        ["add-commit", "agents/session.md"],
+        input="Test commit message\n",
+    )
+
+    # Should exit 0 with empty output (idempotent no-op)
+    assert result.exit_code == 0
+    assert result.output == ""
