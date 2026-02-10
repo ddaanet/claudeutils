@@ -277,3 +277,29 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Algorithm: Parse both sides' Pending Tasks by task name regex, diff, append new worktree-side tasks to main
 - Example: "Execute plugin migration" task created in worktree, lost by blind --ours resolution
 - Fix: Outlined in `plans/worktree-skill/outline.md` Session File Conflict Resolution section
+## Planning process is orchestratable as DAG
+- /plan-tdd phases (intake, outline, expansion, review, assembly) decompose into independent delegations
+- Phase expansions are fully parallel: all read same inputs (design + outline), write different files
+- 8 concurrent sonnet agents produced correct output; git handled concurrent commits (different files)
+- Per-phase review needs full outline context (scope alignment), not just the phase file
+- Holistic review (cross-phase consistency) runs once after all phases complete
+## Orchestration post-step pattern: verify → remediate → RCA
+- Anti-pattern: Trust agent completion, proceed without verification
+- Correct pattern: After each agent: git status + precommit → delegate remediation if dirty → add pending RCA task to fix causing skill
+- This is a general orchestration pattern, not session-specific — incorporate into orchestration plan templates
+- Remediation is mechanical (commit/fix), RCA is cognitive (why did the skill produce dirty state?)
+## Delegation prompts must include commit instruction
+- Anti-pattern: Agent writes artifact, returns filepath, leaves tree dirty
+- Correct pattern: Include explicit "commit your output before returning" in every delegation prompt
+- Root cause: Agents optimize for the stated task; cleanup is not implied
+- Fix: Prompt template includes `git add <file> && git commit -m "<message>"` instruction
+## Consolidation gate catches phase overengineering
+- Anti-pattern: 8 phases where 5-6 suffice (Phase 0 trivial at 3 cycles, Phase 5 coupled with Phase 4)
+- Correct pattern: Outline review should flag trivial phases (≤3 cycles, Low) for merge with adjacent
+- Root cause: Outline generation agent maximized phase count for modularity without consolidation judgment
+- Detection: Phase with ≤3 cycles + Low complexity + same files as adjacent phase = merge candidate
+## Context bloat in long orchestration sessions
+- Anti-pattern: Complex reasoning at end of 50+ message orchestration session
+- Correct pattern: Handoff is NOT delegatable — it requires current agent's session context (what happened, what's pending, state transitions)
+- Handoff: do inline (structured update, not complex). Commit: mechanical, can delegate or invoke skill
+- Plan for restart boundary: planning → restart → execution (different sessions, different model tiers)
