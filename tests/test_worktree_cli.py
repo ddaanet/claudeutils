@@ -367,7 +367,8 @@ def test_clean_tree_dirty_source(
 def test_add_commit_nothing_staged(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """add-commit with no staged changes exits 0 with no output (idempotent no-op).
+    """Add-commit with no staged changes exits 0 with no output (idempotent no-
+    op).
 
     In a clean repo, add-commit should exit 0 silently when nothing is staged.
     This idempotent behavior is critical for merge flow.

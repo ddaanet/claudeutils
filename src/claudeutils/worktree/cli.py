@@ -127,7 +127,7 @@ def add_commit(files: tuple[str, ...]) -> None:
     had_staged_before = result.returncode == 1
 
     subprocess.run(
-        ["git", "add"] + list(files),
+        ["git", "add", *list(files)],
         check=True,
     )
 
@@ -137,14 +137,18 @@ def add_commit(files: tuple[str, ...]) -> None:
     )
     has_staged_after = result.returncode == 1
 
-    if has_staged_after and (had_staged_before or any(
-        subprocess.run(
-            ["git", "ls-files", "--error-unmatch", file],
-            capture_output=True,
-            check=False,
-        ).returncode == 0
-        for file in files
-    )):
+    if has_staged_after and (
+        had_staged_before
+        or any(
+            subprocess.run(
+                ["git", "ls-files", "--error-unmatch", file],
+                capture_output=True,
+                check=False,
+            ).returncode
+            == 0
+            for file in files
+        )
+    ):
         message = click.get_text_stream("stdin").read()
         result = subprocess.run(
             ["git", "commit", "-m", message],
