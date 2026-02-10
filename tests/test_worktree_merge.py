@@ -329,6 +329,159 @@ def test_merge_phase_2_diverged_commits(
     """Verify merge with diverged submodule commits."""
 
 
+def test_merge_idempotent_resume_after_conflict_resolution(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify merge can be resumed after manual conflict resolution.
+
+    Scenario: Source code conflict (non-session file) prevents automatic merge.
+    User manually resolves and stages the file. Re-invoke merge — should detect
+    in-progress merge state (MERGE_HEAD), skip git merge, check conflicts, and
+    proceed to commit. All three phases should be idempotent.
+    """
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _setup_repo_with_submodule(repo_path)
+
+    # Create worktree
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert worktree_path.exists()
+
+    # Create conflict: both sides modify same file
+    conflict_file = repo_path / "conflict.txt"
+    conflict_file.write_text("parent version\n")
+    subprocess.run(
+        ["git", "add", "conflict.txt"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add conflict file on parent"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Worktree modifies same file
+    wt_conflict = worktree_path / "conflict.txt"
+    wt_conflict.write_text("worktree version\n")
+    subprocess.run(
+        ["git", "add", "conflict.txt"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Modify conflict file on worktree"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Parent makes additional commit
+    (repo_path / "parent_only.txt").write_text("parent-only content")
+    subprocess.run(
+        ["git", "add", "parent_only.txt"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Parent-only change"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # First merge invocation - should fail with conflicts
+    merge_result = runner.invoke(worktree, ["merge", "test-feature"])
+    assert merge_result.exit_code == 1, (
+        f"Expected merge failure with conflicts, got: {merge_result.output}"
+    )
+    assert "Merge conflicts detected" in merge_result.output
+
+    # Verify MERGE_HEAD exists (merge in progress)
+    merge_head_check = subprocess.run(
+        ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+        check=False,
+        capture_output=True,
+    )
+    assert merge_head_check.returncode == 0, (
+        "MERGE_HEAD should exist after failed merge"
+    )
+
+    # Manually resolve conflict: choose worktree version
+    resolved_content = "worktree version (resolved)\n"
+    wt_conflict.write_text(resolved_content)
+
+    # Verify file is written correctly before staging
+    assert wt_conflict.read_text() == resolved_content
+
+    subprocess.run(
+        ["git", "add", "conflict.txt"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Verify file is in index with resolved content (no longer conflicted)
+    conflict_check = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=U"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert conflict_check.stdout.strip() == "", (
+        f"File should not be conflicted after staging, but got: {conflict_check.stdout}"
+    )
+
+    # Re-invoke merge - should detect MERGE_HEAD and resume
+    merge_result = runner.invoke(worktree, ["merge", "test-feature"])
+    assert merge_result.exit_code == 0, (
+        f"Merge after manual resolution should succeed, got: {merge_result.output}"
+    )
+
+    # Verify merge commit was created
+    git_result = subprocess.run(
+        ["git", "log", "--oneline", "-1"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "🔀 Merge wt/test-feature" in git_result.stdout
+
+    # Verify both sides' changes exist in tree
+    git_result = subprocess.run(
+        ["git", "ls-tree", "HEAD", "-r"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    tree_output = git_result.stdout
+    assert "parent_only.txt" in tree_output
+    assert "conflict.txt" in tree_output
+
+    # Verify MERGE_HEAD is gone (merge completed)
+    merge_head_check = subprocess.run(
+        ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+        check=False,
+        capture_output=True,
+    )
+    assert merge_head_check.returncode != 0, (
+        "MERGE_HEAD should not exist after successful merge completion"
+    )
+
+
 def test_merge_phase_3_session_conflicts(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -422,7 +422,19 @@ def cmd_merge(slug: str, message: str = "") -> None:
     Phase 3: parent merge with conflict resolution and precommit gate.
     """
     # Phase 1: Pre-checks
-    check_clean_tree()
+    # Check if merge is already in progress (idempotent resume)
+    merge_in_progress = (
+        subprocess.run(
+            ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+            check=False,
+            capture_output=True,
+        ).returncode
+        == 0
+    )
+
+    # If merge not in progress, require clean tree
+    if not merge_in_progress:
+        check_clean_tree()
 
     # Validate branch exists
     result = subprocess.run(
@@ -668,18 +680,36 @@ def cmd_merge(slug: str, message: str = "") -> None:
                             raise SystemExit(1)
 
     # Phase 3: Parent merge
-    # Execute merge with --no-commit --no-ff
-    merge_result = subprocess.run(
-        ["git", "merge", "--no-commit", "--no-ff", slug],
-        capture_output=True,
-        text=True,
-        check=False,
+    # Check if merge is already in progress (MERGE_HEAD exists)
+    # If so, skip git merge and proceed directly to conflict checking
+    merge_in_progress_phase3 = (
+        subprocess.run(
+            ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+            check=False,
+            capture_output=True,
+        ).returncode
+        == 0
     )
 
-    if merge_result.returncode == 0:
+    if merge_in_progress_phase3:
+        # Merge already in progress - skip git merge command
+        merge_result_returncode = 0
+        merge_result_stderr = ""
+    else:
+        # Execute merge with --no-commit --no-ff
+        merge_result = subprocess.run(
+            ["git", "merge", "--no-commit", "--no-ff", slug],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        merge_result_returncode = merge_result.returncode
+        merge_result_stderr = merge_result.stderr
+
+    if merge_result_returncode == 0:
         # Clean merge - proceed to commit
         pass
-    elif merge_result.returncode == 1:
+    elif merge_result_returncode == 1:
         # Merge with conflicts
         # Check for unresolved conflicts
         conflict_result = subprocess.run(
@@ -709,9 +739,10 @@ def cmd_merge(slug: str, message: str = "") -> None:
             raise SystemExit(1)
     else:
         click.echo(
-            f"Error: merge failed with exit code {merge_result.returncode}", err=True
+            f"Error: merge failed with exit code {merge_result_returncode}", err=True
         )
-        click.echo(merge_result.stderr, err=True)
+        if merge_result_stderr:
+            click.echo(merge_result_stderr, err=True)
         raise SystemExit(2)
 
     # Construct merge commit message
