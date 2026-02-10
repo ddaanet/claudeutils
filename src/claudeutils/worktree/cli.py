@@ -2,6 +2,7 @@
 
 import re
 import subprocess
+from pathlib import Path
 
 import click
 
@@ -63,7 +64,7 @@ def ls() -> None:
             i += 1
 
             if path != main_path:
-                slug = path.split("/")[-1]
+                slug = Path(path).name
                 entries.append((slug, branch, path))
         else:
             i += 1
@@ -88,6 +89,7 @@ def clean_tree() -> None:
     )
     parent_status = result.stdout
 
+    # Graceful degradation: if agent-core doesn't exist, treat as clean
     result = subprocess.run(
         ["git", "-C", "agent-core", "status", "--porcelain"],
         capture_output=True,
@@ -98,13 +100,18 @@ def clean_tree() -> None:
 
     combined = parent_status + submodule_status
 
-    exempt_files = {"agents/session.md", "agents/jobs.md", "agents/learnings.md"}
-    filtered_lines = [
-        line
-        for line in combined.rstrip().split("\n")
-        if line
-        and not any(line.endswith(f" {exempt_file}") for exempt_file in exempt_files)
-    ]
+    exempt_filenames = {"session.md", "jobs.md", "learnings.md"}
+    filtered_lines = []
+    for line in combined.rstrip().split("\n"):
+        if not line:
+            continue
+        tokens = line.split()
+        if len(tokens) >= 2:
+            filepath = tokens[-1]
+            filename = Path(filepath).name
+            if filename in exempt_filenames and filepath.startswith("agents/"):
+                continue
+        filtered_lines.append(line)
     filtered_output = "\n".join(filtered_lines)
 
     if filtered_output:
@@ -120,12 +127,6 @@ def add_commit(files: tuple[str, ...]) -> None:
     Idempotent: exits 0 silently if nothing staged. If staged changes exist,
     reads commit message from stdin and outputs commit hash to stdout.
     """
-    result = subprocess.run(
-        ["git", "diff", "--quiet", "--cached"],
-        check=False,
-    )
-    had_staged_before = result.returncode == 1
-
     subprocess.run(
         ["git", "add", *list(files)],
         check=True,
@@ -135,20 +136,9 @@ def add_commit(files: tuple[str, ...]) -> None:
         ["git", "diff", "--quiet", "--cached"],
         check=False,
     )
-    has_staged_after = result.returncode == 1
+    has_staged = result.returncode == 1
 
-    if has_staged_after and (
-        had_staged_before
-        or any(
-            subprocess.run(
-                ["git", "ls-files", "--error-unmatch", file],
-                capture_output=True,
-                check=False,
-            ).returncode
-            == 0
-            for file in files
-        )
-    ):
+    if has_staged:
         message = click.get_text_stream("stdin").read()
         result = subprocess.run(
             ["git", "commit", "-m", message],

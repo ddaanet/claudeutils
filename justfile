@@ -98,7 +98,7 @@ wt-task name task_name base="HEAD":
 
 # List active git worktrees
 wt-ls:
-    @git worktree list
+    @claudeutils _worktree ls
 
 # Remove a git worktree and its branch
 [no-exit-message]

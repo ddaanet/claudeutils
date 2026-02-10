@@ -32,6 +32,8 @@ def test_derive_slug() -> None:
     )
     assert derive_slug("Multiple    spaces   here") == "multiple-spaces-here"
     assert derive_slug("Special!@#$%chars") == "special-chars"
+    # Mid-word truncation creating trailing hyphen
+    assert derive_slug("A" * 35 + "test") == "a" * 30
 
 
 def test_ls_empty() -> None:
