@@ -361,3 +361,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: classifyHandoffIfNeeded crash occurs after main work completes, reports recoverable
 - Recovery: Read report for UNFIXABLE, check git diff for changes, commit if work complete
 - Evidence: Two agents (adf9068, ae87151) crashed this session after completing work successfully
+## Vet UNFIXABLE label misuse
+- Anti-pattern: Labeling "considered and deemed acceptable" judgments as UNFIXABLE
+- Correct pattern: UNFIXABLE means "cannot resolve without user input" or "tried and failed" — not "evaluated and acceptable as-is"
+- Rationale: UNFIXABLE detection protocol requires escalation; false positives from acceptability judgments waste orchestration cycles
+- Example: Cycle 2.3 vet flagged "test name could be more specific" then judged "name accurately describes behavior, 'appends' is clear enough" — should omit issue or mark "acceptable", not UNFIXABLE
+- Impact: Required manual judgment to proceed despite non-blocking issue
