@@ -222,3 +222,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Include phase dependencies and state transitions in delegation prompt
 - Read vet report after completion, grep for UNFIXABLE markers, escalate to user
 - Rationale: Vet lacks temporal reasoning (current vs future state) and explicit escalation protocol
+## Parallel delegation for mixed-complexity fixes
+- Anti-pattern: Sequentially fixing trivial issues (formatting, line length) alongside complex ones (type annotations)
+- Correct pattern: Delegate trivial fixes to background haiku agents in parallel, handle complex issues directly
+- Rationale: Trivial fixes are independent and safe for parallel execution; complex issues need judgment
+- Example: 5 background agents (formatting, logging, line length) + direct fixes (types, signatures, exceptions)
+- Result: Efficient use of parallelism, faster completion, maintains quality for complex changes

@@ -88,8 +88,8 @@ def extract_session_topics(session_file: Path) -> set[str]:
 
     try:
         with session_file.open() as f:
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
+            for line_num, raw_line in enumerate(f, 1):
+                line = raw_line.strip()
                 if not line:
                     continue
 
@@ -97,7 +97,10 @@ def extract_session_topics(session_file: Path) -> set[str]:
                     entry = json.loads(line)
                 except json.JSONDecodeError as e:
                     logger.debug(
-                        f"Malformed JSON in {session_file.name} line {line_num}: {e}"
+                        "Malformed JSON in %s line %d: %s",
+                        session_file.name,
+                        line_num,
+                        e,
                     )
                     continue
 
@@ -122,16 +125,16 @@ def extract_session_topics(session_file: Path) -> set[str]:
                 # Tokenize and extract keywords
                 tokens = re.split(r"[\s\-_.,;:()[\]{}\"'`]+", text.lower())
 
-                for token in tokens:
+                for word in tokens:
                     if (
-                        token
-                        and len(token) > 1
-                        and token not in STOPWORDS
-                        and token not in SESSION_NOISE_WORDS
+                        word
+                        and len(word) > 1
+                        and word not in STOPWORDS
+                        and word not in SESSION_NOISE_WORDS
                     ):
-                        keywords.add(token)
+                        keywords.add(word)
 
     except OSError as e:
-        logger.warning(f"Failed to read {session_file}: {e}")
+        logger.warning("Failed to read %s: %s", session_file, e)
 
     return keywords

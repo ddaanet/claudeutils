@@ -1,5 +1,6 @@
 """Integration tests for recall analysis pipeline."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -28,19 +29,25 @@ def test_recall_pipeline_end_to_end(tmp_path: Path) -> None:
 
     # Create session with relevant work
     session_file = tmp_path / "session.jsonl"
-    session_file.write_text(
-        '{"type":"user","message":{"content":"I want to implement TDD workflow testing"},'
+    session_text = (
+        '{"type":"user","message":{"content":'
+        '"I want to implement TDD workflow testing"},'
         '"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"test-session"}\n'
         '{"type":"assistant","message":{"content":[{"type":"tool_use",'
-        '"id":"grep_1","name":"Grep","input":{"path":"agents/decisions"}},{"type":"tool_use",'
-        '"id":"read_1","name":"Read","input":{"file_path":"agents/decisions/testing.md"}}]},'
+        '"id":"grep_1","name":"Grep","input":{"path":"agents/decisions"}},'
+        '{"type":"tool_use",'
+        '"id":"read_1","name":"Read",'
+        '"input":{"file_path":"agents/decisions/testing.md"}}]},'
         '"timestamp":"2025-12-16T10:00:01.000Z","sessionId":"test-session"}\n'
-        '{"type":"user","message":{"content":"Now I need to check the workflow"},'
+        '{"type":"user","message":{"content":'
+        '"Now I need to check the workflow"},'
         '"timestamp":"2025-12-16T10:00:02.000Z","sessionId":"test-session"}\n'
         '{"type":"assistant","message":{"content":[{"type":"tool_use",'
-        '"id":"read_2","name":"Read","input":{"file_path":"agents/decisions/workflow.md"}}]},'
+        '"id":"read_2","name":"Read",'
+        '"input":{"file_path":"agents/decisions/workflow.md"}}]},'
         '"timestamp":"2025-12-16T10:00:03.000Z","sessionId":"test-session"}\n'
     )
+    session_file.write_text(session_text)
 
     # Parse index
     entries = parse_memory_index(index_file)
@@ -90,7 +97,8 @@ def test_recall_pipeline_no_matches(tmp_path: Path) -> None:
 
     session_file = tmp_path / "session.jsonl"
     session_file.write_text(
-        '{"type":"user","message":{"content":"Fix that bug in the authentication module"},'
+        '{"type":"user","message":{"content":'
+        '"Fix that bug in the authentication module"},'
         '"timestamp":"2025-12-16T10:00:00.000Z","sessionId":"test-session"}\n'
     )
 
@@ -146,7 +154,6 @@ def test_recall_report_formatting(tmp_path: Path) -> None:
 
     # JSON should be valid
     json_text = generate_json_report(analysis)
-    import json
 
     data = json.loads(json_text)
     assert data["sessions_analyzed"] == 1

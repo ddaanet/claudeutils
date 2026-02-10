@@ -29,12 +29,6 @@ from claudeutils.recall.topics import extract_session_topics
     help="Number of recent sessions to analyze (default: 30)",
 )
 @click.option(
-    "--baseline-before",
-    default=None,
-    type=str,
-    help="ISO date cutoff for baseline sessions (format: YYYY-MM-DD)",
-)
-@click.option(
     "--threshold",
     default=0.3,
     type=float,
@@ -42,6 +36,7 @@ from claudeutils.recall.topics import extract_session_topics
 )
 @click.option(
     "--format",
+    "output_format",
     default="markdown",
     type=click.Choice(["markdown", "json"]),
     help="Output format (default: markdown)",
@@ -55,9 +50,8 @@ from claudeutils.recall.topics import extract_session_topics
 def recall(
     index: str,
     sessions: int,
-    baseline_before: str | None,
     threshold: float,
-    format: str,
+    output_format: str,
     output: str | None,
 ) -> None:
     """Analyze memory index recall effectiveness.
@@ -128,7 +122,7 @@ def recall(
         analysis = calculate_recall(sessions_data, relevant_entries, index_entries)
 
         # Generate report
-        if format == "json":
+        if output_format == "json":
             report_content = generate_json_report(analysis)
         else:
             report_content = generate_markdown_report(analysis)
@@ -142,6 +136,6 @@ def recall(
         else:
             click.echo(report_content)
 
-    except Exception as e:
+    except (OSError, ValueError, KeyError) as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)

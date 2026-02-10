@@ -1,8 +1,24 @@
-# Session Handoff: 2026-02-09
+# Session Handoff: 2026-02-10
 
-**Status:** `/when` design complete (vetted). TDD planning blocked on plan-orchestrate workflow review.
+**Status:** Recall module lint fixes complete. All 559 tests pass, lint clean.
 
 ## Completed This Session
+
+**Recall module lint fixes:**
+- Fixed 27 lint violations across 9 files (recall module + tests)
+- Delegated trivial fixes to 5 background haiku agents (formatting, line length, logging)
+- Fixed complex issues directly (type annotations, unused params, exception handling)
+- Vet review (sonnet): Ready, no critical/major issues, 3 minor UNFIXABLE observations
+- Changes: 10 files, +89/-65 lines
+
+**Key fixes:**
+- `cli.py` — Removed unused `baseline_before` param, renamed `format`→`output_format` (shadowing builtin), specific exceptions
+- `recall.py` — Type annotations (`Any`, `dict[str, str]`), prefixed unused args (`_relevant_entry`, `_session_id`)
+- `tool_calls.py`, `topics.py` — Logging f-strings→% format, loop variable renames to avoid shadowing
+- `report.py` — `list.extend` in loops, line breaks for readability
+- Tests — Type annotations (`Path`, `set[str]`), import order, line breaks
+
+**Previous session (2026-02-09):**
 
 **Fix lock file directive scope (97a0c7e):**
 - `agents/rules-commit.md:173-185` — Broadened from commit-only to all git operations, added "Do NOT remove lock files"
@@ -21,15 +37,18 @@
 
 ## Pending Tasks
 
-- [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on plan-orchestrate review
+- [ ] **Investigate precommit warnings** — Complexity warnings (C901, PLR0912) in cli.py, line limit in cli.py (402>400) | sonnet
+  - Not lint violations, but precommit quality gates
+  - May require refactoring or suppression decisions
+- [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on plan-orchestrate workflow review
   - Load `plugin-dev:skill-development` before planning (skill wrappers in step 8)
   - Fuzzy engine spike may precede formal TDD cycles (scoring constant tuning)
 
 ## Blockers / Gotchas
 
-- Learnings file at 224/80 lines (soft limit exceeded, 0 entries ≥7 days — consolidation blocked by age gate)
-- Validator exists in two locations (bin script + package modules) — both need updating during migration
-- Recall tool's index parser will break after format migration — needs update (follow-up or step 12)
+- Learnings file at 224 lines (exceeds 150-line trigger, but only 1 active day since last consolidation, 0 entries ≥7 days old)
+- Validator exists in two locations (bin script + package modules) — both need updating during `/when` migration
+- Recall tool's index parser will break after `/when` format migration — needs update (follow-up or step 12)
 - Atomic migration: all entries + heading renames in one commit (no dual-format validator)
 
 ## Reference Files
@@ -43,7 +62,7 @@
 
 ## Next Steps
 
-Blocked: `/plan-tdd` depends on plan-orchestrate workflow review. Unblock, then run `/plan-tdd plans/when-recall/design.md`.
+Address precommit quality warnings (complexity, line limit) or continue with `/when` planning after unblocking workflow review.
 
 ---
-*`/when` design complete. Opus vet: 15 issues fixed, 0 unfixable.*
+*Recall module: 27 lint violations fixed, vetted, tests pass.*

@@ -36,16 +36,19 @@ def extract_tool_calls_from_session(session_file: Path) -> list[ToolCall]:
 
     try:
         with session_file.open() as f:
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
-                if not line:
+            for line_num, raw_line in enumerate(f, 1):
+                json_line = raw_line.strip()
+                if not json_line:
                     continue
 
                 try:
-                    entry = json.loads(line)
+                    entry = json.loads(json_line)
                 except json.JSONDecodeError as e:
                     logger.warning(
-                        f"Malformed JSON in {session_file.name} line {line_num}: {e}"
+                        "Malformed JSON in %s line %s: %s",
+                        session_file.name,
+                        line_num,
+                        e,
                     )
                     continue
 
@@ -76,8 +79,9 @@ def extract_tool_calls_from_session(session_file: Path) -> list[ToolCall]:
 
                     if not tool_name or not tool_id:
                         logger.warning(
-                            f"Incomplete tool_use block in {session_file.name} "
-                            f"line {line_num}"
+                            "Incomplete tool_use block in %s line %s",
+                            session_file.name,
+                            line_num,
                         )
                         continue
 
@@ -90,15 +94,17 @@ def extract_tool_calls_from_session(session_file: Path) -> list[ToolCall]:
                             session_id=session_id,
                         )
                         tool_calls.append(tool_call)
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         logger.warning(
-                            f"Failed to create ToolCall in {session_file.name} "
-                            f"line {line_num}: {e}"
+                            "Failed to create ToolCall in %s line %s: %s",
+                            session_file.name,
+                            line_num,
+                            e,
                         )
                         continue
 
     except OSError as e:
-        logger.warning(f"Failed to read {session_file}: {e}")
+        logger.warning("Failed to read %s: %s", session_file, e)
         return []
 
     # Sort by timestamp

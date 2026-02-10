@@ -100,7 +100,7 @@ def extract_index_entries(
 
 
 def _report_autofix_success(
-    error_lists: tuple[list[str], list[str], list[str]]
+    error_lists: tuple[list[str], list[str], list[str]],
 ) -> None:
     """Report successful autofix to stderr."""
     placement_errors, ordering_errors, structural_entries = error_lists
@@ -115,7 +115,7 @@ def _report_autofix_success(
 
 
 def _check_duplicate_headers(
-    headers: dict[str, list[tuple[str, int, str]]]
+    headers: dict[str, list[tuple[str, int, str]]],
 ) -> list[str]:
     """Check for duplicate headers across files."""
     errors = []
@@ -123,9 +123,7 @@ def _check_duplicate_headers(
         if len(locations) > 1:
             files = {filepath for filepath, _, _ in locations}
             if len(files) > 1:  # Only error if duplicates in different files
-                errors.append(
-                    f"  Duplicate header '{title}' found in multiple files:"
-                )
+                errors.append(f"  Duplicate header '{title}' found in multiple files:")
                 for filepath, lineno, level in locations:
                     errors.append(f"    {filepath}:{lineno} ({level} level)")
     return errors
