@@ -1,6 +1,7 @@
 """Tests for session.md conflict resolution."""
 
 from claudeutils.worktree.conflicts import (
+    resolve_jobs_conflict,
     resolve_learnings_conflict,
     resolve_session_conflict,
 )
@@ -291,3 +292,59 @@ Institutional knowledge accumulated.
     assert result.count("## Tool batching unsolved") == 1
     assert result.count("## Scan triggers unnecessary tools") == 1
     assert result.count("## Structural header dot syntax") == 1
+
+
+def test_resolve_jobs_conflict_advances_status() -> None:
+    """Resolve jobs.md conflict by advancing status to higher ordering."""
+    ours = """# Jobs
+
+Plan lifecycle tracking.
+
+| Plan | Status | Notes |
+|------|--------|-------|
+| continuation-prepend | requirements | Problem statement only |
+| worktree-skill | designed | In progress |
+| plugin-migration | planned | Runbook assembled |
+"""
+
+    theirs = """# Jobs
+
+Plan lifecycle tracking.
+
+| Plan | Status | Notes |
+|------|--------|-------|
+| continuation-prepend | requirements | Problem statement only |
+| worktree-skill | planned | Status updated |
+| plugin-migration | planned | Runbook assembled |
+"""
+
+    result = resolve_jobs_conflict(ours, theirs)
+
+    # worktree-skill should advance from "designed" to "planned"
+    assert "| worktree-skill | planned |" in result
+    # plugin-migration should remain "planned" (no change)
+    assert "| plugin-migration | planned |" in result
+    # continuation-prepend should remain "requirements"
+    assert "| continuation-prepend | requirements |" in result
+
+
+def test_resolve_jobs_conflict_outlined_status_ordering() -> None:
+    """Verify 'outlined' status falls between 'designed' and 'planned'."""
+    ours = """# Jobs
+
+| Plan | Status | Notes |
+|------|--------|-------|
+| feature-a | designed | Initial design |
+"""
+
+    theirs = """# Jobs
+
+| Plan | Status | Notes |
+|------|--------|-------|
+| feature-a | outlined | Outline complete |
+"""
+
+    result = resolve_jobs_conflict(ours, theirs)
+
+    # feature-a should advance from "designed" to "outlined"
+    assert "| feature-a | outlined |" in result

@@ -138,6 +138,72 @@ def resolve_session_conflict(ours: str, theirs: str, slug: str | None = None) ->
     return ours[:insertion_point] + new_tasks_text + ours[insertion_point:]
 
 
+def resolve_jobs_conflict(ours: str, theirs: str) -> str:
+    """Resolve jobs.md merge conflict by advancing statuses to higher ordering.
+
+    Compares status values between ours and theirs versions using a defined
+    status ordering. When theirs has a higher status for a plan, advances
+    ours's status to match. Preserves all other content unchanged.
+
+    Status ordering (lowest to highest):
+    - requirements
+    - designed
+    - outlined
+    - planned
+    - complete
+
+    Args:
+        ours: The base jobs.md version (to be updated).
+        theirs: The incoming jobs.md version (source of higher statuses).
+
+    Returns:
+        Merged jobs.md with advanced statuses.
+    """
+    status_ordering = ("requirements", "designed", "outlined", "planned", "complete")
+
+    # Parse plan rows from both versions
+    # Pattern: | plan_name | status |
+    table_pattern = r"^\| ([^\|]+) \| ([^\|]+) \|"
+
+    ours_matches = re.findall(table_pattern, ours, re.MULTILINE)
+    theirs_matches = re.findall(table_pattern, theirs, re.MULTILINE)
+
+    # Build plan -> status maps (strip whitespace)
+    ours_status_map = {plan.strip(): status.strip() for plan, status in ours_matches}
+    theirs_status_map = {
+        plan.strip(): status.strip() for plan, status in theirs_matches
+    }
+
+    # Build updated status map by comparing ordering
+    status_updates = {}
+    for plan, theirs_status in theirs_status_map.items():
+        if plan in ours_status_map:
+            ours_status = ours_status_map[plan]
+
+            # Get status indices
+            if ours_status in status_ordering and theirs_status in status_ordering:
+                ours_idx = status_ordering.index(ours_status)
+                theirs_idx = status_ordering.index(theirs_status)
+
+                # If theirs status is higher, mark for update
+                if theirs_idx > ours_idx:
+                    status_updates[plan] = theirs_status
+
+    # If no updates needed, return ours unchanged
+    if not status_updates:
+        return ours
+
+    # Reconstruct ours with updated statuses
+    result = ours
+    for plan, new_status in status_updates.items():
+        # Find the table row for this plan and replace its status
+        old_pattern = rf"^\| {re.escape(plan)} \| [^\|]+ \|"
+        replacement = f"| {plan} | {new_status} |"
+        result = re.sub(old_pattern, replacement, result, flags=re.MULTILINE)
+
+    return result
+
+
 def resolve_learnings_conflict(ours: str, theirs: str) -> str:
     """Resolve learnings.md merge conflict by appending new entries from theirs.
 
