@@ -26,7 +26,7 @@ from claudeutils.validation.cli import validate
 
 
 def _handle_compose_error(e: Exception) -> None:
-    """Handle errors from compose operations and exit with appropriate code."""
+    """Handle compose errors and exit with appropriate code."""
     if isinstance(e, FileNotFoundError):
         error_msg = str(e)
         if "Fragment not found" in error_msg:
@@ -84,18 +84,7 @@ def _filter_rule_items(
 
 
 def find_session_by_prefix(prefix: str, project_dir: str) -> str:
-    """Find unique session ID matching prefix.
-
-    Args:
-        prefix: Session ID prefix to match
-        project_dir: Project directory path
-
-    Returns:
-        Full session ID
-
-    Raises:
-        ValueError: If 0 or >1 sessions match prefix
-    """
+    """Find unique session ID matching prefix."""
     history_dir = get_project_history_dir(project_dir)
     uuid_pattern = re.compile(
         r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$"
@@ -130,8 +119,7 @@ def find_session_by_prefix(prefix: str, project_dir: str) -> str:
     ),
 )
 def cli() -> None:
-    """Entry point for claudeutils CLI."""
-    # Configure logging to show warnings on terminal
+    """Command-line interface entry point."""
     logging.basicConfig(
         level=logging.WARNING,
         format="%(levelname)s: %(message)s",
@@ -141,7 +129,7 @@ def cli() -> None:
 @cli.command("list", help="List top-level sessions")
 @click.option("--project", default=None, help="Project directory")
 def list_sessions(project: str | None) -> None:
-    """List top-level sessions in project."""
+    """List sessions in project history."""
     project = project or str(Path.cwd())
     sessions = list_top_level_sessions(project)
     if not sessions:
@@ -163,7 +151,7 @@ cli.add_command(validate)
 @click.option("--project", default=None, help="Project directory")
 @click.option("--output", help="Output file path")
 def extract(session_prefix: str, project: str | None, output: str | None) -> None:
-    """Extract feedback from specified session."""
+    """Extract feedback from session by prefix."""
     project = project or str(Path.cwd())
     try:
         session_id = find_session_by_prefix(session_prefix, project)
@@ -179,7 +167,7 @@ def extract(session_prefix: str, project: str | None, output: str | None) -> Non
 @click.option("--project", default=None, help="Project directory")
 @click.option("--output", help="Output file path")
 def collect(project: str | None, output: str | None) -> None:
-    """Collect feedback from all sessions in project."""
+    """Collect feedback from all project sessions."""
     project = project or str(Path.cwd())
     sessions = list_top_level_sessions(project)
     all_feedback = []
@@ -208,7 +196,7 @@ def collect(project: str | None, output: str | None) -> None:
     help="Output format",
 )
 def analyze(input_path: str, output_format: str) -> None:
-    """Analyze and categorize feedback items."""
+    """Analyze and categorize feedback."""
     json_text = sys.stdin.read() if input_path == "-" else Path(input_path).read_text()
     items = [FeedbackItem.model_validate(item) for item in json.loads(json_text)]
     filtered_items = filter_feedback(items)
@@ -250,7 +238,7 @@ def analyze(input_path: str, output_format: str) -> None:
     help="Output format",
 )
 def rules(input_path: str, min_length: int, output_format: str) -> None:
-    """Extract actionable rules from feedback items."""
+    """Extract actionable rules from feedback."""
     json_text = sys.stdin.read() if input_path == "-" else Path(input_path).read_text()
     items = [FeedbackItem.model_validate(item) for item in json.loads(json_text)]
     deduped_items = _filter_rule_items(items, min_length)
@@ -279,7 +267,7 @@ def rules(input_path: str, min_length: int, output_format: str) -> None:
     "--json", "json_output", is_flag=True, help="Output JSON format instead of text"
 )
 def tokens(model: str, files: tuple[str, ...], *, json_output: bool) -> None:
-    """Count tokens in files using Anthropic API."""
+    """Count tokens in files via Anthropic API."""
     handle_tokens(model, list(files), json_output=json_output)
 
 
@@ -321,7 +309,7 @@ def compose_command(
     verbose: bool,  # noqa: FBT001
     dry_run: bool,  # noqa: FBT001
 ) -> None:
-    """Compose markdown documents from fragments."""
+    """Compose markdown from configuration."""
     config_path = Path(config_file)
     if not config_path.exists():
         click.echo(f"Error: Configuration file not found: {config_file}", err=True)
@@ -369,7 +357,7 @@ def compose_command(
 
 @cli.command(help="Process markdown files")
 def markdown() -> None:
-    """Handle markdown subcommand: validate and process markdown files from stdin."""
+    """Process markdown files from stdin."""
     files = [line.strip() for line in sys.stdin if line.strip()]
     errors: list[str] = []
     valid_files: list[Path] = []

@@ -1,21 +1,23 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Vet-fix-agent worktree merged into dev + removed.
+**Status:** All 3 stale worktrees merged/removed. Zero worktrees remaining.
 
 ## Completed This Session
 
-**Vet-fix-agent worktree merge:**
-- Pre-merge validation: worktree + submodule clean, precommit failures pre-existing only
-- Submodule diverged (13 worktree-only, 9 dev-only commits) — fetched from worktree gitdir, merged cleanly (afc8adc)
-- Parent merge: learnings.md conflict (updated vet learning with fix details, kept all dev learnings), session.md (keep dev, mark task completed)
-- No task recovery needed — worktree had no pending tasks (only completed work)
-- Precommit on merged dev: only pre-existing `cli.py:402` line limit
+**Memory-index-recall worktree merge:**
+- Pre-merge: worktree + submodule clean, precommit 559/559 passing
+- Submodule: 1 worktree-only commit (deslop directives), ~40 dev-only — fetched from worktree path, merged cleanly
+- Parent: 7 source conflicts (overlapping lint/complexity fixes on recall module) — took dev's versions (ours), precommit validates
+- Non-conflicted: `plans/when-recall/` design + `cli.py` deslop fixes merged automatically
+- Session context: kept ours, recovered 1 pending task ("Plan `/when` TDD runbook")
+- jobs.md: when-recall plan status advanced requirements → designed
 - Worktree + branch removed via `just wt-rm`
 
-**From previous sessions:**
-- Continuation-passing, plugin-migration worktrees merged + removed
-- Worktree skill design outline created (4 rounds user feedback)
-- focus-session.py recovery, delegation/execution-routing split
+**Stale worktree cleanup:**
+- bash-git-prompt: no unmerged commits, uncommitted changes — force-removed
+- markdown-test-corpus: no unmerged commits, uncommitted changes — force-removed
+
+**Worktree skill outline updated:** Added source code conflict resolution (take-ours + precommit gate), batch stale removal, submodule fetch path simplification, new test scenarios
 
 ## Pending Tasks
 
@@ -40,10 +42,12 @@
 - [ ] **Update commit and handoff to branch after precommit** — Move git branching point from beginning to after precommit passes
 - [ ] **History cleanup tooling** — Research git history rewriting, prototype reusable scripts
 - [ ] **Rewrite agent-core ad-hoc scripts via TDD** — Port all ad-hoc scripts to claudeutils package
-- [ ] **Clean up merged worktrees** — Remove 3 stale worktrees (bash-git-prompt, markdown-test-corpus, memory-index-recall)
+- [x] **Clean up merged worktrees** — Remove 3 stale worktrees (bash-git-prompt, markdown-test-corpus, memory-index-recall)
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
   - Plan: continuation-prepend | Status: requirements | Dependency on continuation-passing now resolved
 - [ ] **Error handling framework design** — Design error handling for runbooks, task lists, and CPS skills | opus
+- [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on plan-orchestrate workflow review
+  - Plan: when-recall | Status: designed | Load `plugin-dev:skill-development` before planning
 
 ## Worktree Tasks
 
@@ -51,11 +55,7 @@
 
 ## Blockers / Gotchas
 
-**Precommit not fully clean:** `src/claudeutils/cli.py` (402 lines, exceeds 400 line limit)
-
-**3 stale worktrees remain** (merged but not removed): bash-git-prompt, markdown-test-corpus, memory-index-recall.
-
-**memory-index-recall worktree dirty:** CLAUDE.md modified, agent-core has 5 modified + 1 untracked file. Must resolve before merge.
+**Pre-existing test failure:** `tests/test_markdown_fixtures.py::test_preprocessor_idempotency[02-inline-backticks]` — not related to merge
 
 ## Reference Files
 
@@ -65,4 +65,4 @@
 - **plans/reflect-rca-sequential-task-launch/** — RCA on Task parallelization + vet context issues
 
 ---
-*Handoff by Sonnet. Worktree merge session.*
+*Handoff by Sonnet. All worktrees merged + removed.*

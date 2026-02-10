@@ -49,9 +49,10 @@ The `merge` subcommand must handle diverged submodule commits:
 **Problem:** Worktree's agent-core may have commits not reachable from main repo's agent-core. Git's `submodule update --init` fetches from remote, which fails if commits were never pushed. Merge strategy `ort` reports "commits don't follow merge-base" and leaves CONFLICT marker.
 
 **Resolution sequence (deterministic, scriptable):**
-1. Before merge: fetch worktree's submodule objects into local submodule (`git -C agent-core fetch <worktree-gitdir-path> <commit>`)
-2. The gitdir path for worktree submodules: `.git/worktrees/<worktree-name>/modules/<submodule-name>`
-3. Inside submodule: `git merge --no-edit <worktree-branch>` (merges both sides)
+1. Before merge: fetch worktree's submodule objects into local submodule (`git -C agent-core fetch <worktree-submodule-path>`)
+   - Worktree checkout path (`<worktree-dir>/agent-core`) is simplest and works reliably
+   - Alternative: gitdir path (`.git/worktrees/<name>/modules/<submodule>`) also works
+2. Inside submodule: `git merge --no-edit <worktree-commit>` (merges both sides)
 4. Stage updated submodule: `git add agent-core`
 5. Commit submodule merge before or as part of main merge
 
@@ -65,9 +66,26 @@ Merge conflicts in session context files (session.md, learnings.md, jobs.md) fol
 
 - **session.md:** Keep ours as base, but **extract new pending tasks from worktree side first**. Worktree may have accumulated tasks during its lifetime (e.g., "Execute plugin migration" task created during worktree work). Blind `--ours` loses these. Strategy: parse worktree-side Pending Tasks, diff against main-side, append new ones to main session.md after merge.
 - **learnings.md:** Keep both sides. Append-only file — remove conflict markers, preserve all content from both branches. Both sides add at the end, so conflict is always "both added here."
-- **jobs.md:** Keep ours, then apply worktree-side status updates if any plan status advanced.
+- **jobs.md:** Keep ours, then apply worktree-side status updates if any plan status advanced (e.g., `requirements` → `designed`).
 
 These are non-cognitive operations — script them in the CLI, don't delegate to agents.
+
+## Source Code Conflict Resolution
+
+Source conflicts from overlapping work (both sides fix same issues independently) are NOT deterministic — they require judgment. The skill handles this by:
+
+1. Take ours (dev) for all non-session source conflicts
+2. Run precommit as correctness gate — if passes, dev's changes subsume worktree's
+3. If precommit fails on those files, fall back to take-theirs and re-verify
+4. If neither side passes alone, stop and report for manual resolution
+
+**Observed pattern:** Worktree lint/complexity fixes vs dev lint/complexity fixes on same files. Dev's version (newer, more comprehensive) passed all checks — worktree's refactoring was independently superseded.
+
+**Post-merge precommit is mandatory.** Not just a nice-to-have — it's the correctness gate that validates the "take ours" strategy actually works.
+
+## Batch Stale Worktree Removal
+
+Stale worktrees (no unmerged commits, branches already merged) are removed with `wt-rm` which uses `--force`. Uncommitted changes in stale worktrees are expected and accepted — they were exploratory work that was either completed differently or abandoned.
 
 **Task extraction algorithm (session.md merge):**
 1. Parse worktree session.md Pending Tasks section (regex: `^- \[ \] \*\*(.+?)\*\*`)
@@ -90,4 +108,4 @@ These are non-cognitive operations — script them in the CLI, don't delegate to
 - Shared fixture: base repo + submodule created once, each test gets fresh clone
 - Start with simplest non-degenerate happy path, build up
 - Autospec on all mocks
-- Critical scenarios: submodule merge (diverged commits), submodule merge (fast-forward), session file conflict resolution (learnings keep-both, session keep-ours), conflict resolution + resume, idempotent merge, clean-tree gate, merge debris cleanup after abort
+- Critical scenarios: submodule merge (diverged commits), submodule merge (fast-forward), session file conflict resolution (learnings keep-both, session keep-ours), conflict resolution + resume, idempotent merge, clean-tree gate, merge debris cleanup after abort, overlapping source refactors (take-ours + precommit gate), task recovery from worktree session.md, jobs.md status advancement

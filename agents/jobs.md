@@ -16,7 +16,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
 | requirements-skill | requirements | Evaluate with opus |
 | tweakcc | requirements | Local instances research |
-| when-recall | requirements | `/when` memory recall system — active retrieval replacing passive index |
+| when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | worktree-skill | outlined | Absorbs wt-merge-skill. CLI subcommand + skill, TDD |
 
