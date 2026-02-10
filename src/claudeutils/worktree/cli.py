@@ -96,12 +96,17 @@ def rm(slug: str) -> None:
 
 @worktree.command()
 @click.argument("slug")
-def merge(slug: str) -> None:
+@click.option("--message", default="", help="Custom merge commit message text")
+def merge(slug: str, message: str) -> None:
     """Merge a worktree branch back to parent.
 
     Phase 1 pre-checks:
     - Clean tree validation (source files) — session files exempt
     - Branch validation (verify slug branch exists)
     - Worktree directory check (warn if missing but continue)
+
+    Phase 2: submodule resolution with divergence optimization.
+
+    Phase 3: parent merge with conflict resolution.
     """
-    cmd_merge(slug)
+    cmd_merge(slug, message)

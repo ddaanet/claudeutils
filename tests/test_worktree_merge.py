@@ -111,6 +111,19 @@ def _setup_repo_with_submodule(repo_path: Path) -> None:
         capture_output=True,
     )
 
+    # Create minimal justfile for precommit validation
+    justfile = repo_path / "justfile"
+    justfile.write_text("precommit:\n    exit 0\n")
+    subprocess.run(
+        ["git", "add", "justfile"], cwd=repo_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add minimal justfile"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
 
 def test_merge_phase_2_no_divergence(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -314,6 +327,127 @@ def test_merge_phase_2_diverged_commits(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Verify merge with diverged submodule commits."""
+
+
+def test_merge_phase_3_clean_merge(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify parent merge with no conflicts."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _setup_repo_with_submodule(repo_path)
+
+    # Create worktree
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert worktree_path.exists()
+
+    # Make parent change (different file)
+    (repo_path / "parent_file.txt").write_text("parent change")
+    subprocess.run(
+        ["git", "add", "parent_file.txt"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Parent change"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Make worktree change (different file)
+    (worktree_path / "worktree_file.txt").write_text("worktree change")
+    subprocess.run(
+        ["git", "add", "worktree_file.txt"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Worktree change"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Invoke merge
+    merge_result = runner.invoke(worktree, ["merge", "test-feature"])
+    assert merge_result.exit_code == 0, f"Merge failed: {merge_result.output}"
+
+    # Verify merge commit exists
+    git_result = subprocess.run(
+        ["git", "log", "--oneline", "-1"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    log_output = git_result.stdout.strip()
+    assert "🔀 Merge wt/test-feature" in log_output
+
+    # Verify both branches' changes are integrated
+    git_result = subprocess.run(
+        ["git", "ls-tree", "HEAD", "-r"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    tree_output = git_result.stdout
+    assert "parent_file.txt" in tree_output
+    assert "worktree_file.txt" in tree_output
+
+    # Test custom message
+    (worktree_path / "worktree_file2.txt").write_text("worktree change 2")
+    subprocess.run(
+        ["git", "add", "worktree_file2.txt"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Worktree change 2"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    (repo_path / "parent_file2.txt").write_text("parent change 2")
+    subprocess.run(
+        ["git", "add", "parent_file2.txt"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Parent change 2"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    merge_result = runner.invoke(
+        worktree, ["merge", "test-feature", "--message", "Integrate test feature"]
+    )
+    assert merge_result.exit_code == 0, f"Merge failed: {merge_result.output}"
+
+    # Verify custom message
+    git_result = subprocess.run(
+        ["git", "log", "--oneline", "-1"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    log_output = git_result.stdout.strip()
+    assert "🔀 Integrate test feature" in log_output
 
 
 if __name__ == "__main__":

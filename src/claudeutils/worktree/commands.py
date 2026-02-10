@@ -351,11 +351,12 @@ def cmd_rm(slug: str) -> None:
     click.echo(f"Removed worktree {slug}")
 
 
-def cmd_merge(slug: str) -> None:
+def cmd_merge(slug: str, message: str = "") -> None:
     """Merge worktree branch.
 
     Phase 1: clean tree, branch, worktree directory checks.
     Phase 2: submodule resolution with no-divergence optimization.
+    Phase 3: parent merge with conflict resolution and precommit gate.
     """
     # Phase 1: Pre-checks
     check_clean_tree()
@@ -407,196 +408,283 @@ def cmd_merge(slug: str) -> None:
                     short_sha = wt_submodule_commit[:7]
                     msg = f"Submodule agent-core: skipped (no divergence, {short_sha})"
                     click.echo(msg, err=True)
-                    # Phase 3 would be implemented in next cycle
-                    return
-
-                # Ancestry check: if worktree commit is ancestor of local, skip merge
-                ancestry_result = subprocess.run(
-                    [
-                        "git",
-                        "-C",
-                        "agent-core",
-                        "merge-base",
-                        "--is-ancestor",
-                        wt_submodule_commit,
-                        local_submodule_commit,
-                    ],
-                    check=False,
-                    capture_output=True,
-                )
-
-                if ancestry_result.returncode == 0:
-                    # Worktree commit is ancestor - local already includes changes
-                    wt_short = wt_submodule_commit[:7]
-                    local_short = local_submodule_commit[:7]
-                    msg = (
-                        f"Submodule agent-core: skipped (fast-forward, "
-                        f"{wt_short} is ancestor of {local_short})"
-                    )
-                    click.echo(msg, err=True)
-                    # Phase 3 would be implemented in next cycle
-                    return
-
-                # Diverged commits: fetch from worktree, merge, stage, commit
-                worktree_ac_path = worktree_path / "agent-core"
-                if worktree_ac_path.exists():
-                    # Fetch from worktree's submodule
-                    fetch_result = subprocess.run(
+                else:
+                    # Ancestry check: skip merge if worktree is ancestor of local
+                    ancestry_result = subprocess.run(
                         [
                             "git",
                             "-C",
                             "agent-core",
-                            "fetch",
-                            str(worktree_ac_path),
-                            "HEAD",
+                            "merge-base",
+                            "--is-ancestor",
+                            wt_submodule_commit,
+                            local_submodule_commit,
                         ],
-                        capture_output=True,
-                        text=True,
                         check=False,
+                        capture_output=True,
                     )
-                    if fetch_result.returncode == 0:
-                        # Merge the fetched commit
-                        merge_result = subprocess.run(
-                            [
-                                "git",
-                                "-C",
-                                "agent-core",
-                                "merge",
-                                "--no-edit",
-                                wt_submodule_commit,
-                            ],
-                            capture_output=True,
-                            text=True,
-                            check=False,
+
+                    if ancestry_result.returncode == 0:
+                        # Worktree commit is ancestor - local already includes changes
+                        wt_short = wt_submodule_commit[:7]
+                        local_short = local_submodule_commit[:7]
+                        msg = (
+                            f"Submodule agent-core: skipped (fast-forward, "
+                            f"{wt_short} is ancestor of {local_short})"
                         )
-                        if merge_result.returncode == 0:
-                            # Stage the merged submodule pointer
-                            subprocess.run(
-                                ["git", "add", "agent-core"],
+                        click.echo(msg, err=True)
+                    else:
+                        # Diverged commits: fetch from worktree, merge, stage, commit
+                        worktree_ac_path = worktree_path / "agent-core"
+                        if worktree_ac_path.exists():
+                            # Fetch from worktree's submodule
+                            fetch_result = subprocess.run(
+                                [
+                                    "git",
+                                    "-C",
+                                    "agent-core",
+                                    "fetch",
+                                    str(worktree_ac_path),
+                                    "HEAD",
+                                ],
                                 capture_output=True,
                                 text=True,
-                                check=True,
-                            )
-                            # Create merge commit if staged (idempotent)
-                            # Guard: git diff --quiet --cached
-                            diff_result = subprocess.run(
-                                ["git", "diff", "--quiet", "--cached"],
-                                capture_output=True,
                                 check=False,
                             )
-                            # If diff returned non-zero (changes staged), commit
-                            if diff_result.returncode != 0:
-                                result = subprocess.run(
-                                    [
-                                        "git",
-                                        "commit",
-                                        "-m",
-                                        f"🔀 Merge agent-core from {slug}",
-                                    ],
-                                    capture_output=True,
-                                    text=True,
-                                    check=False,
-                                )
-                            else:
-                                result = subprocess.run(
-                                    ["git", "rev-parse", "HEAD"],
-                                    capture_output=True,
-                                    check=False,
-                                )
-
-                            if result.returncode == 0:
-                                wt_short = wt_submodule_commit[:7]
-                                local_short = local_submodule_commit[:7]
-                                msg = (
-                                    f"Submodule agent-core: merged "
-                                    f"({wt_short} + {local_short})"
-                                )
-                                click.echo(msg, err=True)
-
-                                # Verify both original commits are ancestors
-                                final_head_result = subprocess.run(
+                            if fetch_result.returncode == 0:
+                                # Merge the fetched commit
+                                merge_result = subprocess.run(
                                     [
                                         "git",
                                         "-C",
                                         "agent-core",
-                                        "rev-parse",
-                                        "HEAD",
+                                        "merge",
+                                        "--no-edit",
+                                        wt_submodule_commit,
                                     ],
                                     capture_output=True,
                                     text=True,
                                     check=False,
                                 )
-                                if final_head_result.returncode == 0:
-                                    final_head = final_head_result.stdout.strip()
-
-                                    # Verify worktree commit is ancestor
-                                    wt_ancestor_result = subprocess.run(
-                                        [
-                                            "git",
-                                            "-C",
-                                            "agent-core",
-                                            "merge-base",
-                                            "--is-ancestor",
-                                            wt_submodule_commit,
-                                            final_head,
-                                        ],
-                                        check=False,
+                                if merge_result.returncode == 0:
+                                    # Stage the merged submodule pointer
+                                    subprocess.run(
+                                        ["git", "add", "agent-core"],
                                         capture_output=True,
+                                        text=True,
+                                        check=True,
                                     )
-
-                                    # Verify local commit is ancestor
-                                    local_ancestor_result = subprocess.run(
-                                        [
-                                            "git",
-                                            "-C",
-                                            "agent-core",
-                                            "merge-base",
-                                            "--is-ancestor",
-                                            local_submodule_commit,
-                                            final_head,
-                                        ],
-                                        check=False,
+                                    # Create merge commit if staged (idempotent)
+                                    # Guard: git diff --quiet --cached
+                                    diff_result = subprocess.run(
+                                        ["git", "diff", "--quiet", "--cached"],
                                         capture_output=True,
+                                        check=False,
                                     )
-
-                                    if (
-                                        wt_ancestor_result.returncode != 0
-                                        or local_ancestor_result.returncode != 0
-                                    ):
-                                        click.echo(
-                                            "Error: merge verification failed",
-                                            err=True,
+                                    # If diff returned non-zero (changes staged), commit
+                                    if diff_result.returncode != 0:
+                                        result = subprocess.run(
+                                            [
+                                                "git",
+                                                "commit",
+                                                "-m",
+                                                f"🔀 Merge agent-core from {slug}",
+                                            ],
+                                            capture_output=True,
+                                            text=True,
+                                            check=False,
                                         )
-                                        if wt_ancestor_result.returncode != 0:
-                                            msg = (
-                                                f"  Worktree commit {wt_short} is "
-                                                f"not ancestor of {final_head[:7]}"
-                                            )
-                                            click.echo(msg, err=True)
-                                        if local_ancestor_result.returncode != 0:
-                                            msg = (
-                                                f"  Local commit {local_short} is "
-                                                f"not ancestor of {final_head[:7]}"
-                                            )
-                                            click.echo(msg, err=True)
-                                        raise SystemExit(2)
+                                    else:
+                                        result = subprocess.run(
+                                            ["git", "rev-parse", "HEAD"],
+                                            capture_output=True,
+                                            check=False,
+                                        )
 
-                            # Phase 3 would be implemented in next cycle
-                            return
-                        click.echo(
-                            "Error: submodule merge conflict in agent-core",
-                            err=True,
-                        )
-                        click.echo(merge_result.stderr, err=True)
-                        raise SystemExit(1)
-                    click.echo(
-                        "Error: failed to fetch from worktree submodule",
-                        err=True,
-                    )
-                    click.echo(fetch_result.stderr, err=True)
-                    raise SystemExit(1)
-                click.echo(
-                    f"Error: worktree submodule not found at {worktree_ac_path}",
-                    err=True,
-                )
-                raise SystemExit(1)
+                                    if result.returncode == 0:
+                                        wt_short = wt_submodule_commit[:7]
+                                        local_short = local_submodule_commit[:7]
+                                        msg = (
+                                            f"Submodule agent-core: merged "
+                                            f"({wt_short} + {local_short})"
+                                        )
+                                        click.echo(msg, err=True)
+
+                                        # Verify both original commits are ancestors
+                                        final_head_result = subprocess.run(
+                                            [
+                                                "git",
+                                                "-C",
+                                                "agent-core",
+                                                "rev-parse",
+                                                "HEAD",
+                                            ],
+                                            capture_output=True,
+                                            text=True,
+                                            check=False,
+                                        )
+                                        if final_head_result.returncode == 0:
+                                            final_head = (
+                                                final_head_result.stdout.strip()
+                                            )
+
+                                            # Verify worktree commit is ancestor
+                                            wt_ancestor_result = subprocess.run(
+                                                [
+                                                    "git",
+                                                    "-C",
+                                                    "agent-core",
+                                                    "merge-base",
+                                                    "--is-ancestor",
+                                                    wt_submodule_commit,
+                                                    final_head,
+                                                ],
+                                                check=False,
+                                                capture_output=True,
+                                            )
+
+                                            # Verify local commit is ancestor
+                                            local_ancestor_result = subprocess.run(
+                                                [
+                                                    "git",
+                                                    "-C",
+                                                    "agent-core",
+                                                    "merge-base",
+                                                    "--is-ancestor",
+                                                    local_submodule_commit,
+                                                    final_head,
+                                                ],
+                                                check=False,
+                                                capture_output=True,
+                                            )
+
+                                            if (
+                                                wt_ancestor_result.returncode != 0
+                                                or local_ancestor_result.returncode != 0
+                                            ):
+                                                click.echo(
+                                                    "Error: merge verification failed",
+                                                    err=True,
+                                                )
+                                                if wt_ancestor_result.returncode != 0:
+                                                    wt_msg = (
+                                                        f"  Worktree {wt_short} not "
+                                                        f"ancestor of {final_head[:7]}"
+                                                    )
+                                                    click.echo(wt_msg, err=True)
+                                                if (
+                                                    local_ancestor_result.returncode
+                                                    != 0
+                                                ):
+                                                    local_msg = (
+                                                        f"  Local {local_short} not "
+                                                        f"ancestor of {final_head[:7]}"
+                                                    )
+                                                    click.echo(local_msg, err=True)
+                                                raise SystemExit(2)
+                                else:
+                                    click.echo(
+                                        "Error: submodule merge conflict in agent-core",
+                                        err=True,
+                                    )
+                                    click.echo(merge_result.stderr, err=True)
+                                    raise SystemExit(1)
+                            else:
+                                click.echo(
+                                    "Error: failed to fetch from worktree submodule",
+                                    err=True,
+                                )
+                                click.echo(fetch_result.stderr, err=True)
+                                raise SystemExit(1)
+                        else:
+                            msg = (
+                                f"Error: worktree submodule not found "
+                                f"at {worktree_ac_path}"
+                            )
+                            click.echo(msg, err=True)
+                            raise SystemExit(1)
+
+    # Phase 3: Parent merge
+    # Execute merge with --no-commit --no-ff
+    merge_result = subprocess.run(
+        ["git", "merge", "--no-commit", "--no-ff", slug],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    if merge_result.returncode == 0:
+        # Clean merge - proceed to commit
+        pass
+    elif merge_result.returncode == 1:
+        # Merge with conflicts
+        # Check for unresolved conflicts
+        conflict_result = subprocess.run(
+            ["git", "diff", "--name-only", "--diff-filter=U"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        conflict_files = (
+            conflict_result.stdout.strip().split("\n")
+            if conflict_result.stdout.strip()
+            else []
+        )
+
+        if not conflict_files:
+            # Merge actually succeeded (false positive for conflicts)
+            pass
+        else:
+            # Conflicts exist - report and exit for manual resolution
+            click.echo("Merge conflicts detected:", err=True)
+            for f in conflict_files:
+                click.echo(f"  {f}", err=True)
+            raise SystemExit(1)
+    else:
+        click.echo(
+            f"Error: merge failed with exit code {merge_result.returncode}", err=True
+        )
+        click.echo(merge_result.stderr, err=True)
+        raise SystemExit(2)
+
+    # Construct merge commit message
+    commit_message = f"🔀 {message}" if message else f"🔀 Merge wt/{slug}"
+
+    # Create merge commit
+    commit_result = subprocess.run(
+        ["git", "commit", "-m", commit_message],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    if commit_result.returncode != 0:
+        click.echo("Error: failed to create merge commit", err=True)
+        click.echo(commit_result.stderr, err=True)
+        raise SystemExit(1)
+
+    # Get merge commit hash
+    hash_result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    merge_commit = hash_result.stdout.strip()
+
+    # Run precommit validation (mandatory correctness gate)
+    precommit_result = subprocess.run(
+        ["just", "precommit"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    if precommit_result.returncode != 0:
+        click.echo("Precommit validation failed:", err=True)
+        click.echo(precommit_result.stdout, err=True)
+        click.echo(precommit_result.stderr, err=True)
+        raise SystemExit(1)
+
+    # Output merge commit hash
+    click.echo(merge_commit)
