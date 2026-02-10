@@ -70,3 +70,34 @@ def ls() -> None:
 
     for slug, branch, path in entries:
         click.echo(f"{slug}\t{branch}\t{path}")
+
+
+@worktree.command(name="clean-tree")
+def clean_tree() -> None:
+    """Validate clean state of parent repo and submodule.
+
+    Exits 0 silently if clean, exits 1 with dirty file list if dirty. Session
+    context files (agents/session.md, agents/jobs.md, agents/learnings.md) are
+    excluded from clean-tree checks.
+    """
+    result = subprocess.run(
+        ["git", "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    parent_status = result.stdout
+
+    result = subprocess.run(
+        ["git", "-C", "agent-core", "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    submodule_status = result.stdout if result.returncode == 0 else ""
+
+    combined = parent_status + submodule_status
+
+    if combined:
+        click.echo(combined.rstrip())
+        raise SystemExit(1)
