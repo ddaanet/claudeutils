@@ -164,3 +164,47 @@ Need to fix **Implement feature Y** before proceeding.
     assert "  - Plan: feature-y" in result
     # Blockers section unchanged from ours
     assert result.count("**Implement feature Y**") == 2  # One in tasks, one in blockers
+
+
+def test_resolve_session_conflict_removes_worktree_entry_when_slug_provided() -> None:
+    """Extract task from Worktree Tasks and add to Pending when slug provided.
+
+    Result should have no Worktree Tasks section, with task moved to Pending.
+    """
+    ours = """# Session: Base
+
+## Pending Tasks
+
+- [ ] **Task A** — `/design` | sonnet
+
+## Blockers / Gotchas
+
+None.
+"""
+
+    theirs = """# Session: Base
+
+## Pending Tasks
+
+- [ ] **Task A** — `/design` | sonnet
+- [ ] **Execute plugin migration** — `/plan-adhoc` | sonnet
+
+## Blockers / Gotchas
+
+None.
+
+## Worktree Tasks
+
+- [ ] **Execute plugin migration** → wt/plugin-migration — metadata
+"""
+
+    result = resolve_session_conflict(ours, theirs, slug="plugin-migration")
+
+    # Result should have no Worktree Tasks section
+    assert "## Worktree Tasks" not in result
+
+    # Task should be in Pending Tasks (extracted from Worktree Tasks section)
+    assert "- [ ] **Execute plugin migration**" in result
+
+    # No reference to wt/plugin-migration should remain
+    assert "wt/plugin-migration" not in result

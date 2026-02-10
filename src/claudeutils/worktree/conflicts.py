@@ -64,26 +64,39 @@ def _format_new_tasks_text(
     return tasks_text + "\n"
 
 
-def resolve_session_conflict(ours: str, theirs: str) -> str:
+def resolve_session_conflict(ours: str, theirs: str, slug: str | None = None) -> str:
     """Resolve session.md merge conflict by extracting new tasks from theirs.
 
     Preserves all tasks from ours, adds new tasks found only in theirs.
-    All other sections remain unchanged from ours.
+    All other sections remain unchanged from ours. If slug is provided, extracts
+    the task from theirs' Worktree Tasks section and adds to Pending Tasks.
 
     Args:
         ours: The base session.md version (keep as base).
         theirs: The incoming session.md version (extract new tasks from).
+        slug: Optional worktree slug. If provided, extract task from Worktree Tasks
+              and add to new tasks list.
 
     Returns:
         Merged session.md with new tasks appended to Pending Tasks section.
     """
-    # Parse task names from both versions
+    # Parse task names from both versions (Pending Tasks only, not Worktree)
     task_pattern = r"^- \[ \] \*\*(.+?)\*\*"
     ours_tasks = set(re.findall(task_pattern, ours, re.MULTILINE))
     theirs_tasks = set(re.findall(task_pattern, theirs, re.MULTILINE))
 
     # Find new tasks (in theirs but not in ours)
     new_task_names = theirs_tasks - ours_tasks
+
+    # If slug provided, extract task from Worktree Tasks section
+    if slug:
+        worktree_pattern = rf"^- \[ \] \*\*(.+?)\*\*.*→ wt/{re.escape(slug)}"
+        worktree_match = re.search(worktree_pattern, theirs, re.MULTILINE)
+        if worktree_match:
+            worktree_task_name = worktree_match.group(1)
+            # Add to new tasks if not already extracted from Pending Tasks
+            if worktree_task_name not in ours_tasks:
+                new_task_names.add(worktree_task_name)
 
     if not new_task_names:
         # No new tasks, return ours as-is
