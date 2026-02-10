@@ -1,6 +1,7 @@
 """Worktree CLI module."""
 
 import re
+import subprocess
 
 import click
 
@@ -25,3 +26,43 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
 @click.group(name="_worktree")
 def worktree() -> None:
     """Worktree command group."""
+
+
+@worktree.command()
+def ls() -> None:
+    """List active worktrees (excluding main)."""
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    main_path = result.stdout.strip()
+
+    result = subprocess.run(
+        ["git", "worktree", "list", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    lines = result.stdout.strip().split("\n") if result.stdout.strip() else []
+
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith("worktree "):
+            path = lines[i].split(maxsplit=1)[1]
+
+            if path == main_path:
+                i += 4
+                continue
+
+            branch = ""
+            if i + 2 < len(lines) and lines[i + 2].startswith("branch "):
+                branch = lines[i + 2].split(maxsplit=1)[1]
+
+            slug = path.split("/")[-1]
+            click.echo(f"{slug}\t{branch}")
+
+            i += 4
+        else:
+            i += 1

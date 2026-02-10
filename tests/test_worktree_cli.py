@@ -28,3 +28,11 @@ def test_derive_slug() -> None:
     )
     assert derive_slug("Multiple    spaces   here") == "multiple-spaces-here"
     assert derive_slug("Special!@#$%chars") == "special-chars"
+
+
+def test_ls_empty() -> None:
+    """Verify ls exits 0 with empty output when no worktrees exist."""
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["ls"])
+    assert result.exit_code == 0
+    assert result.output == ""
