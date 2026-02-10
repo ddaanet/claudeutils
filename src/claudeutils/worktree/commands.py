@@ -414,6 +414,23 @@ def cmd_rm(slug: str) -> None:
     click.echo(f"Removed worktree {slug}")
 
 
+def capture_untracked_files() -> set[str]:
+    """Capture current untracked files."""
+    result = subprocess.run(
+        ["git", "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    untracked = set()
+    for line in result.stdout.strip().split("\n"):
+        if line.startswith("??"):
+            tokens = line.split()
+            if len(tokens) >= 2:
+                untracked.add(tokens[-1])
+    return untracked
+
+
 def cmd_merge(slug: str, message: str = "") -> None:
     """Merge worktree branch.
 
@@ -696,6 +713,32 @@ def cmd_merge(slug: str, message: str = "") -> None:
         merge_result_returncode = 0
         merge_result_stderr = ""
     else:
+        # Before merge attempt, clean up debris from previous failed merge
+        # Get files that differ between HEAD and the branch being merged
+        diff_result = subprocess.run(
+            ["git", "diff", "--name-only", "HEAD", slug],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        incoming_files = (
+            {f for f in diff_result.stdout.strip().split("\n") if f}
+            if diff_result.returncode == 0
+            else set()
+        )
+
+        # Remove any untracked files that would come from the merge
+        # (these are debris from a previous failed attempt)
+        untracked_now = capture_untracked_files()
+        debris = untracked_now & incoming_files
+        for filepath in debris:
+            path_obj = Path(filepath)
+            if path_obj.exists():
+                path_obj.unlink()
+
+        # Capture untracked files after cleanup
+        untracked_before = capture_untracked_files()
+
         # Execute merge with --no-commit --no-ff
         merge_result = subprocess.run(
             ["git", "merge", "--no-commit", "--no-ff", slug],
@@ -705,6 +748,16 @@ def cmd_merge(slug: str, message: str = "") -> None:
         )
         merge_result_returncode = merge_result.returncode
         merge_result_stderr = merge_result.stderr
+
+        # If merge failed, capture new untracked files and clean them up
+        # before exiting (so they don't cause issues on retry)
+        if merge_result_returncode != 0:
+            untracked_after = capture_untracked_files()
+            materialized = untracked_after - untracked_before
+            for filepath in materialized:
+                path_obj = Path(filepath)
+                if path_obj.exists():
+                    path_obj.unlink()
 
     if merge_result_returncode == 0:
         # Clean merge - proceed to commit
@@ -732,7 +785,8 @@ def cmd_merge(slug: str, message: str = "") -> None:
             # All conflicts resolved
             pass
         else:
-            # Some conflicts cannot be auto-resolved - report and exit
+            # Some conflicts cannot be auto-resolved
+            # Report conflicts but leave merge in progress for manual resolution
             click.echo("Merge conflicts detected:", err=True)
             for f in conflict_files:
                 click.echo(f"  {f}", err=True)

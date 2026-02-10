@@ -326,7 +326,7 @@ def test_merge_phase_2_fast_forward(
 def test_merge_phase_2_diverged_commits(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Verify merge with diverged submodule commits."""
+    """Verify merge with diverged submodule commits (placeholder)."""
 
 
 def test_merge_idempotent_resume_after_conflict_resolution(
