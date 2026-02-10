@@ -44,6 +44,14 @@ This phase establishes the package structure, Click command group, slug derivati
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-0-1-notes.md
+
+---
+
 ## Cycle 0.2: Click Group Structure
 
 **Objective:** Establish `_worktree` command group with help output.
@@ -73,6 +81,14 @@ This phase establishes the package structure, Click command group, slug derivati
   Location hint: Top level of module after imports
 **Verify GREEN:** `pytest tests/test_worktree_cli.py::test_worktree_command_group -v`
 **Verify no regression:** `just test`
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-0-2-notes.md
 
 ---
 
@@ -112,6 +128,14 @@ This phase establishes the package structure, Click command group, slug derivati
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-0-3-notes.md
+
+---
+
 ## Cycle 0.4: ls subcommand structure
 
 **Objective:** Implement `ls` subcommand that lists worktrees with empty output for no worktrees.
@@ -141,6 +165,14 @@ This phase establishes the package structure, Click command group, slug derivati
   Location hint: After `derive_slug`, before end of file
 **Verify GREEN:** `pytest tests/test_worktree_cli.py::test_ls_empty -v`
 **Verify no regression:** `just test`
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-0-4-notes.md
 
 ---
 
@@ -178,6 +210,14 @@ This phase establishes the package structure, Click command group, slug derivati
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-0-5-notes.md
+
+---
+
 ## Cycle 0.6: clean-tree with clean repo
 
 **Objective:** Implement `clean-tree` subcommand that validates clean state silently.
@@ -207,6 +247,14 @@ This phase establishes the package structure, Click command group, slug derivati
   Location hint: After `ls`, before end of file
 **Verify GREEN:** `pytest tests/test_worktree_cli.py::test_clean_tree_clean -v`
 **Verify no regression:** `just test`
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-0-6-notes.md
 
 ---
 
@@ -242,6 +290,14 @@ This phase establishes the package structure, Click command group, slug derivati
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-0-7-notes.md
+
+---
+
 ## Cycle 0.8: clean-tree with non-session dirt
 
 **Objective:** Verify `clean-tree` detects and reports non-session dirty files.
@@ -271,6 +327,14 @@ This phase establishes the package structure, Click command group, slug derivati
   Location hint: After filtering, before exit decision
 **Verify GREEN:** `pytest tests/test_worktree_cli.py::test_clean_tree_dirty_source -v`
 **Verify no regression:** `just test`
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-0-8-notes.md
 
 ---
 
@@ -304,3 +368,11 @@ This phase establishes the package structure, Click command group, slug derivati
   Location hint: After `clean_tree`, before end of file
 **Verify GREEN:** `pytest tests/test_worktree_cli.py::test_add_commit_nothing_staged -v`
 **Verify no regression:** `just test`
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-0-9-notes.md
