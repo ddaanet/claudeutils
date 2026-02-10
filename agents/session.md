@@ -17,7 +17,7 @@
 - bash-git-prompt: no unmerged commits, uncommitted changes — force-removed
 - markdown-test-corpus: no unmerged commits, uncommitted changes — force-removed
 
-**Worktree skill outline updated:** Added source code conflict resolution (take-ours + precommit gate), batch stale removal, submodule fetch path simplification, new test scenarios
+**Worktree skill outline updated:** Added source code conflict resolution (take-ours + precommit gate), batch stale removal, submodule fetch path simplification, new test scenarios. Outline-review-agent: 4 minor fixes applied (step numbering, scope clarification, CLI naming). Branch naming reverted to "no prefix" per user requirement.
 
 ## Pending Tasks
 
@@ -42,7 +42,6 @@
 - [ ] **Update commit and handoff to branch after precommit** — Move git branching point from beginning to after precommit passes
 - [ ] **History cleanup tooling** — Research git history rewriting, prototype reusable scripts
 - [ ] **Rewrite agent-core ad-hoc scripts via TDD** — Port all ad-hoc scripts to claudeutils package
-- [x] **Clean up merged worktrees** — Remove 3 stale worktrees (bash-git-prompt, markdown-test-corpus, memory-index-recall)
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
   - Plan: continuation-prepend | Status: requirements | Dependency on continuation-passing now resolved
 - [ ] **Error handling framework design** — Design error handling for runbooks, task lists, and CPS skills | opus

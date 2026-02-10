@@ -40,7 +40,7 @@ Absorbs wt-merge-skill plan.
 
 **In:** CLI subcommand (TDD), SKILL.md, execute-rule.md Mode 5 update, delete justfile recipes, update handoff template, end-to-end tests (submodule merging), absorb wt-merge-skill
 
-**Out:** Parallel detection scripting, focus-session.py changes, stale worktree cleanup
+**Out:** Parallel detection scripting, focus-session.py implementation changes, stale worktree cleanup
 
 ## Submodule Merge Resolution
 
@@ -53,8 +53,8 @@ The `merge` subcommand must handle diverged submodule commits:
    - Worktree checkout path (`<worktree-dir>/agent-core`) is simplest and works reliably
    - Alternative: gitdir path (`.git/worktrees/<name>/modules/<submodule>`) also works
 2. Inside submodule: `git merge --no-edit <worktree-commit>` (merges both sides)
-4. Stage updated submodule: `git add agent-core`
-5. Commit submodule merge before or as part of main merge
+3. Stage updated submodule: `git add agent-core`
+4. Commit submodule merge before or as part of main merge
 
 **Ancestry check:** `git -C agent-core merge-base --is-ancestor <worktree-commit> <local-commit>` — if true, local already includes worktree changes (fast-forward case, no merge needed). If false or if worktree commit not found locally, fetch + merge required.
 
@@ -85,7 +85,7 @@ Source conflicts from overlapping work (both sides fix same issues independently
 
 ## Batch Stale Worktree Removal
 
-Stale worktrees (no unmerged commits, branches already merged) are removed with `wt-rm` which uses `--force`. Uncommitted changes in stale worktrees are expected and accepted — they were exploratory work that was either completed differently or abandoned.
+Stale worktrees (no unmerged commits, branches already merged) are removed with `_worktree rm` which uses `--force`. Uncommitted changes in stale worktrees are expected and accepted — they were exploratory work that was either completed differently or abandoned.
 
 **Task extraction algorithm (session.md merge):**
 1. Parse worktree session.md Pending Tasks section (regex: `^- \[ \] \*\*(.+?)\*\*`)
