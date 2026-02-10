@@ -95,17 +95,25 @@ def find_inline_code_spans(line: str) -> list[tuple[int, int]]:
 
 
 def _escape_triple_backticks_in_line(line: str) -> str:
-    """Escape triple backticks in a line (outside protected spans).
+    r"""Escape triple backticks in a line (outside protected spans).
 
     Returns line with triple backticks wrapped in double backticks.
+
+    Handles partial already-escaped patterns at boundaries:
+    - `` `{3,}\w* `` - complete already-escaped pattern
+    - ^\s*`{3,}\w* `` - tail end of already-escaped pattern after whitespace
     """
-    pattern = r"`` (`{3,}\w*) ``|(`{3,})(\w*)"
+    # Pattern matches:
+    # 1. `` (`{3,}\w*) `` - complete already-escaped (keep as-is)
+    # 2. ^\s*(`{3,}\w*) `` - tail of already-escaped after whitespace (keep as-is)
+    # 3. (`{3,})(\w*) - unescaped (wrap it)
+    pattern = r"`` (`{3,}\w*) ``|^\s*(`{3,}\w*) ``|(`{3,})(\w*)"
 
     def replacer(m: Match[str]) -> str:
-        if m.group(1):  # Already escaped
+        if m.group(1) or m.group(2):  # Already escaped (complete or tail)
             return m.group(0)
         # Unescaped - wrap it
-        return f"`` {m.group(2)}{m.group(3)} ``"
+        return f"`` {m.group(3)}{m.group(4)} ``"
 
     return re.sub(pattern, replacer, line)
 
