@@ -207,9 +207,9 @@ wt-merge name:
     if [ "$wt_commit" != "$local_commit" ]; then
         # Check ancestry
         if ! git -C agent-core merge-base --is-ancestor "$wt_commit" "$local_commit" 2>/dev/null; then
-            # Fetch from worktree
+            # Fetch from worktree git directory (worktree submodules use .git file pointer)
             if [ -d "$wt_dir/agent-core" ]; then
-                (cd agent-core && visible git fetch "$wt_dir/agent-core" HEAD)
+                (cd agent-core && visible git fetch "../.git/worktrees/$slug/modules/agent-core" HEAD)
             fi
             # Merge
             if ! (cd agent-core && visible git merge --no-edit "$wt_commit"); then
