@@ -52,13 +52,16 @@ line-limits:
 [no-exit-message]
 wt-new name base="HEAD" session="":
     #!{{ bash_prolog }}
-    repo_name=$(basename "$PWD")
-    wt_dir="../${repo_name}-{{name}}"
-    branch="wt/{{name}}"
+    slug="{{name}}"
+    wt_dir="wt/$slug"
+    branch="$slug"
     if [ -d "$wt_dir" ]; then
         fail "Worktree already exists: $wt_dir"
     fi
-    main_dir="$PWD"
+    if git rev-parse --verify "$branch" >/dev/null 2>&1; then
+        fail "Branch already exists: $branch"
+    fi
+    main_dir="$(git rev-parse --show-toplevel)"
     if [ -n "{{session}}" ]; then
         # Pre-commit focused session.md to branch before worktree creation
         blob=$(git hash-object -w "{{session}}")
@@ -69,7 +72,7 @@ wt-new name base="HEAD" session="":
         new_tree=$(GIT_INDEX_FILE="$tmp_index" git write-tree)
         rm -f "$tmp_index"
         trap - EXIT ERR
-        new_commit=$(git commit-tree "$new_tree" -p "$(git rev-parse "{{base}}")" -m "wt: focused session.md")
+        new_commit=$(git commit-tree "$new_tree" -p "$(git rev-parse "{{base}}")" -m "Focused session for $slug")
         git branch "$branch" "$new_commit"
         visible git worktree add "$wt_dir" "$branch"
     else
@@ -77,7 +80,7 @@ wt-new name base="HEAD" session="":
     fi
     (cd "$wt_dir" && visible git submodule update --init --reference "$main_dir/agent-core")
     # Put agent-core on a branch (not detached HEAD)
-    (cd "$wt_dir/agent-core" && visible git checkout -b "wt/{{name}}")
+    (cd "$wt_dir/agent-core" && visible git checkout -b "$slug")
     # Create .venv so direnv can load it
     (cd "$wt_dir" && visible uv sync)
     # Allow direnv in worktree
