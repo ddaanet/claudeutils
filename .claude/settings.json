@@ -32,7 +32,7 @@
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
-    "excludedCommands": ["git", "agent-core/bin/prepare-runbook.py"]
+    "excludedCommands": ["git", "just", "agent-core/bin/prepare-runbook.py"]
   },
   "hooks": {
     "PreToolUse": [

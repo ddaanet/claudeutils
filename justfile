@@ -127,12 +127,42 @@ wt-rm name:
     branch="$slug"
     # Check if worktree exists (branch-only cleanup is valid)
     if [ -d "$wt_dir" ]; then
-        # Check for uncommitted changes (warn before force-removing)
-        if ! (cd "$wt_dir" && git diff --quiet HEAD); then
+        # Warn about uncommitted changes
+        if [ -d "$wt_dir/.git" ] && ! (cd "$wt_dir" && git diff --quiet HEAD 2>/dev/null); then
             echo "${RED}Warning: $wt_dir has uncommitted changes${NORMAL}" >&2
         fi
-        # --force required: git can't remove worktrees containing submodules
-        visible git worktree remove --force "$wt_dir"
+
+        # Probe: is parent worktree registered?
+        parent_registered=false
+        if git worktree list | grep -q "$wt_dir"; then
+            parent_registered=true
+        fi
+
+        # Probe: is submodule worktree registered?
+        submodule_registered=false
+        if [ -d "$wt_dir/agent-core" ] && (cd agent-core && git worktree list | grep -q "$wt_dir/agent-core"); then
+            submodule_registered=true
+        fi
+
+        # Remove registered worktrees via git
+        if [ "$parent_registered" = true ]; then
+            visible git worktree remove --force "$wt_dir"
+        fi
+        if [ "$submodule_registered" = true ] && [ -d "$wt_dir/agent-core" ]; then
+            (cd agent-core && visible git worktree remove --force "../$wt_dir/agent-core")
+        fi
+
+        # Remove directory if still exists (orphaned or git failed)
+        if [ -d "$wt_dir" ]; then
+            rm -rf "$wt_dir"
+        fi
+
+        # Verify cleanup succeeded
+        if [ -d "$wt_dir" ]; then
+            echo "${RED}Sandbox blocked worktree removal${NORMAL}" >&2
+            echo "Retry with: Bash(\"just wt-rm $slug\", dangerouslyDisableSandbox=true)" >&2
+            exit 1
+        fi
     fi
     # Remove branch if exists
     if git rev-parse --verify "$branch" >/dev/null 2>&1; then
@@ -260,7 +290,7 @@ wt-merge name:
     fi
 
     # Commit merge
-    visible git commit -m "🔀 Merge wt/$slug"
+    visible git commit -m "🔀 Merge $slug"
 
     # Post-merge precommit gate
     echo ""

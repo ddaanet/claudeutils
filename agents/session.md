@@ -60,7 +60,6 @@
   - Plan: worktree-skill | Status: in progress (16 of 42 steps complete, 38%)
   - Next: Phase 2 Cycle 2.1 (merge subcommand structure)
 - [ ] **RCA: Planning agents leave dirty tree** → `wt/rca-dirty-tree` — Delegation prompts lack commit instruction | sonnet
-- [ ] **RCA: Background agents crash (classifyHandoffIfNeeded)** → `wt/rca-background-crash` — Background agent instability | sonnet
 - [ ] **RCA: Expansion agents omit cycle metadata** → `wt/rca-cycle-metadata` — Missing Stop/Error Conditions | sonnet
 - [ ] **RCA: Planning agent delegation inefficiency** → `wt/rca-delegation-inefficiency` — Tier 1 misrouted to delegation | sonnet
 
