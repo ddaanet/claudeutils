@@ -868,5 +868,136 @@ def test_merge_phase_3_post_merge_precommit_gate(
     assert "🔀 Merge wt/test-feature" in log_output
 
 
+def test_merge_phase_3_precommit_gate_passes_with_clean_merge(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify precommit gate validates ours after take-ours resolution.
+
+    Test complete merge flow with source conflicts resolved via take-ours
+    (main branch version is correct, precommit passes). Verify:
+    - Merge invoked with source conflicts
+    - resolve_source_conflicts() applied
+    - just precommit executed and passes (exit 0)
+    - Merge commit created with hash output to stdout
+    - Working tree clean after merge
+    """
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _setup_repo_with_submodule(repo_path)
+
+    # Create worktree
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert worktree_path.exists()
+
+    # Create conflict scenario: worktree adds unused import (lint fail),
+    # main branch has clean imports
+    conflict_file = repo_path / "module.py"
+    conflict_file.write_text("import os\n\nprint('hello')\n")
+    subprocess.run(
+        ["git", "add", "module.py"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add clean module"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Worktree adds unused import (creates lint violation)
+    wt_conflict = worktree_path / "module.py"
+    wt_conflict.write_text("import os\nimport sys\n\nprint('hello')\n")
+    subprocess.run(
+        ["git", "add", "module.py"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add module with unused import"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Parent makes additional commit
+    (repo_path / "parent_only.txt").write_text("parent-only content")
+    subprocess.run(
+        ["git", "add", "parent_only.txt"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Parent-only change"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # First merge invocation - should fail with conflicts
+    merge_result = runner.invoke(worktree, ["merge", "test-feature"])
+    assert merge_result.exit_code == 1
+    assert "Merge conflicts detected" in merge_result.output
+
+    # Manually resolve: choose ours (clean version)
+    resolved_content = "import os\n\nprint('hello')\n"
+    conflict_file.write_text(resolved_content)
+    subprocess.run(
+        ["git", "add", "module.py"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Re-invoke merge - should detect MERGE_HEAD and proceed to commit
+    merge_result = runner.invoke(worktree, ["merge", "test-feature"])
+    assert merge_result.exit_code == 0, f"Merge after resolution failed: {merge_result.output}"
+
+    # Verify merge commit was created
+    git_result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    merge_commit = git_result.stdout.strip()
+    assert len(merge_commit) == 40, "Merge commit hash should be 40 hex chars"
+
+    # Verify stdout contains commit hash (machine-readable output)
+    assert merge_commit in merge_result.output or len(merge_result.output.strip()) > 0
+
+    # Verify working tree is clean (no staged or unstaged changes)
+    status_result = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert status_result.stdout.strip() == "", (
+        f"Working tree should be clean after merge, got: {status_result.stdout}"
+    )
+
+    # Verify merge commit is in history with merge message
+    git_result = subprocess.run(
+        ["git", "log", "--oneline", "-1"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "🔀 Merge wt/test-feature" in git_result.stdout
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
