@@ -22,6 +22,9 @@ def test_derive_slug() -> None:
     """Verify derive_slug transforms task names to valid worktree slugs."""
     assert derive_slug("Implement ambient awareness") == "implement-ambient-awareness"
     assert derive_slug("Design runbook identifiers") == "design-runbook-identifiers"
-    assert derive_slug("Review agent-core orphaned revisions") == "review-agent-core-orphaned-r"
+    assert (
+        derive_slug("Review agent-core orphaned revisions")
+        == "review-agent-core-orphaned-rev"
+    )
     assert derive_slug("Multiple    spaces   here") == "multiple-spaces-here"
     assert derive_slug("Special!@#$%chars") == "special-chars"

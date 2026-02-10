@@ -16,11 +16,10 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
         A slugified version: lowercase, hyphens, truncated, no trailing hyphens.
     """
     slug = task_name.lower()
-    slug = re.sub(r'[^a-z0-9]+', '-', slug)
-    slug = slug.strip('-')
+    slug = re.sub(r"[^a-z0-9]+", "-", slug)
+    slug = slug.strip("-")
     slug = slug[:max_length]
-    slug = slug.rstrip('-')
-    return slug
+    return slug.rstrip("-")
 
 
 @click.group(name="_worktree")
