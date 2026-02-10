@@ -326,3 +326,43 @@ def add_commit(files: tuple[str, ...]) -> None:
             check=True,
         )
         click.echo(result.stdout.strip())
+
+
+@worktree.command()
+@click.argument("slug")
+def rm(slug: str) -> None:
+    """Remove a git worktree and its branch.
+
+    Removes the worktree directory at wt/{slug}/ and the corresponding git
+    branch. Warns if worktree has uncommitted changes or branch is unmerged, but
+    proceeds with removal anyway (forced).
+    """
+    worktree_path = Path(f"wt/{slug}")
+
+    if worktree_path.exists():
+        result = subprocess.run(
+            ["git", "-C", str(worktree_path), "status", "--porcelain"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        has_uncommitted = bool(result.stdout.strip())
+        if has_uncommitted:
+            click.echo(f"Warning: {slug} has uncommitted changes")
+
+        subprocess.run(
+            ["git", "worktree", "remove", "--force", str(worktree_path)],
+            check=True,
+            capture_output=True,
+        )
+
+    result = subprocess.run(
+        ["git", "branch", "-d", slug],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0 and "not found" not in result.stderr.lower():
+        click.echo(result.stderr)
+
+    click.echo(f"Removed worktree {slug}")

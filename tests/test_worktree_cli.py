@@ -187,3 +187,130 @@ def test_new_session_precommit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     )
     commit_msg = result.stdout.strip()
     assert commit_msg == "Focused session for test-feature"
+
+
+def test_rm_basic(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify rm removes worktree directory and branch.
+
+    Given: Worktree created via _worktree new test-feature
+    When: Run _worktree rm test-feature
+    Then: Directory wt/test-feature/ does not exist
+    Then: Branch test-feature does not exist
+    Then: Exit 0
+    Then: Success message to stderr
+    """
+    # Create a temporary git repo
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    # Initialize git repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    # Create worktree via new command
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    # Verify worktree exists
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert worktree_path.exists()
+
+    # Run rm command
+    result = runner.invoke(worktree, ["rm", "test-feature"])
+
+    # Verify exit code
+    assert result.exit_code == 0
+
+    # Verify worktree directory does not exist
+    assert not worktree_path.exists()
+
+    # Verify branch does not exist
+    branch_result = subprocess.run(
+        ["git", "branch", "--list", "test-feature"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert branch_result.stdout.strip() == ""
+
+    # Verify success message to stderr
+    assert "removed" in result.output.lower()
+
+
+def test_rm_dirty_warning(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify rm warns about uncommitted changes but proceeds.
+
+    Given: Worktree with uncommitted changes (create file in wt/test-feature/)
+    When: Run _worktree rm test-feature
+    Then: Warning to stderr about uncommitted changes
+    Then: Worktree and branch still removed (forced)
+    Then: Exit 0
+    """
+    # Create a temporary git repo
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    # Initialize git repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    # Create worktree via new command
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    # Create uncommitted changes in worktree
+    worktree_path = repo_path / "wt" / "test-feature"
+    (worktree_path / "newfile.txt").write_text("uncommitted")
+
+    # Run rm command
+    result = runner.invoke(worktree, ["rm", "test-feature"])
+
+    # Verify exit code is 0 (forced removal)
+    assert result.exit_code == 0
+
+    # Verify worktree directory does not exist
+    assert not worktree_path.exists()
+
+    # Verify branch does not exist
+    branch_result = subprocess.run(
+        ["git", "branch", "--list", "test-feature"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert branch_result.stdout.strip() == ""
+
+    # Verify warning message about uncommitted changes
+    assert "uncommitted" in result.output.lower() or "warning" in result.output.lower()
