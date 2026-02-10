@@ -25,7 +25,7 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
 
 @click.group(name="_worktree")
 def worktree() -> None:
-    """Worktree command group."""
+    """Manage git worktrees for parallel task execution."""
 
 
 @worktree.command()
@@ -51,18 +51,20 @@ def ls() -> None:
     while i < len(lines):
         if lines[i].startswith("worktree "):
             path = lines[i].split(maxsplit=1)[1]
-
-            if path == main_path:
-                i += 4
-                continue
+            i += 1
 
             branch = ""
-            if i + 2 < len(lines) and lines[i + 2].startswith("branch "):
-                branch = lines[i + 2].split(maxsplit=1)[1]
+            while i < len(lines) and lines[i]:
+                if lines[i].startswith("branch "):
+                    branch = lines[i].split(maxsplit=1)[1]
+                i += 1
+
+            i += 1
+
+            if path == main_path:
+                continue
 
             slug = path.split("/")[-1]
             click.echo(f"{slug}\t{branch}")
-
-            i += 4
         else:
             i += 1
