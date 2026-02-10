@@ -16,7 +16,7 @@
 **Assertions:**
 - `derive_slug("Implement ambient awareness")` returns `"implement-ambient-awareness"`
 - `derive_slug("Design runbook identifiers")` returns `"design-runbook-identifiers"`
-- `derive_slug("Review agent-core orphaned revisions")` returns `"review-agent-core-orphaned-r"` (truncated at 30 chars)
+- `derive_slug("Review agent-core orphaned revisions")` returns `"review-agent-core-orphaned-rev"` (truncated at 30 chars)
 - `derive_slug("Multiple    spaces   here")` returns `"multiple-spaces-here"` (collapsed)
 - `derive_slug("Special!@#$%chars")` returns `"special-chars"` (removed)
 **Expected failure:** `AttributeError` or `NameError` (function doesn't exist)
