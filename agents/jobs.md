@@ -18,7 +18,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | tweakcc | requirements | Local instances research |
 | when-recall | requirements | `/when` memory recall system — active retrieval replacing passive index |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
-| wt-merge-skill | requirements | Blocked on continuation-passing |
+| worktree-skill | outlined | Absorbs wt-merge-skill. CLI subcommand + skill, TDD |
 
 ## Complete (Archived)
 

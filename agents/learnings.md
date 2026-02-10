@@ -249,3 +249,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Split into execution-routing.md (interactive: understand first, do directly) and delegation.md (orchestration: dispatch to agents)
 - Rationale: "Delegate everything" is correct for runbook orchestration, wrong for interactive work
 - Fix: delegation.md 131→44 lines (orchestration only), execution-routing.md 25 lines (interactive routing)
+## Submodule commit orphan recovery
+- Anti-pattern: Reset dev branch to match main — loses submodule commits that only existed on dev
+- Correct pattern: Before branch reset, check for submodule commits not on target branch (`git merge-base --is-ancestor`)
+- Diagnostic: `git ls-tree <parent-commit> -- agent-core` to extract submodule pointer, then check ancestry
+- Recovery: `git -C agent-core merge <orphaned-commit>` if commit still exists as loose object
+- Example: focus-session.py (ff056c7) orphaned when dev reset to main, recovered via parent repo history
+## E2E over mocked subprocess
+- Anti-pattern: Dual test suite — e2e for behavior + mocked subprocess for speed
+- Correct pattern: E2E only with real git repos (tmp_path fixtures), mocking only for error injection
+- Rationale: Git with tmp_path is fast (milliseconds), subprocess mocks are implementation-coupled (command strings not outcomes), interesting bugs are state transitions that mocks can't catch
+- Exception: Mock subprocess for error injection only (lock files, permission errors)
