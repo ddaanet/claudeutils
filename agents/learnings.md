@@ -367,3 +367,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: UNFIXABLE detection protocol requires escalation; false positives from acceptability judgments waste orchestration cycles
 - Example: Cycle 2.3 vet flagged "test name could be more specific" then judged "name accurately describes behavior, 'appends' is clear enough" — should omit issue or mark "acceptable", not UNFIXABLE
 - Impact: Required manual judgment to proceed despite non-blocking issue
+## Phase-boundary vet reviews
+- Anti-pattern: Running vet-fix-agent after every individual step during runbook execution
+- Correct pattern: Run vet-fix-agent only at phase boundaries (after all steps in a phase complete)
+- Rationale: Individual step reviews add overhead without catching integration issues; phase-level reviews assess cumulative work
+- Post-step protocol: git status + precommit validation only (mechanical checks), not full vet review
+- Checkpoint timing: After phase completes, before starting next phase
+## Refactor agent conditional invocation
+- Anti-pattern: Always delegating to refactor agent at phase checkpoints regardless of precommit status
+- Correct pattern: Invoke refactor agent only when precommit reports complexity or lint errors
+- Rationale: If precommit passes, no refactoring needed; refactor agent is for fixing violations, not preventive review
+- Protocol: Run `just precommit` → if passes, proceed to vet checkpoint → if fails, delegate to refactor agent with desloping and factorization guidance

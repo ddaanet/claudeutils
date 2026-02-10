@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Phase 3 complete (33 of 42 cycles, 79%). Ready for Phase 4.
+**Status:** Phase 4 complete (38 of 42 cycles, 90%). Ready for Phase 5.
 
 ## Completed This Session
 
@@ -72,6 +72,41 @@ Implemented complete wt-merge recipe with 3-phase merge flow in `src/claudeutils
 - Vet review: `plans/worktree-skill/reports/checkpoint-3-vet.md`
 - No UNFIXABLE issues, all fixes applied
 
+### Phase 4: Worktree Skill Documentation (Cycles 4.1-4.5)
+
+Created complete worktree skill documentation in `agent-core/skills/worktree/SKILL.md`:
+
+**Cycle 4.1: Frontmatter and file structure** (ad17df4, c451e91)
+- YAML frontmatter with all required fields (name, description, allowed-tools, user-invocable, continuation)
+- Test suite for frontmatter validation (9 tests)
+- Multi-line description with all invocation triggers
+
+**Cycle 4.2: Mode A implementation** (f15f430)
+- Single-task worktree documentation (7 numbered steps)
+- Covers: session.md read, slug derivation, focused session generation, CLI invocation, session update, launch command
+- Focused session.md template with proper structure
+
+**Cycle 4.3: Mode B implementation** (db21243, 10a295a, 8eb1f39)
+- Parallel group detection documentation (5 numbered steps)
+- 4 explicit detection criteria: plan independence, logical dependencies, model tier compatibility, restart requirements
+- Error handling for no-group scenario with clear guidance
+
+**Cycle 4.4: Mode C implementation** (117226e)
+- Merge ceremony documentation (5 numbered steps)
+- Handoff → commit → merge → cleanup flow
+- Three exit code paths (0=success, 1=conflicts/precommit, 2=errors) with resolution guidance
+- Idempotent merge operation with manual resolution support
+
+**Cycle 4.5: D+B hybrid polish** (4e9bdeb)
+- Tool anchors added to all major steps (SR-8 compliance)
+- Error communication enhanced with resolution procedures
+- Usage notes section added (slug determinism, merge idempotency, cleanup guidance)
+
+**Phase 4 checkpoint:**
+- Vet review: `plans/worktree-skill/reports/checkpoint-4-vet.md`
+- No UNFIXABLE issues, all fixes applied
+- Test suite: 787/789 passed (1 pre-existing failure)
+
 ### Test Environment Fix
 
 **Worktree test isolation** (15d3fa3)
@@ -81,9 +116,9 @@ Implemented complete wt-merge recipe with 3-phase merge flow in `src/claudeutils
 
 ## Pending Tasks
 
-- [ ] **Continue worktree-skill Phase 4** — Execute Cycles 4.1-4.5 (focused session generation) | sonnet
-  - Plan: worktree-skill | Status: in progress (33 of 42 cycles complete, 79%)
-  - Next: `/orchestrate worktree-skill` starting from step 4-1
+- [ ] **Continue worktree-skill Phase 5** — Execute Cycles 5.1-5.4 (integration and documentation) | sonnet
+  - Plan: worktree-skill | Status: in progress (38 of 42 cycles complete, 90%)
+  - Next: `/orchestrate worktree-skill` starting from step 5-1
 
 - [ ] **RCA: Vet-fix-agent UNFIXABLE labeling** — Analyze why agent labeled stylistic judgment as UNFIXABLE | sonnet
   - Context: Cycle 2.3 vet review flagged "test name could be more specific" with reason "test name accurately describes behavior, 'appends' is clear enough"
@@ -122,10 +157,16 @@ Implemented complete wt-merge recipe with 3-phase merge flow in `src/claudeutils
 - `tests/test_worktree_merge_verification.py` — Ancestry verification
 - `tests/test_worktree_source_conflicts.py` — Source conflict resolution
 
+**Skill documentation (Phase 4):**
+- `agent-core/skills/worktree/SKILL.md` — Complete skill with 3 modes (A/B/C)
+- `tests/test_worktree_skill_frontmatter.py` — Frontmatter validation tests
+
 **Phase reports:**
 - Phase 2 vet: `plans/worktree-skill/reports/checkpoint-2-{1,2,3,4}-vet.md`
 - Phase 3 vet: `plans/worktree-skill/reports/checkpoint-3-vet.md`
 - Phase 3 cycles: `plans/worktree-skill/reports/cycle-3-{1..13}-notes.md`
+- Phase 4 vet: `plans/worktree-skill/reports/checkpoint-4-vet.md`
+- Phase 4 cycles: `plans/worktree-skill/reports/cycle-4-{1..5}-notes.md`
 
 **Design reference:**
 - `plans/worktree-skill/design.md` — Overall skill design
@@ -133,7 +174,8 @@ Implemented complete wt-merge recipe with 3-phase merge flow in `src/claudeutils
 
 ## Next Steps
 
-Continue Phase 4 execution with `/orchestrate worktree-skill`:
-- 5 cycles (4.1-4.5): Focused session generation for worktree tasks
-- Same post-step protocol: git status + lint after each step
-- Phase checkpoint after 4.5: precommit + refactor if needed + vet
+Continue Phase 5 execution with `/orchestrate worktree-skill`:
+- 4 cycles (5.1-5.4): Integration and documentation
+- Post-step protocol: git status + precommit after each step
+- Phase checkpoint after 5.4: vet review for entire phase
+- Vet-fix runs at phase boundaries only, not after individual steps
