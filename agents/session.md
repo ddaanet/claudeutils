@@ -24,15 +24,13 @@
 - [ ] **Update refactor agent** — Add proactive duplication identification and factorization directive | sonnet
 - [ ] **Design review agent output optimization** — Remove summarize/report language from all agents to save output tokens | sonnet
 - [ ] **Session summary extraction prototype** — Design adhoc prototype to extract session summary from session log | sonnet
-- [ ] **Review recent changes for vacuous tests** — Check worktree-skill test quality | sonnet
-- [ ] **Deslop recent changes** — Validate new deslop instruction on worktree-skill code | sonnet
-- [ ] **Review all tests for vacuous tests** — Comprehensive test quality audit | sonnet
-- [ ] **Deslop entire codebase** — Apply deslop principles project-wide | sonnet
+- [ ] **Review all tests for vacuous tests** — Comprehensive test quality audit (subsumes "review recent") | sonnet
+- [ ] **Deslop entire codebase** — Apply deslop principles project-wide (subsumes "deslop recent") | sonnet
 - [ ] **Fragments cleanup after orchestration design** — Remove fragments duplicating skills/workflow | sonnet
 - [ ] **Interactive design session for orchestration principles** — Key architectural decisions | opus
 - [ ] **Execute plugin migration** — `/orchestrate plans/plugin-migration/orchestrator-plan.md` | sonnet
   - Plan: plugin-migration | Status: planned
-- [ ] **Examine pending tasks for batching** — Identify parallelizable task groups for wt/ execution | sonnet
+- [x] **Examine pending tasks for batching** — Identified 3 parallel groups (RCA, fragments, opus design), 2 subsumptions
 - [ ] **Update design skill** — Read design artifacts referenced in context, assess plan progress | sonnet
 - [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink | restart
 - [ ] **Handoff validation design** — Complete design (continuation-passing now merged) | opus
@@ -50,10 +48,7 @@
 - [ ] **Rewrite agent-core ad-hoc scripts via TDD** — Port all ad-hoc scripts to claudeutils package
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
   - Plan: continuation-prepend | Status: requirements | Dependency on continuation-passing now resolved
-- [ ] **RCA: Planning agents leave dirty tree** — Delegation prompts lack commit instruction, fix orchestration templates | sonnet
-- [ ] **RCA: Background agents crash (classifyHandoffIfNeeded)** — Affects both user-backgrounded AND code-backgrounded agents. Two opus+sonnet agents crashed this session after writing output. Not a user-vs-code distinction | sonnet
-- [ ] **RCA: Expansion agents omit cycle metadata** — 42 cycles missing Stop/Error Conditions required by prepare-runbook.py, fix expansion prompt or plan-tdd skill | sonnet
-- [ ] **RCA: Planning agent delegation inefficiency** — Tier 1 assessment (skipped tests fix) routed to delegation instead of direct execution, causing wasteful agent overhead | sonnet
+- [ ] **Fix worktree tests isolation** — Fix worktree tests to be properly isolated, not affected by current content of wt subdir | sonnet
 - [ ] **Update orchestrator workflow for delegate resume** — Enable resuming delegates with incomplete work to reuse context (test regressions, lint fixes, uncommitted changes) | sonnet
 - [ ] **Error handling framework design** — Design error handling for runbooks, task lists, and CPS skills | opus
 - [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on plan-orchestrate workflow review
@@ -64,6 +59,10 @@
 - [ ] **Orchestrate worktree-skill execution** → `wt/orchestration` — Continue from Phase 2 (cycles 2.1-2.4) | sonnet
   - Plan: worktree-skill | Status: in progress (16 of 42 steps complete, 38%)
   - Next: Phase 2 Cycle 2.1 (merge subcommand structure)
+- [ ] **RCA: Planning agents leave dirty tree** → `wt/rca-dirty-tree` — Delegation prompts lack commit instruction | sonnet
+- [ ] **RCA: Background agents crash (classifyHandoffIfNeeded)** → `wt/rca-background-crash` — Background agent instability | sonnet
+- [ ] **RCA: Expansion agents omit cycle metadata** → `wt/rca-cycle-metadata` — Missing Stop/Error Conditions | sonnet
+- [ ] **RCA: Planning agent delegation inefficiency** → `wt/rca-delegation-inefficiency` — Tier 1 misrouted to delegation | sonnet
 
 ## Blockers / Gotchas
 
