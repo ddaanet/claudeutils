@@ -64,6 +64,8 @@ Execute: plans/<name>/steps/step-N.md
 
 Review agents get the same cached context (design + outline) but receive additional non-cached input (changed files list) for alignment checking.
 
+**Single-phase plans:** No `<plan>-vet.md` generated. Completion vet uses generic vet-fix-agent with file references to design+outline (non-cached, read on demand). Acceptable cost — single-phase plans have fewer steps.
+
 ### D-3: Post-step verify-remediate protocol
 
 **Decision:** Resume step agent first, delegate recovery on failure or context overflow.

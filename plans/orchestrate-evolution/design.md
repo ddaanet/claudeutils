@@ -6,7 +6,7 @@ The orchestrate skill assumes a weak (haiku) orchestrator. Many accumulated lear
 
 ## Requirements
 
-**Source:** `plans/orchestrate-evolution/orchestrate-evolution-analysis.md` (gap analysis, 7 FR + 3 NFR)
+**Source:** `plans/orchestrate-evolution/orchestrate-evolution-analysis.md` (gap analysis, 7 FR + 3 NFR). Phase B resolved scope: FR-1 deferred, NFR-3 revised (sonnet replaces haiku, not "weak orchestrator preservation"). The inline requirements below supersede the skeletal `plans/orchestrate-evolution/requirements.md`.
 
 **Functional:**
 - FR-2: Post-step remediation — resume step agent, fallback to recovery → D-3
@@ -23,6 +23,21 @@ The orchestrate skill assumes a weak (haiku) orchestrator. Many accumulated lear
 
 **Deferred:**
 - FR-1: Parallel step dispatch → `plans/parallel-orchestration/` (requires worktree isolation)
+
+### Requirements Traceability
+
+| Requirement | Addressed | Design Reference |
+|-------------|-----------|------------------|
+| FR-2 | Yes | Post-Step Remediation Protocol (D-3), steps 1-4 |
+| FR-3 | Yes | Post-Step Remediation Protocol (D-3), step 3 (RCA task) |
+| FR-4 | Yes | Agent Caching Model (D-2), plan-specific agent templates |
+| FR-5 | Yes | Agent Caching Model (D-2), "Clean tree requirement" footer |
+| FR-6 | Yes | Agent Caching Model (D-2), "Scope enforcement" footer + structural boundary |
+| FR-7 | Yes | Verification Script, git status + precommit check |
+| NFR-1 | Yes | Orchestrator Plan Format + Key Orchestration Principles (bloat prevention) |
+| NFR-2 | Yes | Q-4 resolution: clean break |
+| NFR-3 | Yes | D-1: sonnet default, mechanical checks preserved |
+| FR-1 (deferred) | N/A | Out of scope: parallel execution deferred to plans/parallel-orchestration/ |
 
 **Out of scope:**
 - Planning orchestration (plan-tdd / plan-adhoc stay as independent skills)
@@ -45,7 +60,8 @@ The skill shrinks significantly. The current 474-line skill contains verbose exa
    b. Run verification script (git clean + precommit)
    c. If dirty: remediate (resume agent or recovery delegation)
    d. If phase boundary: delegate to plan-specific vet agent
-4. On completion: cleanup plan-specific agents, continuation protocol
+4. Completion vet: single-phase uses generic vet-fix-agent with file references; multi-phase already vetted per-phase
+5. Cleanup plan-specific agents, continuation protocol
 ```
 
 **What changes from current skill:**
@@ -64,8 +80,8 @@ The skill shrinks significantly. The current 474-line skill contains verbose exa
 - Mechanical checks (UNFIXABLE grep, git status)
 
 **Skill frontmatter changes:**
-- Remove `allowed-tools` constraint (sonnet doesn't need tool restriction)
-- Keep continuation configuration
+- Remove `allowed-tools` constraint (sonnet doesn't need tool restriction — no replacement needed, defaults to all tools)
+- Keep continuation configuration (cooperative mode, default-exit chain)
 
 ### Agent Caching Model (D-2)
 
@@ -153,6 +169,23 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 **Multi-phase detection:** prepare-runbook.py already detects phases (from H3 "Phase N" markers or major cycle number changes). Generate vet agent when phase count > 1.
 
 **Model for vet agent:** Always sonnet. Vet requires reasoning and judgment regardless of implementation model.
+
+#### Single-phase plans: generic vet-fix-agent
+
+Single-phase plans don't get `<plan>-vet.md`. At completion, the orchestrator delegates to the generic `vet-fix-agent` with file references (non-cached):
+
+```
+Review all changes from runbook execution.
+
+**Design reference:** plans/<name>/design.md
+**Runbook outline:** plans/<name>/outline.md
+**Changed files:** [git diff --name-only]
+
+Fix all issues. Write report to: plans/<name>/reports/completion-vet.md
+Return filepath or error.
+```
+
+The vet-fix-agent reads design and outline on demand. Context is not cached (no plan-specific vet agent), but this is acceptable — single-phase plans have fewer steps, so one non-cached vet invocation at completion is a minor cost.
 
 #### Orchestrator prompt (minimal)
 
@@ -276,9 +309,9 @@ agent-core/skills/orchestrate/scripts/verify-step.sh
    - Skip resume if orchestrator estimates agent context > 100k tokens (heuristic: >15 messages in agent conversation)
 
 2. **If resume fails or skipped:** Delegate recovery to fresh sonnet agent.
-   - Recovery agent is a generic sonnet (not plan-specific — recovery is mechanical)
+   - Recovery agent is a generic sonnet (not plan-specific — recovery is mechanical, goal is lint-clean + git-clean)
    - Prompt includes: step file reference, `git diff`, `git status`, error output from verification
-   - Goal: lint-clean + git-clean state
+   - Recovery does not need design/outline context — it fixes lint and commit issues, not design alignment
 
 3. **After any remediation:** Append RCA pending task to session.md.
    - Format: `- [ ] **RCA: Step N dirty tree** — [brief description] | sonnet`
@@ -287,6 +320,8 @@ agent-core/skills/orchestrate/scripts/verify-step.sh
 4. **If recovery fails:** Escalate to user with full context.
 
 **Context measurement heuristic:** The Task tool doesn't expose token counts. Use message count as proxy: if the step agent exchanged >15 messages (tool calls + responses), skip resume and delegate recovery directly. This avoids resuming into a near-full context window.
+
+**Note:** The outline's D-3 step 5 describes recovery agent receiving "design + outline from task agent." This design narrows that: recovery is mechanical (lint-clean + git-clean), so design/outline context is unnecessary. Recovery agents receive only step file reference, git diff, git status, and error output.
 
 ### Refactor Agent Updates
 
@@ -336,11 +371,12 @@ agent-core/skills/orchestrate/scripts/verify-step.sh
 | `agent-core/bin/prepare-runbook.py` | Modify | Embed design+outline in agents, new orchestrator plan format, vet agent generation |
 | `agent-core/agents/refactor.md` | Modify | Add deslop directives, factorization rule, resume pattern |
 | `agent-core/fragments/delegation.md` | Modify | Update model selection, add file reference pattern |
-| `agent-core/skills/orchestrate/scripts/verify-step.sh` | Create | Post-step verification script |
+| `agent-core/skills/orchestrate/scripts/verify-step.sh` | Create | Post-step verification script (new `scripts/` directory under orchestrate skill) |
+| `plans/<plan>/orchestrator-plan.md` | Generated | New orchestrator plan format (generated by prepare-runbook.py per plan) |
 
 ### Testing Strategy
 
-- **Orchestrate skill:** Manual integration test — run against existing prepared runbook (e.g., plugin-migration)
+- **Orchestrate skill:** Manual integration test — regenerate and run against existing runbook (e.g., plugin-migration; requires regeneration per Q-4 clean break)
 - **prepare-runbook.py:** Unit tests for design/outline embedding, vet agent generation
 - **Verification script:** Unit test with clean/dirty git states
 - **Refactor agent:** Manual validation via orchestrated execution
@@ -349,7 +385,7 @@ agent-core/skills/orchestrate/scripts/verify-step.sh
 ## Documentation Perimeter
 
 **Required reading (planner must load before starting):**
-- `agents/decisions/architecture.md` — module patterns
+- `agents/decisions/implementation-notes.md` — module patterns, implementation decisions
 - `agent-core/fragments/delegation.md` — current delegation patterns (to update)
 - `plans/orchestrate-evolution/reports/explore-orchestration-infra.md` — infrastructure details
 - `agent-core/skills/orchestrate/SKILL.md` — current skill (to rewrite)

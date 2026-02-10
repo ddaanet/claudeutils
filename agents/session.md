@@ -1,26 +1,33 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Orchestrate evolution Phase B complete, outline validated (3 reviews), ready for Phase C (design.md generation).
+**Status:** Orchestrate evolution design.md complete (Phase C). Design-vet-agent review in progress. Ready for planning after vet.
 
 ## Completed This Session
 
-**Orchestrate evolution Phase B (interactive discussion):**
-- User resolved all 4 open questions (Q-1 through Q-4) with detailed decisions
-- D-2 rewritten: orchestrator references files only, never reads content (bloat prevention)
-- D-6 rewritten: plan-specific agents ARE the deduplication mechanism
-- Q-1: Orchestrate absorbs planning as a mode (9-step pipeline: design→review→outline→review→parallel phases→holistic review→prepare→restart→execute)
-- Q-2: Keep plan-specific agents with cleanup step after execution
-- Q-3: Resume step agent first, delegate recovery if >100k tokens or resume fails
-- Q-4: Clean break, no backwards compatibility
-- Added "Key Orchestration Principles" section with binding constraints and agent context tier table
-- Added refactor agent constraints: deslop before splitting, resume once if <100k
-- Changed verification script from `agent-core/bin/` to skill-local script (plugin migration prep)
-- Outline reviewed 3 times (reviews 1-3), all Ready assessment, 7+7+0 fixes applied
+**Orchestrate evolution Phase B continued (interactive discussion):**
+- D-2 rewritten as "Agent caching model" — design+outline embedded in agent definitions by prepare-runbook.py
+- D-3 (two-tier context) and D-6 (deduplication) absorbed into D-2
+- Phase-specific agent variants dropped (overengineering)
+- Q-1 (planning absorption) dropped — sub-agent limitations make planning delegation impractical
+- Parallel execution deferred to new plan `plans/parallel-orchestration/` (requires worktree isolation)
+- Refactor agent improvements (deslop, factorization) added to scope
+- Single-phase vet clarified: generic vet-fix-agent with file references (no plan-specific vet)
+- Confirmed via claude-code-guide: sub-agents cannot spawn sub-agents (Task tool unavailable)
+- Outline review-4: Ready, no issues
+
+**Orchestrate evolution Phase C (design generation):**
+- Design document created from validated outline (commit: 3b17024)
+- User inline edits: requirements traceability table, recovery agent scope narrowing, frontmatter clarifications
+- Single-phase vet handling added to design and outline
+- Design-vet-agent running (agent af973dc) — check `plans/orchestrate-evolution/reports/design-review.md`
+
+**Parallel orchestration plan created:**
+- `plans/parallel-orchestration/problem.md` — deferred FR-1 with requirements and design decisions from orchestrate-evolution
 
 ## Pending Tasks
 
-- [ ] **Orchestrate evolution design** — Phase C: generate design.md from validated outline | opus
-  - Plan: orchestrate-evolution | Status: requirements (outline validated) | Outline: `plans/orchestrate-evolution/outline.md`
+- [ ] **Orchestrate evolution plan** — `/plan-adhoc plans/orchestrate-evolution/design.md` | sonnet
+  - Plan: orchestrate-evolution | Status: designed | Check design-review.md for UNFIXABLE before planning
 - [ ] **Update worktree-skill for just setup integration** — `/plan-tdd`: integrate `just setup` in worktree creation script | sonnet
 - [ ] **Redesign markdown preprocessor** — Multi-line inline markup parsing instead of line-by-line | sonnet
 - [ ] **Optimize task agents and commit skill** — Examine worktree-skill for reuse, agent efficiency | sonnet
@@ -67,12 +74,15 @@
 
 **Vet-fix-agent scope understanding:** Flags out-of-scope items as UNFIXABLE instead of "deferred."
 
+**Design-vet-agent may still be running:** Agent af973dc was launched for design review. Check if `plans/orchestrate-evolution/reports/design-review.md` exists and grep for UNFIXABLE before proceeding to planning.
+
 ## Reference Files
 
-- **plans/orchestrate-evolution/outline.md** — Design outline (7 decisions, 4 resolved questions, binding principles)
-- **plans/orchestrate-evolution/reports/outline-review-3.md** — Latest outline review (Ready, no fixes)
+- **plans/orchestrate-evolution/design.md** — Full design document (Phase C output)
+- **plans/orchestrate-evolution/outline.md** — Validated outline (4 decisions, 4 resolved questions)
+- **plans/orchestrate-evolution/reports/outline-review-4.md** — Latest outline review (Ready)
 - **plans/orchestrate-evolution/reports/explore-orchestration-infra.md** — Infrastructure exploration report
-- **plans/orchestrate-evolution/orchestrate-evolution-analysis.md** — Prior gap analysis (7 gaps, FR/NFR)
+- **plans/parallel-orchestration/problem.md** — Deferred parallel execution requirements
 
 ---
-*Handoff by Opus. Orchestrate evolution outline validated, ready for Phase C design generation.*
+*Handoff by Opus. Orchestrate evolution design complete, vet in flight.*

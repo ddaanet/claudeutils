@@ -374,3 +374,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: If metadata is deterministic and standard, script injects it during assembly
 - Example: prepare-runbook.py validated "stop/error conditions" per cycle, but neither expansion agents nor Common Context provided it. Fix: script injects DEFAULT_TDD_COMMON_CONTEXT during phase file assembly
 - Principle: Follows "always script non-cognitive solutions" — deterministic metadata injection beats relying on agent compliance
+## Sub-agents cannot spawn sub-agents
+- Anti-pattern: Assuming delegated agents can use Task tool to spawn their own sub-agents
+- Correct pattern: Task tool is unavailable in sub-agents. All delegation must originate from main session.
+- Also unavailable: MCP tools (Context7), hooks
+- Available: Read, Grep, Glob, Bash, Write, Edit (direct tool use only)
+- Confirmed: claude-code-guide agent, GitHub issue #4182
+- Impact: Planning orchestration impractical — design generation needs exploration sub-agents + MCP
