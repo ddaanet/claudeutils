@@ -47,6 +47,7 @@ def ls() -> None:
     )
     lines = result.stdout.strip().split("\n") if result.stdout.strip() else []
 
+    entries = []
     i = 0
     while i < len(lines):
         if lines[i].startswith("worktree "):
@@ -61,12 +62,11 @@ def ls() -> None:
 
             i += 1
 
-            if path == main_path:
-                continue
-
-            # Extract slug from path (e.g., wt/task-a -> task-a)
-            path_parts = path.split("/")
-            slug = path_parts[-1]
-            click.echo(f"{slug}\t{branch}\t{path}")
+            if path != main_path:
+                slug = path.split("/")[-1]
+                entries.append((slug, branch, path))
         else:
             i += 1
+
+    for slug, branch, path in entries:
+        click.echo(f"{slug}\t{branch}\t{path}")
