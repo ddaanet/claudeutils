@@ -308,12 +308,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Handoff is NOT delegatable — it requires current agent's session context (what happened, what's pending, state transitions)
 - Handoff: do inline (structured update, not complex). Commit: mechanical, can delegate or invoke skill
 - Plan for restart boundary: planning → restart → execution (different sessions, different model tiers)
-## classifyHandoffIfNeeded crashes code-backgrounded agents too
-- Prior belief: Only user-backgrounded agents crash, code-backgrounded agents work fine
-- Evidence: Opus quiet-explore agent (code-launched via Task tool) crashed after 28 tools, 96K tokens
-- Agent wrote output file (18KB) before crashing — partial work recoverable
-- Implication: The bug is not user-vs-code backgrounding; it's a general background agent instability
-- Session RCAs for this issue may need scope expansion
+## classifyHandoffIfNeeded foreground-only bug
+- Bug: `ReferenceError: classifyHandoffIfNeeded is not defined` in Claude Code's SubagentStop processing
+- Affected: v2.1.27 through v2.1.38 (current), NOT fixed
+- Scope: Only `run_in_background=false` Task calls fail. `run_in_background=true` calls succeed (100% correlation across 26 sessions, 238 failures)
+- Severity: Low (cosmetic) — agents complete all work, only status reporting is wrong
+- Workaround: Use `run_in_background=true` for Task calls to avoid the broken code path
+- Prior learning was wrong: "crashes code-backgrounded agents too" — actually the opposite
+- GitHub issues: #22087, #22544 (open, multiple duplicates)
 ## No post-dispatch agent communication
 - Anti-pattern: Launch agent, then try to adjust scope mid-flight via resume
 - Correct pattern: Partition scope completely before launch — no mid-flight messaging available
@@ -356,10 +358,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: Cycle 0.6 vet flagged session filtering as UNFIXABLE despite "OUT: Session file filtering (next cycle)" in scope
 - Impact: Creates false positives in UNFIXABLE detection, requires manual judgment to continue
 ## Background agent crash recovery
-- Anti-pattern: Assume crashed agent work is lost
-- Correct pattern: Check for output files and uncommitted changes - agents write reports before crashing
-- Rationale: classifyHandoffIfNeeded crash occurs after main work completes, reports recoverable
+- Anti-pattern: Assume "failed" agent work is lost
+- Correct pattern: Check output files and git diff — agents complete work before classifyHandoffIfNeeded error fires
 - Recovery: Read report for UNFIXABLE, check git diff for changes, commit if work complete
+- Better fix: Use `run_in_background=true` to avoid the error entirely
 ## Refactor agent needs quality directives
 - Anti-pattern: Delegate refactoring without quality criteria (deslop, factorization)
 - Correct pattern: Include explicit directives in refactor prompt (deslop principles, factorization requirements)
