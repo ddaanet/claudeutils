@@ -228,3 +228,17 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: Trivial fixes are independent and safe for parallel execution; complex issues need judgment
 - Example: 5 background agents (formatting, logging, line length) + direct fixes (types, signatures, exceptions)
 - Result: Efficient use of parallelism, faster completion, maintains quality for complex changes
+## Repurpose agents as reviewers
+- Anti-pattern: Using only vet-fix-agent for all reviews, or creating new specialized review agents
+- Correct pattern: Prompt existing specialized agents (agent-creator, skill-reviewer) to review instead of create
+- Rationale: Agents carry domain expertise (structure validation, quality criteria) that transfers to review mode
+- Example: agent-creator prompted "review agent structure, not create" catches frontmatter, voice, triggering issues
+## Resume pattern for multi-review consolidation
+- Anti-pattern: Read all review reports into orchestrator context, then delegate fixes
+- Correct pattern: Launch review-only pass → resume same agent with additional report paths → agent reads and consolidates internally
+- Rationale: Zero orchestrator context pollution — orchestrator never reads reports, only passes filepaths
+- Key: vet-fix-agent first pass (review-only) builds context, resume adds report paths, agent consolidates
+## Opus for agent prose
+- Anti-pattern: Using sonnet for writing agent template directives (system prompts, constraints, protocols)
+- Correct pattern: Use opus when writing agent system prompt prose — instruction quality determines downstream agent behavior
+- Rationale: Agent templates are instructions for other agents; quality of instruction prose is a design concern, not execution
