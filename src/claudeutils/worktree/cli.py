@@ -154,6 +154,36 @@ def new(slug: str, base: str, session: str) -> None:
             check=True,
             capture_output=True,
         )
+
+        # Initialize submodules in the new worktree
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        project_root = result.stdout.strip()
+
+        # Get the agent-core path (if submodule exists in parent)
+        agent_core_local = Path(project_root) / "agent-core"
+        if agent_core_local.exists() and (agent_core_local / ".git").exists():
+            # Use git submodule update with --reference to use local objects
+            # This avoids fetching from remote
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(worktree_path),
+                    "submodule",
+                    "update",
+                    "--init",
+                    "--reference",
+                    str(agent_core_local),
+                ],
+                check=False,
+                capture_output=True,
+            )
+
         click.echo(str(worktree_path))
     except subprocess.CalledProcessError as e:
         click.echo(f"Error creating worktree: {e.stderr.decode()}", err=True)
