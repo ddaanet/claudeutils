@@ -1,85 +1,83 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Fixed account status keychain lookup, added `just setup` recipe for dev environment, updated `wt-new` to use it.
+**Status:** Orchestrate evolution outline completed (Phase A), ready for Phase B interactive discussion.
 
 ## Completed This Session
 
-**Account status keychain fix:**
-- `get_account_state()` queried wrong identifiers: `service="com.anthropic.claude"`, `account="claude"`
-- Actual Claude Code OAuth storage: `service="Claude Code-credentials"`, `account=<username>`
-- Fixed to use `getpass.getuser()` + correct service name
+**Orchestrate evolution design outline:**
+- Complexity triage: Complex → full design treatment
+- Read all workflow decision files, orchestrate skill (474 lines), requirements, prior analysis (7 gaps)
+- Delegated quiet-explore: infrastructure audit → `plans/orchestrate-evolution/reports/explore-orchestration-infra.md`
+- Wrote outline: 7 key decisions (D-1 through D-7), 4 open questions (Q-1 through Q-4)
+- Outline reviewed by outline-review-agent: 7 minor fixes applied, assessment Ready
+- Phase B started — open questions presented to user, deferred to next session
+
+**Account status keychain fix (prior session, preserved):**
+- `get_account_state()` fixed to use `getpass.getuser()` + correct service name
 - `claudeutils account status` now reports "No issues found"
 
-**Justfile setup recipe and wt-new update:**
-- Created `just setup` recipe: `uv sync`, `npm install`, `direnv allow`
-- Updated `wt-new` to call `just setup` instead of inline `uv sync` + `direnv allow`
-- Removed `2>/dev/null || true` error suppression from `direnv allow`
-
-**Test isolation xfail marker:**
-- Marked `test_ls_empty` as xfail due to active worktrees in repo
-- Fix already exists in orchestration worktree (commit 15d3fa3) but not merged to dev
-- Will be resolved when orchestration worktree merges back via `just wt-merge orchestration`
+**Justfile setup recipe and wt-new update (prior session, preserved):**
+- `just setup` recipe: `uv sync`, `npm install`, `direnv allow`
+- `wt-new` calls `just setup` instead of inline commands
 
 ## Pending Tasks
 
-- [ ] **Update worktree-skill for just setup integration** — `/plan-tdd`: integrate `just setup` in worktree creation script, remove hardcoded `uv sync` and `direnv allow` | sonnet
-- [ ] **Redesign markdown preprocessor** — Correctly parse multi-line inline markup (code sections) instead of line-by-line heuristics | sonnet
-- [ ] **Optimize task agents and commit skill** — Examine worktree-skill custom scripts for reuse opportunities, optimize for agent efficiency | sonnet
-- [ ] **Review codebase for factorization** — Identify duplication across entire codebase, extract helpers | sonnet
-- [ ] **Update refactor agent** — Add proactive duplication identification and factorization directive | sonnet
-- [ ] **Design review agent output optimization** — Remove summarize/report language from all agents to save output tokens | sonnet
-- [ ] **Session summary extraction prototype** — Design adhoc prototype to extract session summary from session log | sonnet
-- [ ] **Review all tests for vacuous tests** — Comprehensive test quality audit (subsumes "review recent") | sonnet
-- [ ] **Deslop entire codebase** — Apply deslop principles project-wide (subsumes "deslop recent") | sonnet
+- [ ] **Orchestrate evolution design** — Continue Phase B: answer Q-1 through Q-4 in outline, then Phase C: generate design.md | opus
+  - Plan: orchestrate-evolution | Status: requirements (outline ready) | Outline: `plans/orchestrate-evolution/outline.md`
+- [ ] **Update worktree-skill for just setup integration** — `/plan-tdd`: integrate `just setup` in worktree creation script | sonnet
+- [ ] **Redesign markdown preprocessor** — Multi-line inline markup parsing instead of line-by-line | sonnet
+- [ ] **Optimize task agents and commit skill** — Examine worktree-skill for reuse, agent efficiency | sonnet
+- [ ] **Review codebase for factorization** — Identify duplication, extract helpers | sonnet
+- [ ] **Update refactor agent** — Add duplication identification directive | sonnet
+- [ ] **Design review agent output optimization** — Remove summarize/report language from agents | sonnet
+- [ ] **Session summary extraction prototype** — Extract session summary from session log | sonnet
+- [ ] **Review all tests for vacuous tests** — Comprehensive test quality audit | sonnet
+- [ ] **Deslop entire codebase** — Apply deslop principles project-wide | sonnet
 - [ ] **Fragments cleanup after orchestration design** — Remove fragments duplicating skills/workflow | sonnet
-- [ ] **Interactive design session for orchestration principles** — Key architectural decisions | opus
 - [ ] **Execute plugin migration** — `/orchestrate plans/plugin-migration/orchestrator-plan.md` | sonnet
   - Plan: plugin-migration | Status: planned
-- [x] **Examine pending tasks for batching** — Identified 3 parallel groups (RCA, fragments, opus design), 2 subsumptions
-- [ ] **Update design skill** — Read design artifacts referenced in context, assess plan progress | sonnet
+- [ ] **Update design skill** — Read design artifacts, assess plan progress | sonnet
 - [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink | restart
-- [ ] **Handoff validation design** — Complete design (continuation-passing now merged) | opus
+- [ ] **Handoff validation design** — Complete design (continuation-passing merged) | opus
   - Plan: handoff-validation | Status: requirements
-- [ ] **Orchestrate evolution design** — Abandon weak orchestration, sonnet default, context-as-scope-boundary, two-tier context injection | opus
-  - Plan: orchestrate-evolution | Status: requirements | Research: `tmp/orchestrate-evolution-analysis.md` (7 gaps mapped, FR/NFR drafted)
 - [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation | opus
   - Plan: requirements-skill | Status: requirements
-- [ ] **Strengthen commit Gate B coverage check** — Gate B is boolean (any report?) not coverage ratio (artifacts:reports 1:1) | sonnet
-- [ ] **Review reflect skill: task output for skill/fragment fixes** — RCA should produce pending tasks for skill/fragment updates, not inline fixes | sonnet
-- [ ] **Update tool-batching.md for Task tool parallelization** — Add explicit Task tool guidance with examples | sonnet
-- [ ] **Rewrite last-output prototype with TDD as claudeutils subcommand** — Port agent-output-cmd prototype to proper TDD implementation
-- [ ] **Update commit and handoff to branch after precommit** — Move git branching point from beginning to after precommit passes
-- [ ] **History cleanup tooling** — Research git history rewriting, prototype reusable scripts
-- [ ] **Rewrite agent-core ad-hoc scripts via TDD** — Port all ad-hoc scripts to claudeutils package
+- [ ] **Strengthen commit Gate B coverage check** — Boolean to coverage ratio | sonnet
+- [ ] **Review reflect skill: task output for skill/fragment fixes** — RCA → pending tasks not inline fixes | sonnet
+- [ ] **Update tool-batching.md for Task tool parallelization** — Add Task tool guidance with examples | sonnet
+- [ ] **Rewrite last-output prototype with TDD** — Port agent-output-cmd to claudeutils subcommand
+- [ ] **Update commit and handoff to branch after precommit** — Move branching point after precommit
+- [ ] **History cleanup tooling** — Research git history rewriting, prototype scripts
+- [ ] **Rewrite agent-core ad-hoc scripts via TDD** — Port ad-hoc scripts to claudeutils package
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
-  - Plan: continuation-prepend | Status: requirements | Dependency on continuation-passing now resolved
-- [ ] **Fix worktree tests isolation** — Fix worktree tests to be properly isolated, not affected by current content of wt subdir | sonnet
-- [ ] **Update orchestrator workflow for delegate resume** — Enable resuming delegates with incomplete work to reuse context (test regressions, lint fixes, uncommitted changes) | sonnet
-- [ ] **Error handling framework design** — Design error handling for runbooks, task lists, and CPS skills | opus
-- [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on plan-orchestrate workflow review
+  - Plan: continuation-prepend | Status: requirements
+- [ ] **Fix worktree tests isolation** — Proper isolation from wt subdir content | sonnet
+- [ ] **Update orchestrator workflow for delegate resume** — Resume delegates with incomplete work | sonnet
+- [ ] **Error handling framework design** — Error handling for runbooks, task lists, CPS | opus
+- [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on orchestrate workflow review
   - Plan: when-recall | Status: designed | Load `plugin-dev:skill-development` before planning
 
 ## Worktree Tasks
 
-- [ ] **Orchestrate worktree-skill execution** → `wt/orchestration` — Continue from Phase 2 (cycles 2.1-2.4) | sonnet
+- [ ] **Orchestrate worktree-skill execution** → `wt/orchestration` — Phase 2 (cycles 2.1-2.4) | sonnet
   - Plan: worktree-skill | Status: in progress (16 of 42 steps complete, 38%)
-  - Next: Phase 2 Cycle 2.1 (merge subcommand structure)
 - [ ] **RCA: Planning agents leave dirty tree** → `wt/rca-dirty-tree` — Delegation prompts lack commit instruction | sonnet
 - [ ] **RCA: Planning agent delegation inefficiency** → `wt/rca-delegation-inefficiency` — Tier 1 misrouted to delegation | sonnet
 
 ## Blockers / Gotchas
 
-**Preprocessor idempotency test failure:** `test_preprocessor_idempotency[02-inline-backticks]` marked as xfail (8af5677). Line-by-line parsing cannot handle multi-line inline code spans. Redesign required.
+**Preprocessor idempotency test failure:** `test_preprocessor_idempotency[02-inline-backticks]` xfail (8af5677). Redesign required.
 
-**Vet-fix-agent scope understanding:** Vet flags explicitly out-of-scope items as UNFIXABLE instead of "deferred." Agent doesn't distinguish between out-of-scope (expected) and unfixable (blocking).
+**Vet-fix-agent scope understanding:** Flags out-of-scope items as UNFIXABLE instead of "deferred."
 
 ## Reference Files
 
-- **plans/worktree-skill/design.md** — Full design document (10 decisions, merge flow, conflict resolution, skill spec)
-- **plans/worktree-skill/runbook-outline.md** — Consolidated outline (6 phases, ~42 cycles)
-- **plans/worktree-skill/orchestrator-plan.md** — Generated orchestrator plan
-- **plans/orchestrate-evolution/orchestrate-evolution-analysis.md** — Opus gap analysis: 7 gaps, FR/NFR requirements
-- **plans/reports/agent-core-orphaned-revisions-report.md** — Submodule audit: 131 commits checked, 0 orphaned
+- **plans/orchestrate-evolution/outline.md** — Design outline (7 decisions, 4 open questions)
+- **plans/orchestrate-evolution/reports/outline-review.md** — Outline review (Ready, 7 minor fixes)
+- **plans/orchestrate-evolution/reports/explore-orchestration-infra.md** — Infrastructure exploration report
+- **plans/orchestrate-evolution/orchestrate-evolution-analysis.md** — Prior gap analysis (7 gaps, FR/NFR)
+- **plans/worktree-skill/design.md** — Worktree-skill design document
+- **plans/worktree-skill/orchestrator-plan.md** — Worktree-skill orchestrator plan
 
 ---
-*Handoff by Sonnet. Keychain fix + setup recipe. Worktree-skill Phase 2+ ready in wt/orchestration.*
+*Handoff by Opus. Orchestrate evolution outline ready for Phase B discussion.*
