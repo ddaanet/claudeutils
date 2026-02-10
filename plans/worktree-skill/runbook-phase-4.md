@@ -41,6 +41,14 @@ After frontmatter, add H2 section headers for the three modes: `## Mode A: Singl
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-4-1-notes.md
+
+---
+
 ## Cycle 4.2: Mode A implementation (single-task worktree)
 
 **RED:**
@@ -92,6 +100,14 @@ End with user output: `cd wt/<slug> && claude    # <task name>`
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-4-2-notes.md
+
+---
+
 ## Cycle 4.3: Mode B implementation (parallel group detection)
 
 **RED:**
@@ -137,6 +153,14 @@ Worktrees ready:
 After each completes: `hc` to handoff+commit, then return here.
 Merge back: `wt merge <slug>` (uses skill)
 ```
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-4-3-notes.md
 
 ---
 
@@ -191,6 +215,14 @@ Report stderr as-is. Generic error handling: "Merge command error. Review output
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-4-4-notes.md
+
+---
+
 ## Cycle 4.5: D+B hybrid tool anchors and error communication polish
 
 **RED:**
@@ -226,3 +258,11 @@ Include:
 - Parallel execution note: after `wt` creates multiple worktrees, each must be merged back individually
 
 Ensure prose uses imperative/infinitive style throughout (command the agent, not describe what might happen).
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-4-5-notes.md
