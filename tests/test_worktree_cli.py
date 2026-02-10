@@ -2,7 +2,7 @@
 
 from click.testing import CliRunner
 
-from claudeutils.worktree.cli import worktree
+from claudeutils.worktree.cli import derive_slug, worktree
 
 
 def test_package_import() -> None:
@@ -16,3 +16,12 @@ def test_worktree_command_group() -> None:
     result = runner.invoke(worktree, ["--help"])
     assert result.exit_code == 0
     assert "_worktree" in result.output
+
+
+def test_derive_slug() -> None:
+    """Verify derive_slug transforms task names to valid worktree slugs."""
+    assert derive_slug("Implement ambient awareness") == "implement-ambient-awareness"
+    assert derive_slug("Design runbook identifiers") == "design-runbook-identifiers"
+    assert derive_slug("Review agent-core orphaned revisions") == "review-agent-core-orphaned-r"
+    assert derive_slug("Multiple    spaces   here") == "multiple-spaces-here"
+    assert derive_slug("Special!@#$%chars") == "special-chars"
