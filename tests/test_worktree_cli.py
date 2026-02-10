@@ -273,3 +273,92 @@ def test_clean_tree_clean(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> No
 
     assert result.exit_code == 0
     assert result.output == ""
+
+
+def test_clean_tree_dirty_source(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Clean-tree exits 1 and prints dirty source files (not session files).
+
+    When source files are modified, clean-tree should print the dirty files in
+    porcelain format and exit 1. Session context files are exempt.
+    """
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    # Initialize main repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit with source and session files
+    src_dir = repo_path / "src" / "claudeutils"
+    src_dir.mkdir(parents=True)
+    (src_dir / "cli.py").write_text('"""Main CLI module."""\n')
+    agents_dir = repo_path / "agents"
+    agents_dir.mkdir()
+    (agents_dir / "session.md").write_text("# Session\n")
+    subprocess.run(["git", "add", "."], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    # Initialize submodule
+    submodule_path = repo_path / "agent-core"
+    submodule_path.mkdir()
+    subprocess.run(["git", "init"], cwd=submodule_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=submodule_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=submodule_path,
+        check=True,
+        capture_output=True,
+    )
+    (submodule_path / "README.md").write_text("submodule")
+    subprocess.run(
+        ["git", "add", "README.md"], cwd=submodule_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Submodule initial"],
+        cwd=submodule_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Add submodule
+    subprocess.run(
+        ["git", "submodule", "add", str(submodule_path), "agent-core"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add submodule"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Modify source file and session file
+    (src_dir / "cli.py").write_text('"""Main CLI module."""\nprint("hello")\n')
+    (agents_dir / "session.md").write_text("# Session\nModified\n")
+
+    # Run clean-tree command
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["clean-tree"])
+
+    # Should exit 1 with dirty file list
+    assert result.exit_code == 1
+    assert " M src/claudeutils/cli.py" in result.output
