@@ -153,11 +153,11 @@ Design decisions: D-8 (idempotent — cleanup enables safe retry). Approach: pre
 
 ## Cycle 3.11: Take-ours strategy
 
-**RED:**
+**RED — Behavioral Verification:**
 
 Create test fixture for source code merge conflict between main and worktree branches. Setup a diverged state where both branches modify same source file at same location. Test that `resolve_source_conflicts()` defaults to `--ours` version for all non-session conflict files.
 
-Expected behavior: Each conflicted source file resolved with `git checkout --ours <file>`, then staged with `git add <file>`. Function returns list of resolved files: `["src/claudeutils/worktree/cli.py", "tests/test_worktree_cli.py"]`.
+Expected behavior: Each conflicted source file resolved with `git checkout --ours <file>`, then staged with `git add <file>`. Function returns list of resolved files (exact file paths depend on test fixture — verify list contains all conflicted files excluding session context patterns).
 
 Test verifies:
 - Conflict markers present before resolution (`grep -q "^<<<<<<< HEAD" <file>`)
@@ -173,7 +173,7 @@ Setup requires real git repos with actual merge conflicts (not mocked):
 5. Extract conflict list via `git diff --name-only --diff-filter=U`
 6. Invoke `resolve_source_conflicts(conflict_list, exclude_patterns=["agents/session.md", "agents/jobs.md", "agents/learnings.md"])`
 
-**GREEN:**
+**GREEN — Behavioral Description:**
 
 Implement `resolve_source_conflicts()` in `conflicts.py`. Function takes conflict list and exclude patterns, filters to source files only (excluding session context files), then applies take-ours resolution.
 
@@ -190,7 +190,7 @@ Implementation approach: subprocess wrappers for git checkout and git add, error
 
 ## Cycle 3.12: Precommit gate validates ours
 
-**RED:**
+**RED — Behavioral Verification:**
 
 Test complete merge flow with source conflicts that pass precommit after take-ours resolution. Setup requires conflict scenario where ours version is correct (precommit passes).
 
@@ -207,7 +207,7 @@ Test verifies:
 
 Setup conflict scenario where ours version has correct formatting, imports, and logic (precommit will pass). Example: worktree added unused import (linter failure), main branch has clean import. Take-ours preserves main's clean state.
 
-**GREEN:**
+**GREEN — Behavioral Description:**
 
 Extend `merge.py` Phase 3 parent merge logic to invoke precommit gate after source conflict resolution. After all conflicts resolved and staged, commit merge, then immediately run precommit validation.
 
@@ -228,7 +228,7 @@ Implementation approach: subprocess for precommit with timeout (some checks may 
 
 ## Cycle 3.13: Precommit gate fallback to theirs
 
-**RED:**
+**RED — Behavioral Verification:**
 
 Test merge flow where take-ours fails precommit, triggering fallback to theirs. Setup requires conflict scenario where neither ours nor theirs alone satisfies precommit (requires manual resolution).
 
@@ -250,7 +250,7 @@ Test verifies fallback logic when ours fails:
 
 Setup conflict scenario: ours version has formatting issue (fails format check), theirs version has linting issue (fails linter). Neither passes precommit alone. Merge must exit with conflict list.
 
-**GREEN:**
+**GREEN — Behavioral Description:**
 
 Extend merge logic to implement precommit fallback strategy. After initial precommit failure, parse stderr to identify which files caused failure, apply theirs resolution for those files, retry precommit.
 

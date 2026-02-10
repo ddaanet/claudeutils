@@ -17,14 +17,16 @@
 ## Cycle 4.1: Frontmatter and file structure
 
 **RED:**
-Test YAML frontmatter validates. Create empty skill file `agent-core/skills/worktree/SKILL.md` with only frontmatter YAML. Run `python3 -c 'import yaml; yaml.safe_load(open("agent-core/skills/worktree/SKILL.md").read().split("---")[1])'` — should parse without errors.
+Test YAML frontmatter validates with required fields. Create empty skill file `agent-core/skills/worktree/SKILL.md` with only frontmatter YAML. Run `python3 -c 'import yaml; yaml.safe_load(open("agent-core/skills/worktree/SKILL.md").read().split("---")[1])'` — should parse without errors.
 
-Expected frontmatter fields:
-- `name: worktree` (skill identifier)
-- `description:` multi-line text mentioning invocation triggers: "create a worktree", "set up parallel work", "merge a worktree", "branch off a task", `wt` shortcut
-- `allowed-tools:` list including Read, Write, Edit, `Bash(claudeutils _worktree:*)`, `Bash(just precommit)`, `Bash(git status:*)`, `Bash(git worktree:*)`, Skill
-- `user-invocable: true`
-- `continuation:` block with `cooperative: true` and `default-exit: []` (empty array for no tail calls)
+Verify required fields exist and have correct structure:
+- `name: worktree` exists as string
+- `description:` exists as multi-line string mentioning invocation triggers: "create a worktree", "set up parallel work", "merge a worktree", "branch off a task", `wt` shortcut
+- `allowed-tools:` exists as list including Read, Write, Edit, `Bash(claudeutils _worktree:*)`, `Bash(just precommit)`, `Bash(git status:*)`, `Bash(git worktree:*)`, Skill
+- `user-invocable: true` exists as boolean
+- `continuation:` exists as dict with `cooperative: true` and `default-exit: []` (empty array)
+
+Read the file and assert each field's presence and type. The test should fail if any required field is missing or has wrong type.
 
 **GREEN:**
 Create `agent-core/skills/worktree/SKILL.md` with frontmatter block following YAML multi-line syntax for description. Use `>-` for folded scalar (preserves single newlines, folds long lines).
@@ -173,29 +175,16 @@ Parse exit code and handle three cases:
 **Exit 1 (conflicts or precommit failure):**
 Read stderr from merge command. Parse for conflict indicators or precommit failure messages.
 
-If conflicts: list conflicted files, provide resolution guidance:
-```
-Conflicts detected:
-  <file list from stderr>
+If conflicts: list conflicted files and provide resolution guidance:
+- Note session files should auto-resolve (report as bug if conflicted)
+- For source files: resolve manually, stage with `git add`, then re-run `wt merge <slug>` (idempotent)
 
-Resolution steps:
-1. For session files: conflicts should be auto-resolved (report as bug)
-2. For source files: manually resolve conflicts, then `git add <files>`
-3. Re-run: `wt merge <slug>` (idempotent, resumes from conflict state)
-```
-
-If precommit failure: show which checks failed, provide guidance:
-```
-Precommit failed after merge:
-  <check names from stderr>
-
-Resolution steps:
-1. Fix reported issues (merge commit is already created)
-2. Stage fixes: `git add <files>`
-3. Amend merge commit: `git commit --amend --no-edit`
-4. Re-run precommit: `just precommit`
-5. After passing: `wt merge <slug>` to continue cleanup
-```
+If precommit failure: show which checks failed and explain resolution:
+- Merge commit already exists (don't re-merge)
+- Fix reported issues, stage fixes
+- Amend merge commit: `git commit --amend --no-edit`
+- Verify with `just precommit`
+- After passing, re-run `wt merge <slug>` to continue cleanup
 
 **Exit 2 (error):**
 Report stderr as-is. Generic error handling: "Merge command error. Review output above and resolve before retrying."

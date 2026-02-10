@@ -28,15 +28,18 @@ Create test `test_worktree_cli.py::test_new_basic_flow`:
 
 **GREEN: Implement minimal behavior**
 
-Add `new` subcommand to `cli.py`:
-- Click command decorator with `@worktree.command()`
-- Parameter: `slug` (string, required)
-- Optional: `--base` (default `HEAD`), `--session` (path, optional)
-- Behavior: Run `git worktree add wt/{slug} -b {slug} {base}`
-- Output: Print `wt/{slug}` to stdout
-- Error handling: stderr + exit 1 on git failure
+Create `new` subcommand in `cli.py` that creates a worktree with branch.
 
-Skip submodule init and environment setup for this cycle (added in subsequent cycles).
+**Behavior:**
+- Accept slug as required argument, optional `--base` and `--session` flags
+- Create worktree at `wt/{slug}/` on new branch `{slug}` from base commit
+- Print worktree path to stdout on success
+- Report errors to stderr and exit 1 on failure
+
+**Hints:**
+- Use Click's `@worktree.command()` decorator pattern
+- Git command: `git worktree add wt/{slug} -b {slug} {base}`
+- Skip submodule init for this cycle (added in 1.3-1.4)
 
 ---
 
@@ -62,10 +65,17 @@ Create test `test_worktree_cli.py::test_new_directory_collision`:
 
 **GREEN: Implement minimal behavior**
 
-Add validation to `new` subcommand before `git worktree add`:
-- Check: `wt/{slug}/` directory does not exist (use `Path().exists()`)
-- Check: Branch `{slug}` does not exist (run `git rev-parse --verify {slug}`, expect exit code != 0)
-- On collision: Print descriptive error to stderr, exit 1 before attempting worktree creation
+Add collision detection to `new` subcommand before creating worktree.
+
+**Behavior:**
+- Validate no existing `wt/{slug}/` directory
+- Validate no existing `{slug}` branch
+- Report specific error (directory or branch collision) to stderr and exit 1 if collision found
+- Only proceed to worktree creation if both checks pass
+
+**Hints:**
+- Check directory: `Path('wt/{slug}').exists()`
+- Check branch: `git rev-parse --verify {slug}` (exit code != 0 means branch doesn't exist)
 
 ---
 
@@ -131,20 +141,25 @@ Create test `test_worktree_cli.py::test_new_session_precommit`:
 
 **GREEN: Implement minimal behavior**
 
-Add `--session` path handling with git plumbing sequence:
-- Create temp index file: `tempfile.NamedTemporaryFile(delete=False, suffix='.index')`
-- Hash session file: `git hash-object -w {session_path}` → blob SHA
-- Populate temp index from base: `GIT_INDEX_FILE={tmpfile} git read-tree {base}`
-- Update temp index: `GIT_INDEX_FILE={tmpfile} git update-index --cacheinfo 100644,{blob},agents/session.md`
-- Write tree from temp index: `GIT_INDEX_FILE={tmpfile} git write-tree` → tree SHA
-- Create commit: `git commit-tree {tree} -p {base} -m "Focused session for {slug}"` → commit SHA
-- Create branch: `git branch {slug} {commit}`
-- Create worktree: `git worktree add wt/{slug} {slug}`
-- Clean up: Remove temp index file
+Add `--session` optional parameter that pre-commits focused session.md to branch HEAD.
 
-Environment variable pattern: `subprocess.run(..., env={**os.environ, 'GIT_INDEX_FILE': tmpfile})`
+**Behavior:**
+- When `--session` provided: create commit with session.md, then create worktree from that commit
+- Session file content becomes `agents/session.md` in new worktree
+- Main worktree index must remain unmodified (critical requirement)
+- Commit message: "Focused session for {slug}"
+- When `--session` not provided: use existing flow from Cycle 1.1 (no pre-commit)
 
-If `--session` not provided, use existing `git worktree add -b` flow from Cycle 1.1.
+**Approach:**
+- Use git plumbing with temp index to avoid polluting main index
+- Sequence: hash-object (session) → read-tree (base) → update-index (session) → write-tree → commit-tree → branch → worktree add
+- All index operations use temp index via `GIT_INDEX_FILE` environment variable
+- Clean up temp index file after branch creation
+
+**Hints:**
+- Temp index: `tempfile.NamedTemporaryFile(delete=False, suffix='.index')`
+- Environment: `subprocess.run(..., env={**os.environ, 'GIT_INDEX_FILE': tmpfile})`
+- Design section "CLI Specification" lines 92-102 provides exact command sequence
 
 ---
 
@@ -171,18 +186,26 @@ Create test `test_worktree_cli.py::test_rm_dirty_warning`:
 
 **GREEN: Implement minimal behavior**
 
-Add `rm` subcommand to `cli.py`:
-- Click command decorator with `@worktree.command()`
-- Parameter: `slug` (string, required)
-- Check if worktree exists: `Path(f'wt/{slug}').exists()`
-- If exists:
-  - Check for dirty state: `git -C wt/{slug} diff --quiet HEAD` (exit code != 0 means dirty)
-  - If dirty: Print warning to stderr (`"Warning: wt/{slug} has uncommitted changes"`)
-  - Remove worktree: `git worktree remove --force wt/{slug}`
-- Remove branch: `git branch -d {slug}`
-  - If unmerged (exit code != 0): Print warning to stderr but don't fail (user choice)
-- Print success message to stderr
-- Exit 0
+Create `rm` subcommand that removes worktree and branch with safety warnings.
+
+**Behavior:**
+- Remove worktree directory (if exists) with force flag
+- Remove branch (always attempt, even if worktree already gone)
+- Warn to stderr if worktree has uncommitted changes (but proceed with removal)
+- Warn to stderr if branch is unmerged (but don't fail command)
+- Report success to stderr, exit 0
+
+**Approach:**
+- Check worktree existence before attempting removal
+- Use `--force` for worktree removal (handles submodule and uncommitted changes)
+- Use `-d` (not `-D`) for branch removal (preserves unmerged branch warning)
+- Detect dirty state before removal for warning message
+
+**Hints:**
+- Worktree check: `Path(f'wt/{slug}').exists()`
+- Dirty check: `git -C wt/{slug} diff --quiet HEAD` (exit code indicates state)
+- Worktree removal: `git worktree remove --force wt/{slug}`
+- Branch removal: `git branch -d {slug}` (warns but doesn't block on unmerged)
 
 ---
 
@@ -202,10 +225,17 @@ Create test `test_worktree_cli.py::test_rm_branch_only`:
 
 **GREEN: Implement minimal behavior**
 
-Update `rm` subcommand to handle missing worktree:
-- Check if `wt/{slug}/` exists before attempting worktree removal
-- If directory does not exist: Skip `git worktree remove` step (no error)
-- Always attempt `git branch -d {slug}` (branch cleanup works regardless of worktree state)
-- Success message reflects what was cleaned (e.g., "Branch {slug} removed" if worktree already gone)
+Make `rm` subcommand handle branch-only cleanup (worktree already removed externally).
 
-This makes `rm` idempotent and handles partial cleanup states.
+**Behavior:**
+- Skip worktree removal step if directory doesn't exist (no error)
+- Always attempt branch removal (works whether worktree exists or not)
+- Success message reflects actual cleanup performed
+- Exit 0 in all cases (idempotent)
+
+**Approach:**
+- Check directory existence before worktree removal
+- Branch removal is independent of worktree state
+- Adjust output message based on what was actually cleaned
+
+**Why:** Makes `rm` idempotent and resilient to partial cleanup states (e.g., user manually deleted worktree directory but branch remains).

@@ -114,172 +114,193 @@ This phase establishes the package structure, Click command group, slug derivati
 
 ## Cycle 0.4: ls subcommand structure
 
+**Objective:** Implement `ls` subcommand that lists worktrees with empty output for no worktrees.
+
 **RED Phase:**
+**Test:** `test_ls_empty`
+**Assertions:**
+- Running `claudeutils _worktree ls` in repo with no worktrees exits with code 0
+- Output is empty (no worktree lines printed)
+**Expected failure:** `AttributeError` or command not found error
+**Why it fails:** The `ls` subcommand doesn't exist in the Click group yet.
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_ls_empty -v`
 
-Create test `test_ls_empty` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with no worktrees (only main worktree)
-- Act: Run `claudeutils _worktree ls`
-- Assert:
-  - Exit code is 0
-  - Output is empty (no worktree lines printed)
-
-Expected failure: `_worktree ls` command doesn't exist yet.
+---
 
 **GREEN Phase:**
-
-Implement `ls` subcommand in `src/claudeutils/worktree/cli.py`:
-- Add `@worktree.command()` decorated function for `ls`
-- Execute `git worktree list --porcelain` via subprocess
-- Parse porcelain output: extract worktree path, branch name
-- For each non-main worktree: extract slug from path, emit `<slug>\t<branch>\t<path>` to stdout
-- Exit 0 unconditionally
-
-Behavior notes:
-- Porcelain format has `worktree <path>` and `branch refs/heads/<name>` lines
-- Main worktree (project root) is excluded from output
-- Tab-delimited format enables machine parsing by skill
+**Implementation:** Add `ls` subcommand with porcelain parsing.
+**Behavior:**
+- Executes `git worktree list --porcelain` to get structured output
+- Parses porcelain format to extract worktree path and branch name
+- For non-main worktrees: extracts slug from path, emits tab-delimited line
+- Exits 0 unconditionally (empty output for no worktrees is valid)
+**Approach:** Use `@worktree.command()` decorator. Parse porcelain format (worktree/branch line pairs). Main worktree (project root) excluded from output. Tab-delimited format enables machine parsing.
+**Changes:**
+- File: `src/claudeutils/worktree/cli.py`
+  Action: Add `ls()` function with `@worktree.command()` decorator
+  Location hint: After `derive_slug`, before end of file
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_ls_empty -v`
+**Verify no regression:** `just test`
 
 ---
 
 ## Cycle 0.5: ls with multiple worktrees
 
+**Objective:** Extend `ls` to parse and output multiple worktrees with slug extraction.
+
 **RED Phase:**
+**Test:** `test_ls_multiple_worktrees`
+**Assertions:**
+- With 2 worktrees (`wt/task-a/` on branch `task-a`, `wt/task-b/` on branch `task-b`), `_worktree ls` outputs exactly 2 lines
+- First line matches pattern: `task-a\ttask-a\t<absolute-path>/wt/task-a`
+- Second line matches pattern: `task-b\ttask-b\t<absolute-path>/wt/task-b`
+- Exit code is 0
+**Expected failure:** Current implementation doesn't loop over multiple worktrees or extract slugs correctly
+**Why it fails:** Cycle 0.4 implementation may handle empty case only, or slug extraction logic not implemented.
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_ls_multiple_worktrees -v`
 
-Create test `test_ls_multiple_worktrees` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with 2 worktrees created (e.g., `wt/task-a/` on branch `task-a`, `wt/task-b/` on branch `task-b`)
-- Act: Run `claudeutils _worktree ls`
-- Assert:
-  - Exit code is 0
-  - Output has exactly 2 lines
-  - First line: `task-a\ttask-a\t<absolute-path>/wt/task-a`
-  - Second line: `task-b\ttask-b\t<absolute-path>/wt/task-b`
-
-Expected failure: current implementation doesn't correctly parse multiple worktrees or extract slugs from paths.
+---
 
 **GREEN Phase:**
-
-Extend `ls` implementation:
-- Parse all worktree entries from porcelain output (loop over `worktree` lines)
-- For each worktree path: check if it matches pattern `wt/<slug>/`, extract slug
-- Pair slug with branch name extracted from corresponding `branch` line
-- Emit one line per worktree (main worktree still excluded)
-
-Behavior notes:
-- Porcelain format groups: `worktree`, `HEAD`, `branch`, blank line separator
-- Slug extraction: split path on `/`, find `wt` component, take next component
-- Absolute paths in output enable direct navigation
+**Implementation:** Extend parsing to handle multiple worktrees and extract slugs from paths.
+**Behavior:**
+- Loops over all `worktree` lines in porcelain output
+- For each worktree path matching `wt/<slug>/`, extracts the slug component
+- Pairs slug with corresponding branch name from `branch` line
+- Emits one tab-delimited line per worktree (format: `<slug>\t<branch>\t<path>`)
+**Approach:** Porcelain format groups entries as `worktree`, `HEAD`, `branch`, blank line. Split path on `/`, find `wt` component, take next component as slug. Absolute paths in output enable direct navigation.
+**Changes:**
+- File: `src/claudeutils/worktree/cli.py`
+  Action: Extend `ls()` to loop over worktree entries, extract slugs
+  Location hint: Inside `ls()` function body
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_ls_multiple_worktrees -v`
+**Verify no regression:** `just test`
 
 ---
 
 ## Cycle 0.6: clean-tree with clean repo
 
+**Objective:** Implement `clean-tree` subcommand that validates clean state silently.
+
 **RED Phase:**
+**Test:** `test_clean_tree_clean`
+**Assertions:**
+- Running `claudeutils _worktree clean-tree` in clean repo with submodule exits 0
+- No output to stdout or stderr (silent success)
+**Expected failure:** `AttributeError` or command not found error
+**Why it fails:** The `clean-tree` subcommand doesn't exist in the Click group yet.
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_clean_tree_clean -v`
 
-Create test `test_clean_tree_clean` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with submodule, no uncommitted changes, no untracked files
-- Act: Run `claudeutils _worktree clean-tree`
-- Assert:
-  - Exit code is 0
-  - No output to stdout or stderr (silent success)
-
-Expected failure: `_worktree clean-tree` command doesn't exist yet.
+---
 
 **GREEN Phase:**
-
-Implement `clean-tree` subcommand in `src/claudeutils/worktree/cli.py`:
-- Add `@worktree.command(name="clean-tree")` decorated function
-- Execute `git status --porcelain` for parent repo
-- Execute `git -C agent-core status --porcelain` for submodule
-- If both outputs are empty: exit 0 silently
-- If either has content: print dirty files to stdout, exit 1
-
-Behavior notes:
-- Porcelain format: `XY filename` where X=index status, Y=worktree status
-- Empty output means clean state (no staged, unstaged, or untracked changes)
-- Session file filtering added in next cycle
+**Implementation:** Add `clean-tree` subcommand checking parent and submodule status.
+**Behavior:**
+- Executes `git status --porcelain` for parent repo
+- Executes `git -C agent-core status --porcelain` for submodule
+- If both outputs are empty: exits 0 silently (clean state)
+- If either has content: prints dirty files to stdout, exits 1
+**Approach:** Use `@worktree.command(name="clean-tree")` decorator. Porcelain format: `XY filename` where X=index status, Y=worktree status. Empty output = clean state. Session file filtering added in next cycle.
+**Changes:**
+- File: `src/claudeutils/worktree/cli.py`
+  Action: Add `clean_tree()` function with `@worktree.command(name="clean-tree")` decorator
+  Location hint: After `ls`, before end of file
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_clean_tree_clean -v`
+**Verify no regression:** `just test`
 
 ---
 
 ## Cycle 0.7: clean-tree with session files
 
+**Objective:** Extend `clean-tree` to exempt session context files from dirty check.
+
 **RED Phase:**
+**Test:** `test_clean_tree_session_files_exempt`
+**Assertions:**
+- With modified `agents/session.md`, `agents/jobs.md`, `agents/learnings.md`, `_worktree clean-tree` exits 0
+- No output to stdout (silent success, session files are exempt)
+**Expected failure:** Current implementation treats session files as dirty, exits 1
+**Why it fails:** Cycle 0.6 implementation doesn't filter session files, reports any modified file.
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_clean_tree_session_files_exempt -v`
 
-Create test `test_clean_tree_session_files_exempt` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with modified `agents/session.md`, `agents/jobs.md`, `agents/learnings.md` (all dirty)
-- Act: Run `claudeutils _worktree clean-tree`
-- Assert:
-  - Exit code is 0 (session files are exempt from dirty check)
-  - No output (silent success)
-
-Expected failure: current implementation treats session files as dirty, exits 1.
+---
 
 **GREEN Phase:**
-
-Extend `clean-tree` implementation:
-- After running `git status --porcelain` for parent and submodule, filter output lines
-- Filtering logic: remove lines where filename is `agents/session.md`, `agents/jobs.md`, or `agents/learnings.md`
-- Apply same filter to both parent and submodule status outputs
-- Exit 0 if filtered output is empty, exit 1 with remaining files otherwise
-
-Behavior notes:
-- Porcelain line format: status codes followed by space, then filename
-- Exact match on filenames (no partial matches or wildcards)
-- Session files are auto-committed during merge ceremony, exempting them here
+**Implementation:** Add filtering to exclude session context files from status output.
+**Behavior:**
+- After getting porcelain status for parent and submodule, filters output lines
+- Removes lines where filename is `agents/session.md`, `agents/jobs.md`, or `agents/learnings.md`
+- Applies same filter to both parent and submodule status
+- Exits 0 if filtered output empty, exits 1 with remaining files otherwise
+**Approach:** Use exact filename match (no wildcards). Porcelain format: `XY filename` where filename follows space. Session files exempt because they're auto-committed during merge ceremony.
+**Changes:**
+- File: `src/claudeutils/worktree/cli.py`
+  Action: Add filtering logic inside `clean_tree()` function
+  Location hint: After status command execution, before exit decision
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_clean_tree_session_files_exempt -v`
+**Verify no regression:** `just test`
 
 ---
 
 ## Cycle 0.8: clean-tree with non-session dirt
 
+**Objective:** Verify `clean-tree` detects and reports non-session dirty files.
+
 **RED Phase:**
+**Test:** `test_clean_tree_dirty_source`
+**Assertions:**
+- With modified `src/claudeutils/cli.py`, `_worktree clean-tree` exits 1
+- Stdout contains porcelain format line: ` M src/claudeutils/cli.py`
+**Expected failure:** Current implementation may not print remaining files after filtering
+**Why it fails:** Cycle 0.7 may filter and exit, but not print remaining dirty files to stdout before exit 1.
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_clean_tree_dirty_source -v`
 
-Create test `test_clean_tree_dirty_source` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with modified `src/claudeutils/cli.py` (dirty source file)
-- Act: Run `claudeutils _worktree clean-tree`
-- Assert:
-  - Exit code is 1 (dirty tree detected)
-  - Stdout contains ` M src/claudeutils/cli.py` (porcelain format line)
-
-Expected failure: current implementation may exit 0 if session files dominate test setup, or may not print remaining files.
+---
 
 **GREEN Phase:**
-
-Verify `clean-tree` behavior:
-- After filtering session files, check if remaining porcelain lines exist
-- If yes: print all remaining lines to stdout (one line per dirty file, porcelain format preserved)
-- Exit 1 with dirty file list
-- If no remaining lines: exit 0 silently (already implemented in cycle 0.7)
-
-Behavior notes:
-- Output format matches `git status --porcelain` (enables script parsing)
-- User sees exactly which files block merge ceremony
-- Submodule dirty files also printed with `agent-core/` prefix
+**Implementation:** Add output of remaining dirty files after session file filtering.
+**Behavior:**
+- After filtering session files, checks if remaining porcelain lines exist
+- If remaining lines exist: prints all to stdout (one line per file, porcelain format preserved)
+- Exits 1 with dirty file list printed
+- If no remaining lines: exits 0 silently (already implemented in 0.7)
+**Approach:** Output format matches `git status --porcelain` for script parsing. User sees exactly which files block merge ceremony. Submodule files printed with `agent-core/` prefix.
+**Changes:**
+- File: `src/claudeutils/worktree/cli.py`
+  Action: Add print statement before exit 1 in `clean_tree()`
+  Location hint: After filtering, before exit decision
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_clean_tree_dirty_source -v`
+**Verify no regression:** `just test`
 
 ---
 
 ## Cycle 0.9: add-commit idempotent behavior
 
+**Objective:** Implement `add-commit` subcommand with idempotent no-op when nothing staged.
+
 **RED Phase:**
+**Test:** `test_add_commit_nothing_staged`
+**Assertions:**
+- In clean repo, `claudeutils _worktree add-commit agents/session.md` with message from stdin exits 0
+- Stdout is empty (no commit hash output because nothing was staged/committed)
+**Expected failure:** `AttributeError` or command not found, or implementation fails with "nothing to commit" error
+**Why it fails:** The `add-commit` subcommand doesn't exist yet, or no idempotent check.
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_add_commit_nothing_staged -v`
 
-Create test `test_add_commit_nothing_staged` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with all changes already committed (clean state)
-- Act: Run `claudeutils _worktree add-commit agents/session.md` with message "Update session" piped to stdin
-- Assert:
-  - Exit code is 0 (idempotent, no error)
-  - Stdout is empty (no commit hash, because nothing was committed)
-
-Expected failure: `_worktree add-commit` command doesn't exist yet, or implementation fails when nothing is staged.
+---
 
 **GREEN Phase:**
-
-Implement `add-commit` subcommand in `src/claudeutils/worktree/cli.py`:
-- Add `@worktree.command(name="add-commit")` with variadic file arguments
-- Execute `git add <files>` for all provided file paths
-- Check if anything was staged: `git diff --quiet --cached`
-- If nothing staged (exit 0 from diff): exit 0 immediately with no output (idempotent no-op)
-- If staged changes exist: read commit message from stdin, execute `git commit -m <message>`, output commit hash to stdout
-- Exit 0 on success, exit 1 on error
-
-Behavior notes:
-- Message from stdin enables multi-line messages (ceremony uses heredocs)
-- Idempotent behavior critical for merge flow (submodule may already be committed)
-- Commit hash output enables verification in orchestration
+**Implementation:** Add `add-commit` subcommand with idempotent staging check.
+**Behavior:**
+- Executes `git add <files>` for all provided file paths
+- Checks if anything was staged using `git diff --quiet --cached`
+- If nothing staged: exits 0 immediately with no output (idempotent no-op)
+- If staged changes exist: reads commit message from stdin, commits, outputs commit hash to stdout
+- Exits 0 on success, exits 1 on error
+**Approach:** Use `@worktree.command(name="add-commit")` with variadic file arguments. Message from stdin enables multi-line messages (ceremony uses heredocs). Idempotent behavior critical for merge flow.
+**Changes:**
+- File: `src/claudeutils/worktree/cli.py`
+  Action: Add `add_commit()` function with `@worktree.command(name="add-commit")` decorator
+  Location hint: After `clean_tree`, before end of file
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_add_commit_nothing_staged -v`
+**Verify no regression:** `just test`
