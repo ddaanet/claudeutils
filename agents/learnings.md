@@ -343,9 +343,21 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: "code-backgrounded agents work fine" was a learning that this session disproved
 - Rationale: Learnings are session-scoped observations, not verified invariants — they can be stale or wrong
 - Scope: Especially important for orchestrate-evolution (learnings ARE the primary input)
-## Precommit fails on skipped tests
-- Anti-pattern: Precommit passes with "16 skipped" status — soft warning instead of hard error
-- Correct pattern: Skipped tests must fail precommit validation
-- Rationale: Skipped tests indicate incomplete validation, not successful validation
-- Related: "Hard limits vs soft limits" learning — warnings create false sense of compliance
 - Implementation: Precommit validator should check test summary and fail if any tests skipped
+## Orchestration post-step protocol
+- Anti-pattern: Trust agent completion report without verification
+- Correct pattern: After each step: git status check → if dirty, resume agent or vet-fix to commit → grep UNFIXABLE in vet reports
+- Rationale: Agents may complete work but leave uncommitted changes (especially after crashes)
+- Protocol: Step 3.3 in orchestrate skill - clean tree is hard requirement, no exceptions
+## Vet-fix-agent out-of-scope flagging
+- Anti-pattern: Vet-fix-agent flags explicitly out-of-scope items as UNFIXABLE
+- Correct pattern: Distinguish "deferred to next cycle" (expected, in scope statement) from "unfixable" (blocking issue)
+- Rationale: UNFIXABLE triggers escalation to user; out-of-scope items are expected and shouldn't block
+- Example: Cycle 0.6 vet flagged session filtering as UNFIXABLE despite "OUT: Session file filtering (next cycle)" in scope
+- Impact: Creates false positives in UNFIXABLE detection, requires manual judgment to continue
+## Background agent crash recovery
+- Anti-pattern: Assume crashed agent work is lost
+- Correct pattern: Check for output files and uncommitted changes - agents write reports before crashing
+- Rationale: classifyHandoffIfNeeded crash occurs after main work completes, reports recoverable
+- Recovery: Read report for UNFIXABLE, check git diff for changes, commit if work complete
+- Evidence: Two agents (adf9068, ae87151) crashed this session after completing work successfully
