@@ -512,6 +512,75 @@ def cmd_merge(slug: str) -> None:
                                     f"({wt_short} + {local_short})"
                                 )
                                 click.echo(msg, err=True)
+
+                                # Verify both original commits are ancestors
+                                final_head_result = subprocess.run(
+                                    [
+                                        "git",
+                                        "-C",
+                                        "agent-core",
+                                        "rev-parse",
+                                        "HEAD",
+                                    ],
+                                    capture_output=True,
+                                    text=True,
+                                    check=False,
+                                )
+                                if final_head_result.returncode == 0:
+                                    final_head = final_head_result.stdout.strip()
+
+                                    # Verify worktree commit is ancestor
+                                    wt_ancestor_result = subprocess.run(
+                                        [
+                                            "git",
+                                            "-C",
+                                            "agent-core",
+                                            "merge-base",
+                                            "--is-ancestor",
+                                            wt_submodule_commit,
+                                            final_head,
+                                        ],
+                                        check=False,
+                                        capture_output=True,
+                                    )
+
+                                    # Verify local commit is ancestor
+                                    local_ancestor_result = subprocess.run(
+                                        [
+                                            "git",
+                                            "-C",
+                                            "agent-core",
+                                            "merge-base",
+                                            "--is-ancestor",
+                                            local_submodule_commit,
+                                            final_head,
+                                        ],
+                                        check=False,
+                                        capture_output=True,
+                                    )
+
+                                    if (
+                                        wt_ancestor_result.returncode != 0
+                                        or local_ancestor_result.returncode != 0
+                                    ):
+                                        click.echo(
+                                            "Error: merge verification failed",
+                                            err=True,
+                                        )
+                                        if wt_ancestor_result.returncode != 0:
+                                            msg = (
+                                                f"  Worktree commit {wt_short} is "
+                                                f"not ancestor of {final_head[:7]}"
+                                            )
+                                            click.echo(msg, err=True)
+                                        if local_ancestor_result.returncode != 0:
+                                            msg = (
+                                                f"  Local commit {local_short} is "
+                                                f"not ancestor of {final_head[:7]}"
+                                            )
+                                            click.echo(msg, err=True)
+                                        raise SystemExit(2)
+
                             # Phase 3 would be implemented in next cycle
                             return
                         click.echo(
