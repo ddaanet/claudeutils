@@ -58,7 +58,7 @@
 
 ## Worktree Tasks
 
-(none)
+- [ ] **Fix preprocessor idempotency** → `wt/fix-precommit` — Route through /design or /plan-adhoc | sonnet
 
 ## Blockers / Gotchas
 
