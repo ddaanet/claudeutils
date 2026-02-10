@@ -308,3 +308,38 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Handoff is NOT delegatable — it requires current agent's session context (what happened, what's pending, state transitions)
 - Handoff: do inline (structured update, not complex). Commit: mechanical, can delegate or invoke skill
 - Plan for restart boundary: planning → restart → execution (different sessions, different model tiers)
+## classifyHandoffIfNeeded crashes code-backgrounded agents too
+- Prior belief: Only user-backgrounded agents crash, code-backgrounded agents work fine
+- Evidence: Opus quiet-explore agent (code-launched via Task tool) crashed after 28 tools, 96K tokens
+- Agent wrote output file (18KB) before crashing — partial work recoverable
+- Implication: The bug is not user-vs-code backgrounding; it's a general background agent instability
+- Session RCAs for this issue may need scope expansion
+## No post-dispatch agent communication
+- Anti-pattern: Launch agent, then try to adjust scope mid-flight via resume
+- Correct pattern: Partition scope completely before launch — no mid-flight messaging available
+- Limitation: Task tool resume requires agent completion; no channel for scope adjustments to running agents
+- Consequence: Over-scoped agents waste work, under-scoped agents miss context — partitioning is one-shot
+- Design input for orchestrate-evolution: agent communication model is fire-and-forget
+## Weak orchestration is premature optimization
+- Anti-pattern: Default to haiku orchestrator for cost savings before workflow patterns are validated
+- Correct pattern: Stabilize with sonnet orchestrator, optimize to haiku once patterns are proven and failure modes understood
+- Rationale: Weak agents fail at recovery — dirty tree, failed steps, unexpected state all require reasoning
+- Many orchestration learnings are band-aids compensating for haiku limitations, not workflow fixes
+- Model tier is a configurable knob, not an architectural constraint
+## Context-as-scope-boundary replaces prose constraints
+- Anti-pattern: Give agent full context + "Execute ONLY this step" prose instruction → agents violate
+- Correct pattern: Give executing agent step + design + outline only → scope enforced structurally by context absence
+- Executing agents don't get other step files → can't scope-creep to step N+1
+- Phase context injected only at feedback points (vet-fix-agent) for alignment checking
+- Eliminates need for: scope creep instructions, return verification, execute-only constraints
+## UNFIXABLE detection stays mechanical
+- Anti-pattern: Because orchestrator is now sonnet, have it read and reason about vet reports
+- Correct pattern: Script the UNFIXABLE grep, orchestrator passes reports to recovery agents without reading content
+- Rationale: Sonnet CAN reason doesn't mean it SHOULD — keep mechanical checks mechanical
+- Orchestrator manages state and dispatch; content interpretation belongs to specialized agents
+## Scrub learnings before design input
+- Anti-pattern: Using learnings.md entries as-is when designing orchestration or other systems
+- Correct pattern: Validate learnings against current evidence before using as design constraints
+- Example: "code-backgrounded agents work fine" was a learning that this session disproved
+- Rationale: Learnings are session-scoped observations, not verified invariants — they can be stale or wrong
+- Scope: Especially important for orchestrate-evolution (learnings ARE the primary input)
