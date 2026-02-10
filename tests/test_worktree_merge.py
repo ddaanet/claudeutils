@@ -219,5 +219,152 @@ def test_merge_phase_2_no_divergence(
     # For this cycle, we verify Phase 2 skipped (output message is proof)
 
 
+def test_merge_phase_2_fast_forward(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify merge optimizes when local submodule includes worktree changes.
+
+    When the parent submodule is ahead of the worktree submodule via fast-
+    forward (all worktree commits are ancestors of parent), Phase 2 should
+    detect this and skip all submodule operations.
+    """
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _setup_repo_with_submodule(repo_path)
+
+    # Create worktree with submodule initialized at parent's submodule commit
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert worktree_path.exists()
+
+    # Make a commit in parent's submodule (before merge)
+    agent_core_path = repo_path / "agent-core"
+    (agent_core_path / "parent_addition.txt").write_text("parent submodule change")
+    subprocess.run(
+        ["git", "add", "parent_addition.txt"],
+        cwd=agent_core_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Parent submodule commit"],
+        cwd=agent_core_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Stage parent's new submodule pointer
+    subprocess.run(
+        ["git", "add", "agent-core"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Update parent submodule pointer"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Make a worktree change (non-overlapping)
+    (worktree_path / "worktree_file.txt").write_text("worktree change")
+    subprocess.run(
+        ["git", "add", "worktree_file.txt"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Worktree change"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # At this point:
+    # - Parent submodule HEAD: includes parent_addition.txt commit
+    # - Worktree submodule HEAD: at original (before parent_addition.txt)
+    # - Parent main branch: ahead of worktree main branch
+    # - Ancestry check: is worktree submodule commit ancestor of parent's?
+    #   YES - parent advanced ahead, worktree's original commit is ancestor
+    #   of parent's new commit (fast-forward scenario).
+
+    # Get the submodule commits
+    git_result = subprocess.run(
+        ["git", "rev-parse", "HEAD:agent-core"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    parent_submodule_pointer = git_result.stdout.strip()
+
+    git_result = subprocess.run(
+        ["git", "rev-parse", "HEAD:agent-core"],
+        cwd=worktree_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    worktree_submodule_pointer = git_result.stdout.strip()
+
+    # Verify ancestry: worktree commit is ancestor of parent commit
+    ancestry_result = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(agent_core_path),
+            "merge-base",
+            "--is-ancestor",
+            worktree_submodule_pointer,
+            parent_submodule_pointer,
+        ],
+        check=False,
+    )
+    assert ancestry_result.returncode == 0, (
+        "Worktree submodule commit should be ancestor of parent"
+    )
+
+    # Now invoke merge
+    # This should detect that worktree's commit is ancestor of parent's (fast-forward)
+    # and skip Phase 2 submodule operations
+    merge_result = runner.invoke(worktree, ["merge", "test-feature"])
+
+    # Merge should exit 0 and indicate ancestry check passed (skip)
+    assert merge_result.exit_code == 0, f"Merge failed: {merge_result.output}"
+
+    # Verify Phase 2 skip was detected and logged with ancestry check info
+    assert "skipped" in merge_result.output.lower(), (
+        f"Expected skip in output, got: {merge_result.output}"
+    )
+    # Should mention ancestor check or indicate the optimization reason
+    output_lower = merge_result.output.lower()
+    assert (
+        "ancestor" in output_lower
+        or "fast-forward" in output_lower
+        or "included" in output_lower
+    ), f"Expected ancestor/fast-forward/included in output, got: {merge_result.output}"
+
+    # Verify submodule pointer unchanged (Phase 2 was skipped, no submodule merge)
+    git_result = subprocess.run(
+        ["git", "rev-parse", "HEAD:agent-core"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    final_submodule_pointer = git_result.stdout.strip()
+
+    assert final_submodule_pointer == parent_submodule_pointer, (
+        "Submodule pointer should remain unchanged (Phase 2 skipped)"
+    )
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

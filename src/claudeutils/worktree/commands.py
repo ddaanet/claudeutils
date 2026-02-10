@@ -409,3 +409,30 @@ def cmd_merge(slug: str) -> None:
                     click.echo(msg, err=True)
                     # Phase 3 would be implemented in next cycle
                     return
+
+                # Ancestry check: if worktree commit is ancestor of local, skip merge
+                ancestry_result = subprocess.run(
+                    [
+                        "git",
+                        "-C",
+                        "agent-core",
+                        "merge-base",
+                        "--is-ancestor",
+                        wt_submodule_commit,
+                        local_submodule_commit,
+                    ],
+                    check=False,
+                    capture_output=True,
+                )
+
+                if ancestry_result.returncode == 0:
+                    # Worktree commit is ancestor - local already includes changes
+                    wt_short = wt_submodule_commit[:7]
+                    local_short = local_submodule_commit[:7]
+                    msg = (
+                        f"Submodule agent-core: skipped (fast-forward, "
+                        f"{wt_short} is ancestor of {local_short})"
+                    )
+                    click.echo(msg, err=True)
+                    # Phase 3 would be implemented in next cycle
+                    return
