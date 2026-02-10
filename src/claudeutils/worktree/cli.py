@@ -130,14 +130,31 @@ def new(slug: str, base: str, session: str) -> None:
     the specified base commit (default HEAD).
     """
     del session
+    worktree_path = Path(f"wt/{slug}")
+
+    # Check for directory collision
+    if worktree_path.exists():
+        click.echo(f"Error: existing directory {worktree_path}", err=True)
+        raise SystemExit(1)
+
+    # Check for branch collision
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", slug],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode == 0:
+        click.echo(f"Error: existing branch {slug}", err=True)
+        raise SystemExit(1)
+
     try:
-        worktree_path = f"wt/{slug}"
         subprocess.run(
-            ["git", "worktree", "add", worktree_path, "-b", slug, base],
+            ["git", "worktree", "add", str(worktree_path), "-b", slug, base],
             check=True,
             capture_output=True,
         )
-        click.echo(worktree_path)
+        click.echo(str(worktree_path))
     except subprocess.CalledProcessError as e:
         click.echo(f"Error creating worktree: {e.stderr.decode()}", err=True)
         raise SystemExit(1) from e

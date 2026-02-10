@@ -110,6 +110,102 @@ def test_ls_multiple_worktrees(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     assert str(worktree_b) in line_b[2]
 
 
+def test_new_collision_detection(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify new subcommand detects existing branch collision."""
+    # Create a temporary git repo
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    # Initialize git repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    # Create an existing branch
+    subprocess.run(["git", "branch", "test-feature"], check=True, capture_output=True)
+
+    # Run new command with existing branch name
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+
+    # Verify exit code is 1 (error)
+    assert result.exit_code == 1
+
+    # Verify error message in stderr
+    assert "existing" in result.output.lower() or "collision" in result.output.lower()
+
+    # Verify worktree directory was NOT created
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert not worktree_path.exists()
+
+
+def test_new_directory_collision(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify new subcommand detects existing directory collision."""
+    # Create a temporary git repo
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    # Initialize git repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    # Create an existing directory at wt/test-feature
+    (repo_path / "wt").mkdir()
+    (repo_path / "wt" / "test-feature").mkdir()
+
+    # Run new command
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+
+    # Verify exit code is 1 (error)
+    assert result.exit_code == 1
+
+    # Verify error message in stderr
+    assert "existing" in result.output.lower() or "directory" in result.output.lower()
+
+    # Verify no branch was created
+    result = subprocess.run(
+        ["git", "branch", "--list", "test-feature"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "test-feature" not in result.stdout
+
+
 def test_new_basic_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Verify new subcommand creates worktree with branch."""
     # Create a temporary git repo
