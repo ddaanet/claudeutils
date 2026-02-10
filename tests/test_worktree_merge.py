@@ -369,10 +369,10 @@ def test_merge_phase_2_fast_forward(
 def test_merge_phase_2_diverged_commits(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Verify merge with diverged submodule commits (Phase 2 divergence handling).
+    """Verify merge with diverged submodule commits.
 
     When parent and worktree submodules have diverged commits (neither is
-    ancestor of the other), Phase 2 should:
+    ancestor of the other), Phase 2 should handle divergence:
     1. Fetch worktree submodule commits from worktree agent-core directory
        Command: `git -C agent-core fetch <project-root>/wt/<slug>/agent-core HEAD`
     2. Merge via `git merge --no-edit` (no editor prompt)
