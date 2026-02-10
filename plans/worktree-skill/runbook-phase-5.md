@@ -34,6 +34,14 @@ Add `wt/` entry to `.gitignore` to exclude worktree directories from version con
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-5-1-notes.md
+
+---
+
 ## Cycle 5.2: execute-rule.md Mode 5 Update
 
 **RED — Specify the behavior to verify:**
@@ -58,6 +66,14 @@ Replace the inline worktree implementation prose with a reference to the `/workt
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-5-2-notes.md
+
+---
+
 ## Cycle 5.3: sandbox-exemptions.md Worktree Patterns
 
 **RED — Specify the behavior to verify:**
@@ -79,6 +95,14 @@ Add a worktree-specific section to `sandbox-exemptions.md` documenting the direc
 - Explain directory location eliminates most bypass needs
 - List exceptions: environment initialization steps in new worktrees
 - Clarify that skill handles sandbox bypass, CLI itself is agnostic
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-5-3-notes.md
 
 ---
 
@@ -107,3 +131,11 @@ Delete the five worktree recipe definitions from the justfile. Run `just cache` 
 - Verify `.cache/just-help.txt`: no references to `wt-new`, `wt-task`, etc.
 
 **Note:** Recipe deletion may affect line count significantly. The justfile is tracked in version control, so git diff will show exact removals.
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-5-4-notes.md
