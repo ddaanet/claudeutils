@@ -67,7 +67,10 @@ def parse_precommit_failures(stderr_output: str) -> list[str]:
 
 
 def apply_theirs_resolution(failed_files: list[str]) -> bool:
-    """Apply theirs resolution to failed files. Returns True if all resolved."""
+    """Apply theirs resolution to failed files.
+
+    Returns True if all resolved.
+    """
     for filepath in failed_files:
         if run_git(["checkout", "--theirs", filepath], check=False).returncode != 0:
             return False
@@ -99,7 +102,10 @@ def get_dirty_files_helper() -> str:
 
 
 def check_clean_tree() -> None:
-    """Validate clean tree, exempting session context files. Exits 1 if dirty."""
+    """Validate clean tree, exempting session context files.
+
+    Exits 1 if dirty.
+    """
     dirty_files = get_dirty_files_helper()
     if dirty_files:
         click.echo(
@@ -111,7 +117,10 @@ def check_clean_tree() -> None:
 
 
 def resolve_conflicts(conflict_files: list[str], slug: str) -> bool:
-    """Resolve conflicts in session context files. Returns True if all resolved."""
+    """Resolve conflicts in session context files.
+
+    Returns True if all resolved.
+    """
     conflict_resolver_map = {
         "agents/session.md": lambda ours, theirs: resolve_session_conflict(
             ours, theirs, slug=slug
