@@ -52,6 +52,8 @@
 - [ ] **Rewrite agent-core ad-hoc scripts via TDD** — Port all ad-hoc scripts to claudeutils package
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
   - Plan: continuation-prepend | Status: requirements | Dependency on continuation-passing now resolved
+- [ ] **RCA: Planning agents leave dirty tree** — Delegation prompts lack commit instruction, fix orchestration templates | sonnet
+- [ ] **RCA: User-backgrounded agents crash** — `classifyHandoffIfNeeded is not defined` on user-initiated backgrounding, code-backgrounded agents work fine | sonnet
 - [ ] **Error handling framework design** — Design error handling for runbooks, task lists, and CPS skills | opus
 - [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on plan-orchestrate workflow review
   - Plan: when-recall | Status: designed | Load `plugin-dev:skill-development` before planning
