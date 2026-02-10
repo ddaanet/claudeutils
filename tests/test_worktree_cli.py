@@ -108,6 +108,96 @@ def test_ls_multiple_worktrees(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     assert str(worktree_b) in line_b[2]
 
 
+def test_clean_tree_session_files_exempt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Clean-tree exits 0 when only session context files are modified.
+
+    Integration test verifying that agents/session.md, agents/jobs.md, and
+    agents/learnings.md are exempted from dirty tree checks.
+    """
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    # Initialize main repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit with session files
+    (repo_path / "README.md").write_text("test")
+    agents_dir = repo_path / "agents"
+    agents_dir.mkdir()
+    (agents_dir / "session.md").write_text("# Session\n")
+    (agents_dir / "jobs.md").write_text("# Jobs\n")
+    (agents_dir / "learnings.md").write_text("# Learnings\n")
+    subprocess.run(["git", "add", "."], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    # Initialize submodule (agent-core)
+    submodule_path = repo_path / "agent-core"
+    submodule_path.mkdir()
+    subprocess.run(["git", "init"], cwd=submodule_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=submodule_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=submodule_path,
+        check=True,
+        capture_output=True,
+    )
+    (submodule_path / "README.md").write_text("submodule")
+    subprocess.run(
+        ["git", "add", "README.md"], cwd=submodule_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Submodule initial"],
+        cwd=submodule_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Add submodule to main repo
+    subprocess.run(
+        ["git", "submodule", "add", str(submodule_path), "agent-core"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add submodule"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Modify session files
+    (agents_dir / "session.md").write_text("# Session\nModified\n")
+    (agents_dir / "jobs.md").write_text("# Jobs\nModified\n")
+    (agents_dir / "learnings.md").write_text("# Learnings\nModified\n")
+
+    # Run clean-tree command
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["clean-tree"])
+
+    # Should exit 0 silently (session files exempted)
+    assert result.exit_code == 0
+    assert result.output == ""
+
+
 def test_clean_tree_clean(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Clean-tree exits 0 with no output in clean repo with submodule.
 

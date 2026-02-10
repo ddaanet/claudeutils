@@ -98,6 +98,15 @@ def clean_tree() -> None:
 
     combined = parent_status + submodule_status
 
-    if combined:
-        click.echo(combined.rstrip())
+    exempt_files = {"agents/session.md", "agents/jobs.md", "agents/learnings.md"}
+    filtered_lines = [
+        line
+        for line in combined.rstrip().split("\n")
+        if line
+        and not any(line.endswith(f" {exempt_file}") for exempt_file in exempt_files)
+    ]
+    filtered_output = "\n".join(filtered_lines)
+
+    if filtered_output:
+        click.echo(filtered_output)
         raise SystemExit(1)
