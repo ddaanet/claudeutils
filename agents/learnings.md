@@ -239,11 +239,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Trust vet-fix-agent output without validation, no execution context provided in delegation
 - Vet validates against current filesystem not execution-time state — Phase 6 error: "fixed" edify-plugin → agent-core
 - UNFIXABLE issues in reports don't trigger escalation (manual detection required)
-- Correct pattern: Provide execution context to vet-fix-agent, validate UNFIXABLE detection before proceeding
-- Include phase dependencies and state transitions in delegation prompt
-- Read vet report after completion, grep for UNFIXABLE markers, escalate to user
-- Rationale: Vet lacks temporal reasoning (current vs future state) and explicit escalation protocol
-- Consequence: Skills need both continuation protocol support AND standalone tail-call logic (already the case)
+- Correct pattern: Provide execution context (IN/OUT scope, changed files, requirements), grep UNFIXABLE after return
+- Fix: vet-requirement.md updated with execution context template + UNFIXABLE detection protocol; vet-fix-agent.md updated with execution context section in review protocol
+- UNFIXABLE grep is mechanical (consistent with weak orchestrator) — not a judgment call
 ## Delegation vs execution routing
 - Anti-pattern: Single fragment covering both interactive routing and orchestration delegation — conflicting signals
 - Correct pattern: Split into execution-routing.md (interactive: understand first, do directly) and delegation.md (orchestration: dispatch to agents)

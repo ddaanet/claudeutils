@@ -1,44 +1,19 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Continuation-passing worktree merged + removed. Two lost tasks recovered from worktree session.md.
+**Status:** Vet-fix-agent worktree merged into dev + removed.
 
 ## Completed This Session
 
-**Worktree skill design outline:**
-- Researched git worktree skills across marketplaces (6 skills found, 3 conventions: sibling dirs, .worktrees/ subdir, centralized)
-- Created `plans/worktree-skill/outline.md` — iterative outline through 4 rounds of user feedback
-- Key decisions: `claudeutils _worktree` CLI subcommand (Python, TDD), `wt/` subdirectory, no branch prefix, clean room design, integration tests with real git
-- Absorbs wt-merge-skill plan (merge becomes a subcommand, not separate skill)
-- Exploration report: `plans/worktree-skill/reports/explore-integration.md` (584 lines, covers all integration points)
-
-**focus-session.py recovery:**
-- Script was orphaned — agent-core commit ff056c7 existed but wasn't ancestor of HEAD
-- Traced via parent repo: `git ls-tree 8929bb4 -- agent-core` → ff056c7
-- Found latest descendant f7dd52c (merge commit, 2 commits ahead of HEAD)
-- Merged f7dd52c into agent-core HEAD — focus-session.py now properly on branch
-
-**Plugin-migration worktree merge:**
-- Merged `wt/plugin-migration` into dev (0840c38) — 8 commits, submodule diverged
-- Submodule resolution: fetched from worktree gitdir (`.git/worktrees/.../modules/agent-core`), merged both sides into agent-core HEAD
-- Resolved learnings.md conflict (keep-both: dev added 4, plugin-migration added 2)
-- Removed worktree after verifying clean status + full merge
-- Recovered lost "Execute plugin migration" task from worktree session.md (blind `--ours` had dropped it)
-
-**Worktree skill outline updates:**
-- Added Submodule Merge Resolution section (deterministic fetch+merge sequence, gitdir path pattern)
-- Added Session File Conflict Resolution section with task extraction algorithm (parse+diff task names)
-- Expanded error handling (merge debris cleanup, submodule fetch retry)
-- Expanded test scenarios (diverged vs fast-forward submodule, session file strategies)
-
-**Continuation-passing worktree merge:**
-- Merged `wt/continuation-passing` into dev (5f7637f) — submodule + parent both merged
-- Removed worktree after merge (`just wt-rm continuation-passing`)
-- Verified submodule ancestry: worktree agent-core (1fe688b) is ancestor of current HEAD (faf6c03)
-- Recovered 2 lost pending tasks from worktree session.md: "Continuation prepend", "Error handling framework design"
-- Memory-index-recall merge attempted but aborted — worktree has dirty state (modified CLAUDE.md, 5 unstaged agent-core files, 1 untracked)
+**Vet-fix-agent worktree merge:**
+- Pre-merge validation: worktree + submodule clean, precommit failures pre-existing only
+- Submodule diverged (13 worktree-only, 9 dev-only commits) — fetched from worktree gitdir, merged cleanly (afc8adc)
+- Parent merge: learnings.md conflict (updated vet learning with fix details, kept all dev learnings), session.md (keep dev, mark task completed)
+- No task recovery needed — worktree had no pending tasks (only completed work)
+- Precommit on merged dev: only pre-existing `cli.py:402` line limit
+- Worktree + branch removed via `just wt-rm`
 
 **From previous sessions:**
-- Plugin-migration worktree merged + removed, worktree skill outline with merge patterns
+- Continuation-passing, plugin-migration worktrees merged + removed
 - Worktree skill design outline created (4 rounds user feedback)
 - focus-session.py recovery, delegation/execution-routing split
 
@@ -60,10 +35,6 @@
   - Plan: requirements-skill | Status: requirements
 - [ ] **Strengthen commit Gate B coverage check** — Gate B is boolean (any report?) not coverage ratio (artifacts:reports 1:1) | sonnet
 - [ ] **Review reflect skill: task output for skill/fragment fixes** — RCA should produce pending tasks for skill/fragment updates, not inline fixes | sonnet
-- [ ] **Strengthen vet-fix-agent delegation pattern** — Add execution context provision and UNFIXABLE detection | sonnet
-  - Sub-tasks: execution context, UNFIXABLE detection, documentation, meta-review evaluation
-  - Analysis: plans/reflect-rca-sequential-task-launch/rca.md
-  - Worktree: `../claudeutils-vet-fix-agent` (focused session ready)
 - [ ] **Update tool-batching.md for Task tool parallelization** — Add explicit Task tool guidance with examples | sonnet
 - [ ] **Rewrite last-output prototype with TDD as claudeutils subcommand** — Port agent-output-cmd prototype to proper TDD implementation
 - [ ] **Update commit and handoff to branch after precommit** — Move git branching point from beginning to after precommit passes
@@ -80,12 +51,9 @@
 
 ## Blockers / Gotchas
 
-**Precommit not fully clean:** continuation-passing and cli.py have line-limit and lint issues:
-- `src/claudeutils/cli.py` (402 lines, exceeds 400)
-- `tests/test_continuation_consumption.py` (523 lines), `test_continuation_registry.py` (512), `test_continuation_parser.py` (566)
-- Mypy type errors and collection errors in continuation tests
+**Precommit not fully clean:** `src/claudeutils/cli.py` (402 lines, exceeds 400 line limit)
 
-**3 stale worktrees remain** (merged but not removed): bash-git-prompt, markdown-test-corpus, memory-index-recall. Plus vet-fix-agent worktree (active).
+**3 stale worktrees remain** (merged but not removed): bash-git-prompt, markdown-test-corpus, memory-index-recall.
 
 **memory-index-recall worktree dirty:** CLAUDE.md modified, agent-core has 5 modified + 1 untracked file. Must resolve before merge.
 
@@ -97,4 +65,4 @@
 - **plans/reflect-rca-sequential-task-launch/** — RCA on Task parallelization + vet context issues
 
 ---
-*Handoff by Sonnet. Worktree merge + task recovery session.*
+*Handoff by Sonnet. Worktree merge session.*
