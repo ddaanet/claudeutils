@@ -343,7 +343,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: "code-backgrounded agents work fine" was a learning that this session disproved
 - Rationale: Learnings are session-scoped observations, not verified invariants — they can be stale or wrong
 - Scope: Especially important for orchestrate-evolution (learnings ARE the primary input)
-## Precommit must fail on skipped tests
+## Precommit fails on skipped tests
 - Anti-pattern: Precommit passes with "16 skipped" status — soft warning instead of hard error
 - Correct pattern: Skipped tests must fail precommit validation
 - Rationale: Skipped tests indicate incomplete validation, not successful validation
