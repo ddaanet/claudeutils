@@ -369,3 +369,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: Add "Apply deslop principles" and "Factorize duplicated code" to refactor prompts
 - Impact: Without directives, agent splits files mechanically without reducing verbosity or extracting helpers
 - Evidence: Two agents (adf9068, ae87151) crashed this session after completing work successfully
+## Script-validated metadata must be script-generated
+- Anti-pattern: Script validates for metadata presence but expects expansion agents (cognitive) to generate it
+- Correct pattern: If metadata is deterministic and standard, script injects it during assembly
+- Example: prepare-runbook.py validated "stop/error conditions" per cycle, but neither expansion agents nor Common Context provided it. Fix: script injects DEFAULT_TDD_COMMON_CONTEXT during phase file assembly
+- Principle: Follows "always script non-cognitive solutions" — deterministic metadata injection beats relying on agent compliance
