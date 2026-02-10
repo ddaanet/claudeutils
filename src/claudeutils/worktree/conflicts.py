@@ -3,6 +3,67 @@
 import re
 
 
+def _extract_task_block(task_name: str, content: str) -> str | None:
+    """Extract a task block (task line + indented metadata) from content.
+
+    Args:
+        task_name: The task name to find.
+        content: The markdown content to search.
+
+    Returns:
+        Task block string if found, None otherwise.
+    """
+    task_line_pattern = rf"^- \[ \] \*\*{re.escape(task_name)}\*\*.*$"
+    match = re.search(task_line_pattern, content, re.MULTILINE)
+    if not match:
+        return None
+
+    # Extract task line and any indented continuation lines
+    start = match.start()
+    lines = content[start:].splitlines()
+    task_block_lines = [lines[0]]
+
+    # Collect indented continuation lines (metadata)
+    for line in lines[1:]:
+        if line and (line[0] == " " or line[0] == "\t"):
+            task_block_lines.append(line)
+        else:
+            break
+
+    return "\n".join(task_block_lines)
+
+
+def _format_new_tasks_text(
+    new_task_blocks: dict[str, str],
+    *,
+    has_next_heading: bool,
+    ours_ends_with_newline: bool,
+) -> str:
+    """Format new tasks text with proper spacing.
+
+    Args:
+        new_task_blocks: Dictionary of task blocks to insert.
+        has_next_heading: Whether there's a next section heading.
+        ours_ends_with_newline: Whether ours ends with a newline.
+
+    Returns:
+        Formatted tasks text ready for insertion.
+    """
+    tasks_text = "\n".join(new_task_blocks.values())
+    if not tasks_text:
+        return ""
+
+    # Ensure proper spacing: newline after tasks, blank line before next section
+    if has_next_heading:
+        return tasks_text + "\n\n"
+
+    # At EOF - ensure newline before insertion if ours doesn't end with one
+    if not ours_ends_with_newline:
+        return "\n" + tasks_text + "\n"
+
+    return tasks_text + "\n"
+
+
 def resolve_session_conflict(ours: str, theirs: str) -> str:
     """Resolve session.md merge conflict by extracting new tasks from theirs.
 
@@ -31,25 +92,13 @@ def resolve_session_conflict(ours: str, theirs: str) -> str:
     # Extract full task blocks for each new task from theirs
     new_task_blocks = {}
     for task_name in new_task_names:
-        # Find the task line
-        task_line_pattern = rf"^- \[ \] \*\*{re.escape(task_name)}\*\*.*$"
-        match = re.search(task_line_pattern, theirs, re.MULTILINE)
-        if not match:
-            continue
+        block = _extract_task_block(task_name, theirs)
+        if block:
+            new_task_blocks[task_name] = block
 
-        # Extract task line and any indented continuation lines
-        start = match.start()
-        lines = theirs[start:].split("\n")
-        task_block_lines = [lines[0]]
-
-        # Collect indented continuation lines (metadata)
-        for line in lines[1:]:
-            if line and (line[0] == " " or line[0] == "\t"):
-                task_block_lines.append(line)
-            else:
-                break
-
-        new_task_blocks[task_name] = "\n".join(task_block_lines)
+    if not new_task_blocks:
+        # All extractions failed, return ours as-is
+        return ours
 
     # Find insertion point in ours: locate Pending Tasks section, find next heading
     pending_tasks_match = re.search(r"^## Pending Tasks\s*$", ours, re.MULTILINE)
@@ -61,16 +110,16 @@ def resolve_session_conflict(ours: str, theirs: str) -> str:
     search_start = pending_tasks_match.end()
     next_heading_match = re.search(r"^## ", ours[search_start:], re.MULTILINE)
 
-    if next_heading_match:
-        insertion_point = search_start + next_heading_match.start()
-    else:
-        # No next heading, insert at end of ours
-        insertion_point = len(ours)
+    insertion_point = (
+        search_start + next_heading_match.start() if next_heading_match else len(ours)
+    )
 
-    # Build the new task block string
-    new_tasks_text = "\n".join(new_task_blocks.values())
-    if new_tasks_text:
-        new_tasks_text = new_tasks_text + "\n"
+    # Build the new task block string with proper spacing
+    new_tasks_text = _format_new_tasks_text(
+        new_task_blocks,
+        has_next_heading=bool(next_heading_match),
+        ours_ends_with_newline=ours.endswith("\n"),
+    )
 
     # Insert new tasks before the next heading (or at end)
     return ours[:insertion_point] + new_tasks_text + ours[insertion_point:]
