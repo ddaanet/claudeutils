@@ -1,36 +1,37 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Worktree skill design complete (Phase C). Ready for TDD planning.
+**Status:** Worktree skill TDD runbook nearly complete. 1 prepare-runbook.py validation error remaining (cycle 4.2 code block confuses parser). Fix, then prepare-runbook.py, then restart for orchestration.
 
 ## Completed This Session
 
-**Memory-index-recall worktree merge:**
-- Pre-merge: worktree + submodule clean, precommit 559/559 passing
-- Submodule: 1 worktree-only commit (deslop directives), ~40 dev-only — fetched from worktree path, merged cleanly
-- Parent: 7 source conflicts (overlapping lint/complexity fixes on recall module) — took dev's versions (ours), precommit validates
-- Non-conflicted: `plans/when-recall/` design + `cli.py` deslop fixes merged automatically
-- Session context: kept ours, recovered 1 pending task ("Plan `/when` TDD runbook")
-- jobs.md: when-recall plan status advanced requirements → designed
-- Worktree + branch removed via `just wt-rm`
+**Worktree skill TDD planning (orchestrated /plan-tdd):**
+- Tier 3 assessed: ~42 cycles, 6 phases (consolidated from 8), multi-session
+- Intake + codebase discovery delegated to sonnet
+- Outline generated + reviewed (runbook-outline-review-agent)
+- 8 phase expansions run in parallel (sonnet), consolidated 8→6 phases
+- 6 per-phase reviews run in parallel (tdd-plan-reviewer), all passed
+- Holistic cross-phase review passed (no fixes needed)
+- Cycle metadata fix: 42 cycles patched in parallel (haiku), 1 remaining (cycle 4.2)
+- prepare-runbook.py: 1 error — cycle 4.2 has code block with H2 headers that confuses parser
 
-**Stale worktree cleanup:**
-- bash-git-prompt: no unmerged commits, uncommitted changes — force-removed
-- markdown-test-corpus: no unmerged commits, uncommitted changes — force-removed
+**Orchestration research (for orchestrate-evolution):**
+- /plan-tdd is a DAG, not a sequence — phases can be parallelized
+- Phase expansions fully independent (same inputs, different outputs)
+- Per-phase review needs full outline context (scope alignment, not just internal quality)
+- Post-step pattern: verify → remediate → RCA pending task (general orchestration pattern)
+- Delegation prompts must include commit instruction
+- Prompt deduplication: write shared content to file, reference by path (orchestrator optimization)
+- Handoff is NOT delegatable — requires current agent's session context
+- Consolidation gate should catch phase overengineering earlier
 
-**Worktree skill outline updated:** Added source code conflict resolution (take-ours + precommit gate), batch stale removal, submodule fetch path simplification, new test scenarios. Outline-review-agent: 4 minor fixes applied (step numbering, scope clarification, CLI naming). Branch naming reverted to "no prefix" per user requirement.
-
-**Worktree skill design (Phase C):**
-- Design document: `plans/worktree-skill/design.md` (508 lines, 10 design decisions, 8 FRs + 5 NFRs)
-- Checkpoint commit: 8cb48f7
-- Vet review: design-vet-agent (opus) — 0 critical, 3 major fixed, 7 minor fixed, no UNFIXABLE
-- Key decisions: `wt/<slug>/` inside project root (sandbox-compatible), branch=slug (no prefix), direct git plumbing for merge commits (no /commit skill), precommit as correctness oracle
-- Design clarification: submodule/merge commits use `🔀` hardcoded gitmoji, string interpolation only
-- Dependency resolved: focus-session.py — skill generates inline (no script dependency)
+**Precommit worktree:** Created at `../claudeutils-fix-precommit` (branch `wt/fix-precommit`)
 
 ## Pending Tasks
 
-- [ ] **Worktree skill TDD planning** — `/plan-tdd plans/worktree-skill/design.md` | opus
-  - Plan: worktree-skill | Status: designed | Load `plugin-dev:skill-development` before planning
+- [ ] **Fix cycle 4.2 parser issue + prepare-runbook.py** — Code block with H2 headers in GREEN section confuses parser. Fix, run prepare-runbook.py, commit artifacts | sonnet
+  - Plan: worktree-skill | Status: planned (almost)
+- [>] **Orchestrate worktree-skill execution** — `/orchestrate worktree-skill` | haiku | restart
+  - Plan: worktree-skill | Status: planned (after prepare-runbook.py)
 - [ ] **Review agent-core orphaned revisions** — Check all agent-core commits reachable from parent repo history but not on current HEAD, merge if needed | sonnet
 - [ ] **Execute plugin migration** — `/orchestrate plans/plugin-migration/orchestrator-plan.md` | haiku
   - Plan: plugin-migration | Status: planned
@@ -39,8 +40,8 @@
 - [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink | restart
 - [ ] **Handoff validation design** — Complete design (continuation-passing now merged) | opus
   - Plan: handoff-validation | Status: requirements
-- [ ] **Orchestrate evolution design** — Absorb planning, finalize phase pattern | opus
-  - Plan: orchestrate-evolution | Status: requirements
+- [ ] **Orchestrate evolution design** — Absorb planning research from this session, finalize phase pattern | opus
+  - Plan: orchestrate-evolution | Status: requirements | Research: see "Orchestration research" above
 - [ ] **Evaluate requirements-skill with opus** — Dump requirements/design after conversation | opus
   - Plan: requirements-skill | Status: requirements
 - [ ] **Strengthen commit Gate B coverage check** — Gate B is boolean (any report?) not coverage ratio (artifacts:reports 1:1) | sonnet
@@ -54,7 +55,8 @@
   - Plan: continuation-prepend | Status: requirements | Dependency on continuation-passing now resolved
 - [ ] **RCA: Planning agents leave dirty tree** — Delegation prompts lack commit instruction, fix orchestration templates | sonnet
 - [ ] **RCA: User-backgrounded agents crash** — `classifyHandoffIfNeeded is not defined` on user-initiated backgrounding, code-backgrounded agents work fine | sonnet
-- [ ] **RCA: Expansion agents omit cycle metadata** — 42 cycles missing Stop/Error Conditions required by prepare-runbook.py, fix expansion prompt template or plan-tdd skill | sonnet
+- [ ] **RCA: Expansion agents omit cycle metadata** — 42 cycles missing Stop/Error Conditions required by prepare-runbook.py, fix expansion prompt or plan-tdd skill | sonnet
+- [ ] **RCA: Background agents framework failure** — Investigate classifyHandoffIfNeeded error in user-backgrounded vs code-backgrounded agents | sonnet
 - [ ] **Error handling framework design** — Design error handling for runbooks, task lists, and CPS skills | opus
 - [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on plan-orchestrate workflow review
   - Plan: when-recall | Status: designed | Load `plugin-dev:skill-development` before planning
@@ -67,12 +69,14 @@
 
 **Pre-existing test failure:** `tests/test_markdown_fixtures.py::test_preprocessor_idempotency[02-inline-backticks]` — not related to merge
 
+**Cycle 4.2 parser issue:** `plans/worktree-skill/runbook-phase-4.md` cycle 4.2 GREEN section contains fenced code block with H2 headers (`## Pending Tasks`, `## Blockers`) that confuses prepare-runbook.py's cycle boundary detection. Fix: replace code block with indented prose or escape H2 markers.
+
 ## Reference Files
 
 - **plans/worktree-skill/design.md** — Full design document (10 decisions, merge flow, conflict resolution, skill spec)
-- **plans/worktree-skill/reports/design-review.md** — Opus vet review (all fixed, no UNFIXABLE)
-- **plans/worktree-skill/outline.md** — Validated outline (binding scope)
-- **plans/worktree-skill/reports/explore-integration.md** — Integration point analysis
+- **plans/worktree-skill/runbook-outline.md** — Consolidated outline (6 phases, ~42 cycles)
+- **plans/worktree-skill/runbook-phase-{0..5}.md** — Phase files with reviewed cycles
+- **plans/worktree-skill/reports/** — Intake assessment, outline review, 6 per-phase reviews, holistic review
 
 ---
-*Handoff by Sonnet. Design complete, TDD planning next.*
+*Handoff by Opus. TDD planning orchestrated with parallel agents. 1 parser fix remaining before prepare-runbook.py.*

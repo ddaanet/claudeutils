@@ -277,18 +277,18 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Algorithm: Parse both sides' Pending Tasks by task name regex, diff, append new worktree-side tasks to main
 - Example: "Execute plugin migration" task created in worktree, lost by blind --ours resolution
 - Fix: Outlined in `plans/worktree-skill/outline.md` Session File Conflict Resolution section
-## Planning process is orchestratable as DAG
+## Planning as orchestratable DAG
 - /plan-tdd phases (intake, outline, expansion, review, assembly) decompose into independent delegations
 - Phase expansions are fully parallel: all read same inputs (design + outline), write different files
 - 8 concurrent sonnet agents produced correct output; git handled concurrent commits (different files)
 - Per-phase review needs full outline context (scope alignment), not just the phase file
 - Holistic review (cross-phase consistency) runs once after all phases complete
-## Orchestration post-step pattern: verify → remediate → RCA
+## Post-step verify-remediate-RCA pattern
 - Anti-pattern: Trust agent completion, proceed without verification
 - Correct pattern: After each agent: git status + precommit → delegate remediation if dirty → add pending RCA task to fix causing skill
 - This is a general orchestration pattern, not session-specific — incorporate into orchestration plan templates
 - Remediation is mechanical (commit/fix), RCA is cognitive (why did the skill produce dirty state?)
-## Delegation prompts must include commit instruction
+## Delegation requires commit instruction
 - Anti-pattern: Agent writes artifact, returns filepath, leaves tree dirty
 - Correct pattern: Include explicit "commit your output before returning" in every delegation prompt
 - Root cause: Agents optimize for the stated task; cleanup is not implied
@@ -299,11 +299,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Root cause: Outline generation agent maximized phase count for modularity without consolidation judgment
 - Detection: Phase with ≤3 cycles + Low complexity + same files as adjacent phase = merge candidate
 ## Delegation prompt deduplication
-- Anti-pattern: Repeating boilerplate (templates, shared context) in each parallel agent prompt — bloats orchestrator context and agent input
-- Correct pattern: Write shared content to a file (e.g., `tmp/shared-context.md`), reference path in prompts
-- Rationale: N parallel agents with M-token boilerplate = N×M wasted tokens in orchestrator context + N×M in agent inputs
-- Applies to: cycle metadata templates, review criteria, commit instructions, any content identical across agents
-## Context bloat in long orchestration sessions
+- Anti-pattern: Repeating boilerplate in each parallel agent prompt — bloats orchestrator context
+- Correct pattern: Write shared content to a file, reference path in prompts
+- Benefit: Orchestrator optimization — agents still read full content from file, but orchestrator context doesn't grow N× for N parallel dispatches
+- Agent input unchanged: agents read the referenced file, getting same context as inline would provide
+## Orchestration context bloat mitigation
 - Anti-pattern: Complex reasoning at end of 50+ message orchestration session
 - Correct pattern: Handoff is NOT delegatable — it requires current agent's session context (what happened, what's pending, state transitions)
 - Handoff: do inline (structured update, not complex). Commit: mechanical, can delegate or invoke skill
