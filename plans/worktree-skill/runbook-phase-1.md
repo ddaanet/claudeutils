@@ -43,6 +43,14 @@ Create `new` subcommand in `cli.py` that creates a worktree with branch.
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-1-1-notes.md
+
+---
+
 ## Cycle 1.2: new with collision detection
 
 **RED: Test behavior before implementation**
@@ -79,6 +87,14 @@ Add collision detection to `new` subcommand before creating worktree.
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-1-2-notes.md
+
+---
+
 ## Cycle 1.3: new with submodule initialization
 
 **RED: Test behavior before implementation**
@@ -102,6 +118,14 @@ After `git worktree add`, run submodule initialization:
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-1-3-notes.md
+
+---
+
 ## Cycle 1.4: new with submodule branching
 
 **RED: Test behavior before implementation**
@@ -121,6 +145,14 @@ After submodule initialization, create and checkout branch in submodule:
 - Run: `git -C wt/{slug}/agent-core checkout -b {slug}`
 - This creates new branch at current HEAD (the commit from submodule pointer)
 - Error handling: stderr + exit 1 on branch creation failure
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-1-4-notes.md
 
 ---
 
@@ -160,6 +192,14 @@ Add `--session` optional parameter that pre-commits focused session.md to branch
 - Temp index: `tempfile.NamedTemporaryFile(delete=False, suffix='.index')`
 - Environment: `subprocess.run(..., env={**os.environ, 'GIT_INDEX_FILE': tmpfile})`
 - Design section "CLI Specification" lines 92-102 provides exact command sequence
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-1-5-notes.md
 
 ---
 
@@ -209,6 +249,14 @@ Create `rm` subcommand that removes worktree and branch with safety warnings.
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-1-6-notes.md
+
+---
+
 ## Cycle 1.7: rm with branch-only cleanup
 
 **RED: Test behavior before implementation**
@@ -239,3 +287,11 @@ Make `rm` subcommand handle branch-only cleanup (worktree already removed extern
 - Adjust output message based on what was actually cleaned
 
 **Why:** Makes `rm` idempotent and resilient to partial cleanup states (e.g., user manually deleted worktree directory but branch remains).
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-1-7-notes.md
