@@ -26,7 +26,9 @@ precommit:
     claudeutils validate
     gmake --no-print-directory -C agent-core check
     run-checks
-    safe pytest -q
+    pytest_output=$(safe pytest -q 2>&1)
+    echo "$pytest_output"
+    if echo "$pytest_output" | grep -q "skipped"; then fail "Tests skipped — all tests must run"; fi
     run-line-limits
     report-end-safe "Precommit"
 
@@ -171,7 +173,9 @@ lint: format
     report "ruff check" ruff check -q --ignore=$ruff_ignores
     report "docformatter -c" docformatter -c src tests
     report "mypy" mypy
-    safe pytest -q
+    pytest_output=$(safe pytest -q 2>&1)
+    echo "$pytest_output"
+    if echo "$pytest_output" | grep -q "skipped"; then fail "Tests skipped — all tests must run"; fi
     report-end-safe "Lint"
 
 # Check code style
