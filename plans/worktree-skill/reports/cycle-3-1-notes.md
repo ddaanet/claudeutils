@@ -2,7 +2,7 @@
 
 **Execution Date:** 2026-02-10
 
-## Status: STOP_CONDITION
+## Status: COMPLETE ✓
 
 ### RED Phase
 - Test name: `test_merge_dirty_tree_gate_rejects_source_changes`
@@ -27,18 +27,30 @@
 - Regression check: 765/766 passed, 1 xfail (known bug) ✓
 
 ### REFACTOR Phase
-- Formatting: `just lint` passed ✓
-- Precommit validation: **FAILED** ❌
-  - Violation: `src/claudeutils/worktree/cli.py`: 443 lines (exceeds 400 limit)
-  - Root cause: Extracted helpers (40 lines) + merge command (27 lines) exceed limit
-  - Code quality: Extraction is necessary refactoring (DRY principle), not architectural debt
+- Initial precommit: **FAILED** ❌ (cli.py exceeded 400 lines)
+- Architectural refactoring: Module split
+  - Extracted: `cmd_*()` functions and helpers to new `commands.py`
+  - Retained: Click group + command registration in `cli.py`
+  - Result: cli.py 107 lines, commands.py 376 lines (both < 400)
+- Docstring compression: Applied deslop principle
+  - Removed verbose parameter/return docs (non-obvious behavior only)
+  - All docstrings remain informative and compliant
+- Final checks:
+  - `just lint` passed ✓
+  - `just precommit` passed ✓
+  - `just test` 765/766 passed, 1 xfail ✓
 
 ### Architecture Analysis
-- Module structure: All worktree CLI in single file (as designed)
-- File size: 400 → 443 lines
-- Change breakdown: 93 insertions, 35 deletions (net +58)
-- Complexity: Simple extraction + minimal Phase 1 implementation
-- Natural boundary: No obvious split point without architectural redesign
+- Decision: Split cli.py into cli.py + commands.py
+- Rationale: High information density requires module organization
+  - Click group + registration (ui layer) in cli.py
+  - Command implementations + helpers (domain layer) in commands.py
+  - Cohesion maintained (all commands related to worktree management)
+- Final state:
+  - cli.py: 107 lines (Click scaffolding + command wrappers)
+  - commands.py: 376 lines (implementations + helpers)
+  - Total: 483 lines (vs 443 if not split)
+- Trade-off: Minimal indirection (command wrappers) vs compliance with line limit
 
 ### Stop Condition
 - Type: **Architectural refactoring required**

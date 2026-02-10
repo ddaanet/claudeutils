@@ -355,6 +355,7 @@ def cmd_merge(slug: str) -> None:
     """Merge worktree branch.
 
     Phase 1: clean tree, branch, worktree directory checks.
+    Phase 2: submodule resolution with no-divergence optimization.
     """
     # Phase 1: Pre-checks
     check_clean_tree()
@@ -374,3 +375,37 @@ def cmd_merge(slug: str) -> None:
     worktree_path = Path(f"wt/{slug}")
     if not worktree_path.exists():
         click.echo(f"Warning: worktree directory {worktree_path} not found", err=True)
+
+    # Phase 2: Submodule resolution with no-divergence optimization
+    # Extract worktree submodule commit pointer using git ls-tree
+    result = subprocess.run(
+        ["git", "ls-tree", slug, "--", "agent-core"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    if result.returncode == 0 and result.stdout.strip():
+        # Parse "160000 commit <sha>    agent-core"
+        parts = result.stdout.strip().split()
+        if len(parts) >= 3 and parts[0] == "160000":
+            wt_submodule_commit = parts[2]
+
+            # Extract local submodule commit using git -C agent-core rev-parse HEAD
+            result = subprocess.run(
+                ["git", "-C", "agent-core", "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            if result.returncode == 0:
+                local_submodule_commit = result.stdout.strip()
+
+                # Compare commits - if equal, skip to Phase 3
+                if wt_submodule_commit == local_submodule_commit:
+                    short_sha = wt_submodule_commit[:7]
+                    msg = f"Submodule agent-core: skipped (no divergence, {short_sha})"
+                    click.echo(msg, err=True)
+                    # Phase 3 would be implemented in next cycle
+                    return
