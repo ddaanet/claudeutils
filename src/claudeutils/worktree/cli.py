@@ -119,6 +119,30 @@ def clean_tree() -> None:
         raise SystemExit(1)
 
 
+@worktree.command()
+@click.argument("slug")
+@click.option("--base", default="HEAD", help="Base commit for worktree branch")
+@click.option("--session", default="", help="Session file path")
+def new(slug: str, base: str, session: str) -> None:
+    """Create a new git worktree with branch.
+
+    Creates a worktree at wt/{slug}/ checked out to a new branch {slug} based on
+    the specified base commit (default HEAD).
+    """
+    del session
+    try:
+        worktree_path = f"wt/{slug}"
+        subprocess.run(
+            ["git", "worktree", "add", worktree_path, "-b", slug, base],
+            check=True,
+            capture_output=True,
+        )
+        click.echo(worktree_path)
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Error creating worktree: {e.stderr.decode()}", err=True)
+        raise SystemExit(1) from e
+
+
 @worktree.command(name="add-commit")
 @click.argument("files", nargs=-1, required=True)
 def add_commit(files: tuple[str, ...]) -> None:

@@ -108,3 +108,69 @@ def test_ls_multiple_worktrees(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     assert line_b[0] == "task-b"
     assert line_b[1] == "refs/heads/task-b"
     assert str(worktree_b) in line_b[2]
+
+
+def test_new_basic_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify new subcommand creates worktree with branch."""
+    # Create a temporary git repo
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    # Initialize git repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    # Add .gitignore with wt/ entry
+    (repo_path / ".gitignore").write_text("wt/\n")
+    subprocess.run(["git", "add", ".gitignore"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Add gitignore"], check=True, capture_output=True
+    )
+
+    # Run new command
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+
+    # Verify exit code
+    assert result.exit_code == 0
+
+    # Verify stdout contains worktree path
+    assert "wt/test-feature" in result.output
+
+    # Verify directory exists
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert worktree_path.exists()
+    assert worktree_path.is_dir()
+
+    # Verify branch exists
+    result = subprocess.run(
+        ["git", "branch", "--list", "test-feature"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "test-feature" in result.stdout
+
+    # Verify worktree is checked out to the branch
+    result = subprocess.run(
+        ["git", "-C", str(worktree_path), "rev-parse", "--abbrev-ref", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "test-feature" in result.stdout
