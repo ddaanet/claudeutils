@@ -314,3 +314,90 @@ def test_rm_dirty_warning(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> No
 
     # Verify warning message about uncommitted changes
     assert "uncommitted" in result.output.lower() or "warning" in result.output.lower()
+
+
+def test_rm_branch_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify rm handles branch-only cleanup when worktree already removed.
+
+    Given: Worktree created via _worktree new test-feature
+    Given: Worktree manually removed via rm -rf wt/test-feature
+    Given: Branch test-feature still exists
+    When: Run _worktree rm test-feature
+    Then: Exit 0
+    Then: Branch test-feature removed
+    Then: No error about missing worktree directory
+    """
+    # Create a temporary git repo
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    # Initialize git repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    # Create worktree via new command
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    # Verify worktree exists
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert worktree_path.exists()
+
+    # Verify branch exists
+    branch_result = subprocess.run(
+        ["git", "branch", "--list", "test-feature"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "test-feature" in branch_result.stdout
+
+    # Manually remove worktree directory (simulating external cleanup)
+    subprocess.run(["rm", "-rf", str(worktree_path)], check=True, capture_output=True)
+    assert not worktree_path.exists()
+
+    # Verify branch still exists
+    branch_result = subprocess.run(
+        ["git", "branch", "--list", "test-feature"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "test-feature" in branch_result.stdout
+
+    # Run rm command on branch-only worktree
+    result = runner.invoke(worktree, ["rm", "test-feature"])
+
+    # Verify exit code is 0
+    assert result.exit_code == 0
+
+    # Verify branch does not exist
+    branch_result = subprocess.run(
+        ["git", "branch", "--list", "test-feature"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert branch_result.stdout.strip() == ""
+
+    # Verify no error in output about missing worktree directory
+    assert (
+        "error" not in result.output.lower()
+        or "no such file" not in result.output.lower()
+    )

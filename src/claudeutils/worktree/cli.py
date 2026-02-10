@@ -336,6 +336,9 @@ def rm(slug: str) -> None:
     Removes the worktree directory at wt/{slug}/ and the corresponding git
     branch. Warns if worktree has uncommitted changes or branch is unmerged, but
     proceeds with removal anyway (forced).
+
+    Handles branch-only cleanup: if worktree directory doesn't exist but branch
+    does, prunes stale worktree registration then removes the branch (idempotent).
     """
     worktree_path = Path(f"wt/{slug}")
 
@@ -355,9 +358,16 @@ def rm(slug: str) -> None:
             check=True,
             capture_output=True,
         )
+    else:
+        # Worktree directory doesn't exist; prune stale registration
+        subprocess.run(
+            ["git", "worktree", "prune"],
+            check=True,
+            capture_output=True,
+        )
 
     result = subprocess.run(
-        ["git", "branch", "-d", slug],
+        ["git", "branch", "-D", slug],
         check=False,
         capture_output=True,
         text=True,
