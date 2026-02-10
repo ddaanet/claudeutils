@@ -15,9 +15,7 @@ def _init_git_repo(repo_path: Path) -> None:
     Args:
         repo_path: Root directory for the git repository.
     """
-    subprocess.run(
-        ["git", "init"], cwd=repo_path, check=True, capture_output=True
-    )
+    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
         cwd=repo_path,

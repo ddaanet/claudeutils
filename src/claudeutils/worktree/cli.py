@@ -1,7 +1,9 @@
 """Worktree CLI module."""
 
+import os
 import re
 import subprocess
+import tempfile
 from pathlib import Path
 
 import click
@@ -73,6 +75,85 @@ def ls() -> None:
         click.echo(f"{slug}\t{branch}\t{path}")
 
 
+def _create_session_commit(slug: str, base: str, session: str) -> str:
+    """Create a git commit with session.md using temp index.
+
+    Returns the commit hash without polluting main worktree index.
+    """
+    session_path = Path(session)
+    session_content = session_path.read_text()
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".index") as tmp_index:
+        tmp_index_path = tmp_index.name
+
+    try:
+        env = {**os.environ, "GIT_INDEX_FILE": tmp_index_path}
+
+        result = subprocess.run(
+            ["git", "hash-object", "-w", "--stdin"],
+            input=session_content,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        blob_hash = result.stdout.strip()
+
+        result = subprocess.run(
+            ["git", "rev-parse", f"{base}^{{tree}}"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        base_tree = result.stdout.strip()
+
+        subprocess.run(
+            ["git", "read-tree", base_tree],
+            env=env,
+            check=True,
+            capture_output=True,
+        )
+
+        subprocess.run(
+            [
+                "git",
+                "update-index",
+                "--add",
+                "--cacheinfo",
+                f"100644,{blob_hash},agents/session.md",
+            ],
+            env=env,
+            check=True,
+            capture_output=True,
+        )
+
+        result = subprocess.run(
+            ["git", "write-tree"],
+            env=env,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        new_tree = result.stdout.strip()
+
+        result = subprocess.run(
+            [
+                "git",
+                "commit-tree",
+                new_tree,
+                "-p",
+                base,
+                "-m",
+                f"Focused session for {slug}",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    finally:
+        Path(tmp_index_path).unlink()
+
+
 @worktree.command(name="clean-tree")
 def clean_tree() -> None:
     """Validate clean state of parent repo and submodule.
@@ -128,8 +209,9 @@ def new(slug: str, base: str, session: str) -> None:
 
     Creates a worktree at wt/{slug}/ checked out to a new branch {slug} based on
     the specified base commit (default HEAD).
+
+    With --session: pre-commits focused session file to branch before creating worktree.
     """
-    del session
     worktree_path = Path(f"wt/{slug}")
 
     # Check for directory collision
@@ -149,11 +231,24 @@ def new(slug: str, base: str, session: str) -> None:
         raise SystemExit(1)
 
     try:
-        subprocess.run(
-            ["git", "worktree", "add", str(worktree_path), "-b", slug, base],
-            check=True,
-            capture_output=True,
-        )
+        if session:
+            branch_commit = _create_session_commit(slug, base, session)
+            subprocess.run(
+                ["git", "branch", slug, branch_commit],
+                check=True,
+                capture_output=True,
+            )
+            subprocess.run(
+                ["git", "worktree", "add", str(worktree_path), slug],
+                check=True,
+                capture_output=True,
+            )
+        else:
+            subprocess.run(
+                ["git", "worktree", "add", str(worktree_path), "-b", slug, base],
+                check=True,
+                capture_output=True,
+            )
 
         # Initialize submodules in the new worktree
         result = subprocess.run(
