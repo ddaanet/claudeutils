@@ -28,9 +28,10 @@ def test_merge_phase_2_post_verification_success(
 ) -> None:
     """Verify post-verification validates ancestry after submodule merge.
 
-    When post-merge verification checks both original commits against final HEAD,
-    it should confirm both are ancestors (indicating successful merge).
-    This test manually merges submodule history and verifies the ancestry check logic.
+    When post-merge verification checks both original commits against final
+    HEAD, it should confirm both are ancestors (indicating successful merge).
+    This test manually merges submodule history and verifies the ancestry check
+    logic.
     """
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
