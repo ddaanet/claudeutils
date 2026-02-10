@@ -1,49 +1,28 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Worktree-skill runbook ready for execution. Cycle 4.2 parser issue resolved, prepare-runbook.py artifacts generated and staged.
+**Status:** Agent-core orphaned revisions reviewed (none found). Fix-precommit worktree merged. Worktree-skill runbook ready for orchestration.
 
 ## Completed This Session
 
-**Worktree skill TDD planning (orchestrated /plan-tdd):**
-- Tier 3 assessed: ~42 cycles, 6 phases (consolidated from 8), multi-session
-- Intake + codebase discovery delegated to sonnet
-- Outline generated + reviewed (runbook-outline-review-agent)
-- 8 phase expansions run in parallel (sonnet), consolidated 8→6 phases
-- 6 per-phase reviews run in parallel (tdd-plan-reviewer), all passed
-- Holistic cross-phase review passed (no fixes needed)
-- Cycle metadata fix: 42 cycles patched in parallel (haiku), 1 remaining (cycle 4.2)
-- prepare-runbook.py: 1 error — cycle 4.2 has code block with H2 headers that confuses parser
+**Agent-core orphaned revisions review:**
+- Background sonnet agent analyzed all submodule pointers in parent repo history
+- Result: Zero orphaned revisions found
+- All 131 unique agent-core commits referenced in parent history are reachable from current HEAD
+- All remote worktree branches fully merged
+- Report: `plans/reports/agent-core-orphaned-revisions-report.md`
 
-**Cycle 4.2 parser issue resolution:**
-- Fixed fenced code block in runbook-phase-4.md (lines 78-95): converted to indented code block
-- Fixed metadata field naming: `**Error Conditions**:` → `**Stop/Error Conditions**:` (all 5 Phase 4 cycles)
-- Ran prepare-runbook.py successfully: 42 step files, orchestrator plan, task agent generated
-- All artifacts staged for commit
-
-**Orchestration research (for orchestrate-evolution):**
-- /plan-tdd is a DAG, not a sequence — phases can be parallelized
-- Phase expansions fully independent (same inputs, different outputs)
-- Per-phase review needs full outline context (scope alignment, not just internal quality)
-- Post-step pattern: verify → remediate → RCA pending task (general orchestration pattern)
-- Delegation prompts must include commit instruction
-- Prompt deduplication: write shared content to file, reference by path (orchestrator optimization)
-- Handoff is NOT delegatable — requires current agent's session context
-- Consolidation gate should catch phase overengineering earlier
-
-**Precommit worktree:** Created at `../claudeutils-fix-precommit` (branch `wt/fix-precommit`)
-
-**Orchestrate-evolution exploration:**
-- Opus agent: read orchestrate skill (474 lines), plan-tdd (1035), plan-adhoc (1104), mapped 7 gaps → `tmp/orchestrate-evolution-analysis.md` (18KB, agent crashed after writing)
-- Sonnet agent: cycle 4.2 diagnosis → `tmp/cycle-4.2-parser-analysis.md` (9KB, agent crashed after writing)
-- Both agents crashed with `classifyHandoffIfNeeded is not defined` — affects code-backgrounded agents too (not just user-backgrounded)
-- Architectural discussion: abandon weak orchestrator, context-as-scope-boundary, two-tier context injection
-- 6 learnings added to learnings.md
+**Fix-precommit worktree merge:**
+- Merged wt/fix-precommit branch (commit 0aea66e: attempted preprocessor idempotency fix)
+- Submodule synchronized: agent-core at fd0c120
+- Worktree removed after merge
+- Test failure persists: `test_preprocessor_idempotency[02-inline-backticks]` still fails despite fix attempt
+- Root cause: Line-by-line heuristic parser cannot handle multi-line inline code spans correctly
 
 ## Pending Tasks
 
+- [ ] **Redesign markdown preprocessor** — Correctly parse multi-line inline markup (code sections) instead of line-by-line heuristics | sonnet
 - [ ] **Orchestrate worktree-skill execution** — `/orchestrate worktree-skill` | sonnet | restart
   - Plan: worktree-skill | Status: planned (after prepare-runbook.py)
-- [ ] **Review agent-core orphaned revisions** — Check all agent-core commits reachable from parent repo history but not on current HEAD, merge if needed | sonnet
 - [ ] **Execute plugin migration** — `/orchestrate plans/plugin-migration/orchestrator-plan.md` | sonnet
   - Plan: plugin-migration | Status: planned
 - [ ] **Examine pending tasks for batching** — Identify parallelizable task groups for wt/ execution | sonnet
@@ -71,13 +50,9 @@
 - [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on plan-orchestrate workflow review
   - Plan: when-recall | Status: designed | Load `plugin-dev:skill-development` before planning
 
-## Worktree Tasks
-
-- [ ] **Fix preprocessor idempotency** → `wt/fix-precommit` — Route through /design or /plan-adhoc | sonnet
-
 ## Blockers / Gotchas
 
-**Pre-existing test failure:** `tests/test_markdown_fixtures.py::test_preprocessor_idempotency[02-inline-backticks]` — not related to merge
+**Preprocessor idempotency test failure:** `tests/test_markdown_fixtures.py::test_preprocessor_idempotency[02-inline-backticks]` persists after attempted fix in wt/fix-precommit (commit 0aea66e). Line-by-line parsing with regex heuristics cannot correctly handle multi-line inline code spans. Redesign required.
 
 ## Reference Files
 
@@ -91,6 +66,7 @@
 
 - **tmp/orchestrate-evolution-analysis.md** — Opus gap analysis: 7 gaps, FR/NFR requirements, open design questions
 - **tmp/cycle-4.2-parser-analysis.md** — Sonnet parser diagnosis: two issues, fix options with trade-offs
+- **plans/reports/agent-core-orphaned-revisions-report.md** — Submodule audit: 131 commits checked, 0 orphaned
 
 ---
-*Handoff by Sonnet. Worktree-skill runbook artifacts generated, ready for orchestration.*
+*Handoff by Sonnet. Agent-core clean, fix-precommit merged, preprocessor redesign pending.*

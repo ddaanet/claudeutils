@@ -14,6 +14,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | orchestrate-evolution | requirements | Absorb planning, finalize phase pattern |
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
+| reports | — | Shared reports directory (not a plan) |
 | requirements-skill | requirements | Evaluate with opus |
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
