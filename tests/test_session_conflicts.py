@@ -166,16 +166,19 @@ Need to fix **Implement feature Y** before proceeding.
     assert result.count("**Implement feature Y**") == 2  # One in tasks, one in blockers
 
 
-def test_resolve_session_conflict_removes_worktree_entry_when_slug_provided() -> None:
-    """Extract task from Worktree Tasks and add to Pending when slug provided.
+def test_resolve_session_conflict_extracts_from_worktree_when_slug_matches() -> None:
+    """Worktree task extraction when task in both Pending and Worktree sections.
 
-    Result should have no Worktree Tasks section, with task moved to Pending.
+    Scenario matches design (outline.md): main side has task in Pending Tasks,
+    worktree side has same task in both Pending Tasks and Worktree Tasks. When
+    slug provided, extract from Worktree Tasks section.
     """
     ours = """# Session: Base
 
 ## Pending Tasks
 
 - [ ] **Task A** — `/design` | sonnet
+- [ ] **Execute plugin migration** — `/plan-adhoc` | sonnet
 
 ## Blockers / Gotchas
 
@@ -187,7 +190,6 @@ None.
 ## Pending Tasks
 
 - [ ] **Task A** — `/design` | sonnet
-- [ ] **Execute plugin migration** — `/plan-adhoc` | sonnet
 
 ## Blockers / Gotchas
 
@@ -195,16 +197,18 @@ None.
 
 ## Worktree Tasks
 
-- [ ] **Execute plugin migration** → wt/plugin-migration — metadata
+- [ ] **Execute plugin migration** → wt/plugin-migration — `/plan-adhoc` | sonnet
 """
 
     result = resolve_session_conflict(ours, theirs, slug="plugin-migration")
 
-    # Result should have no Worktree Tasks section
+    # Result should have no Worktree Tasks section (ours-as-base excludes it)
     assert "## Worktree Tasks" not in result
 
-    # Task should be in Pending Tasks (extracted from Worktree Tasks section)
+    # Task should be in Pending Tasks
     assert "- [ ] **Execute plugin migration**" in result
+    assert "`/plan-adhoc`" in result
 
-    # No reference to wt/plugin-migration should remain
+    # No reference to wt/plugin-migration marker should remain
     assert "wt/plugin-migration" not in result
+    assert "→ wt/" not in result
