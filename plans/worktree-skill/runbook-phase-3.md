@@ -25,6 +25,16 @@ Implement `merge` subcommand entry point and Phase 1 pre-check logic. Reuse clea
 
 Design decisions: D-4 (precommit oracle), NFR-4 (mandatory precommit). Approach: extract shared validation logic into helper function, invoke from both clean-tree subcommand and merge Phase 1.
 
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-1-notes.md
+
+---
+
 ## Cycle 3.2: Phase 2 submodule resolution - no divergence
 
 **RED — Behavioral Verification:**
@@ -38,6 +48,16 @@ Expected: Merge succeeds, no submodule operations in trace, submodule pointer un
 Implement Phase 2 submodule resolution with no-divergence optimization. Extract worktree submodule commit pointer using `git ls-tree <slug> -- agent-core` (parse 160000 mode line, extract SHA). Extract local submodule commit using `git -C agent-core rev-parse HEAD`. Compare commits — if equal, skip to Phase 3. Log skip reason to stderr for traceability.
 
 Design decisions: D-7 (submodule before parent), D-8 (idempotent). Approach: early return pattern for optimization, git plumbing for pointer extraction.
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-2-notes.md
+
+---
 
 ## Cycle 3.3: Phase 2 submodule resolution - fast-forward
 
@@ -53,6 +73,16 @@ Extend Phase 2 with ancestry check optimization. After extracting both commits, 
 
 Design decisions: D-8 (idempotent — safe to re-run). Approach: ancestry check as second optimization gate after equality check.
 
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-3-notes.md
+
+---
+
 ## Cycle 3.4: Phase 2 submodule resolution - diverged commits
 
 **RED — Behavioral Verification:**
@@ -66,6 +96,16 @@ Expected: Submodule merge commit created, both diverged changes integrated, comm
 Implement diverged submodule merge flow. Fetch worktree submodule commits into local object store: `git -C agent-core fetch <project-root>/wt/<slug>/agent-core HEAD` (uses absolute path to worktree submodule directory). Merge fetched commit: `git -C agent-core merge --no-edit <wt-commit>` (no-edit prevents editor prompt). Stage submodule pointer: `git add agent-core`. Create merge commit if staged: `git diff --quiet --cached || git commit -m "🔀 Merge agent-core from <slug>"` (idempotent — no-op if already committed).
 
 Design decisions: D-7 (submodule before parent), D-10 (idempotent commit), NFR-3 (direct git plumbing). Approach: fetch from worktree path not remote (worktree-only commits), hardcoded gitmoji for submodule merges.
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-5-notes.md
+
+---
 
 ## Cycle 3.5: Phase 2 post-verification
 
@@ -81,6 +121,16 @@ Implement post-merge verification for submodule merge correctness. After merge c
 
 Design decisions: D-8 (idempotent — verification enables safe re-run), FR-2 (submodule resolution correctness). Approach: defensive verification, fail-fast on unexpected state.
 
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-4-notes.md
+
+---
+
 ## Cycle 3.6: Phase 3 parent merge - clean merge
 
 **RED — Behavioral Verification:**
@@ -94,6 +144,16 @@ Expected: Merge commit created, message matches pattern, changes from both branc
 Implement Phase 3 parent merge for clean (no-conflict) case. Execute `git merge --no-commit --no-ff <slug>` (no-commit allows custom message, no-ff ensures merge commit). Check merge result: `git diff --name-only --diff-filter=U` returns empty (no conflicts). Construct commit message: default = `🔀 Merge wt/<slug>`, with --message = `🔀 <custom-text>`. Create commit: `git commit -m "<message>"`. Output merge commit SHA to stdout. Proceed to Phase 3 post-merge steps (precommit gate in cycle 3.8).
 
 Design decisions: D-3 (--no-commit --no-ff for custom message + audit trail), NFR-3 (direct git plumbing). Approach: clean merge is fast path, conflict handling in 3.7.
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-8-notes.md
+
+---
 
 ## Cycle 3.7: Phase 3 parent merge - session conflicts
 
@@ -109,6 +169,16 @@ Implement conflict detection and resolution for session context files. After mer
 
 Design decisions: D-6 (extract before resolve), NFR-2 (deterministic session resolution). Approach: conflict file routing table, git show for conflict extraction, conflicts.py provides resolution functions.
 
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-7-notes.md
+
+---
+
 ## Cycle 3.8: Phase 3 post-merge precommit gate
 
 **RED — Behavioral Verification:**
@@ -122,6 +192,16 @@ Expected: Precommit runs after commit, failures reported, exit 1, commit persist
 Implement post-merge precommit gate as mandatory correctness check. After merge commit created, run `just precommit` (shell out to just recipe). Capture exit code and output. If exit 0, output merge commit SHA to stdout and exit 0 (success). If non-zero, report failure to stderr: "Precommit checks failed:" followed by just output, exit 1. Do NOT roll back merge commit — user fixes issues and amends commit or re-runs merge (idempotent flow handles already-merged state). This validates take-ours conflict resolution strategy mechanically.
 
 Design decisions: D-4 (precommit as oracle), NFR-4 (mandatory gate), D-8 (idempotent — no rollback, safe to re-run). Approach: precommit is external validation, not merge logic, failure is expected path requiring user intervention.
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-6-notes.md
+
+---
 
 ## Cycle 3.9: Idempotent merge - resume after conflict resolution
 
@@ -137,6 +217,16 @@ Implement idempotent merge state detection across all phases. Phase 1: clean-tre
 
 Design decisions: D-8 (idempotent is architectural requirement), NFR-1 (resume after conflicts). Approach: state detection before each phase, MERGE_HEAD detection for in-progress merge, no assumptions about starting state.
 
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-9-notes.md
+
+---
+
 ## Cycle 3.10: Merge debris cleanup
 
 **RED — Behavioral Verification:**
@@ -150,6 +240,16 @@ Expected: Aborted merge leaves debris, cleanup removes only merge-materialized f
 Implement merge debris cleanup after abort. Before aborting merge, capture list of untracked files: `git status --porcelain | grep '^??'`. Execute `git merge --abort`. Check for NEW untracked files (present after abort but not before). Identify affected directories from conflict file list. Clean debris: `git clean -fd -- <affected-dirs>` targeting only paths that contained conflicts. Log cleanup actions to stderr for traceability. This prevents "untracked files would be overwritten" errors on merge retry. Only invoke cleanup if merge was aborted due to unresolvable conflicts.
 
 Design decisions: D-8 (idempotent — cleanup enables safe retry). Approach: pre-abort snapshot for diff, targeted clean by affected directories not blanket clean, defensive check to avoid removing user files.
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-10-notes.md
+
+---
 
 ## Cycle 3.11: Take-ours strategy
 
@@ -188,6 +288,14 @@ Implementation approach: subprocess wrappers for git checkout and git add, error
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-11-notes.md
+
+---
+
 ## Cycle 3.12: Precommit gate validates ours
 
 **RED — Behavioral Verification:**
@@ -223,6 +331,14 @@ Behavior hints:
 Implementation approach: subprocess for precommit with timeout (some checks may be slow), stderr capture for failure diagnosis, commit hash extraction via `git rev-parse HEAD` after commit succeeds, stdout write for machine-readable output.
 
 **CRITICAL:** Precommit runs AFTER merge commit, not before. Precommit failure does NOT roll back merge commit (NFR-4). User will fix and amend or re-run merge.
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-12-notes.md
 
 ---
 
@@ -269,3 +385,11 @@ Implementation approach: stderr parsing with regex for file paths (tool-specific
 **Edge case:** Precommit stderr may not contain parseable file paths (some tools report aggregate failures). In this case, fallback strategy cannot isolate failed files. Behavior: skip fallback, go directly to abort + conflict list with message "Precommit failed with unparseable output. Manual resolution required."
 
 **CRITICAL:** Neither ours nor theirs guaranteed to pass precommit. This is heuristic resolution with mechanical validation (D-4). Agent does not judge correctness — precommit is the oracle.
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-3-13-notes.md
