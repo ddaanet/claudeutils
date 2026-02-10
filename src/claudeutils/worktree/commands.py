@@ -7,6 +7,12 @@ from pathlib import Path
 
 import click
 
+from claudeutils.worktree.conflicts import (
+    resolve_jobs_conflict,
+    resolve_learnings_conflict,
+    resolve_session_conflict,
+)
+
 
 def get_dirty_files() -> str:
     """Return porcelain-format dirty files, excluding session context files."""
@@ -279,6 +285,63 @@ def cmd_new(slug: str, base: str, session: str) -> None:
     except subprocess.CalledProcessError as e:
         click.echo(f"Error creating worktree: {e.stderr}", err=True)
         raise SystemExit(1) from e
+
+
+def resolve_conflicts(conflict_files: list[str], slug: str) -> bool:
+    """Resolve conflicts in session context files.
+
+    Args:
+        conflict_files: List of conflicted file paths
+        slug: Worktree slug (used for session conflict resolution)
+
+    Returns:
+        True if all conflicts resolved, False if any remain
+    """
+    conflict_resolver_map = {
+        "agents/session.md": lambda ours, theirs: resolve_session_conflict(
+            ours, theirs, slug=slug
+        ),
+        "agents/learnings.md": resolve_learnings_conflict,
+        "agents/jobs.md": resolve_jobs_conflict,
+    }
+
+    for filepath in conflict_files:
+        resolver = conflict_resolver_map.get(filepath)
+        if not resolver:
+            # Not a known conflict type - exit for manual resolution
+            return False
+
+        # Extract conflict sides via git show
+        result_ours = subprocess.run(
+            ["git", "show", f":2:{filepath}"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        ours_content = result_ours.stdout
+
+        result_theirs = subprocess.run(
+            ["git", "show", f":3:{filepath}"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        theirs_content = result_theirs.stdout
+
+        # Resolve conflict
+        resolved = resolver(ours_content, theirs_content)
+
+        # Write result to working tree
+        Path(filepath).write_text(resolved)
+
+        # Stage the resolved file
+        subprocess.run(
+            ["git", "add", filepath],
+            check=True,
+            capture_output=True,
+        )
+
+    return True
 
 
 def cmd_add_commit(files: tuple[str, ...]) -> None:
@@ -634,8 +697,12 @@ def cmd_merge(slug: str, message: str = "") -> None:
         if not conflict_files:
             # Merge actually succeeded (false positive for conflicts)
             pass
+        # Attempt to resolve conflicts automatically
+        elif resolve_conflicts(conflict_files, slug):
+            # All conflicts resolved
+            pass
         else:
-            # Conflicts exist - report and exit for manual resolution
+            # Some conflicts cannot be auto-resolved - report and exit
             click.echo("Merge conflicts detected:", err=True)
             for f in conflict_files:
                 click.echo(f"  {f}", err=True)

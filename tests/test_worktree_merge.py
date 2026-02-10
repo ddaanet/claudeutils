@@ -329,6 +329,194 @@ def test_merge_phase_2_diverged_commits(
     """Verify merge with diverged submodule commits."""
 
 
+def test_merge_phase_3_session_conflicts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Resolve conflicts in session.md, learnings.md, jobs.md.
+
+    Tests deterministic conflict resolution in merge context.
+    """
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _setup_repo_with_submodule(repo_path)
+
+    # Add session.md, learnings.md, jobs.md to parent
+    session_content = """# Session
+
+## Pending Tasks
+
+- [ ] **Initial task** — some metadata
+
+## Blockers / Gotchas
+
+None yet.
+"""
+    learnings_content = """# Learnings
+
+## Initial learning
+
+First learning text.
+"""
+    jobs_content = """# Jobs
+
+| Plan | Status |
+|------|--------|
+| test-plan | requirements |
+"""
+
+    (repo_path / "agents" / "session.md").parent.mkdir(exist_ok=True)
+    (repo_path / "agents" / "session.md").write_text(session_content)
+    (repo_path / "agents" / "learnings.md").write_text(learnings_content)
+    (repo_path / "agents" / "jobs.md").write_text(jobs_content)
+
+    subprocess.run(
+        ["git", "add", "agents/"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add session context files"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create worktree
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert worktree_path.exists()
+
+    # Make changes in worktree: add new task, new learning, update plan status
+    worktree_session = """# Session
+
+## Pending Tasks
+
+- [ ] **Initial task** — some metadata
+- [ ] **Worktree task** — worktree metadata
+
+## Blockers / Gotchas
+
+None yet.
+"""
+    worktree_learnings = """# Learnings
+
+## Initial learning
+
+First learning text.
+
+## Worktree learning
+
+Worktree learning text.
+"""
+    worktree_jobs = """# Jobs
+
+| Plan | Status |
+|------|--------|
+| test-plan | designed |
+"""
+
+    (worktree_path / "agents" / "session.md").write_text(worktree_session)
+    (worktree_path / "agents" / "learnings.md").write_text(worktree_learnings)
+    (worktree_path / "agents" / "jobs.md").write_text(worktree_jobs)
+
+    subprocess.run(
+        ["git", "add", "agents/"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Worktree updates to session files"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Make conflicting changes in parent
+    # Different new task, new learning, and status update
+    parent_session = """# Session
+
+## Pending Tasks
+
+- [ ] **Initial task** — some metadata
+- [ ] **Parent task** — parent metadata
+
+## Blockers / Gotchas
+
+None yet.
+"""
+    parent_learnings = """# Learnings
+
+## Initial learning
+
+First learning text.
+
+## Parent learning
+
+Parent learning text.
+"""
+    parent_jobs = """# Jobs
+
+| Plan | Status |
+|------|--------|
+| test-plan | planned |
+"""
+
+    (repo_path / "agents" / "session.md").write_text(parent_session)
+    (repo_path / "agents" / "learnings.md").write_text(parent_learnings)
+    (repo_path / "agents" / "jobs.md").write_text(parent_jobs)
+
+    subprocess.run(
+        ["git", "add", "agents/"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Parent updates to session files"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Invoke merge - should detect and resolve conflicts
+    merge_result = runner.invoke(worktree, ["merge", "test-feature"])
+    assert merge_result.exit_code == 0, f"Merge failed: {merge_result.output}"
+
+    # Verify conflicts were resolved:
+    # 1. session.md should have both tasks
+    merged_session = (repo_path / "agents" / "session.md").read_text()
+    assert "Initial task" in merged_session
+    assert "Worktree task" in merged_session
+    assert "Parent task" in merged_session
+
+    # 2. learnings.md should have both new learnings
+    merged_learnings = (repo_path / "agents" / "learnings.md").read_text()
+    assert "Initial learning" in merged_learnings
+    assert "Worktree learning" in merged_learnings
+    assert "Parent learning" in merged_learnings
+
+    # 3. jobs.md should have higher status (planned > designed)
+    merged_jobs = (repo_path / "agents" / "jobs.md").read_text()
+    assert "| test-plan | planned |" in merged_jobs
+
+    # 4. No unresolved conflicts should remain
+    git_result = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=U"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert git_result.stdout.strip() == "", f"Unresolved conflicts: {git_result.stdout}"
+
+
 def test_merge_phase_3_clean_merge(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
