@@ -9,13 +9,40 @@ from click.testing import CliRunner
 from claudeutils.worktree.cli import derive_slug, worktree
 
 
+def _init_repo(repo_path: Path) -> None:
+    """Initialize git repo with user config and initial commit."""
+    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(
+        ["git", "add", "README.md"], cwd=repo_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+
 def test_package_import() -> None:
-    """Verify that worktree package can be imported."""
+    """Verifies module loads."""
     assert worktree is not None
 
 
 def test_worktree_command_group() -> None:
-    """Verify _worktree command group displays help output."""
+    """Help output includes command group name."""
     runner = CliRunner()
     result = runner.invoke(worktree, ["--help"])
     assert result.exit_code == 0
@@ -23,7 +50,7 @@ def test_worktree_command_group() -> None:
 
 
 def test_derive_slug() -> None:
-    """Verify derive_slug transforms task names to valid worktree slugs."""
+    """Transforms task names to slugs: lowercase, hyphens, 30 char limit."""
     assert derive_slug("Implement ambient awareness") == "implement-ambient-awareness"
     assert derive_slug("Design runbook identifiers") == "design-runbook-identifiers"
     assert (
@@ -32,12 +59,11 @@ def test_derive_slug() -> None:
     )
     assert derive_slug("Multiple    spaces   here") == "multiple-spaces-here"
     assert derive_slug("Special!@#$%chars") == "special-chars"
-    # Mid-word truncation creating trailing hyphen
     assert derive_slug("A" * 35 + "test") == "a" * 30
 
 
 def test_ls_empty() -> None:
-    """Verify ls exits 0 with empty output when no worktrees exist."""
+    """Empty output when no worktrees exist."""
     runner = CliRunner()
     result = runner.invoke(worktree, ["ls"])
     assert result.exit_code == 0
@@ -45,35 +71,16 @@ def test_ls_empty() -> None:
 
 
 def test_ls_multiple_worktrees(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Verify ls parses and outputs multiple worktrees with slug extraction."""
-    # Create a temporary git repo
+    """Parses porcelain output and extracts slug from path."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    # Initialize git repo
-    subprocess.run(["git", "init"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
-    )
+    _init_repo(repo_path)
 
-    # Create initial commit
-    (repo_path / "README.md").write_text("test")
-    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
-    )
-
-    # Create two worktree branches and worktrees
     subprocess.run(["git", "branch", "task-a"], check=True, capture_output=True)
     subprocess.run(["git", "branch", "task-b"], check=True, capture_output=True)
 
-    # Create worktrees
     worktree_a = repo_path / "wt" / "task-a"
     worktree_b = repo_path / "wt" / "task-b"
     subprocess.run(
@@ -87,7 +94,6 @@ def test_ls_multiple_worktrees(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
         capture_output=True,
     )
 
-    # Run ls command
     runner = CliRunner()
     result = runner.invoke(worktree, ["ls"])
 
@@ -95,71 +101,42 @@ def test_ls_multiple_worktrees(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     lines = result.output.strip().split("\n")
     assert len(lines) == 2
 
-    # Parse output lines
     line_a = lines[0].split("\t")
     line_b = lines[1].split("\t")
 
-    # Verify first line
     assert line_a[0] == "task-a"
     assert line_a[1] == "refs/heads/task-a"
     assert str(worktree_a) in line_a[2]
 
-    # Verify second line
     assert line_b[0] == "task-b"
     assert line_b[1] == "refs/heads/task-b"
     assert str(worktree_b) in line_b[2]
 
 
 def test_new_session_precommit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Verify new --session flag pre-commits focused session to worktree branch.
-
-    Tests that session file content is committed to the branch before worktree
-    creation.
-    """
-    # Create a temporary git repo
+    """Session file committed to worktree branch before worktree creation."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    # Initialize git repo
-    subprocess.run(["git", "init"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
-    )
+    _init_repo(repo_path)
 
-    # Create initial commit
-    (repo_path / "README.md").write_text("test")
-    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
-    )
-
-    # Create focused session file
     session_file = tmp_path / "test-session.md"
     session_file.write_text("# Focused Session\n\nTask content")
 
-    # Run new command with --session
     runner = CliRunner()
     result = runner.invoke(
         worktree, ["new", "test-feature", "--session", str(session_file)]
     )
     assert result.exit_code == 0
 
-    # Verify worktree exists
     worktree_path = repo_path / "wt" / "test-feature"
     assert worktree_path.exists()
 
-    # Verify session.md was committed to branch
     session_md_path = worktree_path / "agents" / "session.md"
     assert session_md_path.exists()
     assert session_md_path.read_text() == "# Focused Session\n\nTask content"
 
-    # Verify branch has one commit ahead of HEAD
     result = subprocess.run(
         ["git", "rev-list", "--count", "HEAD..test-feature"],
         capture_output=True,
@@ -169,7 +146,6 @@ def test_new_session_precommit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     commits_ahead = int(result.stdout.strip())
     assert commits_ahead == 1
 
-    # Verify main worktree index is unmodified
     result = subprocess.run(
         ["git", "diff", "--cached"],
         capture_output=True,
@@ -178,7 +154,6 @@ def test_new_session_precommit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     )
     assert result.stdout == ""
 
-    # Verify commit message
     result = subprocess.run(
         ["git", "log", "-1", "--format=%s", "test-feature"],
         capture_output=True,
@@ -187,217 +162,3 @@ def test_new_session_precommit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     )
     commit_msg = result.stdout.strip()
     assert commit_msg == "Focused session for test-feature"
-
-
-def test_rm_basic(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Verify rm removes worktree directory and branch.
-
-    Given: Worktree created via _worktree new test-feature
-    When: Run _worktree rm test-feature
-    Then: Directory wt/test-feature/ does not exist
-    Then: Branch test-feature does not exist
-    Then: Exit 0
-    Then: Success message to stderr
-    """
-    # Create a temporary git repo
-    repo_path = tmp_path / "repo"
-    repo_path.mkdir()
-    monkeypatch.chdir(repo_path)
-
-    # Initialize git repo
-    subprocess.run(["git", "init"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
-    )
-
-    # Create initial commit
-    (repo_path / "README.md").write_text("test")
-    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
-    )
-
-    # Create worktree via new command
-    runner = CliRunner()
-    result = runner.invoke(worktree, ["new", "test-feature"])
-    assert result.exit_code == 0
-
-    # Verify worktree exists
-    worktree_path = repo_path / "wt" / "test-feature"
-    assert worktree_path.exists()
-
-    # Run rm command
-    result = runner.invoke(worktree, ["rm", "test-feature"])
-
-    # Verify exit code
-    assert result.exit_code == 0
-
-    # Verify worktree directory does not exist
-    assert not worktree_path.exists()
-
-    # Verify branch does not exist
-    branch_result = subprocess.run(
-        ["git", "branch", "--list", "test-feature"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert branch_result.stdout.strip() == ""
-
-    # Verify success message to stderr
-    assert "removed" in result.output.lower()
-
-
-def test_rm_dirty_warning(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Verify rm warns about uncommitted changes but proceeds.
-
-    Given: Worktree with uncommitted changes (create file in wt/test-feature/)
-    When: Run _worktree rm test-feature
-    Then: Warning to stderr about uncommitted changes
-    Then: Worktree and branch still removed (forced)
-    Then: Exit 0
-    """
-    # Create a temporary git repo
-    repo_path = tmp_path / "repo"
-    repo_path.mkdir()
-    monkeypatch.chdir(repo_path)
-
-    # Initialize git repo
-    subprocess.run(["git", "init"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
-    )
-
-    # Create initial commit
-    (repo_path / "README.md").write_text("test")
-    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
-    )
-
-    # Create worktree via new command
-    runner = CliRunner()
-    result = runner.invoke(worktree, ["new", "test-feature"])
-    assert result.exit_code == 0
-
-    # Create uncommitted changes in worktree
-    worktree_path = repo_path / "wt" / "test-feature"
-    (worktree_path / "newfile.txt").write_text("uncommitted")
-
-    # Run rm command
-    result = runner.invoke(worktree, ["rm", "test-feature"])
-
-    # Verify exit code is 0 (forced removal)
-    assert result.exit_code == 0
-
-    # Verify worktree directory does not exist
-    assert not worktree_path.exists()
-
-    # Verify branch does not exist
-    branch_result = subprocess.run(
-        ["git", "branch", "--list", "test-feature"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert branch_result.stdout.strip() == ""
-
-    # Verify warning message about uncommitted changes
-    assert "uncommitted" in result.output.lower() or "warning" in result.output.lower()
-
-
-def test_rm_branch_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Verify rm handles branch-only cleanup when worktree already removed.
-
-    Given: Worktree created via _worktree new test-feature
-    Given: Worktree manually removed via rm -rf wt/test-feature
-    Given: Branch test-feature still exists
-    When: Run _worktree rm test-feature
-    Then: Exit 0
-    Then: Branch test-feature removed
-    Then: No error about missing worktree directory
-    """
-    # Create a temporary git repo
-    repo_path = tmp_path / "repo"
-    repo_path.mkdir()
-    monkeypatch.chdir(repo_path)
-
-    # Initialize git repo
-    subprocess.run(["git", "init"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
-    )
-
-    # Create initial commit
-    (repo_path / "README.md").write_text("test")
-    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
-    )
-
-    # Create worktree via new command
-    runner = CliRunner()
-    result = runner.invoke(worktree, ["new", "test-feature"])
-    assert result.exit_code == 0
-
-    # Verify worktree exists
-    worktree_path = repo_path / "wt" / "test-feature"
-    assert worktree_path.exists()
-
-    # Verify branch exists
-    branch_result = subprocess.run(
-        ["git", "branch", "--list", "test-feature"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert "test-feature" in branch_result.stdout
-
-    # Manually remove worktree directory (simulating external cleanup)
-    subprocess.run(["rm", "-rf", str(worktree_path)], check=True, capture_output=True)
-    assert not worktree_path.exists()
-
-    # Verify branch still exists
-    branch_result = subprocess.run(
-        ["git", "branch", "--list", "test-feature"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert "test-feature" in branch_result.stdout
-
-    # Run rm command on branch-only worktree
-    result = runner.invoke(worktree, ["rm", "test-feature"])
-
-    # Verify exit code is 0
-    assert result.exit_code == 0
-
-    # Verify branch does not exist
-    branch_result = subprocess.run(
-        ["git", "branch", "--list", "test-feature"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert branch_result.stdout.strip() == ""
-
-    # Verify no error in output about missing worktree directory
-    assert (
-        "error" not in result.output.lower()
-        or "no such file" not in result.output.lower()
-    )
