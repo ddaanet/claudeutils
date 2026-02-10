@@ -4,15 +4,7 @@ import re
 
 
 def _extract_task_block(task_name: str, content: str) -> str | None:
-    """Extract a task block (task line + indented metadata) from content.
-
-    Args:
-        task_name: The task name to find.
-        content: The markdown content to search.
-
-    Returns:
-        Task block string if found, None otherwise.
-    """
+    """Extract task block including indented metadata lines."""
     task_line_pattern = rf"^- \[ \] \*\*{re.escape(task_name)}\*\*.*$"
     match = re.search(task_line_pattern, content, re.MULTILINE)
     if not match:
@@ -39,16 +31,7 @@ def _format_new_tasks_text(
     has_next_heading: bool,
     ours_ends_with_newline: bool,
 ) -> str:
-    """Format new tasks text with proper spacing.
-
-    Args:
-        new_task_blocks: Dictionary of task blocks to insert.
-        has_next_heading: Whether there's a next section heading.
-        ours_ends_with_newline: Whether ours ends with a newline.
-
-    Returns:
-        Formatted tasks text ready for insertion.
-    """
+    """Format new tasks with spacing: blank line before next section, newline at EOF."""
     tasks_text = "\n".join(new_task_blocks.values())
     if not tasks_text:
         return ""
@@ -65,20 +48,10 @@ def _format_new_tasks_text(
 
 
 def resolve_session_conflict(ours: str, theirs: str, slug: str | None = None) -> str:
-    """Resolve session.md merge conflict by extracting new tasks from theirs.
+    """Resolve session.md merge: keep ours, append new tasks from theirs.
 
-    Preserves all tasks from ours, adds new tasks found only in theirs.
-    All other sections remain unchanged from ours. If slug is provided, extracts
-    the task from theirs' Worktree Tasks section and adds to Pending Tasks.
-
-    Args:
-        ours: The base session.md version (keep as base).
-        theirs: The incoming session.md version (extract new tasks from).
-        slug: Optional worktree slug. If provided, extract task from Worktree Tasks
-              and add to new tasks list.
-
-    Returns:
-        Merged session.md with new tasks appended to Pending Tasks section.
+    If slug provided, extract matching task from theirs' Worktree Tasks section.
+    All other sections unchanged from ours.
     """
     # Parse task names from both versions (Pending Tasks only, not Worktree)
     task_pattern = r"^- \[ \] \*\*(.+?)\*\*"
@@ -139,30 +112,13 @@ def resolve_session_conflict(ours: str, theirs: str, slug: str | None = None) ->
 
 
 def resolve_jobs_conflict(ours: str, theirs: str) -> str:
-    """Resolve jobs.md merge conflict by advancing statuses to higher ordering.
+    """Resolve jobs.md merge: advance plan statuses to higher ordering.
 
-    Compares status values between ours and theirs versions using a defined
-    status ordering. When theirs has a higher status for a plan, advances
-    ours's status to match. Preserves all other content unchanged.
-
-    Status ordering (lowest to highest):
-    - requirements
-    - designed
-    - outlined
-    - planned
-    - complete
-
-    Args:
-        ours: The base jobs.md version (to be updated).
-        theirs: The incoming jobs.md version (source of higher statuses).
-
-    Returns:
-        Merged jobs.md with advanced statuses.
+    Status ordering: requirements → designed → outlined → planned → complete
     """
     status_ordering = ("requirements", "designed", "outlined", "planned", "complete")
 
     # Parse plan rows from both versions
-    # Pattern: | plan_name | status |
     table_pattern = r"^\| ([^\|]+) \| ([^\|]+) \|"
 
     ours_matches = re.findall(table_pattern, ours, re.MULTILINE)
@@ -205,17 +161,9 @@ def resolve_jobs_conflict(ours: str, theirs: str) -> str:
 
 
 def resolve_learnings_conflict(ours: str, theirs: str) -> str:
-    """Resolve learnings.md merge conflict by appending new entries from theirs.
+    """Resolve learnings.md merge: keep ours, append new entries from theirs.
 
-    Preserves all entries from ours, adds new entries found only in theirs.
-    Uses append-only strategy: entries are identified by heading text.
-
-    Args:
-        ours: The base learnings.md version (keep as base).
-        theirs: The incoming learnings.md version (extract new entries from).
-
-    Returns:
-        Merged learnings.md with new entries appended at end.
+    Entries identified by heading text.
     """
     # Split both versions on heading delimiter (^## ) with MULTILINE
     ours_split = re.split(r"^## ", ours, flags=re.MULTILINE)
@@ -229,10 +177,7 @@ def resolve_learnings_conflict(ours: str, theirs: str) -> str:
 
     # Extract heading text from each entry (first line of each section)
     def extract_heading(entry: str) -> str | None:
-        """Extract heading from entry (first line before newline or EOF).
-
-        Returns None if entry is empty or heading text is blank.
-        """
+        """Extract first line as heading, None if empty."""
         if not entry:
             return None
         first_line = entry.split("\n", 1)[0]
