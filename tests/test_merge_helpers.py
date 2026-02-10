@@ -50,8 +50,10 @@ def setup_repo_with_submodule(repo_path: Path) -> None:
         check=True,
     )
 
+    # Use absolute path for submodule URL to work correctly from worktrees
+    submodule_url = str(agent_core_path.absolute())
     (repo_path / ".gitmodules").write_text(
-        '[submodule "agent-core"]\n\tpath = agent-core\n\turl = ./agent-core\n'
+        f'[submodule "agent-core"]\n\tpath = agent-core\n\turl = {submodule_url}\n'
     )
     run_git(["add", ".gitmodules"], cwd=repo_path, check=True)
     run_git(["commit", "-m", "Add submodule"], cwd=repo_path, check=True)

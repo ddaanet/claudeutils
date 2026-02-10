@@ -179,6 +179,8 @@ def cmd_new(slug: str, base: str, session: str) -> None:
         if agent_core_local.exists() and (agent_core_local / ".git").exists():
             run_git(
                 [
+                    "-c",
+                    "protocol.file.allow=always",
                     "-C",
                     str(worktree_path),
                     "submodule",

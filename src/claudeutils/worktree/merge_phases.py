@@ -126,7 +126,16 @@ def merge_phase_2_submodule(slug: str, worktree_path: Path) -> None:
         raise SystemExit(1)
 
     fetch_result = run_git(
-        ["-C", "agent-core", "fetch", str(worktree_ac_path), "HEAD"], check=False
+        [
+            "-c",
+            "protocol.file.allow=always",
+            "-C",
+            "agent-core",
+            "fetch",
+            str(worktree_ac_path),
+            "HEAD",
+        ],
+        check=False,
     )
     if fetch_result.returncode != 0:
         click.echo("Error: failed to fetch from worktree submodule", err=True)
