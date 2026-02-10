@@ -436,3 +436,98 @@ def cmd_merge(slug: str) -> None:
                     click.echo(msg, err=True)
                     # Phase 3 would be implemented in next cycle
                     return
+
+                # Diverged commits: fetch from worktree, merge, stage, commit
+                worktree_ac_path = worktree_path / "agent-core"
+                if worktree_ac_path.exists():
+                    # Fetch from worktree's submodule
+                    fetch_result = subprocess.run(
+                        [
+                            "git",
+                            "-C",
+                            "agent-core",
+                            "fetch",
+                            str(worktree_ac_path),
+                            "HEAD",
+                        ],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                    if fetch_result.returncode == 0:
+                        # Merge the fetched commit
+                        merge_result = subprocess.run(
+                            [
+                                "git",
+                                "-C",
+                                "agent-core",
+                                "merge",
+                                "--no-edit",
+                                wt_submodule_commit,
+                            ],
+                            capture_output=True,
+                            text=True,
+                            check=False,
+                        )
+                        if merge_result.returncode == 0:
+                            # Stage the merged submodule pointer
+                            subprocess.run(
+                                ["git", "add", "agent-core"],
+                                capture_output=True,
+                                text=True,
+                                check=True,
+                            )
+                            # Create merge commit if staged (idempotent)
+                            # Guard: git diff --quiet --cached
+                            diff_result = subprocess.run(
+                                ["git", "diff", "--quiet", "--cached"],
+                                capture_output=True,
+                                check=False,
+                            )
+                            # If diff returned non-zero (changes staged), commit
+                            if diff_result.returncode != 0:
+                                result = subprocess.run(
+                                    [
+                                        "git",
+                                        "commit",
+                                        "-m",
+                                        f"🔀 Merge agent-core from {slug}",
+                                    ],
+                                    capture_output=True,
+                                    text=True,
+                                    check=False,
+                                )
+                            else:
+                                result = subprocess.run(
+                                    ["git", "rev-parse", "HEAD"],
+                                    capture_output=True,
+                                    check=False,
+                                )
+
+                            if result.returncode == 0:
+                                wt_short = wt_submodule_commit[:7]
+                                local_short = local_submodule_commit[:7]
+                                msg = (
+                                    f"Submodule agent-core: merged "
+                                    f"({wt_short} + {local_short})"
+                                )
+                                click.echo(msg, err=True)
+                            # Phase 3 would be implemented in next cycle
+                            return
+                        click.echo(
+                            "Error: submodule merge conflict in agent-core",
+                            err=True,
+                        )
+                        click.echo(merge_result.stderr, err=True)
+                        raise SystemExit(1)
+                    click.echo(
+                        "Error: failed to fetch from worktree submodule",
+                        err=True,
+                    )
+                    click.echo(fetch_result.stderr, err=True)
+                    raise SystemExit(1)
+                click.echo(
+                    f"Error: worktree submodule not found at {worktree_ac_path}",
+                    err=True,
+                )
+                raise SystemExit(1)
