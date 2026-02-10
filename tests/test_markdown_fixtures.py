@@ -213,9 +213,7 @@ def test_full_pipeline_remark(fixture_name: str) -> None:
     # First full pipeline pass: preprocessor → remark
     processed_lines = process_lines(input_lines)
 
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".md", delete=False
-    ) as tmp_file:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as tmp_file:
         tmp_path = tmp_file.name
         tmp_file.writelines(processed_lines)
 
@@ -223,9 +221,7 @@ def test_full_pipeline_remark(fixture_name: str) -> None:
         tmp_file_path = Path(tmp_path)
         remark_cmd = ["remark", "--rc-path", ".remarkrc.json", tmp_path, "--output"]
 
-        result = subprocess.run(
-            remark_cmd, capture_output=True, text=True, check=False
-        )
+        result = subprocess.run(remark_cmd, capture_output=True, text=True, check=False)
         assert result.returncode == 0, (
             f"remark-cli failed for fixture {fixture_name}:\n"
             f"Exit code: {result.returncode}\n"

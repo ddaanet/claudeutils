@@ -45,13 +45,9 @@ _COOP_WITH_EXIT = (
     "    - /handoff --commit\n    - /commit\n---\n"
 )
 _COOP_EMPTY_EXIT = (
-    "---\nname: {name}\ncontinuation:\n"
-    "  cooperative: true\n  default-exit: []\n---\n"
+    "---\nname: {name}\ncontinuation:\n  cooperative: true\n  default-exit: []\n---\n"
 )
-_NON_COOP = (
-    "---\nname: {name}\ncontinuation:\n"
-    "  cooperative: false\n---\n"
-)
+_NON_COOP = "---\nname: {name}\ncontinuation:\n  cooperative: false\n---\n"
 
 
 def _write_skill(base: Path, name: str, frontmatter: str) -> Path:
@@ -70,9 +66,7 @@ def _skills_path(tmp_path: Path) -> Path:
     return p
 
 
-def _build_with_env(
-    tmp_path: Path, skill_files: list[Path]
-) -> dict[str, Any]:
+def _build_with_env(tmp_path: Path, skill_files: list[Path]) -> dict[str, Any]:
     """Build registry with proper env and cleared cache."""
     with patch.dict(os.environ, {"CLAUDE_PROJECT_DIR": str(tmp_path)}):
         cache = get_cache_path([str(f) for f in skill_files], str(tmp_path))
@@ -246,12 +240,8 @@ class TestBuildRegistry:
     def test_build_registry_cooperative_only(self, tmp_path: Path) -> None:
         """Registry includes only cooperative skills."""
         sp = _skills_path(tmp_path)
-        f1 = _write_skill(
-            sp, "design", _COOP_WITH_EXIT.format(name="design")
-        )
-        f2 = _write_skill(
-            sp, "experimental", _NON_COOP.format(name="experimental")
-        )
+        f1 = _write_skill(sp, "design", _COOP_WITH_EXIT.format(name="design"))
+        f2 = _write_skill(sp, "experimental", _NON_COOP.format(name="experimental"))
         registry = _build_with_env(tmp_path, [f1, f2])
         assert "design" in registry
         assert registry["design"]["cooperative"] is True
@@ -267,9 +257,7 @@ class TestBuildRegistry:
     def test_build_registry_empty_default_exit(self, tmp_path: Path) -> None:
         """Registry includes skills with empty default-exit."""
         sp = _skills_path(tmp_path)
-        f = _write_skill(
-            sp, "commit", _COOP_EMPTY_EXIT.format(name="commit")
-        )
+        f = _write_skill(sp, "commit", _COOP_EMPTY_EXIT.format(name="commit"))
         registry = _build_with_env(tmp_path, [f])
         assert "commit" in registry
         assert registry["commit"]["default-exit"] == []
@@ -286,9 +274,7 @@ class TestBuildRegistry:
     ) -> None:
         """Registry uses cache on second call when files unchanged."""
         sp = _skills_path(tmp_path)
-        _write_skill(
-            sp, "design", _COOP_EMPTY_EXIT.format(name="design")
-        )
+        _write_skill(sp, "design", _COOP_EMPTY_EXIT.format(name="design"))
         cache_dir = tmp_path / "cache"
         cache_dir.mkdir()
         monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(tmp_path))

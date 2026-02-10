@@ -69,22 +69,26 @@ def generate_markdown_report(analysis: RecallAnalysis) -> str:
 
     if high_recall:
         lines.append("### High-Recall Entries (effective, keep as-is)\n")
-        lines.extend([
-            f"- **{result.entry_key}** ({result.referenced_file}): "
-            f"{result.recall_percent:.0f}% recall, "
-            f"{result.total_relevant_sessions} sessions"
-            for result in high_recall[:5]
-        ])
+        lines.extend(
+            [
+                f"- **{result.entry_key}** ({result.referenced_file}): "
+                f"{result.recall_percent:.0f}% recall, "
+                f"{result.total_relevant_sessions} sessions"
+                for result in high_recall[:5]
+            ]
+        )
         lines.append("")
 
     if low_recall:
         lines.append("### Low-Recall Entries (consider rephrase/remove)\n")
-        lines.extend([
-            f"- **{result.entry_key}** ({result.referenced_file}): "
-            f"{result.recall_percent:.0f}% recall, "
-            f"{result.total_relevant_sessions} sessions"
-            for result in low_recall[:5]
-        ])
+        lines.extend(
+            [
+                f"- **{result.entry_key}** ({result.referenced_file}): "
+                f"{result.recall_percent:.0f}% recall, "
+                f"{result.total_relevant_sessions} sessions"
+                for result in low_recall[:5]
+            ]
+        )
         lines.append("")
 
     lines.append("### Summary Statistics\n")
