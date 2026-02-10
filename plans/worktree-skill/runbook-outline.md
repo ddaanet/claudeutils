@@ -20,14 +20,16 @@
 
 ## Phase Structure
 
-### Phase 0: CLI Foundation
-- **Complexity:** Low
-- **Cycles:** ~3
+### Phase 0: CLI Foundation and Simple Subcommands
+- **Complexity:** Low-Medium
+- **Cycles:** ~9
 - **Model:** sonnet (implementation)
 - **Checkpoint:** light
 - **Files:** `src/claudeutils/worktree/__init__.py`, `src/claudeutils/worktree/cli.py`, `tests/test_worktree_cli.py`
 
-#### Cycle 0.1: Empty package initialization
+This phase establishes the package structure, Click command group, slug derivation utility, and three simple subcommands (ls, clean-tree, add-commit). These form the foundation for more complex operations.
+
+#### Cycle 0.1: Package initialization
 RED: Test import `from claudeutils.worktree.cli import worktree` raises ImportError (package doesn't exist). GREEN: Create `__init__.py` (empty per minimal convention) and empty `cli.py`.
 
 #### Cycle 0.2: Click group structure
@@ -36,60 +38,53 @@ RED: Test `_worktree --help` displays command group. GREEN: Create Click group d
 #### Cycle 0.3: Slug derivation utility
 RED: Test `derive_slug("Implement ambient awareness")` returns `"implement-ambient-awareness"` (lowercase, hyphens, truncate 30 chars). GREEN: Implement pure function with regex substitution.
 
-### Phase 1: Simple Subcommands (ls, clean-tree, add-commit)
-- **Complexity:** Low-Medium
-- **Cycles:** ~6
-- **Model:** sonnet (implementation)
-- **Checkpoint:** light
-- **Files:** `src/claudeutils/worktree/cli.py`, `tests/test_worktree_cli.py`
-
-#### Cycle 1.1: ls subcommand structure
+#### Cycle 0.4: ls subcommand structure
 RED: Test `_worktree ls` with no worktrees exits 0 with empty output. GREEN: Parse `git worktree list --porcelain`, emit tab-delimited lines.
 
-#### Cycle 1.2: ls with multiple worktrees
+#### Cycle 0.5: ls with multiple worktrees
 RED: Test with 2 worktrees outputs correct `<slug>\t<branch>\t<path>` per line. GREEN: Parse worktree, branch, path from porcelain format.
 
-#### Cycle 1.3: clean-tree with clean repo
+#### Cycle 0.6: clean-tree with clean repo
 RED: Test clean repo + submodule exits 0 silently. GREEN: Run `git status --porcelain` for parent and submodule, exit 0 if empty.
 
-#### Cycle 1.4: clean-tree with session files
+#### Cycle 0.7: clean-tree with session files
 RED: Test dirty `agents/session.md` exits 0 (exempt). GREEN: Filter out `agents/session.md`, `agents/jobs.md`, `agents/learnings.md` from status output.
 
-#### Cycle 1.5: clean-tree with non-session dirt
+#### Cycle 0.8: clean-tree with non-session dirt
 RED: Test dirty source file exits 1 with file list to stdout. GREEN: Print remaining files after filtering, exit 1.
 
-#### Cycle 1.6: add-commit idempotent behavior
+#### Cycle 0.9: add-commit idempotent behavior
 RED: Test add-commit with no staged changes exits 0 with empty output. GREEN: `git diff --quiet --cached && exit 0` before commit. Read message from stdin, output commit hash.
 
-### Phase 2: Worktree Lifecycle (new, rm)
+### Phase 1: Worktree Lifecycle (new, rm)
 - **Complexity:** Medium
 - **Cycles:** ~7
 - **Model:** sonnet (implementation)
 - **Checkpoint:** light
 - **Files:** `src/claudeutils/worktree/cli.py`, `tests/test_worktree_cli.py`
 
-#### Cycle 2.1: new subcommand basic flow
+#### Cycle 1.1: new subcommand basic flow
 RED: Test `_worktree new <slug>` creates `wt/<slug>/` and branch. GREEN: Run `git worktree add wt/<slug> -b <slug> HEAD`.
 
-#### Cycle 2.2: new with collision detection
+#### Cycle 1.2: new with collision detection
 RED: Test existing branch or directory exits 1 with error message. GREEN: Validate no `wt/<slug>/` directory, no `<slug>` branch before creating.
 
-#### Cycle 2.3: new with submodule initialization
+#### Cycle 1.3: new with submodule initialization
 RED: Test new worktree has submodule initialized at correct commit. GREEN: `git -C wt/<slug> submodule update --init --reference <project-root>/agent-core`.
 
-#### Cycle 2.4: new with submodule branching
+#### Cycle 1.4: new with submodule branching
 RED: Test submodule in new worktree is on `<slug>` branch. GREEN: `git -C wt/<slug>/agent-core checkout -b <slug>`.
 
-#### Cycle 2.5: new with --session pre-commit
+#### Cycle 1.5: new with --session pre-commit
 RED: Test `--session <path>` creates worktree with focused session.md at HEAD, main index unmodified. GREEN: Git plumbing sequence: hash-object, read-tree with temp index, update-index, write-tree, commit-tree, branch, worktree add.
 
-#### Cycle 2.6: rm subcommand with worktree removal
+#### Cycle 1.6: rm subcommand with worktree removal
 RED: Test `_worktree rm <slug>` removes worktree and branch. GREEN: `git worktree remove --force wt/<slug>` then `git branch -d <slug>`.
 
-#### Cycle 2.7: rm with branch-only cleanup
+#### Cycle 1.7: rm with branch-only cleanup
 RED: Test rm when worktree already removed still deletes branch. GREEN: Check if `wt/<slug>/` exists before worktree remove, always attempt branch delete.
 
-### Phase 3: Conflict Resolution Utilities (session, learnings, jobs)
+### Phase 2: Conflict Resolution Utilities (session, learnings, jobs)
 - **Complexity:** Medium
 - **Cycles:** ~4
 - **Model:** sonnet (implementation)
@@ -109,101 +104,93 @@ RED: Test `resolve_learnings_conflict(ours, theirs)` preserves all entries from 
 #### Cycle 3.4: Jobs conflict status advancement
 RED: Test `resolve_jobs_conflict(ours, theirs)` advances status when theirs > ours per ordering. GREEN: Parse table rows into plan→status maps, compare via ordering (`requirements < designed < outlined < planned < complete`), update ours.
 
-### Phase 4: Merge Orchestration (3-phase flow)
+### Phase 3: Merge Orchestration and Source Conflicts
 - **Complexity:** High
-- **Cycles:** ~10
+- **Cycles:** ~13
 - **Model:** sonnet (implementation)
 - **Checkpoint:** full
-- **Files:** `src/claudeutils/worktree/merge.py`, `tests/test_worktree_merge.py`
-- **Depends on:** Phase 3 (conflicts.py)
+- **Files:** `src/claudeutils/worktree/merge.py`, `src/claudeutils/worktree/conflicts.py`, `tests/test_worktree_merge.py`
+- **Depends on:** Phase 2 (conflicts.py)
 
-#### Cycle 4.1: Phase 1 pre-checks (clean tree gate)
+#### Cycle 3.1: Phase 1 pre-checks (clean tree gate)
 RED: Test merge with dirty tree exits 1. GREEN: Run clean-tree logic, validate branch exists, check worktree directory.
 
-#### Cycle 4.2: Phase 2 submodule resolution - no divergence
+#### Cycle 3.2: Phase 2 submodule resolution - no divergence
 RED: Test merge when worktree submodule commit equals local exits early (no merge needed). GREEN: Extract both commits via `git ls-tree` and `git -C agent-core rev-parse HEAD`, compare, skip if equal.
 
-#### Cycle 4.3: Phase 2 submodule resolution - fast-forward
+#### Cycle 3.3: Phase 2 submodule resolution - fast-forward
 RED: Test merge when local already includes worktree commit (ancestry check passes) skips merge. GREEN: `git -C agent-core merge-base --is-ancestor <wt-commit> <local-commit>`, skip if true.
 
-#### Cycle 4.4: Phase 2 submodule resolution - diverged commits
+#### Cycle 3.4: Phase 2 submodule resolution - diverged commits
 RED: Test merge with diverged submodule commits merges both sides. GREEN: Fetch from worktree path, merge with `--no-edit`, stage submodule, commit.
 
-#### Cycle 4.5: Phase 2 post-verification
+#### Cycle 3.5: Phase 2 post-verification
 RED: Test after submodule merge both original commits are ancestors of new HEAD. GREEN: `git -C agent-core merge-base --is-ancestor` for both original pointers.
 
-#### Cycle 4.6: Phase 3 parent merge - clean merge
+#### Cycle 3.6: Phase 3 parent merge - clean merge
 RED: Test merge with no conflicts commits with custom message. GREEN: `git merge --no-commit --no-ff <slug>`, detect clean merge, commit with `🔀 Merge wt/<slug>` or `--message` value.
 
-#### Cycle 4.7: Phase 3 parent merge - session conflicts
+#### Cycle 3.7: Phase 3 parent merge - session conflicts
 RED: Test merge with session.md conflict resolves deterministically. GREEN: Detect conflicts via `git diff --name-only --diff-filter=U`, apply conflicts.py resolution functions, stage, commit.
 
-#### Cycle 4.8: Phase 3 post-merge precommit gate
+#### Cycle 3.8: Phase 3 post-merge precommit gate
 RED: Test merge runs `just precommit` after commit and exits 1 on precommit failure without rolling back merge. GREEN: Run precommit, report failures to stderr, exit 1 if fails (no rollback).
 
-#### Cycle 4.9: Idempotent merge - resume after conflict resolution
+#### Cycle 3.9: Idempotent merge - resume after conflict resolution
 RED: Test re-running merge after manual conflict fix succeeds. GREEN: Detect merge in progress, skip completed phases, resume from current state.
 
-#### Cycle 4.10: Merge debris cleanup
+#### Cycle 3.10: Merge debris cleanup
 RED: Test aborted merge leaves untracked files, cleanup removes them. GREEN: After `git merge --abort`, run `git clean -fd -- <affected-dirs>` for materialized files.
 
-### Phase 5: Source Conflict Resolution (take-ours + precommit gate)
-- **Complexity:** Medium
-- **Cycles:** ~3
-- **Model:** sonnet (implementation)
-- **Checkpoint:** light
-- **Files:** `src/claudeutils/worktree/conflicts.py`, `tests/test_worktree_merge.py`
-- **Depends on:** Phase 4 (merge.py uses this logic)
-
-#### Cycle 5.1: Take-ours strategy
+#### Cycle 3.11: Take-ours strategy
 RED: Test source conflicts default to `--ours` version. GREEN: For each non-session conflict file, `git checkout --ours <file> && git add <file>`.
 
-#### Cycle 5.2: Precommit gate validates ours
+#### Cycle 3.12: Precommit gate validates ours
 RED: Test take-ours + passing precommit completes merge. GREEN: Run `just precommit` after ours resolution, output merge commit hash on success.
 
-#### Cycle 5.3: Precommit gate fallback to theirs
+#### Cycle 3.13: Precommit gate fallback to theirs
 RED: Test precommit failure on ours triggers retry with theirs. GREEN: On precommit failure, try `--theirs` for failed files, re-run precommit, exit with conflict list if neither passes.
 
-### Phase 6: SKILL.md (orchestration)
+### Phase 4: SKILL.md (orchestration)
 - **Complexity:** Medium-High
 - **Cycles:** ~5
 - **Model:** opus (workflow artifact)
 - **Checkpoint:** full (design-vet-agent)
 - **Files:** `agent-core/skills/worktree/SKILL.md`
-- **Depends on:** Phases 0-5 (all CLI implementation)
+- **Depends on:** Phases 0-3 (all CLI implementation)
 
-#### Cycle 6.1: Frontmatter and Mode A (single-task)
-RED: Skill frontmatter validates (YAML parser). GREEN: Frontmatter with description, allowed-tools, continuation config. Mode A: Read session.md, derive slug, generate focused session, invoke CLI, edit session.md.
+#### Cycle 4.1: Frontmatter and file structure
+RED: Skill frontmatter validates (YAML parser). GREEN: Frontmatter with description, allowed-tools, continuation config. Add H2 section headers for three modes.
 
-#### Cycle 6.2: Mode B (parallel group)
-RED: Skill invoked with no args detects parallel group. GREEN: Prose analysis logic (no shared plan, no dependency, compatible model, no restart), invoke Mode A per task, print all launch commands.
+#### Cycle 4.2: Mode A implementation (single-task worktree)
+RED: Skill contains Mode A prose for single-task worktree creation. GREEN: Imperative prose with tool anchors, focused session.md template, launch command output.
 
-#### Cycle 6.3: Mode C (merge ceremony)
-RED: Skill invoked with `merge <slug>` orchestrates handoff → commit → merge → cleanup. GREEN: Invoke `/handoff --commit`, wait, invoke `_worktree merge`, handle exit codes, remove from Worktree Tasks, invoke `_worktree rm`.
+#### Cycle 4.3: Mode B implementation (parallel group detection)
+RED: Skill contains Mode B prose for parallel group creation. GREEN: Parallel detection criteria as prose analysis, execute Mode A per task, consolidated launch commands.
 
-#### Cycle 6.4: Error communication and guidance
-RED: Skill reports conflicts and precommit failures with resolution guidance. GREEN: Parse CLI stderr for conflict lists and precommit failures, format user-facing messages with "what to do next" instructions.
+#### Cycle 4.4: Mode C implementation (merge ceremony)
+RED: Skill contains Mode C prose for merge ceremony orchestration. GREEN: Handoff → commit → merge → cleanup flow with error handling for three exit codes.
 
-#### Cycle 6.5: D+B hybrid tool anchors
-RED: Every skill step opens with tool call (prevents execution mode skipping). GREEN: Anchor each major section with Read, Bash, or Edit tool call before prose instructions.
+#### Cycle 4.5: D+B hybrid tool anchors and error communication polish
+RED: Every major step opens with tool call, error messages include resolution guidance. GREEN: Add tool anchors, polish error messages with numbered steps, add Usage Notes section.
 
-### Phase 7: Integration and Documentation
+### Phase 5: Integration and Documentation
 - **Complexity:** Low
 - **Cycles:** ~4
 - **Model:** haiku (mechanical)
 - **Checkpoint:** light
 - **Files:** `src/claudeutils/cli.py`, `.gitignore`, `agent-core/fragments/execute-rule.md`, `agent-core/fragments/sandbox-exemptions.md`, `justfile`, `.cache/just-help.txt`
 
-#### Cycle 7.1: CLI registration and .gitignore
+#### Cycle 5.1: CLI registration and .gitignore
 RED: Test `claudeutils _worktree --help` works from main CLI. GREEN: Add import and `cli.add_command(worktree, "_worktree")` to main `cli.py`. Add `wt/` to `.gitignore`.
 
-#### Cycle 7.2: execute-rule.md Mode 5 update
+#### Cycle 5.2: execute-rule.md Mode 5 update
 RED: Mode 5 references `/worktree` skill. GREEN: Replace inline prose with "Invoke `/worktree` skill" and link to `agent-core/skills/worktree/SKILL.md`.
 
-#### Cycle 7.3: sandbox-exemptions.md worktree patterns
+#### Cycle 5.3: sandbox-exemptions.md worktree patterns
 RED: Document includes worktree sandbox bypass patterns. GREEN: Add section for `uv sync` and `direnv allow` in new worktrees (network/filesystem access).
 
-#### Cycle 7.4: Justfile recipe deletion
+#### Cycle 5.4: Justfile recipe deletion
 RED: Recipes `wt-new`, `wt-task`, `wt-ls`, `wt-rm`, `wt-merge` do not exist. GREEN: Delete recipe definitions, regenerate `.cache/just-help.txt` via `just cache`.
 
 ## Expansion Guidance

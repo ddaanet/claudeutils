@@ -1,182 +1,211 @@
-### Phase 1: Simple Subcommands (ls, clean-tree, add-commit)
+### Phase 1: Worktree Lifecycle (new, rm)
 
-**Complexity:** Low-Medium
+**Complexity:** Medium
+**Cycles:** 7
 **Model:** sonnet (implementation)
 **Checkpoint:** light
 **Files:** `src/claudeutils/worktree/cli.py`, `tests/test_worktree_cli.py`
 
-This phase implements three simple subcommands that form the foundation for more complex operations: `ls` for listing worktrees, `clean-tree` for validating repository state, and `add-commit` for atomic stage-and-commit operations. These subcommands are independent and follow similar patterns (git porcelain parsing, filtering logic, idempotent behavior).
+**Context:** This phase implements the worktree creation and removal operations. The `new` subcommand creates a worktree at `wt/<slug>/` with optional pre-committed focused session, initializes submodules, and branches them. The `rm` subcommand handles cleanup including branch-only scenarios. Key complexity: Cycle 1.5 (--session pre-commit) uses git plumbing with temp index to avoid polluting main index.
+
+**Dependencies:** Phase 0 (CLI foundation, slug derivation)
 
 ---
 
-## Cycle 1.1: ls subcommand structure
+## Cycle 1.1: new subcommand basic flow
 
-**RED Phase:**
+**RED: Test behavior before implementation**
 
-Create test `test_ls_empty` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with no worktrees (only main worktree)
-- Act: Run `claudeutils _worktree ls`
-- Assert:
-  - Exit code is 0
-  - Output is empty (no worktree lines printed)
+Create test `test_worktree_cli.py::test_new_basic_flow`:
+- Given: Clean git repo with `.gitignore` containing `wt/` entry
+- When: Run `_worktree new test-feature`
+- Then: Directory `wt/test-feature/` exists
+- Then: Branch `test-feature` exists (not `wt/test-feature`)
+- Then: Worktree is checked out to branch `test-feature`
+- Then: Command exits 0, stdout contains `wt/test-feature`
 
-Expected failure: `_worktree ls` command doesn't exist yet.
+**Expected failure:** `_worktree new` subcommand does not exist (Click command not defined).
 
-**GREEN Phase:**
+**GREEN: Implement minimal behavior**
 
-Implement `ls` subcommand in `src/claudeutils/worktree/cli.py`:
-- Add `@worktree.command()` decorated function for `ls`
-- Execute `git worktree list --porcelain` via subprocess
-- Parse porcelain output: extract worktree path, branch name
-- For each non-main worktree: extract slug from path, emit `<slug>\t<branch>\t<path>` to stdout
-- Exit 0 unconditionally
+Add `new` subcommand to `cli.py`:
+- Click command decorator with `@worktree.command()`
+- Parameter: `slug` (string, required)
+- Optional: `--base` (default `HEAD`), `--session` (path, optional)
+- Behavior: Run `git worktree add wt/{slug} -b {slug} {base}`
+- Output: Print `wt/{slug}` to stdout
+- Error handling: stderr + exit 1 on git failure
 
-Behavior notes:
-- Porcelain format has `worktree <path>` and `branch refs/heads/<name>` lines
-- Main worktree (project root) is excluded from output
-- Tab-delimited format enables machine parsing by skill
-
----
-
-## Cycle 1.2: ls with multiple worktrees
-
-**RED Phase:**
-
-Create test `test_ls_multiple_worktrees` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with 2 worktrees created (e.g., `wt/task-a/` on branch `task-a`, `wt/task-b/` on branch `task-b`)
-- Act: Run `claudeutils _worktree ls`
-- Assert:
-  - Exit code is 0
-  - Output has exactly 2 lines
-  - First line: `task-a\ttask-a\t<absolute-path>/wt/task-a`
-  - Second line: `task-b\ttask-b\t<absolute-path>/wt/task-b`
-
-Expected failure: current implementation doesn't correctly parse multiple worktrees or extract slugs from paths.
-
-**GREEN Phase:**
-
-Extend `ls` implementation:
-- Parse all worktree entries from porcelain output (loop over `worktree` lines)
-- For each worktree path: check if it matches pattern `wt/<slug>/`, extract slug
-- Pair slug with branch name extracted from corresponding `branch` line
-- Emit one line per worktree (main worktree still excluded)
-
-Behavior notes:
-- Porcelain format groups: `worktree`, `HEAD`, `branch`, blank line separator
-- Slug extraction: split path on `/`, find `wt` component, take next component
-- Absolute paths in output enable direct navigation
+Skip submodule init and environment setup for this cycle (added in subsequent cycles).
 
 ---
 
-## Cycle 1.3: clean-tree with clean repo
+## Cycle 1.2: new with collision detection
 
-**RED Phase:**
+**RED: Test behavior before implementation**
 
-Create test `test_clean_tree_clean` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with submodule, no uncommitted changes, no untracked files
-- Act: Run `claudeutils _worktree clean-tree`
-- Assert:
-  - Exit code is 0
-  - No output to stdout or stderr (silent success)
+Create test `test_worktree_cli.py::test_new_collision_detection`:
+- Given: Existing branch `test-feature` created via `git branch test-feature HEAD`
+- When: Run `_worktree new test-feature`
+- Then: Exit 1
+- Then: stderr contains error message about existing branch
+- Then: No `wt/test-feature/` directory created
 
-Expected failure: `_worktree clean-tree` command doesn't exist yet.
+Create test `test_worktree_cli.py::test_new_directory_collision`:
+- Given: Existing directory `wt/test-feature/` (untracked, created via `mkdir -p`)
+- When: Run `_worktree new test-feature`
+- Then: Exit 1
+- Then: stderr contains error message about existing directory
+- Then: No new branch created
 
-**GREEN Phase:**
+**Expected failure:** Command proceeds despite collisions, creates worktree or fails with git error (not clean validation message).
 
-Implement `clean-tree` subcommand in `src/claudeutils/worktree/cli.py`:
-- Add `@worktree.command(name="clean-tree")` decorated function
-- Execute `git status --porcelain` for parent repo
-- Execute `git -C agent-core status --porcelain` for submodule
-- If both outputs are empty: exit 0 silently
-- If either has content: print dirty files to stdout, exit 1
+**GREEN: Implement minimal behavior**
 
-Behavior notes:
-- Porcelain format: `XY filename` where X=index status, Y=worktree status
-- Empty output means clean state (no staged, unstaged, or untracked changes)
-- Session file filtering added in next cycle
-
----
-
-## Cycle 1.4: clean-tree with session files
-
-**RED Phase:**
-
-Create test `test_clean_tree_session_files_exempt` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with modified `agents/session.md`, `agents/jobs.md`, `agents/learnings.md` (all dirty)
-- Act: Run `claudeutils _worktree clean-tree`
-- Assert:
-  - Exit code is 0 (session files are exempt from dirty check)
-  - No output (silent success)
-
-Expected failure: current implementation treats session files as dirty, exits 1.
-
-**GREEN Phase:**
-
-Extend `clean-tree` implementation:
-- After running `git status --porcelain` for parent and submodule, filter output lines
-- Filtering logic: remove lines where filename is `agents/session.md`, `agents/jobs.md`, or `agents/learnings.md`
-- Apply same filter to both parent and submodule status outputs
-- Exit 0 if filtered output is empty, exit 1 with remaining files otherwise
-
-Behavior notes:
-- Porcelain line format: status codes followed by space, then filename
-- Exact match on filenames (no partial matches or wildcards)
-- Session files are auto-committed during merge ceremony, exempting them here
+Add validation to `new` subcommand before `git worktree add`:
+- Check: `wt/{slug}/` directory does not exist (use `Path().exists()`)
+- Check: Branch `{slug}` does not exist (run `git rev-parse --verify {slug}`, expect exit code != 0)
+- On collision: Print descriptive error to stderr, exit 1 before attempting worktree creation
 
 ---
 
-## Cycle 1.5: clean-tree with non-session dirt
+## Cycle 1.3: new with submodule initialization
 
-**RED Phase:**
+**RED: Test behavior before implementation**
 
-Create test `test_clean_tree_dirty_source` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with modified `src/claudeutils/cli.py` (dirty source file)
-- Act: Run `claudeutils _worktree clean-tree`
-- Assert:
-  - Exit code is 1 (dirty tree detected)
-  - Stdout contains ` M src/claudeutils/cli.py` (porcelain format line)
+Create test `test_worktree_cli.py::test_new_submodule_init`:
+- Given: Repo with submodule `agent-core` initialized in main worktree
+- When: Run `_worktree new test-feature`
+- Then: Submodule `wt/test-feature/agent-core/` exists and is initialized
+- Then: Submodule is at same commit as parent repo's submodule pointer
+- Then: Submodule uses local objects from `<project-root>/agent-core` (verify via `.git/objects/info/alternates`)
 
-Expected failure: current implementation may exit 0 if session files dominate test setup, or may not print remaining files.
+**Expected failure:** Submodule directory is empty or uninitialized in new worktree.
 
-**GREEN Phase:**
+**GREEN: Implement minimal behavior**
 
-Verify `clean-tree` behavior:
-- After filtering session files, check if remaining porcelain lines exist
-- If yes: print all remaining lines to stdout (one line per dirty file, porcelain format preserved)
-- Exit 1 with dirty file list
-- If no remaining lines: exit 0 silently (already implemented in cycle 1.4)
-
-Behavior notes:
-- Output format matches `git status --porcelain` (enables script parsing)
-- User sees exactly which files block merge ceremony
-- Submodule dirty files also printed with `agent-core/` prefix
+After `git worktree add`, run submodule initialization:
+- Get project root: `git rev-parse --show-toplevel`
+- Run: `git -C wt/{slug} submodule update --init --reference {project_root}/agent-core`
+- `--reference` flag uses local objects as alternates (avoids fetching from remote)
+- Error handling: stderr + exit 1 on submodule init failure
 
 ---
 
-## Cycle 1.6: add-commit idempotent behavior
+## Cycle 1.4: new with submodule branching
 
-**RED Phase:**
+**RED: Test behavior before implementation**
 
-Create test `test_add_commit_nothing_staged` in `tests/test_worktree_cli.py`:
-- Arrange: Git repo with all changes already committed (clean state)
-- Act: Run `claudeutils _worktree add-commit agents/session.md` with message "Update session" piped to stdin
-- Assert:
-  - Exit code is 0 (idempotent, no error)
-  - Stdout is empty (no commit hash, because nothing was committed)
+Create test `test_worktree_cli.py::test_new_submodule_branching`:
+- Given: Repo with submodule initialized
+- When: Run `_worktree new test-feature`
+- Then: Submodule in `wt/test-feature/agent-core/` is on branch `test-feature` (not detached HEAD)
+- Then: Branch is new (not existing branch)
+- Then: Branch starts at submodule's current commit
 
-Expected failure: `_worktree add-commit` command doesn't exist yet, or implementation fails when nothing is staged.
+**Expected failure:** Submodule remains in detached HEAD state after initialization.
 
-**GREEN Phase:**
+**GREEN: Implement minimal behavior**
 
-Implement `add-commit` subcommand in `src/claudeutils/worktree/cli.py`:
-- Add `@worktree.command(name="add-commit")` with variadic file arguments
-- Execute `git add <files>` for all provided file paths
-- Check if anything was staged: `git diff --quiet --cached`
-- If nothing staged (exit 0 from diff): exit 0 immediately with no output (idempotent no-op)
-- If staged changes exist: read commit message from stdin, execute `git commit -m <message>`, output commit hash to stdout
-- Exit 0 on success, exit 1 on error
+After submodule initialization, create and checkout branch in submodule:
+- Run: `git -C wt/{slug}/agent-core checkout -b {slug}`
+- This creates new branch at current HEAD (the commit from submodule pointer)
+- Error handling: stderr + exit 1 on branch creation failure
 
-Behavior notes:
-- Message from stdin enables multi-line messages (ceremony uses heredocs)
-- Idempotent behavior critical for merge flow (submodule may already be committed)
-- Commit hash output enables verification in orchestration
+---
+
+## Cycle 1.5: new with --session pre-commit
+
+**RED: Test behavior before implementation**
+
+Create test `test_worktree_cli.py::test_new_session_precommit`:
+- Given: Focused session file at `tmp/test-session.md` with content `"# Focused Session\n\nTask content"`
+- When: Run `_worktree new test-feature --session tmp/test-session.md`
+- Then: Worktree `wt/test-feature/` exists on branch `test-feature`
+- Then: File `wt/test-feature/agents/session.md` contains focused session content
+- Then: Branch has one commit ahead of base (the focused session commit)
+- Then: Main worktree index is unmodified (verify via `git diff --cached` output empty in main)
+- Then: Commit message is `"Focused session for test-feature"`
+
+**Expected failure:** `--session` flag not implemented, or focused session not committed, or main index polluted.
+
+**GREEN: Implement minimal behavior**
+
+Add `--session` path handling with git plumbing sequence:
+- Create temp index file: `tempfile.NamedTemporaryFile(delete=False, suffix='.index')`
+- Hash session file: `git hash-object -w {session_path}` → blob SHA
+- Populate temp index from base: `GIT_INDEX_FILE={tmpfile} git read-tree {base}`
+- Update temp index: `GIT_INDEX_FILE={tmpfile} git update-index --cacheinfo 100644,{blob},agents/session.md`
+- Write tree from temp index: `GIT_INDEX_FILE={tmpfile} git write-tree` → tree SHA
+- Create commit: `git commit-tree {tree} -p {base} -m "Focused session for {slug}"` → commit SHA
+- Create branch: `git branch {slug} {commit}`
+- Create worktree: `git worktree add wt/{slug} {slug}`
+- Clean up: Remove temp index file
+
+Environment variable pattern: `subprocess.run(..., env={**os.environ, 'GIT_INDEX_FILE': tmpfile})`
+
+If `--session` not provided, use existing `git worktree add -b` flow from Cycle 1.1.
+
+---
+
+## Cycle 1.6: rm subcommand with worktree removal
+
+**RED: Test behavior before implementation**
+
+Create test `test_worktree_cli.py::test_rm_basic`:
+- Given: Worktree created via `_worktree new test-feature`
+- When: Run `_worktree rm test-feature`
+- Then: Directory `wt/test-feature/` does not exist
+- Then: Branch `test-feature` does not exist
+- Then: Exit 0
+- Then: Success message to stderr
+
+Create test `test_worktree_cli.py::test_rm_dirty_warning`:
+- Given: Worktree with uncommitted changes (create file in `wt/test-feature/`)
+- When: Run `_worktree rm test-feature`
+- Then: Warning to stderr about uncommitted changes
+- Then: Worktree and branch still removed (forced)
+- Then: Exit 0
+
+**Expected failure:** `_worktree rm` subcommand does not exist.
+
+**GREEN: Implement minimal behavior**
+
+Add `rm` subcommand to `cli.py`:
+- Click command decorator with `@worktree.command()`
+- Parameter: `slug` (string, required)
+- Check if worktree exists: `Path(f'wt/{slug}').exists()`
+- If exists:
+  - Check for dirty state: `git -C wt/{slug} diff --quiet HEAD` (exit code != 0 means dirty)
+  - If dirty: Print warning to stderr (`"Warning: wt/{slug} has uncommitted changes"`)
+  - Remove worktree: `git worktree remove --force wt/{slug}`
+- Remove branch: `git branch -d {slug}`
+  - If unmerged (exit code != 0): Print warning to stderr but don't fail (user choice)
+- Print success message to stderr
+- Exit 0
+
+---
+
+## Cycle 1.7: rm with branch-only cleanup
+
+**RED: Test behavior before implementation**
+
+Create test `test_worktree_cli.py::test_rm_branch_only`:
+- Given: Worktree created via `_worktree new test-feature`, then worktree manually removed via `rm -rf wt/test-feature` (simulating external cleanup)
+- Given: Branch `test-feature` still exists (verify with `git branch --list`)
+- When: Run `_worktree rm test-feature`
+- Then: Exit 0
+- Then: Branch `test-feature` removed
+- Then: No error about missing worktree directory
+
+**Expected failure:** Command exits 1 when worktree directory missing (fails to handle branch-only scenario).
+
+**GREEN: Implement minimal behavior**
+
+Update `rm` subcommand to handle missing worktree:
+- Check if `wt/{slug}/` exists before attempting worktree removal
+- If directory does not exist: Skip `git worktree remove` step (no error)
+- Always attempt `git branch -d {slug}` (branch cleanup works regardless of worktree state)
+- Success message reflects what was cleaned (e.g., "Branch {slug} removed" if worktree already gone)
+
+This makes `rm` idempotent and handles partial cleanup states.

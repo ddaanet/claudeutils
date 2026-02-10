@@ -1,211 +1,166 @@
-### Phase 2: Worktree Lifecycle (new, rm)
+### Phase 2: Conflict Resolution Utilities (~4 cycles)
 
-**Complexity:** Medium
-**Cycles:** 7
 **Model:** sonnet (implementation)
 **Checkpoint:** light
-**Files:** `src/claudeutils/worktree/cli.py`, `tests/test_worktree_cli.py`
+**Files:** `src/claudeutils/worktree/conflicts.py`, `tests/test_worktree_conflicts.py`
+**Parallel:** Can run parallel to Phases 0-1 (no CLI dependencies, pure functions)
 
-**Context:** This phase implements the worktree creation and removal operations. The `new` subcommand creates a worktree at `wt/<slug>/` with optional pre-committed focused session, initializes submodules, and branches them. The `rm` subcommand handles cleanup including branch-only scenarios. Key complexity: Cycle 2.5 (--session pre-commit) uses git plumbing with temp index to avoid polluting main index.
+**Requirements mapping:** FR-3 (session conflict resolution), NFR-2 (deterministic resolution)
 
-**Dependencies:** Phase 0 (CLI foundation, slug derivation)
-
----
-
-## Cycle 2.1: new subcommand basic flow
-
-**RED: Test behavior before implementation**
-
-Create test `test_worktree_cli.py::test_new_basic_flow`:
-- Given: Clean git repo with `.gitignore` containing `wt/` entry
-- When: Run `_worktree new test-feature`
-- Then: Directory `wt/test-feature/` exists
-- Then: Branch `test-feature` exists (not `wt/test-feature`)
-- Then: Worktree is checked out to branch `test-feature`
-- Then: Command exits 0, stdout contains `wt/test-feature`
-
-**Expected failure:** `_worktree new` subcommand does not exist (Click command not defined).
-
-**GREEN: Implement minimal behavior**
-
-Add `new` subcommand to `cli.py`:
-- Click command decorator with `@worktree.command()`
-- Parameter: `slug` (string, required)
-- Optional: `--base` (default `HEAD`), `--session` (path, optional)
-- Behavior: Run `git worktree add wt/{slug} -b {slug} {base}`
-- Output: Print `wt/{slug}` to stdout
-- Error handling: stderr + exit 1 on git failure
-
-Skip submodule init and environment setup for this cycle (added in subsequent cycles).
+**Phase notes:**
+- Four pure functions for deterministic merge conflict resolution
+- No git operations, no agent judgment — testable with string inputs
+- Session conflict: critical fix for FR-3 (extract worktree-created tasks before resolution)
+- Learnings: keep-both append strategy (append-only file)
+- Jobs: status advancement via ordering (requirements < designed < outlined < planned < complete)
+- This phase forms parallel group B (independent of CLI implementation)
 
 ---
 
-## Cycle 2.2: new with collision detection
+## Cycle 2.1: Session conflict resolution with task extraction
 
-**RED: Test behavior before implementation**
+**FR-3: Extract new tasks from worktree side before applying keep-ours merge resolution.**
 
-Create test `test_worktree_cli.py::test_new_collision_detection`:
-- Given: Existing branch `test-feature` created via `git branch test-feature HEAD`
-- When: Run `_worktree new test-feature`
-- Then: Exit 1
-- Then: stderr contains error message about existing branch
-- Then: No `wt/test-feature/` directory created
+**RED: Test behavior**
 
-Create test `test_worktree_cli.py::test_new_directory_collision`:
-- Given: Existing directory `wt/test-feature/` (untracked, created via `mkdir -p`)
-- When: Run `_worktree new test-feature`
-- Then: Exit 1
-- Then: stderr contains error message about existing directory
-- Then: No new branch created
+Create test fixture with two session.md versions:
+- **Ours:** Base session with tasks "Implement feature X" and "Design feature Y" in Pending Tasks
+- **Theirs:** Same base plus new task "Plan feature Z TDD runbook" in Pending Tasks
 
-**Expected failure:** Command proceeds despite collisions, creates worktree or fails with git error (not clean validation message).
+Call `resolve_session_conflict(ours, theirs)` and assert:
+- Result contains all three tasks in Pending Tasks section
+- New task "Plan feature Z TDD runbook" includes full task block with metadata (command, model, notes)
+- Order: ours tasks first, then new theirs tasks
+- All other sections unchanged (Blockers, Reference Files, handoff footer)
 
-**GREEN: Implement minimal behavior**
+**Expected failure:** Function doesn't exist yet, ImportError.
 
-Add validation to `new` subcommand before `git worktree add`:
-- Check: `wt/{slug}/` directory does not exist (use `Path().exists()`)
-- Check: Branch `{slug}` does not exist (run `git rev-parse --verify {slug}`, expect exit code != 0)
-- On collision: Print descriptive error to stderr, exit 1 before attempting worktree creation
+**GREEN: Implement behavior**
 
----
+Create `src/claudeutils/worktree/conflicts.py` with `resolve_session_conflict(ours: str, theirs: str) -> str`:
 
-## Cycle 2.3: new with submodule initialization
+**Algorithm hints:**
+1. Parse task names from both versions using regex `^- \[ \] \*\*(.+?)\*\*` with `re.MULTILINE` flag
+2. Compute new tasks: set difference on task names (theirs - ours)
+3. For each new task name, extract full task block from theirs (task line + any indented continuation lines using multi-line regex)
+4. Locate insertion point in ours: find Pending Tasks section, identify line before next `## ` heading
+5. Insert new task blocks before the next section heading
+6. Return merged content with ours as base, new tasks appended
 
-**RED: Test behavior before implementation**
-
-Create test `test_worktree_cli.py::test_new_submodule_init`:
-- Given: Repo with submodule `agent-core` initialized in main worktree
-- When: Run `_worktree new test-feature`
-- Then: Submodule `wt/test-feature/agent-core/` exists and is initialized
-- Then: Submodule is at same commit as parent repo's submodule pointer
-- Then: Submodule uses local objects from `<project-root>/agent-core` (verify via `.git/objects/info/alternates`)
-
-**Expected failure:** Submodule directory is empty or uninitialized in new worktree.
-
-**GREEN: Implement minimal behavior**
-
-After `git worktree add`, run submodule initialization:
-- Get project root: `git rev-parse --show-toplevel`
-- Run: `git -C wt/{slug} submodule update --init --reference {project_root}/agent-core`
-- `--reference` flag uses local objects as alternates (avoids fetching from remote)
-- Error handling: stderr + exit 1 on submodule init failure
+**Approach notes:**
+- Task block extraction must capture metadata lines (indented with spaces, containing plan/status/notes)
+- Use regex lookahead to stop extraction at next non-indented line or EOF
+- Preserve exact formatting (indentation, blank lines within task blocks)
 
 ---
 
-## Cycle 2.4: new with submodule branching
+## Cycle 2.2: Session conflict removes merged worktree entry
 
-**RED: Test behavior before implementation**
+**FR-3: Remove worktree task entry from Worktree Tasks section after extracting it.**
 
-Create test `test_worktree_cli.py::test_new_submodule_branching`:
-- Given: Repo with submodule initialized
-- When: Run `_worktree new test-feature`
-- Then: Submodule in `wt/test-feature/agent-core/` is on branch `test-feature` (not detached HEAD)
-- Then: Branch is new (not existing branch)
-- Then: Branch starts at submodule's current commit
+**RED: Test behavior**
 
-**Expected failure:** Submodule remains in detached HEAD state after initialization.
+Create test fixture where theirs has a Worktree Tasks section:
+- **Ours:** Pending Tasks only (no Worktree Tasks section)
+- **Theirs:** Same Pending Tasks plus Worktree Tasks section with entry `- [ ] **Execute plugin migration** → wt/plugin-migration`
 
-**GREEN: Implement minimal behavior**
+Call `resolve_session_conflict(ours, theirs, slug="plugin-migration")` and assert:
+- Result has no Worktree Tasks section
+- Pending Tasks section includes "Execute plugin migration" task (extracted and moved)
+- No reference to `wt/plugin-migration` remains
 
-After submodule initialization, create and checkout branch in submodule:
-- Run: `git -C wt/{slug}/agent-core checkout -b {slug}`
-- This creates new branch at current HEAD (the commit from submodule pointer)
-- Error handling: stderr + exit 1 on branch creation failure
+**Expected failure:** Function signature doesn't accept `slug` parameter, worktree entry not removed.
 
----
+**GREEN: Implement behavior**
 
-## Cycle 2.5: new with --session pre-commit
+Update `resolve_session_conflict` signature to accept optional `slug: str | None = None`:
 
-**RED: Test behavior before implementation**
+**Algorithm hints:**
+1. After extracting new tasks from theirs, scan theirs for Worktree Tasks section
+2. If `slug` provided: match line containing `→ wt/{slug}` pattern using regex
+3. Extract task name from matched worktree entry (same task name regex as Pending Tasks)
+4. If task name matches one of the newly extracted tasks, include it in new tasks list
+5. Do NOT include Worktree Tasks section in final result (section is omitted entirely)
+6. Return merged content with new tasks in Pending Tasks, no Worktree Tasks
 
-Create test `test_worktree_cli.py::test_new_session_precommit`:
-- Given: Focused session file at `tmp/test-session.md` with content `"# Focused Session\n\nTask content"`
-- When: Run `_worktree new test-feature --session tmp/test-session.md`
-- Then: Worktree `wt/test-feature/` exists on branch `test-feature`
-- Then: File `wt/test-feature/agents/session.md` contains focused session content
-- Then: Branch has one commit ahead of base (the focused session commit)
-- Then: Main worktree index is unmodified (verify via `git diff --cached` output empty in main)
-- Then: Commit message is `"Focused session for test-feature"`
-
-**Expected failure:** `--session` flag not implemented, or focused session not committed, or main index polluted.
-
-**GREEN: Implement minimal behavior**
-
-Add `--session` path handling with git plumbing sequence:
-- Create temp index file: `tempfile.NamedTemporaryFile(delete=False, suffix='.index')`
-- Hash session file: `git hash-object -w {session_path}` → blob SHA
-- Populate temp index from base: `GIT_INDEX_FILE={tmpfile} git read-tree {base}`
-- Update temp index: `GIT_INDEX_FILE={tmpfile} git update-index --cacheinfo 100644,{blob},agents/session.md`
-- Write tree from temp index: `GIT_INDEX_FILE={tmpfile} git write-tree` → tree SHA
-- Create commit: `git commit-tree {tree} -p {base} -m "Focused session for {slug}"` → commit SHA
-- Create branch: `git branch {slug} {commit}`
-- Create worktree: `git worktree add wt/{slug} {slug}`
-- Clean up: Remove temp index file
-
-Environment variable pattern: `subprocess.run(..., env={**os.environ, 'GIT_INDEX_FILE': tmpfile})`
-
-If `--session` not provided, use existing `git worktree add -b` flow from Cycle 2.1.
+**Approach notes:**
+- Worktree entry removal happens automatically by taking ours as base (which lacks the section)
+- Task name from worktree entry must match against extracted new tasks
+- Edge case: if worktree task name doesn't match any new task, it's not critical (merge can proceed)
 
 ---
 
-## Cycle 2.6: rm subcommand with worktree removal
+## Cycle 2.3: Learnings conflict keep-both
 
-**RED: Test behavior before implementation**
+**NFR-2: Deterministic learnings.md conflict resolution with append strategy.**
 
-Create test `test_worktree_cli.py::test_rm_basic`:
-- Given: Worktree created via `_worktree new test-feature`
-- When: Run `_worktree rm test-feature`
-- Then: Directory `wt/test-feature/` does not exist
-- Then: Branch `test-feature` does not exist
-- Then: Exit 0
-- Then: Success message to stderr
+**RED: Test behavior**
 
-Create test `test_worktree_cli.py::test_rm_dirty_warning`:
-- Given: Worktree with uncommitted changes (create file in `wt/test-feature/`)
-- When: Run `_worktree rm test-feature`
-- Then: Warning to stderr about uncommitted changes
-- Then: Worktree and branch still removed (forced)
-- Then: Exit 0
+Create test fixture with two learnings.md versions:
+- **Ours:** Three learning entries with `## Title` headings: "Tool batching unsolved", "Scan triggers unnecessary tools", "Structural header dot syntax"
+- **Theirs:** Same three entries plus new entry "## Vet-fix-agent confabulation from design docs"
 
-**Expected failure:** `_worktree rm` subcommand does not exist.
+Call `resolve_learnings_conflict(ours, theirs)` and assert:
+- Result contains all four learning entries
+- New entry appended at end (after "Structural header dot syntax")
+- All entries preserve exact content (multi-paragraph text, code blocks, bullet lists)
+- No duplication of shared entries
 
-**GREEN: Implement minimal behavior**
+**Expected failure:** Function doesn't exist yet.
 
-Add `rm` subcommand to `cli.py`:
-- Click command decorator with `@worktree.command()`
-- Parameter: `slug` (string, required)
-- Check if worktree exists: `Path(f'wt/{slug}').exists()`
-- If exists:
-  - Check for dirty state: `git -C wt/{slug} diff --quiet HEAD` (exit code != 0 means dirty)
-  - If dirty: Print warning to stderr (`"Warning: wt/{slug} has uncommitted changes"`)
-  - Remove worktree: `git worktree remove --force wt/{slug}`
-- Remove branch: `git branch -d {slug}`
-  - If unmerged (exit code != 0): Print warning to stderr but don't fail (user choice)
-- Print success message to stderr
-- Exit 0
+**GREEN: Implement behavior**
+
+Create function `resolve_learnings_conflict(ours: str, theirs: str) -> str`:
+
+**Algorithm hints:**
+1. Parse both versions into learning entries: split on `## ` heading delimiter (regex `^## `, `re.MULTILINE`)
+2. Extract heading text from each entry (first line after split, strip `## ` prefix)
+3. Build set of ours headings for comparison
+4. Identify new entries in theirs: headings present in theirs but not in ours
+5. Append new entry content (full text from `## Title` to next `## ` or EOF) to ours
+6. Return merged content with ours entries plus new theirs entries
+
+**Approach notes:**
+- Learnings.md is append-only, so theirs additions are always at the end
+- No reordering needed: preserve ours order, append theirs new entries
+- Handle edge case: preamble text before first `## ` heading (keep from ours, ignore from theirs)
 
 ---
 
-## Cycle 2.7: rm with branch-only cleanup
+## Cycle 2.4: Jobs conflict status advancement
 
-**RED: Test behavior before implementation**
+**NFR-2: Deterministic jobs.md conflict resolution with status ordering.**
 
-Create test `test_worktree_cli.py::test_rm_branch_only`:
-- Given: Worktree created via `_worktree new test-feature`, then worktree manually removed via `rm -rf wt/test-feature` (simulating external cleanup)
-- Given: Branch `test-feature` still exists (verify with `git branch --list`)
-- When: Run `_worktree rm test-feature`
-- Then: Exit 0
-- Then: Branch `test-feature` removed
-- Then: No error about missing worktree directory
+**RED: Test behavior**
 
-**Expected failure:** Command exits 1 when worktree directory missing (fails to handle branch-only scenario).
+Create test fixture with two jobs.md versions:
+- **Ours:** Plans table with "worktree-skill" status = "designed", "plugin-migration" status = "planned"
+- **Theirs:** Same table with "worktree-skill" status = "planned", "plugin-migration" status = "planned"
 
-**GREEN: Implement minimal behavior**
+Call `resolve_jobs_conflict(ours, theirs)` and assert:
+- Result advances "worktree-skill" to "planned" (theirs has higher status)
+- "plugin-migration" remains "planned" (no change, same status)
+- Status ordering: requirements < designed < outlined < planned < complete
 
-Update `rm` subcommand to handle missing worktree:
-- Check if `wt/{slug}/` exists before attempting worktree removal
-- If directory does not exist: Skip `git worktree remove` step (no error)
-- Always attempt `git branch -d {slug}` (branch cleanup works regardless of worktree state)
-- Success message reflects what was cleaned (e.g., "Branch {slug} removed" if worktree already gone)
+Additional test: verify "outlined" status ordering (between designed and planned) for plans using that intermediate state.
 
-This makes `rm` idempotent and handles partial cleanup states.
+**Expected failure:** Function doesn't exist yet.
+
+**GREEN: Implement behavior**
+
+Create function `resolve_jobs_conflict(ours: str, theirs: str) -> str`:
+
+**Algorithm hints:**
+1. Define status ordering tuple: `("requirements", "designed", "outlined", "planned", "complete")`
+2. Parse both versions for plan rows: regex `^\| ([^\|]+) \| ([^\|]+) \|` with `re.MULTILINE` on table body
+3. Build plan→status maps for ours and theirs (strip whitespace from captured groups)
+4. For each plan in theirs: compare status index (position in ordering tuple)
+5. If theirs status index > ours status index: update ours plan's status
+6. Reconstruct jobs.md with updated statuses: replace status cells in ours's table rows
+7. Return merged content with advanced statuses
+
+**Approach notes:**
+- Table parsing must skip header rows (starts after `|------|--------|-------|`)
+- Status comparison is index-based (tuple position), not string comparison
+- Plans not in ours: ignore (merge doesn't add new plans, only updates existing)
+- Preserve notes column exactly (no changes to notes text)

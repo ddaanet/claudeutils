@@ -1,120 +1,109 @@
-### Phase 5: Source Conflict Resolution (take-ours + precommit gate)
+### Phase 5: Integration and Documentation (~4 cycles)
 
-## Cycle 5.1: Take-ours strategy
+**Model:** haiku (mechanical wiring)
+**Checkpoint:** light (vet-fix-agent)
+**Depends on:** Phases 0-4 (CLI + SKILL.md implementation)
 
-**RED:**
-
-Create test fixture for source code merge conflict between main and worktree branches. Setup a diverged state where both branches modify same source file at same location. Test that `resolve_source_conflicts()` defaults to `--ours` version for all non-session conflict files.
-
-Expected behavior: Each conflicted source file resolved with `git checkout --ours <file>`, then staged with `git add <file>`. Function returns list of resolved files: `["src/claudeutils/worktree/cli.py", "tests/test_worktree_cli.py"]`.
-
-Test verifies:
-- Conflict markers present before resolution (`grep -q "^<<<<<<< HEAD" <file>`)
-- After resolution, working tree version matches `git show :2:<file>` (ours side)
-- File is staged (`git diff --cached --name-only` includes file)
-- No conflict markers remain in working tree
-
-Setup requires real git repos with actual merge conflicts (not mocked):
-1. Create base repo with initial source file content
-2. Branch to worktree branch, modify source file (add function A)
-3. Return to main branch, modify same location (add function B)
-4. Attempt merge → conflict state
-5. Extract conflict list via `git diff --name-only --diff-filter=U`
-6. Invoke `resolve_source_conflicts(conflict_list, exclude_patterns=["agents/session.md", "agents/jobs.md", "agents/learnings.md"])`
-
-**GREEN:**
-
-Implement `resolve_source_conflicts()` in `conflicts.py`. Function takes conflict list and exclude patterns, filters to source files only (excluding session context files), then applies take-ours resolution.
-
-Behavior hints:
-- Filter conflict list against exclude patterns (deterministic, not fuzzy matching)
-- For each source file in filtered list, run subprocess commands: `git checkout --ours <file>` followed by `git add <file>`
-- Capture any git command failures and propagate errors
-- Return list of successfully resolved files
-- Function is deterministic (no agent judgment), relies on mechanical git operations
-
-Implementation approach: subprocess wrappers for git checkout and git add, error handling for missing files or git failures, return resolved paths for caller verification.
+**Overview:** Wire worktree CLI into main command interface, update project configuration and documentation to reflect the new skill, and remove obsolete justfile recipes.
 
 ---
 
-## Cycle 5.2: Precommit gate validates ours
+## Cycle 5.1: CLI Registration and .gitignore
 
-**RED:**
+**RED — Specify the behavior to verify:**
 
-Test complete merge flow with source conflicts that pass precommit after take-ours resolution. Setup requires conflict scenario where ours version is correct (precommit passes).
+The main `claudeutils` CLI does not yet expose the `_worktree` subcommand. Running `claudeutils _worktree --help` should display the worktree command group with all six subcommands (new, rm, merge, ls, clean-tree, add-commit).
 
-Expected behavior: After `resolve_source_conflicts()` completes, merge logic runs `just precommit`. On success (exit 0), merge commits with merge message and outputs commit hash to stdout.
+The project `.gitignore` does not yet exclude the `wt/` directory. Git status should not show untracked `wt/` worktree directories.
 
-Test verifies:
-- Merge invoked with source conflicts
-- `resolve_source_conflicts()` applied
-- `just precommit` executed in subprocess
-- Precommit exits 0 (success)
-- `git log -1 --format=%H` returns new merge commit hash
-- Stdout contains exactly the commit hash (machine-readable output)
-- Working tree is clean after merge (no staged or unstaged changes)
+**Test expectations:**
+- `claudeutils _worktree --help` exits 0 and displays Click group help with six subcommands listed
+- `.gitignore` contains `wt/` entry
+- Creating a test worktree `wt/test-slug/` results in git status showing no untracked directory warning
 
-Setup conflict scenario where ours version has correct formatting, imports, and logic (precommit will pass). Example: worktree added unused import (linter failure), main branch has clean import. Take-ours preserves main's clean state.
+**GREEN — Implement to make tests pass:**
 
-**GREEN:**
+Import the worktree command group from `claudeutils.worktree.cli` and register it with the main CLI using `cli.add_command(worktree, "_worktree")`. The underscore prefix indicates this is an internal subcommand (invoked by skill, not users directly).
 
-Extend `merge.py` Phase 3 parent merge logic to invoke precommit gate after source conflict resolution. After all conflicts resolved and staged, commit merge, then immediately run precommit validation.
+Add `wt/` entry to `.gitignore` to exclude worktree directories from version control.
 
-Behavior hints:
-- After resolving conflicts (session files + source files), check for remaining conflicts via `git diff --name-only --diff-filter=U`
-- If none remain, commit with merge message: `git commit -m "<merge-message>"`
-- Capture merge commit hash from git output or `git rev-parse HEAD`
-- Run precommit: `subprocess.run(["just", "precommit"], check=False, capture_output=True)`
-- Check precommit exit code (not output parsing)
-- On success (exit 0), output commit hash to stdout, exit 0
-- On failure, proceed to Cycle 5.3 fallback logic (not implemented yet)
-
-Implementation approach: subprocess for precommit with timeout (some checks may be slow), stderr capture for failure diagnosis, commit hash extraction via `git rev-parse HEAD` after commit succeeds, stdout write for machine-readable output.
-
-**CRITICAL:** Precommit runs AFTER merge commit, not before. Precommit failure does NOT roll back merge commit (NFR-4). User will fix and amend or re-run merge.
+**Approach:**
+- Edit `src/claudeutils/cli.py`: add import statement for worktree command group, register with main CLI
+- Edit `.gitignore`: append `wt/` entry (one line)
+- Verify with manual test: `claudeutils _worktree --help` displays expected output
 
 ---
 
-## Cycle 5.3: Precommit gate fallback to theirs
+## Cycle 5.2: execute-rule.md Mode 5 Update
 
-**RED:**
+**RED — Specify the behavior to verify:**
 
-Test merge flow where take-ours fails precommit, triggering fallback to theirs. Setup requires conflict scenario where neither ours nor theirs alone satisfies precommit (requires manual resolution).
+The `agent-core/fragments/execute-rule.md` file still contains inline prose for Mode 5 (worktree setup) behavior. It should instead reference the `/worktree` skill as the canonical implementation.
 
-Expected behavior:
-1. Take-ours resolution applied
-2. Precommit fails (exit non-zero)
-3. Merge logic parses precommit stderr for failed files
-4. For files that failed precommit, apply `git checkout --theirs <file>` and re-stage
-5. Re-run `just precommit`
-6. If theirs passes: output merge commit hash, exit 0
-7. If theirs also fails: `git merge --abort`, clean debris, output conflict list to stderr, exit 1
+**Test expectations:**
+- Mode 5 section header remains: "### MODE 5: WORKTREE SETUP"
+- Triggers section references `wt` commands
+- Body text directs reader to `/worktree` skill documentation
+- No inline implementation prose (slug derivation, session generation, merge ceremony)
 
-Test verifies fallback logic when ours fails:
-- Initial precommit failure detected (stderr contains "FAILED" or similar)
-- Failed files identified from precommit output (parse stderr for file paths)
-- Theirs version applied via `git checkout --theirs <file> && git add <file>`
-- Second precommit invocation
-- **If both fail:** merge aborted, working tree clean, stderr contains conflict list with message "Manual resolution required for: <files>", exit 1
+**GREEN — Implement to make tests pass:**
 
-Setup conflict scenario: ours version has formatting issue (fails format check), theirs version has linting issue (fails linter). Neither passes precommit alone. Merge must exit with conflict list.
+Replace the inline worktree implementation prose with a reference to the `/worktree` skill. Preserve the trigger documentation (`wt` and `wt <task-name>`) but delegate behavior description to the skill.
 
-**GREEN:**
+**Approach:**
+- Edit `agent-core/fragments/execute-rule.md` Mode 5 section
+- Remove detailed implementation steps (slug derivation, focused session generation, worktree creation flow)
+- Add: "See `agent-core/skills/worktree/SKILL.md` for implementation details"
+- Keep trigger documentation intact for reference
 
-Extend merge logic to implement precommit fallback strategy. After initial precommit failure, parse stderr to identify which files caused failure, apply theirs resolution for those files, retry precommit.
+---
 
-Behavior hints:
-- After first precommit failure, capture stderr output
-- Parse stderr for file paths (precommit tools often report `<file>: FAILED` or similar patterns)
-- If file paths extracted, apply theirs strategy: `git checkout --theirs <file> && git add <file>` for each failed file
-- Re-run precommit with same subprocess pattern
-- On second success: output commit hash, exit 0
-- On second failure: mechanical cleanup sequence (abort merge, clean debris per Phase 4 Cycle 4.10 pattern), format error message with conflict list
-- Stderr message format: "Source conflict resolution failed. Manual resolution required for:\n" followed by file list (one per line)
-- Exit 1 (conflicts remain)
+## Cycle 5.3: sandbox-exemptions.md Worktree Patterns
 
-Implementation approach: stderr parsing with regex for file paths (tool-specific patterns), fallback list management (track which files tried theirs), cleanup invokes same debris removal logic from merge.py Phase 4. Precommit stderr is diagnostic — include in final error output for user debugging.
+**RED — Specify the behavior to verify:**
 
-**Edge case:** Precommit stderr may not contain parseable file paths (some tools report aggregate failures). In this case, fallback strategy cannot isolate failed files. Behavior: skip fallback, go directly to abort + conflict list with message "Precommit failed with unparseable output. Manual resolution required."
+The `agent-core/fragments/sandbox-exemptions.md` file does not yet document worktree-specific sandbox bypass requirements. Agents invoking `_worktree new` need guidance on when sandbox bypass is required.
 
-**CRITICAL:** Neither ours nor theirs guaranteed to pass precommit. This is heuristic resolution with mechanical validation (D-4). Agent does not judge correctness — precommit is the oracle.
+**Test expectations:**
+- Section exists documenting worktree sandbox requirements
+- Explains that `wt/` inside project root eliminates most sandbox bypass needs
+- Documents exceptions: `uv sync` (network + filesystem for package downloads) and `direnv allow` (writes outside project)
+- Notes that skill invokes these with `dangerouslyDisableSandbox: true`
+
+**GREEN — Implement to make tests pass:**
+
+Add a worktree-specific section to `sandbox-exemptions.md` documenting the directory location change (inside project root) and the remaining operations that require sandbox bypass (environment setup: `uv sync` and `direnv allow`).
+
+**Approach:**
+- Add new section: "### Worktree Operations"
+- Explain directory location eliminates most bypass needs
+- List exceptions: environment initialization steps in new worktrees
+- Clarify that skill handles sandbox bypass, CLI itself is agnostic
+
+---
+
+## Cycle 5.4: Justfile Recipe Deletion
+
+**RED — Specify the behavior to verify:**
+
+The justfile still contains five obsolete recipes: `wt-new`, `wt-task`, `wt-ls`, `wt-rm`, `wt-merge`. These are superseded by the `_worktree` CLI subcommand. Running `just --list` should not display these recipes.
+
+The cached help text `.cache/just-help.txt` still references the old recipes. Running `just cache` should regenerate this file without the obsolete entries.
+
+**Test expectations:**
+- Justfile does not contain `wt-new`, `wt-task`, `wt-ls`, `wt-rm`, or `wt-merge` recipe definitions
+- `just --list` output does not include these five recipes
+- `.cache/just-help.txt` does not reference obsolete worktree recipes
+- `just cache` completes successfully and updates cached help
+
+**GREEN — Implement to make tests pass:**
+
+Delete the five worktree recipe definitions from the justfile. Run `just cache` to regenerate `.cache/just-help.txt` with the updated recipe list.
+
+**Approach:**
+- Edit `justfile`: remove all five `wt-*` recipe blocks (likely contiguous section)
+- Run `just cache` to regenerate cached help text
+- Verify with `just --list`: no worktree recipes shown
+- Verify `.cache/just-help.txt`: no references to `wt-new`, `wt-task`, etc.
+
+**Note:** Recipe deletion may affect line count significantly. The justfile is tracked in version control, so git diff will show exact removals.
