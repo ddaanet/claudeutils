@@ -54,6 +54,14 @@ Create `src/claudeutils/worktree/conflicts.py` with `resolve_session_conflict(ou
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-2-1-notes.md
+
+---
+
 ## Cycle 2.2: Session conflict removes merged worktree entry
 
 **FR-3: Remove worktree task entry from Worktree Tasks section after extracting it.**
@@ -87,6 +95,14 @@ Update `resolve_session_conflict` signature to accept optional `slug: str | None
 - Worktree entry removal happens automatically by taking ours as base (which lacks the section)
 - Task name from worktree entry must match against extracted new tasks
 - Edge case: if worktree task name doesn't match any new task, it's not critical (merge can proceed)
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-2-2-notes.md
 
 ---
 
@@ -127,6 +143,14 @@ Create function `resolve_learnings_conflict(ours: str, theirs: str) -> str`:
 
 ---
 
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-2-3-notes.md
+
+---
+
 ## Cycle 2.4: Jobs conflict status advancement
 
 **NFR-2: Deterministic jobs.md conflict resolution with status ordering.**
@@ -164,3 +188,11 @@ Create function `resolve_jobs_conflict(ours: str, theirs: str) -> str`:
 - Status comparison is index-based (tuple position), not string comparison
 - Plans not in ours: ignore (merge doesn't add new plans, only updates existing)
 - Preserve notes column exactly (no changes to notes text)
+
+---
+
+**Expected Outcome**: GREEN verification, no regressions
+**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
+**Success Criteria**: Test fails during RED, passes during GREEN, no breaks
+**Report Path**: plans/worktree-skill/reports/cycle-2-4-notes.md
