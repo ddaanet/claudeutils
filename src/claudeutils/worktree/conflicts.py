@@ -1,6 +1,7 @@
 """Session.md conflict resolution during worktree merges."""
 
 import re
+import subprocess
 
 
 def _extract_task_block(task_name: str, content: str) -> str | None:
@@ -206,3 +207,56 @@ def resolve_learnings_conflict(ours: str, theirs: str) -> str:
         result += entry
 
     return result
+
+
+def resolve_source_conflicts(
+    conflict_files: list[str],
+    *,
+    exclude_patterns: list[str] | None = None,
+    cwd: str | None = None,
+) -> list[str]:
+    """Resolve source code conflicts using take-ours strategy.
+
+    Takes conflicted source files and applies `git checkout --ours`, then stages.
+    Filters against exclude patterns (session context files). Returns list of
+    successfully resolved files.
+
+    Args:
+        conflict_files: List of file paths with merge conflicts.
+        exclude_patterns: File patterns to exclude from resolution (e.g.,
+            ["agents/session.md", "agents/jobs.md"]).
+        cwd: Working directory for git commands. Defaults to current directory.
+
+    Returns:
+        List of file paths that were successfully resolved.
+    """
+    if exclude_patterns is None:
+        exclude_patterns = []
+
+    resolved = []
+
+    for file_path in conflict_files:
+        # Skip files matching exclude patterns
+        if any(file_path == pattern for pattern in exclude_patterns):
+            continue
+
+        # Apply take-ours resolution
+        try:
+            subprocess.run(
+                ["git", "checkout", "--ours", file_path],
+                check=True,
+                capture_output=True,
+                cwd=cwd,
+            )
+            subprocess.run(
+                ["git", "add", file_path],
+                check=True,
+                capture_output=True,
+                cwd=cwd,
+            )
+            resolved.append(file_path)
+        except subprocess.CalledProcessError as e:
+            msg = f"Failed to resolve conflict in {file_path}"
+            raise RuntimeError(msg) from e
+
+    return resolved
