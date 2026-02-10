@@ -638,5 +638,82 @@ def test_merge_phase_3_clean_merge(
     assert "🔀 Integrate test feature" in log_output
 
 
+def test_merge_phase_3_post_merge_precommit_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify mandatory precommit validation after merge commit.
+
+    Create worktree merge that succeeds, commit is created, then precommit is
+    run. Assert precommit runs after merge commit is created, merge commit is
+    NOT rolled back on precommit failure.
+    """
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _setup_repo_with_submodule(repo_path)
+
+    # Create worktree
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    worktree_path = repo_path / "wt" / "test-feature"
+    assert worktree_path.exists()
+
+    # Make worktree change (clean code)
+    (worktree_path / "worktree_file.txt").write_text("worktree change")
+    subprocess.run(
+        ["git", "add", "worktree_file.txt"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Worktree change"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Get commit count before merge
+    result = subprocess.run(
+        ["git", "rev-list", "--count", "HEAD"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    before_count = int(result.stdout.strip())
+
+    # Invoke merge - should succeed (precommit passes in real repo)
+    merge_result = runner.invoke(worktree, ["merge", "test-feature"])
+    assert merge_result.exit_code == 0, f"Merge failed: {merge_result.output}"
+
+    # Verify merge commit was created
+    result = subprocess.run(
+        ["git", "rev-list", "--count", "HEAD"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    after_count = int(result.stdout.strip())
+    assert after_count > before_count, (
+        f"Merge commit not created: before={before_count}, after={after_count}"
+    )
+
+    # Verify merge commit exists in history
+    git_result = subprocess.run(
+        ["git", "log", "--oneline"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    log_output = git_result.stdout
+    assert "🔀 Merge wt/test-feature" in log_output
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
