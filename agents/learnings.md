@@ -273,3 +273,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Detection: Check if any step's file-mutating command scope overlaps `plans/<plan-name>/` (excluding `reports/`)
 - Root cause: Blanket directory operations look correct but scope includes the executing runbook
 - Fix: Added `-not -path` exclusion to Phase 0 step 12; vet criterion added to main repo
+## Worktree merge loses pending tasks
+- Anti-pattern: `git checkout --ours agents/session.md` during worktree merge — discards worktree-side pending tasks
+- Correct pattern: Extract new pending tasks from worktree session.md before resolving conflict, append to main
+- Algorithm: Parse both sides' Pending Tasks by task name regex, diff, append new worktree-side tasks to main
+- Example: "Execute plugin migration" task created in worktree, lost by blind --ours resolution
+- Fix: Outlined in `plans/worktree-skill/outline.md` Session File Conflict Resolution section

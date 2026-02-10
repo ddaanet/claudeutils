@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Worktree skill outline complete. focus-session.py recovered from orphaned submodule commit.
+**Status:** Plugin-migration worktree merged + removed. Worktree skill outline updated with merge resolution patterns.
 
 ## Completed This Session
 
@@ -17,16 +17,30 @@
 - Found latest descendant f7dd52c (merge commit, 2 commits ahead of HEAD)
 - Merged f7dd52c into agent-core HEAD — focus-session.py now properly on branch
 
+**Plugin-migration worktree merge:**
+- Merged `wt/plugin-migration` into dev (0840c38) — 8 commits, submodule diverged
+- Submodule resolution: fetched from worktree gitdir (`.git/worktrees/.../modules/agent-core`), merged both sides into agent-core HEAD
+- Resolved learnings.md conflict (keep-both: dev added 4, plugin-migration added 2)
+- Removed worktree after verifying clean status + full merge
+- Recovered lost "Execute plugin migration" task from worktree session.md (blind `--ours` had dropped it)
+
+**Worktree skill outline updates:**
+- Added Submodule Merge Resolution section (deterministic fetch+merge sequence, gitdir path pattern)
+- Added Session File Conflict Resolution section with task extraction algorithm (parse+diff task names)
+- Expanded error handling (merge debris cleanup, submodule fetch retry)
+- Expanded test scenarios (diverged vs fast-forward submodule, session file strategies)
+
 **From previous session:**
-- Continuation passing merge (56bcf83) — submodule + project merged with history preservation
-- Branch migration, settings cleanup, plan archival (5 completed plans removed)
-- Delegation/execution-routing split, line limit refactoring (-1049 lines)
+- Worktree skill design outline created (4 rounds user feedback)
+- focus-session.py recovery, continuation passing merge, delegation/execution-routing split
 
 ## Pending Tasks
 
 - [ ] **Worktree skill design + implementation** — `/design plans/worktree-skill/outline.md` (Phase C: full design), then `/plan-tdd` | opus
   - Plan: worktree-skill | Status: outlined
 - [ ] **Review agent-core orphaned revisions** — Check all agent-core commits reachable from parent repo history but not on current HEAD, merge if needed | sonnet
+- [ ] **Execute plugin migration** — `/orchestrate plans/plugin-migration/orchestrator-plan.md` | haiku
+  - Plan: plugin-migration | Status: planned
 - [ ] **Examine pending tasks for batching** — Identify parallelizable task groups for wt/ execution | sonnet
 - [ ] **Update design skill** — Read design artifacts referenced in context, assess plan progress | sonnet
 - [ ] **Add PreToolUse hook for symlink writes** — Block writes through symlink | restart
@@ -51,8 +65,7 @@
 
 ## Worktree Tasks
 
-- [ ] **Evaluate plugin migration** → `wt/plugin-migration` — Symlink situation causing pain
-  - Plan: plugin-migration | Status: planned
+(none)
 
 ## Blockers / Gotchas
 
@@ -61,9 +74,7 @@
 - `tests/test_continuation_consumption.py` (523 lines), `test_continuation_registry.py` (512), `test_continuation_parser.py` (566)
 - Mypy type errors and collection errors in continuation tests
 
-**4 stale worktrees exist** (merged but not removed): bash-git-prompt, continuation-passing, markdown-test-corpus, memory-index-recall.
-
-**agent-core submodule has unmerged merge commit.** f7dd52c merged into agent-core HEAD but parent repo not yet updated (`git add agent-core`). Will be staged in next commit.
+**4 stale worktrees remain** (merged but not removed): bash-git-prompt, continuation-passing, markdown-test-corpus, memory-index-recall. Plus vet-fix-agent worktree (active).
 
 ## Reference Files
 
