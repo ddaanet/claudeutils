@@ -76,12 +76,19 @@ def ls() -> None:
 
 
 def _create_session_commit(slug: str, base: str, session: str) -> str:
-    """Create a git commit with session.md using temp index.
+    """Pre-commit session.md to branch using isolated temp index.
 
-    Returns the commit hash without polluting main worktree index.
+    Avoids polluting main worktree index by using GIT_INDEX_FILE isolation.
+
+    Returns:
+        Commit hash for the session commit.
     """
     session_path = Path(session)
-    session_content = session_path.read_text()
+    try:
+        session_content = session_path.read_text()
+    except (FileNotFoundError, PermissionError) as e:
+        click.echo(f"Error reading session file {session}: {e}", err=True)
+        raise SystemExit(1) from e
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".index") as tmp_index:
         tmp_index_path = tmp_index.name
@@ -294,7 +301,7 @@ def new(slug: str, base: str, session: str) -> None:
 
         click.echo(str(worktree_path))
     except subprocess.CalledProcessError as e:
-        click.echo(f"Error creating worktree: {e.stderr.decode()}", err=True)
+        click.echo(f"Error creating worktree: {e.stderr}", err=True)
         raise SystemExit(1) from e
 
 
