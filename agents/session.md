@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Agent-core orphaned revisions reviewed (none found). Fix-precommit worktree merged. Worktree-skill runbook ready for orchestration.
+**Status:** Worktree-skill orchestration in progress: 4 of 42 steps complete (Phase 0: 4/9). Background agent crash issue recurring but not blocking (agents write reports before crashing).
 
 ## Completed This Session
 
@@ -18,11 +18,29 @@
 - Test failure persists: `test_preprocessor_idempotency[02-inline-backticks]` still fails despite fix attempt
 - Root cause: Line-by-line heuristic parser cannot handle multi-line inline code spans correctly
 
+**Worktree-skill orchestration (in progress):**
+- Completed Phase 0 cycles 0.1-0.4 (4 of 42 steps, 9.5% progress)
+- Cycle 0.1 (1c3f7a8): Package initialization, empty __init__.py and cli.py stub
+- Cycle 0.2 (caab20b): Click group structure with @click.group decorator
+- Cycle 0.3 (12ef041): Slug derivation utility (pure function, 30-char truncation)
+- Cycle 0.4 (f5c1039): ls subcommand structure (empty case, porcelain parsing)
+- All cycles vet-reviewed, 2 fixes applied in cycle 0.4 (docstring, iteration logic)
+- Fixed step 0-3.md specification error (truncation test assertion, f68f17d)
+- Fixed pre-existing learnings.md validation issue (6-word header, 92099dc)
+- Moved orchestrate-evolution-analysis.md from tmp/ to plans/ (ff7a092)
+
 ## Pending Tasks
 
 - [ ] **Redesign markdown preprocessor** — Correctly parse multi-line inline markup (code sections) instead of line-by-line heuristics | sonnet
-- [ ] **Orchestrate worktree-skill execution** — `/orchestrate worktree-skill` | sonnet | restart
-  - Plan: worktree-skill | Status: planned (after prepare-runbook.py)
+- [>] **Orchestrate worktree-skill execution** — Continue from step 0-5 (Phase 0: 5/9) | sonnet
+  - Plan: worktree-skill | Status: in progress (4 of 42 steps complete)
+  - Next: Cycle 0.5 (ls with multiple worktrees)
+- [ ] **Review recent changes for vacuous tests** — Check worktree-skill test quality | sonnet
+- [ ] **Deslop recent changes** — Validate new deslop instruction on worktree-skill code | sonnet
+- [ ] **Review all tests for vacuous tests** — Comprehensive test quality audit | sonnet
+- [ ] **Deslop entire codebase** — Apply deslop principles project-wide | sonnet
+- [ ] **Fragments cleanup after orchestration design** — Remove fragments duplicating skills/workflow | sonnet
+- [ ] **Interactive design session for orchestration principles** — Key architectural decisions | opus
 - [ ] **Execute plugin migration** — `/orchestrate plans/plugin-migration/orchestrator-plan.md` | sonnet
   - Plan: plugin-migration | Status: planned
 - [ ] **Examine pending tasks for batching** — Identify parallelizable task groups for wt/ execution | sonnet
@@ -64,9 +82,9 @@
 - **plans/worktree-skill/orchestrator-plan.md** — Generated orchestrator plan
 - **.claude/agents/worktree-skill-task.md** — Generated task agent
 
-- **tmp/orchestrate-evolution-analysis.md** — Opus gap analysis: 7 gaps, FR/NFR requirements, open design questions
+- **plans/orchestrate-evolution/orchestrate-evolution-analysis.md** — Opus gap analysis: 7 gaps, FR/NFR requirements, open design questions (moved from tmp/)
 - **tmp/cycle-4.2-parser-analysis.md** — Sonnet parser diagnosis: two issues, fix options with trade-offs
 - **plans/reports/agent-core-orphaned-revisions-report.md** — Submodule audit: 131 commits checked, 0 orphaned
 
 ---
-*Handoff by Sonnet. Agent-core clean, fix-precommit merged, preprocessor redesign pending.*
+*Handoff by Sonnet. Worktree-skill Phase 0: 4/9 complete. Next session continues orchestration from step 0-5.*
