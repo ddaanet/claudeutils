@@ -260,3 +260,16 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: E2E only with real git repos (tmp_path fixtures), mocking only for error injection
 - Rationale: Git with tmp_path is fast (milliseconds), subprocess mocks are implementation-coupled (command strings not outcomes), interesting bugs are state transitions that mocks can't catch
 - Exception: Mock subprocess for error injection only (lock files, permission errors)
+## Flexible phase numbering support
+- Anti-pattern: Hardcoding phase validation to expect 1-based numbering (phases 1-N)
+- Correct pattern: Detect starting phase number from first file, validate sequential from that base
+- Rationale: Design decisions may use 0-based (Phase 0 = foundational step) or 1-based numbering
+- Implementation: `start_num = phase_nums[0]`, validate against `range(start_num, start_num + len)`
+- Also supports general vs TDD detection: Step headers = general, Cycle headers = TDD
+- Fix: agent-core/bin/prepare-runbook.py lines 410-445
+## Self-referential runbook modification
+- Anti-pattern: Runbook step uses `find plans/` or `sed -i` on `plans/` directory — includes `plans/<plan-name>/` itself
+- Correct pattern: Exclude plan's own directory (`-not -path 'plans/<plan-name>/*'`) or enumerate specific target directories
+- Detection: Check if any step's file-mutating command scope overlaps `plans/<plan-name>/` (excluding `reports/`)
+- Root cause: Blanket directory operations look correct but scope includes the executing runbook
+- Fix: Added `-not -path` exclusion to Phase 0 step 12; vet criterion added to main repo

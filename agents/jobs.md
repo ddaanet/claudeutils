@@ -12,7 +12,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
 | handoff-validation | requirements | Requires continuation-passing |
 | orchestrate-evolution | requirements | Absorb planning, finalize phase pattern |
-| plugin-migration | planned | All 7 phases vetted (44 issues fixed). Ready for runbook assembly |
+| plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
 | requirements-skill | requirements | Evaluate with opus |
 | tweakcc | requirements | Local instances research |

@@ -1,12 +1,8 @@
-# Phase 0: Directory Rename
+# Step 0.1
 
-**Purpose:** Rename agent-core directory to edify-plugin across entire project (D-1)
-
-**Dependencies:** None
-
-**Model:** Haiku
-
-**Estimated Complexity:** Moderate (git mv + comprehensive path updates across 6 file categories)
+**Plan**: `plans/plugin-migration/runbook.md`
+**Execution Model**: haiku
+**Phase**: 1
 
 ---
 
@@ -34,7 +30,7 @@ git mv agent-core edify-plugin
 
 4. **Update root justfile:**
    - Search-replace: `agent-core/` → `edify-plugin/`
-   - Affected recipes: `cache` (line ~25), `wt-new` (line ~65: `--reference "$main_dir/agent-core"`)
+   - Affected recipes: `cache` (line 19), `wt-new` (line 76: `--reference "$main_dir/agent-core"`)
    - Critical: wt-new submodule reference must update or worktree creation fails
 
 5. **Update .claude/settings.json:**
@@ -77,7 +73,7 @@ git mv agent-core edify-plugin
       - `plans/commit-unification/` (11 refs across design, report)
       - `plans/workflow-skills-audit/audit.md` (8 refs)
     - **Decision:** Update all historical docs for consistency (non-breaking but reduces confusion)
-    - Execute: `find plans/ -type f -name '*.md' -not -path 'plans/plugin-migration/*' -exec sed -i '' 's/agent-core/edify-plugin/g' {} +`
+    - Execute: `find plans/ -type f -name '*.md' -exec sed -i '' 's/agent-core/edify-plugin/g' {} +`
 
 13. **Post-rename verification grep:**
 ```bash
@@ -145,55 +141,3 @@ just cache   # Should regenerate cache files in .cache/
 **Report Path:** `plans/plugin-migration/reports/phase-0-execution.md`
 
 ---
-
-## Common Context
-
-**Affected Files (6 categories):**
-
-**Core config:**
-- `agent-core/` → `edify-plugin/` (directory rename)
-- `.gitmodules` (submodule path)
-- `justfile` (cache recipe + wt-new submodule reference)
-- `.claude/settings.json` (permissions.allow, hooks)
-- `CLAUDE.md` (@ references to fragments and cache)
-
-**Rules files:**
-- `.claude/rules/skill-development.md` (paths frontmatter)
-- `.claude/rules/commit-work.md` (@ fragment reference)
-- `.claude/rules/planning-work.md` (@ fragment references)
-
-**Plan-specific agents:**
-- `.claude/agents/plugin-migration-task.md`
-- `.claude/agents/claude-tools-rewrite-task.md`
-- `.claude/agents/consolidation-task.md`
-- `.claude/agents/learnings-consolidation-task.md`
-- `.claude/agents/workflow-controls-task.md`
-- `.claude/agents/design-workflow-enhancement-task.md`
-
-**Session state:**
-- `agents/session.md` (Reference Files section)
-
-**Cache:**
-- `.cache/just-help-agent-core.txt` → `.cache/just-help-edify-plugin.txt`
-- `edify-plugin/Makefile` lines 4, 10, 30 (target name + comment)
-
-**Historical documentation (41 files in plans/):**
-- `plans/reflect-rca-prose-gates/` (outline, design, report)
-- `plans/validator-consolidation/requirements.md`
-- `plans/commit-unification/` (design, report)
-- `plans/workflow-skills-audit/audit.md`
-
-**Key Constraints:**
-- Use `git mv` for directory rename (preserves history)
-- Perform baseline grep BEFORE rename for reference count comparison
-- Rename cache file BEFORE updating CLAUDE.md @ references (timing dependency)
-- Test ALL 31 symlinks, not single sample
-- Validate @ references with script BEFORE manual session check
-- Update all 6 file categories (config, rules, agents, session, cache, historical)
-- Directory rename is irreversible once committed
-
-**Stop Conditions:**
-- If post-rename grep shows unexpected references that cannot be categorized/updated
-- If symlink comprehensive validation (step 14) shows BROKEN symlinks that cannot be resolved
-- If @ reference validation (step 15) shows MISSING files
-- If justfile recipes fail after wt-new reference update
