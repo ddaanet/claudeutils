@@ -64,7 +64,9 @@ def ls() -> None:
             if path == main_path:
                 continue
 
-            slug = path.split("/")[-1]
-            click.echo(f"{slug}\t{branch}")
+            # Extract slug from path (e.g., wt/task-a -> task-a)
+            path_parts = path.split("/")
+            slug = path_parts[-1]
+            click.echo(f"{slug}\t{branch}\t{path}")
         else:
             i += 1
