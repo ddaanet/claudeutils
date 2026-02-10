@@ -40,6 +40,14 @@ test *ARGS:
     pytest {{ ARGS }}
     report-end-safe "Tests"
 
+# Set up development environment (venv, direnv, npm)
+[no-exit-message]
+setup:
+    #!{{ bash_prolog }}
+    visible uv sync
+    visible npm install
+    visible direnv allow
+
 # Check file line limits
 [no-exit-message]
 line-limits:
@@ -81,10 +89,8 @@ wt-new name base="HEAD" session="":
     (cd "$wt_dir" && visible git submodule update --init --reference "$main_dir/agent-core")
     # Put agent-core on a branch (not detached HEAD)
     (cd "$wt_dir/agent-core" && visible git checkout -b "$slug")
-    # Create .venv so direnv can load it
-    (cd "$wt_dir" && visible uv sync)
-    # Allow direnv in worktree
-    (cd "$wt_dir" && direnv allow 2>/dev/null) || true
+    # Set up development environment in worktree
+    (cd "$wt_dir" && just setup)
     echo ""
     echo "${GREEN}✓${NORMAL} Worktree ready: $wt_dir"
     echo "  Launch: ${COMMAND}cd $wt_dir && claude${NORMAL}"

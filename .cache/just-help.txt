@@ -4,6 +4,7 @@ Available recipes:
     cache                              # Rebuild cached just help output (if justfiles changed)
     precommit                          # Run all checks
     test *ARGS                         # Run test suite
+    setup                              # Set up development environment (venv, direnv, npm)
     line-limits                        # Check file line limits
     wt-new name base="HEAD" session="" # Create a git worktree for parallel work
     wt-task name task_name base="HEAD" # Create worktree with focused session for a specific task
