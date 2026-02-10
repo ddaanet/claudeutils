@@ -184,6 +184,19 @@ def new(slug: str, base: str, session: str) -> None:
                 capture_output=True,
             )
 
+            # Create and checkout branch in submodule matching the worktree slug
+            submodule_path = worktree_path / "agent-core"
+            if submodule_path.exists():
+                result = subprocess.run(
+                    ["git", "-C", str(submodule_path), "checkout", "-B", slug],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                if result.returncode != 0:
+                    click.echo(result.stderr, err=True)
+                    raise SystemExit(1)
+
         click.echo(str(worktree_path))
     except subprocess.CalledProcessError as e:
         click.echo(f"Error creating worktree: {e.stderr.decode()}", err=True)
