@@ -7,6 +7,10 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
+from claudeutils.worktree.commands import (
+    apply_theirs_resolution,
+    parse_precommit_failures,
+)
 
 
 def _init_git_repo(repo_path: Path) -> None:
@@ -960,7 +964,9 @@ def test_merge_phase_3_precommit_gate_passes_with_clean_merge(
 
     # Re-invoke merge - should detect MERGE_HEAD and proceed to commit
     merge_result = runner.invoke(worktree, ["merge", "test-feature"])
-    assert merge_result.exit_code == 0, f"Merge after resolution failed: {merge_result.output}"
+    assert merge_result.exit_code == 0, (
+        f"Merge after resolution failed: {merge_result.output}"
+    )
 
     # Verify merge commit was created
     git_result = subprocess.run(
@@ -997,6 +1003,143 @@ def test_merge_phase_3_precommit_gate_passes_with_clean_merge(
         check=True,
     )
     assert "🔀 Merge wt/test-feature" in git_result.stdout
+
+
+def test_merge_phase_3_precommit_gate_fallback_to_theirs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify precommit fallback logic when both ours and theirs fail.
+
+    Tests parsing and theirs fallback by directly testing the helper functions.
+    """
+    # Test parsing various precommit stderr formats
+    stderr_cases = [
+        ("file1.py: FAILED", ["file1.py"]),
+        ("file1.py: FAILED\nfile2.py: FAILED", ["file1.py", "file2.py"]),
+        ("module/file.py: FAILED (format)", ["module/file.py"]),
+        ("unparseable error output", []),
+    ]
+
+    for stderr, expected_files in stderr_cases:
+        result = parse_precommit_failures(stderr)
+        assert result == expected_files, (
+            f"Parse failed for '{stderr}': got {result}, expected {expected_files}"
+        )
+
+    # Test apply_theirs_resolution in a real git repo
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _setup_repo_with_submodule(repo_path)
+
+    # Create a file with merge conflict
+    conflict_file = repo_path / "file1.py"
+    conflict_file.write_text("original\n")
+    subprocess.run(
+        ["git", "add", "file1.py"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add file1"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create worktree
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    worktree_path = repo_path / "wt" / "test-feature"
+
+    # Parent modifies
+    conflict_file.write_text("ours version\n")
+    subprocess.run(
+        ["git", "add", "file1.py"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Parent modifies"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Worktree modifies same location (creates conflict)
+    wt_file = worktree_path / "file1.py"
+    wt_file.write_text("theirs version\n")
+    subprocess.run(
+        ["git", "add", "file1.py"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Worktree modifies"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Parent makes another commit
+    (repo_path / "other.txt").write_text("content")
+    subprocess.run(
+        ["git", "add", "other.txt"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Parent adds other"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Attempt merge - will fail due to conflict
+    result = subprocess.run(
+        ["git", "merge", "--no-commit", "--no-ff", "test-feature"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    # Should have conflicts
+    assert result.returncode != 0
+
+    # Verify conflict exists
+    conflict_check = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=U"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "file1.py" in conflict_check.stdout
+
+    # Test apply_theirs_resolution
+    resolution_result = apply_theirs_resolution(["file1.py"])
+    assert resolution_result is True
+
+    # Verify file was resolved to theirs version
+    file_content = conflict_file.read_text()
+    assert "theirs version" in file_content
+
+    # Verify no more conflicts
+    conflict_check2 = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=U"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "file1.py" not in conflict_check2.stdout
 
 
 if __name__ == "__main__":

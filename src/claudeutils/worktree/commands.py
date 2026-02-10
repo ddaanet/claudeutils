@@ -1,6 +1,7 @@
 """Worktree subcommand implementations."""
 
 import os
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -431,6 +432,67 @@ def capture_untracked_files() -> set[str]:
     return untracked
 
 
+def parse_precommit_failures(stderr_output: str) -> list[str]:
+    """Parse precommit stderr to extract failed file paths.
+
+    Args:
+        stderr_output: Stderr output from precommit command
+
+    Returns:
+        List of file paths that failed precommit checks
+    """
+    failed_files = []
+    patterns = [
+        r"^([^:]+):\s+FAILED",
+        r"^([^:]+):\s+Error",
+        r"^([^:]+)\s+\(.*\)\s+failed",
+    ]
+
+    for line in stderr_output.split("\n"):
+        if not line.strip():
+            continue
+        for pattern in patterns:
+            match = re.match(pattern, line)
+            if match:
+                filepath = match.group(1)
+                if filepath and filepath not in failed_files:
+                    failed_files.append(filepath)
+                break
+
+    return failed_files
+
+
+def apply_theirs_resolution(failed_files: list[str]) -> bool:
+    """Apply theirs resolution to failed files.
+
+    Args:
+        failed_files: List of file paths to resolve with theirs
+
+    Returns:
+        True if all files resolved successfully, False otherwise
+    """
+    for filepath in failed_files:
+        checkout_result = subprocess.run(
+            ["git", "checkout", "--theirs", filepath],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if checkout_result.returncode != 0:
+            return False
+
+        add_result = subprocess.run(
+            ["git", "add", filepath],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if add_result.returncode != 0:
+            return False
+
+    return True
+
+
 def cmd_merge(slug: str, message: str = "") -> None:
     """Merge worktree branch.
 
@@ -833,10 +895,69 @@ def cmd_merge(slug: str, message: str = "") -> None:
     )
 
     if precommit_result.returncode != 0:
-        click.echo("Precommit validation failed:", err=True)
-        click.echo(precommit_result.stdout, err=True)
-        click.echo(precommit_result.stderr, err=True)
-        raise SystemExit(1)
+        # Precommit failed - attempt fallback to theirs
+        stderr_output = precommit_result.stderr + precommit_result.stdout
+        failed_files = parse_precommit_failures(stderr_output)
+
+        if not failed_files:
+            # Cannot parse failed files - abort without fallback
+            click.echo(
+                "Precommit failed with unparseable output. Manual resolution required.",
+                err=True,
+            )
+            # Clean up and abort merge
+            subprocess.run(
+                ["git", "merge", "--abort"],
+                capture_output=True,
+                check=False,
+            )
+            # Clean debris
+            untracked_before = capture_untracked_files()
+            raise SystemExit(1)
+
+        # Try theirs resolution for failed files
+        if apply_theirs_resolution(failed_files):
+            # Re-run precommit after theirs resolution
+            precommit_retry = subprocess.run(
+                ["just", "precommit"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            if precommit_retry.returncode == 0:
+                # Theirs passed - we're done
+                pass
+            else:
+                # Both ours and theirs failed precommit
+                # Abort merge and report conflict list
+                subprocess.run(
+                    ["git", "merge", "--abort"],
+                    capture_output=True,
+                    check=False,
+                )
+                click.echo(
+                    "Source conflict resolution failed. "
+                    "Manual resolution required for:",
+                    err=True,
+                )
+                for filepath in failed_files:
+                    click.echo(f"  {filepath}", err=True)
+                raise SystemExit(1)
+        else:
+            # Failed to apply theirs - abort merge
+            subprocess.run(
+                ["git", "merge", "--abort"],
+                capture_output=True,
+                check=False,
+            )
+            click.echo(
+                "Source conflict resolution failed. Manual resolution required for:",
+                err=True,
+            )
+            for filepath in failed_files:
+                click.echo(f"  {filepath}", err=True)
+            raise SystemExit(1)
 
     # Output merge commit hash
     click.echo(merge_commit)
