@@ -73,3 +73,9 @@ None — no fixable issues found.
 
 - Consider adding example task metadata format to Mode A documentation (shows continuation lines with indented metadata)
 - Future: Add integration test that validates all three modes execute correctly (requires git worktree test fixtures)
+
+---
+
+## Notes
+
+**Unrelated test failure:** `test_merge_phase_2_diverged_commits` failing with submodule checkout error. This test was added in commit 82255d1 (Phase 3 checkpoint) and is unrelated to Phase 4 work (SKILL.md documentation only). Test attempts to checkout a commit from parent's agent-core submodule in worktree's agent-core, but worktree submodule not initialized. Root cause: missing `git submodule update --init` after `worktree new` in test fixture. Recommending separate RCA task.
