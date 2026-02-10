@@ -163,7 +163,10 @@ def resolve_learnings_conflict(ours: str, theirs: str) -> str:
 
     # Extract heading text from each entry (first line of each section)
     def extract_heading(entry: str) -> str | None:
-        """Extract heading from entry (first line before newline or EOF)."""
+        """Extract heading from entry (first line before newline or EOF).
+
+        Returns None if entry is empty or heading text is blank.
+        """
         if not entry:
             return None
         first_line = entry.split("\n", 1)[0]
