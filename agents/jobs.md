@@ -19,7 +19,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
-| worktree-skill | planned | In progress: 7 of 42 cycles complete (Phase 0: 7/9) |
+| worktree-skill | planned | In progress: 16 of 42 cycles complete (38%, Phases 0-1 checkpointed) |
 
 ## Complete (Archived)
 

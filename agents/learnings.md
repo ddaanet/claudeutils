@@ -360,4 +360,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Check for output files and uncommitted changes - agents write reports before crashing
 - Rationale: classifyHandoffIfNeeded crash occurs after main work completes, reports recoverable
 - Recovery: Read report for UNFIXABLE, check git diff for changes, commit if work complete
+## Refactor agent needs quality directives
+- Anti-pattern: Delegate refactoring without quality criteria (deslop, factorization)
+- Correct pattern: Include explicit directives in refactor prompt (deslop principles, factorization requirements)
+- Rationale: Refactor agent focuses on fixing warnings (line limits, complexity), doesn't proactively optimize for token efficiency or duplication
+- Example: Add "Apply deslop principles" and "Factorize duplicated code" to refactor prompts
+- Impact: Without directives, agent splits files mechanically without reducing verbosity or extracting helpers
 - Evidence: Two agents (adf9068, ae87151) crashed this session after completing work successfully
