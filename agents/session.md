@@ -54,6 +54,7 @@
   - Plan: continuation-prepend | Status: requirements | Dependency on continuation-passing now resolved
 - [ ] **RCA: Planning agents leave dirty tree** — Delegation prompts lack commit instruction, fix orchestration templates | sonnet
 - [ ] **RCA: User-backgrounded agents crash** — `classifyHandoffIfNeeded is not defined` on user-initiated backgrounding, code-backgrounded agents work fine | sonnet
+- [ ] **RCA: Expansion agents omit cycle metadata** — 42 cycles missing Stop/Error Conditions required by prepare-runbook.py, fix expansion prompt template or plan-tdd skill | sonnet
 - [ ] **Error handling framework design** — Design error handling for runbooks, task lists, and CPS skills | opus
 - [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on plan-orchestrate workflow review
   - Plan: when-recall | Status: designed | Load `plugin-dev:skill-development` before planning

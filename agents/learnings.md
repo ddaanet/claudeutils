@@ -298,6 +298,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Outline review should flag trivial phases (≤3 cycles, Low) for merge with adjacent
 - Root cause: Outline generation agent maximized phase count for modularity without consolidation judgment
 - Detection: Phase with ≤3 cycles + Low complexity + same files as adjacent phase = merge candidate
+## Delegation prompt deduplication
+- Anti-pattern: Repeating boilerplate (templates, shared context) in each parallel agent prompt — bloats orchestrator context and agent input
+- Correct pattern: Write shared content to a file (e.g., `tmp/shared-context.md`), reference path in prompts
+- Rationale: N parallel agents with M-token boilerplate = N×M wasted tokens in orchestrator context + N×M in agent inputs
+- Applies to: cycle metadata templates, review criteria, commit instructions, any content identical across agents
 ## Context bloat in long orchestration sessions
 - Anti-pattern: Complex reasoning at end of 50+ message orchestration session
 - Correct pattern: Handoff is NOT delegatable — it requires current agent's session context (what happened, what's pending, state transitions)
