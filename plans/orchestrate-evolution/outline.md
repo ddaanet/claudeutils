@@ -2,204 +2,209 @@
 
 ## Approach
 
-Evolve the orchestrate skill from a weak haiku orchestrator to a capable sonnet orchestrator. Replace prose-based scope constraints with structural context boundaries. Add parallel dispatch, post-step remediation, and prompt deduplication.
+Evolve the orchestrate skill into a unified workflow coordinator. Sonnet orchestrator replaces haiku. Orchestrate absorbs both planning orchestration and runbook execution into a single skill with two modes. Structural context boundaries replace prose scope constraints.
 
-The evolution is not a rewrite — it preserves the orchestrate skill's structure (verify → read plan → execute steps → completion) while upgrading the intelligence and adding missing mechanical patterns.
+The evolution preserves orchestrate's core loop (verify → read plan → execute steps → completion) while adding: planning mode, parallel dispatch, post-step remediation, and tiered recovery.
 
 ## Key Decisions
 
 ### D-1: Abandon weak orchestration, sonnet default
 
-**Current:** Haiku orchestrator. Many learnings are band-aids for haiku's inability to recover from failures (dirty tree = stop, scope creep = prose constraint, error = user escalation).
+**Current:** Haiku orchestrator. Many learnings are band-aids for haiku's inability to recover from failures.
 
-**Proposed:** Sonnet as default orchestrator model. Haiku available as opt-in for proven simple runbooks.
-
-**Rationale:** "Weak orchestration is premature optimization" — validated across 12+ sessions. Recovery, remediation, and exception handling require judgment. Sonnet provides this without opus cost.
+**Decision:** Sonnet as default orchestrator model.
 
 **What changes:**
 - Orchestrate skill assumes sonnet-level reasoning
-- Error escalation simplifies: sonnet → user (2 levels, not 3)
+- Error escalation: sonnet → user (2 levels)
 - Post-step remediation possible (sonnet can commit/fix, not just stop)
 - "Delegate, don't decide" relaxed to "delegate execution, handle exceptions"
 
 **What stays the same:**
 - Mechanical checks remain mechanical (UNFIXABLE grep, git status, precommit)
-- Agents still do the work, orchestrator still coordinates
-- Step files, orchestrator plans, plan-specific agents — all preserved
+- Agents do the work, orchestrator coordinates
+- Step files, orchestrator plans, plan-specific agents preserved
 
-### D-2: Context-as-scope-boundary
+### D-2: Orchestrator references files, never reads content
 
-**Current:** Prose constraint ("Execute ONLY this step") — violated repeatedly. Plan-specific agents get full context injection from prepare-runbook.py.
+**Current:** Orchestrator reads step file content, passes it in Task prompt. Bloats orchestrator context.
 
-**Proposed:** Structural enforcement. Executing agent receives ONLY:
-- The step file (its immediate task)
-- Design reference path (for reading if needed)
-- Outline reference path (for understanding position)
+**Decision:** Orchestrator provides file references only. Never reads step file content into its own context.
 
-Agent cannot scope-creep to step N+1 because step N+1 is not in its context.
+**Step task context (provided as file references):**
+- Full design document
+- Runbook outline (for position understanding)
+- Step file (the immediate task)
 
-**Implementation:**
-- Orchestrator reads step file content, passes it in Task prompt
-- Design and outline are paths (agent reads if needed, not pre-loaded)
-- Other step files never mentioned, never referenced
-- Plan-specific agents become thinner (less pre-loaded context)
+**Orchestrator prompt pattern:**
+```
+Execute the step defined in: plans/<name>/steps/step-N.md
+Design reference: plans/<name>/design.md
+Runbook outline: plans/<name>/outline.md
+```
 
-**Eliminates:**
-- "Execute ONLY this step" prose constraints
-- Return verification (checking agent didn't do extra work)
-- Scope creep instructions in delegation prompts
+**Commit requirement:** Plan-specific agent definitions (created by prepare-runbook.py) include "Clean tree requirement" footer requiring commit before return. Orchestrator prompt doesn't repeat this — it's in the agent definition.
+
+**Scope enforcement:** Orchestrator provides file *references* (paths), not pre-read content. Executing agent can technically read other files if it chooses, but orchestrator doesn't provide them in context, creating natural scope boundary. Prose "execute ONLY this step" constraint recommended as reinforcement in agent definition.
+
+**Rationale:** Prevents orchestrator context bloat across 20+ step executions. Step agents are intelligent enough to load their own context from file references.
+
+**What this eliminates:**
+- Orchestrator reading step files
+- Orchestrator generating agent prompts with inline content
+- Context growth proportional to step count
 
 ### D-3: Two-tier context injection
 
-**Tier 1 — Execution:** Step agent gets step content + design path + outline path. Minimal. For doing work.
+**Tier 1 — Execution:** Step agent gets step file + design path + runbook outline path.
 
-**Tier 2 — Review:** Vet-fix-agent gets step content + design path + outline path + phase file path + changed files. Broader. For alignment checking.
+**Tier 2 — Review:** Vet-fix-agent gets step file + design path + runbook outline path + phase file path + changed files.
 
-**Rationale:** Execution needs focus (narrow context = less distraction). Review needs breadth (can the output be checked against the design?). These are different information needs.
-
-**prepare-runbook.py role:** Generates context tier metadata in orchestrator plan. Orchestrator reads tiers and constructs appropriate prompts.
-
-**Example metadata format in orchestrator plan:**
-```
-## Step 1-2: Implement merge detection
-
-**Context Tier**: execution
-**Files**: plans/<name>/steps/step-1-2.md, plans/<name>/design.md, plans/<name>/outline.md
-**Model**: sonnet
-```
+**Rationale:** Execution needs focus. Review needs breadth for alignment checking.
 
 ### D-4: Parallel execution support
 
-**Current:** "Always sequential unless orchestrator plan explicitly allows parallel."
-
-**Proposed:** First-class parallel dispatch. The orchestrator plan declares parallel groups.
+**Decision:** First-class parallel dispatch. Orchestrator plan declares parallel groups.
 
 **Format in orchestrator plan:**
 ```
 ## Execution Order
 
 ### Group 1 (sequential)
-- step-0-1 (model: sonnet, files: core.py)
+- step-0-1 (model: sonnet)
 
 ### Group 2 (parallel)
-- step-1-1 (model: sonnet, files: phase-1.md, tier: execution)
-- step-1-2 (model: sonnet, files: phase-2.md, tier: execution)
-- step-1-3 (model: sonnet, files: phase-3.md, tier: execution)
+- step-1-1 (model: sonnet)
+- step-1-2 (model: sonnet)
+- step-1-3 (model: sonnet)
 
 ### Group 3 (sequential)
-- step-2-1 (model: sonnet, files: runbook.md, tier: review)
+- step-2-1 (model: sonnet)
 ```
 
-**Orchestrate skill behavior:**
-- Sequential groups: one Task call per step (current behavior)
+**Behavior:**
+- Sequential groups: one Task call per step
 - Parallel groups: batch all Task calls in single message
-- Phase boundary checkpoints still occur between groups
+- Phase boundary checkpoints between groups
 
-**prepare-runbook.py:** Analyzes step dependencies (same files, shared state) to determine parallelism. Emits execution order with explicit grouping.
+**prepare-runbook.py:** Emits execution order with explicit grouping based on runbook parallelism annotations.
 
-### D-5: Post-step verify-remediate-RCA
+### D-5: Post-step verify-remediate protocol
 
-**Current:** Dirty tree = STOP, escalate to user. No remediation.
+**Decision:** Resume step agent first, delegate recovery on failure or context overflow.
 
-**Proposed three-step protocol:**
-1. `git status --porcelain` — if clean, proceed
-2. If dirty: sonnet orchestrator assesses and remediates (commit uncommitted files, or delegate fix)
-3. After remediation: generate RCA pending task in session.md ("Why did step N leave dirty tree? Investigate skill/prompt: X")
-4. `just precommit` — verify integrity after step completion
+**Protocol:**
+1. `git status --porcelain` + `just precommit` — if both clean, proceed
+2. If dirty: resume step agent to fix and commit (it has context)
+3. If step agent context > 100k tokens: skip resume, delegate recovery directly
+4. If resumed step agent failed to fix: delegate recovery
+5. Recovery agent: sonnet agent with full review-fix context, goal = lint-clean + git-clean
+6. After any remediation: generate RCA pending task in session.md
+7. If recovery fails: escalate to user
 
-**Rationale:** Most dirty trees are forgotten commits, not design problems. Sonnet can handle this. RCA task ensures root cause gets fixed in the responsible skill.
+**Verification script:** Write a skill script (part of orchestrate skill directory) for orchestrator to call after each implementation step. Checks git clean + precommit clean efficiently.
 
-**Escalation:** If remediation fails (conflict, test failure), THEN escalate to user.
+### D-6: Plan-specific agents serve as deduplication
 
-### D-6: Delegation prompt deduplication
+**Current concern:** N parallel dispatches = N copies of boilerplate in orchestrator context.
 
-**Current:** Each Task call includes full prompt text. N parallel dispatches = N copies of boilerplate.
+**Resolution:** Plan-specific agents already solve this. They contain cached behavioral rules and common context (from prepare-runbook.py). The step file is the only non-cached element.
 
-**Proposed:** For 3+ parallel tasks, write shared context to file. Reference by path in prompts.
+Prompt deduplication was only needed when orchestrator followed a custom process (ad-hoc planning orchestration). With plan-specific agents, the agent definition IS the shared context — no separate deduplication mechanism needed.
 
-**Rationale for 3+ threshold:** Below 3 tasks, deduplication overhead (file write, path references) exceeds savings. At 3+ tasks, repeated boilerplate becomes significant enough to justify the indirection.
-
-**prepare-runbook.py role:** Generates `shared-context.md` alongside step files when parallel groups detected. Contains: design summary, conventions, commit instructions, scope constraints.
-
-**Prompt template:**
-```
-Execute step from: plans/<name>/steps/step-N.md
-Read shared context: plans/<name>/shared-context.md
-
-[Step-specific instructions only]
-```
+**Cleanup:** Orchestrate skill includes cleanup as final execution mode action: remove plan-specific agent files from `.claude/agents/`.
 
 ### D-7: Simplified error escalation
 
-**Current:** haiku → sonnet → user (3 levels, with Level 1/1b/2 sub-levels)
-
-**Proposed:** sonnet → user (2 levels)
+**Decision:** sonnet → user (2 levels)
 - Sonnet orchestrator handles execution-level issues inline (missing files, failed commands, dirty tree)
 - Design-level issues escalate to user (wrong approach, scope change, blocking ambiguity)
-- Opus removed from escalation chain (too expensive for error recovery)
 
-## Open Questions
+## Resolved Questions
 
-### Q-1: Planning absorption
+### Q-1: Planning absorption → Option A + planning orchestration
 
-The original requirement says "absorb planning into orchestrate." The analysis concludes planning stays separate. Which is correct?
+**Decision:** Orchestrate absorbs planning orchestration as a mode. Planning skills (plan-tdd, plan-adhoc) remain independent but orchestrate coordinates their phases.
 
-**Reconciliation:** The requirement language "absorb planning" is misleading. What actually happened: orchestrate should absorb *patterns discovered during planning orchestration*, not absorb planning itself. Planning skills (plan-tdd, plan-adhoc) remain independent. The gaps (parallel dispatch, deduplication, remediation) are execution patterns applicable to all runbooks, not planning-specific.
+"Absorb planning" means orchestrating the planning pipeline (planning mode only):
+1. Generate full design from outline
+2. Review+fix full design (design-vet-agent)
+3. Generate runbook outline from design
+4. Review+fix runbook outline (runbook-outline-review-agent)
+5. Parallel generation of runbook phases + per-phase review+fix
+6. Holistic runbook review+fix
+7. prepare-runbook.py (assembly)
+8. Display restart instructions and stop (plan-specific agents created, restart required)
+9. After user restarts, resume with execution mode (step 9 runs in new session after `/orchestrate` re-invocation)
 
-**Option A:** Keep planning skills separate. Orchestrate gains patterns from planning experience (parallel dispatch, deduplication) but plan-tdd/plan-adhoc remain independent skills.
+The orchestrate skill gains two modes:
+- **Planning mode:** Orchestrate the design→runbook pipeline
+- **Execution mode:** Orchestrate prepared runbook steps (current behavior, enhanced)
 
-**Option B:** Orchestrate can orchestrate planning. plan-tdd/plan-adhoc emit orchestrable artifacts (phase files as steps), orchestrate skill coordinates them. This formalizes what opus did ad-hoc during worktree-skill.
+### Q-2: Plan-specific agents → Keep with cleanup
 
-**Option C:** Hybrid — plan skills emit DAG metadata but execute themselves. Orchestrate provides parallel dispatch as a utility but doesn't own planning flow.
+**Decision:** Keep plan-specific agents. The design is sound: cached agent behavioral rules and common context (loaded once), non-cached step file (passed per invocation).
 
-### Q-2: Plan-specific agents fate
+Add a cleanup step after orchestration completes: orchestrate skill deletes `.claude/agents/<plan-name>-task.md` as final execution mode action.
 
-**Current:** prepare-runbook.py generates `.claude/agents/<name>-task.md` with injected context. These require restart to discover.
+### Q-3: Remediation authority → Resume step agent with fallback
 
-**With context-as-scope-boundary:** Agents need less pre-loaded context (context comes from orchestrator prompt, not agent definition). Do we still need plan-specific agents?
+**Decision:** Option C — resume original step agent first (it has context for fixing its own issues).
 
-**Option A:** Keep plan-specific agents. They still serve context caching across steps (agent definition loaded once, reused per step).
+**Fallback conditions:**
+- Step agent context > 100k tokens → delegate recovery directly (don't resume)
+- Resumed step agent failed to fix → delegate recovery
+- Recovery: sonnet agent with full review-fix context, goal = lint-clean + git-clean status
 
-**Option B:** Use generic task agents (quiet-task, tdd-task). All context comes from orchestrator prompt. No restart needed. prepare-runbook.py generates prompt templates instead of agent files.
+### Q-4: Backwards compatibility → Clean break
 
-**Option C:** Hybrid — thin plan-specific agents (just metadata, no content injection) + orchestrator-provided context.
+**Decision:** No backwards compatibility. New prepare-runbook.py generates new format. Old orchestrator plans must be regenerated.
 
-### Q-3: Remediation authority
+**Rationale:** No active orchestrator plans need preservation. All in-progress plans can regenerate artifacts cheaply.
 
-When dirty tree detected, who fixes it?
+## Key Orchestration Principles
 
-**Scenario-based guidance:**
-- Simple uncommitted files → Option A (orchestrator commits inline, mechanical)
-- Test failures or merge conflicts → Option B (delegate to remediation agent, requires judgment)
-- Missing cleanup in step logic → Option C (resume original agent with "complete cleanup" instruction, reuses context)
+These are binding constraints for the design:
 
-**Option A:** Sonnet orchestrator fixes inline (simplest, but mixes orchestration with execution).
+**Orchestrator bloat prevention:**
+- Orchestrator does not generate agent prompts with inline content — only provides file references
+- Orchestrator only reads agent return messages, not report content
+- Orchestrator forwards report paths to recovery agents without reading reports itself
 
-**Option B:** Orchestrator delegates remediation to a separate agent (clean separation, but adds agent overhead).
+**Agent context tiers (what each agent type receives):**
 
-**Option C:** Orchestrator resumes the original step agent to complete its cleanup (reuses context, but relies on Task resume working correctly).
+| Agent Role | Design | Runbook Outline (outline.md) | Step File | Phase Outline | Full Runbook (runbook.md) | Changed Files |
+|---|---|---|---|---|---|---|
+| Design expansion | — | — | — | — | Design outline | — |
+| Runbook outline generation | Full design | — | — | — | — | — |
+| Runbook phase expansion | Full design | — | — | Their phase outline only | — | — |
+| Runbook phase review+fix | Full design | — | — | — | Full runbook.md | — |
+| Implementation (execution) | Full design | Runbook outline.md | Their step only | — | — | — |
+| Recovery (post-step fix) | Full design | Runbook outline.md | Step file | — | — | `git diff --name-only` |
 
-### Q-4: Backwards compatibility
+**Post-step verification:**
+- Orchestrator checks git clean + precommit clean after each implementation step
+- Script-based (orchestrate skill script) for efficiency
+- Complexity fixes (refactor agent) and vet-fix at end of each phase
+- Tree must be git-clean and precommit-clean at end of each phase
 
-**Design implications:**
-- Option A: Simpler orchestrate skill code, no format detection overhead, but requires regenerating all existing orchestrator plans
-- Option B: Orchestrate skill includes format detection (check for "## Execution Order" section), defaults to sequential for old format, allows gradual migration
-
-**Option A:** Clean break. New prepare-runbook.py generates new format. Old orchestrator plans don't work.
-
-**Option B:** Backwards compatible. New skill handles both old (sequential, no metadata) and new (groups, tiers) formats. Old plans default to sequential execution.
+**Refactor agent behavior:**
+- Resume once if complexity errors not fully fixed and context < 100k (same pattern as D-5 step agent recovery)
+- If resumed refactor agent fails or context > 100k: delegate recovery
+- Must include detailed deslop directives (like quiet-task and tdd-task agent definitions)
+- Before splitting files: first remove slop and factor duplication — splitting is last resort after deslop + factorization
 
 ## Scope
 
 **In scope:**
-- Orchestrate skill (SKILL.md) — rewrite with new patterns
-- prepare-runbook.py — new metadata format (parallelism, context tiers, shared context)
-- delegation.md — update for parallel dispatch, prompt deduplication
-- Orchestrator plan format — execution order groups, context tier metadata
+- Orchestrate skill (SKILL.md) — rewrite with planning mode + enhanced execution mode + cleanup action
+- prepare-runbook.py — new orchestrator plan format with parallel groups and file references
+- delegation.md — update for new patterns
+- Orchestrator plan format — execution order groups, file reference metadata
+- Orchestrate skill verification script — post-step check (git clean + precommit)
 
 **Out of scope:**
-- Plan-tdd / plan-adhoc skill rewrites
+- Plan-tdd / plan-adhoc skill rewrites (orchestrate calls them, doesn't rewrite them)
 - Worktree-specific orchestration
 - vet-fix-agent changes
 - Continuation passing integration (preserved — already complete)
-- Agent file format changes beyond what's needed for context-as-scope-boundary

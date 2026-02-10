@@ -1,29 +1,26 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Orchestrate evolution outline completed (Phase A), ready for Phase B interactive discussion.
+**Status:** Orchestrate evolution Phase B complete, outline validated (3 reviews), ready for Phase C (design.md generation).
 
 ## Completed This Session
 
-**Orchestrate evolution design outline:**
-- Complexity triage: Complex → full design treatment
-- Read all workflow decision files, orchestrate skill (474 lines), requirements, prior analysis (7 gaps)
-- Delegated quiet-explore: infrastructure audit → `plans/orchestrate-evolution/reports/explore-orchestration-infra.md`
-- Wrote outline: 7 key decisions (D-1 through D-7), 4 open questions (Q-1 through Q-4)
-- Outline reviewed by outline-review-agent: 7 minor fixes applied, assessment Ready
-- Phase B started — open questions presented to user, deferred to next session
-
-**Account status keychain fix (prior session, preserved):**
-- `get_account_state()` fixed to use `getpass.getuser()` + correct service name
-- `claudeutils account status` now reports "No issues found"
-
-**Justfile setup recipe and wt-new update (prior session, preserved):**
-- `just setup` recipe: `uv sync`, `npm install`, `direnv allow`
-- `wt-new` calls `just setup` instead of inline commands
+**Orchestrate evolution Phase B (interactive discussion):**
+- User resolved all 4 open questions (Q-1 through Q-4) with detailed decisions
+- D-2 rewritten: orchestrator references files only, never reads content (bloat prevention)
+- D-6 rewritten: plan-specific agents ARE the deduplication mechanism
+- Q-1: Orchestrate absorbs planning as a mode (9-step pipeline: design→review→outline→review→parallel phases→holistic review→prepare→restart→execute)
+- Q-2: Keep plan-specific agents with cleanup step after execution
+- Q-3: Resume step agent first, delegate recovery if >100k tokens or resume fails
+- Q-4: Clean break, no backwards compatibility
+- Added "Key Orchestration Principles" section with binding constraints and agent context tier table
+- Added refactor agent constraints: deslop before splitting, resume once if <100k
+- Changed verification script from `agent-core/bin/` to skill-local script (plugin migration prep)
+- Outline reviewed 3 times (reviews 1-3), all Ready assessment, 7+7+0 fixes applied
 
 ## Pending Tasks
 
-- [ ] **Orchestrate evolution design** — Continue Phase B: answer Q-1 through Q-4 in outline, then Phase C: generate design.md | opus
-  - Plan: orchestrate-evolution | Status: requirements (outline ready) | Outline: `plans/orchestrate-evolution/outline.md`
+- [ ] **Orchestrate evolution design** — Phase C: generate design.md from validated outline | opus
+  - Plan: orchestrate-evolution | Status: requirements (outline validated) | Outline: `plans/orchestrate-evolution/outline.md`
 - [ ] **Update worktree-skill for just setup integration** — `/plan-tdd`: integrate `just setup` in worktree creation script | sonnet
 - [ ] **Redesign markdown preprocessor** — Multi-line inline markup parsing instead of line-by-line | sonnet
 - [ ] **Optimize task agents and commit skill** — Examine worktree-skill for reuse, agent efficiency | sonnet
@@ -72,12 +69,10 @@
 
 ## Reference Files
 
-- **plans/orchestrate-evolution/outline.md** — Design outline (7 decisions, 4 open questions)
-- **plans/orchestrate-evolution/reports/outline-review.md** — Outline review (Ready, 7 minor fixes)
+- **plans/orchestrate-evolution/outline.md** — Design outline (7 decisions, 4 resolved questions, binding principles)
+- **plans/orchestrate-evolution/reports/outline-review-3.md** — Latest outline review (Ready, no fixes)
 - **plans/orchestrate-evolution/reports/explore-orchestration-infra.md** — Infrastructure exploration report
 - **plans/orchestrate-evolution/orchestrate-evolution-analysis.md** — Prior gap analysis (7 gaps, FR/NFR)
-- **plans/worktree-skill/design.md** — Worktree-skill design document
-- **plans/worktree-skill/orchestrator-plan.md** — Worktree-skill orchestrator plan
 
 ---
-*Handoff by Opus. Orchestrate evolution outline ready for Phase B discussion.*
+*Handoff by Opus. Orchestrate evolution outline validated, ready for Phase C design generation.*

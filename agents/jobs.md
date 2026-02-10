@@ -11,7 +11,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | continuation-prepend | requirements | Problem statement only |
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
 | handoff-validation | requirements | Requires continuation-passing |
-| orchestrate-evolution | requirements | Outline ready (7 decisions, 4 open questions), Phase B discussion pending |
+| orchestrate-evolution | requirements | Outline validated (3 reviews), Phase C design.md generation next |
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
 | reports | — | Shared reports directory (not a plan) |
