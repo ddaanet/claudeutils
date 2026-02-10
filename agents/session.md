@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-10
 
-**Status:** Orchestrate-evolution exploration complete. Architectural decision: abandon weak orchestration, sonnet default. Cycle 4.2 parser issue fully diagnosed. Fix runbook, prepare-runbook.py, then orchestrate worktree-skill.
+**Status:** Worktree-skill runbook ready for execution. Cycle 4.2 parser issue resolved, prepare-runbook.py artifacts generated and staged.
 
 ## Completed This Session
 
@@ -13,6 +13,12 @@
 - Holistic cross-phase review passed (no fixes needed)
 - Cycle metadata fix: 42 cycles patched in parallel (haiku), 1 remaining (cycle 4.2)
 - prepare-runbook.py: 1 error — cycle 4.2 has code block with H2 headers that confuses parser
+
+**Cycle 4.2 parser issue resolution:**
+- Fixed fenced code block in runbook-phase-4.md (lines 78-95): converted to indented code block
+- Fixed metadata field naming: `**Error Conditions**:` → `**Stop/Error Conditions**:` (all 5 Phase 4 cycles)
+- Ran prepare-runbook.py successfully: 42 step files, orchestrator plan, task agent generated
+- All artifacts staged for commit
 
 **Orchestration research (for orchestrate-evolution):**
 - /plan-tdd is a DAG, not a sequence — phases can be parallelized
@@ -35,8 +41,6 @@
 
 ## Pending Tasks
 
-- [ ] **Fix cycle 4.2 parser issue + prepare-runbook.py** — Code block with H2 headers in GREEN section confuses parser. Fix, run prepare-runbook.py, commit artifacts | sonnet
-  - Plan: worktree-skill | Status: planned (almost)
 - [ ] **Orchestrate worktree-skill execution** — `/orchestrate worktree-skill` | sonnet | restart
   - Plan: worktree-skill | Status: planned (after prepare-runbook.py)
 - [ ] **Review agent-core orphaned revisions** — Check all agent-core commits reachable from parent repo history but not on current HEAD, merge if needed | sonnet
@@ -75,21 +79,18 @@
 
 **Pre-existing test failure:** `tests/test_markdown_fixtures.py::test_preprocessor_idempotency[02-inline-backticks]` — not related to merge
 
-**Cycle 4.2 parser issue (refined):** Two issues in `plans/worktree-skill/runbook-phase-4.md`:
-1. Cycle 4.2 GREEN has fenced code block with H2 headers → truncates cycle content, loses metadata section. Fix: indented code block
-2. All Phase 4 cycles use `**Error Conditions**:` (plural) but validator checks `error condition` (singular). Fix: rename to `**Stop/Error Conditions**:`
-- Full analysis: `tmp/cycle-4.2-parser-analysis.md`
-- All 42 cycles detected correctly — cycle 4.2 is truncated, not lost
-
 ## Reference Files
 
 - **plans/worktree-skill/design.md** — Full design document (10 decisions, merge flow, conflict resolution, skill spec)
 - **plans/worktree-skill/runbook-outline.md** — Consolidated outline (6 phases, ~42 cycles)
 - **plans/worktree-skill/runbook-phase-{0..5}.md** — Phase files with reviewed cycles
 - **plans/worktree-skill/reports/** — Intake assessment, outline review, 6 per-phase reviews, holistic review
+- **plans/worktree-skill/steps/** — 42 generated cycle files (step-0-1.md through step-5-4.md)
+- **plans/worktree-skill/orchestrator-plan.md** — Generated orchestrator plan
+- **.claude/agents/worktree-skill-task.md** — Generated task agent
 
 - **tmp/orchestrate-evolution-analysis.md** — Opus gap analysis: 7 gaps, FR/NFR requirements, open design questions
 - **tmp/cycle-4.2-parser-analysis.md** — Sonnet parser diagnosis: two issues, fix options with trade-offs
 
 ---
-*Handoff by Sonnet. Orchestrate-evolution exploration: architectural shift to sonnet orchestrator, context-as-scope-boundary.*
+*Handoff by Sonnet. Worktree-skill runbook artifacts generated, ready for orchestration.*

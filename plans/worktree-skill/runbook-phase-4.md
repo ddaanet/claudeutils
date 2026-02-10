@@ -42,7 +42,7 @@ After frontmatter, add H2 section headers for the three modes: `## Mode A: Singl
 ---
 
 **Expected Outcome**: GREEN verification, no regressions
-**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Stop/Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
 **Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
 **Success Criteria**: Test fails during RED, passes during GREEN, no breaks
 **Report Path**: plans/worktree-skill/reports/cycle-4-1-notes.md
@@ -74,25 +74,23 @@ Write Mode A section with imperative prose. Begin each major step with explicit 
 - "Invoke: `claudeutils _worktree new <slug> --session tmp/wt-<slug>-session.md`" (tool anchor with bash)
 - "Edit `agents/session.md`..." (tool anchor)
 
-Describe focused session.md format: minimal session scoped to single task with only relevant blockers/references. Provide template structure:
+Describe focused session.md format: minimal session scoped to single task with only relevant blockers/references. Provide template structure (4-space indented):
 
-```markdown
-# Session: Worktree — <task name>
+    # Session: Worktree — <task name>
 
-**Status:** Focused worktree for parallel execution.
+    **Status:** Focused worktree for parallel execution.
 
-## Pending Tasks
+    ## Pending Tasks
 
-- [ ] **<task name>** — <full metadata from original>
+    - [ ] **<task name>** — <full metadata from original>
 
-## Blockers / Gotchas
+    ## Blockers / Gotchas
 
-<only blockers relevant to this task>
+    <only blockers relevant to this task>
 
-## Reference Files
+    ## Reference Files
 
-<only references relevant to this task>
-```
+    <only references relevant to this task>
 
 For the session.md edit step, specify exact transformation: locate task in Pending Tasks section, extract full task block (including continuation lines), create Worktree Tasks section if not exists, append task with `→ wt/<slug>` marker.
 
@@ -101,7 +99,7 @@ End with user output: `cd wt/<slug> && claude    # <task name>`
 ---
 
 **Expected Outcome**: GREEN verification, no regressions
-**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Stop/Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
 **Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
 **Success Criteria**: Test fails during RED, passes during GREEN, no breaks
 **Report Path**: plans/worktree-skill/reports/cycle-4-2-notes.md
@@ -157,7 +155,7 @@ Merge back: `wt merge <slug>` (uses skill)
 ---
 
 **Expected Outcome**: GREEN verification, no regressions
-**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Stop/Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
 **Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
 **Success Criteria**: Test fails during RED, passes during GREEN, no breaks
 **Report Path**: plans/worktree-skill/reports/cycle-4-3-notes.md
@@ -216,7 +214,7 @@ Report stderr as-is. Generic error handling: "Merge command error. Review output
 ---
 
 **Expected Outcome**: GREEN verification, no regressions
-**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Stop/Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
 **Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
 **Success Criteria**: Test fails during RED, passes during GREEN, no breaks
 **Report Path**: plans/worktree-skill/reports/cycle-4-4-notes.md
@@ -262,7 +260,7 @@ Ensure prose uses imperative/infinitive style throughout (command the agent, not
 ---
 
 **Expected Outcome**: GREEN verification, no regressions
-**Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
+**Stop/Error Conditions**: RED doesn't fail → STOP; GREEN doesn't pass → Debug; Regression → STOP
 **Validation**: RED verified ✓, GREEN verified ✓, No regressions ✓
 **Success Criteria**: Test fails during RED, passes during GREEN, no breaks
 **Report Path**: plans/worktree-skill/reports/cycle-4-5-notes.md
