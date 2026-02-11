@@ -249,15 +249,6 @@ end-safe () { ${status:-true}; }
 show () { echo "$COMMAND$*$NORMAL"; }
 visible () { show "$@"; "$@"; }
 fail () { echo "${ERROR}$*${NORMAL}"; exit 1; }
-wt-path() {
-    local parent
-    parent="$(cd .. && basename "$PWD")"
-    if [[ "$parent" == *-wt ]]; then
-        echo "$(cd .. && pwd)/$1"
-    else
-        echo "$(cd .. && pwd)/$(basename "$PWD")-wt/$1"
-    fi
-}
 add-sandbox-dir() {
     local dir="$1" settings="$2"
     mkdir -p "$(dirname "$settings")"

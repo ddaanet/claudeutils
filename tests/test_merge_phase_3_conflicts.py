@@ -6,6 +6,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
+from claudeutils.worktree.merge_phases import merge_phase_3_parent
 from tests.conftest_git import run_git, setup_repo_with_submodule
 
 
@@ -287,8 +288,6 @@ def test_merge_debris_cleanup_before_merge(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Verify clean_merge_debris removes untracked files before merge attempt."""
-    from claudeutils.worktree.merge_phases import merge_phase_3_parent
-
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -318,9 +317,10 @@ def test_merge_debris_cleanup_before_merge(
     # Verify debris exists before merge
     assert debris_file.exists(), "Debris file should exist before merge"
     status_result = run_git(["status", "--porcelain"], cwd=repo_path, check=True)
-    assert "?? new_feature.txt" in status_result.stdout or "new_feature.txt" in status_result.stdout, (
-        f"Debris should be untracked, got: {status_result.stdout}"
-    )
+    assert (
+        "?? new_feature.txt" in status_result.stdout
+        or "new_feature.txt" in status_result.stdout
+    ), f"Debris should be untracked, got: {status_result.stdout}"
 
     # Invoke merge_phase_3_parent directly (bypasses clean tree check)
     # This exercises clean_merge_debris before merge attempt

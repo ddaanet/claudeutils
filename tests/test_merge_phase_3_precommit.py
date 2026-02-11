@@ -6,7 +6,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-from claudeutils.worktree.commands import (
+from claudeutils.worktree.merge_helpers import (
     apply_theirs_resolution,
     parse_precommit_failures,
 )

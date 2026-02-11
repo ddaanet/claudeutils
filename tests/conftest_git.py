@@ -22,7 +22,7 @@ def init_repo(repo_path: Path, *, with_commit: bool = True) -> None:
 
     Args:
         repo_path: Directory to initialize as git repo
-        with_commit: If True, create initial commit (default). If False, leave repo empty.
+        with_commit: Create initial commit (default True) or leave empty.
     """
     run_git(["init"], cwd=repo_path, check=True)
     run_git(["config", "user.email", "test@example.com"], cwd=repo_path, check=True)
@@ -35,7 +35,7 @@ def init_repo(repo_path: Path, *, with_commit: bool = True) -> None:
 
 
 def init_repo_with_commit(repo_path: Path) -> None:
-    """Deprecated: Use init_repo() which includes commit by default."""
+    """Use init_repo() which includes commit by default (deprecated)."""
     init_repo(repo_path, with_commit=True)
 
 

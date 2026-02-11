@@ -3,6 +3,8 @@
 import re
 import subprocess
 
+from claudeutils.worktree.git_utils import run_git
+
 
 def _extract_task_block(task_name: str, content: str) -> str | None:
     """Extract task block including indented metadata lines."""
@@ -242,18 +244,12 @@ def resolve_source_conflicts(
 
         # Apply take-ours resolution
         try:
-            subprocess.run(
-                ["git", "checkout", "--ours", file_path],
-                check=True,
-                capture_output=True,
-                cwd=cwd,
-            )
-            subprocess.run(
-                ["git", "add", file_path],
-                check=True,
-                capture_output=True,
-                cwd=cwd,
-            )
+            if cwd:
+                run_git(["-C", cwd, "checkout", "--ours", file_path], check=True)
+                run_git(["-C", cwd, "add", file_path], check=True)
+            else:
+                run_git(["checkout", "--ours", file_path], check=True)
+                run_git(["add", file_path], check=True)
             resolved.append(file_path)
         except subprocess.CalledProcessError as e:
             msg = f"Failed to resolve conflict in {file_path}"
