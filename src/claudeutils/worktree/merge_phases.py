@@ -235,30 +235,42 @@ def merge_phase_3_commit_and_precommit(slug: str, message: str) -> None:
                 "Precommit failed with unparseable output. Manual resolution required.",
                 err=True,
             )
-            run_git(["merge", "--abort"], check=False)
+            click.echo(
+                "Run 'git reset HEAD~1' to undo the merge commit.",
+                err=True,
+            )
+            run_git(["reset", "HEAD~1"], check=False)
             raise SystemExit(1)
 
         if not apply_theirs_resolution(failed_files):
-            run_git(["merge", "--abort"], check=False)
             click.echo(
                 "Source conflict resolution failed. Manual resolution required for:",
                 err=True,
             )
             for filepath in failed_files:
                 click.echo(f"  {filepath}", err=True)
+            click.echo(
+                "Run 'git reset HEAD~1' to undo the merge commit.",
+                err=True,
+            )
+            run_git(["reset", "HEAD~1"], check=False)
             raise SystemExit(1)
 
         precommit_retry = subprocess.run(
             ["just", "precommit"], capture_output=True, text=True, check=False
         )
         if precommit_retry.returncode != 0:
-            run_git(["merge", "--abort"], check=False)
             click.echo(
                 "Source conflict resolution failed. Manual resolution required for:",
                 err=True,
             )
             for filepath in failed_files:
                 click.echo(f"  {filepath}", err=True)
+            click.echo(
+                "Run 'git reset HEAD~1' to undo the merge commit.",
+                err=True,
+            )
+            run_git(["reset", "HEAD~1"], check=False)
             raise SystemExit(1)
 
     click.echo(merge_commit)
