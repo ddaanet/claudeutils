@@ -5,13 +5,12 @@ from pathlib import Path
 
 import click
 
+from claudeutils.worktree.git_utils import check_clean_tree, run_git
 from claudeutils.worktree.merge_helpers import (
     apply_theirs_resolution,
     capture_untracked_files,
-    check_clean_tree,
     parse_precommit_failures,
     resolve_conflicts,
-    run_git,
 )
 
 

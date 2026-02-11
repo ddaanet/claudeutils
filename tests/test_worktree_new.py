@@ -185,6 +185,42 @@ def test_new_directory_collision(
     assert "test-feature" not in result.stdout
 
 
+def test_new_slug_validation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Reject invalid slug formats."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _init_git_repo(repo_path)
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial"], check=True, capture_output=True
+    )
+
+    runner = CliRunner()
+
+    invalid_slugs = [
+        ("", "empty string", 1),
+        ("..", "path traversal", 1),
+        ("/foo", "absolute path", 1),
+        ("../foo", "relative path", 1),
+        ("foo/bar", "directory separator", 1),
+        ("Foo", "uppercase", 1),
+        ("foo_bar", "underscore", 1),
+        ("foo bar", "space", 1),
+        ("foo!bar", "special char", 1),
+        ("-foo", "leading hyphen", 2),  # Click intercepts as option
+        ("foo-", "trailing hyphen", 1),
+    ]
+
+    for slug, description, expected_exit in invalid_slugs:
+        result = runner.invoke(worktree, ["new", slug])
+        assert result.exit_code == expected_exit, f"Expected rejection for {description}: {slug}"
+        if expected_exit == 1:
+            assert "invalid slug" in result.output.lower()
+
+
 def test_new_basic_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Verify new subcommand creates worktree with branch."""
     repo_path = tmp_path / "repo"

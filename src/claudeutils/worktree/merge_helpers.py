@@ -1,34 +1,14 @@
 """Helper functions for worktree merge operations."""
 
 import re
-import subprocess
 from pathlib import Path
-
-import click
 
 from claudeutils.worktree.conflicts import (
     resolve_jobs_conflict,
     resolve_learnings_conflict,
     resolve_session_conflict,
 )
-
-
-def run_git(
-    args: list[str],
-    *,
-    check: bool = True,
-    env: dict[str, str] | None = None,
-    stdin_input: str | None = None,
-) -> subprocess.CompletedProcess[str]:
-    """Run git command with common defaults."""
-    return subprocess.run(
-        ["git", *args],
-        capture_output=True,
-        text=True,
-        check=check,
-        env=env,
-        input=stdin_input,
-    )
+from claudeutils.worktree.git_utils import run_git
 
 
 def capture_untracked_files() -> set[str]:
@@ -77,43 +57,6 @@ def apply_theirs_resolution(failed_files: list[str]) -> bool:
         if run_git(["add", filepath], check=False).returncode != 0:
             return False
     return True
-
-
-def get_dirty_files_helper() -> str:
-    """Get dirty files without circular import."""
-    parent_status = run_git(["status", "--porcelain"]).stdout
-    result = run_git(["-C", "agent-core", "status", "--porcelain"], check=False)
-    submodule_status = result.stdout if result.returncode == 0 else ""
-    combined = parent_status + submodule_status
-
-    exempt_filenames = {"session.md", "jobs.md", "learnings.md"}
-    filtered_lines = []
-    for line in combined.rstrip().split("\n"):
-        if not line:
-            continue
-        tokens = line.split()
-        if len(tokens) >= 2:
-            filepath = tokens[-1]
-            filename = Path(filepath).name
-            if filename in exempt_filenames and filepath.startswith("agents/"):
-                continue
-        filtered_lines.append(line)
-    return "\n".join(filtered_lines)
-
-
-def check_clean_tree() -> None:
-    """Validate clean tree, exempting session context files.
-
-    Exits 1 if dirty.
-    """
-    dirty_files = get_dirty_files_helper()
-    if dirty_files:
-        click.echo(
-            "Error: uncommitted changes prevent merge (session files exempt):",
-            err=True,
-        )
-        click.echo(dirty_files, err=True)
-        raise SystemExit(1)
 
 
 def resolve_conflicts(conflict_files: list[str], slug: str) -> bool:

@@ -1,17 +1,18 @@
 """Worktree subcommand implementations."""
 
 import os
+import re
 import subprocess
 import tempfile
 from pathlib import Path
 
 import click
 
+from claudeutils.worktree.git_utils import get_dirty_files, run_git
 from claudeutils.worktree.merge_helpers import (
     apply_theirs_resolution,
     capture_untracked_files,
     parse_precommit_failures,
-    run_git,
 )
 from claudeutils.worktree.merge_phases import (
     merge_phase_1_prechecks,
@@ -33,43 +34,6 @@ __all__ = [
     "get_dirty_files",
     "parse_precommit_failures",
 ]
-
-
-def get_dirty_files() -> str:
-    """Return porcelain-format dirty files, excluding session context files."""
-    parent_status = run_git(["status", "--porcelain"]).stdout
-    result = run_git(["-C", "agent-core", "status", "--porcelain"], check=False)
-    submodule_status = result.stdout if result.returncode == 0 else ""
-    combined = parent_status + submodule_status
-
-    exempt_filenames = {"session.md", "jobs.md", "learnings.md"}
-    filtered_lines = []
-    for line in combined.rstrip().split("\n"):
-        if not line:
-            continue
-        tokens = line.split()
-        if len(tokens) >= 2:
-            filepath = tokens[-1]
-            filename = Path(filepath).name
-            if filename in exempt_filenames and filepath.startswith("agents/"):
-                continue
-        filtered_lines.append(line)
-    return "\n".join(filtered_lines)
-
-
-def check_clean_tree() -> None:
-    """Validate clean tree, exempting session context files.
-
-    Exits 1 if dirty.
-    """
-    dirty_files = get_dirty_files()
-    if dirty_files:
-        click.echo(
-            "Error: uncommitted changes prevent merge (session files exempt):",
-            err=True,
-        )
-        click.echo(dirty_files, err=True)
-        raise SystemExit(1)
 
 
 def create_session_commit(slug: str, base: str, session: str) -> str:
@@ -155,6 +119,15 @@ def cmd_clean_tree() -> None:
 
 def cmd_new(slug: str, base: str, session: str) -> None:
     """Create worktree with optional pre-committed session."""
+    if not slug or not re.match(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?$", slug):
+        click.echo("Error: invalid slug format", err=True)
+        click.echo(
+            "Slug must start and end with alphanumeric, "
+            "contain only lowercase letters, numbers, and hyphens",
+            err=True,
+        )
+        raise SystemExit(1)
+
     worktree_path = Path(f"wt/{slug}")
 
     if worktree_path.exists():
