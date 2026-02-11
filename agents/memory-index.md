@@ -16,6 +16,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 
 
+
 ## Behavioral Rules (fragments — already loaded)
 
 Scan triggers unnecessary tools — check loaded context not Read/Grep for @-referenced files
@@ -99,15 +100,11 @@ MCP tools unavailable in subagents — only in main session, not Task tool
 Commits are sync points — every commit synchronizes files submodules context session.md state
 Title-words beat kebab-case — title-words have 17% drift vs kebab-case 31% drift, hyphens tokenize separately
 Bare lines beat list markers — flat keywords without markers save 14% tokens
-Structural header dot syntax — dot after markdown marker not before, examples prevent misinterpretation
-Hard limits vs soft limits — fail build or don't check, warnings normalize deviance
-Organizational sections structural prefix — autofix removes index entries for non-content headers
-Index entry key preservation — shorten description preserve key, validator matches keys to headers
-Batch edit marker format — saves 13% tokens vs JSON, no escaping needed
-Commits remove invalidated learnings — atomic update when enforcement changes invalidate learnings
 Default semantic, mark structural — semantic default, structural gets dot prefix
 Phase-Grouped Runbook Header Format — H3 phase grouping H2 steps for prepare-runbook.py extraction
 Prose Gate D+B Hybrid Fix — merge gates into action steps, anchor with tool call
+Hard limits vs soft limits — fail build or don't check, warnings normalize deviance
+Index entry key preservation — shorten description preserve key, validator matches keys to headers
 
 ## agents/decisions/project-config.md
 

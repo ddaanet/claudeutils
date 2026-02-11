@@ -1,32 +1,28 @@
 # Session Handoff: 2026-02-11
 
-**Status:** Worktree recipes relocated to sibling directory pattern. Orchestrate evolution ready for planning after vet.
+**Status:** Worktree-skill execution recovered and worktree created for merge. Orchestrate evolution ready for planning.
 
 ## Completed This Session
 
-**Agent-core submodule integrity audit:**
-- Exhaustive check: all 237 unique agent-core submodule pointers across parent repo history are reachable from current agent-core HEAD
-- 12 worktrees had no explicit "Merge agent-core from wt/..." commit; 3 of those changed agent-core at merge time — all reachable
-- Confirmed no lost work from prior `--reference` clone approach
+**Worktree-skill execution recovery:**
+- Old `orchestrate` test worktree removed via `just wt-rm orchestrate`
+- Discovered all 42 cycles (Phases 0-5) were complete — session.md was stale at "16/42"
+- 55 dangling commits (Phases 2-5) found via `git fsck --unreachable` after branch deletion
+- Tip commit: `2c4cff2` (Phase 5 checkpoint: integration and documentation vetted)
+- Agent-core `orchestrate` branch had 10 commits (skill docs, cycles 4.2-5.3)
+- Recovery branch created, user renamed to `worktree`, created matching agent-core `worktree` branch
 
-**Worktree sibling directory relocation:**
-- Worktrees moved from `wt/<slug>` (inside repo) to `../<repo>-wt/<slug>` (sibling container)
-- Added `wt-path()` bash helper: detects if parent dir ends in `-wt` (already a container) vs needs `<repo>-wt/` container
-- All wt-* recipes (wt-new, wt-rm, wt-merge) updated to use `wt-path()`
-- Removed `main_dir` variable from all recipes — `$PWD` used directly for absolute paths
-- `wt-rm` cleans up empty container directory after last worktree removed
-
-**Worktree sandbox permission registration:**
-- `add-sandbox-dir()` bash helper: adds container path to `.permissions.additionalDirectories` in settings.local.json
-- Writes to both main repo and worktree repo settings.local.json
-- Creates settings.local.json if absent, idempotent (no duplicates)
-
-**Worktree setup fallback:**
-- `wt-new` detects if worktree branch has `just setup` recipe
-- Fallback: `direnv allow && uv sync -q && npm install`
+**Worktree setup:**
+- Created worktree at `../claudeutils-wt/worktree` from `worktree` branch
+- Parent repo: 55 commits not on dev (all Phase 2-5 implementation + vet + refactor)
+- Agent-core: `worktree` branch at a5b5cac (skill documentation)
+- User copied justfile to worktree tmp/ for reference
 
 ## Pending Tasks
 
+- [ ] **Merge worktree-skill into dev** — `just wt-merge worktree` after verification | sonnet
+  - Plan: worktree-skill | Status: complete (42/42 cycles, all phases checkpointed)
+  - Worktree at `../claudeutils-wt/worktree` — verify tests pass before merge
 - [ ] **Orchestrate evolution plan** — `/plan-adhoc plans/orchestrate-evolution/design.md` | sonnet
   - Plan: orchestrate-evolution | Status: designed | Check design-review.md for UNFIXABLE before planning
 - [ ] **Update worktree-skill for just setup integration** — `/plan-tdd`: integrate `just setup` in worktree creation script | sonnet
@@ -61,9 +57,6 @@
 - [ ] **RCA: Planning agent delegation inefficiency** — Tier 1 misrouted to delegation | sonnet
 - [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on orchestrate workflow review
   - Plan: when-recall | Status: designed | Load `plugin-dev:skill-development` before planning
-- [ ] **Orchestrate worktree-skill execution** — Phase 2 (cycles 2.1-2.4) | sonnet
-  - Plan: worktree-skill | Status: in progress (16 of 42 steps complete, 38%)
-  - Worktree at `../claudeutils-wt/orchestrate` — recreate with `just wt-new orchestrate`
 - [ ] **Update wt-ls and wt-task for sibling directory pattern** — Recipes still reference old `wt/` paths | sonnet
 
 ## Blockers / Gotchas
@@ -72,16 +65,14 @@
 
 **Vet-fix-agent scope understanding:** Flags out-of-scope items as UNFIXABLE instead of "deferred."
 
-**Design-vet-agent may still be running:** Agent af973dc was launched for design review. Check if `plans/orchestrate-evolution/reports/design-review.md` exists and grep for UNFIXABLE before proceeding to planning.
-
-**Worktree at ../claudeutils-wt/orchestrate:** Test worktree exists from this session. Clean up with `just wt-rm orchestrate` before re-creating for actual work.
+**Design-vet-agent may still be running:** Check if `plans/orchestrate-evolution/reports/design-review.md` exists and grep for UNFIXABLE before proceeding to planning.
 
 ## Reference Files
 
 - **plans/orchestrate-evolution/design.md** — Full design document (Phase C output)
 - **plans/orchestrate-evolution/outline.md** — Validated outline (4 decisions, 4 resolved questions)
-- **plans/orchestrate-evolution/reports/outline-review-4.md** — Latest outline review (Ready)
+- **plans/worktree-skill/orchestrator-plan.md** — 42-step runbook (fully executed)
 - **plans/parallel-orchestration/problem.md** — Deferred parallel execution requirements
 
 ---
-*Handoff by Sonnet. Worktree recipes relocated to sibling directory with sandbox registration.*
+*Handoff by Opus. Worktree-skill recovery and worktree creation.*
