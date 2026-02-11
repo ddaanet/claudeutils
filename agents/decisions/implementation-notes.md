@@ -147,6 +147,8 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 - ✅ Correct: `## .Title` (dot after `## `)
 - ❌ Wrong: `.## Title` (dot before `##`)
 
+**Rationale:** "Prefix" is ambiguous — explicit examples prevent misinterpretation.
+
 **Anti-pattern:** Mark semantic headers with special syntax, leave structural unmarked.
 
 **Rationale:** Failure mode — orphan semantic header → ERROR (caught) vs silent loss (dangerous).
@@ -211,3 +213,82 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 **Design:** `plans/reflect-rca-prose-gates/outline.md`
 
 **Impact:** Prevents prose gates from being skipped; establishes convention for future skill design.
+
+## .Validation Patterns
+
+### Hard Limits vs Soft Limits
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Either fail build (hard error) or don't check (no validation). Never warnings only.
+
+**Anti-pattern:** Validators that print warnings but don't fail build.
+
+**Rationale:** "Normalize deviance" principle — warnings create false sense of compliance without forcing resolution.
+
+**Example:** memory-index word count changed from warning to hard error, exposed 62 violations immediately.
+
+**Trade-off:** Hard limits force immediate resolution but may need tuning (word count 8-12 may be too strict).
+
+**Impact:** Clear pass/fail states, no ambiguity about compliance.
+
+### Organizational Sections and Index Pollution
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Mark organizational sections structural (`.` prefix), autofix removes corresponding index entries.
+
+**Anti-pattern:** Index entries pointing to organizational sections (H2 with only H3 subsections).
+
+**Correct pattern:** Judgment at source (decision file marks section structural), index cleanup automatic.
+
+**Recursive rule:** Applies at all heading levels (H2, H3, H4) — any heading with no direct content before sub-headings.
+
+**Impact:** Cleaner indexes pointing only to actual content sections.
+
+### Index Entry Key Preservation
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Shorten description (after em-dash), preserve key exactly as header title.
+
+**Anti-pattern:** Shortening index entry by changing key (part before em-dash).
+
+**Rationale:** Validator matches index keys to decision file headers — changed key = orphan entry error.
+
+**Example:** "Never auto-commit in interactive sessions — ..." → keep full key, shorten description only.
+
+**Impact:** Validator enforcement of index-to-header correspondence.
+
+## .Script Optimization
+
+### Batch Edit Token Efficiency
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Marker format (`<<<` `>>>` `===`) saves 13% tokens vs JSON for batch edit operations.
+
+**Benefits:**
+- No quotes, braces, colons, or escaping needed
+- Multi-line content handled naturally without escaping
+- Simpler parsing and generation
+
+**Script location:** `agent-core/bin/batch-edit.py`
+
+**Impact:** Token efficiency for automated edit operations.
+
+## .Workflow Integrity
+
+### Commits Must Remove Invalidated Learnings
+
+**Decision Date:** 2026-02-11
+
+**Decision:** When a change invalidates a learning, remove/update that learning atomically in the same commit.
+
+**Anti-pattern:** Adding enforcement without removing the "not enforced" learning in same commit.
+
+**Trigger:** Changes to enforcement (validators, scripts) or behavioral rules (fragments, skills).
+
+**Constraint added:** handoff skill step 4b, commit-delegation.md step 3.
+
+**Impact:** Maintains consistency between code and documentation.

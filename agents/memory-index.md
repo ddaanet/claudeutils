@@ -18,6 +18,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 ## Behavioral Rules (fragments — already loaded)
 
+Scan triggers unnecessary tools — check loaded context not Read/Grep for @-referenced files
 Delegation with context — don't delegate when context already loaded, token economy
 Never auto-commit in interactive sessions — commit only on explicit request
 Loaded skill overrides fresh-session framing — skill content is actionable, execute immediately
@@ -98,6 +99,12 @@ MCP tools unavailable in subagents — only in main session, not Task tool
 Commits are sync points — every commit synchronizes files submodules context session.md state
 Title-words beat kebab-case — title-words have 17% drift vs kebab-case 31% drift, hyphens tokenize separately
 Bare lines beat list markers — flat keywords without markers save 14% tokens
+Structural header dot syntax — dot after markdown marker not before, examples prevent misinterpretation
+Hard limits vs soft limits — fail build or don't check, warnings normalize deviance
+Organizational sections structural prefix — autofix removes index entries for non-content headers
+Index entry key preservation — shorten description preserve key, validator matches keys to headers
+Batch edit marker format — saves 13% tokens vs JSON, no escaping needed
+Commits remove invalidated learnings — atomic update when enforcement changes invalidate learnings
 Default semantic, mark structural — semantic default, structural gets dot prefix
 Phase-Grouped Runbook Header Format — H3 phase grouping H2 steps for prepare-runbook.py extraction
 Prose Gate D+B Hybrid Fix — merge gates into action steps, anchor with tool call
@@ -147,6 +154,9 @@ Dogfooding Validates Design — apply new process to its own planning for valida
 TDD GREEN Behavioral Descriptions — behavior approach hint structure not prescriptive code
 Efficient Model Analysis Requires Verification — haiku execution sonnet opus architecture verify results
 Domain Validation Pattern — planning-time detection, skill-directed vet, no agent proliferation
+Skill dependencies in requirements — scan A.0 for indicators load skills immediately
+Manual runbook assembly bypasses automation — phase files separate prepare-runbook.py assembles
+Phase boundaries require checkpoint delegation — hard stop explicit vet at phase transitions
 
 ## agents/decisions/workflow-core.md
 
@@ -163,6 +173,7 @@ Phase-grouped TDD runbooks — support flat H2 and phase-grouped H2 H3 cycle hea
 Cycle numbering gaps relaxed — gaps warnings document order defines sequence
 No human escalation during refactoring — opus handles architectural changes within design bounds
 Defense-in-Depth: Commit Verification — multiple layers at tdd-task and orchestrate skill levels
+Delegation without plan causes drift — provide runbook OR acceptance criteria when delegating
 
 ## agents/decisions/workflow-optimization.md
 
