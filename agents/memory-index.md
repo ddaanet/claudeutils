@@ -88,6 +88,10 @@ Mock patching pattern — patch where object is used not where defined
 Testing strategy for markdown cleanup — TDD approach with red green cycles and integration tests
 Success metrics — all tests pass, no regressions, clear errors, complete documentation
 
+## agents/decisions/deliverable-review.md
+
+Definition — deliverable as production artifact, review unit, identification from repo diff, gap analysis
+
 ## agents/decisions/implementation-notes.md
 
 @ references limitation — CLAUDE.md @ syntax only works in CLAUDE.md not skills agents tasks

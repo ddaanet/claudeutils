@@ -1,93 +1,80 @@
 # Session Handoff: 2026-02-11
 
-**Status:** Phase 5 complete (runbook execution). Partial deliverable review identified critical documentation bugs and quality issues requiring remediation before release.
+**Status:** Deliverable review methodology and review outline complete. Ready for full review of worktree-skill deliverables.
 
 ## Completed This Session
 
-### Deliverable Review Methodology
+### Deliverable Review Methodology (ISO-grounded)
 
-Created `agents/decisions/review-methodology.md` documenting systematic review process:
-- Scope definition (production artifacts vs. planning/diagnostic)
-- 4-phase protocol: inventory, verification, evaluation, classification
-- Type-specific evaluation axes (code: 10, tests: 6, docs: 6, config: 3)
-- Cross-cutting consistency checks (paths, names, APIs, requirements)
-- Quality gates and anti-patterns
+Created `agents/decisions/deliverable-review.md` — replaces prior sonnet-generated `review-methodology.md`:
+- Definition: deliverable = production artifact persisting in repo after plan execution, affecting behavior
+- 5 artifact types: code, test, agentic prose, human documentation, configuration
+- 21 review axes grounded in ISO 25010, IEEE 1012, ISO 26514, AGENTIF benchmark, Anthropic evals
+- Universal axes (5): conformance, correctness, completeness, vacuity, excess
+- Type-specific: code (+5: robustness, modularity, testability, idempotency, error signaling), test (+3: specificity, coverage, independence), agentic prose (+4: actionability, constraint precision, determinism, scope boundaries), human docs (+4: accuracy, consistency, completeness, usability)
+- Process: inventory → gap analysis → per-deliverable review → cross-cutting checks → classification
 
-### Partial Deliverable Review (27% coverage)
+### Worktree-Skill Review Outline
 
-Reviewed 7 of 26 deliverables, found critical bugs and quality issues:
+Created `plans/worktree-skill/review-outline.md`:
+- 24 deliverables inventoried: 6 code modules (10K tokens), 12 test files (22K tokens), 1 skill doc (2.5K), 2 fragments (2.8K), 3 config items
+- Total: 42K tokens, fits single session
+- Per-file review checks mapped to outline sections
+- Critical scenario coverage checklist (11 items from outline §Testing)
+- Gap analysis checklist (8 items from outline §Scope In)
 
-**Documentation bugs (3 path errors):**
-- `agent-core/skills/worktree/SKILL.md:68,95-96` — Launch command references wrong directory: `cd ../<repo>-<slug>` should be `cd wt/<slug>`
-- `agent-core/fragments/sandbox-exemptions.md:40` — Wrong path: `worktrees/<slug>/` should be `wt/<slug>/`
-- Implementation correctly uses `wt/{slug}` — documentation out of sync
+### Deliverable Inventory
 
-**SKILL.md quality issues (13+ findings):**
-- Clarity: Redundant content (steps 3+4), vague criteria ("only relevant entries"), marketing prose
-- Actionability: Undefined "relevant", vague dependency detection ("mentions of other tasks"), contradictory stop instructions
-- Efficiency: Explanatory prose mid-instruction (25 words rationale in step 106), redundant Usage Notes (140 words repeating instructions)
+Token measurement of all 24 deliverables via `claudeutils tokens sonnet` — 41,725 tokens total.
 
-**Test quality issues:**
-- `test_execute_rule_mode5_refactor.py` — 2 vacuous tests (redundant header check, tautological import check), 5 half-vacuous tests (check absence only, not correctness)
-- Tests validate deletion but not conformance — minimal incorrect Mode 5 section passes 7/8 tests
-- 56 lines repeated section extraction (should be fixture), OR assertion too weak (line 44)
+### Prior Session Findings (preserved)
 
-**Implementation issues:**
-- `src/claudeutils/worktree/cli.py:16-31` — `derive_slug()` defined but never called (dead code, wrong abstraction layer)
-- `cmd_new()` missing slug format validation (allows malformed input if skill bypassed)
+Previous session identified (27% coverage, 7 of 26 deliverables):
+- 3 path errors: SKILL.md lines 68, 95-96 (`cd ../<repo>-<slug>` → `cd wt/<slug>`), sandbox-exemptions.md line 40 (`worktrees/<slug>/` → `wt/<slug>/`)
+- 13+ SKILL.md quality issues (clarity, actionability, efficiency)
+- Vacuous/half-vacuous tests in test_execute_rule_mode5_refactor.py
+- Dead code: `derive_slug()` in cli.py never called
+- Missing slug format validation in `cmd_new()`
 
 ## Pending Tasks
 
-- [ ] **Complete worktree-skill deliverable review** — Review remaining 19 deliverables (73% unexamined) | sonnet
-  - Implementation: Complete review of commands.py (182 lines), merge_phases.py (184 lines), merge_helpers.py (84 lines), conflicts.py (162 lines)
-  - Tests: Review 11 test files (~1200 lines): test_worktree_cli.py, test_session_conflicts.py, test_merge_*.py, test_worktree_*.py
-  - Config: Verify justfile deletions (227 lines), .gitignore /wt/ entry, .cache/just-help.txt regeneration
-  - Apply review-methodology.md evaluation axes to each deliverable
-  - Classify findings: critical (behavior), major (validation/references), minor (style/clarity)
+- [ ] **Perform worktree-skill deliverable review** — Full review per review-outline.md | opus
+  - Read `plans/worktree-skill/review-outline.md` for procedure
+  - Read `agents/decisions/deliverable-review.md` for axes
+  - Ground truth: `plans/worktree-skill/outline.md`
+  - Do NOT read: `agents/decisions/review-methodology.md`, execution reports, planning artifacts
+  - Output: `plans/worktree-skill/reports/deliverable-review.md`
 
-- [ ] **Fix worktree-skill documentation bugs** — Correct 3 directory path errors | sonnet
-  - SKILL.md lines 68, 95-96: Change `cd ../<repo>-<slug>` to `cd wt/<slug>`
-  - sandbox-exemptions.md line 40: Change `worktrees/<slug>/` to `wt/<slug>/`
-  - Verify no other path references in agent-core or main repo
+- [ ] **Fix worktree-skill review findings** — Apply fixes from review | sonnet
+  - Depends on: review completion
+  - Prior known: 3 path errors, SKILL.md quality, vacuous tests, dead code
+
+- [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
+  - Scope: worktree-skill execution process, not deliverables
+  - Signals: plan specified opus but session showed haiku, vacuous tests passed vet, vet checked presence not correctness
+  - Do NOT start until review+fixes complete (needs evidence)
+
+- [ ] **Workflow fixes** — Implement process improvements from RCA | sonnet
+  - Depends on: RCA completion
 
 - [ ] **RCA: Vet-fix-agent UNFIXABLE labeling** — Analyze why agent labeled stylistic judgment as UNFIXABLE | sonnet
-  - Context: Cycle 2.3 vet review flagged "test name could be more specific" with reason "test name accurately describes behavior, 'appends' is clear enough"
-  - Issue: Agent marked "acceptable as-is" judgment as UNFIXABLE instead of simply not flagging or noting as "acceptable"
-  - Impact: UNFIXABLE detection protocol requires escalation for non-blocking issues
-  - Scope: Design fix to distinguish "cannot resolve without user" from "evaluated and deemed acceptable"
+
+- [ ] **Consolidate learnings** — learnings.md at 400 lines (soft limit 80), 14 entries ≥7 days | sonnet
+  - Run `/remember` to consolidate into permanent documentation
 
 ## Blockers / Gotchas
 
-**Context exhaustion:**
-- Session reached 110K tokens reviewing deliverables
-- Comprehensive review requires fresh session with methodology document
+**Two methodology documents exist:**
+- `agents/decisions/review-methodology.md` — sonnet-generated, user distrusts, do NOT use
+- `agents/decisions/deliverable-review.md` — ISO-grounded, use this one
+- Cleanup: delete review-methodology.md after review completes (confirms it's fully superseded)
 
-**Vet checkpoint limitations exposed:**
-- checkpoint-5-vet.md assessed presence (CLI registered, Mode 5 references skill, worktree section exists)
-- Did NOT verify content correctness (actual paths, complete instructions, reference accuracy)
-- Scope gap: Vet checked for artifacts, not conformance to design spec
-
-**Review anti-pattern identified:**
-- Relying on vet reports and cycle notes without primary source verification
-- Assumed "vet approved" meant "deliverable correct"
-- Correct: Read each artifact against design spec and evaluation axes
+**Learnings.md at 5× soft limit:**
+- 400 lines, 68 entries — consolidation overdue
+- Not blocking review work but should be addressed
 
 ## Reference Files
 
-**Review methodology:**
-- `agents/decisions/review-methodology.md` — Systematic review process and evaluation axes
-
-**Worktree skill artifacts:**
-- `agent-core/skills/worktree/SKILL.md` — Skill documentation (requires 3 path fixes + quality improvements)
-- `agent-core/fragments/execute-rule.md` — Mode 5 section (verified correct)
-- `agent-core/fragments/sandbox-exemptions.md` — Worktree section (requires 1 path fix)
-- `src/claudeutils/worktree/*.py` — Implementation (5 modules, 1044 lines, partially reviewed)
-- `tests/test_*worktree*.py` — Test suite (12 files, ~1400 lines, 1 of 12 reviewed)
-
-**Phase 5 checkpoint:**
-- `plans/worktree-skill/reports/checkpoint-5-vet.md` — Vet review showing scope gap
-- `plans/worktree-skill/design.md` — Design spec for conformance checking
-
-## Next Steps
-
-Continue deliverable review with fresh session using `agents/decisions/review-methodology.md` as guide. Focus on remaining 19 artifacts (implementation completion, 11 test files, config validation).
+- `agents/decisions/deliverable-review.md` — Review methodology (axes, process, classification)
+- `plans/worktree-skill/review-outline.md` — Specific review plan (per-file checks, checklists)
+- `plans/worktree-skill/outline.md` — Ground truth design spec
