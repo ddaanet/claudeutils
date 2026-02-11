@@ -6,8 +6,34 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from claudeutils.worktree.cli import worktree
-from tests.conftest_git import init_repo
+from claudeutils.worktree.cli import derive_slug, worktree
+
+
+def _init_repo(repo_path: Path) -> None:
+    """Initialize git repo with user config and initial commit."""
+    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(
+        ["git", "add", "README.md"], cwd=repo_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
 
 
 def test_package_import() -> None:
@@ -23,13 +49,26 @@ def test_worktree_command_group() -> None:
     assert "_worktree" in result.output
 
 
+def test_derive_slug() -> None:
+    """Transforms task names to slugs: lowercase, hyphens, 30 char limit."""
+    assert derive_slug("Implement ambient awareness") == "implement-ambient-awareness"
+    assert derive_slug("Design runbook identifiers") == "design-runbook-identifiers"
+    assert (
+        derive_slug("Review agent-core orphaned revisions")
+        == "review-agent-core-orphaned-rev"
+    )
+    assert derive_slug("Multiple    spaces   here") == "multiple-spaces-here"
+    assert derive_slug("Special!@#$%chars") == "special-chars"
+    assert derive_slug("A" * 35 + "test") == "a" * 30
+
+
 def test_ls_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Empty output when no worktrees exist."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    init_repo(repo_path)
+    _init_repo(repo_path)
 
     runner = CliRunner()
     result = runner.invoke(worktree, ["ls"])
@@ -43,7 +82,7 @@ def test_ls_multiple_worktrees(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    init_repo(repo_path)
+    _init_repo(repo_path)
 
     subprocess.run(["git", "branch", "task-a"], check=True, capture_output=True)
     subprocess.run(["git", "branch", "task-b"], check=True, capture_output=True)
@@ -86,7 +125,7 @@ def test_new_session_precommit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    init_repo(repo_path)
+    _init_repo(repo_path)
 
     session_file = tmp_path / "test-session.md"
     session_file.write_text("# Focused Session\n\nTask content")
