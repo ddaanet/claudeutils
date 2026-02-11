@@ -1,13 +1,12 @@
 """Tests for worktree new subcommand."""
 
-import subprocess
 from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-from tests.conftest_git import init_repo, setup_repo_with_submodule
+from tests.conftest_git import init_repo, run_git, setup_repo_with_submodule
 
 
 def test_new_collision_detection(
@@ -22,13 +21,11 @@ def test_new_collision_detection(
 
     # Create initial commit
     (repo_path / "README.md").write_text("test")
-    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
-    )
+    run_git(["add", "README.md"], check=True)
+    run_git(["commit", "-m", "Initial commit"], check=True)
 
     # Create an existing branch
-    subprocess.run(["git", "branch", "test-feature"], check=True, capture_output=True)
+    run_git(["branch", "test-feature"], check=True)
 
     # Run new command with existing branch name
     runner = CliRunner()
@@ -51,10 +48,8 @@ def test_new_directory_collision(
 
     # Create initial commit
     (repo_path / "README.md").write_text("test")
-    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
-    )
+    run_git(["add", "README.md"], check=True)
+    run_git(["commit", "-m", "Initial commit"], check=True)
 
     # Create an existing directory at wt/test-feature
     (repo_path / "wt").mkdir()
@@ -66,12 +61,7 @@ def test_new_directory_collision(
     assert result.exit_code == 1
     assert "existing" in result.output.lower() or "directory" in result.output.lower()
 
-    result = subprocess.run(
-        ["git", "branch", "--list", "test-feature"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    result = run_git(["branch", "--list", "test-feature"], check=True)
     assert "test-feature" not in result.stdout
 
 
@@ -83,10 +73,8 @@ def test_new_slug_validation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
 
     init_repo(repo_path, with_commit=False)
     (repo_path / "README.md").write_text("test")
-    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Initial"], check=True, capture_output=True
-    )
+    run_git(["add", "README.md"], check=True)
+    run_git(["commit", "-m", "Initial"], check=True)
 
     runner = CliRunner()
 
@@ -123,17 +111,13 @@ def test_new_basic_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
 
     # Create initial commit
     (repo_path / "README.md").write_text("test")
-    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
-    )
+    run_git(["add", "README.md"], check=True)
+    run_git(["commit", "-m", "Initial commit"], check=True)
 
     # Add .gitignore with wt/ entry
     (repo_path / ".gitignore").write_text("wt/\n")
-    subprocess.run(["git", "add", ".gitignore"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Add gitignore"], check=True, capture_output=True
-    )
+    run_git(["add", ".gitignore"], check=True)
+    run_git(["commit", "-m", "Add gitignore"], check=True)
 
     runner = CliRunner()
     result = runner.invoke(worktree, ["new", "test-feature"])
@@ -145,18 +129,12 @@ def test_new_basic_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
     assert worktree_path.exists()
     assert worktree_path.is_dir()
 
-    result = subprocess.run(
-        ["git", "branch", "--list", "test-feature"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    result = run_git(["branch", "--list", "test-feature"], check=True)
     assert "test-feature" in result.stdout
 
-    result = subprocess.run(
-        ["git", "-C", str(worktree_path), "rev-parse", "--abbrev-ref", "HEAD"],
-        capture_output=True,
-        text=True,
+    result = run_git(
+        ["rev-parse", "--abbrev-ref", "HEAD"],
+        cwd=worktree_path,
         check=True,
     )
     assert "test-feature" in result.stdout
@@ -187,26 +165,13 @@ def test_new_submodule(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     submodule_path = worktree_path / "agent-core"
     assert submodule_path.exists()
 
-    result = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(submodule_path),
-            "rev-parse",
-            "--abbrev-ref",
-            "HEAD",
-        ],
-        capture_output=True,
-        text=True,
+    result = run_git(
+        ["rev-parse", "--abbrev-ref", "HEAD"],
+        cwd=submodule_path,
         check=True,
     )
     branch_name = result.stdout.strip()
     assert branch_name == "test-feature"
 
-    result = subprocess.run(
-        ["git", "-C", str(submodule_path), "branch", "--list"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    result = run_git(["branch", "--list"], cwd=submodule_path, check=True)
     assert "test-feature" in result.stdout

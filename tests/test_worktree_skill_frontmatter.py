@@ -19,26 +19,38 @@ def _parse_frontmatter() -> dict[str, object]:
     return data
 
 
-def test_worktree_skill_frontmatter_has_name() -> None:
-    """YAML frontmatter includes 'name: worktree' field."""
+def test_worktree_skill_basic_schema() -> None:
+    """YAML frontmatter includes required fields with correct types."""
     data = _parse_frontmatter()
+
+    # Check name field
     assert data.get("name") == "worktree"
 
-
-def test_worktree_skill_frontmatter_has_description() -> None:
-    """YAML frontmatter includes 'description' field as multi-line string."""
-    data = _parse_frontmatter()
+    # Check description field
     assert "description" in data
     assert isinstance(data["description"], str)
     assert len(data["description"]) > 0
 
+    # Check allowed-tools field
+    assert "allowed-tools" in data
+    assert isinstance(data["allowed-tools"], list)
 
-def test_worktree_skill_description_mentions_invocation_triggers() -> None:
-    """Description mentions all required invocation triggers."""
+    # Check user-invocable field
+    assert "user-invocable" in data
+    assert data["user-invocable"] is True
+
+    # Check continuation field
+    assert "continuation" in data
+    assert isinstance(data["continuation"], dict)
+
+
+def test_worktree_skill_content_validation() -> None:
+    """Description and allowed-tools include required content."""
     data = _parse_frontmatter()
+
+    # Check description mentions invocation triggers
     description = data.get("description")
     assert isinstance(description, str)
-
     required_triggers = [
         "create a worktree",
         "set up parallel work",
@@ -46,25 +58,13 @@ def test_worktree_skill_description_mentions_invocation_triggers() -> None:
         "branch off a task",
         "wt",
     ]
-
     for trigger in required_triggers:
         assert trigger in description, f"Description missing trigger: {trigger}"
 
-
-def test_worktree_skill_frontmatter_has_allowed_tools() -> None:
-    """YAML frontmatter includes 'allowed-tools' field as list."""
-    data = _parse_frontmatter()
-    assert "allowed-tools" in data
-    assert isinstance(data["allowed-tools"], list)
-
-
-def test_worktree_skill_allowed_tools_includes_required_tools() -> None:
-    """Allowed-tools includes all required tools."""
-    data = _parse_frontmatter()
+    # Check allowed-tools includes required tools
     tools = data.get("allowed-tools")
     assert isinstance(tools, list)
     tools_str = " ".join(str(t) for t in tools)
-
     required_patterns = [
         "Read",
         "Write",
@@ -75,39 +75,21 @@ def test_worktree_skill_allowed_tools_includes_required_tools() -> None:
         "git worktree:*",
         "Skill",
     ]
-
     for pattern in required_patterns:
         assert pattern in tools_str, f"allowed-tools missing: {pattern}"
 
 
-def test_worktree_skill_frontmatter_has_user_invocable() -> None:
-    """YAML frontmatter includes 'user-invocable: true' field."""
-    data = _parse_frontmatter()
-    assert "user-invocable" in data
-    assert data["user-invocable"] is True
-
-
-def test_worktree_skill_frontmatter_has_continuation() -> None:
-    """YAML frontmatter includes 'continuation' field as dict."""
-    data = _parse_frontmatter()
-    assert "continuation" in data
-    assert isinstance(data["continuation"], dict)
-
-
-def test_worktree_skill_continuation_has_cooperative_mode() -> None:
-    """Continuation dict includes 'cooperative: true' field."""
+def test_worktree_skill_continuation_structure() -> None:
+    """Continuation dict includes cooperative mode and default-exit."""
     data = _parse_frontmatter()
     continuation = data.get("continuation")
     assert isinstance(continuation, dict)
+
+    # Check cooperative field
     assert "cooperative" in continuation
     assert continuation["cooperative"] is True
 
-
-def test_worktree_skill_continuation_has_default_exit() -> None:
-    """Continuation dict includes 'default-exit: []' (empty array)."""
-    data = _parse_frontmatter()
-    continuation = data.get("continuation")
-    assert isinstance(continuation, dict)
+    # Check default-exit field
     assert "default-exit" in continuation
     assert isinstance(continuation["default-exit"], list)
     assert len(continuation["default-exit"]) == 0

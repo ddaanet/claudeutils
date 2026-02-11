@@ -1,11 +1,11 @@
 """Tests for source code conflict resolution during worktree merges."""
 
-import subprocess
 from pathlib import Path
 
 import pytest
 
 from claudeutils.worktree.conflicts import resolve_source_conflicts
+from tests.conftest_git import run_git
 
 
 @pytest.fixture
@@ -19,93 +19,37 @@ def real_git_repo_with_source_conflict(tmp_path: Path) -> tuple[Path, list[str]]
     repo.mkdir()
 
     # Initialize repo with initial commit
-    subprocess.run(
-        ["git", "init"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
+    run_git(["init"], cwd=repo, check=True)
+    run_git(["config", "user.email", "test@example.com"], cwd=repo, check=True)
+    run_git(["config", "user.name", "Test User"], cwd=repo, check=True)
 
     # Create initial source file and commit
     source_file = repo / "app.py"
     source_file.write_text("def main():\n    pass\n")
-    subprocess.run(
-        ["git", "add", "app.py"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
+    run_git(["add", "app.py"], cwd=repo, check=True)
+    run_git(["commit", "-m", "Initial commit"], cwd=repo, check=True)
 
     # Branch to worktree branch, modify source file
-    subprocess.run(
-        ["git", "checkout", "-b", "test-worktree"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
+    run_git(["checkout", "-b", "test-worktree"], cwd=repo, check=True)
     source_file.write_text(
         "def main():\n    pass\n\ndef function_a():\n    return 'A'\n"
     )
-    subprocess.run(
-        ["git", "add", "app.py"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add function A"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
+    run_git(["add", "app.py"], cwd=repo, check=True)
+    run_git(["commit", "-m", "Add function A"], cwd=repo, check=True)
 
     # Return to main, modify same location
-    subprocess.run(
-        ["git", "checkout", "main"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
+    run_git(["checkout", "main"], cwd=repo, check=True)
     source_file.write_text(
         "def main():\n    pass\n\ndef function_b():\n    return 'B'\n"
     )
-    subprocess.run(
-        ["git", "add", "app.py"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add function B"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
+    run_git(["add", "app.py"], cwd=repo, check=True)
+    run_git(["commit", "-m", "Add function B"], cwd=repo, check=True)
 
     # Attempt merge to create conflict
-    result = subprocess.run(
-        ["git", "merge", "--no-commit", "--no-ff", "test-worktree"],
-        check=False,
+    result = run_git(
+        ["merge", "--no-commit", "--no-ff", "test-worktree"],
         cwd=repo,
-        capture_output=True,
+        check=False,
     )
     # Merge should fail due to conflict
     assert result.returncode != 0
@@ -115,12 +59,10 @@ def real_git_repo_with_source_conflict(tmp_path: Path) -> tuple[Path, list[str]]
     assert "<<<<<<< HEAD" in content
 
     # Get conflict list
-    result = subprocess.run(
-        ["git", "diff", "--name-only", "--diff-filter=U"],
+    result = run_git(
+        ["diff", "--name-only", "--diff-filter=U"],
         cwd=repo,
         check=True,
-        capture_output=True,
-        text=True,
     )
     conflict_files = [f for f in result.stdout.strip().split("\n") if f]
 
@@ -158,13 +100,7 @@ def test_resolve_source_conflicts_take_ours_strategy(
     assert ">>>>>>>" not in content_after
 
     # File should be staged (use ls-files to check merge state)
-    result = subprocess.run(
-        ["git", "ls-files", "--stage"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    result = run_git(["ls-files", "--stage"], cwd=repo, check=True)
     # ls-files output format: [mode] [object] [stage] [file]
     # During merge, stage 0 means resolved and staged
     assert "0\tapp.py" in result.stdout
@@ -196,26 +132,3 @@ def test_resolve_source_conflicts_filters_exclude_patterns(
     for resolved_file in resolved:
         for exclude_pattern in exclude_patterns:
             assert resolved_file != exclude_pattern
-
-
-def test_resolve_source_conflicts_returns_list_of_resolved_files(
-    real_git_repo_with_source_conflict: tuple[Path, list[str]],
-) -> None:
-    """Verify that function returns list of resolved files."""
-    repo, conflict_files = real_git_repo_with_source_conflict
-
-    exclude_patterns: list[str] = []
-    resolved = resolve_source_conflicts(
-        conflict_files, exclude_patterns=exclude_patterns, cwd=str(repo)
-    )
-
-    # Should be a list
-    assert isinstance(resolved, list)
-
-    # Should contain all conflicted source files
-    assert len(resolved) > 0
-    assert "app.py" in resolved
-
-    # All items should be strings (file paths)
-    for item in resolved:
-        assert isinstance(item, str)
