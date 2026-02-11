@@ -255,6 +255,8 @@ def merge_phase_3_commit_and_precommit(slug: str, message: str) -> None:
             run_git(["reset", "HEAD~1"], check=False)
             raise SystemExit(1)
 
+        run_git(["commit", "--amend", "--no-edit"], check=False)
+
         precommit_retry = subprocess.run(
             ["just", "precommit"], capture_output=True, text=True, check=False
         )

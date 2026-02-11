@@ -49,10 +49,19 @@ def parse_precommit_failures(stderr_output: str) -> list[str]:
 def apply_theirs_resolution(failed_files: list[str]) -> bool:
     """Apply theirs resolution to failed files.
 
+    During active merge (MERGE_HEAD exists): uses --theirs.
+    Post-commit (MERGE_HEAD consumed): uses HEAD^2 (second parent).
     Returns True if all resolved.
     """
+    in_merge = (
+        run_git(["rev-parse", "--verify", "MERGE_HEAD"], check=False).returncode == 0
+    )
     for filepath in failed_files:
-        if run_git(["checkout", "--theirs", filepath], check=False).returncode != 0:
+        if in_merge:
+            cmd = ["checkout", "--theirs", filepath]
+        else:
+            cmd = ["checkout", "HEAD^2", "--", filepath]
+        if run_git(cmd, check=False).returncode != 0:
             return False
         if run_git(["add", filepath], check=False).returncode != 0:
             return False

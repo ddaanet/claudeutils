@@ -323,3 +323,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Include excess/density sub-criteria for test files: fixture duplication count, boilerplate ratio, signal-to-noise per test, copy-paste patterns
 - Rationale: Tests are production artifacts subject to deslop — 5 implementations of git init, copy-pasted section extraction, near-duplicate assertions waste maintenance budget
 - Evidence: worktree-skill review missed T6-T12 until user prompted for density analysis
+## Behavioral RED over structural
+- Anti-pattern: Writing test that calls new API (missing parameter) → TypeError. Tests API shape, not behavior
+- Correct pattern: Write test against existing API that demonstrates wrong behavior (wrong content, wrong return value)
+- Rationale: Behavioral RED proves the bug exists and the fix resolves it. Structural RED (TypeError, ImportError) only proves the API changed
+- Example: `apply_theirs_resolution(files)` post-commit — behavioral RED shows content unchanged (merged instead of theirs), not TypeError from missing `source` param
+- Design consequence: Auto-detection (MERGE_HEAD check inside function) keeps API stable, enabling same test signature for RED and GREEN

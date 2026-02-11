@@ -1,5 +1,6 @@
 """Tests for worktree merge Phase 3 precommit validation."""
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -184,6 +185,155 @@ def test_merge_phase_3_precommit_gate_fallback_to_theirs(
         ["diff", "--name-only", "--diff-filter=U"], cwd=repo_path, check=True
     )
     assert "file1.py" not in conflict_check2.stdout
+
+
+def test_apply_theirs_resolution_replaces_merged_content_post_commit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Post-commit: replaces merged content with theirs (second parent) version."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    setup_repo_with_submodule(repo_path)
+
+    # File with enough separation for clean three-way merge
+    initial = "HEADER = 'original'\n" + "\n" * 8 + "def main():\n    pass\n"
+    target = repo_path / "file1.py"
+    target.write_text(initial)
+    run_git(["add", "file1.py"], cwd=repo_path, check=True)
+    run_git(["commit", "-m", "Add file1"], cwd=repo_path, check=True)
+
+    # Feature branch modifies bottom (theirs)
+    theirs_content = (
+        "HEADER = 'original'\n" + "\n" * 8
+        + "def main():\n    print('theirs')\n"
+    )
+    run_git(["checkout", "-b", "feature"], cwd=repo_path, check=True)
+    target.write_text(theirs_content)
+    run_git(["add", "file1.py"], cwd=repo_path, check=True)
+    run_git(["commit", "-m", "Feature: fix main"], cwd=repo_path, check=True)
+
+    # Main modifies top (ours) — merge will combine both non-overlapping changes
+    run_git(["checkout", "main"], cwd=repo_path, check=True)
+    ours_content = "HEADER = 'ours_dirty'\n" + "\n" * 8 + "def main():\n    pass\n"
+    target.write_text(ours_content)
+    run_git(["add", "file1.py"], cwd=repo_path, check=True)
+    run_git(["commit", "-m", "Main: dirty header"], cwd=repo_path, check=True)
+
+    # Merge commit — clean merge produces combined content (neither ours nor theirs)
+    run_git(
+        ["merge", "--no-ff", "feature", "-m", "Merge feature"],
+        cwd=repo_path,
+        check=True,
+    )
+    merged = target.read_text()
+    assert "ours_dirty" in merged, "Sanity: merge has ours"
+    assert "theirs" in merged, "Sanity: merge has theirs"
+
+    # apply_theirs must replace with second parent's version
+    assert apply_theirs_resolution(["file1.py"]) is True
+    assert target.read_text() == theirs_content
+
+
+def test_apply_theirs_resolution_fails_on_non_merge_commit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Returns False when HEAD is not a merge commit (no second parent)."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    setup_repo_with_submodule(repo_path)
+
+    (repo_path / "file1.py").write_text("content\n")
+    run_git(["add", "file1.py"], cwd=repo_path, check=True)
+    run_git(["commit", "-m", "Add file"], cwd=repo_path, check=True)
+
+    assert apply_theirs_resolution(["file1.py"]) is False
+
+
+def test_merge_phase_3_precommit_fallback_applies_theirs_after_commit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When precommit fails post-commit, fallback replaces with theirs and amends."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    setup_repo_with_submodule(repo_path)
+
+    # File with enough separation for clean three-way merge
+    initial_lines = [
+        "HEADER = 'original'",
+        "",
+        "def setup():",
+        "    pass",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "def main():",
+        "    pass",
+        "",
+    ]
+    initial = "\n".join(initial_lines) + "\n"
+    (repo_path / "module.py").write_text(initial)
+    run_git(["add", "module.py"], cwd=repo_path, check=True)
+    run_git(["commit", "-m", "Add module"], cwd=repo_path, check=True)
+
+    runner = CliRunner()
+    assert runner.invoke(worktree, ["new", "feat"]).exit_code == 0
+    wt = repo_path / "wt" / "feat"
+
+    # Worktree modifies bottom (theirs — "clean" version)
+    theirs_lines = initial_lines.copy()
+    theirs_lines[11] = "    print('theirs')"
+    theirs = "\n".join(theirs_lines) + "\n"
+    (wt / "module.py").write_text(theirs)
+    run_git(["add", "module.py"], cwd=wt, check=True)
+    run_git(["commit", "-m", "Fix main"], cwd=wt, check=True)
+
+    # Parent modifies top (ours — will "fail" precommit)
+    ours_lines = initial_lines.copy()
+    ours_lines[0] = "HEADER = 'ours_dirty'"
+    (repo_path / "module.py").write_text("\n".join(ours_lines) + "\n")
+    run_git(["add", "module.py"], cwd=repo_path, check=True)
+    run_git(["commit", "-m", "Dirty header"], cwd=repo_path, check=True)
+
+    # Mock precommit: fail first (reports module.py), pass second
+    original_run = subprocess.run
+    precommit_calls: list[int] = []
+
+    def mock_run(
+        args: list[str], **kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        if args == ["just", "precommit"]:
+            precommit_calls.append(1)
+            if len(precommit_calls) == 1:
+                return subprocess.CompletedProcess(
+                    args, 1, stdout="", stderr="module.py: FAILED"
+                )
+            return subprocess.CompletedProcess(
+                args, 0, stdout="", stderr=""
+            )
+        return original_run(args, **kwargs)  # type: ignore[call-overload, no-any-return]
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    result = runner.invoke(worktree, ["merge", "feat"])
+
+    assert result.exit_code == 0, (
+        f"Expected success via theirs fallback: {result.output}"
+    )
+
+    # File should have theirs content (not merged ours+theirs)
+    assert (repo_path / "module.py").read_text() == theirs
+
+    # Merge commit should contain theirs content
+    committed = run_git(
+        ["show", "HEAD:module.py"], cwd=repo_path, check=True
+    ).stdout
+    assert committed == theirs
 
 
 if __name__ == "__main__":
