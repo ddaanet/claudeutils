@@ -397,3 +397,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Implementation: Code needs correctness/completeness/robustness/clarity/efficiency/cohesion/coupling/vacuity/testability/consistency
 - Tests: expressiveness/concision/specificity/pertinence/vacuity/coverage
 - Documentation: clarity/actionability/efficiency/correctness/completeness/consistency
+## Test density review gap
+- Anti-pattern: Review tests for correctness/coverage only, miss density and duplication
+- Correct pattern: Include excess/density sub-criteria for test files: fixture duplication count, boilerplate ratio, signal-to-noise per test, copy-paste patterns
+- Rationale: Tests are production artifacts subject to deslop — 5 implementations of git init, copy-pasted section extraction, near-duplicate assertions waste maintenance budget
+- Evidence: worktree-skill review missed T6-T12 until user prompted for density analysis
