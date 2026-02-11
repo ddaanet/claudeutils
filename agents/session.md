@@ -1,6 +1,6 @@
-# Session Handoff: 2026-02-10
+# Session Handoff: 2026-02-11
 
-**Status:** Orchestrate evolution design.md complete (Phase C). Design-vet-agent review in progress. Ready for planning after vet.
+**Status:** Worktree infrastructure updated: submodule worktrees (shared object store) replace --reference clones. Orchestrate evolution ready for planning after vet.
 
 ## Completed This Session
 
@@ -24,6 +24,15 @@
 **Parallel orchestration plan created:**
 - `plans/parallel-orchestration/problem.md` — deferred FR-1 with requirements and design decisions from orchestrate-evolution
 
+**Worktree infrastructure — submodule worktree approach:**
+- Replaced `--reference` clone with `git worktree add` for submodules in `wt-new` — shared object store gives bidirectional commit visibility
+- `wt-new` supports existing branches (detects and reuses instead of failing)
+- `wt-rm` fix: submodule worktree removed before parent (git refuses parent removal while submodule worktree exists)
+- `wt-merge` fetch now conditional: skips if commit already reachable (no-op for worktree-based submodules)
+- Cleaned up `(cd agent-core && ...)` → `git -C agent-core ...` across all wt-* recipes
+- Removed `/wt/` from .gitignore
+- Recovered orchestrate branches: fetched from worktree submodule, renamed orchestration → orchestrate
+
 ## Pending Tasks
 
 - [ ] **Orchestrate evolution plan** — `/plan-adhoc plans/orchestrate-evolution/design.md` | sonnet
@@ -32,7 +41,6 @@
 - [ ] **Redesign markdown preprocessor** — Multi-line inline markup parsing instead of line-by-line | sonnet
 - [ ] **Optimize task agents and commit skill** — Examine worktree-skill for reuse, agent efficiency | sonnet
 - [ ] **Review codebase for factorization** — Identify duplication, extract helpers | sonnet
-- [ ] **Update refactor agent** — Add duplication identification directive | sonnet
 - [ ] **Design review agent output optimization** — Remove summarize/report language from agents | sonnet
 - [ ] **Session summary extraction prototype** — Extract session summary from session log | sonnet
 - [ ] **Review all tests for vacuous tests** — Comprehensive test quality audit | sonnet
@@ -55,18 +63,15 @@
 - [ ] **Rewrite agent-core ad-hoc scripts via TDD** — Port ad-hoc scripts to claudeutils package
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
   - Plan: continuation-prepend | Status: requirements
-- [ ] **Fix worktree tests isolation** — Proper isolation from wt subdir content | sonnet
 - [ ] **Update orchestrator workflow for delegate resume** — Resume delegates with incomplete work | sonnet
 - [ ] **Error handling framework design** — Error handling for runbooks, task lists, CPS | opus
+- [ ] **RCA: Planning agents leave dirty tree** — Delegation prompts lack commit instruction | sonnet
+- [ ] **RCA: Planning agent delegation inefficiency** — Tier 1 misrouted to delegation | sonnet
 - [ ] **Plan `/when` TDD runbook** — `/plan-tdd plans/when-recall/design.md` | blocked on orchestrate workflow review
   - Plan: when-recall | Status: designed | Load `plugin-dev:skill-development` before planning
-
-## Worktree Tasks
-
-- [ ] **Orchestrate worktree-skill execution** → `wt/orchestration` — Phase 2 (cycles 2.1-2.4) | sonnet
+- [ ] **Orchestrate worktree-skill execution** — Phase 2 (cycles 2.1-2.4) | sonnet
   - Plan: worktree-skill | Status: in progress (16 of 42 steps complete, 38%)
-- [ ] **RCA: Planning agents leave dirty tree** → `wt/rca-dirty-tree` — Delegation prompts lack commit instruction | sonnet
-- [ ] **RCA: Planning agent delegation inefficiency** → `wt/rca-delegation-inefficiency` — Tier 1 misrouted to delegation | sonnet
+  - Worktree removed, branch `orchestrate` preserved — recreate with `just wt-new orchestrate`
 
 ## Blockers / Gotchas
 
@@ -85,4 +90,4 @@
 - **plans/parallel-orchestration/problem.md** — Deferred parallel execution requirements
 
 ---
-*Handoff by Opus. Orchestrate evolution design complete, vet in flight.*
+*Handoff by Sonnet. Worktree submodule infrastructure updated, orchestrate evolution ready for planning.*

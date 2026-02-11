@@ -66,11 +66,18 @@ wt-new name base="HEAD" session="":
     if [ -d "$wt_dir" ]; then
         fail "Worktree already exists: $wt_dir"
     fi
-    if git rev-parse --verify "$branch" >/dev/null 2>&1; then
-        fail "Branch already exists: $branch"
-    fi
     main_dir="$(git rev-parse --show-toplevel)"
-    if [ -n "{{session}}" ]; then
+    branch_exists=false
+    if git rev-parse --verify "$branch" >/dev/null 2>&1; then
+        branch_exists=true
+    fi
+    if [ "$branch_exists" = true ]; then
+        # Use existing branch
+        if [ -n "{{session}}" ]; then
+            echo "${RED}Warning: session= ignored for existing branch${NORMAL}" >&2
+        fi
+        visible git worktree add "$wt_dir" "$branch"
+    elif [ -n "{{session}}" ]; then
         # Pre-commit focused session.md to branch before worktree creation
         blob=$(git hash-object -w "{{session}}")
         tmp_index=$(mktemp -p tmp/)
@@ -86,9 +93,16 @@ wt-new name base="HEAD" session="":
     else
         visible git worktree add "$wt_dir" -b "$branch" "{{base}}"
     fi
-    (cd "$wt_dir" && visible git submodule update --init --reference "$main_dir/agent-core")
-    # Put agent-core on a branch (not detached HEAD)
-    (cd "$wt_dir/agent-core" && visible git checkout -b "$slug")
+    # Submodule: create worktree (shared object store) instead of --reference clone
+    submodule_branch_exists=false
+    if git -C agent-core rev-parse --verify "$branch" >/dev/null 2>&1; then
+        submodule_branch_exists=true
+    fi
+    if [ "$submodule_branch_exists" = true ]; then
+        visible git -C agent-core worktree add "$main_dir/$wt_dir/agent-core" "$branch"
+    else
+        visible git -C agent-core worktree add "$main_dir/$wt_dir/agent-core" -b "$branch"
+    fi
     # Set up development environment in worktree
     (cd "$wt_dir" && just setup)
     echo ""
@@ -125,6 +139,7 @@ wt-rm name:
     slug="{{name}}"
     wt_dir="wt/$slug"
     branch="$slug"
+    main_dir="$(git rev-parse --show-toplevel)"
     # Check if worktree exists (branch-only cleanup is valid)
     if [ -d "$wt_dir" ]; then
         # Warn about uncommitted changes
@@ -140,16 +155,16 @@ wt-rm name:
 
         # Probe: is submodule worktree registered?
         submodule_registered=false
-        if [ -d "$wt_dir/agent-core" ] && (cd agent-core && git worktree list | grep -q "$wt_dir/agent-core"); then
+        if [ -d "$wt_dir/agent-core" ] && git -C agent-core worktree list | grep -q "$wt_dir/agent-core"; then
             submodule_registered=true
         fi
 
-        # Remove registered worktrees via git
+        # Remove submodule worktree first (git refuses parent removal while submodule worktree exists)
+        if [ "$submodule_registered" = true ] && [ -d "$wt_dir/agent-core" ]; then
+            visible git -C agent-core worktree remove --force "$main_dir/$wt_dir/agent-core"
+        fi
         if [ "$parent_registered" = true ]; then
             visible git worktree remove --force "$wt_dir"
-        fi
-        if [ "$submodule_registered" = true ] && [ -d "$wt_dir/agent-core" ]; then
-            (cd agent-core && visible git worktree remove --force "../$wt_dir/agent-core")
         fi
 
         # Remove directory if still exists (orphaned or git failed)
@@ -178,6 +193,7 @@ wt-merge name:
     slug="{{name}}"
     wt_dir="wt/$slug"
     branch="$slug"
+    main_dir="$(git rev-parse --show-toplevel)"
 
     # Pre-checks: Clean tree (exempt session files)
     session_exempt="agents/session.md agents/jobs.md agents/learnings.md"
@@ -207,12 +223,14 @@ wt-merge name:
     if [ "$wt_commit" != "$local_commit" ]; then
         # Check ancestry
         if ! git -C agent-core merge-base --is-ancestor "$wt_commit" "$local_commit" 2>/dev/null; then
-            # Fetch from worktree git directory (worktree submodules use .git file pointer)
-            if [ -d "$wt_dir/agent-core" ]; then
-                (cd agent-core && visible git fetch "../.git/worktrees/$slug/modules/agent-core" HEAD)
+            # Fetch submodule commits if not already reachable (no-op for worktree-based submodules)
+            if ! git -C agent-core cat-file -e "$wt_commit" 2>/dev/null; then
+                if [ -d "$wt_dir/agent-core" ]; then
+                    visible git -C agent-core fetch "$main_dir/$wt_dir/agent-core" HEAD
+                fi
             fi
             # Merge
-            if ! (cd agent-core && visible git merge --no-edit "$wt_commit"); then
+            if ! visible git -C agent-core merge --no-edit "$wt_commit"; then
                 echo "${RED}Submodule merge conflict in agent-core${NORMAL}" >&2
                 fail "Resolve in agent-core/, commit, then re-run: just wt-merge $slug"
             fi

@@ -381,3 +381,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Available: Read, Grep, Glob, Bash, Write, Edit (direct tool use only)
 - Confirmed: claude-code-guide agent, GitHub issue #4182
 - Impact: Planning orchestration impractical — design generation needs exploration sub-agents + MCP
+## Submodule worktree over --reference clone
+- Anti-pattern: `git submodule update --init --reference` creates independent clone with alternates — commits in worktree submodule invisible to main
+- Correct pattern: `git -C agent-core worktree add <path> <branch>` shares single object store, bidirectional commit visibility
+- Worktree removal order: submodule worktree first, then parent (git refuses parent removal while submodule worktree exists)
+- wt-merge fetch becomes no-op: objects already shared, guard with `cat-file -e` before fetching
+- Supersedes: "Git worktree submodule gotchas" learning (--reference approach)
+## git branch -m .git/config write
+- Anti-pattern: Running `git branch -m` in sandbox — fails writing `[branch "X"]` tracking section to .git/config
+- Correct pattern: `git branch -m` requires `dangerouslyDisableSandbox: true` (writes to .git/config even when no tracking section exists)
+- Partial failure mode: ref renamed successfully but config write fails — retry sees "branch not found"
+- Scope: Most git commands only read .git/config; `branch -m` is an exception
