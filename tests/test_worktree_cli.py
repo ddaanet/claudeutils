@@ -7,33 +7,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-
-
-def _init_repo(repo_path: Path) -> None:
-    """Initialize git repo with user config and initial commit."""
-    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    (repo_path / "README.md").write_text("test")
-    subprocess.run(
-        ["git", "add", "README.md"], cwd=repo_path, check=True, capture_output=True
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
+from tests.conftest_git import init_repo
 
 
 def test_package_import() -> None:
@@ -55,7 +29,7 @@ def test_ls_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    _init_repo(repo_path)
+    init_repo(repo_path)
 
     runner = CliRunner()
     result = runner.invoke(worktree, ["ls"])
@@ -69,7 +43,7 @@ def test_ls_multiple_worktrees(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    _init_repo(repo_path)
+    init_repo(repo_path)
 
     subprocess.run(["git", "branch", "task-a"], check=True, capture_output=True)
     subprocess.run(["git", "branch", "task-b"], check=True, capture_output=True)
@@ -112,7 +86,7 @@ def test_new_session_precommit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    _init_repo(repo_path)
+    init_repo(repo_path)
 
     session_file = tmp_path / "test-session.md"
     session_file.write_text("# Focused Session\n\nTask content")

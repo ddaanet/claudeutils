@@ -1,4 +1,4 @@
-"""Shared test helpers for worktree merge tests."""
+"""Shared git test fixtures and helpers."""
 
 import subprocess
 from pathlib import Path
@@ -17,16 +17,31 @@ def run_git(
     )
 
 
-def init_repo(repo_path: Path) -> None:
-    """Initialize a basic git repository."""
+def init_repo(repo_path: Path, *, with_commit: bool = True) -> None:
+    """Initialize git repository with config and optional initial commit.
+
+    Args:
+        repo_path: Directory to initialize as git repo
+        with_commit: If True, create initial commit (default). If False, leave repo empty.
+    """
     run_git(["init"], cwd=repo_path, check=True)
     run_git(["config", "user.email", "test@example.com"], cwd=repo_path, check=True)
     run_git(["config", "user.name", "Test User"], cwd=repo_path, check=True)
 
+    if with_commit:
+        (repo_path / "README.md").write_text("test")
+        run_git(["add", "README.md"], cwd=repo_path, check=True)
+        run_git(["commit", "-m", "Initial commit"], cwd=repo_path, check=True)
+
+
+def init_repo_with_commit(repo_path: Path) -> None:
+    """Deprecated: Use init_repo() which includes commit by default."""
+    init_repo(repo_path, with_commit=True)
+
 
 def setup_repo_with_submodule(repo_path: Path) -> None:
     """Set up test repo with simulated submodule."""
-    init_repo(repo_path)
+    init_repo(repo_path, with_commit=False)
 
     (repo_path / "README.md").write_text("test")
     run_git(["add", "README.md"], cwd=repo_path, check=True)
@@ -34,7 +49,7 @@ def setup_repo_with_submodule(repo_path: Path) -> None:
 
     agent_core_path = repo_path / "agent-core"
     agent_core_path.mkdir()
-    init_repo(agent_core_path)
+    init_repo(agent_core_path, with_commit=False)
 
     (agent_core_path / "core.txt").write_text("core content")
     run_git(["add", "core.txt"], cwd=agent_core_path, check=True)

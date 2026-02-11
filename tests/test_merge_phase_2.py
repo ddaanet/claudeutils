@@ -6,7 +6,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-from tests.test_merge_helpers import run_git, setup_repo_with_submodule
+from tests.conftest_git import run_git, setup_repo_with_submodule
 
 
 def test_merge_phase_2_no_divergence(

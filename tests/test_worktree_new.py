@@ -7,117 +7,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-
-
-def _init_git_repo(repo_path: Path) -> None:
-    """Initialize a basic git repository.
-
-    Args:
-        repo_path: Root directory for the git repository.
-    """
-    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-
-
-def _setup_repo_with_submodule(repo_path: Path) -> None:
-    """Set up a test repo with a simulated submodule (gitlink).
-
-    Args:
-        repo_path: Root directory for the test repository.
-    """
-    _init_git_repo(repo_path)
-
-    # Create initial commit
-    (repo_path / "README.md").write_text("test")
-    subprocess.run(
-        ["git", "add", "README.md"], cwd=repo_path, check=True, capture_output=True
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Initial commit"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Create agent-core submodule
-    agent_core_path = repo_path / "agent-core"
-    agent_core_path.mkdir()
-    _init_git_repo(agent_core_path)
-
-    (agent_core_path / "core.txt").write_text("core content")
-    subprocess.run(
-        ["git", "add", "core.txt"],
-        cwd=agent_core_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Initial core commit"],
-        cwd=agent_core_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Create .gitmodules
-    gitmodules_path = repo_path / ".gitmodules"
-    gitmodules_path.write_text(
-        '[submodule "agent-core"]\n\tpath = agent-core\n\turl = ./agent-core\n'
-    )
-
-    # Create a gitlink entry in the index (simulates submodule)
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=agent_core_path,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    commit_hash = result.stdout.strip()
-
-    subprocess.run(
-        [
-            "git",
-            "update-index",
-            "--add",
-            "--cacheinfo",
-            f"160000,{commit_hash},agent-core",
-        ],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "add", ".gitmodules"], cwd=repo_path, check=True, capture_output=True
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add submodule"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Add .gitignore with wt/ entry
-    (repo_path / ".gitignore").write_text("wt/\n")
-    subprocess.run(
-        ["git", "add", ".gitignore"], cwd=repo_path, check=True, capture_output=True
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add gitignore"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
+from tests.conftest_git import init_repo, setup_repo_with_submodule
 
 
 def test_new_collision_detection(
@@ -128,7 +18,7 @@ def test_new_collision_detection(
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    _init_git_repo(repo_path)
+    init_repo(repo_path, with_commit=False)
 
     # Create initial commit
     (repo_path / "README.md").write_text("test")
@@ -157,7 +47,7 @@ def test_new_directory_collision(
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    _init_git_repo(repo_path)
+    init_repo(repo_path, with_commit=False)
 
     # Create initial commit
     (repo_path / "README.md").write_text("test")
@@ -191,7 +81,7 @@ def test_new_slug_validation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    _init_git_repo(repo_path)
+    init_repo(repo_path, with_commit=False)
     (repo_path / "README.md").write_text("test")
     subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
     subprocess.run(
@@ -229,7 +119,7 @@ def test_new_basic_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    _init_git_repo(repo_path)
+    init_repo(repo_path, with_commit=False)
 
     # Create initial commit
     (repo_path / "README.md").write_text("test")
@@ -283,7 +173,7 @@ def test_new_submodule(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    _setup_repo_with_submodule(repo_path)
+    setup_repo_with_submodule(repo_path)
 
     runner = CliRunner()
     result = runner.invoke(worktree, ["new", "test-feature"])

@@ -6,7 +6,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-from tests.test_merge_helpers import run_git, setup_repo_with_submodule
+from tests.conftest_git import run_git, setup_repo_with_submodule
 
 
 def test_merge_idempotent_resume_after_conflict_resolution(
@@ -281,6 +281,57 @@ def test_merge_phase_3_clean_merge(
 
     log_result = run_git(["log", "--oneline", "-1"], cwd=repo_path, check=True)
     assert "🔀 Integrate test feature" in log_result.stdout.strip()
+
+
+def test_merge_debris_cleanup_before_merge(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify clean_merge_debris removes untracked files before merge attempt."""
+    from claudeutils.worktree.merge_phases import merge_phase_3_parent
+
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    setup_repo_with_submodule(repo_path)
+
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+    assert result.exit_code == 0
+
+    worktree_path = repo_path / "wt" / "test-feature"
+
+    # Add new file in worktree branch that will appear in incoming diff
+    new_file = worktree_path / "new_feature.txt"
+    new_file.write_text("new feature content\n")
+    run_git(["add", "new_feature.txt"], cwd=worktree_path, check=True)
+    run_git(
+        ["commit", "-m", "Add new feature file"],
+        cwd=worktree_path,
+        check=True,
+    )
+
+    # Create untracked debris file in parent that conflicts with incoming
+    debris_file = repo_path / "new_feature.txt"
+    debris_file.write_text("debris content\n")
+
+    # Verify debris exists before merge
+    assert debris_file.exists(), "Debris file should exist before merge"
+    status_result = run_git(["status", "--porcelain"], cwd=repo_path, check=True)
+    assert "?? new_feature.txt" in status_result.stdout or "new_feature.txt" in status_result.stdout, (
+        f"Debris should be untracked, got: {status_result.stdout}"
+    )
+
+    # Invoke merge_phase_3_parent directly (bypasses clean tree check)
+    # This exercises clean_merge_debris before merge attempt
+    merge_phase_3_parent("test-feature")
+
+    # Verify the staged file has incoming content, not debris content
+    assert debris_file.exists(), "File should exist after merge"
+    final_content = debris_file.read_text()
+    assert final_content == "new feature content\n", (
+        f"File should have incoming content (debris was cleaned). Got: {final_content}"
+    )
 
 
 if __name__ == "__main__":
