@@ -392,3 +392,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: `git branch -m` requires `dangerouslyDisableSandbox: true` (writes to .git/config even when no tracking section exists)
 - Partial failure mode: ref renamed successfully but config write fails — retry sees "branch not found"
 - Scope: Most git commands only read .git/config; `branch -m` is an exception
+## Worktree sibling isolation for CLAUDE.md
+- Anti-pattern: Worktrees inside repo (`wt/<slug>`) — Claude CLI loads CLAUDE.md from all parent directories
+- Correct pattern: Worktrees in sibling directory (`../<repo>-wt/<slug>`) — no parent CLAUDE.md inheritance
+- Container detection: If parent dir ends in `-wt`, already in container (siblings); otherwise create `<repo>-wt/`
+- Sandbox: Register container in `.permissions.additionalDirectories` in both main and worktree settings.local.json

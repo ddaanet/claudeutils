@@ -61,12 +61,12 @@ line-limits:
 wt-new name base="HEAD" session="":
     #!{{ bash_prolog }}
     slug="{{name}}"
-    wt_dir="wt/$slug"
     branch="$slug"
+    wt_dir=$(wt-path "$slug")
     if [ -d "$wt_dir" ]; then
         fail "Worktree already exists: $wt_dir"
     fi
-    main_dir="$(git rev-parse --show-toplevel)"
+    mkdir -p "$(dirname "$wt_dir")"
     branch_exists=false
     if git rev-parse --verify "$branch" >/dev/null 2>&1; then
         branch_exists=true
@@ -99,12 +99,20 @@ wt-new name base="HEAD" session="":
         submodule_branch_exists=true
     fi
     if [ "$submodule_branch_exists" = true ]; then
-        visible git -C agent-core worktree add "$main_dir/$wt_dir/agent-core" "$branch"
+        visible git -C agent-core worktree add "$wt_dir/agent-core" "$branch"
     else
-        visible git -C agent-core worktree add "$main_dir/$wt_dir/agent-core" -b "$branch"
+        visible git -C agent-core worktree add "$wt_dir/agent-core" -b "$branch"
     fi
+    # Register container directory in sandbox permissions
+    wt_container="$(dirname "$wt_dir")"
+    add-sandbox-dir "$wt_container" .claude/settings.local.json
+    add-sandbox-dir "$wt_container" "$wt_dir/.claude/settings.local.json"
     # Set up development environment in worktree
-    (cd "$wt_dir" && just setup)
+    if (cd "$wt_dir" && just --summary 2>/dev/null | tr ' ' '\n' | grep -qx setup); then
+        (cd "$wt_dir" && just setup)
+    else
+        (cd "$wt_dir" && direnv allow && uv sync -q && npm install)
+    fi
     echo ""
     echo "${GREEN}✓${NORMAL} Worktree ready: $wt_dir"
     echo "  Launch: ${COMMAND}cd $wt_dir && claude${NORMAL}"
@@ -137,9 +145,8 @@ wt-ls:
 wt-rm name:
     #!{{ bash_prolog }}
     slug="{{name}}"
-    wt_dir="wt/$slug"
     branch="$slug"
-    main_dir="$(git rev-parse --show-toplevel)"
+    wt_dir=$(wt-path "$slug")
     # Check if worktree exists (branch-only cleanup is valid)
     if [ -d "$wt_dir" ]; then
         # Warn about uncommitted changes
@@ -161,7 +168,7 @@ wt-rm name:
 
         # Remove submodule worktree first (git refuses parent removal while submodule worktree exists)
         if [ "$submodule_registered" = true ] && [ -d "$wt_dir/agent-core" ]; then
-            visible git -C agent-core worktree remove --force "$main_dir/$wt_dir/agent-core"
+            visible git -C agent-core worktree remove --force "$wt_dir/agent-core"
         fi
         if [ "$parent_registered" = true ]; then
             visible git worktree remove --force "$wt_dir"
@@ -179,6 +186,11 @@ wt-rm name:
             exit 1
         fi
     fi
+    # Remove empty container directory
+    wt_parent="$(dirname "$wt_dir")"
+    if [ -d "$wt_parent" ] && [ -z "$(ls -A "$wt_parent")" ]; then
+        rmdir "$wt_parent"
+    fi
     # Remove branch if exists
     if git rev-parse --verify "$branch" >/dev/null 2>&1; then
         visible git branch -d "$branch" || \
@@ -191,9 +203,8 @@ wt-rm name:
 wt-merge name:
     #!{{ bash_prolog }}
     slug="{{name}}"
-    wt_dir="wt/$slug"
     branch="$slug"
-    main_dir="$(git rev-parse --show-toplevel)"
+    wt_dir=$(wt-path "$slug")
 
     # Pre-checks: Clean tree (exempt session files)
     session_exempt="agents/session.md agents/jobs.md agents/learnings.md"
@@ -226,7 +237,7 @@ wt-merge name:
             # Fetch submodule commits if not already reachable (no-op for worktree-based submodules)
             if ! git -C agent-core cat-file -e "$wt_commit" 2>/dev/null; then
                 if [ -d "$wt_dir/agent-core" ]; then
-                    visible git -C agent-core fetch "$main_dir/$wt_dir/agent-core" HEAD
+                    visible git -C agent-core fetch "$wt_dir/agent-core" HEAD
                 fi
             fi
             # Merge
@@ -516,6 +527,34 @@ end-safe () { ${status:-true}; }
 show () { echo "$COMMAND$*$NORMAL"; }
 visible () { show "$@"; "$@"; }
 fail () { echo "${ERROR}$*${NORMAL}"; exit 1; }
+wt-path() {
+    local parent
+    parent="$(cd .. && basename "$PWD")"
+    if [[ "$parent" == *-wt ]]; then
+        echo "$(cd .. && pwd)/$1"
+    else
+        echo "$(cd .. && pwd)/$(basename "$PWD")-wt/$1"
+    fi
+}
+add-sandbox-dir() {
+    local dir="$1" settings="$2"
+    mkdir -p "$(dirname "$settings")"
+    python3 -c "
+import json, sys, os
+path = sys.argv[1]
+settings_file = sys.argv[2]
+data = {}
+if os.path.exists(settings_file):
+    with open(settings_file) as f:
+        data = json.load(f)
+dirs = data.setdefault('permissions', {}).setdefault('additionalDirectories', [])
+if path not in dirs:
+    dirs.append(path)
+    with open(settings_file, 'w') as f:
+        json.dump(data, f, indent=2)
+        f.write('\n')
+" "$dir" "$settings"
+}
 
 # Do not uv sync when in Claude Code sandbox
 sync() { if [ -w /tmp ]; then uv sync -q; fi; }

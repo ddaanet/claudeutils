@@ -1,37 +1,29 @@
 # Session Handoff: 2026-02-11
 
-**Status:** Worktree infrastructure updated: submodule worktrees (shared object store) replace --reference clones. Orchestrate evolution ready for planning after vet.
+**Status:** Worktree recipes relocated to sibling directory pattern. Orchestrate evolution ready for planning after vet.
 
 ## Completed This Session
 
-**Orchestrate evolution Phase B continued (interactive discussion):**
-- D-2 rewritten as "Agent caching model" — design+outline embedded in agent definitions by prepare-runbook.py
-- D-3 (two-tier context) and D-6 (deduplication) absorbed into D-2
-- Phase-specific agent variants dropped (overengineering)
-- Q-1 (planning absorption) dropped — sub-agent limitations make planning delegation impractical
-- Parallel execution deferred to new plan `plans/parallel-orchestration/` (requires worktree isolation)
-- Refactor agent improvements (deslop, factorization) added to scope
-- Single-phase vet clarified: generic vet-fix-agent with file references (no plan-specific vet)
-- Confirmed via claude-code-guide: sub-agents cannot spawn sub-agents (Task tool unavailable)
-- Outline review-4: Ready, no issues
+**Agent-core submodule integrity audit:**
+- Exhaustive check: all 237 unique agent-core submodule pointers across parent repo history are reachable from current agent-core HEAD
+- 12 worktrees had no explicit "Merge agent-core from wt/..." commit; 3 of those changed agent-core at merge time — all reachable
+- Confirmed no lost work from prior `--reference` clone approach
 
-**Orchestrate evolution Phase C (design generation):**
-- Design document created from validated outline (commit: 3b17024)
-- User inline edits: requirements traceability table, recovery agent scope narrowing, frontmatter clarifications
-- Single-phase vet handling added to design and outline
-- Design-vet-agent running (agent af973dc) — check `plans/orchestrate-evolution/reports/design-review.md`
+**Worktree sibling directory relocation:**
+- Worktrees moved from `wt/<slug>` (inside repo) to `../<repo>-wt/<slug>` (sibling container)
+- Added `wt-path()` bash helper: detects if parent dir ends in `-wt` (already a container) vs needs `<repo>-wt/` container
+- All wt-* recipes (wt-new, wt-rm, wt-merge) updated to use `wt-path()`
+- Removed `main_dir` variable from all recipes — `$PWD` used directly for absolute paths
+- `wt-rm` cleans up empty container directory after last worktree removed
 
-**Parallel orchestration plan created:**
-- `plans/parallel-orchestration/problem.md` — deferred FR-1 with requirements and design decisions from orchestrate-evolution
+**Worktree sandbox permission registration:**
+- `add-sandbox-dir()` bash helper: adds container path to `.permissions.additionalDirectories` in settings.local.json
+- Writes to both main repo and worktree repo settings.local.json
+- Creates settings.local.json if absent, idempotent (no duplicates)
 
-**Worktree infrastructure — submodule worktree approach:**
-- Replaced `--reference` clone with `git worktree add` for submodules in `wt-new` — shared object store gives bidirectional commit visibility
-- `wt-new` supports existing branches (detects and reuses instead of failing)
-- `wt-rm` fix: submodule worktree removed before parent (git refuses parent removal while submodule worktree exists)
-- `wt-merge` fetch now conditional: skips if commit already reachable (no-op for worktree-based submodules)
-- Cleaned up `(cd agent-core && ...)` → `git -C agent-core ...` across all wt-* recipes
-- Removed `/wt/` from .gitignore
-- Recovered orchestrate branches: fetched from worktree submodule, renamed orchestration → orchestrate
+**Worktree setup fallback:**
+- `wt-new` detects if worktree branch has `just setup` recipe
+- Fallback: `direnv allow && uv sync -q && npm install`
 
 ## Pending Tasks
 
@@ -71,7 +63,8 @@
   - Plan: when-recall | Status: designed | Load `plugin-dev:skill-development` before planning
 - [ ] **Orchestrate worktree-skill execution** — Phase 2 (cycles 2.1-2.4) | sonnet
   - Plan: worktree-skill | Status: in progress (16 of 42 steps complete, 38%)
-  - Worktree removed, branch `orchestrate` preserved — recreate with `just wt-new orchestrate`
+  - Worktree at `../claudeutils-wt/orchestrate` — recreate with `just wt-new orchestrate`
+- [ ] **Update wt-ls and wt-task for sibling directory pattern** — Recipes still reference old `wt/` paths | sonnet
 
 ## Blockers / Gotchas
 
@@ -81,13 +74,14 @@
 
 **Design-vet-agent may still be running:** Agent af973dc was launched for design review. Check if `plans/orchestrate-evolution/reports/design-review.md` exists and grep for UNFIXABLE before proceeding to planning.
 
+**Worktree at ../claudeutils-wt/orchestrate:** Test worktree exists from this session. Clean up with `just wt-rm orchestrate` before re-creating for actual work.
+
 ## Reference Files
 
 - **plans/orchestrate-evolution/design.md** — Full design document (Phase C output)
 - **plans/orchestrate-evolution/outline.md** — Validated outline (4 decisions, 4 resolved questions)
 - **plans/orchestrate-evolution/reports/outline-review-4.md** — Latest outline review (Ready)
-- **plans/orchestrate-evolution/reports/explore-orchestration-infra.md** — Infrastructure exploration report
 - **plans/parallel-orchestration/problem.md** — Deferred parallel execution requirements
 
 ---
-*Handoff by Sonnet. Worktree submodule infrastructure updated, orchestrate evolution ready for planning.*
+*Handoff by Sonnet. Worktree recipes relocated to sibling directory with sandbox registration.*
