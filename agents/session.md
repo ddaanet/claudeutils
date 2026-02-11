@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-11
 
-**Status:** Deliverable review complete with 27 findings. Ready to fix.
+**Status:** Runbook outline created for worktree-skill fixes. Needs opus review before expansion.
 
 ## Completed This Session
 
@@ -10,28 +10,26 @@ Full review of all 24 deliverables (100% coverage) against outline.md ground tru
 
 **27 findings:** 3 critical, 12 major, 12 minor
 
-**Critical:**
-- C6: `merge --abort` after committed merge does nothing (merge_phases.py:238) — commit already consumed MERGE_HEAD, abort silently fails, merge persists
-- A1: SKILL.md:68,95-96 launch commands use `cd ../<repo>-<slug>` — should be `cd wt/<slug>`
-- D1: sandbox-exemptions.md:40 says `worktrees/<slug>/` — should be `wt/<slug>/`
+### Runbook Outline for Fixes
 
-**Major highlights:**
-- C1: Dead `derive_slug()` never called by production code
-- C2: No slug format validation in `cmd_new()`
-- C3: Duplicate `get_dirty_files()`/`check_clean_tree()` across commands.py and merge_helpers.py
-- C7: Lock file retry specified in outline but not implemented
-- T6-T7: Git init boilerplate defined 5×, submodule setup 3× across test files
-- G1: Missing `/wt/` in project .gitignore
-- A2: SKILL.md:129 suggests `rm .git/index.lock` — contradicts behavioral rule
-
-**Density finding (user-prompted):** Initial review missed test slop. User asked about density; appended T6-T12 covering fixture duplication (5 implementations of git init), raw subprocess boilerplate, low signal-to-noise tests, copy-paste patterns, near-duplicate tests.
+- Assessed Tier 3 (27 findings, ~20 files, mixed mechanical/judgment fixes)
+- Created `plans/worktree-skill-fixes/runbook-outline.md` — 5 phases, 25 steps
+- Outline review agent: 4 issues found (2 major, 2 minor), all fixed
+- Phase structure: Critical (3) → Major Code (6) → Major Docs (1) → Major Tests (5) → Minor (10)
+- Report: `plans/worktree-skill-fixes/reports/outline-review.md`
 
 ## Pending Tasks
 
-- [ ] **Fix worktree-skill review findings** — Apply fixes from review report | sonnet
-  - Report: `plans/worktree-skill/reports/deliverable-review.md` (27 findings)
-  - Prior known issues confirmed + new findings discovered
-  - Critical fixes first (C6, A1, D1), then major, then minor
+- [ ] **Opus review of runbook outline** — Research-grounded review with LLM failure mode focus | opus
+  - Input: `plans/worktree-skill-fixes/runbook-outline.md`
+  - MUST run from fresh context (not writing-process context — confirmation bias)
+  - Axes: grounded in research, focus on how LLMs fail when executing runbook steps
+  - After review: proceed with phase-by-phase expansion (Point 1 of plan-adhoc)
+
+- [ ] **Expand and assemble runbook** — Phase-by-phase expansion, assembly, prepare artifacts | sonnet
+  - Blocked on: opus outline review
+  - Process: Point 1 → Point 2 → Point 3 → Point 4 of plan-adhoc
+  - Plan dir: `plans/worktree-skill-fixes/`
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
   - Scope: worktree-skill execution process, not deliverables
@@ -43,7 +41,7 @@ Full review of all 24 deliverables (100% coverage) against outline.md ground tru
 
 - [ ] **RCA: Vet-fix-agent UNFIXABLE labeling** — Analyze why agent labeled stylistic judgment as UNFIXABLE | sonnet
 
-- [ ] **Consolidate learnings** — learnings.md at 399 lines (soft limit 80), 14 entries ≥7 days | sonnet
+- [ ] **Consolidate learnings** — learnings.md at 404 lines (soft limit 80), 14 entries ≥7 days | sonnet
   - Run `/remember` to consolidate into permanent documentation
 
 ## Blockers / Gotchas
@@ -54,16 +52,21 @@ Full review of all 24 deliverables (100% coverage) against outline.md ground tru
 - Cleanup: delete review-methodology.md after fixes confirm it's fully superseded
 
 **Learnings.md at 5× soft limit:**
-- 399 lines, 68 entries — consolidation overdue
+- 404 lines, ~68 entries — consolidation overdue
 - Consolidation trigger fired (14 entries ≥7 days, file >150 lines)
 
 **Review methodology gap:**
 - "Excess" axis needs explicit density sub-criteria for test files
-- Initial review missed fixture duplication, boilerplate verbosity, low signal-to-noise ratio
 - User had to prompt for density analysis — should be part of standard test review
+
+**Fresh context for reviews:**
+- User flagged that reviewing own output has confirmation bias
+- Opus outline review must be delegated to agent without writing-process context
 
 ## Reference Files
 
+- `plans/worktree-skill-fixes/runbook-outline.md` — Runbook outline (25 steps, 5 phases)
+- `plans/worktree-skill-fixes/reports/outline-review.md` — Outline review (4 issues, all fixed)
 - `plans/worktree-skill/reports/deliverable-review.md` — Review findings (27 items)
-- `agents/decisions/deliverable-review.md` — Review methodology (axes, process, classification)
+- `agents/decisions/deliverable-review.md` — Review methodology
 - `plans/worktree-skill/outline.md` — Ground truth design spec
