@@ -27,6 +27,10 @@
 
 Added tmp_path/monkeypatch isolation — test was running against real repo with active worktrees.
 
+### Cleanup
+
+- Staged deletion of deprecated conftest_git.py (backward compat wrapper, no remaining usages)
+
 ### Prior Session (Preserved)
 
 - Applied 12 OOR fixes to runbook outline
@@ -34,10 +38,6 @@ Added tmp_path/monkeypatch isolation — test was running against real repo with
 - Consolidated 13 learnings into permanent documentation (5e7b174)
 
 ## Pending Tasks
-
-- [ ] **Remove deprecated code** — Delete init_repo_with_commit() wrapper from conftest_git.py | sonnet
-  - Added by vet for backward compat, can be cleaned up after confirming no external dependencies
-  - File: tests/conftest_git.py:37-39
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
   - Scope: worktree-skill execution process, not deliverables
