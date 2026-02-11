@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-11
 
-**Status:** OOR fixes applied, plan-adhoc sufficiency check added. Ready for runbook promotion via `/plan-adhoc`.
+**Status:** OOR fixes applied, plan-adhoc sufficiency check added. Ready for Tier 2 execution of outline.
 
 ## Completed This Session
 
@@ -22,9 +22,10 @@ Point 0.95 in `agent-core/skills/plan-adhoc/SKILL.md` — when outline steps alr
 
 ## Pending Tasks
 
-- [ ] **Promote outline and prepare runbook** — `/plan-adhoc plans/worktree-skill-fixes/` (will hit Point 0.95 sufficiency bypass) | sonnet
-  - Plan dir: `plans/worktree-skill-fixes/`
-  - Outline has 7 phases/sub-phases, 25 active steps — already execution-ready
+- [>] **Execute worktree-skill-fixes** — Tier 2 phase-by-phase execution from outline | sonnet
+  - Guide: `plans/worktree-skill-fixes/runbook-outline.md` (25 steps, 7 phases)
+  - Approach: Direct execution per phase, `just precommit` + vet at phase boundaries
+  - No prepare-runbook.py, no orchestrator — outline IS the execution guide
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
   - Scope: worktree-skill execution process, not deliverables
