@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-11
 
-**Status:** Phase 4B complete, investigation prerequisite rule added to planning skills. Phase 4C next.
+**Status:** Phase 4C complete. T5 test implementation blocked by production bug in apply_theirs_resolution.
 
 ## Completed This Session
 
@@ -67,6 +67,25 @@ Point 0.95 in `agent-core/skills/plan-adhoc/SKILL.md` — when outline steps alr
 - Step 4.4 (T5) skipped — requires reading merge_phases.py before test design (added as pending task)
 - Net: -137 lines (231 deleted, 94 added)
 
+**Phase 4C (Minor Docs):** Updated Usage Notes and slug derivation clarity (A3, A4)
+- 108a498: Fixed Usage Notes to reflect Mode C auto-cleanup behavior — Mode A/B require separate cleanup, Mode C includes it automatically
+- 108a498: Clarified slug derivation special character handling — replaced vague "special characters" with explicit `[a-z0-9]` pattern
+- Vet review: No issues, documentation accurate and clear
+
+### Production Bug Discovered in T5 Implementation
+
+Attempted to implement T5 e2e test for precommit fallback flow. Test correctly identified bug in production code:
+
+**Bug location**: `src/claudeutils/worktree/merge_phases.py:244`
+**Issue**: `apply_theirs_resolution()` called after merge commit exists, MERGE_HEAD consumed, `git checkout --theirs` cannot work
+
+**Expected flow**: Commit with ours → precommit fails → reset HEAD~1 → apply theirs (requires MERGE_HEAD) → commit → retry precommit
+**Actual flow**: Commit with ours → precommit fails → apply theirs WITHOUT reset (MERGE_HEAD gone) → `git checkout --theirs` fails silently → retry precommit with same ours content → fails
+
+**Evidence**: Lines 232-256 show reset only on unparseable output (line 241) or after apply_theirs fails (line 255), NOT before calling apply_theirs (line 244)
+
+**Report**: `plans/worktree-skill-fixes/reports/t5-production-bug.md`
+
 ### Added Investigation Prerequisite Rule to Planning Skills
 
 RCA on Step 4.4 failure: executor in throughput mode treated creation step as mechanical recipe, attempted test 3× without reading production code.
@@ -79,16 +98,11 @@ Rule: **Transformation** steps (delete/move/rename) = self-contained recipe. **C
 
 ## Pending Tasks
 
-- [>] **Execute worktree-skill-fixes** — Continue Phase 4C (minor doc fixes) | sonnet
-  - Progress: 5/7 phases complete (Phases 0, 1, 2, 3, 4A, 4B committed)
-  - Next: Phase 4C — 2 minor doc fixes (A3, A4), then vet checkpoint
-  - Guide: `plans/worktree-skill-fixes/runbook-outline.md`
-  - Note: Checkpoint commits per phase
-
-- [ ] **Implement T5 e2e precommit fallback test** — Skipped in Phase 4B, requires production code reading | sonnet
-  - Read `merge_phases.py:220-260` to trace `apply_theirs_resolution` trigger conditions
-  - Design test fixture producing auto-resolved merge where ours fails precommit
-  - Target: `tests/test_merge_phase_3_precommit.py`
+- [ ] **Fix apply_theirs_resolution bug** — Add reset HEAD~1 before calling apply_theirs | opus
+  - Bug: `merge_phases.py:244` calls apply_theirs after commit (MERGE_HEAD gone, checkout --theirs fails)
+  - Fix: Insert `run_git(["reset", "HEAD~1"], check=False)` between line 243 and 244
+  - After fix: complete T5 test implementation (test currently blocked by this bug)
+  - Report: `plans/worktree-skill-fixes/reports/t5-production-bug.md`
 
 - [ ] **Review investigation prerequisite rule** — `Task(subagent_type="plugin-dev:skill-reviewer")` | sonnet
   - Prompt: Review the "step type classification" additions to two planning skills. Read `agent-core/skills/plan-tdd/SKILL.md:530-546` and `agent-core/skills/plan-adhoc/SKILL.md:377-385`. Context: An executor attempted to write an e2e test (Step 4.4 in `plans/worktree-skill-fixes/runbook-outline.md:238-248`) three times without reading the production code it was testing (`src/claudeutils/worktree/merge_phases.py:220-260`). Each attempt failed because the executor was in throughput mode — 5 prior mechanical steps succeeded as recipes, so the 6th (a creation step requiring system understanding) was treated the same way. The new rule classifies steps as transformation (recipe sufficient) vs creation (investigation prerequisite required), so planners encode the investigation the executor would skip. Review for: triggering effectiveness (will planners notice this during step generation?), clarity of transformation/creation distinction, placement relative to surrounding guidance, interaction with existing prerequisite/dependency mechanisms in both skills.
@@ -130,13 +144,16 @@ Rule: **Transformation** steps (delete/move/rename) = self-contained recipe. **C
 - Not related to fix phases, present before fixes started
 - 782/784 tests passing (1 pre-existing failure, 1 xfail)
 
+**T5 test blocked by production bug:**
+- Cannot implement e2e test for precommit fallback until apply_theirs_resolution bug is fixed
+- Bug discovered during test implementation — test correctly identified the issue
+- Fix required before test can pass
+
 ## Reference Files
 
-- `plans/worktree-skill-fixes/runbook-outline.md` — Runbook outline (25 steps, 7 phases/sub-phases)
-- `plans/worktree-skill-fixes/reports/phase-0-vet.md` — Phase 0 vet review (no issues)
-- `plans/worktree-skill-fixes/reports/phase-1-vet.md` — Phase 1 vet review (no issues)
-- `plans/worktree-skill-fixes/reports/phase-3-vet.md` — Phase 3 vet review (critical vacuity issue fixed)
+- `plans/worktree-skill-fixes/runbook-outline.md` — Runbook outline (25 steps, 7 phases)
+- `plans/worktree-skill-fixes/reports/t5-production-bug.md` — Production bug blocking T5 test
+- `plans/worktree-skill-fixes/reports/phase-4c-vet.md` — Phase 4C vet review (no issues)
 - `plans/worktree-skill-fixes/reports/opus-outline-review.md` — Opus review (12 issues, all resolved)
 - `plans/worktree-skill/reports/deliverable-review.md` — Review findings (27 items)
 - `agents/decisions/deliverable-review.md` — Review methodology
-- `plans/worktree-skill/outline.md` — Ground truth design spec
