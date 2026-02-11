@@ -44,15 +44,40 @@ Point 0.95 in `agent-core/skills/plan-adhoc/SKILL.md` — when outline steps alr
 - cab2340: Updated SKILL.md Mode C error handling — replaced "rm .git/index.lock if present" with "stop and report to user"
 - Aligns with "Never agent-initiate lock file removal" behavioral rule
 
-**Progress:** 3/7 phases complete (Phase 0, 1, 2). Remaining: Phase 3 (5 test fixes), Phase 4A-C (11 minor fixes).
+**Phase 3 (Major Tests):** Deleted redundant tests, consolidated fixtures, added missing coverage (T2-T7)
+- 6c629a4: Deleted test_worktree_merge_verification.py (341 lines, tested git not production code)
+- 6c629a4: Removed 5 absence tests from test_execute_rule_mode5_refactor.py
+- 6c629a4: Added test_merge_debris_cleanup_before_merge (exercises clean_merge_debris before merge)
+- 6c629a4: Consolidated 5 git init implementations → conftest_git.py
+- 6c629a4: Consolidated 3 submodule setups → conftest_git.py
+- Vet improved fixture API: init_repo() with optional with_commit parameter
+- Net: -434 lines (646 deleted, 212 added)
+- Vet review: No UNFIXABLE issues, critical vacuity issue fixed (test now exercises production code)
+
+**Phase 4A (Minor Code):** Fixed import sources, subprocess consistency, dead code (C4, C5, G2)
+- 860764e: Updated test_merge_phase_3_precommit imports to use merge_helpers (defining module)
+- 860764e: Replaced raw subprocess calls with run_git() in conflicts.py (using -C for cwd)
+- 860764e: Removed dead wt-path() function from justfile (wrong path convention)
+
+**Progress:** 4/7 phases complete (Phase 0, 1, 2, 3, 4A). Remaining: Phase 4B (6 test steps), Phase 4C (2 doc steps).
+
+### Consolidated 13 Learnings into Permanent Documentation
+
+- 5e7b174: Consolidated into workflow-advanced.md (2 decisions), vet-requirement.md (2 rules), design skill (1 rule), memory-index.md (5 entries)
+- Removed 2 duplicate memory-index entries, trimmed workflow-advanced.md 405→399 lines
+- Net -79 lines from learnings.md
 
 ## Pending Tasks
 
-- [>] **Execute worktree-skill-fixes** — Continue Phase 3 (test fixes) | sonnet
-  - Progress: 3/7 phases complete (Phases 0, 1, 2 committed)
-  - Next: Phase 3 — 5 major test fixes (T2, T3, T4, T6, T7)
+- [>] **Execute worktree-skill-fixes** — Continue Phase 4B (minor test fixes) | sonnet
+  - Progress: 4/7 phases complete (Phases 0, 1, 2, 3, 4A committed)
+  - Next: Phase 4B — 6 minor test fixes (T1, T5, T8, T10, T11, T12)
   - Guide: `plans/worktree-skill-fixes/runbook-outline.md`
-  - Note: Checkpoint commits per phase, no handoff until all phases complete
+  - Note: Checkpoint commits per phase
+
+- [ ] **Remove deprecated code** — Delete init_repo_with_commit() wrapper from conftest_git.py | sonnet
+  - Added by vet for backward compat, can be cleaned up after confirming no external dependencies
+  - File: tests/conftest_git.py:37-39
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
   - Scope: worktree-skill execution process, not deliverables
@@ -67,6 +92,8 @@ Point 0.95 in `agent-core/skills/plan-adhoc/SKILL.md` — when outline steps alr
 - [ ] **Consolidate learnings** — learnings.md at 404 lines (soft limit 80), 14 entries ≥7 days | sonnet
   - Run `/remember` to consolidate into permanent documentation
 
+- [ ] **Remove duplicate memory index entries on precommit** — Autofix or fail on duplicate index entries | sonnet
+
 ## Blockers / Gotchas
 
 **Two methodology documents exist:**
@@ -74,22 +101,23 @@ Point 0.95 in `agent-core/skills/plan-adhoc/SKILL.md` — when outline steps alr
 - `agents/decisions/deliverable-review.md` — ISO-grounded, use this one
 - Cleanup: delete review-methodology.md after fixes confirm it's fully superseded
 
-**Learnings.md at 5× soft limit:**
-- 404 lines, ~68 entries — consolidation overdue
+**Learnings.md over soft limit:**
+- 325 lines after partial consolidation (13 entries consolidated this session) — further consolidation needed
 
 **Review methodology gap:**
 - "Excess" axis needs explicit density sub-criteria for test files
 
 **Pre-existing test failure:**
 - `test_merge_phase_2_diverged_commits` fails with "Error: failed to fetch from worktree submodule"
-- Not related to Phase 0-2 changes, present before fixes started
-- 795/797 tests passing (1 failure pre-existing, 1 xfail expected)
+- Not related to fix phases, present before fixes started
+- 774/791 tests passing (1 pre-existing failure, 1 xfail, 16 skipped without remark-cli)
 
 ## Reference Files
 
 - `plans/worktree-skill-fixes/runbook-outline.md` — Runbook outline (25 steps, 7 phases/sub-phases)
 - `plans/worktree-skill-fixes/reports/phase-0-vet.md` — Phase 0 vet review (no issues)
 - `plans/worktree-skill-fixes/reports/phase-1-vet.md` — Phase 1 vet review (no issues)
+- `plans/worktree-skill-fixes/reports/phase-3-vet.md` — Phase 3 vet review (critical vacuity issue fixed)
 - `plans/worktree-skill-fixes/reports/opus-outline-review.md` — Opus review (12 issues, all resolved)
 - `plans/worktree-skill/reports/deliverable-review.md` — Review findings (27 items)
 - `agents/decisions/deliverable-review.md` — Review methodology

@@ -18,6 +18,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 
 
+
 ## Behavioral Rules (fragments — already loaded)
 
 Scan triggers unnecessary tools — check loaded context not Read/Grep for @-referenced files
@@ -27,6 +28,8 @@ Loaded skill overrides fresh-session framing — skill content is actionable, ex
 Design tables are binding constraints — read classifications literally, apply judgment where design permits
 Header titles not index entries — index entries need keyword-rich descriptions not just title repetition
 Skill rules placement: point of violation — place prohibitions at decision point
+Output requires vet+fix with alignment — verify design/requirements/acceptance criteria matches
+Vet-fix-agent confabulation from design docs — precommit first explicit IN/OUT scope prevents false positives
 
 ## Technical Decisions (mixed — check entry for specific file)
 
@@ -79,6 +82,7 @@ Rule files for context injection — use claude rules with paths frontmatter for
 Premium/standard/efficient naming — opus sonnet haiku terminology instead of ambiguous T1 T2 T3
 Multi-layer discovery pattern — surface skills via CLAUDE.md rules workflow reminders descriptions
 Agent frontmatter YAML validation — use multi-line syntax for descriptions containing examples
+Skill dependencies in requirements — scan A.0 for indicators load immediately
 Symlink persistence — verify symlinks after operations that reformat files like dev
 Heredoc sandbox compatibility — export TMPPREFIX for zsh heredoc temp files in sandbox
 Path.cwd() vs os.getcwd() — use Path.cwd() for consistency with pathlib usage
@@ -149,6 +153,7 @@ Commit RCA Fixes Active — submodule awareness artifact staging orchestrator st
 Precommit Is Read-Only — validation not transformation session.md exempt for token expansion
 Outline Enables Phase-by-Phase Expansion — holistic outline then incremental phase expansion with reviews
 Phase-by-Phase Review Pattern — generate review fix-all check-escalation proceed iterative not batch
+Manual runbook assembly bypasses automation — phase files separate prepare-runbook.py assembles
 Review Agent Fix-All Pattern — audit trail autofix everything escalate unfixable to caller
 Recommendations Inline Transmission — append guidance to consumed artifact not separate report
 Prose Test Descriptions Save Tokens — prose descriptions save 80% over full test code
@@ -159,8 +164,6 @@ Dogfooding Validates Design — apply new process to its own planning for valida
 TDD GREEN Behavioral Descriptions — behavior approach hint structure not prescriptive code
 Efficient Model Analysis Requires Verification — haiku execution sonnet opus architecture verify results
 Domain Validation Pattern — planning-time detection, skill-directed vet, no agent proliferation
-Skill dependencies in requirements — scan A.0 for indicators load skills immediately
-Manual runbook assembly bypasses automation — phase files separate prepare-runbook.py assembles
 Phase boundaries require checkpoint delegation — hard stop explicit vet at phase transitions
 
 ## agents/decisions/workflow-core.md
