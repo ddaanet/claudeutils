@@ -319,7 +319,7 @@ plans/<stream-name>/
 
 **Impact:** Robust commit verification without single point of failure.
 
-## Delegation Patterns
+## .Delegation Patterns
 
 ### Delegation Without Plan Causes Drift
 

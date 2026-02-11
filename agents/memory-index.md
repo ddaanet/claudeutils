@@ -17,6 +17,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 
 
+
 ## Behavioral Rules (fragments — already loaded)
 
 Scan triggers unnecessary tools — check loaded context not Read/Grep for @-referenced files
@@ -104,7 +105,10 @@ Default semantic, mark structural — semantic default, structural gets dot pref
 Phase-Grouped Runbook Header Format — H3 phase grouping H2 steps for prepare-runbook.py extraction
 Prose Gate D+B Hybrid Fix — merge gates into action steps, anchor with tool call
 Hard limits vs soft limits — fail build or don't check, warnings normalize deviance
+Organizational sections and index pollution — mark structural with dot prefix, autofix removes index entries
 Index entry key preservation — shorten description preserve key, validator matches keys to headers
+Batch edit token efficiency — marker format saves 13% tokens vs JSON for batch edits
+Commits must remove invalidated learnings — atomic removal of stale learnings in same commit
 
 ## agents/decisions/project-config.md
 

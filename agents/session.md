@@ -18,6 +18,10 @@
 - Agent-core: `worktree` branch at a5b5cac (skill documentation)
 - User copied justfile to worktree tmp/ for reference
 
+**Precommit fix:**
+- `workflow-core.md` — marked `## Delegation Patterns` as structural (`.` prefix, no direct content)
+- `memory-index.md` — added 3 orphan H3 index entries (organizational sections, batch edit, invalidated learnings)
+
 ## Pending Tasks
 
 - [ ] **Merge worktree-skill into dev** — `just wt-merge worktree` after verification | sonnet
