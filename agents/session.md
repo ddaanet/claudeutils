@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-11
 
-**Status:** Opus review fixes applied to runbook outline. Ready for runbook expansion via `/plan-adhoc`.
+**Status:** OOR fixes applied, plan-adhoc sufficiency check added. Ready for runbook promotion via `/plan-adhoc`.
 
 ## Completed This Session
 
@@ -16,12 +16,15 @@ All issues from `plans/worktree-skill-fixes/reports/opus-outline-review.md` reso
 
 **Design decision:** Fix existing outline rather than regenerate. Rationale: regeneration validates checklist against its training data — real validation is next novel plan.
 
+### Added Outline Sufficiency Check to plan-adhoc
+
+Point 0.95 in `agent-core/skills/plan-adhoc/SKILL.md` — when outline steps already have targets, concrete actions, and verification, skip expansion (Points 1-3) and promote outline directly to runbook format for prepare-runbook.py. Prevents wasted planning cycle on detailed outlines.
+
 ## Pending Tasks
 
-- [ ] **Expand and assemble runbook** — Phase-by-phase expansion, assembly, prepare artifacts | sonnet
-  - Process: Point 1 → Point 2 → Point 3 → Point 4 of plan-adhoc
+- [ ] **Promote outline and prepare runbook** — `/plan-adhoc plans/worktree-skill-fixes/` (will hit Point 0.95 sufficiency bypass) | sonnet
   - Plan dir: `plans/worktree-skill-fixes/`
-  - Outline now has 7 phases/sub-phases, 25 active steps
+  - Outline has 7 phases/sub-phases, 25 active steps — already execution-ready
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
   - Scope: worktree-skill execution process, not deliverables
