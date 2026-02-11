@@ -151,6 +151,22 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Prevents drift accumulation, enables early course correction.
 
+### Manual Runbook Assembly Bypasses Automation
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Leave phase files separate during planning, holistic review reads multiple files, prepare-runbook.py handles assembly.
+
+**Anti-pattern:** Using `cat` + `Write` to assemble phase files into runbook.md during planning.
+
+**Rationale:** Assembly logic (metadata calc, cycle numbering validation) belongs in prepare-runbook.py, not manual process. Manual assembly error-prone: wrong cycle count, missing metadata, inconsistent formatting.
+
+**Key insight:** Review agent can read multiple phase files — doesn't need pre-assembled input.
+
+**Fix:** Updated plan-tdd Phase 4/5 to clarify prepare-runbook.py handles assembly, planner provides phase files.
+
+**Impact:** Consolidates assembly logic in one authoritative location, reduces manual errors.
+
 ### Review Agent Fix-All Pattern
 
 **Decision Date:** 2026-02-05
@@ -364,11 +380,7 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Anti-pattern:** Using `cat` + `Write` to assemble phase files into runbook.md during planning.
 
-**Rationale:** Assembly logic (metadata calc, cycle numbering validation) belongs in prepare-runbook.py, not manual process.
-
-**Manual assembly error-prone:** wrong cycle count, missing metadata, inconsistent formatting.
-
-**Review agent capability:** Can read multiple phase files — doesn't need pre-assembled input.
+**Rationale:** Assembly logic (metadata calc, cycle numbering validation) belongs in prepare-runbook.py, not manual process. Review agents can read multiple phase files directly.
 
 **Fix:** Updated plan-tdd Phase 4/5 to clarify prepare-runbook.py handles assembly, planner provides phase files.
 
@@ -382,8 +394,6 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Anti-pattern:** Treat checkpoint as part of step execution, skip vet-fix-agent delegation, proceed to next phase.
 
-**Rationale:** Checkpoints catch bugs (logic error in format_context() found at Phase 2→3 boundary checkpoint).
+**Rationale:** Checkpoints catch bugs (e.g., logic error in format_context() found at Phase 2→3 boundary).
 
 **Fix:** D+B hybrid merged phase boundary into 3.3 with Read anchor for phase detection.
-
-**Impact:** Phase transitions become explicit verification points in orchestration.
