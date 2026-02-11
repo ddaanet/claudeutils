@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-11
 
-**Status:** OOR fixes applied, plan-adhoc sufficiency check added. Ready for Tier 2 execution of outline.
+**Status:** Phase 4B complete, investigation prerequisite rule added to planning skills. Phase 4C next.
 
 ## Completed This Session
 
@@ -59,21 +59,39 @@ Point 0.95 in `agent-core/skills/plan-adhoc/SKILL.md` — when outline steps alr
 - 860764e: Replaced raw subprocess calls with run_git() in conflicts.py (using -C for cwd)
 - 860764e: Removed dead wt-path() function from justfile (wrong path convention)
 
-**Progress:** 4/7 phases complete (Phase 0, 1, 2, 3, 4A). Remaining: Phase 4B (6 test steps), Phase 4C (2 doc steps).
+**Phase 4B (Minor Tests):** Refactored test organization, consolidated boilerplate (T1, T8, T10, T11, T12)
+- 4038815: Replaced subprocess.run → run_git() helper in 2 test files
+- 4038815: Extracted _get_mode5_section() helper to eliminate duplication
+- 4038815: Consolidated 10 YAML schema tests → 3 grouped tests
+- 4038815: Deleted redundant test_resolve_source_conflicts_returns_list_of_resolved_files
+- Step 4.4 (T5) skipped — requires reading merge_phases.py before test design (added as pending task)
+- Net: -137 lines (231 deleted, 94 added)
 
-### Consolidated 13 Learnings into Permanent Documentation
+### Added Investigation Prerequisite Rule to Planning Skills
 
-- 5e7b174: Consolidated into workflow-advanced.md (2 decisions), vet-requirement.md (2 rules), design skill (1 rule), memory-index.md (5 entries)
-- Removed 2 duplicate memory-index entries, trimmed workflow-advanced.md 405→399 lines
-- Net -79 lines from learnings.md
+RCA on Step 4.4 failure: executor in throughput mode treated creation step as mechanical recipe, attempted test 3× without reading production code.
+
+Fix: Step classification rule added to both planning skills:
+- `agent-core/skills/plan-tdd/SKILL.md` — Phase 3.1-3.6 step 4 (before dependency assignment)
+- `agent-core/skills/plan-adhoc/SKILL.md` — Point 1 (before medium task criteria)
+
+Rule: **Transformation** steps (delete/move/rename) = self-contained recipe. **Creation** steps (new test/integration) = MUST include `**Prerequisite:** Read [file:lines] — understand [behavior]`.
 
 ## Pending Tasks
 
-- [>] **Execute worktree-skill-fixes** — Continue Phase 4B (minor test fixes) | sonnet
-  - Progress: 4/7 phases complete (Phases 0, 1, 2, 3, 4A committed)
-  - Next: Phase 4B — 6 minor test fixes (T1, T5, T8, T10, T11, T12)
+- [>] **Execute worktree-skill-fixes** — Continue Phase 4C (minor doc fixes) | sonnet
+  - Progress: 5/7 phases complete (Phases 0, 1, 2, 3, 4A, 4B committed)
+  - Next: Phase 4C — 2 minor doc fixes (A3, A4), then vet checkpoint
   - Guide: `plans/worktree-skill-fixes/runbook-outline.md`
   - Note: Checkpoint commits per phase
+
+- [ ] **Implement T5 e2e precommit fallback test** — Skipped in Phase 4B, requires production code reading | sonnet
+  - Read `merge_phases.py:220-260` to trace `apply_theirs_resolution` trigger conditions
+  - Design test fixture producing auto-resolved merge where ours fails precommit
+  - Target: `tests/test_merge_phase_3_precommit.py`
+
+- [ ] **Review investigation prerequisite rule** — `Task(subagent_type="plugin-dev:skill-reviewer")` | sonnet
+  - Prompt: Review the "step type classification" additions to two planning skills. Read `agent-core/skills/plan-tdd/SKILL.md:530-546` and `agent-core/skills/plan-adhoc/SKILL.md:377-385`. Context: An executor attempted to write an e2e test (Step 4.4 in `plans/worktree-skill-fixes/runbook-outline.md:238-248`) three times without reading the production code it was testing (`src/claudeutils/worktree/merge_phases.py:220-260`). Each attempt failed because the executor was in throughput mode — 5 prior mechanical steps succeeded as recipes, so the 6th (a creation step requiring system understanding) was treated the same way. The new rule classifies steps as transformation (recipe sufficient) vs creation (investigation prerequisite required), so planners encode the investigation the executor would skip. Review for: triggering effectiveness (will planners notice this during step generation?), clarity of transformation/creation distinction, placement relative to surrounding guidance, interaction with existing prerequisite/dependency mechanisms in both skills.
 
 - [ ] **Remove deprecated code** — Delete init_repo_with_commit() wrapper from conftest_git.py | sonnet
   - Added by vet for backward compat, can be cleaned up after confirming no external dependencies
@@ -110,7 +128,7 @@ Point 0.95 in `agent-core/skills/plan-adhoc/SKILL.md` — when outline steps alr
 **Pre-existing test failure:**
 - `test_merge_phase_2_diverged_commits` fails with "Error: failed to fetch from worktree submodule"
 - Not related to fix phases, present before fixes started
-- 774/791 tests passing (1 pre-existing failure, 1 xfail, 16 skipped without remark-cli)
+- 782/784 tests passing (1 pre-existing failure, 1 xfail)
 
 ## Reference Files
 
