@@ -1,4 +1,8 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Bash(git:*)",
@@ -23,16 +27,6 @@
       "Bash(just release:*)",
       "WebFetch(domain:http-intake.logs.*.datadoghq.com)"
     ]
-  },
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
-  "plansDirectory": "plans/claude/",
-  "sandbox": {
-    "enabled": true,
-    "autoAllowBashIfSandboxed": true,
-    "excludedCommands": ["git", "just", "agent-core/bin/prepare-runbook.py"]
   },
   "hooks": {
     "PreToolUse": [
@@ -81,5 +75,18 @@
         ]
       }
     ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "excludedCommands": [
+      "git",
+      "just",
+      "agent-core/bin/prepare-runbook.py"
+    ]
+  },
+  "plansDirectory": "plans/claude/",
+  "enabledPlugins": {
+    "hookify@claude-plugins-official": false
   }
 }
