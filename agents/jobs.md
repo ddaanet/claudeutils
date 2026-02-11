@@ -11,7 +11,8 @@ Plan lifecycle tracking. Updated when plans change status.
 | continuation-prepend | requirements | Problem statement only |
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
 | handoff-validation | requirements | Requires continuation-passing |
-| orchestrate-evolution | requirements | Absorb planning, finalize phase pattern |
+| orchestrate-evolution | designed | Design.md complete, vet in progress, planning next |
+| parallel-orchestration | requirements | Deferred from orchestrate-evolution (worktree isolation needed) |
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
 | reports | — | Shared reports directory (not a plan) |

@@ -40,6 +40,14 @@ test *ARGS:
     pytest {{ ARGS }}
     report-end-safe "Tests"
 
+# Set up development environment (venv, direnv, npm)
+[no-exit-message]
+setup:
+    #!{{ bash_prolog }}
+    visible uv sync
+    visible npm install
+    visible direnv allow
+
 # Check file line limits
 [no-exit-message]
 line-limits:
@@ -241,6 +249,34 @@ end-safe () { ${status:-true}; }
 show () { echo "$COMMAND$*$NORMAL"; }
 visible () { show "$@"; "$@"; }
 fail () { echo "${ERROR}$*${NORMAL}"; exit 1; }
+wt-path() {
+    local parent
+    parent="$(cd .. && basename "$PWD")"
+    if [[ "$parent" == *-wt ]]; then
+        echo "$(cd .. && pwd)/$1"
+    else
+        echo "$(cd .. && pwd)/$(basename "$PWD")-wt/$1"
+    fi
+}
+add-sandbox-dir() {
+    local dir="$1" settings="$2"
+    mkdir -p "$(dirname "$settings")"
+    python3 -c "
+import json, sys, os
+path = sys.argv[1]
+settings_file = sys.argv[2]
+data = {}
+if os.path.exists(settings_file):
+    with open(settings_file) as f:
+        data = json.load(f)
+dirs = data.setdefault('permissions', {}).setdefault('additionalDirectories', [])
+if path not in dirs:
+    dirs.append(path)
+    with open(settings_file, 'w') as f:
+        json.dump(data, f, indent=2)
+        f.write('\n')
+" "$dir" "$settings"
+}
 
 # Do not uv sync when in Claude Code sandbox
 sync() { if [ -w /tmp ]; then uv sync -q; fi; }

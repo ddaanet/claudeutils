@@ -319,3 +319,23 @@ plans/<stream-name>/
 
 **Impact:** Robust commit verification without single point of failure.
 
+## .Delegation Patterns
+
+### Delegation Without Plan Causes Drift
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Opus provides runbook OR acceptance criteria when delegating implementation.
+
+**Anti-pattern:** Opus specifies "do X | haiku" without runbook/acceptance criteria.
+
+**Consequence:** Without criteria, executing agent cannot verify alignment, vet cannot check drift.
+
+**Haiku-specific:** Handoff uses `/handoff-haiku` not `/handoff` (no learnings judgment).
+
+**Root cause:** Task had model spec but no execution spec.
+
+**Fix:** Handoff skill now requires haiku tasks to include acceptance criteria (table + examples).
+
+**Impact:** Delegated implementations maintain alignment through explicit criteria.
+

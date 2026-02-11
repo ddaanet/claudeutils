@@ -1,5 +1,6 @@
 """AccountState Pydantic model for representing account configuration state."""
 
+import getpass
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -31,7 +32,9 @@ def get_account_state() -> AccountState:
 
     # Check if OAuth credentials are in keychain
     keychain = Keychain()
-    oauth_token = keychain.find(account="claude", service="com.anthropic.claude")
+    oauth_token = keychain.find(
+        account=getpass.getuser(), service="Claude Code-credentials"
+    )
     oauth_in_keychain = oauth_token is not None
 
     return AccountState(
