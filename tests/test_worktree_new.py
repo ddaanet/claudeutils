@@ -216,7 +216,9 @@ def test_new_slug_validation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
 
     for slug, description, expected_exit in invalid_slugs:
         result = runner.invoke(worktree, ["new", slug])
-        assert result.exit_code == expected_exit, f"Expected rejection for {description}: {slug}"
+        assert (
+            result.exit_code == expected_exit
+        ), f"Expected rejection for {description}: {slug}"
         if expected_exit == 1:
             assert "invalid slug" in result.output.lower()
 
