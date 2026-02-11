@@ -378,3 +378,22 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Invoke refactor agent only when precommit reports complexity or lint errors
 - Rationale: If precommit passes, no refactoring needed; refactor agent is for fixing violations, not preventive review
 - Protocol: Run `just precommit` → if passes, proceed to vet checkpoint → if fails, delegate to refactor agent with desloping and factorization guidance
+## Primary source verification for deliverables
+- Anti-pattern: Trusting vet reports, cycle notes, and test passage as proof of deliverable quality
+- Correct pattern: Read every deliverable file directly, evaluate against design spec and explicit quality axes
+- Rationale: Vet may check presence not correctness, tests may be vacuous, reports don't catch path bugs or clarity issues
+- Evidence: Phase 5 vet said "ready" but primary review found 3 path bugs, 13+ SKILL.md issues, vacuous tests, dead code
+- Scope: All production artifacts (code, tests, docs, skills, fragments, config)
+## Comprehensive review prevents false confidence
+- Anti-pattern: Reviewing subset of deliverables (27%) and declaring job complete
+- Correct pattern: Inventory ALL deliverables (production files created/modified), review each against evaluation axes
+- Rationale: Partial review creates false confidence - bugs in unreviewed 73% remain undetected
+- Scope definition: Production artifacts only (exclude plans/, tmp/, reports, design docs)
+- Coverage target: 100% of deliverables, not 100% of lines
+## Type-specific evaluation axes required
+- Anti-pattern: Generic "looks good" assessment without structured evaluation
+- Correct pattern: Define explicit evaluation axes per artifact type (code: 10 axes, tests: 6, docs: 6)
+- Rationale: Without axes, reviews miss categories of issues (vacuity, actionability, efficiency)
+- Implementation: Code needs correctness/completeness/robustness/clarity/efficiency/cohesion/coupling/vacuity/testability/consistency
+- Tests: expressiveness/concision/specificity/pertinence/vacuity/coverage
+- Documentation: clarity/actionability/efficiency/correctness/completeness/consistency
