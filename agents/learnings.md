@@ -323,3 +323,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Include the domain noun in the header — `## Deliverable Definition` not `## Definition`
 - Rationale: Index keys are exact lowercase match of header text; generic words match nothing useful
 - Scope: Any semantic (non-dot-prefixed) header in `agents/decisions/` files
+## Memory consolidation worktree conflict
+- Anti-pattern: Running `/remember` (learnings consolidation) in a worktree — creates merge conflicts in `agents/learnings.md` and documentation files when merging back to main
+- Correct pattern: Only consolidate memory in main repo or in a dedicated consolidation worktree that will be merged independently
+- Rationale: Consolidation modifies shared documentation (`agents/learnings.md`, `agents/decisions/*.md`, fragments, skills) — parallel modifications in feature worktrees cause conflicts
+- Detection: Check if in worktree via `git rev-parse --show-toplevel` vs `git worktree list` before consolidation

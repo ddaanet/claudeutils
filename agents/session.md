@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-12
 
-**Status:** worktree-update outline finalized. Ready for TDD planning (`/plan-tdd`).
+**Status:** worktree-update runbook outline generated and reviewed. Ready for phase-by-phase cycle expansion.
 
 ## Completed This Session
 
@@ -17,10 +17,36 @@ Amendments across two sessions:
 
 D8 updated to reflect both Python merge and justfile must check both sides. Vet-review-2 clean, no issues.
 
+### worktree-update Runbook Outline: Generated and Reviewed
+
+**Phase 0-1.5 complete:** Tier assessment (Tier 3 - Full Runbook), intake, runbook outline generation.
+
+**Outline structure:**
+- 9 phases: 7 TDD phases (0-7), 1 non-code artifacts phase (8), 1 interactive refactoring phase (9)
+- 48 TDD cycles total (Phases 0-7)
+- All 10 functional requirements mapped to specific cycles
+- Complexity distribution: 2 low, 4 medium, 2 high complexity phases
+
+**Review outcome (outline-review-1):**
+- No critical, major, or minor issues requiring fixes
+- Requirements coverage complete (all FRs traced to cycles)
+- Phase structure well-balanced (25% Phase 7 merge ceremony, 21% Phase 5 new command refactor)
+- Design alignment confirmed for all 8 key decisions (D1-D8)
+- Status: Ready for full expansion
+
+**Artifacts created:**
+- `plans/worktree-update/runbook-outline.md` — Validated outline with phase structure and cycle counts
+- `plans/worktree-update/reports/outline-review-1.md` — Review report with expansion guidance
+
+**Next step:** Phase-by-phase cycle expansion (Phase 3 of /plan-tdd workflow).
+
 ## Pending Tasks
 
-- [ ] **Plan worktree-update** — `/plan-tdd plans/worktree-update/design.md` | sonnet
+- [ ] **Plan worktree-update (Phase 3-5)** — Continue phase-by-phase cycle expansion | sonnet
   - Plan: plans/worktree-update
+  - Phase 0-1.5 complete (outline validated)
+  - Next: Phase 3 (phase-by-phase expansion), then Phase 4 (assembly), Phase 5 (final review)
+  - Command: Resume /plan-tdd from Phase 3 (already past intake and outline)
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
   - Scope: worktree-skill execution process, not deliverables
@@ -39,6 +65,10 @@ D8 updated to reflect both Python merge and justfile must check both sides. Vet-
 
 - [ ] **Update design skill** — Two refinements: (1) TDD non-code steps: non-code artifacts (skill, docs, justfile) explicitly marked non-TDD; (2) Phase C density checkpoint: if outline already has architecture+decisions+scope+impl sequence, promote to design.md (add Doc Perimeter) instead of full opus expansion | sonnet
 
+- [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate memory in main repo or dedicated consolidation worktree | sonnet
+  - Add worktree detection: skip consolidation if `git rev-parse --show-toplevel` appears in `git worktree list` output
+  - Rationale: Consolidation modifies shared docs (learnings.md, decisions/, fragments) — parallel worktree modifications cause merge conflicts
+
 ## Blockers / Gotchas
 
 **Two methodology documents exist:**
@@ -55,6 +85,8 @@ D8 updated to reflect both Python merge and justfile must check both sides. Vet-
 ## Reference Files
 
 - `plans/worktree-update/design.md` — Worktree update design (9 steps: 7 TDD + non-code + refactor)
-- `plans/worktree-update/reports/vet-review-2.md` — Latest review report
+- `plans/worktree-update/runbook-outline.md` — Validated runbook outline (48 TDD cycles, 9 phases)
+- `plans/worktree-update/reports/outline-review-1.md` — Outline review report with expansion guidance
+- `plans/worktree-update/reports/vet-review-2.md` — Design review report
 - `plans/worktree-skill/outline.md` — Ground truth design spec (worktree-skill)
 - `agents/decisions/deliverable-review.md` — Review methodology
