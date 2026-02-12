@@ -318,3 +318,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: Phase 2 vet flagged test file mismatch as "unfixable design decision" when solution was: check existing files, consolidate to test_worktree_cli.py, replace references
 - Root cause: Agents treat uncertainty as escalation trigger rather than scanning existing patterns for guidance
 - Impact: Creates false blocking issues, delays execution on mechanical fixes
+## RED pass blast radius assessment
+- Anti-pattern: Handling unexpected RED pass as isolated cycle issue (skip or retry)
+- Correct pattern: Run blast radius across all remaining phase cycles — test each RED assertion against current state
+- Classification: over-implementation (commit test, skip GREEN), test flaw (rewrite assertions), correct (proceed)
+- Critical finding: Test flaws are deliverable defects — feature silently skipped when test passes for wrong reason
+- Example: Cycle 0.5 word-overlap tiebreaker passes due to boundary bonuses (212 vs 202), not word overlap
+- Protocol: `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`

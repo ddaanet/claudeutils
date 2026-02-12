@@ -55,10 +55,8 @@ def test_consecutive_match_bonus() -> None:
     # Consecutive should score higher
     assert consecutive > separated
 
-    # Test consecutive bonus accumulation: each consecutive character adds 4 points
-    # "ab" in "ab" has 2 base matches (16 each) + first char multiplier (x2) + boundary + consecutive
+    # Consecutive bonus: 4 per consecutive char after first
+    # i=1: 16*2 (first char) = 32
+    # i=2: 32 + 16 + 4 (consecutive) = 52
     ab_exact = score_match("ab", "ab")
-    # Expected: 16*2 (first char multiplied by 2) + 16 (second char) + 0 (no boundary) + 4 (consecutive) = 64
-    # Actually: i=1: score[1][1] = 0 + 16*2 + 0 + 0 = 32
-    #           i=2: score[2][2] = 32 + 16 + 4 + 0 = 52
     assert ab_exact == 52
