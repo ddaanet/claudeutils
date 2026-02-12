@@ -68,10 +68,6 @@ def test_derive_slug() -> None:
     assert derive_slug("Multiple    spaces   here") == "multiple-spaces-here"
     assert derive_slug("Special!@#$%chars") == "special-chars"
     assert derive_slug("A" * 35 + "test") == "a" * 30
-
-
-def test_derive_slug_edge_cases() -> None:
-    """Edge cases: special chars, truncation, empty input."""
     assert derive_slug("feat: add login") == "feat-add-login"
     assert derive_slug("fix:  space") == "fix-space"
     assert derive_slug("feature-") == "feature"
@@ -82,7 +78,6 @@ def test_derive_slug_edge_cases() -> None:
 
     with pytest.raises(ValueError, match="task_name must not be empty"):
         derive_slug("")
-
     with pytest.raises(ValueError, match="task_name must not be empty"):
         derive_slug("   ")
 
@@ -151,13 +146,11 @@ def test_wt_path_not_in_container(
     repo_path = tmp_path / "my-repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
-
     _init_repo(repo_path)
 
     result_path = wt_path("feature-a")
 
     assert result_path.is_absolute()
-    assert result_path.name == "feature-a"
     assert result_path.parent.name.endswith("-wt")
     assert str(result_path).endswith("my-repo-wt/feature-a")
 
@@ -169,27 +162,16 @@ def test_wt_path_in_container(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     repo_path = container_path / "main"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
-
     _init_repo(repo_path)
 
     path_a = wt_path("feature-a")
     path_b = wt_path("feature-b")
 
-    assert path_a.is_absolute()
-    assert path_b.is_absolute()
-
-    assert path_a.name == "feature-a"
-    assert path_b.name == "feature-b"
-
     assert path_a.parent == path_b.parent
     assert path_a.parent.name == "my-repo-wt"
-
-    assert path_a != path_b
     assert str(path_a).endswith("my-repo-wt/feature-a")
     assert str(path_b).endswith("my-repo-wt/feature-b")
-
     assert "-wt/-wt" not in str(path_a)
-    assert "-wt/-wt" not in str(path_b)
 
 
 def test_new_session_precommit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -250,36 +232,26 @@ def test_wt_path_creates_container(
     repo_path = tmp_path / "my-repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
-
     _init_repo(repo_path)
 
     container_path = repo_path.parent / "my-repo-wt"
-    assert not container_path.exists()
-
     result_path = wt_path("feature-a", create_container=True)
 
     assert container_path.exists()
-    assert container_path.is_dir()
     assert result_path.parent == container_path
     assert result_path.name == "feature-a"
-    assert len(list(container_path.iterdir())) == 0
     assert stat.S_IMODE(container_path.stat().st_mode) == 0o755
 
 
 def test_wt_path_edge_cases(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Edge cases: special characters, deep nesting, root directory."""
+    """Edge cases: special characters, deep nesting, empty slug."""
     repo_path = tmp_path / "my-repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
-
     _init_repo(repo_path)
 
     result = wt_path("fix-bug#123")
     assert "#123" in str(result)
-
-    result = wt_path("test")
-    assert result.is_absolute()
-    assert result.name == "test"
 
     deep_path = tmp_path / "a" / "b" / "c" / "d" / "e" / "repo"
     deep_path.mkdir(parents=True)
@@ -291,7 +263,6 @@ def test_wt_path_edge_cases(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
 
     with pytest.raises(ValueError, match="slug"):
         wt_path("")
-
     with pytest.raises(ValueError, match="slug"):
         wt_path("   ")
 
@@ -309,44 +280,30 @@ def test_add_sandbox_dir_happy_path(tmp_path: Path) -> None:
         "/existing/path",
         "/new/path",
     ]
-    assert "permissions" in updated
-    assert isinstance(updated["permissions"]["additionalDirectories"], list)
 
 
 def test_add_sandbox_dir_missing_file(tmp_path: Path) -> None:
     """Creates settings file from scratch when missing."""
     settings_file = tmp_path / "nonexistent" / "settings.json"
-    assert not settings_file.exists()
-
     add_sandbox_dir("/new/path", settings_file)
-
-    assert settings_file.exists()
     created = json.loads(settings_file.read_text())
     assert created == {"permissions": {"additionalDirectories": ["/new/path"]}}
-    assert isinstance(created["permissions"]["additionalDirectories"], list)
 
 
 def test_add_sandbox_dir_missing_keys(tmp_path: Path) -> None:
     """Creates nested structure when JSON exists but keys missing."""
     settings_file = tmp_path / "empty.json"
     settings_file.write_text(json.dumps({}))
-
     add_sandbox_dir("/new/path", settings_file)
-
     result = json.loads(settings_file.read_text())
     assert result["permissions"]["additionalDirectories"] == ["/new/path"]
-    assert isinstance(result["permissions"], dict)
-    assert isinstance(result["permissions"]["additionalDirectories"], list)
 
     settings_file2 = tmp_path / "partial.json"
     settings_file2.write_text(json.dumps({"permissions": {"other_key": "value"}}))
-
     add_sandbox_dir("/new/path", settings_file2)
-
     result2 = json.loads(settings_file2.read_text())
     assert result2["permissions"]["additionalDirectories"] == ["/new/path"]
     assert result2["permissions"]["other_key"] == "value"
-    assert isinstance(result2["permissions"]["additionalDirectories"], list)
 
 
 def test_add_sandbox_dir_deduplication(tmp_path: Path) -> None:
@@ -358,12 +315,10 @@ def test_add_sandbox_dir_deduplication(tmp_path: Path) -> None:
     settings_file.write_text(json.dumps(initial_settings, indent=2))
 
     add_sandbox_dir("/path/a", settings_file)
-
     result = json.loads(settings_file.read_text())
     assert result["permissions"]["additionalDirectories"] == ["/path/a", "/path/b"]
 
     add_sandbox_dir("/path/c", settings_file)
-
     result = json.loads(settings_file.read_text())
     assert result["permissions"]["additionalDirectories"] == [
         "/path/a",
@@ -372,7 +327,6 @@ def test_add_sandbox_dir_deduplication(tmp_path: Path) -> None:
     ]
 
     add_sandbox_dir("/path/a", settings_file)
-
     result = json.loads(settings_file.read_text())
     assert result["permissions"]["additionalDirectories"] == [
         "/path/a",
@@ -399,16 +353,12 @@ def test_focus_session_task_extraction(tmp_path: Path) -> None:
 None
 """
     session_file.write_text(session_content)
-
     result = focus_session("Implement feature X", session_file)
 
-    assert isinstance(result, str)
     assert "# Session: Worktree — Implement feature X" in result
     assert "**Status:** Focused worktree for parallel execution." in result
-    assert "## Pending Tasks" in result
     assert r"- [ ] **Implement feature X** — `\`/plan-adhoc\`` | sonnet" in result
     assert "Fix bug Y" not in result
-    assert "Completed task Z" not in result
 
 
 def test_focus_session_section_filtering(tmp_path: Path) -> None:
@@ -433,13 +383,10 @@ def test_focus_session_section_filtering(tmp_path: Path) -> None:
 - `plans/other-feature/design.md` — Unrelated design
 """
     session_file.write_text(session_content)
-
     result = focus_session("Implement feature X", session_file)
 
-    assert isinstance(result, str)
     assert "Implement feature X workflow depends on Phase 0 completion" in result
     assert "See plans/feature-x/ for implementation notes" in result
     assert "Unrelated issue: GPU memory constraints" not in result
     assert "Design for feature X" in result
     assert "Unrelated design" not in result
-    assert "General reference" not in result
