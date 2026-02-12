@@ -311,3 +311,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Only consolidate memory in main repo or in a dedicated consolidation worktree that will be merged independently
 - Rationale: Consolidation modifies shared documentation (`agents/learnings.md`, `agents/decisions/*.md`, fragments, skills) — parallel modifications in feature worktrees cause conflicts
 - Detection: Check if in worktree via `git rev-parse --show-toplevel` vs `git worktree list` before consolidation
+## User @ injects content too
+- Anti-pattern: Read a file the user referenced with `@` in their message — content already injected
+- Correct pattern: Work directly from loaded content, no Read needed
+- Difference: CLAUDE.md `@` is recursive (loads transitive refs), user-message `@` is single file (no recursion)
+- Root cause: Template thinking ("apply X" → Read X → edit target) bypasses checking whether content already loaded
+- Fix: execution-routing.md updated to explicitly cover both injection sources

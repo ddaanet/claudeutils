@@ -25,32 +25,19 @@
 
 ## Phase Structure
 
-### Phase 0: Setup and Registration
-
-**Complexity:** Low (2 cycles)
-**Files:** `src/claudeutils/cli.py`
-**Description:** Register `_worktree` CLI group in main CLI
-
-**Cycles:**
-- 0.1: Import and register worktree CLI group
-- 0.2: Verify hidden from help output
-
----
-
 ### Phase 1: Path Computation (`wt_path()`)
 
 **Complexity:** Medium (5 cycles)
-**Files:** `src/claudeutils/worktree/cli.py`, `tests/test_worktree_path.py`
-**Description:** Extract path computation logic into testable function
+**Files:** `src/claudeutils/cli.py`, `src/claudeutils/worktree/cli.py`, `tests/test_worktree_path.py`
+**Description:** Register CLI group and extract path computation logic into testable function
 
 **Cycles:**
-- 1.1: `wt_path()` basic path construction
-- 1.2: Container detection (`-wt` parent)
-- 1.3: Sibling path when in container
-- 1.4: Container creation when not in container
-- 1.5: Edge cases (root directory, deep nesting)
-
-**Depends on:** Phase 0 (CLI registration exists)
+- 1.1: Register `_worktree` CLI group and verify hidden from help
+- 1.2: `wt_path()` basic path construction
+- 1.3: Container detection (`-wt` parent)
+- 1.4: Sibling path when in container
+- 1.5: Container creation when not in container
+- 1.6: Edge cases (root directory, deep nesting)
 
 ---
 
@@ -61,42 +48,41 @@
 **Description:** JSON manipulation for sandbox permissions
 
 **Cycles:**
-- 2.1: Create `add_sandbox_dir()` function — basic JSON read/write
-- 2.2: Deduplication logic (avoid adding existing paths)
-- 2.3: Missing file handling (create with `{}`)
-- 2.4: Nested key creation (`permissions.additionalDirectories`)
+- 2.1: Create `add_sandbox_dir()` function — basic JSON read/write with nested key path (happy path)
+- 2.2: Missing file handling (create from scratch with `{}`)
+- 2.3: Nested key creation (`permissions.additionalDirectories` when keys absent)
+- 2.4: Deduplication logic (avoid adding existing paths)
 
 **Depends on:** Phase 1 (needs `wt_path()` for container determination)
+
+**Checkpoint:** Post-Phase 2 checkpoint (fix + vet) — JSON manipulation validated before proceeding
 
 ---
 
 ### Phase 3: Slug Derivation (`derive_slug()`)
 
-**Complexity:** Low (3 cycles)
+**Complexity:** Low (1 cycle)
 **Files:** `src/claudeutils/worktree/cli.py`, `tests/test_worktree_cli.py`
 **Description:** Fix edge cases in existing `derive_slug()` function
 
 **Cycles:**
-- 3.1: Special character handling (non-alphanumeric to hyphen)
-- 3.2: Truncation edge cases (exactly 30, trailing hyphen removal)
-- 3.3: Empty/whitespace input handling
+- 3.1: Edge case handling (special chars, truncation with trailing hyphen removal, empty/whitespace input)
 
-**Depends on:** Phase 0 (function already exists, verifying behavior)
+**Depends on:** Phase 1 (function already exists, verifying behavior)
 
 ---
 
 ### Phase 4: Focused Session Generation (`focus_session()`)
 
-**Complexity:** Medium (5 cycles)
+**Complexity:** Medium (4 cycles)
 **Files:** `src/claudeutils/worktree/cli.py`, `tests/test_focus_session.py`
 **Description:** Parse session.md and generate focused content
 
 **Cycles:**
-- 4.1: Task extraction by name (with metadata continuation lines)
+- 4.1: Task extraction by name (with metadata, output formatting)
 - 4.2: Blockers filtering (relevant entries only)
 - 4.3: Reference files filtering (relevant entries only)
 - 4.4: Missing task error handling
-- 4.5: Output formatting (H1, status, sections)
 
 **Depends on:** Phase 3 (slug derivation used internally)
 
@@ -104,40 +90,38 @@
 
 ### Phase 5: Update `new` Command + Task Mode
 
-**Complexity:** High (10 cycles)
+**Complexity:** High (7 cycles)
 **Files:** `src/claudeutils/worktree/cli.py`, `tests/test_worktree_new.py`
 **Description:** Refactor `new` command using extracted functions, add `--task` mode
 
 **Cycles:**
-- 5.1: Use `wt_path()` for sibling directory paths
-- 5.2: Existing branch detection and reuse
-- 5.3: Worktree-based submodule creation (replace `--reference`)
-- 5.4: Existing submodule branch detection and reuse
-- 5.5: Sandbox registration (both main and worktree settings files)
-- 5.6: Environment initialization (`just setup` with warning)
-- 5.7: Add `--task` option with `--session-md` default
-- 5.8: Task mode: slug derivation + focused session generation
-- 5.9: Task mode: tab-separated output format (`<slug>\t<path>`)
-- 5.10: Session file handling (warn and ignore `--session` when branch exists)
+- 5.1: Refactor to use `wt_path()` for sibling paths and existing branch detection/reuse
+- 5.2: Worktree-based submodule creation (replace `--reference`)
+- 5.3: Existing submodule branch detection and reuse
+- 5.4: Sandbox registration (both main and worktree settings files)
+- 5.5: Environment initialization (`just setup` with warning on failure)
+- 5.6: Add `--task` option with `--session-md` default
+- 5.7: Task mode: slug derivation + focused session + tab-separated output (`<slug>\t<path>`)
+- 5.8: Session file handling (warn and ignore `--session` when branch exists)
 
 **Depends on:** Phases 1, 2, 4 (functions must exist)
+
+**Checkpoint:** Post-Phase 5 checkpoint (fix + vet + functional) — Integration point validated before merge command
 
 ---
 
 ### Phase 6: Update `rm` Command
 
-**Complexity:** Medium (7 cycles)
+**Complexity:** Medium (6 cycles)
 **Files:** `src/claudeutils/worktree/cli.py`, `tests/test_worktree_rm.py`
 **Description:** Refactor `rm` command with improved removal logic
 
 **Cycles:**
-- 6.1: Use `wt_path()` for path resolution
-- 6.2: Uncommitted changes warning
-- 6.3: Worktree registration probing (parent and submodule)
-- 6.4: Submodule-first removal ordering
-- 6.5: Directory cleanup (orphaned directories)
-- 6.6: Container cleanup (empty container removal)
-- 6.7: Safe branch deletion (`-d` with fallback warning)
+- 6.1: Refactor to use `wt_path()` for path resolution and uncommitted changes warning
+- 6.2: Worktree registration probing (parent and submodule)
+- 6.3: Submodule-first removal ordering
+- 6.4: Post-removal cleanup (orphaned directories and empty container)
+- 6.5: Safe branch deletion (`-d` with fallback warning)
 
 **Depends on:** Phase 1 (`wt_path()` function)
 
@@ -163,7 +147,7 @@
 - 7.11: Phase 3 conflict handling — source file abort
 - 7.12: Phase 4 precommit validation — run and check exit code
 
-**Depends on:** Phase 1 (`wt_path()` for directory resolution), Phase 0 (`clean-tree` command)
+**Depends on:** Phase 1 (`wt_path()` for directory resolution)
 
 **Checkpoint:** Full checkpoint at end of Phase 7 (fix + vet + functional)
 
@@ -212,18 +196,17 @@ Decision 8 (D8): Justfile independence — both Python merge and justfile check 
 
 | Phase | Cycles | Complexity | Model |
 |-------|--------|------------|-------|
-| 0: Setup | 2 | Low | haiku |
-| 1: wt_path() | 5 | Medium | haiku |
+| 1: Setup + wt_path() | 6 | Medium | haiku |
 | 2: add_sandbox_dir() | 4 | Medium | haiku |
-| 3: derive_slug() | 3 | Low | haiku |
-| 4: focus_session() | 5 | Medium | haiku |
-| 5: new command | 10 | High | haiku |
-| 6: rm command | 7 | Medium | haiku |
+| 3: derive_slug() | 1 | Low | haiku |
+| 4: focus_session() | 4 | Medium | haiku |
+| 5: new command | 8 | High | haiku |
+| 6: rm command | 5 | Medium | haiku |
 | 7: merge command | 12 | High | haiku |
 | 8: Non-code | N/A | Low | sonnet (direct) |
 | 9: Refactoring | N/A | N/A | opus (interactive) |
 
-**Total TDD cycles:** 48 (Phases 0-7)
+**Total TDD cycles:** 40 (Phases 1-7, reduced from 48)
 
 ---
 
@@ -255,21 +238,29 @@ Decision 8 (D8): Justfile independence — both Python merge and justfile check 
 
 The following recommendations should be incorporated during full runbook expansion:
 
-**Consolidation candidates:**
+**Applied consolidations (from LLM failure mode analysis):**
+- Phase 0 merged into Phase 1 cycle 1.1 (CLI registration + path computation)
+- Phase 2 reordered for foundation-first dependency ordering (2.1→2.2→2.3→2.4)
+- Phase 3 collapsed from 3 cycles to 1 (all edge cases in single behavioral cycle)
+- Phase 4 cycle 4.5 merged into 4.1 (output formatting as part of extraction contract)
+- Phase 5: removed vacuous cycles 5.1 and 5.6, merged 5.9 into 5.7/5.8
+- Phase 6: removed vacuous 6.1, merged 6.5+6.6 into single cleanup cycle
+- Added checkpoints after Phase 2 and Phase 5 per instruction-loss research
+
+**Consolidation candidates (remaining):**
 - Phase 8 tasks 8.1-8.3 (justfile changes) could be consolidated into single task if editing same recipe sections
-- Phase 0 cycles (2 total, both trivial) could merge with Phase 1 start if no independent verification needed
-- Consider whether Phase 3 (derive_slug edge cases, 3 cycles) merges with Phase 5 cycle 5.8 (slug derivation in task mode) for integration testing
 
 **Cycle expansion:**
-- Phase 5 cycle 5.3 (worktree-based submodule): Include shell line reference to justfile wt-new recipe (lines 150-180) for object store verification approach
+- Phase 1 cycle 1.1: Combine CLI registration with verification (`assert worktree` + help output check)
+- Phase 5 cycle 5.2 (worktree-based submodule): Include shell line reference to justfile wt-new recipe (lines 150-180) for object store verification approach
 - Phase 7 cycles 7.8-7.11 (conflict handling): Reference justfile wt-merge recipe conflict resolution section (lines 250-290) for auto-resolution patterns
 - Phase 7 cycle 7.9 (session.md task extraction): Specify exact regex pattern from design (line 152): `- [ ] **<name>**`
-- Phase 6 cycle 6.4 (removal ordering): Note git error message for detection: "fatal: 'remove' refusing to remove..." when order violated
+- Phase 6 cycle 6.3 (removal ordering): Note git error message for detection: "fatal: 'remove' refusing to remove..." when order violated
 
 **Checkpoint guidance:**
-- Phase 7 checkpoint must include functional validation: create worktree, make conflicting changes (session.md, learnings.md, agent-core), verify auto-resolution behavior
-- Phase 7 exit code validation: Test all three exit codes (0=success, 1=conflicts/precommit, 2=fatal) with explicit assertions
-- Post-Phase 5 state: Verify `claudeutils _worktree new --task` creates worktree at sibling path and outputs tab-separated format
+- Phase 2 checkpoint: Verify JSON manipulation correctness (nested keys, dedup, file creation) before building on it
+- Phase 5 checkpoint: Verify `claudeutils _worktree new --task` creates worktree at sibling path and outputs tab-separated format
+- Phase 7 checkpoint: Functional validation (create worktree, make conflicting changes, verify auto-resolution), exit code validation (0=success, 1=conflicts/precommit, 2=fatal)
 
 **References to include:**
 - Design lines 64-101 (new command update section) → expand into Phase 5 cycle details
