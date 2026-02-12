@@ -27,7 +27,7 @@ def parse_index(index_path: Path) -> list[WhenEntry]:
     """
     try:
         content = index_path.read_text()
-    except (OSError, FileNotFoundError):
+    except OSError:
         logger.warning("Could not read index file: %s", index_path)
         return []
 
