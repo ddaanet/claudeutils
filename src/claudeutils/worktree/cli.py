@@ -278,24 +278,35 @@ def new(slug: str, base: str, session: str) -> None:
 
         agent_core_local = Path(project_root) / "agent-core"
         if agent_core_local.exists() and (agent_core_local / ".git").exists():
-            _git(
-                "-C",
-                str(worktree_path),
-                "submodule",
-                "update",
-                "--init",
-                "--reference",
-                str(agent_core_local),
-                check=False,
-            )
-
             submodule_path = worktree_path / "agent-core"
-            if submodule_path.exists():
-                try:
-                    _git("-C", str(submodule_path), "checkout", "-B", slug)
-                except subprocess.CalledProcessError as e:
-                    click.echo(e.stderr, err=True)
-                    raise SystemExit(1) from e
+
+            # Check if submodule branch already exists
+            try:
+                _git("-C", str(agent_core_local), "rev-parse", "--verify", slug)
+                submodule_branch_exists = True
+            except subprocess.CalledProcessError:
+                submodule_branch_exists = False
+
+            # Create submodule worktree with appropriate branch handling
+            if submodule_branch_exists:
+                _git(
+                    "-C",
+                    str(agent_core_local),
+                    "worktree",
+                    "add",
+                    str(submodule_path),
+                    slug,
+                )
+            else:
+                _git(
+                    "-C",
+                    str(agent_core_local),
+                    "worktree",
+                    "add",
+                    str(submodule_path),
+                    "-b",
+                    slug,
+                )
 
         click.echo(str(worktree_path))
     except subprocess.CalledProcessError as e:

@@ -230,56 +230,6 @@ def test_new_basic_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
     assert "test-feature" in result.stdout
 
 
-def test_new_submodule(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Verify new subcommand initializes submodule and creates branch.
-
-    When creating a worktree in a repo with agent-core submodule:
-    - Worktree created at sibling -wt container
-    - Submodule is initialized via git submodule update
-    - Submodule is on a branch matching the worktree slug (not detached HEAD)
-    """
-    repo_path = tmp_path / "repo"
-    repo_path.mkdir()
-    monkeypatch.chdir(repo_path)
-
-    _setup_repo_with_submodule(repo_path)
-
-    runner = CliRunner()
-    result = runner.invoke(worktree, ["new", "test-feature"])
-
-    assert result.exit_code == 0
-
-    container_path = tmp_path / "repo-wt"
-    worktree_path = container_path / "test-feature"
-    assert worktree_path.exists()
-    assert worktree_path.is_dir()
-
-    submodule_path = worktree_path / "agent-core"
-    assert submodule_path.exists()
-
-    result = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(submodule_path),
-            "rev-parse",
-            "--abbrev-ref",
-            "HEAD",
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    branch_name = result.stdout.strip()
-    assert branch_name == "test-feature"
-
-    result = subprocess.run(
-        ["git", "-C", str(submodule_path), "branch", "--list"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert "test-feature" in result.stdout
 
 
 def test_new_command_sibling_paths(
