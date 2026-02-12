@@ -11,6 +11,10 @@ import click
 
 def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,FBT002
     """Return absolute worktree path, optionally creating -wt container."""
+    if not slug or not slug.strip():
+        msg = "slug must not be empty or whitespace"
+        raise ValueError(msg)
+
     current_path = Path.cwd()
     parent_name = current_path.parent.name
 

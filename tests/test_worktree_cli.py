@@ -254,3 +254,33 @@ def test_wt_path_creates_container(
     # Check directory permissions (default 0o755 on Unix)
     mode = stat.S_IMODE(container_path.stat().st_mode)
     assert mode == 0o755
+
+
+def test_wt_path_edge_cases(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Edge cases: special characters, deep nesting, root directory."""
+    repo_path = tmp_path / "my-repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _init_repo(repo_path)
+
+    result = wt_path("fix-bug#123")
+    assert "#123" in str(result)
+
+    result = wt_path("test")
+    assert result.is_absolute()
+    assert result.name == "test"
+
+    deep_path = tmp_path / "a" / "b" / "c" / "d" / "e" / "repo"
+    deep_path.mkdir(parents=True)
+    monkeypatch.chdir(deep_path)
+    _init_repo(deep_path)
+    result = wt_path("nested-test")
+    assert result.is_absolute()
+    assert result.name == "nested-test"
+
+    with pytest.raises(ValueError, match="slug"):
+        wt_path("")
+
+    with pytest.raises(ValueError, match="slug"):
+        wt_path("   ")
