@@ -21,20 +21,20 @@ def test_subsequence_match_scores_positive() -> None:
 
 def test_boundary_bonuses_applied() -> None:
     """Boundary bonuses applied for matches after whitespace/delimiters."""
-    # Whitespace boundary bonus: 'mp' in "mock patching" has boundary bonus
-    whitespace_bonus = score_match("mp", "mock patching")
+    # Whitespace boundary bonus: 'ab' in "a b" has whitespace boundary on 'b'
+    whitespace_bonus = score_match("ab", "a b")
 
-    # No boundary bonus: 'mp' in "xmxpx" has no boundary bonuses
-    no_bonus = score_match("mp", "xmxpx")
+    # No boundary bonus: 'ab' in "axb" has no boundary bonuses
+    no_bonus = score_match("ab", "axb")
 
     # Whitespace boundary should score higher (bonusBoundaryWhite=10)
     assert whitespace_bonus > no_bonus
 
-    # Delimiter boundary bonus: 'ep' in "encode/path" has boundary bonus
-    delimiter_bonus = score_match("ep", "encode/path")
+    # Delimiter boundary bonus: 'ab' in "a/b" has delimiter boundary on 'b'
+    delimiter_bonus = score_match("ab", "a/b")
 
-    # No boundary bonus: 'ep' in "xexpy" has no boundary bonuses
-    no_bonus2 = score_match("ep", "xexpy")
+    # No boundary bonus: 'ab' in "axb" has no boundary bonuses
+    no_bonus2 = score_match("ab", "axb")
 
     # Delimiter boundary should score higher (bonusBoundaryDelimiter=9)
     assert delimiter_bonus > no_bonus2
@@ -60,3 +60,18 @@ def test_consecutive_match_bonus() -> None:
     # i=2: 32 + 16 + 4 (consecutive) = 52
     ab_exact = score_match("ab", "ab")
     assert ab_exact == 52
+
+
+def test_gap_penalties_reduce_score() -> None:
+    """Gap penalties reduce score based on gap length and position."""
+    # Shorter gap scores higher than longer gap
+    short_gap = score_match("ac", "abc")
+    long_gap = score_match("ac", "aXXXXc")
+
+    assert short_gap > long_gap
+
+    # Gap penalties: starting gap (first unmatched) = -3, each additional = -1
+    single_gap = score_match("ac", "aXc")
+    double_gap = score_match("ac", "aXXc")
+
+    assert single_gap > double_gap

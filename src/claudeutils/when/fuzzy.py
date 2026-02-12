@@ -1,6 +1,39 @@
 """Fuzzy matching engine using modified fzf V2 scoring algorithm."""
 
 
+def _get_match_positions(
+    query_lower: str, candidate_lower: str, score: list[list[float]]
+) -> list[int]:
+    """Backtrace DP matrix to find match positions.
+
+    Args:
+        query_lower: Lowercase query
+        candidate_lower: Lowercase candidate
+        score: DP score matrix
+
+    Returns:
+        List of candidate positions where query characters matched
+    """
+    m, n = len(query_lower), len(candidate_lower)
+    positions = []
+
+    i, j = m, n
+    while i > 0 and j > 0:
+        if query_lower[i - 1] == candidate_lower[j - 1]:
+            # Check if this position was actually used (not skipped)
+            if score[i - 1][j - 1] > score[i][j - 1] or i == 1:
+                positions.append(j - 1)
+                i -= 1
+                j -= 1
+            else:
+                j -= 1
+        else:
+            j -= 1
+
+    positions.reverse()
+    return positions
+
+
 def _boundary_bonus(candidate_lower: str, match_pos: int) -> float:
     """Calculate boundary bonus for a character match.
 
@@ -53,7 +86,7 @@ def score_match(query: str, candidate: str) -> float:
     if m > n:
         return 0.0
 
-    # DP matrix
+    # First pass: compute scores WITHOUT gap penalties (too early to know gaps)
     score = [[0.0 for _ in range(n + 1)] for _ in range(m + 1)]
 
     # Base case: matching empty query succeeds with score 0
@@ -87,14 +120,24 @@ def score_match(query: str, candidate: str) -> float:
                 # No match at this position: carry forward best score
                 score[i][j] = score[i][j - 1]
 
-    final_score = score[m][n]
+    base_score = score[m][n]
 
-    # If we matched all query characters, return positive score
-    if final_score > 0:
-        return final_score
+    # If no match found, return 0
+    if base_score <= 0:
+        return 0.0
 
-    # Otherwise subsequence not found
-    return 0.0
+    # Second pass: backtrace to find match positions and calculate gap penalties
+    match_positions = _get_match_positions(query_lower, candidate_lower, score)
+
+    gap_penalty = 0.0
+    for idx in range(len(match_positions) - 1):
+        prev_pos = match_positions[idx]
+        curr_pos = match_positions[idx + 1]
+        gap_length = curr_pos - prev_pos - 1
+        if gap_length > 0:
+            gap_penalty += -3 + (-1 * gap_length)
+
+    return base_score + gap_penalty
 
 
 def rank_matches(
