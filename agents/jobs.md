@@ -19,7 +19,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | requirements-skill | requirements | Evaluate with opus |
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
-| workflow-fixes | designed | 10 artifact fixes, outline reviewed, plan-adhoc next |
+| workflow-fixes | designed | Unified /plan design complete, plan-adhoc next |
 | worktree-update | planned | Runbook complete: 40 TDD cycles (7 phases), reviewed and assembled, haiku execution ready |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | worktree-skill | complete | 42/42 cycles, all phases, pending merge to dev |
