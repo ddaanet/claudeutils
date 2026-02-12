@@ -1,144 +1,158 @@
-# Workflow Fixes: Outline
+# Workflow Pipeline Redesign: Outline
+
+Supersedes previous outline (10 artifact patches). Scope expanded to complete pipeline analysis after identifying structural gaps that patches can't fix.
 
 ## Problem
 
-Eight workflow artifacts have accumulated known issues from learnings, session reviews, and the worktree-update LLM failure mode analysis. Issues range from process gaps (tdd-plan-reviewer missing LLM failure mode detection) to maintenance burden (250+ lines duplicated across vet agents) to consistency gaps.
+The design-to-deliverable pipeline has structural gaps that allow LLM antipatterns past review gates. Previous approach patched individual artifacts; this session found that the gaps are architectural: wrong agent routing, broken recommendation propagation, missing review criteria at expansion stage, and contradictory autofix instructions.
 
-## Approach
+**Pipeline stages:** `/design` → `/plan-{tdd,adhoc}` → `/orchestrate` → deliverable
 
-Targeted fixes to each artifact. No restructuring of agent-skill relationships (that's a separate pending task re: skills prolog pattern). Focus on correctness, consistency, and closing documented gaps.
+Each stage is a transformation that can introduce defects. Each transformation needs a review gate that checks for the specific defects it can introduce. The current pipeline has review gates, but they're inconsistently applied, route to wrong agents, and don't re-validate after the most error-prone transformation (outline → phase expansion).
 
-**Mode:** General (infrastructure fixes). Downstream: `/plan-adhoc`.
+## Pipeline Analysis: Current State
 
-## Fixes by Artifact
+### Transformation Table
 
-### tdd-plan-reviewer + review-tdd-plan skill
+| # | Transformation | Defect Type | Current Gate | Gap |
+|---|---------------|-------------|-------------|-----|
+| T1 | Requirements → Design | Incomplete, infeasible | design-vet-agent (opus) | None — works |
+| T2 | Design → Outline | Missing reqs, wrong decomposition | runbook-outline-review-agent | None — has LLM failure mode checks |
+| T3 | Outline → Phase files | **Vacuity re-introduction, prescriptive code, density bloat** | **TDD: tdd-plan-reviewer (TDD discipline only) / Adhoc: vet-fix-agent (REJECTS planning artifacts)** | **G1 G2 G3 G6** |
+| T4 | Phase files → Runbook | Cross-phase inconsistency | TDD: tdd-plan-reviewer (holistic) / Adhoc: vet-agent (review-only) | **G2 G4** |
+| T5 | Runbook → Step artifacts | Generation errors | prepare-runbook.py | None — automated |
+| T6 | Steps → Implementation | Wrong behavior, stubs, drift | vet-fix-agent (checkpoints) | Minor (G7) |
 
-**Problem:** Only validates TDD discipline (prescriptive code, RED/GREEN sequencing). Does not detect LLM failure modes (vacuity, dependency ordering, density, checkpoint spacing). Worktree-update review proved these are distinct concerns — tdd-plan-reviewer caught 0 of 8 semantic findings.
+**T3 is the critical gap.** Phase expansion is the most error-prone transformation — the LLM must elaborate outline entries into detailed steps/cycles. Outline review catches vacuity and ordering, but expansion can re-introduce them. The post-expansion review gate is either missing criteria (TDD) or routing to the wrong agent (adhoc).
 
-**Fix:**
-- Add LLM failure mode detection criteria to review-tdd-plan skill (reference `agents/decisions/runbook-review.md` four-axis methodology)
-- Criteria: vacuous cycle detection, dependency ordering validation, cycle density analysis, checkpoint spacing check
-- Apply at BOTH per-phase review (Phase 3) AND holistic review (Phase 5)
-- tdd-plan-reviewer agent itself needs minimal changes — it loads the skill
+### Gap Inventory
 
-**Evidence:** `plans/worktree-update/reports/runbook-review-llm-failure-modes.md` — 3 vacuous cycles, 1 critical missing requirement, 1 density issue, 1 checkpoint gap, all missed by tdd-plan-reviewer.
+**G1: Adhoc phase review routes to wrong agent**
+- plan-adhoc Point 1 delegates to `vet-fix-agent`
+- vet-fix-agent explicitly rejects planning artifacts: "Error: Wrong agent type... This agent reviews implementation changes, not planning artifacts"
+- Result: Either error or silent misroute
 
-### plan-tdd
+**G2: Autofix contradiction in plan-adhoc**
+- Point 1 step 2: "Delegate to vet-fix-agent (fix-all mode) — Agent applies all fixes"
+- Point 1 step 3: "Apply all fixes from vet review — Update phase file with fixes"
+- Planner re-applies fixes the agent already applied. Contradicts autofix principle.
+- Same pattern at Point 3: uses review-only vet-agent, then says "REQUIRED: Apply all fixes" in the delegation prompt — vet-agent has no Edit tool
 
-**Problems:**
-- Phase 3 mentions "background review pattern" without specifying `run_in_background=true`
-- Expansion guidance from outline review not explicitly consumed before Phase 3 expansion
-- Phase 5 holistic review doesn't specify LLM failure mode re-validation
+**G3: No LLM failure mode re-validation after expansion**
+- runbook-outline-review-agent checks: vacuity, ordering, density, checkpoints (lines 116-137)
+- tdd-plan-reviewer checks: prescriptive code, RED/GREEN sequencing, prose quality
+- **Missing:** LLM failure mode re-validation at phase level. Evidence: worktree-update had 3 vacuous cycles, 1 missing requirement post-expansion, 0 caught by phase review.
+- plan-adhoc has NO failure mode checks at phase level at all
 
-**Fixes:**
-- Add explicit Task tool call format with `run_in_background=true` for Phase 3 per-phase reviews
-- Add "Read Expansion Guidance from outline" step before Phase 3 expansion begins
-- Add LLM failure mode re-validation directive in Phase 5 holistic review (reference review-tdd-plan skill)
+**G4: Recommendation propagation dead-ends**
+- Expansion Guidance (inline in outline) → consumed by planner. Works.
+- tdd-plan-reviewer report "Recommendations" → NOT consumed by anyone
+- vet-agent report "Recommendations" → NOT consumed by anyone
+- Pattern: only inline recommendations propagate; report recommendations are write-only
 
-**Note:** Reference files (`references/patterns.md` etc.) exist and are valid — exploration report had a false finding.
+**G5: Agent name ambiguity**
+- plan-adhoc uses "vet agent" without specifying which. Point 1 says vet-fix-agent, Point 3 says vet-agent. Different agents, different behavior (fix vs review-only).
 
-### plan-adhoc
+**G6: Missing alignment context in review delegations**
+- Phase review delegations lack scope IN/OUT per vet-requirement.md
+- tdd-plan-reviewer gets no execution context
+- Without scope boundaries, reviewer may flag future-phase items as missing
 
-**Problems:**
-- Vet-fix-agent delegations don't mention execution context (Scope IN/OUT, Changed Files)
-- "vet agent" references ambiguous (vet-fix-agent vs vet-agent vs vet skill?)
+**G7: Orchestrate general completion doesn't vet**
+- TDD path: delegates to vet-fix-agent + review-tdd-process. Complete.
+- General path: "Suggest next action: delegate to vet-fix-agent" — suggests but doesn't do it
 
-**Fixes:**
-- Add execution context template to vet delegation examples (from vet-requirement.md)
-- Clarify agent references: specify vet-fix-agent (for checkpoints) vs vet-agent (for review-only)
+## Proposed Changes
 
-### vet-fix-agent
+### Decision 1: Phase-level review agent for adhoc
 
-**Problems:**
-- No UNFIXABLE format in return protocol (tdd-plan-reviewer has one, this doesn't)
-- No reference to vet-requirement.md for execution context expectations
-- 250+ lines duplicated with vet-agent (separate pending task for prolog restructuring)
+**Options:**
+- **A) Extend tdd-plan-reviewer → plan-reviewer (handles both TDD + adhoc)** — rename agent + skill, add adhoc step-quality criteria alongside TDD criteria, conditional on artifact type. Single maintenance surface.
+- **B) Use vet-agent (review-only) + planner applies fixes** — matches Tier 1/2 pattern (caller has context). No new agents. But: No LLM failure mode checks, no autofix.
+- **C) Create adhoc-plan-reviewer** — new agent, loads LLM failure mode criteria from runbook-review.md. Clean separation. But: agent proliferation, duplicated LLM criteria.
 
-**Fixes (this design):**
-- Add UNFIXABLE escalation format to return protocol (match tdd-plan-reviewer pattern)
-- Add cross-reference to vet-requirement.md in agent header or validation section
-- Duplication extraction deferred to "skills prolog" pending task
+Recommendation: **A**. Fewest new artifacts. review-tdd-plan skill already has fix-all pattern. LLM failure mode criteria go in the skill (applicable to both). TDD-specific criteria conditional on `type: tdd`.
 
-### vet skill (/vet)
+### Decision 2: LLM failure mode criteria location
 
-**Problems:**
-- No mention of execution context requirements
-- No mention of UNFIXABLE handling
-- No cross-reference to vet-requirement.md fragment
+- **A) In review-plan skill (unified)** — single source, loaded by plan-reviewer agent
+- **B) Separate skill (review-plan-llm-modes)** — reusable by multiple agents, separation of concerns
+- **C) Reference runbook-review.md directly** — agents read the decision doc at review time
 
-**Fixes:**
-- Add execution context section (reference vet-requirement.md template)
-- Add UNFIXABLE detection guidance
-- Cross-reference vet-requirement.md for delegation patterns
+Recommendation: **A**. The criteria are tightly coupled with review — separation adds indirection without reuse benefit. runbook-outline-review-agent has its own copy (acceptable: different agent, different application stage).
 
-### runbook-outline-review-agent
+### Decision 3: Recommendation propagation
 
-**Problems:**
-- Expansion Guidance section appended to outline but plan-tdd doesn't explicitly read it before expansion
-- Review criteria already include LLM failure modes (lines 116-137) — this is the CORRECT agent for that concern
-- No issues with the agent itself — it's the consumer (plan-tdd) that has the gap
+For phase-level review recommendations that should influence the next phase or final review:
+- **A) Inline in phase file** (like Expansion Guidance pattern) — proven, consumed automatically
+- **B) Explicit "read report" step** in skill — fragile, depends on planner compliance
+- **C) Drop** — phase review fixes issues directly; recommendations that can't be fixed are UNFIXABLE escalations
 
-**Fix:** Minimal — verify criteria completeness against `agents/decisions/runbook-review.md`. May need sharpening of detection rules based on worktree-update findings (e.g., self-declared vacuity: "should pass immediately" is a signal).
+Recommendation: **C**. If the reviewer can fix it, fix it. If it can't fix it, escalate. Recommendations-as-suggestions is the gap that created G4. The fix-all pattern eliminates the need for recommendation propagation.
 
-### plugin-dev:skill-development
+## Fixes by Pipeline Stage
 
-**Problem:** Doesn't document the `skills:` frontmatter field for agent-skill coupling. Agents can reference skills via `skills: [skill-name]` in frontmatter — this is how tdd-plan-reviewer loads review-tdd-plan. The skill-development guide should mention this consumption pattern.
+### Stage: /design
+- Add `agents/decisions/runbook-review.md` to Documentation Perimeter for tasks producing runbooks
+- No structural changes
 
-**Fix:** Add section on "Skills consumed by agents" covering `skills:` frontmatter.
+### Stage: /plan-adhoc
+- **Point 1 (phase review):** Replace vet-fix-agent with plan-reviewer agent. Remove manual fix step. Add scope IN/OUT context to delegation. Add LLM failure mode directive.
+- **Point 3 (final review):** Replace vet-agent with plan-reviewer for holistic review with autofix. Remove manual fix loop (agent fixes directly).
+- **Throughout:** Replace ambiguous "vet agent" with explicit agent names
 
-**Upstream:** Contribute as PR/issue to official Claude Code plugin-dev plugin. The `skills:` frontmatter field is a real feature the official docs should cover.
+### Stage: /plan-tdd
+- **Phase 3 (per-phase review):** Add LLM failure mode criteria (NEW: vacuity, ordering, density, checkpoints) to plan-reviewer delegation alongside existing TDD-specific checks (prescriptive code, RED/GREEN sequencing). Both sets checked together for TDD artifacts.
+- **Phase 5 (holistic review):** Same — add LLM failure mode re-validation
 
-### plugin-dev:agent-development
+### Stage: /orchestrate
+- **Completion (adhoc):** Change suggestion to actual delegation to vet-fix-agent (match TDD path behavior)
 
-**Problem:** Frontmatter fields section documents `name`, `description`, `model`, `color`, `tools` — but NOT `skills`. The `skills:` field is how agents load skill content. Missing from documentation.
+### Supporting artifacts
+- **review-tdd-plan skill → review-plan skill:** Add LLM failure mode section (four axes from runbook-review.md: vacuity, ordering, density, checkpoints). Add adhoc step-quality section (prerequisite validation, script evaluation, clarity). TDD criteria conditional on `type: tdd`.
+- **tdd-plan-reviewer agent → plan-reviewer agent:** Update name, update description, update document validation to accept both TDD and adhoc artifacts
+- **vet skill (/vet):** Add execution context section, UNFIXABLE handling guidance, cross-reference vet-requirement.md
+- **vet-fix-agent:** Add UNFIXABLE format to return protocol. TODO: Specify UNFIXABLE format (match plan-reviewer pattern: dedicated section in report with issue title + blocker reason). Cross-reference vet-requirement.md UNFIXABLE Detection Protocol for escalation criteria.
 
-**Fix:** Add `skills` to frontmatter fields documentation with format and usage guidance.
-
-**Upstream:** Same as plugin-dev:skill-development — contribute to official plugin.
-
-### plan-adhoc and plan-tdd (selection guidance)
-
-**Problem:** No guidance on when to use plan-adhoc vs plan-tdd. Users might invoke wrong skill (Issue 9 from exploration report).
-
-**Fix:** Add "When to Use vs Other Planning Skills" section to both:
-- If design specifies TDD approach → use plan-tdd
-- If design is general (refactoring, infrastructure, migration) → use plan-adhoc
-- If unsure → check design.md for "Test Strategy" or "TDD" mentions
-
-**Location:** Add before existing "When to Use" section in both skills (after frontmatter).
-
-### vet skill and plan-adhoc (agent name clarity)
-
-**Problem:** References to "vet agent" without clarifying which (vet-agent vs vet-fix-agent). (Issue 10 from exploration report).
-
-**Fix:**
-- vet SKILL.md: Add "Agent Selection" subsection after "When to Use" — clarify vet-agent (review-only) vs vet-fix-agent (review+fix)
-- plan-adhoc: Change "Delegate to vet agent" → "Delegate to vet-fix-agent" (explicit)
+### Deferred (separate tasks, unchanged)
+- Skills prolog / agent-skill restructuring
+- Plugin-dev upstream contributions
+- Design skill internal updates
+- Vet agent duplication extraction
 
 ## Scope
 
 **IN:**
-- All 10 artifacts listed above (8 original + 2 clarification fixes)
-- Implements pending task: "Integrate LLM failure mode checks into tdd-plan-reviewer"
+- Pipeline analysis and gap fixes (G1-G7)
+- Agent rename: tdd-plan-reviewer → plan-reviewer, review-tdd-plan → review-plan
+- LLM failure mode integration into plan-level review skill
+- Adhoc step-quality criteria in review skill
+- plan-adhoc agent routing and autofix fixes
+- plan-tdd LLM failure mode additions
+- orchestrate adhoc completion fix
+- vet skill context guidance
+- vet-fix-agent UNFIXABLE format
+- Reference updates for agent rename (plan-adhoc, plan-tdd, orchestrate, prepare-runbook.py)
+- Symlink synchronization (just sync-to-parent)
 
 **OUT:**
-- Agent-skill restructuring / skills prolog pattern (noted as separate pending task)
-- /autofix skill creation (noted as separate pending task)
-- Vet duplication extraction (deferred to prolog restructuring)
-- Design skill audit findings (separate existing pending task: "Update design skill")
-- worktree-update runbook fixes (separate existing pending task)
-- Session.md task state updates (completed at handoff, not during execution)
+- prepare-runbook.py (works correctly)
+- Skills prolog restructuring
+- Plugin-dev upstream contributions
+- Design skill changes
+- worktree-update runbook fixes
+- New agent creation (extending existing)
 
-## Resolved Questions
+## Open Questions
 
-1. **Plugin-dev skills:** Upstream contributions to official plugin-dev plugin (PR/issue). The `skills:` field is a real feature that should be in official docs.
-2. **Plan-tdd reference files:** Files exist — exploration report was wrong. No fix needed.
-3. **Vet duplication:** Defer to skills prolog task.
-4. **Session.md task:** Mark "Integrate LLM failure mode checks into tdd-plan-reviewer" complete at handoff.
+1. Agent rename scope: renaming tdd-plan-reviewer → plan-reviewer requires updating all references (plan-tdd, plan-adhoc, orchestrate, symlinks, prepare-runbook.py baseline detection). Is this acceptable churn, or should we keep the name and broaden scope?
 
-## Complexity Assessment
+2. plan-adhoc is 1136 lines. The fixes are surgical (Point 1, Point 3, agent references). Should the design specify exact edit locations, or describe the semantic change and let the planner find them?
 
-10 artifacts, all targeted edits (no new architecture). Most fixes are adding missing sections, cross-references, or sharpening criteria. The substantive work is tdd-plan-reviewer + review-tdd-plan skill (LLM failure mode integration).
+3. Should the I/O contracts from the transformation table be embedded in each skill (as a reference section), or remain in a central decision document?
 
-Estimate: Tier 2 (moderate) — well-defined scope, known patterns, but breadth across 10 files.
+## Mode
+
+Adhoc workflow (not TDD). This work modifies skill/agent definitions and planning artifacts — no behavioral tests needed. Downstream: `/plan-adhoc` for runbook creation.
+
+Execution model: opus for skill/agent definition edits (architectural artifacts), sonnet for planning.

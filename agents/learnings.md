@@ -337,3 +337,15 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Evidence: Agent reported plan-tdd `references/*.md` as "not found in project" when files exist at `agent-core/skills/plan-tdd/references/` — verified via ls and git ls-tree HEAD
 - Root cause: Agent searched wrong directory or used wrong glob pattern
 - Impact: False finding was propagated to outline as "remove dead references" — user caught it by asking to check git history
+## vet-fix-agent rejects planning artifacts
+- Anti-pattern: Delegating planning artifact review (phase files, runbooks) to vet-fix-agent
+- Correct pattern: vet-fix-agent reviews implementation changes only. Planning artifacts need a plan-level reviewer (plan-reviewer agent)
+- Evidence: vet-fix-agent line 27: "Error: Wrong agent type... This agent reviews implementation changes, not planning artifacts"
+- Impact: plan-adhoc Point 1 delegates to vet-fix-agent for phase review — either errors or silently misroutes
+- Fix designed: `plans/workflow-fixes/outline.md` G1 — extend tdd-plan-reviewer → plan-reviewer for both TDD and adhoc artifacts
+## Pipeline transformation gap analysis
+- Anti-pattern: Patching individual artifacts when gaps are architectural (wrong routing, missing criteria, broken propagation)
+- Correct pattern: Map pipeline as transformations (T1-T6), identify defect types per transformation, verify review gates match defect types
+- Rationale: Each transformation can introduce specific defect types. Review gates must check for those specific defects, not generic quality
+- Example: T3 (outline → phase expansion) introduces vacuity/density. Current gate checks TDD discipline (wrong criteria) or routes to vet-fix-agent (wrong agent)
+- Key insight: Only inline recommendations propagate (Expansion Guidance pattern). Report recommendations are write-only dead-ends

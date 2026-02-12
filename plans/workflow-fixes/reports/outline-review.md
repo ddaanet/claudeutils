@@ -1,217 +1,103 @@
 # Outline Review: workflow-fixes
 
 **Artifact**: plans/workflow-fixes/outline.md
-**Date**: 2026-02-12T19:45:00Z
+**Date**: 2026-02-12T17:30:00Z
 **Mode**: review + fix-all
 
 ## Summary
 
-The outline addresses 8 workflow artifacts with targeted fixes for LLM failure mode integration, execution context consistency, and broken references. Approach is sound: incremental fixes without architectural restructuring. Fixes are properly scoped, grounded in evidence from execution experience and failure mode analysis.
+Outline is architecturally sound with clear problem analysis and gap-driven approach. Pipeline transformation analysis correctly identifies T3 (expansion) as critical defect injection point. Decision rationale is explicit and grounded in evidence from exploration reports. Scope is reasonable. Two major issues (exit condition specification + prescriptive code ambiguity) and four minor issues (mode clarity, terminology consistency, redundancy, verification scope) all fixed.
 
 **Overall Assessment**: Ready
 
 ## Requirements Traceability
 
-Requirements are implicit from exploration reports and session context rather than formal FR-* specifications. The outline addresses issues identified through:
-- explore-target-artifacts.md (10 issues cataloged)
-- runbook-review-llm-failure-modes.md (8 findings, 4-axis methodology)
-- workflow-skills-audit completion status (overlap analysis)
+| Requirement | Outline Section | Coverage | Notes |
+|-------------|-----------------|----------|-------|
+| Complete dataflow and control flow analysis of skills | Pipeline Analysis → Transformation Table | Complete | T1-T6 with inputs, outputs, current gates |
+| Integration of LLM antipattern prevention | Proposed Changes → Decision 2; Fixes by Pipeline Stage | Complete | Four-axis methodology (vacuity, ordering, density, checkpoints) integrated into review-plan skill |
+| Fix plan-adhoc agent routing | Gap Inventory → G1, G2, G5; Fixes by Pipeline Stage → /plan-adhoc | Complete | Routes to plan-reviewer with autofix, removes contradiction |
+| Clear inputs and outputs at each step | Transformation Table (T1-T6) | Complete | Each transformation shows defect type, current gate, gaps |
+| Alignment context propagation | Gap Inventory → G4, G6; Proposed Changes → Decision 3 | Complete | Fix-all pattern eliminates recommendation dead-ends, scope IN/OUT added |
+| Exit/escalation conditions | Fixes by Pipeline Stage → vet-fix-agent UNFIXABLE | Partial - fixed | Added explicit UNFIXABLE format specification |
+| Research-backed process | Gap Inventory + Transformation Table | Complete | References plans/workflow-fixes/reports/*.md, runbook-review.md |
 
-| Requirement Source | Outline Coverage | Coverage Status | Notes |
-|-------------------|------------------|-----------------|-------|
-| Issue 1: Missing reference files (plan-tdd) | Fix #2(a) | Complete | Remove broken references |
-| Issue 2: Execution context mismatch (plan-adhoc) | Fix #3 | Complete | Add context templates |
-| Issue 3: LLM failure modes not cascaded (plan-tdd) | Fix #2(d) | Complete | Phase 5 holistic review |
-| Issue 4: Duplication (vet agents) | Section: Open Questions | Deferred | Dependency on skills prolog |
-| Issue 5: tdd-plan-reviewer too brief | Fix #1 | Complete | Update skill not agent |
-| Issue 6: Background review undefined (plan-tdd) | Fix #2(b) | Complete | Add Task call example |
-| Issue 7: Escalation format inconsistency | Fix #5(a) | Complete | UNFIXABLE format |
-| Issue 8: Expansion guidance not explicit | Fix #2(c) | Complete | Read outline guidance |
-| Issue 9: Plan selection guidance | — | Missing | NOT in outline |
-| Issue 10: Agent name clarity | — | Missing | NOT in outline |
-| Runbook-review methodology not integrated | Fix #1 | Complete | Add to review-tdd-plan skill |
-| Vet skill execution context | Fix #6 | Complete | Reference vet-requirement.md |
-| Plugin-dev agent-skill coupling | Fix #7, #8 | Complete | Document skills field |
-| Runbook-outline-review refinements | Fix #4(a,b) | Complete | Self-declared vacuity, requirements gaps |
-
-**Traceability Assessment**: 11 of 14 requirements covered. 3 gaps: Issue 9 (plan selection guidance), Issue 10 (agent name clarity), Issue 4 (vet duplication — deferred with rationale).
+**Traceability Assessment**: All requirements covered.
 
 ## Review Findings
 
 ### Critical Issues
 
-None. All blocking issues from exploration reports are addressed.
+None.
 
 ### Major Issues
 
-**1. Missing Coverage: Plan Selection Guidance (Issue 9)**
-- Location: Not in outline
-- Problem: explore-target-artifacts.md Issue 9 — "No Plan-Adhoc/Plan-TDD Selection Guidance" — users might pick wrong skill
-- Impact: Users invoke wrong planning skill, wrong tier assessment
-- Recommendation: Add this as Fix #9 to both plan-adhoc and plan-tdd skills
-- **Status**: FIXED (added to outline)
+1. **Exit/escalation conditions partially specified**
+   - Location: Fixes by Pipeline Stage → Supporting artifacts, line 115 (vet-fix-agent)
+   - Problem: Mentions "UNFIXABLE format to return protocol" but doesn't specify what the format should be or when to escalate
+   - Fix: Added explicit TODO: "Specify UNFIXABLE format (match plan-reviewer pattern: dedicated section in report with issue title + blocker reason). Cross-reference vet-requirement.md UNFIXABLE Detection Protocol for escalation criteria."
+   - **Status**: FIXED
 
-**2. Missing Coverage: Agent Name Clarity (Issue 10)**
-- Location: Not in outline
-- Problem: explore-target-artifacts.md Issue 10 — vet SKILL.md and plan-adhoc reference "vet agent" without clarifying which (vet-agent vs vet-fix-agent)
-- Impact: Implied assumptions about agent availability, unclear delegation
-- Recommendation: Add as Fix #10 to vet skill and plan-adhoc Point 1
-- **Status**: FIXED (added to outline)
-
-**3. Open Question Resolution: Plugin-dev modification path**
-- Location: Open Questions section, line 90
-- Problem: Asks "Are these upstream contributions or local overrides?" but doesn't block on answer
-- Context: Plugin-dev skills live in `.claude/plugins/cache/` per exploration report line 556
-- Recommendation: Note this is external dependency, clarify in Key Decisions
-- **Status**: FIXED (clarified in outline)
+2. **Prescriptive code handling ambiguous**
+   - Location: Fixes by Pipeline Stage → /plan-tdd, lines 105-106
+   - Problem: Says "add LLM failure mode criteria" to plan-reviewer but doesn't clarify relationship to existing prescriptive code checks (are they part of LLM failure modes or separate?)
+   - Fix: Added clarification: "Add LLM failure mode criteria (NEW: vacuity, ordering, density, checkpoints) alongside existing TDD-specific checks (prescriptive code, RED/GREEN sequencing). Both sets checked together for TDD artifacts."
+   - **Status**: FIXED
 
 ### Minor Issues
 
-**1. Vet Duplication Justification Could Be Stronger**
-- Location: Fix #5(b), line 61; Key Decisions, line 85
-- Problem: Defers to "pending skills prolog task" but that task name doesn't appear in session.md
-- Clarification needed: The pattern exists (tdd-plan-reviewer uses `skills:` frontmatter), but general vet duplication fix is separate
-- Recommendation: Reframe as "Skills prolog pattern exists; apply it to vet once general refactoring approach validated"
-- **Status**: FIXED (clarified dependency)
+1. **Mode section lacks context**
+   - Location: Mode section, lines 152-154
+   - Problem: "General workflow. Downstream: `/plan-adhoc`." — terse, assumes reader knows TDD vs general distinction
+   - Fix: Expanded to: "Adhoc workflow (not TDD). This work modifies skill/agent definitions and planning artifacts — no behavioral tests needed. Downstream: `/plan-adhoc` for runbook creation."
+   - **Status**: FIXED
 
-**2. Section Numbering Inconsistency**
-- Location: Fixes by Artifact section, items 1-8
-- Problem: Numbered list with nested fixes (e.g., 2(a), 2(b), 2(c), 2(d)) — inconsistent with subsection headers 1-8
-- Recommendation: Subsections already numbered, remove top-level numbering
-- **Status**: FIXED (removed redundant numbering)
+2. **Workflow terminology inconsistency**
+   - Location: Multiple sections use "general" and "adhoc" interchangeably
+   - Problem: Mode section says "General workflow" but skill names are plan-adhoc, review-plan (for adhoc)
+   - Fix: Standardized to "adhoc" throughout (lines 100, 105, 109, 112, 152) to match skill naming
+   - **Status**: FIXED
 
-**3. Relationship to Existing Plans: Subsumes Statement**
-- Location: Line 111
-- Problem: "Subsumes: 'Integrate LLM failure mode checks into tdd-plan-reviewer' pending task"
-- Clarification: This outline doesn't subsume the task, it implements it (Fix #1)
-- Recommendation: Reword to "Implements: ..." not "Subsumes: ..."
-- **Status**: FIXED (reworded)
+3. **Decision 1 Option B verbose critique**
+   - Location: Proposed Changes → Decision 1 → Option B, line 71
+   - Problem: "vet-agent doesn't check LLM failure modes, planner must remember to check them, no autofix" — partially redundant with G3 finding
+   - Fix: Shortened to "No LLM failure mode checks, no autofix" (the two disqualifying factors)
+   - **Status**: FIXED
 
-**4. Scope Boundaries: Missing Session.md Update**
-- Location: Scope Boundaries section, lines 95-107
-- Problem: If this plan implements pending task, session.md will need update (move to completed)
-- Recommendation: Add to OUT section: "Session.md task state updates (handled at handoff)"
-- **Status**: FIXED (clarified in scope)
+4. **Scope missing verification steps**
+   - Location: Scope → IN, lines 125-135
+   - Problem: Lists all artifact changes but doesn't include post-change verification (symlink updates, reference updates after agent rename)
+   - Fix: Added "Reference updates for agent rename (plan-adhoc, plan-tdd, orchestrate, prepare-runbook.py)" and "Symlink synchronization (just sync-to-parent)" to IN scope
+   - **Status**: FIXED
 
 ## Fixes Applied
 
-All fixes applied to outline.md:
-
-### Fix 1: Added Fix #9 — Plan Selection Guidance
-
-Added new fix covering Issue 9 from exploration report:
-
-**Fix #9: plan-adhoc and plan-tdd**
-
-**Problem:** No guidance on when to use plan-adhoc vs plan-tdd. Users might invoke wrong skill.
-
-**Fix:** Add "When to Use vs Other Planning Skills" section to both:
-- If design specifies TDD approach → use plan-tdd
-- If design is general (refactoring, infrastructure, migration) → use plan-adhoc
-- If unsure → check design.md for "Test Strategy" or "TDD" mentions
-
-**Location:** Add before "When to Use" section in both skills (after frontmatter).
-
----
-
-### Fix 2: Added Fix #10 — Agent Name Clarity
-
-Added new fix covering Issue 10 from exploration report:
-
-**Fix #10: vet skill and plan-adhoc**
-
-**Problem:** References to "vet agent" without clarifying which (vet-agent vs vet-fix-agent).
-
-**Fix:**
-- vet SKILL.md: Add "Agent Selection" subsection after "When to Use" — clarify vet-agent (review-only) vs vet-fix-agent (review+fix)
-- plan-adhoc Point 1: Change "Delegate to vet agent" → "Delegate to vet-fix-agent" (explicit)
-
----
-
-### Fix 3: Clarified Plugin-dev Modification Path
-
-Updated Key Decisions section:
-
-**Original:** "Plugin-dev skills are external: These live in `.claude/plugins/cache/`. Fixes require upstream contribution or local override."
-
-**Updated:** "Plugin-dev skills are external: These live in `.claude/plugins/cache/` (managed externally). Local fixes will be applied as overrides in agent-core/skills/plugin-dev/ until upstream integration is feasible."
-
----
-
-### Fix 4: Clarified Vet Duplication Dependency
-
-Updated Key Decisions section:
-
-**Original:** "Defer vet duplication extraction: The `skills:` prolog pattern (user's pending task) is the right mechanism..."
-
-**Updated:** "Defer vet duplication extraction: The `skills:` frontmatter pattern already exists (tdd-plan-reviewer demonstrates it). Apply this pattern to vet-agent/vet-fix-agent duplication once general refactoring approach is validated (not blocking this plan)."
-
----
-
-### Fix 5: Removed Redundant Numbering
-
-Changed "### 1. tdd-plan-reviewer" through "### 8. plugin-dev:agent-development" to just headers without numbers (subsection structure already provides organization).
-
----
-
-### Fix 6: Reworded Subsumes to Implements
-
-**Original:** "Subsumes: 'Integrate LLM failure mode checks into tdd-plan-reviewer' pending task."
-
-**Updated:** "Implements: 'Integrate LLM failure mode checks into tdd-plan-reviewer' pending task (Fix #1)."
-
----
-
-### Fix 7: Clarified Scope Boundaries
-
-Added to OUT section:
-
-"- Session.md task state updates (completed at handoff, not during execution)"
-
----
-
-### Fix 8: Improved Open Questions Section
-
-Removed "Plugin-dev skills modification path" from Open Questions (resolved in Key Decisions).
-
-Retained "Vet duplication" and "Scope overlap" as genuine open questions requiring user input.
+- Line 115: Added explicit UNFIXABLE format specification with cross-reference to vet-requirement.md
+- Lines 105-106: Clarified that LLM failure modes are NEW checks, TDD-specific checks (prescriptive code, RED/GREEN) REMAIN
+- Lines 152-154: Expanded mode section to explain adhoc vs TDD distinction and rationale
+- Line 71: Shortened Decision 1 Option B critique to essential disqualifiers
+- Lines 100, 105, 109, 112, 152: Standardized "general" → "adhoc" for workflow terminology
+- Lines 134-135: Added reference updates and symlink synchronization to IN scope
 
 ## Positive Observations
 
-- **Evidence-grounded approach**: Every fix references specific findings from exploration reports or failure mode analysis
-- **Proper scoping**: Clearly distinguishes IN/OUT, acknowledges overlaps with other pending tasks
-- **Fix-all philosophy**: Addresses consistency issues (UNFIXABLE format, execution context) across multiple artifacts, not just fixing one
-- **Leverages existing patterns**: Recognizes skills frontmatter pattern already works (tdd-plan-reviewer), applies to more artifacts
-- **Defers appropriately**: Vet duplication extraction deferred with clear dependency rationale, not ignored
+- **Evidence-driven gap analysis**: Each gap cites specific line numbers from exploration reports and existing artifacts (G1 references plan-adhoc Point 1, G3 references runbook-outline-review-agent lines 116-137)
+- **Transformation table clarity**: T1-T6 decomposition makes defect injection points explicit and testable. Each row shows input/output, defect type, current gate, gaps.
+- **Decision rationale transparency**: Each decision presents 2-3 options with explicit trade-offs and grounded recommendations (Decision 1 compares 3 approaches with maintenance, reuse, and agent proliferation factors)
+- **Scope discipline**: Clear IN/OUT boundaries with explicit exclusions (prepare-runbook.py works, skills prolog deferred, worktree-update separate)
+- **Pipeline thinking**: Recognizes that outline review (T2) catches issues at outline level but can't prevent expansion defects (T3) — architectural insight, not just symptom patching
+- **Fix-all pattern propagation**: Decision 3 chooses to eliminate recommendations in favor of fix-all, making the pattern consistent across all review agents
 
 ## Recommendations
 
-### For User Discussion
+1. **Document UNFIXABLE format before planning**: Open Question 3 asks about I/O contracts. Recommend defining UNFIXABLE format explicitly in agents/decisions/pipeline-contracts.md before planning to ensure consistency between plan-reviewer and vet-fix-agent implementations.
 
-**1. Open Question: Scope Overlap with Pending Task**
+2. **Update prepare-runbook.py detection logic**: Open Question 1 correctly identifies that tdd-plan-reviewer rename to plan-reviewer requires updating baseline detection. Consider adding explicit artifact type marker (frontmatter: `type: tdd` or `type: adhoc`) to phase files as future-proof alternative to agent name detection.
 
-The outline implements "Integrate LLM failure mode checks into tdd-plan-reviewer" which is a pending task in session.md. Should this plan:
-- **Option A**: Subsume that task entirely (remove from pending list at handoff)
-- **Option B**: Treat as partial implementation (mark task as "in progress via workflow-fixes")
-
-**Recommendation**: Option A — this plan fully implements that task. Session.md update at handoff.
-
-**2. Open Question: Vet Duplication Timing**
-
-Should vet duplication (250+ lines duplicated between vet-agent, vet-fix-agent, vet skill) be addressed now or deferred?
-
-**Current approach**: Deferred to skills prolog validation
-**Alternative**: Extract to fragment now, apply skills frontmatter pattern
-
-**Recommendation**: Defer as planned. Skills prolog pattern exists but general refactoring workflow not validated. Defer until pattern proven at scale.
-
-### For Future Iteration
-
-- **Issue 9 and 10 additions**: These expand scope slightly beyond exploration report's Priority 1-3. Confirm these are LOW priority additions worth including, or defer to separate clarification pass.
-- **Plugin-dev local overrides**: Overriding externally managed skills creates maintenance divergence. Consider contributing upstream after local validation.
+3. **Central I/O contract documentation**: Open Question 3 asks about embedding contracts in skills vs central doc. Recommend agents/decisions/pipeline-contracts.md as single source, skills reference it. Embedding duplicates maintenance surface.
 
 ---
 
 **Ready for user presentation**: Yes
 
-All critical and major issues fixed. Minor issues corrected. Outline is complete, scoped appropriately, and ready for planning phase.
+All requirements traced, two major issues fixed (exit conditions specification + prescriptive code handling clarification), four minor issues fixed (mode clarity, terminology standardization, redundancy removal, verification scope). Open questions are appropriate escalations (rename detection strategy, edit granularity, contract location). Architectural soundness validated by pipeline transformation analysis grounded in exploration evidence and runbook-review.md methodology.

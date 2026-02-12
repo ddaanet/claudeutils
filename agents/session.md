@@ -1,49 +1,53 @@
 # Session Handoff: 2026-02-12
 
-**Status:** Designed workflow fixes for 10 artifacts (8 targets + 2 clarification fixes). Outline complete, reviewed, all questions resolved. Ready for `/plan-adhoc`.
+**Status:** Workflow pipeline redesign outline complete (Phase A+B). Supersedes previous 10-artifact patch approach. 7 structural gaps identified, 3 open questions await user input before Phase C (full design).
 
 ## Completed This Session
 
-### Design: Workflow fixes (Phase A+B complete)
+### Design: Workflow pipeline redesign (Phase A+B, second iteration)
 
-- Explored 8 target artifacts via parallel quiet-explore agents: reports at `plans/workflow-fixes/reports/`
-- Cross-referenced workflow-skills-audit plan (7/12 items already implemented for plan-adhoc alignment)
-- Read LLM failure mode review reports (`runbook-review-llm-failure-modes.md`, `runbook-review-post.md`)
-- Loaded plugin-dev:skill-development and plugin-dev:agent-development skills for agent/skill coupling context
-- Wrote outline: `plans/workflow-fixes/outline.md` (10 artifact fixes)
-- Outline reviewed by outline-review-agent (assessment: Ready, 2 major + 4 minor issues fixed)
-- Resolved all open questions with user input
+**Scope expansion:** User requested complete dataflow/control flow audit of /design, /plan-tdd, /plan-adhoc, /orchestrate — not just 10 artifact patches. Previous outline superseded.
 
-**Key decisions:**
-- Plugin-dev skills: upstream contributions (PR/issue to official plugin), not local overrides
-- Plan-tdd reference files: exist (exploration had false finding) — no fix needed
-- Vet duplication: defer to skills prolog task
-- Model: sonnet for planning, opus for execution (skill/agent definition edits)
+**Analysis performed:**
+- Read all 4 core skill files (plan-adhoc 1136 lines, plan-tdd 1052 lines, orchestrate 475 lines, design loaded via /design invocation)
+- Read all 4 review agent definitions (tdd-plan-reviewer, vet-fix-agent, vet-agent, runbook-outline-review-agent)
+- Read review-tdd-plan skill (456 lines)
+- Mapped pipeline as 6 transformations (T1-T6) with defect types and review gates
 
-**False finding corrected:** Exploration agent reported plan-tdd `references/*.md` as missing. Files exist at `agent-core/skills/plan-tdd/references/` — verified via `git ls-tree` and `ls`.
+**Key finding:** T3 (outline → phase expansion) is the critical gap. All 4 LLM failure modes can be re-introduced during expansion, but the review gate either checks wrong criteria (TDD: prescriptive code only) or routes to wrong agent (adhoc: vet-fix-agent rejects planning artifacts).
 
-### Implemented: Integrate LLM failure mode checks into tdd-plan-reviewer
+**7 gaps identified:**
+- G1: Adhoc phase review routes to vet-fix-agent which rejects planning artifacts
+- G2: Autofix contradiction (agent fixes, then planner re-fixes)
+- G3: No LLM failure mode re-validation after expansion
+- G4: Report recommendations not consumed downstream (only Expansion Guidance works)
+- G5: Agent name ambiguity ("vet agent" unspecified)
+- G6: Missing scope IN/OUT context in review delegations
+- G7: Orchestrate general completion doesn't actually vet
 
-Fully addressed by workflow-fixes design (Fix #1: add LLM failure mode detection to review-tdd-plan skill). Marked complete per user confirmation.
+**Research grounding:** Four axes from `agents/decisions/runbook-review.md` (Jiang 2024, Fan 2025, Mathews 2024, Microsoft 2025) connect to G3 — vacuity, ordering, density, checkpoints.
 
-### Manual runbook review — LLM failure mode analysis (prior session)
+**Outline written:** `plans/workflow-fixes/outline.md` — reviewed by outline-review-agent (Ready, 2 major + 4 minor fixed)
 
-- Applied four-axis methodology from `agents/decisions/runbook-review.md` to all 7 phases (40 cycles)
-- Found 8 findings: 3 vacuous cycles, 1 critical missing requirement, 1 checkpoint gap, 1 density opportunity
-- Report: `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`
+### Prior work preserved
+
+- LLM failure mode integration into tdd-plan-reviewer (implemented via this design)
+- Manual runbook review findings (report at `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`)
+- Exploration reports still valid for reference
 
 ## Pending Tasks
 
-- [ ] **Plan and execute workflow fixes** — `/plan-adhoc plans/workflow-fixes/outline.md` | sonnet | then execute with opus
+- [ ] **Complete workflow pipeline redesign** — Answer 3 open questions, then Phase C (full design) → `/plan-adhoc` | opus
   - Outline: `plans/workflow-fixes/outline.md`
-  - 10 artifacts: tdd-plan-reviewer, review-tdd-plan skill, plan-tdd, plan-adhoc, vet-fix-agent, vet skill, runbook-outline-review-agent, plugin-dev:skill-development, plugin-dev:agent-development, plan selection guidance
-  - Substantive work: LLM failure mode integration into review-tdd-plan skill
+  - Open Q1: Agent rename (tdd-plan-reviewer → plan-reviewer) — acceptable churn or keep name?
+  - Open Q2: Edit precision for plan-adhoc (exact locations or semantic descriptions)?
+  - Open Q3: I/O contracts location (embedded in skills or central decision doc)?
+  - After design: `/plan-adhoc` → execute with opus for skill/agent edits
 
 - [ ] **Fix worktree-update runbook** — Apply findings from LLM failure mode review | sonnet
   - Report: `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`
   - Priority 1: Add jobs.md auto-resolve cycle
   - Priority 2: Merge vacuous cycles, density, add Phase 6 checkpoint
-  - Re-run prepare-runbook.py after fixes
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
 
@@ -60,7 +64,7 @@ Fully addressed by workflow-fixes design (Fix #1: add LLM failure mode detection
 
 - [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate memory in main repo or dedicated consolidation worktree | sonnet
 
-- [ ] **Fix skill-based agents not using skills prolog section** — Agents duplicate content instead of referencing skills via `skills:` frontmatter. Evaluate creating internal /autofix skill | sonnet
+- [ ] **Fix skill-based agents not using skills prolog section** — Agents duplicate content instead of referencing skills via `skills:` frontmatter | sonnet
 
 - [ ] **Upstream plugin-dev: document `skills:` frontmatter** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` field | sonnet
 
@@ -79,9 +83,9 @@ Fully addressed by workflow-fixes design (Fix #1: add LLM failure mode detection
 
 ## Reference Files
 
-- `plans/workflow-fixes/outline.md` — Design outline (10 artifact fixes)
-- `plans/workflow-fixes/reports/explore-target-artifacts.md` — Artifact exploration (10 issues)
+- `plans/workflow-fixes/outline.md` — Pipeline redesign outline (7 gaps, 3 decisions, transformation table)
+- `plans/workflow-fixes/reports/outline-review.md` — Outline review (Ready, 2 major + 4 minor fixed)
+- `plans/workflow-fixes/reports/explore-target-artifacts.md` — Artifact exploration (10 issues, prior iteration)
 - `plans/workflow-fixes/reports/explore-audit-overlap.md` — Workflow-skills-audit overlap
-- `plans/workflow-fixes/reports/outline-review.md` — Outline review (Ready)
 - `plans/worktree-update/reports/runbook-review-llm-failure-modes.md` — LLM failure mode review (8 findings)
-- `agents/decisions/runbook-review.md` — LLM failure mode methodology
+- `agents/decisions/runbook-review.md` — LLM failure mode methodology (four axes, research citations)
