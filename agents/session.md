@@ -1,44 +1,36 @@
 # Session Handoff: 2026-02-12
 
-**Status:** worktree-update runbook outline generated and reviewed. Ready for phase-by-phase cycle expansion.
+**Status:** Runbook review methodology created and integrated into planning infrastructure. worktree-update outline LLM failure mode review complete.
 
 ## Completed This Session
 
-### worktree-update Outline: Finalized
+### LLM Failure Mode Review Methodology
 
-Amendments across two sessions:
+Web research on LLM code generation failure modes in TDD contexts, then applied to worktree-update outline.
 
-**Prior session:** 5 design decisions (D7 `--task` mode, D8 justfile independence, functions-only, TDD sequence, future work scoping). Reviewed 4 times (outline-review-2, outline-review-3, vet-review-1).
+**Research grounding:** 3 papers (Jiang 2024, WebApp1K 2025, Mathews & Nagappan ASE 2024). Research provided citations and mechanism explanations but the detection axes came from manual analysis. One genuinely new axis (checkpoint spacing) from WebApp1K instruction-loss finding.
 
-**This session:** 3 targeted clarifications:
-- **Merge clean tree gate both sides:** OURS (main + submodule, session exempt) AND THEIRS (worktree + worktree submodule, NO session exemption — uncommitted state would be lost)
-- **Justfile wt-merge:** Add THEIRS clean tree check (strict, no session exemption). Currently only checks OURS.
-- **Step 9 added:** Interactive opus refactoring for bloated justfile recipes (post-execution, not TDD, not delegated)
+**Methodology document:** `agents/decisions/runbook-review.md` — 4 review axes:
+- **Vacuity:** Cycles/steps that don't constrain implementation (scaffold-only, wiring, presentation)
+- **Dependency ordering:** Intra-phase forward dependencies (dedup before container creation)
+- **Cycle density:** Collapsible edge-case clusters, trivial phases
+- **Checkpoint spacing:** Gaps >10 cycles or >2 phases without quality gate
 
-D8 updated to reflect both Python merge and justfile must check both sides. Vet-review-2 clean, no issues.
+**Applied to worktree-update outline:** `plans/worktree-update/reports/outline-review-4-llm-failure-modes.md`
+- 5 vacuous cycles (0.1, 5.1, 5.6, 5.9, 6.1)
+- 1 critical ordering issue (Phase 2: dedup before nested key creation)
+- ~7 collapsible cycles (48 → ~41)
+- Checkpoint gaps (only Phase 7 has explicit checkpoint)
 
-### worktree-update Runbook Outline: Generated and Reviewed
+### Planning Infrastructure Improvements
 
-**Phase 0-1.5 complete:** Tier assessment (Tier 3 - Full Runbook), intake, runbook outline generation.
+Integrated the 4 review axes into planning workflow at two levels:
 
-**Outline structure:**
-- 9 phases: 7 TDD phases (0-7), 1 non-code artifacts phase (8), 1 interactive refactoring phase (9)
-- 48 TDD cycles total (Phases 0-7)
-- All 10 functional requirements mapped to specific cycles
-- Complexity distribution: 2 low, 4 medium, 2 high complexity phases
+**Review agent (detective):** `agent-core/agents/runbook-outline-review-agent.md` — added vacuity, intra-phase ordering, step/cycle density, checkpoint spacing criteria. Shared by both plan-tdd and plan-adhoc.
 
-**Review outcome (outline-review-1):**
-- No critical, major, or minor issues requiring fixes
-- Requirements coverage complete (all FRs traced to cycles)
-- Phase structure well-balanced (25% Phase 7 merge ceremony, 21% Phase 5 new command refactor)
-- Design alignment confirmed for all 8 key decisions (D1-D8)
-- Status: Ready for full expansion
-
-**Artifacts created:**
-- `plans/worktree-update/runbook-outline.md` — Validated outline with phase structure and cycle counts
-- `plans/worktree-update/reports/outline-review-1.md` — Review report with expansion guidance
-
-**Next step:** Phase-by-phase cycle expansion (Phase 3 of /plan-tdd workflow).
+**Generation rules (preventive):**
+- `agent-core/skills/plan-tdd/SKILL.md` — Phase 1.5 outline quality + Phase 3.1 cycle ordering: branch-point requirement, foundation-first ordering, edge-case collapse
+- `agent-core/skills/plan-adhoc/SKILL.md` — Point 0.75 outline quality: functional outcome requirement, foundation-first ordering, collapsible step detection
 
 ## Pending Tasks
 
@@ -69,6 +61,12 @@ D8 updated to reflect both Python merge and justfile must check both sides. Vet-
   - Add worktree detection: skip consolidation if `git rev-parse --show-toplevel` appears in `git worktree list` output
   - Rationale: Consolidation modifies shared docs (learnings.md, decisions/, fragments) — parallel worktree modifications cause merge conflicts
 
+- [ ] **Move runbook-review.md into agent-core** — `agents/decisions/runbook-review.md` → agent-core location | sonnet
+  - Document consumed by agent-core components (review agent, plan-tdd, plan-adhoc)
+  - Methodology is project-agnostic, belongs with consumers
+  - Update references in review agent + memory index
+  - Check plugin-dev skills for similar methodology docs that should co-locate
+
 ## Blockers / Gotchas
 
 **Two methodology documents exist:**
@@ -89,4 +87,6 @@ D8 updated to reflect both Python merge and justfile must check both sides. Vet-
 - `plans/worktree-update/reports/outline-review-1.md` — Outline review report with expansion guidance
 - `plans/worktree-update/reports/vet-review-2.md` — Design review report
 - `plans/worktree-skill/outline.md` — Ground truth design spec (worktree-skill)
-- `agents/decisions/deliverable-review.md` — Review methodology
+- `agents/decisions/deliverable-review.md` — Post-execution review methodology
+- `agents/decisions/runbook-review.md` — Pre-execution runbook review methodology (LLM failure modes)
+- `plans/worktree-update/reports/outline-review-4-llm-failure-modes.md` — Applied review findings

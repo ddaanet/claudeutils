@@ -99,6 +99,13 @@ Success metrics — all tests pass, no regressions, clear errors, complete docum
 
 Deliverable definition — artifact types review axes ISO-grounded identification process
 
+## agents/decisions/runbook-review.md
+
+Vacuous cycles — scaffold-only RED tests degenerate GREEN LLM failure mode
+Dependency ordering — foundation-first forward reference intra-phase detection
+Cycle density — edge-case clusters trivial phases collapse candidates
+Checkpoint spacing — drift accumulation haiku instruction loss quality gates
+
 ## agents/decisions/implementation-notes.md
 
 @ references limitation — CLAUDE.md @ syntax only works in CLAUDE.md not skills agents tasks
