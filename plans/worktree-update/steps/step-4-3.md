@@ -6,59 +6,64 @@
 
 ---
 
-## Cycle 4.3: Reference files filtering — relevant entries only
+## Cycle 4.3: Missing task error handling
 
-**Objective:** Include only reference file entries relevant to the extracted task.
+**Objective:** Raise clear error when task name doesn't exist in session.md.
 
 **RED Phase:**
 
-**Test:** `test_focus_session_references_filtering`
+**Test:** `test_focus_session_missing_task`
 **Assertions:**
-- Given session.md with Reference Files section containing:
-  - Entry relevant to task (mentions task name or plan directory)
-  - Entry NOT relevant to task
-- `focus_session("task-name", session_path)` returns string containing only relevant reference entries
-- Unrelated reference entries NOT included
-- Reference Files section header present only if relevant entries exist
-- If no relevant references: section omitted entirely
+- Given session.md without task named "nonexistent-task"
+- `focus_session("nonexistent-task", session_path)` raises ValueError
+- Error message contains task name: "Task 'nonexistent-task' not found in session.md"
+- Error message is actionable (helps user understand what went wrong)
 
-**Expected failure:** AssertionError: all references included (no filtering) or references section missing entirely
+**Expected failure:** No error raised (returns empty string or None) or wrong exception type
 
-**Why it fails:** Function doesn't filter references yet
+**Why it fails:** Function doesn't validate task existence before processing
 
-**Verify RED:** `pytest tests/test_worktree_cli.py::test_focus_session_references_filtering -v`
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_focus_session_missing_task -v`
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Add reference files filtering logic to `focus_session()` function
+**Implementation:** Add task existence validation to `focus_session()` function
 
 **Behavior:**
-- Parse Reference Files section from session.md
-- For each reference entry, check if it mentions:
-  - Task name
-  - Plan directory associated with task
-- Include only matching entries in focused session
-- Omit Reference Files section entirely if no relevant entries
+- After parsing session.md, check if task was found
+- If task extraction returns None or empty: raise ValueError with clear message
+- Message includes task name for debugging
+- Validation happens before any section filtering (fail fast)
 
-**Approach:** Same pattern as blocker filtering — parse section, filter by relevance, conditional inclusion
+**Approach:** Check task extraction result, raise ValueError if None/empty with f-string message
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Add reference file parsing to `focus_session()` function
-  Location hint: After blocker filtering, before building output string
+  Action: Add task validation check in `focus_session()` function
+  Location hint: After task extraction attempt, before blocker/reference filtering
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Implement relevance check for references (same logic as blockers)
-  Location hint: Filter reference lines by content matching
-- File: `src/claudeutils/worktree/cli.py`
-  Action: Conditionally include Reference Files section in output
-  Location hint: String formatting with conditional section
+  Action: Raise ValueError if task not found, with message including task name
+  Location hint: Conditional check on task extraction result
 
-**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_focus_session_references_filtering -v`
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_focus_session_missing_task -v`
 - Must pass
 
 **Verify no regression:** `pytest tests/test_worktree_cli.py -v`
-- All Cycle 4.1 and 4.2 tests still pass
+- All Phase 4 tests still pass
+
+---
+
+# Phase 5: Update `new` Command and Task Mode
+
+**Complexity:** High (7 cycles)
+**Files:**
+- `src/claudeutils/worktree/cli.py`
+- `tests/test_worktree_new.py`
+
+**Description:** Refactor `new` command using extracted functions, add `--task` mode combining slug derivation and focused session generation.
+
+**Dependencies:** Phases 1, 2, 4 (needs `wt_path()`, `add_sandbox_dir()`, `focus_session()`)
 
 ---

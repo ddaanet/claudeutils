@@ -6,58 +6,49 @@
 
 ---
 
-## Cycle 7.11: Phase 3 conflict handling — source file abort
+## Cycle 7.11: Phase 3 conflict handling — jobs.md auto-resolve
 
-**Objective:** Abort merge and clean debris when source file conflicts remain (manual resolution required).
+**Objective:** Auto-resolve jobs.md conflicts by keeping ours with warning (plan status is local state).
 
 **RED Phase:**
 
-**Test:** `test_merge_conflict_source_files`
+**Test:** `test_merge_conflict_jobs_md`
 **Assertions:**
-- When conflicts remain after auto-resolution (not agent-core, session.md, learnings.md): abort merge
-- Run `git merge --abort` to cancel merge
-- Clean debris: `git clean -fd` to remove materialized files from merge attempt
-- Exit 1 with conflict list: "Merge aborted: conflicts in <file1>, <file2>"
-- Exit code 1 (conflicts require manual resolution, not fatal error)
+- When `agents/jobs.md` in conflict list: run `git checkout --ours agents/jobs.md && git add agents/jobs.md`
+- After resolution: `agents/jobs.md` removed from conflict list
+- Warning printed: "jobs.md conflict: kept ours (local plan status)"
+- No manual intervention required
 
-**Expected failure:** AssertionError: merge proceeds with unresolved conflicts, or no abort/cleanup
+**Expected failure:** AssertionError: jobs.md conflict not resolved, or no warning
 
-**Why it fails:** Source file conflict handling not implemented
+**Why it fails:** jobs.md auto-resolution not implemented
 
-**Verify RED:** `pytest tests/test_worktree_cli.py::test_merge_conflict_source_files -v`
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_merge_conflict_jobs_md -v`
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Add source file conflict abort logic
+**Implementation:** Add jobs.md conflict auto-resolution
 
 **Behavior:**
-- After 7.8-7.10 auto-resolutions: check if conflict list still non-empty
-- Run `git diff --name-only --diff-filter=U` again to get remaining conflicts
-- If conflicts remain:
-  - Run `git merge --abort`
-  - Run `git clean -fd` to remove debris
-  - Exit 1 with message listing conflicted files
-- If no conflicts remain (all auto-resolved): proceed to commit
+- From 7.7: have conflict list
+- Check if `"agents/jobs.md"` in conflict list
+- If present: run `git checkout --ours agents/jobs.md` then `git add agents/jobs.md`
+- Print warning: "jobs.md conflict: kept ours (local plan status)"
+- Remove from conflict list after resolution
 
-**Approach:** Final conflict check, abort and cleanup if any remain, exit with message
+**Approach:** Same pattern as agent-core resolution (7.8) — known-file auto-resolve with warning
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Add final conflict check in `merge` command
-  Location hint: After all auto-resolutions (7.8-7.10)
+  Action: Add jobs.md conflict check in `merge` command
+  Location hint: After learnings.md resolution from 7.10, before source file abort
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Recheck conflict list with git diff
-  Location hint: Run same command as 7.7
-- File: `src/claudeutils/worktree/cli.py`
-  Action: If conflicts remain: abort merge and clean
-  Location hint: `git merge --abort && git clean -fd`
-- File: `src/claudeutils/worktree/cli.py`
-  Action: Exit 1 with conflict list
-  Location hint: Print message and sys.exit(1)
+  Action: Run checkout --ours and git add for jobs.md
+  Location hint: Conditional on conflict list membership
 
-**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_merge_conflict_source_files -v`
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_merge_conflict_jobs_md -v`
 - Must pass
 
 **Verify no regression:** `pytest tests/test_worktree_cli.py -v`

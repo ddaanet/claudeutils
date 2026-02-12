@@ -340,7 +340,7 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 
 # Phase 1: Path Computation and CLI Registration
 
-**Complexity:** Medium (6 cycles)
+**Complexity:** Medium (4 cycles)
 **Files:**
 - `src/claudeutils/cli.py`
 - `src/claudeutils/worktree/cli.py`

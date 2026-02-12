@@ -6,69 +6,87 @@
 
 ---
 
-## Cycle 5.7: Task mode — slug derivation, focused session, tab-separated output
+## Cycle 5.7: Session file handling — warn and ignore `--session` when branch exists
 
-**Objective:** Implement task mode logic combining all helper functions and special output format.
+**Objective:** Handle session file logic correctly when reusing existing branches (session already committed).
 
 **RED Phase:**
 
-**Test:** `test_new_task_mode_integration`
+**Test:** `test_new_session_handling_branch_reuse`
 **Assertions:**
-- `claudeutils _worktree new --task "Implement feature X"` derives slug `"implement-feature-x"`
-- Focused session generated from `agents/session.md` (calls `focus_session()`)
-- Focused session written to temporary file for session creation
-- Worktree created at derived slug path
-- Output format: `<slug>\t<path>` (tab-separated, not just path)
-- Temporary session file cleaned up after creation
+- When branch exists and `--session` provided: warning printed, `--session` ignored
+- No attempt to commit session to existing branch (branch already has its session)
+- When branch doesn't exist and `--session` provided: normal session commit flow
+- Warning message mentions branch reuse as reason for ignoring `--session`
 
-**Expected failure:** AssertionError: wrong output format (no tab separator), or focused session not generated, or slug not derived
+**Expected failure:** AssertionError: no warning printed, or session commit attempted on existing branch, or error raised
 
-**Why it fails:** Task mode logic not implemented (slug derivation, focus_session call, output format)
+**Why it fails:** Session handling doesn't account for branch reuse scenario
 
-**Verify RED:** `pytest tests/test_worktree_new.py::test_new_task_mode_integration -v`
+**Verify RED:** `pytest tests/test_worktree_new.py::test_new_session_handling_branch_reuse -v`
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Wire task mode logic using helper functions from previous phases
+**Implementation:** Add conditional session handling based on branch existence
 
 **Behavior:**
-- When `--task` provided:
-  1. Derive slug: `slug = derive_slug(task_name)`
-  2. Generate focused session: `session_content = focus_session(task_name, session_md_path)`
-  3. Write to temp file: use `tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False)`
-  4. Proceed with normal `new` logic using derived slug and temp session path
-  5. At end: print `f"{slug}\t{wt_path}"` (tab-separated) instead of just path
-  6. Clean up temp file in finally block
-- When explicit slug mode: output just path (existing behavior)
+- When branch exists (from 5.1 detection) AND `--session` provided:
+  - Print warning: "Branch <slug> exists, ignoring --session (session already committed)"
+  - Skip session commit logic
+- When branch doesn't exist and `--session` provided:
+  - Proceed with existing session commit flow (unchanged)
+- When `--task` mode: session handling via temp file (from 5.6), branch reuse logic still applies
 
-**Approach:** Conditional logic branch for task mode, compose helper functions, special output format
+**Approach:** Conditional logic linking branch existence check from 5.1 to session commit decision
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Add task mode branch in `new` command
-  Location hint: Early in function, after validation
+  Action: Add session handling conditional in `new` command
+  Location hint: Where session commit logic exists
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Call `derive_slug(task_name)` to get slug
-  Location hint: In task mode branch
+  Action: Check branch existence flag from earlier detection
+  Location hint: Use same boolean/result from 5.1's branch check
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Call `focus_session(task_name, session_md_path)` to generate content
-  Location hint: After slug derivation
+  Action: Print warning and skip session commit if branch exists
+  Location hint: Conditional around session commit code
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Create temp file with focused session content
-  Location hint: Use `tempfile` module, write content
-- File: `src/claudeutils/worktree/cli.py`
-  Action: Update output format — tab-separated for task mode, path-only for explicit mode
-  Location hint: At end of function, conditional print based on mode
-- File: `src/claudeutils/worktree/cli.py`
-  Action: Add finally block to clean up temp file
-  Location hint: Wrap main logic in try-finally
+  Action: Preserve existing session commit flow for new branches
+  Location hint: Else branch of conditional
 
-**Verify GREEN:** `pytest tests/test_worktree_new.py::test_new_task_mode_integration -v`
+**Verify GREEN:** `pytest tests/test_worktree_new.py::test_new_session_handling_branch_reuse -v`
 - Must pass
 
 **Verify no regression:** `pytest tests/test_worktree_new.py -v`
-- All previous tests still pass (explicit mode unchanged)
+- All Phase 5 tests still pass
+
+---
+
+**Checkpoint: Post-Phase 5**
+
+**Type:** Full checkpoint (Fix + Vet + Functional)
+
+**Process:**
+1. **Fix:** Run `just dev`. If failures, sonnet quiet-task diagnoses and fixes. Commit when passing.
+2. **Vet:** Review all Phase 1-5 changes for quality, clarity, design alignment. Apply all fixes. Commit.
+3. **Functional:** Review all implementations against design.
+   - Check: Are path computations real or stubbed? Does branch detection actually work?
+   - Check: Is task mode integration tested end-to-end or just mocked?
+   - If stubs found: STOP, report which implementations need real behavior
+   - If all functional: Proceed to Phase 6
+
+**Rationale:** Phase 5 is major integration point — `new` command orchestrates all prior functions. Validate completeness before proceeding to `rm` and `merge` commands.
+
+# Phase 6: Update `rm` Command
+
+**Complexity:** Medium (5 cycles)
+**Files:**
+- `src/claudeutils/worktree/cli.py`
+- `tests/test_worktree_cli.py`
+
+**Description:** Refactor `rm` command with improved removal logic — submodule-first ordering, container cleanup, safe branch deletion.
+
+**Dependencies:** Phase 1 (needs `wt_path()` for path resolution)
 
 ---

@@ -6,47 +6,64 @@
 
 ---
 
-## Cycle 1.4: Sibling path when in container — multiple slugs
+## Cycle 1.4: Edge cases — special characters, root directory, deep nesting
 
-**Objective:** Verify sibling path logic works for multiple worktrees in same container.
+**Objective:** Handle edge cases in path computation (unusual but valid scenarios).
 
 **RED Phase:**
 
-**Test:** `test_wt_path_siblings`
+**Test:** `test_wt_path_edge_cases`
 **Assertions:**
-- When in container, `wt_path("wt-a")` and `wt_path("wt-b")` return different paths
-- Both paths share same parent directory (the container)
-- Paths differ only in final slug component
-- Neither path creates nested containers
+- Slug with special characters preserved in path: `wt_path("fix-bug#123")` includes `#123` in path
+- From root directory: `wt_path("test")` doesn't crash, constructs valid path
+- From deeply nested directory (5+ levels): path construction still works correctly
+- Empty container case: if manually in empty `-wt` directory, sibling path still computed
 
-**Expected failure:** Test should pass immediately (logic from 1.3 already handles this), or fails if implementation incorrectly creates nested structure
+**Expected failure:** Various: ValueError on special chars, error on root directory, incorrect path from deep nesting
 
-**Why it might fail:** Path construction incorrectly nests containers for multiple calls
+**Why it fails:** Edge cases not yet handled in path computation logic
 
-**Verify RED:** `pytest tests/test_worktree_cli.py::test_wt_path_siblings -v`
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_wt_path_edge_cases -v`
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Verify existing logic handles multiple sibling paths correctly
+**Implementation:** Add edge case handling to `wt_path()` function
 
 **Behavior:**
-- Function is stateless (pure function of slug input)
-- Each call with different slug returns different path with same parent
-- No side effects or state that would interfere with multiple calls
+- Special characters in slug: preserve as-is (filesystem will handle)
+- Root directory: detect via `Path.cwd() == Path("/")`, construct reasonable container path
+- Deep nesting: existing logic already handles (uses `.parent` which works at any depth)
+- Error on truly invalid slug (e.g., empty string, only whitespace): raise ValueError
 
-**Approach:** Existing implementation from 1.3 should already satisfy this — verify with test
+**Approach:** Add validation at function start, handle root directory special case, rely on pathlib for deep nesting
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Verify logic (likely no changes needed if 1.3 implemented correctly)
-  Location hint: Review `wt_path()` function for stateless behavior
+  Action: Add slug validation at function start (check for empty/whitespace)
+  Location hint: First lines of function
+- File: `src/claudeutils/worktree/cli.py`
+  Action: Add root directory detection and handling
+  Location hint: Before container detection logic
 
-**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_wt_path_siblings -v`
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_wt_path_edge_cases -v`
 - Must pass
 
 **Verify no regression:** `pytest tests/test_worktree_cli.py -v`
 - All previous tests still pass
+
+---
+
+# Phase 2: Sandbox Registration
+
+**Complexity:** Medium (4 cycles)
+**Files:**
+- `src/claudeutils/worktree/cli.py`
+- `tests/test_worktree_cli.py`
+
+**Description:** JSON manipulation for sandbox permissions — add worktree container to allowed directories.
+
+**Dependencies:** Phase 1 (needs `wt_path()` for container determination)
 
 ---

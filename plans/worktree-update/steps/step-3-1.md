@@ -68,13 +68,13 @@
 
 # Phase 4: Focused Session Generation
 
-**Complexity:** Medium (4 cycles)
+**Complexity:** Medium (3 cycles)
 **Files:**
 - `src/claudeutils/worktree/cli.py`
 - `tests/test_worktree_cli.py`
 
 **Description:** Parse session.md and generate focused content for worktree — extract task, filter relevant context.
 
-**Dependencies:** Phase 3 (slug derivation used internally)
+**Dependencies:** None
 
 ---

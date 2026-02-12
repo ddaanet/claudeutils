@@ -6,60 +6,59 @@
 
 ---
 
-## Cycle 5.5: Environment initialization — `just setup` with warning on failure
+## Cycle 5.5: Add `--task` option with `--session-md` default
 
-**Objective:** Run `just setup` in worktree after creation, warn if unavailable (don't fall back to manual commands).
+**Objective:** Add `--task` flag to enable task-based worktree creation mode.
 
 **RED Phase:**
 
-**Test:** `test_new_environment_initialization`
+**Test:** `test_new_task_option`
 **Assertions:**
-- After `new <slug>`, `just setup` invoked with `cwd=<wt-path>`
-- If `just` command available: `just setup` runs, exit code captured
-- If `just` unavailable (command not found): warning printed, no error raised
-- If `just setup` fails (exit ≠ 0): warning printed with stderr, no error raised (prerequisite failure, not fatal)
-- No fallback commands executed (no `uv sync`, `direnv allow` called directly)
+- `claudeutils _worktree new --task "Implement feature"` works (no positional slug required)
+- `--session-md` option available with default value `agents/session.md`
+- `--task` and positional slug are mutually exclusive (error if both provided)
+- `--session` option ignored when `--task` provided (warning printed)
+- Help text shows `--task` and `--session-md` options
 
-**Expected failure:** Error raised when `just` missing, or subprocess called without `cwd` parameter, or fallback commands attempted
+**Expected failure:** click.UsageError: missing required argument slug, or no error when both slug and --task provided
 
-**Why it fails:** Environment initialization not implemented, or incorrect error handling
+**Why it fails:** `--task` option doesn't exist, slug still required
 
-**Verify RED:** `pytest tests/test_worktree_new.py::test_new_environment_initialization -v`
+**Verify RED:** `pytest tests/test_worktree_new.py::test_new_task_option -v`
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Add environment initialization step with graceful failure handling
+**Implementation:** Add Click options and mutual exclusivity validation
 
 **Behavior:**
-- Check if `just` available: `subprocess.run(['just', '--version'], ...)` with `check=False`
-- If available: run `just setup` with `cwd=<wt-path>` and `check=False`
-- Capture stderr and exit code
-- If exit ≠ 0: print warning with stderr (don't raise exception)
-- If `just` unavailable: print warning message (prerequisite missing)
-- No fallback to manual commands (user must fix prerequisite)
+- Make slug argument optional: `@click.argument('slug', required=False)`
+- Add `--task` option: `@click.option('--task', help="Task name from session.md")`
+- Add `--session-md` option: `@click.option('--session-md', default='agents/session.md', help="Path to session.md")`
+- At function start: validate exactly one of (slug, --task) provided (raise UsageError if both or neither)
+- If `--task` and `--session` both provided: print warning, ignore `--session`
 
-**Approach:** Subprocess calls with error handling, conditional warnings, no exceptions raised
+**Approach:** Click decorators for options, validation logic at function start
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Add environment initialization in `new` command
-  Location hint: After sandbox registration, before final output
+  Action: Modify slug argument to be optional in `new` command
+  Location hint: Change `@click.argument('slug')` to `@click.argument('slug', required=False)`
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Check for `just` availability
-  Location hint: Use subprocess.run with check=False to test command existence
+  Action: Add `--task` option decorator
+  Location hint: Before `def new(...)` function signature
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Run `just setup` with cwd parameter if available
-  Location hint: subprocess.run with cwd=<wt-path>
+  Action: Add `--session-md` option decorator
+  Location hint: After `--task` option
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Print warning messages for failures (don't raise exceptions)
-  Location hint: Check exit codes, print to stderr or stdout as appropriate
+  Action: Add mutual exclusivity validation at function start
+  Location hint: First lines of function, raise click.UsageError if invalid combination
 
-**Verify GREEN:** `pytest tests/test_worktree_new.py::test_new_environment_initialization -v`
+**Verify GREEN:** `pytest tests/test_worktree_new.py::test_new_task_option -v`
 - Must pass
 
 **Verify no regression:** `pytest tests/test_worktree_new.py -v`
-- All previous Cycle 5 tests still pass
+- All previous explicit mode tests still pass
 
 ---

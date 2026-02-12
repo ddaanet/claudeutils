@@ -6,9 +6,9 @@
 
 ---
 
-## Cycle 5.2: Worktree-based submodule creation — replace `--reference`
+## Cycle 5.2: Worktree-based submodule creation with branch reuse
 
-**Objective:** Use `git -C agent-core worktree add` instead of `submodule update --init --reference` for shared object store.
+**Objective:** Use `git -C agent-core worktree add` instead of `submodule update --init --reference` for shared object store. Handle both fresh branch creation and existing branch reuse.
 
 **Prerequisite:** Read justfile `wt-new` recipe lines 150-180 — understand worktree-based submodule approach and object store verification.
 
@@ -22,10 +22,14 @@
 - No `--reference` used (worktree shares object store inherently)
 - Submodule is on correct branch (matches slug)
 - Old `--reference` logic NOT present in code
+- Given existing submodule branch "feature-x" in agent-core: `new feature-x` reuses both parent branch AND submodule branch
+- No error from git attempting to create branch that already exists
+- Submodule worktree points to existing branch (not new branch)
+- Branch refs preserved (not recreated)
 
-**Expected failure:** AssertionError: `--reference` still used, or submodule not created as worktree, or subprocess.run error from git command
+**Expected failure:** AssertionError: `--reference` still used, or submodule not created as worktree, or error when reusing existing branch
 
-**Why it fails:** Command still uses old `submodule update --init --reference` approach
+**Why it fails:** Command still uses old `submodule update --init --reference` approach, and branch reuse not implemented
 
 **Verify RED:** `pytest tests/test_worktree_new.py::test_new_worktree_submodule -v`
 
@@ -33,7 +37,7 @@
 
 **GREEN Phase:**
 
-**Implementation:** Replace submodule initialization with worktree-based approach
+**Implementation:** Replace submodule initialization with worktree-based approach, with branch detection for both fresh and existing branches
 
 **Behavior:**
 - Check if submodule branch exists: `git -C agent-core rev-parse --verify <slug>` (same pattern as 5.1)
@@ -41,7 +45,7 @@
 - If submodule branch doesn't exist: `git -C agent-core worktree add <wt-path>/agent-core -b <slug>`
 - Remove all `--reference` logic and `git checkout -B` step (worktree handles branch automatically)
 
-**Approach:** Similar conditional pattern as 5.1, but for submodule in agent-core directory. Reference justfile recipe for command structure.
+**Approach:** Conditional pattern for submodule in agent-core directory, matching parent branch detection from 5.1. Reference justfile recipe for command structure.
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`

@@ -6,78 +6,61 @@
 
 ---
 
-## Cycle 7.12: Phase 4 precommit validation — run and check exit code
+## Cycle 7.12: Phase 3 conflict handling — source file abort
 
-**Objective:** Run precommit validation after successful merge, exit 1 on failure.
+**Objective:** Abort merge and clean debris when source file conflicts remain (manual resolution required).
 
 **RED Phase:**
 
-**Test:** `test_merge_precommit_validation`
+**Test:** `test_merge_conflict_source_files`
 **Assertions:**
-- After successful merge (no conflicts): commit with message `🔀 Merge <slug>`
-- Only commit if staged changes exist (check `git diff --cached --quiet`)
-- Then run `just precommit` (capture exit code and stderr)
-- If precommit passes (exit 0): exit 0 with success message
-- If precommit fails (exit ≠ 0): exit 1 with message "Precommit failed after merge" + stderr
-- Exit codes: 0 (success), 1 (conflicts or precommit failure), 2 (fatal error)
+- When conflicts remain after auto-resolution (not agent-core, session.md, learnings.md, jobs.md): abort merge
+- Run `git merge --abort` to cancel merge
+- Clean debris: `git clean -fd` to remove materialized files from merge attempt
+- Exit 1 with conflict list: "Merge aborted: conflicts in <file1>, <file2>"
+- Exit code 1 (conflicts require manual resolution, not fatal error)
 
-**Expected failure:** AssertionError: no precommit run, or wrong exit code, or no commit before precommit
+**Expected failure:** AssertionError: merge proceeds with unresolved conflicts, or no abort/cleanup
 
-**Why it fails:** Phase 4 precommit validation not implemented
+**Why it fails:** Source file conflict handling not implemented
 
-**Verify RED:** `pytest tests/test_worktree_cli.py::test_merge_precommit_validation -v`
+**Verify RED:** `pytest tests/test_worktree_cli.py::test_merge_conflict_source_files -v`
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Add merge commit and precommit validation
+**Implementation:** Add source file conflict abort logic
 
 **Behavior:**
-- After conflict resolution (or clean merge from 7.7): check for staged changes
-- Run `git diff --cached --quiet` (exit ≠ 0 means changes staged)
-- If staged changes: `git commit -m "🔀 Merge <slug>"`
-- If no staged changes: skip commit (no-op merge)
-- Then run `just precommit` with `check=False` (capture exit code and stderr)
-- If exit code 0: print success, exit 0
-- If exit code ≠ 0: print failure message with stderr, exit 1
+- After 7.8-7.11 auto-resolutions: check if conflict list still non-empty
+- Run `git diff --name-only --diff-filter=U` again to get remaining conflicts
+- If conflicts remain:
+  - Run `git merge --abort`
+  - Run `git clean -fd` to remove debris
+  - Exit 1 with message listing conflicted files
+- If no conflicts remain (all auto-resolved): proceed to commit
 
-**Approach:** Staged changes check, commit, precommit run, exit code handling
+**Approach:** Final conflict check, abort and cleanup if any remain, exit with message
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Add merge commit in `merge` command (Phase 4 start)
-  Location hint: After Phase 3 conflict handling
+  Action: Add final conflict check in `merge` command
+  Location hint: After all auto-resolutions (7.8-7.11)
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Check for staged changes before commit
-  Location hint: `git diff --cached --quiet`, commit if exit ≠ 0
+  Action: Recheck conflict list with git diff
+  Location hint: Run same command as 7.7
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Run `just precommit` and capture result
-  Location hint: subprocess with check=False
+  Action: If conflicts remain: abort merge and clean
+  Location hint: `git merge --abort && git clean -fd`
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Handle precommit result (success message or failure exit)
-  Location hint: Conditional on exit code
+  Action: Exit 1 with conflict list
+  Location hint: Print message and sys.exit(1)
 
-**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_merge_precommit_validation -v`
+**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_merge_conflict_source_files -v`
 - Must pass
 
 **Verify no regression:** `pytest tests/test_worktree_cli.py -v`
-- All Phase 7 tests still pass
+- All Phase 3 conflict handling tests still pass
 
 ---
-
-**Checkpoint: Post-Phase 7**
-
-**Type:** Full checkpoint (Fix + Vet + Functional)
-
-**Process:**
-1. **Fix:** Run `just dev`. If failures, sonnet quiet-task diagnoses and fixes. Commit when passing.
-2. **Vet:** Review all Phase 1-7 changes for quality, clarity, design alignment. Apply all fixes. Commit.
-3. **Functional:** Review all implementations against design.
-   - Check: Is 4-phase ceremony implemented completely? Do auto-resolutions actually work?
-   - Check: Are exit codes correct (0=success, 1=conflicts/precommit, 2=fatal)?
-   - Check: Is session.md task extraction correct (regex matching, theirs-only detection)?
-   - If stubs found: STOP, report which implementations need real behavior
-   - If all functional: TDD implementation complete, proceed to Phase 8 (non-code artifacts)
-
-**Rationale:** Phase 7 completes TDD implementation. Final full checkpoint validates all 40 TDD cycles before non-code artifacts.

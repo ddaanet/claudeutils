@@ -12,11 +12,7 @@ Stop on error and escalate to sonnet for diagnostic/fix.
 
 ## Step 1-3 (Cycle 1.3)
 
-## Step 1-4 (Cycle 1.4)
-
-## Step 1-5 (Cycle 1.5)
-
-## Step 1-6 (Cycle 1.6) — PHASE_BOUNDARY
+## Step 1-4 (Cycle 1.4) — PHASE_BOUNDARY
 [Last cycle of phase 1. Insert functional review checkpoint before Phase 2.]
 
 ## Step 2-1 (Cycle 2.1)
@@ -35,9 +31,7 @@ Stop on error and escalate to sonnet for diagnostic/fix.
 
 ## Step 4-2 (Cycle 4.2)
 
-## Step 4-3 (Cycle 4.3)
-
-## Step 4-4 (Cycle 4.4) — PHASE_BOUNDARY
+## Step 4-3 (Cycle 4.3) — PHASE_BOUNDARY
 [Last cycle of phase 4. Insert functional review checkpoint before Phase 5.]
 
 ## Step 5-1 (Cycle 5.1)
@@ -52,9 +46,7 @@ Stop on error and escalate to sonnet for diagnostic/fix.
 
 ## Step 5-6 (Cycle 5.6)
 
-## Step 5-7 (Cycle 5.7)
-
-## Step 5-8 (Cycle 5.8) — PHASE_BOUNDARY
+## Step 5-7 (Cycle 5.7) — PHASE_BOUNDARY
 [Last cycle of phase 5. Insert functional review checkpoint before Phase 6.]
 
 ## Step 6-1 (Cycle 6.1)
@@ -90,6 +82,8 @@ Stop on error and escalate to sonnet for diagnostic/fix.
 
 ## Step 7-11 (Cycle 7.11)
 
-## Step 7-12 (Cycle 7.12) — PHASE_BOUNDARY
+## Step 7-12 (Cycle 7.12)
+
+## Step 7-13 (Cycle 7.13) — PHASE_BOUNDARY
 [Last cycle of phase 7. Insert functional review checkpoint before Phase 8.]
 

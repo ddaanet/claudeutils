@@ -1,49 +1,36 @@
 # Session Handoff: 2026-02-12
 
-**Status:** Workflow pipeline unification complete. `/runbook` skill live, old skills deleted, precommit green.
+**Status:** Worktree-update runbook fixed (LLM failure modes), ready for execution.
 
 ## Completed This Session
 
-### Executed: Workflow pipeline unification
+### Workflow pipeline unification
 
-Bootstrapped around broken `/plan-adhoc` — executed directly from design (Tier 2 assessment, no runbook needed for prose artifact work).
+Bootstrapped around broken `/plan-adhoc` — executed directly from design (Tier 2 assessment).
 
-**Created:**
-- `agents/decisions/pipeline-contracts.md` — centralized I/O contracts (T1-T6)
-- `agent-core/skills/review-plan/SKILL.md` — unified review skill (replaced review-tdd-plan, added general + LLM failure mode criteria)
-- `agent-core/agents/plan-reviewer.md` — replacement agent (replaced tdd-plan-reviewer)
-- `agent-core/skills/runbook/SKILL.md` — unified planning skill (2205→810 lines, 63% reduction)
-- `agent-core/skills/runbook/references/` — migrated from plan-tdd
-
-**Modified:** design, orchestrate, vet, workflows-terminology skills + continuation-passing, execute-rule, shortcuts, plugin-dev-validation, design-vet-agent, review-tdd-process, handoff-haiku, remember consolidation-patterns
-
+**Created:** `pipeline-contracts.md`, `review-plan` skill, `plan-reviewer` agent, `runbook` skill (63% reduction), `runbook/references/`
 **Deleted:** plan-tdd/, plan-adhoc/, review-tdd-plan/, tdd-plan-reviewer.md
+**Vetted:** Both major artifacts clean — `plans/workflow-fixes/reports/review-plan-skill-vet.md`, `runbook-skill-vet.md`
+**Key decision:** Skill named `/runbook` not `/plan` — `/plan` conflicts with Claude Code CLI built-in.
 
-**Vetted:** Both major artifacts — no UNFIXABLE issues
-- `plans/workflow-fixes/reports/review-plan-skill-vet.md`
-- `plans/workflow-fixes/reports/runbook-skill-vet.md`
+Updated residual doc references in 3 files (tdd-workflow.md, general-workflow.md, good-handoff.md).
 
-**Key decision:** Skill named `/runbook` not `/plan` — `/plan` conflicts with Claude Code CLI built-in (EnterPlanMode).
+### Fixed worktree-update runbook — LLM failure mode fixes
 
-### Updated: Residual docs references
+Applied 7 findings from `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`:
 
-Updated 3 workflow documentation files to use unified naming:
-- `agent-core/docs/tdd-workflow.md` — 7 replacements (plan-tdd → runbook, tdd-plan-reviewer → plan-reviewer)
-- `agent-core/docs/general-workflow.md` — 11 replacements (plan-adhoc → runbook, added LLM failure mode detection)
-- `agent-core/skills/handoff/examples/good-handoff.md` — 2 replacements
+- **P1 (Critical):** Added jobs.md auto-resolve cycle (new Cycle 7.11) — design line 159 gap
+- **P2:** Merged 3 vacuous cycles (1.1→1.2, 1.4→1.3, 5.3→5.2)
+- **P2:** Merged density duplicate (4.3→4.2 — parametrized section filtering)
+- **P2:** Added Post-Phase 6 checkpoint (17-cycle gap exceeded >10 threshold)
+- **P3:** Fixed Phase 4 dependency declaration ("Phase 3" → "None")
+- Net: 40→37 cycles, 3→4 checkpoints
 
-Commits: agent-core 042f892, main 3e417dc
-
-### Prior session: Design (Phase A+B+C)
-
-Design approach, decisions D1-D7, and artifacts preserved in `plans/workflow-fixes/design.md`.
+Updated: runbook-phase-{1,4,5,6,7}.md, runbook-outline.md
+Regenerated via prepare-runbook.py: orchestrator-plan.md, 37 step files, agent definition
+Precommit: 755/756 passed, 1 xfail ✓
 
 ## Pending Tasks
-
-- [ ] **Fix worktree-update runbook** — Apply findings from LLM failure mode review | sonnet
-  - Report: `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`
-  - Priority 1: Add jobs.md auto-resolve cycle
-  - Priority 2: Merge vacuous cycles, density, add Phase 6 checkpoint
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
 
@@ -73,9 +60,6 @@ Design approach, decisions D1-D7, and artifacts preserved in `plans/workflow-fix
 **Learnings.md over soft limit:**
 - 361 lines, ~57 entries — consolidation deferred until entries age (≥7 active days required)
 
-**Restart required after this commit:**
-- New agent (plan-reviewer) and skills (runbook, review-plan) created — Claude Code discovers at session start
-
 ## Reference Files
 
 - `plans/workflow-fixes/design.md` — Unification design (vetted by opus)
@@ -83,3 +67,4 @@ Design approach, decisions D1-D7, and artifacts preserved in `plans/workflow-fix
 - `plans/workflow-fixes/reports/runbook-skill-vet.md` — Runbook skill vet (clean)
 - `agents/decisions/pipeline-contracts.md` — Pipeline I/O contracts
 - `agents/decisions/runbook-review.md` — LLM failure mode methodology (four axes)
+- `plans/worktree-update/reports/runbook-review-llm-failure-modes.md` — LLM failure mode review (8 findings, all applied)

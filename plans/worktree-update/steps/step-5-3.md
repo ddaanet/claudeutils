@@ -6,49 +6,55 @@
 
 ---
 
-## Cycle 5.3: Existing submodule branch detection and reuse
+## Cycle 5.3: Sandbox registration — both main and worktree settings files
 
-**Objective:** Detect and reuse existing submodule branches (don't create duplicate branches).
+**Objective:** Register container directory in sandbox permissions for both main repo and worktree.
 
 **RED Phase:**
 
-**Test:** `test_new_submodule_branch_reuse`
+**Test:** `test_new_sandbox_registration`
 **Assertions:**
-- Given existing submodule branch "feature-x" in agent-core
-- `new feature-x` reuses parent branch AND submodule branch (both exist)
-- No error from git about branch already existing
-- Submodule worktree points to existing branch (not new branch)
-- Branch refs preserved (not recreated)
+- After `new <slug>`, `.claude/settings.local.json` contains container path in `permissions.additionalDirectories`
+- Worktree settings file `<wt-path>/.claude/settings.local.json` also contains container path
+- Both files are valid JSON
+- Container path is absolute (not relative)
+- Deduplication works (running command twice doesn't add duplicate entries)
 
-**Expected failure:** Error from git attempting to create branch that already exists, or wrong branch checked out
+**Expected failure:** AssertionError: settings files don't exist or don't contain container path
 
-**Why it fails:** Submodule branch detection not implemented (always tries to create with `-b`)
+**Why it fails:** Sandbox registration not yet called from `new` command
 
-**Verify RED:** `pytest tests/test_worktree_new.py::test_new_submodule_branch_reuse -v`
+**Verify RED:** `pytest tests/test_worktree_new.py::test_new_sandbox_registration -v`
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Verify Cycle 5.2 logic handles submodule branch detection correctly
+**Implementation:** Call `add_sandbox_dir()` function for both main and worktree settings
 
 **Behavior:**
-- Logic from 5.2 already checks submodule branch existence
-- Conditional logic handles both cases (existing vs new)
-- No additional code needed if 5.2 implemented correctly
-- Test verifies the behavior works end-to-end
+- Determine container path (absolute) from `wt_path()` result
+- Call `add_sandbox_dir(container, ".claude/settings.local.json")` for main repo
+- Call `add_sandbox_dir(container, f"{wt_path}/.claude/settings.local.json")` for worktree
+- Function handles file creation, nested keys, deduplication (from Phase 2)
 
-**Approach:** This cycle validates that 5.2's branch detection applies to both parent and submodule
+**Approach:** Two function calls at appropriate point in `new` command (after worktree creation)
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Verify submodule branch detection logic from 5.2 is correct (likely no changes needed)
-  Location hint: Review conditional logic in submodule worktree creation
+  Action: Add `add_sandbox_dir()` calls in `new` command
+  Location hint: After worktree and submodule creation, before env init
+- File: `src/claudeutils/worktree/cli.py`
+  Action: Call for main settings: `add_sandbox_dir(container, ".claude/settings.local.json")`
+  Location hint: Use container path from `wt_path()` result
+- File: `src/claudeutils/worktree/cli.py`
+  Action: Call for worktree settings: `add_sandbox_dir(container, f"{wt_path}/.claude/settings.local.json")`
+  Location hint: After main settings call
 
-**Verify GREEN:** `pytest tests/test_worktree_new.py::test_new_submodule_branch_reuse -v`
+**Verify GREEN:** `pytest tests/test_worktree_new.py::test_new_sandbox_registration -v`
 - Must pass
 
 **Verify no regression:** `pytest tests/test_worktree_new.py -v`
-- All Cycle 5.1 and 5.2 tests still pass
+- All previous Cycle 5 tests still pass
 
 ---
