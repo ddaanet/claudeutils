@@ -6,6 +6,7 @@ import re
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import click
 
@@ -42,13 +43,14 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
 
 
 def add_sandbox_dir(container: str | Path, settings_path: str | Path) -> None:
-    """Add container directory to settings file.
-
-    Appends path to permissions.additionalDirectories.
-    """
+    """Add container to permissions.additionalDirectories."""
     settings_path = Path(settings_path)
-    with settings_path.open() as f:
-        settings = json.load(f)
+    if not settings_path.exists():
+        settings_path.parent.mkdir(parents=True, exist_ok=True)
+        settings: dict[str, Any] = {"permissions": {"additionalDirectories": []}}
+    else:
+        with settings_path.open() as f:
+            settings = json.load(f)
 
     settings["permissions"]["additionalDirectories"].append(str(container))
 
@@ -58,7 +60,7 @@ def add_sandbox_dir(container: str | Path, settings_path: str | Path) -> None:
 
 @click.group(name="_worktree")
 def worktree() -> None:
-    """Manage git worktrees for parallel task execution."""
+    """Manage git worktrees."""
 
 
 @worktree.command()
@@ -106,10 +108,7 @@ def ls() -> None:
 
 
 def _create_session_commit(slug: str, base: str, session: str) -> str:
-    """Pre-commit session.md to branch using isolated temp index.
-
-    Returns commit hash.
-    """
+    """Pre-commit session.md, return commit hash."""
     try:
         session_content = Path(session).read_text()
     except (FileNotFoundError, PermissionError) as e:
@@ -189,10 +188,7 @@ def _create_session_commit(slug: str, base: str, session: str) -> str:
 
 @worktree.command(name="clean-tree")
 def clean_tree() -> None:
-    """Validate clean state (exits 1 with dirty files if unclean).
-
-    Exempts session context files.
-    """
+    """Validate clean state, exempt session context files."""
     result = subprocess.run(
         ["git", "status", "--porcelain"],
         capture_output=True,
@@ -236,10 +232,7 @@ def clean_tree() -> None:
 @click.option("--base", default="HEAD", help="Base commit for worktree branch")
 @click.option("--session", default="", help="Session file path")
 def new(slug: str, base: str, session: str) -> None:
-    """Create worktree at wt/{slug}/ with branch {slug}.
-
-    With --session, pre-commits focused session.
-    """
+    """Create worktree at wt/{slug}/ with branch {slug}."""
     worktree_path = Path(f"wt/{slug}")
 
     # Check for directory collision
@@ -325,10 +318,7 @@ def new(slug: str, base: str, session: str) -> None:
 @worktree.command(name="add-commit")
 @click.argument("files", nargs=-1, required=True)
 def add_commit(files: tuple[str, ...]) -> None:
-    """Stage files and commit with message from stdin.
-
-    Idempotent if nothing staged.
-    """
+    """Stage files and commit with message from stdin."""
     subprocess.run(
         ["git", "add", *list(files)],
         check=True,
@@ -354,10 +344,7 @@ def add_commit(files: tuple[str, ...]) -> None:
 @worktree.command()
 @click.argument("slug")
 def rm(slug: str) -> None:
-    """Remove worktree at wt/{slug}/ and its branch (forced).
-
-    Idempotent.
-    """
+    """Remove worktree at wt/{slug}/ and its branch (forced)."""
     worktree_path = Path(f"wt/{slug}")
 
     if worktree_path.exists():

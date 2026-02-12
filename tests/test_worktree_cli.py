@@ -306,3 +306,20 @@ def test_add_sandbox_dir_happy_path(tmp_path: Path) -> None:
     ]
     assert "permissions" in updated
     assert isinstance(updated["permissions"]["additionalDirectories"], list)
+
+
+def test_add_sandbox_dir_missing_file(tmp_path: Path) -> None:
+    """Create settings file from scratch when it doesn't exist.
+
+    Given settings file path that doesn't exist, creates minimal JSON structure
+    with permissions.additionalDirectories containing the new path.
+    """
+    settings_file = tmp_path / "nonexistent" / "settings.json"
+    assert not settings_file.exists()
+
+    add_sandbox_dir("/new/path", settings_file)
+
+    assert settings_file.exists()
+    created = json.loads(settings_file.read_text())
+    assert created == {"permissions": {"additionalDirectories": ["/new/path"]}}
+    assert isinstance(created["permissions"]["additionalDirectories"], list)
