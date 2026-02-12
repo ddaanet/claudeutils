@@ -10,7 +10,6 @@ Plan lifecycle tracking. Updated when plans change status.
 |------|--------|-------|
 | continuation-prepend | requirements | Problem statement only |
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
-| handoff-validation | killed | Problems resolved by existing tooling |
 | orchestrate-evolution | designed | Design.md complete, vet in progress, planning next |
 | parallel-orchestration | requirements | Deferred from orchestrate-evolution (worktree isolation needed) |
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
@@ -21,8 +20,6 @@ Plan lifecycle tracking. Updated when plans change status.
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
 | worktree-update | planned | Runbook complete: 40 TDD cycles (7 phases), reviewed and assembled, haiku execution ready |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
-| worktree-skill | complete | 42/42 cycles, merged to dev |
-| worktree-skill-fixes | complete | 27 findings fixed (7 phases), merged to dev |
 
 ## Complete (Archived)
 
@@ -31,6 +28,9 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `worktree-skill` — Worktree skill implementation (42/42 cycles, merged to dev)
+- `worktree-skill-fixes` — Worktree skill findings (27 fixes across 7 phases, merged to dev)
+- `handoff-validation` — Killed: problems resolved by existing tooling
 - `continuation-passing` — Continuation passing protocol (15 steps, hook implementation, skill updates, 0% FP rate)
 - `markdown` — Test corpus implementation (16 fixtures, 3 parametrized tests, all 5 FRs satisfied)
 - `memory-index-recall` — Memory index recall analysis tool (7 modules, 50 tests)

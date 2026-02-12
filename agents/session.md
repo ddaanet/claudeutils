@@ -105,7 +105,7 @@
 ## Worktree Tasks
 
 - [ ] **Plan when-recall** → `wt/when-recall` — `/plan-tdd plans/when-recall/design.md` | sonnet
-- [ ] **Handoff validation design** → `wt/handoff-validation` — `/design plans/handoff-validation/` | opus
+- [x] **Handoff validation design** → `wt/handoff-validation` — killed, problems resolved by existing tooling
 - [ ] **Evaluate requirements-skill** → `wt/requirements-skill` — `/design plans/requirements-skill/` | opus
 - [ ] **Error handling framework design** → `wt/error-handling` — `/design` | opus
 - [ ] **Update README.md** → `wt/readme` — sonnet
