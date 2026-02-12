@@ -36,6 +36,20 @@ Integrated the 4 review axes into planning workflow at two levels:
 
 Analyzed whether `agents/decisions/runbook-review.md` should move into agent-core. Conclusion: low value, moderate cost. Content already inlined in consumers (`runbook-outline-review-agent.md` has criteria baked in, `(ref: ...)` markers were attribution only). Removed 4 attribution markers from review agent. Dropped pending task.
 
+### Recommendation Forwarding Implementation
+
+**Problem:** Review reports in `plans/*/reports/` contained actionable recommendations that downstream expansion steps never consumed. Inline transmission pattern existed (runbook-outline-review-agent Step 5.5 appends Expansion Guidance to outline) but consumption was missing.
+
+**Changes (Tier 1 direct implementation):**
+- `agents/decisions/workflow-advanced.md` — Added "Report Naming Convention" decision after "Recommendations Inline Transmission"
+  - Pattern: descriptive base name + iteration suffix (-2, -3) for same-artifact reviews
+  - Examples: outline-review.md, outline-review-2.md, runbook-outline-review.md, phase-N-review.md
+- `agent-core/skills/plan-tdd/SKILL.md` — Phase 3 step 1 reads `## Expansion Guidance` section from outline before generating phase cycles
+- `agent-core/skills/plan-adhoc/SKILL.md` — Point 1 step 1 reads `## Expansion Guidance` section from outline before generating phase content
+- `agents/memory-index.md` — Added index entry for new decision (vet-fix-agent found missing entry, applied fix)
+
+**Outcome:** Expansion agents now consume outline review recommendations (consolidation candidates, cycle/step expansion notes, checkpoint guidance). Report naming is predictable for tooling and manual navigation.
+
 ## Pending Tasks
 
 - [ ] **Plan worktree-update (Phase 3-5)** — Continue phase-by-phase cycle expansion | sonnet

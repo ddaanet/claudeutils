@@ -163,6 +163,7 @@ Phase-by-Phase Review Pattern — generate review fix-all check-escalation proce
 Manual runbook assembly bypasses automation — phase files separate prepare-runbook.py assembles
 Review Agent Fix-All Pattern — audit trail autofix everything escalate unfixable to caller
 Recommendations Inline Transmission — append guidance to consumed artifact not separate report
+Report Naming Convention — descriptive base names iteration suffix for same artifact review cycles
 Prose Test Descriptions Save Tokens — prose descriptions save 80% over full test code
 Complexity Before Expansion — check complexity callback to previous level if too large
 Consolidation Gates Reduce Orchestrator Overhead — merge trivial work with adjacent complexity at two gates

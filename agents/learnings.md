@@ -11,12 +11,6 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Hookify rules add per-tool-call context bloat (session bloat)
 - Cost-benefit unclear: planning tokens for batching may exceed cached re-read savings
 - Pending exploration: contextual block with contract (batch-level hook rules)
-## Prose gate D+B hybrid fix
-- Root cause: Execution mode optimizes for "next tool call" — prose-only steps get scanned but not executed
-- Fix: Merge gates into adjacent action steps + anchor each gate with Read/Bash tool call
-- Commit skill: Steps 0+0b+1 → single Step 1 (Gate A: Read session.md, Gate B: git diff, then validation)
-- Orchestrate skill: 3.3+3.4 → merged 3.3 (tree check + Read next step for phase boundary)
-- Convention: Every skill step must open with a tool call — documented in implementation-notes.md
 ## Deliverables go to plans/
 - Repeated: 2026-02-06, 2026-02-08
 - Anti-pattern: Writing actionable artifacts to tmp/ which is gitignored
@@ -25,17 +19,6 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Recurrence cause: Category-matching heuristic ("this isn't a report/design/audit") defeats the principle. New artifact types (feature request bodies, issue drafts) bypass enumerated categories
 - Contributing: `tmp-directory.md` fragment says "ad-hoc work: use tmp/" without distinguishing tracked vs untracked output
 - Rationale: Commits are sync points — session.md references must resolve in the same commit
-## Git worktree submodule gotchas
-- Unpushed submodule commits: `git submodule update --init` clones from remote, fails if commit not pushed
-- Fix: `--reference <local-checkout>` uses local objects as alternates, avoids remote fetch
-- Worktree removal: `git worktree remove` refuses with submodules (even after `deinit -f --all`)
-- Fix: `--force` flag required; warn user about uncommitted changes before forcing
-- Symlinks work: relative symlinks (../../agent-core/...) resolve correctly per-worktree after submodule init
-## Recipe failure → retry recipe
-- Anti-pattern: Recipe fails partway, agent manually completes remaining steps with ad-hoc commands
-- Correct pattern: Fix obstruction (e.g., delete conflicting untracked file), retry the recipe from scratch
-- Rationale: Recipes are atomic units — manually finishing bypasses error handling, ordering, side effects
-- Fix: Added "Partial failure recovery" rule to project-tooling.md
 ## Lightweight TDD tier assessment
 - Anti-pattern: Using full runbook (Tier 3) for straightforward fixture creation with repetitive pattern
 - Correct pattern: Tier 2 (lightweight TDD) for ~15-20 cycles with same pattern — plan cycle descriptions, delegate individually, checkpoint every 3-5 cycles

@@ -200,6 +200,28 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Guidance reaches executor, not lost in separate report file.
 
+### Report Naming Convention
+
+**Decision Date:** 2026-02-12
+
+**Decision:** Review reports use descriptive base names that indicate artifact type and review focus. Iteration suffix (-2, -3) for subsequent reviews of same artifact.
+
+**Pattern:**
+- `outline-review.md` — first design outline review
+- `outline-review-2.md` — second iteration after amendments
+- `runbook-outline-review.md` — runbook outline review (different artifact type)
+- `phase-N-review.md` — per-phase review during expansion
+- `runbook-review.md` — final holistic runbook review
+- `design-review.md` — design document review
+
+**Iteration suffix vs descriptive suffix:**
+- Use iteration number (-2, -3) when reviewing same artifact in same mode after fixes
+- Use descriptive suffix when review has different focus (e.g., `-llm-failure-modes` for specialized analysis)
+
+**Rationale:** Base name conveys artifact type and review stage. Iteration number tracks review cycles. Descriptive suffix reserved for specialized analyses.
+
+**Impact:** Reports directory organization is predictable. Consumers can find latest review by pattern matching.
+
 ### Prose Test Descriptions Save Tokens
 
 **Decision Date:** 2026-02-05
