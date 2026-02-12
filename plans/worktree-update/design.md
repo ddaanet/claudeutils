@@ -355,6 +355,19 @@ Update in `agent-core/fragments/execute-rule.md`:
 - Settings.json user-level patterns (only settings.local.json sandbox registration, already in scope)
 - Submodule-agnostic worktree support (future work: detect any submodule config, not just hardcoded agent-core)
 
+## Documentation Perimeter
+
+**Required reading (planner must load before starting):**
+- `agents/decisions/architecture.md` — module structure, path handling
+- `agents/decisions/testing.md` — TDD conventions, E2E over mocked subprocess
+- `agents/decisions/cli.md` — CLI patterns
+- `src/claudeutils/worktree/cli.py` — current implementation (refactor target)
+- `justfile` — wt-* recipes (lines 100-300, correct behavior reference)
+- `agent-core/skills/worktree/SKILL.md` — current skill (update target)
+- `agent-core/fragments/execute-rule.md` — worktree tasks marker convention
+
+**Exploration allowed:** Planner may explore test files and additional source modules as needed.
+
 ## Implementation Sequence (TDD)
 
 Steps 1-7: TDD (RED → GREEN → REFACTOR). Step 8: non-code artifacts (justfile, skill, docs). Step 9: interactive refactoring.

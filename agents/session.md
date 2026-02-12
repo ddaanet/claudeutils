@@ -19,7 +19,7 @@ D8 updated to reflect both Python merge and justfile must check both sides. Vet-
 
 ## Pending Tasks
 
-- [ ] **Plan worktree-update** — `/plan-tdd plans/worktree-update/outline.md` | sonnet
+- [ ] **Plan worktree-update** — `/plan-tdd plans/worktree-update/design.md` | sonnet
   - Plan: plans/worktree-update
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
@@ -37,7 +37,7 @@ D8 updated to reflect both Python merge and justfile must check both sides. Vet-
 
 - [ ] **Remove duplicate memory index entries on precommit** — Autofix or fail on duplicate index entries | sonnet
 
-- [ ] **Update design skill: TDD non-code steps** — Not all implementation steps must be TDD; non-code artifacts (skill, docs, justfile) should be explicitly marked non-TDD | sonnet
+- [ ] **Update design skill** — Two refinements: (1) TDD non-code steps: non-code artifacts (skill, docs, justfile) explicitly marked non-TDD; (2) Phase C density checkpoint: if outline already has architecture+decisions+scope+impl sequence, promote to design.md (add Doc Perimeter) instead of full opus expansion | sonnet
 
 ## Blockers / Gotchas
 
@@ -54,7 +54,7 @@ D8 updated to reflect both Python merge and justfile must check both sides. Vet-
 
 ## Reference Files
 
-- `plans/worktree-update/outline.md` — Worktree update outline (9 steps: 7 TDD + non-code + refactor)
+- `plans/worktree-update/design.md` — Worktree update design (9 steps: 7 TDD + non-code + refactor)
 - `plans/worktree-update/reports/vet-review-2.md` — Latest review report
 - `plans/worktree-skill/outline.md` — Ground truth design spec (worktree-skill)
 - `agents/decisions/deliverable-review.md` — Review methodology
