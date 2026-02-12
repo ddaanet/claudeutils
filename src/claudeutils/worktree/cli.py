@@ -17,7 +17,6 @@ def _git(
     env: dict[str, str] | None = None,
     input_data: str | None = None,
 ) -> str:
-    """Run git command and return stdout."""
     result: subprocess.CompletedProcess[str] = subprocess.run(
         ["git", *args],
         capture_output=True,
@@ -60,13 +59,10 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
 
 
 def _is_relevant_entry(entry: str, task_name: str, plan_dir: str | None) -> bool:
-    """Check if entry mentions task name or plan directory."""
     entry_lower = entry.lower()
-    task_lower = task_name.lower()
-
-    if task_lower in entry_lower:
-        return True
-    return bool(plan_dir and plan_dir.lower() in entry_lower)
+    return task_name.lower() in entry_lower or bool(
+        plan_dir and plan_dir.lower() in entry_lower
+    )
 
 
 def _filter_section(
