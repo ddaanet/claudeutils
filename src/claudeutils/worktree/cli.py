@@ -42,7 +42,7 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
     return slug.rstrip("-")
 
 
-def add_sandbox_dir(container: str | Path, settings_path: str | Path) -> None:
+def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
     """Add container to permissions.additionalDirectories."""
     settings_path = Path(settings_path)
     if not settings_path.exists():
@@ -54,12 +54,11 @@ def add_sandbox_dir(container: str | Path, settings_path: str | Path) -> None:
 
     perms = settings.setdefault("permissions", {})
     dirs = perms.setdefault("additionalDirectories", [])
-    container_str = str(container)
-    if container_str not in dirs:
-        dirs.append(container_str)
+    if container not in dirs:
+        dirs.append(container)
 
     with settings_path.open("w") as f:
-        json.dump(settings, f, indent=2)
+        json.dump(settings, f, indent=2, ensure_ascii=False)
 
 
 @click.group(name="_worktree")
