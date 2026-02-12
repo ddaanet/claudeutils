@@ -123,9 +123,11 @@ Note: Most functions already exist in cli.py but need refactoring: extract logic
 Implement 4-phase merge ceremony from justfile:
 
 **Phase 1: Pre-checks**
-- Clean tree validation (exempt session files):
-  - Use `claudeutils _worktree clean-tree` command (already implements exemption logic)
-  - Exit 1 if dirty with message: "Clean tree required for merge"
+- Clean tree validation on BOTH sides:
+  - **OURS (main repo):** Check parent tree + submodule tree are clean (session files exempt)
+  - **THEIRS (worktree):** Check worktree tree + worktree submodule tree are clean — NO session file exemption (uncommitted session state would be lost by merge)
+  - Use `claudeutils _worktree clean-tree` for OURS; run strict `git status --porcelain` (no exclusions) with `cwd=<wt-path>` for THEIRS
+  - Exit 1 if either side dirty with message identifying which side: "Clean tree required for merge (main)" / "Clean tree required for merge (worktree: uncommitted changes would be lost)"
 - Branch existence: verify `git rev-parse --verify <slug>` succeeds, exit 2 if not found
 - Worktree directory check: warn if `<wt-path>` doesn't exist but continue (branch-only merge valid)
 
@@ -257,7 +259,7 @@ Update in `agent-core/fragments/execute-rule.md`:
 
 **Changes:**
 - `wt-ls`: Replace `claudeutils _worktree ls` call with native bash `git worktree list` parsing (removes last CLI dependency)
-- `wt-merge`: Verify inline clean-tree check covers both parent AND submodule trees (already does — no change needed)
+- `wt-merge`: Add THEIRS clean tree check — strict (no session exemption) on worktree side, matching Python merge behavior. Currently only checks OURS.
 - Agent-core justfile: add `setup` recipe.
 
 ### Test updates
@@ -278,7 +280,7 @@ Update in `agent-core/fragments/execute-rule.md`:
 - Verify graceful degradation: removal when only branch exists (no directory)
 
 **Add `test_worktree_merge.py` (new file):**
-- Phase 1: Clean tree enforcement (uses clean-tree command, exempt session files, fail on dirty source)
+- Phase 1: Clean tree enforcement — both sides (OURS dirty fails with session exemption, THEIRS dirty fails with NO exemption for session state loss prevention)
 - Phase 2: Submodule resolution (ancestry check, merge when needed, skip when ancestor)
 - Phase 3: Conflict handling — session files auto-resolve, source files exit 1
 - Phase 3 learnings: verify theirs-only content appended to ours
@@ -334,7 +336,7 @@ Update in `agent-core/fragments/execute-rule.md`:
 - Recipes are the escape hatch — must work without `claudeutils` installed
 - Duplicated logic (clean-tree, wt-path) is acceptable cost for independence
 - `wt-ls` currently calls CLI → replace with native bash (removes last dependency)
-- Both-trees-clean: justfile inline check already covers parent + submodule; Python `clean-tree` covers the same independently
+- Both-sides-clean: merge requires clean trees on OURS (main repo + submodule) AND THEIRS (worktree + worktree submodule). THEIRS is strict (no session exemption — uncommitted state would be lost). Both Python merge and justfile `wt-merge` must check both sides (justfile currently only checks OURS)
 
 ## Scope
 
@@ -355,7 +357,7 @@ Update in `agent-core/fragments/execute-rule.md`:
 
 ## Implementation Sequence (TDD)
 
-Steps 1-7: TDD (RED → GREEN → REFACTOR). Step 8: non-code artifacts (justfile, skill, docs).
+Steps 1-7: TDD (RED → GREEN → REFACTOR). Step 8: non-code artifacts (justfile, skill, docs). Step 9: interactive refactoring.
 
 1. `wt_path()` — RED: sibling container detection, `-wt` parent detection, container creation. GREEN: extract from CLI into function, port bash `wt-path()` logic.
 2. `add_sandbox_dir()` — RED: JSON manipulation, dedup, file creation, missing file. GREEN: new helper function.
@@ -363,9 +365,13 @@ Steps 1-7: TDD (RED → GREEN → REFACTOR). Step 8: non-code artifacts (justfil
 4. `focus_session()` — RED: task extraction, blockers filtering, reference filtering, missing task error. GREEN: new function.
 5. Update `new` command + `--task` mode + register CLI — RED: sibling paths, worktree submodule (not `--reference`), sandbox registration, existing branch reuse, env init warning, task mode (tab output, focus-session composition, error propagation). GREEN: rewrite command using steps 1-4 functions, `cli.add_command(worktree)` in main CLI.
 6. Update `rm` command — RED: submodule-first ordering, container cleanup, `-d` not `-D`, graceful degradation (branch-only). GREEN: rewrite command using step 1 function.
-7. Add `merge` command — RED: clean tree gate (both trees), submodule resolution, session file auto-resolve, source file conflict abort, precommit gate, exit codes. GREEN: 4-phase ceremony implementation.
+7. Add `merge` command — RED: clean tree gate (both sides: OURS + THEIRS), submodule resolution, session file auto-resolve, source file conflict abort, precommit gate, exit codes. GREEN: 4-phase ceremony implementation.
 8. Non-code artifacts (no TDD):
    - Justfile `wt-ls`: native bash `git worktree list` parsing (removes CLI dependency)
+   - Justfile `wt-merge`: add THEIRS clean tree check (strict, no session exemption)
    - Agent-core justfile: add `setup` recipe
    - Skill: Mode A uses `new --task`, Mode C uses `merge`, update markers
    - `execute-rule.md`: Worktree Tasks marker convention (slug-only)
+9. Interactive refactoring (no TDD, opus, interactive session):
+   - Justfile recipes are bloated — refactor with opus in interactive session (not delegated)
+   - Scope: all `wt-*` recipes. Reduce verbosity, extract shared patterns, apply deslop.

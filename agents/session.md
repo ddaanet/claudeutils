@@ -1,20 +1,21 @@
 # Session Handoff: 2026-02-12
 
-**Status:** worktree-update outline amended and vet-reviewed. Ready for TDD planning (`/plan-tdd`).
+**Status:** worktree-update outline finalized. Ready for TDD planning (`/plan-tdd`).
 
 ## Completed This Session
 
-### worktree-update Outline: Amended and Vet-Reviewed
+### worktree-update Outline: Finalized
 
-Amended outline with 5 design decisions after user review:
+Amendments across two sessions:
 
-- **`new --task` mode:** Compound `create-task` absorbed into `new` command as `--task "<name>"` flag. Derives slug, generates focused session, creates worktree. Output: `<slug>\t<path>`.
-- **Functions only:** `derive_slug()` and `focus_session()` are internal functions consumed by `new --task` — no separate CLI wrappers (no external consumer).
-- **Justfile independence (D8):** Recipes completely independent from Python CLI. `wt-ls` replaced with native bash `git worktree list` parsing (removes last dependency). Duplicated logic acceptable for fallback independence.
-- **TDD sequence:** 7 TDD steps (RED→GREEN) + 1 non-code step (justfile, skill, docs). Non-code artifacts explicitly marked non-TDD.
-- **Future work:** Submodule-agnostic worktree support marked OUT scope.
+**Prior session:** 5 design decisions (D7 `--task` mode, D8 justfile independence, functions-only, TDD sequence, future work scoping). Reviewed 4 times (outline-review-2, outline-review-3, vet-review-1).
 
-Outline reviewed 4 times total (outline-review-2, outline-review-3, vet-review-1). Vet fixed 5 minor issues (stale references from create-task removal, phase count, function vs command naming).
+**This session:** 3 targeted clarifications:
+- **Merge clean tree gate both sides:** OURS (main + submodule, session exempt) AND THEIRS (worktree + worktree submodule, NO session exemption — uncommitted state would be lost)
+- **Justfile wt-merge:** Add THEIRS clean tree check (strict, no session exemption). Currently only checks OURS.
+- **Step 9 added:** Interactive opus refactoring for bloated justfile recipes (post-execution, not TDD, not delegated)
+
+D8 updated to reflect both Python merge and justfile must check both sides. Vet-review-2 clean, no issues.
 
 ## Pending Tasks
 
@@ -48,12 +49,12 @@ Outline reviewed 4 times total (outline-review-2, outline-review-3, vet-review-1
 **Learnings.md over soft limit:**
 - 320 lines, 54 entries, 0 entries ≥7 days — consolidation deferred until entries age
 
-**Dirty working tree:**
-- worktree-update outline amendments + review reports
+**Justfile wt-merge gap:**
+- Currently only checks OURS side for clean tree — THEIRS check needed (step 8 scope)
 
 ## Reference Files
 
-- `plans/worktree-update/outline.md` — Worktree update outline (8 steps, TDD)
-- `plans/worktree-update/reports/vet-review-1.md` — Latest review report
+- `plans/worktree-update/outline.md` — Worktree update outline (9 steps: 7 TDD + non-code + refactor)
+- `plans/worktree-update/reports/vet-review-2.md` — Latest review report
 - `plans/worktree-skill/outline.md` — Ground truth design spec (worktree-skill)
 - `agents/decisions/deliverable-review.md` — Review methodology
