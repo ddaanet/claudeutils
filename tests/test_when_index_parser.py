@@ -122,3 +122,53 @@ def test_format_validation(tmp_path: Path) -> None:
     assert entries[1].trigger == "valid trigger"
     assert entries[1].extra_triggers == []
     assert entries[1].section == "Invalid Cases"
+
+
+def test_malformed_entries_skipped_gracefully(tmp_path: Path) -> None:
+    """Malformed entries are skipped, function never crashes."""
+    index_file = tmp_path / "test_index.md"
+    index_file.write_text(
+        "## Valid Section\n"
+        "\n"
+        "/when valid entry | extra1\n"
+        "/when\n"
+        "Key — old format description\n"
+        "\n"
+        "## Empty Headers Only\n"
+        "\n"
+        "## Another Section\n"
+        "\n"
+        "/how another valid\n"
+    )
+
+    # Function must not crash on malformed entries
+    entries = parse_index(index_file)
+
+    # Only valid entries included: "/when valid entry" and "/how another valid"
+    assert len(entries) == 2
+    assert entries[0].operator == "when"
+    assert entries[0].trigger == "valid entry"
+    assert entries[1].operator == "how"
+    assert entries[1].trigger == "another valid"
+
+    # "/when" (no space/trigger) and "Key — old format" are skipped silently
+
+
+def test_empty_file_returns_empty_list(tmp_path: Path) -> None:
+    """Completely empty file returns empty list."""
+    index_file = tmp_path / "test_index.md"
+    index_file.write_text("")
+
+    entries = parse_index(index_file)
+
+    assert entries == []
+
+
+def test_headers_only_returns_empty_list(tmp_path: Path) -> None:
+    """File with only headers (no entries) returns empty list."""
+    index_file = tmp_path / "test_index.md"
+    index_file.write_text("## Section One\n\n## Section Two\n\n## Section Three\n")
+
+    entries = parse_index(index_file)
+
+    assert entries == []
