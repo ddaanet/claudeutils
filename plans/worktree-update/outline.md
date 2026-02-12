@@ -9,7 +9,7 @@ The worktree skill references `claudeutils _worktree` Python CLI commands that a
 - `new` uses `--reference` submodule clone instead of worktree-based submodule
 - `new` missing sandbox permission registration for container directory
 - `new` missing existing branch reuse support
-- `merge` command doesn't exist at all (entire 3-phase ceremony missing)
+- `merge` command doesn't exist at all (entire 4-phase ceremony missing)
 - `rm` uses `-D` (force delete) instead of `-d` with fallback warning
 - `rm` doesn't handle submodule worktree removal ordering
 - No `focus-session` command — skill generates session content inline (cognitive work that should be scripted)
@@ -42,18 +42,20 @@ Note: Most functions already exist in cli.py but need refactoring: extract logic
 
 **CLI** (`src/claudeutils/worktree/cli.py`): Click group `_worktree` wrapping the functions.
 - `_` prefix → hidden from `claudeutils --help`
-- Used by: skill (primary), justfile recipes (may call for shared operations like `ls`)
+- Used by: skill (primary)
 - Already partially exists, needs major updates and registration in main `cli.py`
+- `new` command has two modes: explicit (`new <slug>`) for manual/justfile use, task-based (`new --task "<name>"`) for skill use (derives slug, generates focused session)
 
 **Skill** (`agent-core/skills/worktree/SKILL.md`): Primary user interface.
 - Invokes `claudeutils _worktree` commands
 - Handles cognitive work: task identification, session context filtering, conflict resolution decisions
 - allowed-tools: `Bash(claudeutils _worktree:*)`
 
-**Justfile recipes**: Interactive fallback.
-- Bash implementation with colored output, `visible()` helpers
-- Recipes may call `claudeutils _worktree` for shared operations (e.g., `wt-ls` already does)
-- Not modified in this plan — just kept working as-is
+**Justfile recipes**: Interactive fallback, completely independent from Python CLI.
+- Pure bash implementation with colored output, `visible()` helpers
+- Zero coupling to `claudeutils` — recipes work without Python package installed
+- Each recipe has its own bash logic; shared patterns live in `bash_prolog`
+- `wt-ls` currently calls `claudeutils _worktree ls` — replace with native bash (`git worktree list` parsing)
 
 ### Script changes (Python CLI)
 
@@ -86,7 +88,16 @@ Note: Most functions already exist in cli.py but need refactoring: extract logic
   - If `just setup` unavailable: print warning, do NOT fall back to manual commands
   - Prerequisite: add `setup` recipe to agent-core justfile (currently only in parent)
   - All commands run with `cwd=<wt-path>` subprocess parameter
-- **Output:** Print actual worktree path (absolute) for caller to capture
+- **Task-based mode (`--task`):** When `--task "<name>"` is provided instead of a positional slug:
+  1. `derive_slug(task_name)` → slug
+  2. `focus_session(task_name, session_md)` → focused content → write to temp file
+  3. Proceed with normal `new` logic using derived slug and generated session
+  4. Clean up temp file
+  - `--session-md <path>` (default `agents/session.md`) — source for focus-session extraction
+  - `--session` is ignored when `--task` is provided (session is auto-generated)
+  - Output: `<slug>\t<path>` (tab-separated) instead of just path — skill needs both
+- **Output (explicit mode):** Print actual worktree path (absolute) for caller to capture
+- **Output (task mode):** Print `<slug>\t<path>` (tab-separated) for skill to parse
 
 **Update `rm` command:**
 - **Path resolution:** Use same `wt_path()` logic as `new` to find worktree path from slug
@@ -162,12 +173,12 @@ Implement 4-phase merge ceremony from justfile:
 - 1: Conflicts unresolved OR precommit failure (caller must fix and retry)
 - 2: Fatal error (branch not found, submodule failure)
 
-**Add `focus-session` command (new):**
+**Add `focus_session()` function (new):**
 
 Generate focused session.md content for a worktree. Replaces the inline generation currently done by the skill (Mode A steps 3-4) and the justfile `wt-task` recipe.
 
 - **Input:** task name + path to source session.md
-- **Output:** Focused session content to stdout
+- **Output:** Focused session content as string
 - **Logic:**
   - Parse session.md to extract:
     - Task block matching task name (full metadata, continuation lines)
@@ -179,8 +190,8 @@ Generate focused session.md content for a worktree. Replaces the inline generati
     - Pending Tasks: single extracted task
     - Blockers/Gotchas: relevant entries only
     - Reference Files: relevant entries only
-- **Relation to wt-task recipe:** The recipe currently does simple `grep -A5` extraction. `focus-session` replaces this with proper parsing (relevant blockers, references). Recipe can be updated to call this command.
-- **CLI signature:** `claudeutils _worktree focus-session "<task-name>" <session-md-path>` with output to stdout
+- **Relation to wt-task recipe:** The recipe currently does simple `grep -A5` extraction. `focus_session()` provides proper parsing (relevant blockers, references). Recipe keeps its own bash implementation (justfile independence principle).
+- **No CLI command** — consumed internally by `new --task` mode. No external caller needs a separate CLI entry point.
 
 **Keep as-is:** `ls`, `clean-tree`, `add-commit`
 
@@ -193,15 +204,16 @@ Generate focused session.md content for a worktree. Replaces the inline generati
 ### Skill changes
 
 **Mode A (Single Task) updates:**
-- **Step 2 (slug):** Remove inline derivation logic. Call `claudeutils _worktree derive-slug "<task name>"` — single implementation, no duplication.
-- **Steps 3-4 (session generation):** Replace inline generation with `claudeutils _worktree focus-session "<task name>" agents/session.md > tmp/wt-<slug>-session.md`
-- **Step 5 (creation):** Invoke `claudeutils _worktree new <slug> --session tmp/wt-<slug>-session.md`. CLI now outputs actual sibling path. Capture output to variable for next step.
-- **Step 6 (session.md marker):** Update from `→ wt/<slug>` to `→ <slug>`. The slug is the stable identifier; actual path discoverable via `claudeutils _worktree ls`.
-- **Step 7 (launch command):** Use actual path from `new` command output: `cd <actual-sibling-path> && claude    # <task-name>` (with comment for clarity)
+- **Step 1 (read):** Read `agents/session.md` to locate task (needed for step 3 edit).
+- **Step 2 (create):** Single Bash call: `claudeutils _worktree new --task "<task name>"`. Handles slug derivation, focused session generation, and worktree creation. Parse stdout for `<slug>\t<path>`.
+- **Step 3 (session.md marker):** Edit `agents/session.md` — move task from Pending to Worktree Tasks with marker `→ <slug>`. The slug is the stable identifier; actual path discoverable via `claudeutils _worktree ls`.
+- **Step 4 (launch command):** Use path from step 2 output: `cd <actual-sibling-path> && claude    # <task-name>`
+
+**Optimization:** 1 Bash call (`new --task`) replaces 3 separate calls (derive-slug + focus-session + new).
 
 **Mode B (Parallel Group) updates:**
-- **Step 4:** Uses updated Mode A steps (focus-session, new commands) for each task in the group
-- **Step 5:** Launch commands use actual sibling paths from `new` output, print consolidated list with instructions
+- **Step 4:** For each task in the group, invoke `claudeutils _worktree new --task "<task-name>"` (same as Mode A)
+- **Step 5:** Launch commands use actual sibling paths from `new --task` output, print consolidated list with instructions
 
 **Mode C (Merge Ceremony) updates:**
 - **Step 2:** Invoke `claudeutils _worktree merge <slug>` (command now exists)
@@ -235,15 +247,18 @@ Update in `agent-core/fragments/execute-rule.md`:
 
 ### Justfile recipes
 
-**Kept as fallback.** Recipes remain working bash implementations for interactive use.
+**Completely independent.** No coupling to Python CLI.
 
 **Rationale:**
 - Colored output (`visible()`, `fail()`, `show()`) for terminal UX
-- User can invoke directly when skill unavailable (no Claude session)
-- Independent implementation — no coupling to Python CLI
-- Skill is the primary interface; recipes are the escape hatch
+- User can invoke directly when Python package isn't installed
+- Fallback means fallback — must work standalone
+- Duplicated logic (e.g., clean-tree) is acceptable cost for independence
 
-**No changes to justfile** in this plan except: add `setup` recipe to agent-core justfile.
+**Changes:**
+- `wt-ls`: Replace `claudeutils _worktree ls` call with native bash `git worktree list` parsing (removes last CLI dependency)
+- `wt-merge`: Verify inline clean-tree check covers both parent AND submodule trees (already does — no change needed)
+- Agent-core justfile: add `setup` recipe.
 
 ### Test updates
 
@@ -254,6 +269,7 @@ Update in `agent-core/fragments/execute-rule.md`:
 - Verify sandbox registration: assert `settings.local.json` contains container in `additionalDirectories`
 - Verify existing branch reuse: create branch first, assert no error, worktree uses existing branch
 - Verify env init: assert `just setup` invoked with `cwd=<wt-path>`, warning if missing
+- Verify `--task` mode: slug derivation, focused session generation, tab-separated output format
 
 **Update `test_worktree_rm.py`:**
 - Verify removal ordering: assert submodule worktree removed before parent
@@ -289,15 +305,15 @@ Update in `agent-core/fragments/execute-rule.md`:
 - Bidirectional commit visibility (no fetch needed in most merges)
 - Removal requires submodule-first ordering
 
-**D3. Skill is primary, recipes are fallback.**
+**D3. Skill is primary, recipes are independent fallback.**
 - Skill invokes Python CLI (`claudeutils _worktree`) — primary interface
-- Justfile recipes — independent bash implementation for interactive fallback
-- Not parallel implementations serving different audiences; skill is the designed workflow
+- Justfile recipes — completely independent bash implementation, zero Python coupling
+- Recipes must work without `claudeutils` installed (standalone fallback)
 
 **D4. Single implementation for shared logic.**
-- Slug derivation: `derive_slug()` in Python, skill calls CLI — no inline duplication
-- Session generation: `focus_session()` in Python, skill calls CLI — no inline steps 3-4
-- Path computation: `wt_path()` in Python — single source of truth
+- Slug derivation: `derive_slug()` in Python — consumed by `new --task` mode, no separate CLI
+- Session generation: `focus_session()` in Python — consumed by `new --task` mode, no separate CLI
+- Path computation: `wt_path()` in Python — shared across `new`, `rm`, `merge` commands
 
 **D5. Environment init: warn only.**
 - Run `just setup` in worktree. If recipe missing: warn, do not fall back.
@@ -308,6 +324,18 @@ Update in `agent-core/fragments/execute-rule.md`:
 - Agent implementation detail, invoked by skill and recipes
 - Register in main `cli.py` for discoverability by code (import path works)
 
+**D7. Task-based mode on `new` command.**
+- `new --task "<name>"` combines derive-slug + focus-session + worktree creation
+- No separate `create-task` command — just a mode of `new`
+- Reduces skill Mode A from 3 Bash calls to 1
+- Output in task mode: `<slug>\t<path>` (skill needs both); explicit mode: path only
+
+**D8. Justfile completely independent from Python CLI.**
+- Recipes are the escape hatch — must work without `claudeutils` installed
+- Duplicated logic (clean-tree, wt-path) is acceptable cost for independence
+- `wt-ls` currently calls CLI → replace with native bash (removes last dependency)
+- Both-trees-clean: justfile inline check already covers parent + submodule; Python `clean-tree` covers the same independently
+
 ## Scope
 
 **IN:**
@@ -316,24 +344,28 @@ Update in `agent-core/fragments/execute-rule.md`:
 - Skill: `agent-core/skills/worktree/SKILL.md` (invocations, frontmatter, remove inline logic)
 - Execute-rule: `agent-core/fragments/execute-rule.md` (Worktree Tasks marker format)
 - Agent-core setup: add `setup` recipe to `agent-core/justfile`
-- Tests: `test_worktree_new.py`, `test_worktree_rm.py`, `test_worktree_merge.py` (new), `test_focus_session.py` (new)
-- `focus-session` command: focused session generation for worktree creation
+- Tests: `test_worktree_new.py` (updated + task mode), `test_worktree_rm.py`, `test_worktree_merge.py` (new), `test_focus_session.py` (new)
+- `focus_session()` function: focused session generation (internal, no CLI)
+- `new --task` mode: task-based worktree creation (derives slug, generates session)
+- Justfile `wt-ls`: replace CLI call with native bash (independence)
 
 **OUT:**
-- Justfile recipe changes (kept as-is, independent fallback)
 - Settings.json user-level patterns (only settings.local.json sandbox registration, already in scope)
+- Submodule-agnostic worktree support (future work: detect any submodule config, not just hardcoded agent-core)
 
-## Implementation Sequence
+## Implementation Sequence (TDD)
 
-1. Refactor existing CLI: extract logic from commands into helper functions (`wt_path()`, etc.)
-2. Add `add_sandbox_dir()` helper function (new)
-3. Add `focus_session()` function + `focus-session` CLI command + `derive-slug` CLI command
-4. Update `new` command (sibling paths, worktree submodule, sandbox, env init, branch reuse)
-5. Update `rm` command (submodule-first ordering, container cleanup, `-d`, graceful degradation)
-6. Add `merge` command (4-phase ceremony, auto-resolution, exit codes)
-7. Register `_worktree` group in main CLI (`src/claudeutils/cli.py`)
-8. Add `setup` recipe to agent-core justfile
-9. Update skill (remove inline logic, call CLI commands, update markers, update launch commands)
-10. Update execute-rule.md marker convention (slug-only format)
-11. Update existing tests (`test_worktree_new.py`, `test_worktree_rm.py`)
-12. Add new test files (`test_worktree_merge.py`, `test_focus_session.py`)
+Steps 1-7: TDD (RED → GREEN → REFACTOR). Step 8: non-code artifacts (justfile, skill, docs).
+
+1. `wt_path()` — RED: sibling container detection, `-wt` parent detection, container creation. GREEN: extract from CLI into function, port bash `wt-path()` logic.
+2. `add_sandbox_dir()` — RED: JSON manipulation, dedup, file creation, missing file. GREEN: new helper function.
+3. `derive_slug()` — RED: edge cases (special chars, truncation, trailing hyphens). GREEN: function already exists, verify/fix edge cases.
+4. `focus_session()` — RED: task extraction, blockers filtering, reference filtering, missing task error. GREEN: new function.
+5. Update `new` command + `--task` mode + register CLI — RED: sibling paths, worktree submodule (not `--reference`), sandbox registration, existing branch reuse, env init warning, task mode (tab output, focus-session composition, error propagation). GREEN: rewrite command using steps 1-4 functions, `cli.add_command(worktree)` in main CLI.
+6. Update `rm` command — RED: submodule-first ordering, container cleanup, `-d` not `-D`, graceful degradation (branch-only). GREEN: rewrite command using step 1 function.
+7. Add `merge` command — RED: clean tree gate (both trees), submodule resolution, session file auto-resolve, source file conflict abort, precommit gate, exit codes. GREEN: 4-phase ceremony implementation.
+8. Non-code artifacts (no TDD):
+   - Justfile `wt-ls`: native bash `git worktree list` parsing (removes CLI dependency)
+   - Agent-core justfile: add `setup` recipe
+   - Skill: Mode A uses `new --task`, Mode C uses `merge`, update markers
+   - `execute-rule.md`: Worktree Tasks marker convention (slug-only)

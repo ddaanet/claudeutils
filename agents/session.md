@@ -1,29 +1,24 @@
 # Session Handoff: 2026-02-12
 
-**Status:** worktree-update design outlined and reviewed. Ready for planning (`/plan-adhoc` or `/plan-tdd`).
+**Status:** worktree-update outline amended and vet-reviewed. Ready for TDD planning (`/plan-tdd`).
 
 ## Completed This Session
 
-### worktree-update Design: Outline Complete
+### worktree-update Outline: Amended and Vet-Reviewed
 
-Designed update to worktree skill and backing Python scripts to match justfile prototype behavior:
+Amended outline with 5 design decisions after user review:
 
-- **Architecture:** Modules (functions) in `src/claudeutils/worktree/`, CLI wrapper (`_worktree` hidden from help), skill as primary interface, justfile recipes as fallback
-- **Key changes:** Sibling directory paths (`<repo>-wt/<slug>`), worktree-based submodule (not `--reference` clone), sandbox registration, `focus-session` command, merge ceremony (4-phase)
-- **Conflict strategies:** agent-core keep-ours (already merged), learnings keep-both (append), source files abort (manual resolution)
-- **Single implementation:** `derive_slug()`, `focus_session()`, `wt_path()` in Python — skill calls CLI, no duplication
-- **Outline reviewed twice** (outline-review-agent), all issues fixed
+- **`new --task` mode:** Compound `create-task` absorbed into `new` command as `--task "<name>"` flag. Derives slug, generates focused session, creates worktree. Output: `<slug>\t<path>`.
+- **Functions only:** `derive_slug()` and `focus_session()` are internal functions consumed by `new --task` — no separate CLI wrappers (no external consumer).
+- **Justfile independence (D8):** Recipes completely independent from Python CLI. `wt-ls` replaced with native bash `git worktree list` parsing (removes last dependency). Duplicated logic acceptable for fallback independence.
+- **TDD sequence:** 7 TDD steps (RED→GREEN) + 1 non-code step (justfile, skill, docs). Non-code artifacts explicitly marked non-TDD.
+- **Future work:** Submodule-agnostic worktree support marked OUT scope.
 
-User also removed "resolve source conflict to ours" block from justfile `wt-merge` recipe (aligns with outline).
-
-### Prior Session (Preserved)
-
-- worktree-skill-fixes: 27 findings fixed (7 phases), T5 production bug
-- Branch rebased/merged, test isolation fixed
+Outline reviewed 4 times total (outline-review-2, outline-review-3, vet-review-1). Vet fixed 5 minor issues (stale references from create-task removal, phase count, function vs command naming).
 
 ## Pending Tasks
 
-- [ ] **Plan worktree-update** — `/plan-adhoc plans/worktree-update/outline.md` | sonnet
+- [ ] **Plan worktree-update** — `/plan-tdd plans/worktree-update/outline.md` | sonnet
   - Plan: plans/worktree-update
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
@@ -41,6 +36,8 @@ User also removed "resolve source conflict to ours" block from justfile `wt-merg
 
 - [ ] **Remove duplicate memory index entries on precommit** — Autofix or fail on duplicate index entries | sonnet
 
+- [ ] **Update design skill: TDD non-code steps** — Not all implementation steps must be TDD; non-code artifacts (skill, docs, justfile) should be explicitly marked non-TDD | sonnet
+
 ## Blockers / Gotchas
 
 **Two methodology documents exist:**
@@ -52,11 +49,11 @@ User also removed "resolve source conflict to ours" block from justfile `wt-merg
 - 320 lines, 54 entries, 0 entries ≥7 days — consolidation deferred until entries age
 
 **Dirty working tree:**
-- From worktree-skill-fixes execution + worktree-update design artifacts
+- worktree-update outline amendments + review reports
 
 ## Reference Files
 
-- `plans/worktree-update/outline.md` — Worktree update design outline (12 steps)
-- `plans/worktree-update/reports/outline-review-2.md` — Review report
+- `plans/worktree-update/outline.md` — Worktree update outline (8 steps, TDD)
+- `plans/worktree-update/reports/vet-review-1.md` — Latest review report
 - `plans/worktree-skill/outline.md` — Ground truth design spec (worktree-skill)
 - `agents/decisions/deliverable-review.md` — Review methodology
