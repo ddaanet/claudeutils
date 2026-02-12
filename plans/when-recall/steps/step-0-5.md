@@ -12,9 +12,10 @@
 
 **Test:** `test_word_overlap_tiebreaker`
 **Assertions:**
-- Given two candidates with identical fzf scores (construct carefully):
-  `score_match("auth fail", "when auth fails")` > `score_match("auth fail", "auth failover config")` when fzf scores are tied
-- More specifically: "auth fail" has 2 word overlaps with "when auth fails" vs 1 with "auth failover config" (validates tiebreaker logic)
+- Given two candidates with identical fzf scores (both score 150.0):
+  `score_match("fix bug", "fix then bug report")` > `score_match("fix bug", "fix your bugfix code")`
+- Word overlap: "fix bug" has 2 word overlaps with "fix then bug report" (fix, bug) vs 1 with "fix your bugfix code" (fix only — "bugfix" is not "bug")
+- Validates tiebreaker logic when fzf scores are genuinely tied
 
 **Expected failure:** AssertionError — tied scores remain tied
 
