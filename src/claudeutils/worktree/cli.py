@@ -329,21 +329,23 @@ def new(slug: str | None, base: str, session: str, task: str, session_md: str) -
     if task and session:
         click.echo("Warning: --session option ignored when --task provided", err=True)
 
-    if task:
-        slug = derive_slug(task)
-        session_content = focus_session(task, session_md)
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
-            f.write(session_content)
-            session = f.name
-
-    assert slug is not None
-    worktree_path = wt_path(slug, create_container=True)
-
-    if worktree_path.exists():
-        click.echo(f"Error: existing directory {worktree_path}", err=True)
-        raise SystemExit(1)
-
+    temp_session_file = None
     try:
+        if task:
+            slug = derive_slug(task)
+            session_content = focus_session(task, session_md)
+            with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
+                f.write(session_content)
+                session = f.name
+                temp_session_file = session
+
+        assert slug is not None
+        worktree_path = wt_path(slug, create_container=True)
+
+        if worktree_path.exists():
+            click.echo(f"Error: existing directory {worktree_path}", err=True)
+            raise SystemExit(1)
+
         _create_parent_worktree(worktree_path, slug, base, session)
         project_root = _git("rev-parse", "--show-toplevel")
         _create_submodule_worktree(project_root, worktree_path, slug)
@@ -356,10 +358,16 @@ def new(slug: str | None, base: str, session: str, task: str, session_md: str) -
 
         initialize_environment(worktree_path)
 
-        click.echo(str(worktree_path))
+        if task:
+            click.echo(f"{slug}\t{worktree_path}")
+        else:
+            click.echo(str(worktree_path))
     except subprocess.CalledProcessError as e:
         click.echo(f"Error creating worktree: {e.stderr}", err=True)
         raise SystemExit(1) from e
+    finally:
+        if temp_session_file:
+            Path(temp_session_file).unlink(missing_ok=True)
 
 
 @worktree.command(name="add-commit")

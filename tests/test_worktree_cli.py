@@ -397,3 +397,47 @@ def test_focus_session_missing_task(tmp_path: Path) -> None:
         ValueError, match=r"Task 'nonexistent-task' not found in session\.md"
     ):
         focus_session("nonexistent-task", session_file)
+
+
+def test_new_task_mode_integration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Task mode: slug derivation, focused session, tab-separated output."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    _init_repo(repo_path)
+
+    session_file = repo_path / "agents" / "session.md"
+    session_file.parent.mkdir(parents=True, exist_ok=True)
+    session_content = r"""# Session Handoff: 2026-02-12
+
+## Pending Tasks
+
+- [ ] **Implement feature X** — `\`/runbook\`` | sonnet
+- [ ] **Fix bug Y** — `\`/design\`` | haiku
+"""
+    session_file.write_text(session_content)
+
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "--task", "Implement feature X"])
+    assert result.exit_code == 0
+
+    lines = result.output.strip().split("\n")
+    output_line = lines[-1]
+    parts = output_line.split("\t")
+    assert len(parts) == 2, f"Expected tab-separated output, got: {output_line}"
+    slug, path_str = parts
+    assert slug == "implement-feature-x"
+    assert "implement-feature-x" in path_str
+
+    container_path = tmp_path / "repo-wt"
+    worktree_path = container_path / "implement-feature-x"
+    assert worktree_path.exists()
+    session_md_path = worktree_path / "agents" / "session.md"
+    assert session_md_path.exists()
+
+    session_content_created = session_md_path.read_text()
+    assert "# Session: Worktree — Implement feature X" in session_content_created
+    assert "Implement feature X" in session_content_created
+    assert "Fix bug Y" not in session_content_created
