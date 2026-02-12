@@ -112,6 +112,83 @@ More content.
     assert hierarchy["Handoff Pattern"].level == 2
 
 
+def test_compute_siblings() -> None:
+    """Compute sibling entries under the same parent heading."""
+    content = """\
+## Test Organization
+### Mock Patching Pattern
+Content here.
+### Testing Strategy
+More content.
+### Success Metrics
+Even more content.
+## Another Section
+### Different Parent
+This entry has a different parent.
+"""
+
+    entries = [
+        WhenEntry(
+            operator="when",
+            trigger="mock patching pattern",
+            extra_triggers=[],
+            line_number=1,
+            section="testing.md",
+        ),
+        WhenEntry(
+            operator="when",
+            trigger="testing strategy",
+            extra_triggers=[],
+            line_number=2,
+            section="testing.md",
+        ),
+        WhenEntry(
+            operator="when",
+            trigger="success metrics",
+            extra_triggers=[],
+            line_number=3,
+            section="testing.md",
+        ),
+        WhenEntry(
+            operator="when",
+            trigger="different parent",
+            extra_triggers=[],
+            line_number=4,
+            section="testing.md",
+        ),
+    ]
+
+    # Target: "Mock Patching Pattern" under "Test Organization"
+    # Expected siblings: "Testing Strategy" and "Success Metrics" (same parent)
+    # Excluded: "Different Parent" (different parent), target itself
+    siblings = compute_siblings("Mock Patching Pattern", content, entries)
+    assert len(siblings) == 2
+    assert "/when testing strategy" in siblings
+    assert "/when success metrics" in siblings
+    assert "/when mock patching pattern" not in siblings
+    assert "/when different parent" not in siblings
+
+    # Test with target that has no siblings
+    content_no_siblings = """\
+## Test Organization
+### Mock Patching Pattern
+Content here.
+"""
+    entries_single = [
+        WhenEntry(
+            operator="when",
+            trigger="mock patching pattern",
+            extra_triggers=[],
+            line_number=1,
+            section="testing.md",
+        ),
+    ]
+    siblings_empty = compute_siblings(
+        "Mock Patching Pattern", content_no_siblings, entries_single
+    )
+    assert siblings_empty == []
+
+
 def test_structural_headings_skipped_as_nav_targets() -> None:
     """Structural headings excluded from sibling grouping."""
     content = """\

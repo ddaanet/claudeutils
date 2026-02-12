@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from claudeutils.when.fuzzy import score_match
 from claudeutils.when.index_parser import WhenEntry
 
 
@@ -86,6 +87,34 @@ def compute_ancestors(heading: str, file_path: str, file_content: str) -> list[s
     return ancestors
 
 
+def _map_entries_to_headings(
+    entries: list[WhenEntry], hierarchy: dict[str, HeadingInfo]
+) -> dict[str, str]:
+    """Map entry triggers to their best-matching headings via fuzzy scoring.
+
+    Args:
+        entries: List of WhenEntry objects
+        hierarchy: Heading hierarchy dict from extract_heading_hierarchy
+
+    Returns:
+        Dict mapping trigger text to heading text
+    """
+    entry_to_heading: dict[str, str] = {}
+    for entry in entries:
+        best_match = None
+        best_score = 0.0
+        for heading_text in hierarchy:
+            score = score_match(entry.trigger, heading_text)
+            if score > best_score:
+                best_score = score
+                best_match = heading_text
+
+        if best_match:
+            entry_to_heading[entry.trigger] = best_match
+
+    return entry_to_heading
+
+
 def compute_siblings(
     heading: str, file_content: str, entries: list[WhenEntry]
 ) -> list[str]:
@@ -117,18 +146,24 @@ def compute_siblings(
     if parent in hierarchy and hierarchy[parent].is_structural:
         return []
 
-    # Find all entries whose parent heading matches
+    # Map entries to their headings
+    entry_to_heading = _map_entries_to_headings(entries, hierarchy)
+
+    # Find entries with matching parent, excluding target
     siblings = []
     for entry in entries:
-        # Skip the target entry itself
-        if entry.trigger == heading:
+        entry_heading = entry_to_heading.get(entry.trigger)
+        if not entry_heading:
             continue
 
-        if entry.trigger not in hierarchy:
+        if entry_heading == heading:
             continue
 
-        entry_parent = hierarchy[entry.trigger].parent
-        if entry_parent == parent and not hierarchy[entry.trigger].is_structural:
+        entry_heading_info = hierarchy.get(entry_heading)
+        if not entry_heading_info:
+            continue
+
+        if entry_heading_info.parent == parent and not entry_heading_info.is_structural:
             siblings.append(f"/when {entry.trigger}")
 
     return siblings
