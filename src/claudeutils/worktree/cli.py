@@ -39,7 +39,7 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
     Raises ValueError if task_name is empty or whitespace-only.
     """
     if not task_name or not task_name.strip():
-        msg = "slug cannot be empty"
+        msg = "task_name must not be empty"
         raise ValueError(msg)
 
     slug = task_name.lower()

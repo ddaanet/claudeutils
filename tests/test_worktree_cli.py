@@ -74,10 +74,10 @@ def test_derive_slug_edge_cases() -> None:
     assert len(derive_slug("a" * 100)) <= 30
     assert not derive_slug("a" * 100).endswith("-")
 
-    with pytest.raises(ValueError, match="slug cannot be empty"):
+    with pytest.raises(ValueError, match="task_name must not be empty"):
         derive_slug("")
 
-    with pytest.raises(ValueError, match="slug cannot be empty"):
+    with pytest.raises(ValueError, match="task_name must not be empty"):
         derive_slug("   ")
 
 
