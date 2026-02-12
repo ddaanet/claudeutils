@@ -359,3 +359,12 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Per-phase type tagging — each phase tagged `type: tdd` or `type: general`
 - Rationale: Real work mixes behavioral code (TDD) with infrastructure (general). Worktree runbook had TDD cycles for skill updates — wasteful
 - Per-step is over-granular (wouldn't mix within a phase), per-runbook forces binary choice
+## CLI skill name collision
+- Anti-pattern: Naming a skill `/plan` when `/plan` is a Claude Code CLI built-in (EnterPlanMode)
+- Correct pattern: Check CLI built-ins before naming skills. Used `/runbook` instead — aligns with terminology.
+- Scope: Any user-invocable skill name must not collide with CLI commands (/help, /plan, /review, /model, etc.)
+## Bootstrapping around broken workflow tools
+- Anti-pattern: Using /plan-adhoc to plan its own replacement — encodes old patterns into new
+- Correct pattern: When replacing a workflow tool, assess tier from design and execute directly if feasible
+- Evidence: Tier 2 assessment — prose artifacts, well-specified build order, no tests needed
+- Key insight: The design document IS the execution plan when work is well-specified
