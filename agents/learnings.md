@@ -272,12 +272,6 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: After each step: git status check → if dirty, resume agent or vet-fix to commit → grep UNFIXABLE in vet reports
 - Rationale: Agents may complete work but leave uncommitted changes (especially after crashes)
 - Protocol: Step 3.3 in orchestrate skill - clean tree is hard requirement, no exceptions
-## Vet-fix-agent out-of-scope flagging
-- Anti-pattern: Vet-fix-agent flags explicitly out-of-scope items as UNFIXABLE
-- Correct pattern: Distinguish "deferred to next cycle" (expected, in scope statement) from "unfixable" (blocking issue)
-- Rationale: UNFIXABLE triggers escalation to user; out-of-scope items are expected and shouldn't block
-- Example: Cycle 0.6 vet flagged session filtering as UNFIXABLE despite "OUT: Session file filtering (next cycle)" in scope
-- Impact: Creates false positives in UNFIXABLE detection, requires manual judgment to continue
 ## Background agent crash recovery
 - Anti-pattern: Assume "failed" agent work is lost
 - Correct pattern: Check output files and git diff — agents complete work before classifyHandoffIfNeeded error fires

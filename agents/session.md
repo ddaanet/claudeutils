@@ -87,7 +87,7 @@ Point 0.95 in `agent-core/skills/plan-adhoc/SKILL.md` — when outline steps alr
 - [ ] **Workflow fixes** — Implement process improvements from RCA | sonnet
   - Depends on: RCA completion
 
-- [ ] **RCA: Vet-fix-agent UNFIXABLE labeling** — Analyze why agent labeled stylistic judgment as UNFIXABLE | sonnet
+- [x] **RCA: Vet-fix-agent UNFIXABLE labeling** — Fixed: tri-state FIXED/DEFERRED/UNFIXABLE in vet-fix-agent + vet-requirement
 
 - [ ] **Consolidate learnings** — learnings.md at 404 lines (soft limit 80), 14 entries ≥7 days | sonnet
   - Run `/remember` to consolidate into permanent documentation
