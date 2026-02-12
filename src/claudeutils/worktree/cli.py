@@ -308,6 +308,12 @@ def new(slug: str, base: str, session: str) -> None:
                     slug,
                 )
 
+        container_path = worktree_path.parent
+        add_sandbox_dir(str(container_path), ".claude/settings.local.json")
+        add_sandbox_dir(
+            str(container_path), f"{worktree_path}/.claude/settings.local.json"
+        )
+
         click.echo(str(worktree_path))
     except subprocess.CalledProcessError as e:
         click.echo(f"Error creating worktree: {e.stderr}", err=True)

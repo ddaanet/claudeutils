@@ -1,5 +1,6 @@
 """Tests for worktree new subcommand."""
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -230,8 +231,6 @@ def test_new_basic_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
     assert "test-feature" in result.stdout
 
 
-
-
 def test_new_command_sibling_paths(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -299,3 +298,72 @@ def test_new_command_sibling_paths(
     worktree_path3 = container_path / "existing-branch"
     assert worktree_path3.exists()
     assert "repo-wt/existing-branch" in result.output
+
+
+def test_new_sandbox_registration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify sandbox registration for both main and worktree settings files."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _init_git_repo(repo_path)
+
+    # Create initial commit
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-feature"])
+
+    assert result.exit_code == 0
+
+    container_path = tmp_path / "repo-wt"
+    worktree_path = container_path / "test-feature"
+
+    # Check main repo settings file exists and contains container path
+    main_settings = repo_path / ".claude" / "settings.local.json"
+    assert main_settings.exists(), "Main settings file should exist"
+
+    with main_settings.open() as f:
+        main_settings_data = json.load(f)
+
+    dirs = main_settings_data.get("permissions", {}).get("additionalDirectories", [])
+    assert str(container_path) in dirs, (
+        f"Container path {container_path} should be in main settings"
+    )
+
+    # Check worktree settings file exists and contains container path
+    wt_settings = worktree_path / ".claude" / "settings.local.json"
+    assert wt_settings.exists(), "Worktree settings file should exist"
+
+    with wt_settings.open() as f:
+        wt_settings_data = json.load(f)
+
+    wt_dirs = wt_settings_data.get("permissions", {}).get("additionalDirectories", [])
+    assert str(container_path) in wt_dirs, (
+        f"Container path {container_path} should be in worktree settings"
+    )
+
+    # Verify both paths are absolute
+    assert container_path.is_absolute(), "Container path should be absolute in main"
+    assert container_path.is_absolute(), "Container path should be absolute in worktree"
+
+    # Test deduplication: run command again (creates another worktree in same container)
+    container_path / "test-feature-2"
+    result = runner.invoke(worktree, ["new", "test-feature-2"])
+    assert result.exit_code == 0
+
+    with main_settings.open() as f:
+        main_settings_data_after = json.load(f)
+
+    dirs_after = main_settings_data_after.get("permissions", {}).get(
+        "additionalDirectories", []
+    )
+    # Count occurrences of container path - should still be 1 (deduplication works)
+    count = dirs_after.count(str(container_path))
+    assert count == 1, f"Container path should appear exactly once, found {count}"
