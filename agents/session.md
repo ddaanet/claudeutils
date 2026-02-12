@@ -1,28 +1,30 @@
 # Session Handoff: 2026-02-12
 
-**Status:** RCA complete, worktree branches merged to dev, worktree-update runbook assembled.
+**Status:** Recovered 28 lost tasks, consolidated into thematic batches, created 4 worktrees for design sessions.
 
 ## Completed This Session
 
-### RCA: Vet-fix-agent UNFIXABLE Labeling
+### Recovered Lost Pending Tasks
 
-Root cause: binary FIXED/UNFIXABLE status forced scope deferrals into UNFIXABLE (3/7 historical cases were false positives).
+- Traced task losses through git merge history and session handoffs
+- Main loss: commit 85fefb2 (learnings consolidation) dropped 23 tasks in single handoff (30→7)
+- Merge losses: 2 tasks (0bb7c92 lost "Remove deprecated code", 3e38d53 lost "Review investigation prerequisite rule")
+- Recovered all 28, consolidated into 11 thematic batches
+- Marked 2 superseded: worktree recipe updates (covered by worktree-update), PreToolUse symlink hook (eliminated by plugin migration)
 
-- Added DEFERRED tri-state to `agent-core/agents/vet-fix-agent.md` (FIXED/DEFERRED/UNFIXABLE)
-- Updated detection protocol in `agent-core/fragments/vet-requirement.md` — DEFERRED is non-blocking
-- Evidence: `plans/reports/rca-unfixable-evidence.md` (7 cases analyzed across 6 vet reports)
-- Removed codified learning from learnings.md (now in agent procedure)
+### Plugin Migration Drift Assessment
 
-### Merged Worktree Branches to Dev
+- Design.md architecture still valid, but runbook stale (Feb 9)
+- Drift: 18 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
+- Phase 4 (justfile modularization) invalid — must execute after worktree-update lands
+- Blocked on worktree-update delivery
 
-- 0bb7c92: Merged `worktree` branch (~80 commits: worktree-skill phases 0-5, worktree-update design, review methodology)
-- Post-merge fixes: stale cache rebuild, duplicate "Manual Runbook Assembly" entry removed, workflow-advanced.md 421→391 lines
-- Second merge: worktree-update runbook assembled (40 TDD cycles, 7 phases), plan-tdd skill updates
+### Created Design Worktrees
 
-### Created when-recall Worktree
-
-- `wt/when-recall` branched from dev for parallel `/plan-tdd` execution
-- Focused session.md written with design references
+- `wt/handoff-validation` — opus design session
+- `wt/requirements-skill` — opus design evaluation
+- `wt/error-handling` — opus design session
+- `wt/readme` — README refresh
 
 ## Pending Tasks
 
@@ -59,9 +61,54 @@ Root cause: binary FIXED/UNFIXABLE status forced scope deferrals into UNFIXABLE 
   - Blocked on: worktree-update delivery (possible code reuse)
   - Scripts live in claudeutils CLI (like _worktree), skill-specific, not for manual use
 
+### Recovered (consolidated)
+
+- [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
+  - Plan: plugin-migration | Status: planned (stale — Feb 9)
+  - Blocked on: worktree-update delivery (wt-* recipes change, justfile Phase 4 invalid)
+  - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite against post-worktree-update justfile, expanded phases need regeneration
+  - Drift: 18 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
+
+- [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
+  - Plan: continuation-prepend | Status: requirements
+
+- [ ] **Workflow process improvements** — Skill/fragment/orchestration fixes | sonnet
+  - Orchestrate evolution — `/plan-adhoc plans/orchestrate-evolution/design.md` (designed, stale Feb 10, refresh after RCA)
+  - Fragments cleanup — remove fragments duplicating skills/workflow
+  - Reflect skill output — RCA should produce pending tasks, not inline fixes
+  - Tool-batching.md — add Task tool parallelization guidance with examples
+  - Commit Gate B — coverage ratio (artifacts:reports 1:1) not boolean
+  - Commit/handoff branching — move git branching point after precommit passes
+  - Orchestrator delegate resume — resume delegates with incomplete work
+  - Agent output optimization — remove summarize/report language from agents
+  - Investigation prerequisite rule review
+
+- [ ] **Codebase quality sweep** — Tests, deslop, factorization, dead code | sonnet
+  - Review all tests for vacuous tests
+  - Deslop entire codebase
+  - Review codebase for factorization
+  - Remove deprecated code — init_repo_with_commit() in conftest_git.py
+
+- [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet
+  - Redesign markdown preprocessor — multi-line inline markup parsing
+  - Session summary extraction prototype
+  - Rewrite last-output prototype with TDD as claudeutils subcommand
+
+- [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
+  - History cleanup tooling — git history rewriting, reusable scripts
+  - Rewrite agent-core ad-hoc scripts via TDD to claudeutils package
+
+- [ ] **Verify superseded RCAs** — Confirm fixes landed, close or reopen | sonnet
+  - RCA: Planning agents leave dirty tree — delegation.md may cover this
+  - RCA: Planning agent delegation inefficiency — execution-routing.md split may cover this
+
 ## Worktree Tasks
 
 - [ ] **Plan when-recall** → `wt/when-recall` — `/plan-tdd plans/when-recall/design.md` | sonnet
+- [ ] **Handoff validation design** → `wt/handoff-validation` — `/design plans/handoff-validation/` | opus
+- [ ] **Evaluate requirements-skill** → `wt/requirements-skill` — `/design plans/requirements-skill/` | opus
+- [ ] **Error handling framework design** → `wt/error-handling` — `/design` | opus
+- [ ] **Update README.md** → `wt/readme` — sonnet
 
 ## Blockers / Gotchas
 
