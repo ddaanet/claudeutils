@@ -1,5 +1,6 @@
 """Worktree CLI module."""
 
+import json
 import os
 import re
 import subprocess
@@ -38,6 +39,21 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
     slug = slug.strip("-")
     slug = slug[:max_length]
     return slug.rstrip("-")
+
+
+def add_sandbox_dir(container: str | Path, settings_path: str | Path) -> None:
+    """Add container directory to settings file.
+
+    Appends path to permissions.additionalDirectories.
+    """
+    settings_path = Path(settings_path)
+    with settings_path.open() as f:
+        settings = json.load(f)
+
+    settings["permissions"]["additionalDirectories"].append(str(container))
+
+    with settings_path.open("w") as f:
+        json.dump(settings, f, indent=2)
 
 
 @click.group(name="_worktree")

@@ -1,5 +1,6 @@
 """Tests for worktree CLI module."""
 
+import json
 import stat
 import subprocess
 from pathlib import Path
@@ -7,7 +8,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from claudeutils.worktree.cli import derive_slug, worktree, wt_path
+from claudeutils.worktree.cli import add_sandbox_dir, derive_slug, worktree, wt_path
 
 
 def _init_repo(repo_path: Path) -> None:
@@ -284,3 +285,24 @@ def test_wt_path_edge_cases(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
 
     with pytest.raises(ValueError, match="slug"):
         wt_path("   ")
+
+
+def test_add_sandbox_dir_happy_path(tmp_path: Path) -> None:
+    """Add container directory to existing settings file with all required keys.
+
+    Given settings file with existing additionalDirectories array, appends new
+    path and preserves JSON structure.
+    """
+    settings_file = tmp_path / "settings.json"
+    initial_settings = {"permissions": {"additionalDirectories": ["/existing/path"]}}
+    settings_file.write_text(json.dumps(initial_settings, indent=2))
+
+    add_sandbox_dir("/new/path", settings_file)
+
+    updated = json.loads(settings_file.read_text())
+    assert updated["permissions"]["additionalDirectories"] == [
+        "/existing/path",
+        "/new/path",
+    ]
+    assert "permissions" in updated
+    assert isinstance(updated["permissions"]["additionalDirectories"], list)
