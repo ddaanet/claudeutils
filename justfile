@@ -295,17 +295,6 @@ wt-merge name:
             visible git add agents/jobs.md
         fi
 
-        # Source files: take-ours + precommit validation
-        remaining=$(git diff --name-only --diff-filter=U)
-        if [ -n "$remaining" ]; then
-            echo "${RED}Source file conflicts — attempting take-ours:${NORMAL}" >&2
-            echo "$remaining" >&2
-            for file in $remaining; do
-                visible git checkout --ours "$file"
-                visible git add "$file"
-            done
-        fi
-
         # Check for any remaining conflicts
         remaining=$(git diff --name-only --diff-filter=U)
         if [ -n "$remaining" ]; then

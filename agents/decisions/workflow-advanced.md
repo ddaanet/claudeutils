@@ -200,6 +200,12 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Guidance reaches executor, not lost in separate report file.
 
+### Report Naming Convention
+
+**Decision Date:** 2026-02-12
+
+**Decision:** Review reports use descriptive base names (`outline-review.md`, `phase-N-review.md`, `design-review.md`). Iteration suffix (-2, -3) for re-reviews of same artifact. Descriptive suffix (`-llm-failure-modes`) for specialized analyses.
+
 ### Prose Test Descriptions Save Tokens
 
 **Decision Date:** 2026-02-05
@@ -371,20 +377,6 @@ This is not full test code — it is precise prose that preserves the specificat
 **Fix:** Added skill dependency scan to design skill A.0 checkpoint.
 
 **Impact:** Early skill loading provides correct context for design decisions.
-
-### Manual Runbook Assembly Bypasses Automation
-
-**Decision Date:** 2026-02-11
-
-**Decision:** Leave phase files separate, holistic review reads multiple files, prepare-runbook.py assembles.
-
-**Anti-pattern:** Using `cat` + `Write` to assemble phase files into runbook.md during planning.
-
-**Rationale:** Assembly logic (metadata calc, cycle numbering validation) belongs in prepare-runbook.py, not manual process. Review agents can read multiple phase files directly.
-
-**Fix:** Updated plan-tdd Phase 4/5 to clarify prepare-runbook.py handles assembly, planner provides phase files.
-
-**Impact:** Automation handles deterministic assembly tasks, planners focus on content.
 
 ### Phase Boundaries Require Checkpoint Delegation
 

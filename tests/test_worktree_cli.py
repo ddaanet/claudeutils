@@ -62,9 +62,14 @@ def test_derive_slug() -> None:
     assert derive_slug("A" * 35 + "test") == "a" * 30
 
 
-@pytest.mark.xfail(reason="Active worktrees in repo - pending fix for test isolation")
-def test_ls_empty() -> None:
+def test_ls_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Empty output when no worktrees exist."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _init_repo(repo_path)
+
     runner = CliRunner()
     result = runner.invoke(worktree, ["ls"])
     assert result.exit_code == 0

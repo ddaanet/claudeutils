@@ -95,6 +95,17 @@ Mock patching pattern — patch where object is used not where defined
 Testing strategy for markdown cleanup — TDD approach with red green cycles and integration tests
 Success metrics — all tests pass, no regressions, clear errors, complete documentation
 
+## agents/decisions/deliverable-review.md
+
+Deliverable definition — artifact types review axes ISO-grounded identification process
+
+## agents/decisions/runbook-review.md
+
+Vacuous cycles — scaffold-only RED tests degenerate GREEN LLM failure mode
+Dependency ordering — foundation-first forward reference intra-phase detection
+Cycle density — edge-case clusters trivial phases collapse candidates
+Checkpoint spacing — drift accumulation haiku instruction loss quality gates
+
 ## agents/decisions/implementation-notes.md
 
 @ references limitation — CLAUDE.md @ syntax only works in CLAUDE.md not skills agents tasks
@@ -152,6 +163,7 @@ Phase-by-Phase Review Pattern — generate review fix-all check-escalation proce
 Manual runbook assembly bypasses automation — phase files separate prepare-runbook.py assembles
 Review Agent Fix-All Pattern — audit trail autofix everything escalate unfixable to caller
 Recommendations Inline Transmission — append guidance to consumed artifact not separate report
+Report Naming Convention — descriptive base names iteration suffix for same artifact review cycles
 Prose Test Descriptions Save Tokens — prose descriptions save 80% over full test code
 Complexity Before Expansion — check complexity callback to previous level if too large
 Consolidation Gates Reduce Orchestrator Overhead — merge trivial work with adjacent complexity at two gates
