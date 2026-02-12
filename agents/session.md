@@ -25,13 +25,20 @@ Bootstrapped around broken `/plan-adhoc` — executed directly from design (Tier
 
 **Key decision:** Skill named `/runbook` not `/plan` — `/plan` conflicts with Claude Code CLI built-in (EnterPlanMode).
 
+### Updated: Residual docs references
+
+Updated 3 workflow documentation files to use unified naming:
+- `agent-core/docs/tdd-workflow.md` — 7 replacements (plan-tdd → runbook, tdd-plan-reviewer → plan-reviewer)
+- `agent-core/docs/general-workflow.md` — 11 replacements (plan-adhoc → runbook, added LLM failure mode detection)
+- `agent-core/skills/handoff/examples/good-handoff.md` — 2 replacements
+
+Commits: agent-core 042f892, main 3e417dc
+
 ### Prior session: Design (Phase A+B+C)
 
 Design approach, decisions D1-D7, and artifacts preserved in `plans/workflow-fixes/design.md`.
 
 ## Pending Tasks
-
-- [ ] **Update residual docs references** — 3 docs files still reference old names (tdd-workflow.md, general-workflow.md, good-handoff.md) | sonnet
 
 - [ ] **Fix worktree-update runbook** — Apply findings from LLM failure mode review | sonnet
   - Report: `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`
