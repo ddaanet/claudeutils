@@ -19,6 +19,7 @@ Condensed knowledge catalog. Read referenced files when working in related areas
 
 
 
+
 ## Behavioral Rules (fragments — already loaded)
 
 Scan triggers unnecessary tools — check loaded context not Read/Grep for @-referenced files
@@ -99,13 +100,6 @@ Success metrics — all tests pass, no regressions, clear errors, complete docum
 
 Deliverable definition — artifact types review axes ISO-grounded identification process
 
-## agents/decisions/runbook-review.md
-
-Vacuous cycles — scaffold-only RED tests degenerate GREEN LLM failure mode
-Dependency ordering — foundation-first forward reference intra-phase detection
-Cycle density — edge-case clusters trivial phases collapse candidates
-Checkpoint spacing — drift accumulation haiku instruction loss quality gates
-
 ## agents/decisions/implementation-notes.md
 
 @ references limitation — CLAUDE.md @ syntax only works in CLAUDE.md not skills agents tasks
@@ -141,6 +135,13 @@ Tool Landscape (Dec 2025) — no tool combines position bias variants budgeting
 Applicability to Current Architecture — fragment ordering token counting opportunities
 Fragment Ordering Rationale (Feb 2026) — primacy for session-defining, recency for reference, context-budget.py for tracking
 
+## agents/decisions/runbook-review.md
+
+Vacuous cycles — scaffold-only RED tests degenerate GREEN LLM failure mode
+Dependency ordering — foundation-first forward reference intra-phase detection
+Cycle density — edge-case clusters trivial phases collapse candidates
+Checkpoint spacing — drift accumulation haiku instruction loss quality gates
+
 ## agents/decisions/testing.md
 
 TDD RED Phase: Behavioral Verification — verify behavior with mocking fixtures not just structure
@@ -169,10 +170,10 @@ Complexity Before Expansion — check complexity callback to previous level if t
 Consolidation Gates Reduce Orchestrator Overhead — merge trivial work with adjacent complexity at two gates
 Workflow Feedback Loop Insights — alignment autofix outline complexity gate principles
 Dogfooding Validates Design — apply new process to its own planning for validation
+Phase boundaries require checkpoint delegation — hard stop explicit vet at phase transitions
 TDD GREEN Behavioral Descriptions — behavior approach hint structure not prescriptive code
 Efficient Model Analysis Requires Verification — haiku execution sonnet opus architecture verify results
 Domain Validation Pattern — planning-time detection, skill-directed vet, no agent proliferation
-Phase boundaries require checkpoint delegation — hard stop explicit vet at phase transitions
 
 ## agents/decisions/workflow-core.md
 

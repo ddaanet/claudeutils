@@ -312,6 +312,28 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Impact:** Design validation through practical application.
 
+### Skill Dependencies in Requirements
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Scan requirements for skill dependency indicators during A.0, load immediately.
+
+**Anti-pattern:** Deferring skill loading to A.1 judgment when requirements explicitly mention agent/skill creation.
+
+**Indicators:** "sub-agent" → agent-development, "invoke skill" → skill-development, "hook configuration" → hook-development
+
+**Impact:** Early skill loading provides correct context for design decisions.
+
+### Phase Boundaries Require Checkpoint Delegation
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Phase boundary = hard stop requiring explicit checkpoint delegation per orchestrate skill 3.3.
+
+**Anti-pattern:** Treat checkpoint as part of step execution, skip vet-fix-agent delegation, proceed to next phase.
+
+**Rationale:** Checkpoints catch bugs (e.g., logic error in format_context() found at Phase 2→3 boundary). D+B hybrid merged phase boundary into 3.3 with Read anchor for phase detection.
+
 ## .TDD Workflow Patterns
 
 ### TDD GREEN Behavioral Descriptions
@@ -374,48 +396,3 @@ This is not full test code — it is precise prose that preserves the specificat
 **Extensibility:** New domain = validation skill file + rules file + planner awareness (3-step template, no framework)
 
 **Impact:** Domain-specific validation integrated into standard vet workflow without agent proliferation or orchestrator complexity.
-
-## .Planning Workflow Patterns (continued)
-
-### Skill Dependencies in Requirements
-
-**Decision Date:** 2026-02-11
-
-**Decision:** Scan requirements for skill dependency indicators during A.0, load immediately.
-
-**Anti-pattern:** Deferring skill loading to A.1 judgment when requirements explicitly mention agent/skill creation.
-
-**Indicators:**
-- "sub-agent" → agent-development
-- "invoke skill" → skill-development
-- "hook configuration" → hook-development
-
-**Fix:** Added skill dependency scan to design skill A.0 checkpoint.
-
-**Impact:** Early skill loading provides correct context for design decisions.
-
-### Manual Runbook Assembly Bypasses Automation
-
-**Decision Date:** 2026-02-11
-
-**Decision:** Leave phase files separate, holistic review reads multiple files, prepare-runbook.py assembles.
-
-**Anti-pattern:** Using `cat` + `Write` to assemble phase files into runbook.md during planning.
-
-**Rationale:** Assembly logic (metadata calc, cycle numbering validation) belongs in prepare-runbook.py, not manual process. Review agents can read multiple phase files directly.
-
-**Fix:** Updated plan-tdd Phase 4/5 to clarify prepare-runbook.py handles assembly, planner provides phase files.
-
-**Impact:** Automation handles deterministic assembly tasks, planners focus on content.
-
-### Phase Boundaries Require Checkpoint Delegation
-
-**Decision Date:** 2026-02-11
-
-**Decision:** Phase boundary = hard stop requiring explicit checkpoint delegation per orchestrate skill 3.3.
-
-**Anti-pattern:** Treat checkpoint as part of step execution, skip vet-fix-agent delegation, proceed to next phase.
-
-**Rationale:** Checkpoints catch bugs (e.g., logic error in format_context() found at Phase 2→3 boundary).
-
-**Fix:** D+B hybrid merged phase boundary into 3.3 with Read anchor for phase detection.
