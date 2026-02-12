@@ -1,45 +1,60 @@
 # Session Handoff: 2026-02-12
 
-**Status:** Worktree-update runbook fixed (LLM failure modes), ready for execution.
+**Status:** Worktree-update runbook in progress — Phase 6, step 6-1 complete, test files need splitting before continuing.
 
 ## Completed This Session
 
-### Workflow pipeline unification
+### Worktree-update runbook execution (Phases 1-5 + step 6-1)
 
-Bootstrapped around broken `/plan-adhoc` — executed directly from design (Tier 2 assessment).
+Executed 19 of 37 TDD cycles across 6 phases via `/orchestrate`. All checkpoints passed.
 
-**Created:** `pipeline-contracts.md`, `review-plan` skill, `plan-reviewer` agent, `runbook` skill (63% reduction), `runbook/references/`
-**Deleted:** plan-tdd/, plan-adhoc/, review-tdd-plan/, tdd-plan-reviewer.md
-**Vetted:** Both major artifacts clean — `plans/workflow-fixes/reports/review-plan-skill-vet.md`, `runbook-skill-vet.md`
-**Key decision:** Skill named `/runbook` not `/plan` — `/plan` conflicts with Claude Code CLI built-in.
+**Phase 1** (4 cycles): `wt_path()` — sibling container path computation, detection, creation, slug validation
+**Phase 2** (4 cycles): `add_sandbox_dir()` — JSON read/write, missing file creation, missing keys init, deduplication
+**Phase 3** (1 cycle): `derive_slug()` — slug derivation with edge case validation
+**Phase 4** (3 cycles): `focus_session()` — task extraction, section filtering, missing task error; introduced `_git()` helper (59d939b)
+**Phase 5** (7 cycles): `new` command — sibling paths, submodule worktree, sandbox registration, env init, session commit, `--task` mode, `rm` updates
+**Phase 6** (1 of 5 cycles): `rm` dirty tree warning — complete, blocked on line limits
 
-Updated residual doc references in 3 files (tdd-workflow.md, general-workflow.md, good-handoff.md).
+Tests: 777/778 passing (1 xfail). All phase checkpoints passed.
 
-### Fixed worktree-update runbook — LLM failure mode fixes
+### Key decisions
 
-Applied 7 findings from `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`:
+- **`_git()` helper pattern** (59d939b): Replaced 24 `subprocess.run` calls with private helper. 477→336 lines initially (30% reduction). Pattern: `_git(*args, check=True, env=None, input_data=None) -> str`. Ruff-friendly because short function name + string args fit 88-char line.
+- **Phase 5 UNFIXABLE over-escalation**: Vet flagged `create_worktree()` not extracted as function and `_git` naming as UNFIXABLE. User approved proceeding — both are deferred/stylistic. Pattern recurring despite pipeline overhaul.
 
-- **P1 (Critical):** Added jobs.md auto-resolve cycle (new Cycle 7.11) — design line 159 gap
-- **P2:** Merged 3 vacuous cycles (1.1→1.2, 1.4→1.3, 5.3→5.2)
-- **P2:** Merged density duplicate (4.3→4.2 — parametrized section filtering)
-- **P2:** Added Post-Phase 6 checkpoint (17-cycle gap exceeded >10 threshold)
-- **P3:** Fixed Phase 4 dependency declaration ("Phase 3" → "None")
-- Net: 40→37 cycles, 3→4 checkpoints
+### Systemic issue: Line limit whack-a-mole
 
-Updated: runbook-phase-{1,4,5,6,7}.md, runbook-outline.md
-Regenerated via prepare-runbook.py: orchestrator-plan.md, 37 step files, agent definition
-Precommit: 755/756 passed, 1 xfail ✓
+7+ refactor escalations due to 400-line limit across this runbook. Root pattern:
+1. Haiku implements cycle → file grows past 400
+2. Sonnet refactor reduces → formatter (ruff) expands back
+3. Next cycle adds code → over limit again
+
+**Root cause:** Runbook planning didn't account for file growth across 37 cycles. The planning requirements should include file growth projections and proactive split points. User flagged this as needing RCA.
+
+**Current state (precommit failing):**
+- `src/claudeutils/worktree/cli.py`: 398 lines ✓
+- `tests/test_worktree_cli.py`: 410 lines ❌
+- `tests/test_worktree_new.py`: 424 lines ❌
+
+**Resolution:** Split test files proactively before resuming Phase 6.
 
 ## Pending Tasks
+
+- [ ] **Split worktree test files** — Proactively split test_worktree_cli.py (410) and test_worktree_new.py (424) to provide headroom for remaining 18 cycles | sonnet
+
+- [ ] **Resume worktree-update orchestration** — `/orchestrate worktree-update` from step 6-2. Phases 6-7 remaining (18 cycles)
+  - Depends on: test file split
+
+- [ ] **RCA: Runbook planning missed file growth** — Planning phase should project file growth and insert split points. The 400-line limit caused 7+ refactor escalations (>1hr wall-clock). This is a planning requirements gap, not an execution issue | opus
+
+- [ ] **RCA: Vet over-escalation persists post-overhaul** — Pipeline overhaul (workflow-fixes) didn't fix vet UNFIXABLE over-escalation. Phase 5 checkpoint flagged design deviation and naming convention as UNFIXABLE. Needs planned work | sonnet
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
 
 - [ ] **Workflow fixes from RCA** — Implement process improvements from RCA | sonnet
   - Depends on: RCA completion
 
-- [ ] **RCA: Vet-fix-agent UNFIXABLE labeling** — Analyze why agent labeled stylistic judgment as UNFIXABLE | sonnet
-
-- [ ] **Consolidate learnings** — learnings.md at 361 lines (soft limit 80), 0 entries ≥7 days | sonnet
+- [ ] **Consolidate learnings** — learnings.md at 369 lines (soft limit 80), 0 entries ≥7 days | sonnet
 
 - [ ] **Remove duplicate memory index entries on precommit** — Autofix or fail on duplicate index entries | sonnet
 
@@ -58,13 +73,18 @@ Precommit: 755/756 passed, 1 xfail ✓
 - `agents/decisions/deliverable-review.md` — ISO-grounded, use this one
 
 **Learnings.md over soft limit:**
-- 361 lines, ~57 entries — consolidation deferred until entries age (≥7 active days required)
+- 369 lines, ~57 entries — consolidation deferred until entries age (≥7 active days required)
+
+**Worktree-update orchestration state:**
+- Step 6-1 complete (committed: 696a610, 7fd0be5, 069cd1e)
+- Precommit failing on 2 test files over 400-line limit
+- Must split test files before resuming from step 6-2
+- Orchestrator plan: `plans/worktree-update/orchestrator-plan.md`
 
 ## Reference Files
 
-- `plans/workflow-fixes/design.md` — Unification design (vetted by opus)
-- `plans/workflow-fixes/reports/review-plan-skill-vet.md` — Review-plan skill vet (clean)
-- `plans/workflow-fixes/reports/runbook-skill-vet.md` — Runbook skill vet (clean)
-- `agents/decisions/pipeline-contracts.md` — Pipeline I/O contracts
-- `agents/decisions/runbook-review.md` — LLM failure mode methodology (four axes)
-- `plans/worktree-update/reports/runbook-review-llm-failure-modes.md` — LLM failure mode review (8 findings, all applied)
+- `plans/worktree-update/design.md` — Worktree update design
+- `plans/worktree-update/orchestrator-plan.md` — Execution plan (37 steps, 7 phases)
+- `plans/worktree-update/reports/checkpoint-phase-*-vet.md` — Phase checkpoint reports (1-5)
+- `plans/worktree-update/reports/cycle-4-2-git-helper-refactor.md` — `_git()` helper analysis
+- `plans/worktree-update/reports/cycle-6-1-refactor.md` — Latest refactor report

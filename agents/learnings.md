@@ -368,3 +368,20 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: When replacing a workflow tool, assess tier from design and execute directly if feasible
 - Evidence: Tier 2 assessment — prose artifacts, well-specified build order, no tests needed
 - Key insight: The design document IS the execution plan when work is well-specified
+## _git() helper reduces subprocess
+- Anti-pattern: Repeated `subprocess.run(["git", ...], capture_output=True, text=True, check=True).stdout.strip()` — 6 lines per call, formatter expands vertically
+- Correct pattern: Private `_git(*args, check=True, **kwargs) -> str` helper — 1 line per call, fits 88-char limit
+- Evidence: 24 calls replaced, 477→336 lines (30% reduction) in worktree cli.py
+- Ruff-friendly: Short function name + string args = most calls fit on single line without formatter expansion
+## Runbook planning file growth
+- Anti-pattern: Plan 37 TDD cycles adding to same files without projecting line growth or inserting split points
+- Correct pattern: Planning phase should estimate lines-per-cycle, project total growth, insert proactive file splits at phase boundaries
+- Evidence: 7+ refactor escalations, >1hr wall-clock on line-limit fixes alone across worktree-update runbook
+- Root cause: Planning requirements don't include file growth analysis — this is a gap in the planning pipeline, not execution
+- User directive: Needs RCA as planning requirements gap
+## Vet over-escalation persists post-overhaul
+- Repeated: 2026-02-12 (previously logged, still occurring)
+- Evidence: Phase 5 checkpoint flagged `create_worktree()` not extracted and `_git` naming as UNFIXABLE
+- Both were deferred design deviation (future phase) and stylistic naming (mechanical find-replace)
+- Pipeline overhaul (workflow-fixes) unified skills but didn't address vet judgment calibration
+- User directive: Needs planned work to fix

@@ -20,7 +20,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
 | workflow-fixes | complete | Unified /runbook skill, plan-reviewer agent, review-plan skill, pipeline-contracts |
-| worktree-update | planned | Runbook complete: 40 TDD cycles (7 phases), reviewed and assembled, haiku execution ready |
+| worktree-update | in progress | 19/37 cycles complete (Phases 1-5 + step 6-1), blocked on test file split |
 | workflow-skills-audit | designed | plan-adhoc alignment + design skill audit, 12 items |
 | worktree-skill | complete | 42/42 cycles, all phases, pending merge to dev |
 | worktree-skill-fixes | complete | 27 findings fixed (7 phases), T5 bug fix |
