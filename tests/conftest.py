@@ -269,8 +269,7 @@ def markdown_fixtures_dir() -> Path:
 # Worktree Fixtures
 @pytest.fixture
 def init_repo() -> Callable[[Path], None]:
-    """Return function to initialize git repo with user config and initial
-    commit."""
+    """Return function to initialize git repo with config and commit."""
 
     def _init_repo(repo_path: Path) -> None:
         subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
