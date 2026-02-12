@@ -204,7 +204,23 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Decision Date:** 2026-02-12
 
-**Decision:** Review reports use descriptive base names (`outline-review.md`, `phase-N-review.md`, `design-review.md`). Iteration suffix (-2, -3) for re-reviews of same artifact. Descriptive suffix (`-llm-failure-modes`) for specialized analyses.
+**Decision:** Review reports use descriptive base names that indicate artifact type and review focus. Iteration suffix (-2, -3) for subsequent reviews of same artifact.
+
+**Pattern:**
+- `outline-review.md` — first design outline review
+- `outline-review-2.md` — second iteration after amendments
+- `runbook-outline-review.md` — runbook outline review (different artifact type)
+- `phase-N-review.md` — per-phase review during expansion
+- `runbook-review.md` — final holistic runbook review
+- `design-review.md` — design document review
+
+**Iteration suffix vs descriptive suffix:**
+- Use iteration number (-2, -3) when reviewing same artifact in same mode after fixes
+- Use descriptive suffix when review has different focus (e.g., `-llm-failure-modes` for specialized analysis)
+
+**Rationale:** Base name conveys artifact type and review stage. Iteration number tracks review cycles. Descriptive suffix reserved for specialized analyses.
+
+**Impact:** Reports directory organization is predictable. Consumers can find latest review by pattern matching.
 
 ### Prose Test Descriptions Save Tokens
 
@@ -296,6 +312,28 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Impact:** Design validation through practical application.
 
+### Skill Dependencies in Requirements
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Scan requirements for skill dependency indicators during A.0, load immediately.
+
+**Anti-pattern:** Deferring skill loading to A.1 judgment when requirements explicitly mention agent/skill creation.
+
+**Indicators:** "sub-agent" → agent-development, "invoke skill" → skill-development, "hook configuration" → hook-development
+
+**Impact:** Early skill loading provides correct context for design decisions.
+
+### Phase Boundaries Require Checkpoint Delegation
+
+**Decision Date:** 2026-02-11
+
+**Decision:** Phase boundary = hard stop requiring explicit checkpoint delegation per orchestrate skill 3.3.
+
+**Anti-pattern:** Treat checkpoint as part of step execution, skip vet-fix-agent delegation, proceed to next phase.
+
+**Rationale:** Checkpoints catch bugs (e.g., logic error in format_context() found at Phase 2→3 boundary). D+B hybrid merged phase boundary into 3.3 with Read anchor for phase detection.
+
 ## .TDD Workflow Patterns
 
 ### TDD GREEN Behavioral Descriptions
@@ -358,34 +396,3 @@ This is not full test code — it is precise prose that preserves the specificat
 **Extensibility:** New domain = validation skill file + rules file + planner awareness (3-step template, no framework)
 
 **Impact:** Domain-specific validation integrated into standard vet workflow without agent proliferation or orchestrator complexity.
-
-## .Planning Workflow Patterns (continued)
-
-### Skill Dependencies in Requirements
-
-**Decision Date:** 2026-02-11
-
-**Decision:** Scan requirements for skill dependency indicators during A.0, load immediately.
-
-**Anti-pattern:** Deferring skill loading to A.1 judgment when requirements explicitly mention agent/skill creation.
-
-**Indicators:**
-- "sub-agent" → agent-development
-- "invoke skill" → skill-development
-- "hook configuration" → hook-development
-
-**Fix:** Added skill dependency scan to design skill A.0 checkpoint.
-
-**Impact:** Early skill loading provides correct context for design decisions.
-
-### Phase Boundaries Require Checkpoint Delegation
-
-**Decision Date:** 2026-02-11
-
-**Decision:** Phase boundary = hard stop requiring explicit checkpoint delegation per orchestrate skill 3.3.
-
-**Anti-pattern:** Treat checkpoint as part of step execution, skip vet-fix-agent delegation, proceed to next phase.
-
-**Rationale:** Checkpoints catch bugs (e.g., logic error in format_context() found at Phase 2→3 boundary).
-
-**Fix:** D+B hybrid merged phase boundary into 3.3 with Read anchor for phase detection.

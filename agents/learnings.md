@@ -311,3 +311,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Difference: CLAUDE.md `@` is recursive (loads transitive refs), user-message `@` is single file (no recursion)
 - Root cause: Template thinking ("apply X" → Read X → edit target) bypasses checking whether content already loaded
 - Fix: execution-routing.md updated to explicitly cover both injection sources
+## Vet agents over-escalate alignment issues
+- Anti-pattern: Labeling straightforward pattern-matching tasks as "UNFIXABLE" requiring design decisions or user input
+- Correct pattern: Check existing patterns, apply consistent choice, execute alignment (e.g., find-replace test file references)
+- Rationale: Test file naming alignment, variable naming consistency, format standardization are pattern-matching, not design
+- Example: Phase 2 vet flagged test file mismatch as "unfixable design decision" when solution was: check existing files, consolidate to test_worktree_cli.py, replace references
+- Root cause: Agents treat uncertainty as escalation trigger rather than scanning existing patterns for guidance
+- Impact: Creates false blocking issues, delays execution on mechanical fixes
