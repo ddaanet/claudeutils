@@ -1,6 +1,11 @@
 """Tests for markdown navigation hierarchy extraction."""
 
-from claudeutils.when.navigation import compute_ancestors, extract_heading_hierarchy
+from claudeutils.when.index_parser import WhenEntry
+from claudeutils.when.navigation import (
+    compute_ancestors,
+    compute_siblings,
+    extract_heading_hierarchy,
+)
 
 
 def test_extract_heading_hierarchy() -> None:
@@ -105,3 +110,49 @@ More content.
     assert hierarchy["TDD Workflow Integration"].level == 2
     assert hierarchy["Handoff Pattern"].parent is None
     assert hierarchy["Handoff Pattern"].level == 2
+
+
+def test_structural_headings_skipped_as_nav_targets() -> None:
+    """Structural headings excluded from sibling grouping."""
+    content = """\
+## .Test Organization
+### Mock Patching Pattern
+Some content here.
+## Another Section
+### Real Test Pattern
+More content here.
+"""
+
+    # Test 1: ancestor walk includes structural headings
+    ancestors = compute_ancestors("Mock Patching Pattern", "testing.md", content)
+    assert "/when ..Test Organization" in ancestors or "/when ..testing.md" in ancestors
+    assert ancestors[-1] == "/when ..testing.md"
+
+    # Test 2: HeadingInfo for ".Test Organization" has is_structural=True flag
+    hierarchy = extract_heading_hierarchy(content)
+    assert hierarchy[".Test Organization"].is_structural is True
+
+    # Test 3: compute_siblings excludes entries under structural parent headings
+    entries = [
+        WhenEntry(
+            operator="when",
+            trigger="mock patching",
+            extra_triggers=[],
+            line_number=1,
+            section="testing.md",
+        ),
+        WhenEntry(
+            operator="when",
+            trigger="real test pattern",
+            extra_triggers=[],
+            line_number=1,
+            section="testing.md",
+        ),
+    ]
+
+    # Mock heading associations for entries
+    # Entry 0 is under ".Test Organization" (structural)
+    # Entry 1 is under "Another Section" (semantic)
+    siblings = compute_siblings("Mock Patching Pattern", content, entries)
+    # Should be empty because the structural heading has no sibling grouping
+    assert siblings == []
