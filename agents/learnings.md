@@ -324,3 +324,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: Phase 2 vet flagged test file mismatch as "unfixable design decision" when solution was: check existing files, consolidate to test_worktree_cli.py, replace references
 - Root cause: Agents treat uncertainty as escalation trigger rather than scanning existing patterns for guidance
 - Impact: Creates false blocking issues, delays execution on mechanical fixes
+## Expansion re-introduces outline-level defects
+- Anti-pattern: Outline review catches vacuous cycles and density issues, but phase expansion re-introduces them without re-validation
+- Correct pattern: LLM failure mode checks (vacuity, dependency ordering, density, checkpoint spacing) must run at BOTH outline AND expanded phase levels
+- Evidence: plan-tdd Phase 1.5 specifies "No vacuous cycles" and "Foundation-first ordering" — outline was fixed. But expanded phases contain 3 vacuous cycles (1.1, 1.4, 5.3) and 1 missing requirement (jobs.md)
+- Root cause: tdd-plan-reviewer checks TDD discipline (prescriptive code, RED/GREEN) but not LLM failure modes. Different concern, different detection criteria.
+- Gap: Outline checks → expansion → phase review (TDD only) → final review (TDD only) — no LLM failure mode re-validation after expansion

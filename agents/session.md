@@ -1,27 +1,36 @@
 # Session Handoff: 2026-02-12
 
-**Status:** Updated plan-tdd skill with background review pattern. Fixed workflow-advanced line limit.
+**Status:** Reviewed worktree-update runbook phases against LLM failure mode methodology. Found critical gaps missed by sonnet-based validation.
 
 ## Completed This Session
 
-### Updated plan-tdd skill — background phase review pattern
+### Manual runbook review — LLM failure mode analysis
 
-- Phase 3: Added background review pattern — launch review with `run_in_background=true` after writing each phase, continue generating next phase
-- Phase 5: New step 1 collects per-phase review results, checks escalations before holistic review
-- Phase 5: Renumbered steps 2→3 through 6→7
+- Applied four-axis methodology from `agents/decisions/runbook-review.md` to all 7 phases (40 cycles)
+- Found 8 findings: 3 vacuous cycles, 1 critical missing requirement, 1 checkpoint gap, 1 density opportunity
+- Report: `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`
 
-### Fixed workflow-advanced.md line limit (421 → 398)
+**Critical finding:** Design line 159 specifies `agents/jobs.md` conflict auto-resolve — no cycle implements it. jobs.md conflicts would abort merge incorrectly.
 
-- Removed duplicate "Manual Runbook Assembly Bypasses Automation" entry
-- Merged orphaned "Planning Workflow Patterns (continued)" section into main Planning section
+**Vacuous cycles:** 1.1 (structural CLI registration), 1.4 (self-declared "should pass immediately"), 5.3 (self-declared "no code needed") — all produce degenerate GREEN.
+
+**Process gap identified:** tdd-plan-reviewer validates TDD discipline (prescriptive code, RED/GREEN sequencing) but does NOT apply LLM failure mode detection (vacuity, dependency ordering, density, checkpoint spacing). The plan-tdd skill has these checks at outline level (Phase 1.5) but expansion re-introduces issues and phase/final reviews don't re-validate.
 
 ## Pending Tasks
 
-- [ ] **Execute worktree-update runbook** — Run /orchestrate worktree-update | haiku | restart
-  - Plan: plans/worktree-update
-  - 40 TDD cycles across 7 phases
-  - Agent created: .claude/agents/worktree-update-task.md
-  - Command: `/orchestrate worktree-update` (after restart)
+- [ ] **Fix worktree-update runbook** — Apply findings from LLM failure mode review | sonnet
+  - Report: `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`
+  - Priority 1: Add jobs.md auto-resolve cycle (merge with 7.8 or new 7.11)
+  - Priority 2: Merge vacuous cycles (1.1→1.2, 1.4→1.3, 5.3→5.2), merge density (4.3→4.2), add Phase 6 checkpoint
+  - Priority 3: Correct Phase 4 dependency declaration
+  - Net: 40→37 cycles, 3→4 checkpoints
+  - Re-run prepare-runbook.py after fixes
+
+- [ ] **Integrate LLM failure mode checks into tdd-plan-reviewer** — Add vacuity/dependency/density/checkpoint detection | sonnet
+  - Currently only checks: prescriptive code, RED/GREEN sequencing, file references
+  - Missing: vacuous cycle detection, dependency ordering, cycle density, checkpoint spacing
+  - Source methodology: `agents/decisions/runbook-review.md`
+  - Gap: outline-level checks exist (plan-tdd Phase 1.5) but expansion re-introduces issues
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
   - Scope: worktree-skill execution process, not deliverables
@@ -59,13 +68,9 @@
 
 ## Reference Files
 
+- `plans/worktree-update/reports/runbook-review-llm-failure-modes.md` — LLM failure mode review (this session, 8 findings)
 - `plans/worktree-update/design.md` — Worktree update design (9 steps: 7 TDD + non-code + refactor)
-- `plans/worktree-update/runbook-outline.md` — Validated runbook outline (40 TDD cycles, 8 phases, post-LLM-failure-mode fixes)
-- `plans/worktree-update/reports/runbook-outline-review.md` — Runbook outline review report
-- `plans/worktree-update/reports/runbook-outline-review-2.md` — LLM failure mode analysis (applied)
-- `plans/worktree-update/reports/phase-1-review.md` through `phase-7-review.md` — Per-phase TDD reviews
-- `plans/worktree-update/reports/runbook-final-review.md` — Holistic cross-phase review (no escalations)
-- `plans/worktree-update/orchestrator-plan.md` — Execution index for 40 steps
-- `.claude/agents/worktree-update-task.md` — TDD task agent (created by prepare-runbook.py)
-- `agents/decisions/deliverable-review.md` — Post-execution review methodology
+- `plans/worktree-update/runbook-outline.md` — Validated runbook outline (40 TDD cycles, 8 phases)
+- `plans/worktree-update/reports/runbook-final-review.md` — Holistic cross-phase review (no escalations — missed LLM failure modes)
+- `plans/worktree-update/orchestrator-plan.md` — Execution index for 40 steps (needs regeneration after fixes)
 - `agents/decisions/runbook-review.md` — Pre-execution runbook review methodology (LLM failure modes)
