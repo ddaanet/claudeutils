@@ -1,30 +1,28 @@
 # Session Handoff: 2026-02-12
 
-**Status:** Applied LLM failure mode findings to worktree-update runbook outline. Reports directory organized.
+**Status:** RCA complete, worktree merged to dev, when-recall worktree created.
 
 ## Completed This Session
 
-### Reports Directory Organization
+### RCA: Vet-fix-agent UNFIXABLE Labeling
 
-Renamed worktree-update report files to follow Report Naming Convention — base name distinguishes which artifact is reviewed:
-- `outline-review-1.md` → `runbook-outline-review.md` (reviews runbook-outline.md, not outline.md)
-- `outline-review-4-llm-failure-modes.md` → `runbook-outline-review-2.md`
-- Removed empty `plans/claude/` subdirectory artifact
+Root cause: binary FIXED/UNFIXABLE status forced scope deferrals into UNFIXABLE (3/7 historical cases were false positives).
 
-### Applied LLM Failure Mode Analysis to Runbook Outline
+- Added DEFERRED tri-state to `agent-core/agents/vet-fix-agent.md` (FIXED/DEFERRED/UNFIXABLE)
+- Updated detection protocol in `agent-core/fragments/vet-requirement.md` — DEFERRED is non-blocking
+- Evidence: `plans/reports/rca-unfixable-evidence.md` (7 cases analyzed across 6 vet reports)
+- Removed codified learning from learnings.md (now in agent procedure)
 
-Applied all 4 findings from `plans/worktree-update/reports/runbook-outline-review-2.md` to `plans/worktree-update/runbook-outline.md`:
+### Merged Worktree Branch to Dev
 
-- **F2 (Critical):** Reordered Phase 2 cycles for foundation-first dependency ordering (basic → missing file → nested key → dedup). Prevents forward dependency where dedup assumes nested structure before it exists.
-- **F1 & F3:** Removed/merged vacuous and collapsible cycles (48 → 40 TDD cycles). Merged Phase 0 into Phase 1. Collapsed Phase 3 to 1 cycle. Merged presentation cycles into behavioral cycles. Collapsed cleanup cycles.
-- **F4:** Added checkpoints after Phase 2 (JSON manipulation) and Phase 5 (integration point). Phase 7 checkpoint retained.
+- 0bb7c92: Merged `worktree` branch (~80 commits: worktree-skill phases 0-5, worktree-update design, review methodology)
+- Post-merge fixes: stale cache rebuild, duplicate "Manual Runbook Assembly" entry removed, workflow-advanced.md 421→391 lines
+- Worktree restored after accidental removal (user only asked for merge, not cleanup)
 
-### RCA: Re-read @-referenced file
+### Created when-recall Worktree
 
-Behavioral deviation: agent re-read file already injected via user's `@` reference. Root cause: template thinking ("apply X" → Read X) without checking loaded content.
-
-- Fixed `agent-core/fragments/execution-routing.md` to cover both CLAUDE.md `@` (recursive) and user-message `@` (single file) references
-- Learning appended to `agents/learnings.md`
+- `wt/when-recall` branched from dev for parallel `/plan-tdd` execution
+- Focused session.md written with design references
 
 ## Pending Tasks
 
@@ -37,20 +35,28 @@ Behavioral deviation: agent re-read file already injected via user's `@` referen
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
   - Scope: worktree-skill execution process, not deliverables
   - Signals: plan specified opus but session showed haiku, vacuous tests passed vet, vet checked presence not correctness
+  - Blocker cleared: methodology docs now on dev after worktree merge
 
 - [ ] **Workflow fixes** — Implement process improvements from RCA | sonnet
   - Depends on: RCA completion
 
-- [x] **RCA: Vet-fix-agent UNFIXABLE labeling** — Fixed: tri-state FIXED/DEFERRED/UNFIXABLE in vet-fix-agent + vet-requirement
-
-- [ ] **Consolidate learnings** — learnings.md at 319 lines (soft limit 80), 0 entries ≥7 days | sonnet
-  - Run `/remember` when entries age sufficiently
+- [ ] **Consolidate learnings** — learnings.md at 312 lines (soft limit 80), 0 entries >=7 days | sonnet
+  - Blocked on: memory redesign (/when, /how)
 
 - [ ] **Remove duplicate memory index entries on precommit** — Autofix or fail on duplicate index entries | sonnet
+  - Blocked on: memory redesign (/when, /how)
 
 - [ ] **Update design skill** — Two refinements: (1) TDD non-code steps: non-code artifacts explicitly marked non-TDD; (2) Phase C density checkpoint | sonnet
 
 - [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate memory in main repo or dedicated consolidation worktree | sonnet
+
+- [ ] **Commit skill optimizations** — Remove handoff gate, optimize with minimal custom script calls | sonnet
+  - Blocked on: worktree-update delivery (possible code reuse)
+  - Scripts live in claudeutils CLI (like _worktree), skill-specific, not for manual use
+
+## Worktree Tasks
+
+- [ ] **Plan when-recall** → `wt/when-recall` — `/plan-tdd plans/when-recall/design.md` | sonnet
 
 ## Blockers / Gotchas
 
@@ -60,13 +66,12 @@ Behavioral deviation: agent re-read file already injected via user's `@` referen
 - Cleanup: delete review-methodology.md (confirmed fully superseded)
 
 **Learnings.md over soft limit:**
-- 319 lines, 54 entries, 0 entries ≥7 days — consolidation deferred until entries age
+- 312 lines, 0 entries >=7 days — consolidation blocked on memory redesign
 
 ## Reference Files
 
 - `plans/worktree-update/design.md` — Worktree update design (9 steps: 7 TDD + non-code + refactor)
-- `plans/worktree-update/runbook-outline.md` — Validated runbook outline (40 TDD cycles, 8 phases, post-LLM-failure-mode fixes)
-- `plans/worktree-update/reports/runbook-outline-review.md` — Runbook outline review report
-- `plans/worktree-update/reports/runbook-outline-review-2.md` — LLM failure mode analysis (applied)
+- `plans/worktree-update/runbook-outline.md` — Validated runbook outline (40 TDD cycles, 8 phases)
+- `plans/reports/rca-unfixable-evidence.md` — UNFIXABLE labeling RCA evidence
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
 - `agents/decisions/runbook-review.md` — Pre-execution runbook review methodology (LLM failure modes)
