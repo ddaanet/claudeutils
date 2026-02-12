@@ -1,6 +1,32 @@
 """Fuzzy matching engine using modified fzf V2 scoring algorithm."""
 
 
+def _boundary_bonus(candidate_lower: str, match_pos: int) -> float:
+    """Calculate boundary bonus for a character match.
+
+    Args:
+        candidate_lower: Lowercase candidate string
+        match_pos: Position of matched character (1-indexed)
+
+    Returns:
+        Boundary bonus score (0.0 if no boundary, higher for stronger boundaries)
+    """
+    if match_pos <= 1:
+        return 0.0
+
+    prev_char = candidate_lower[match_pos - 2]
+    curr_char = candidate_lower[match_pos - 1]
+
+    if prev_char == " ":
+        return 10.0
+    if prev_char in ("/", "-", "_"):
+        return 9.0
+    if prev_char.islower() and curr_char.isupper():
+        return 7.0
+
+    return 0.0
+
+
 def score_match(query: str, candidate: str) -> float:
     """Score a candidate string using character subsequence matching.
 
@@ -45,15 +71,7 @@ def score_match(query: str, candidate: str) -> float:
                     4 if j > 1 and score[i - 1][j - 1] > score[i - 1][j - 2] else 0
                 )
                 # Boundary bonus: check character before match
-                boundary_bonus = 0.0
-                if j > 1:
-                    prev_char = candidate_lower[j - 2]
-                    if prev_char == " ":
-                        boundary_bonus = 10
-                    elif prev_char in ("/", "-", "_"):
-                        boundary_bonus = 9
-                    elif prev_char.islower() and candidate_lower[j - 1].isupper():
-                        boundary_bonus = 7
+                boundary_bonus = _boundary_bonus(candidate_lower, j)
 
                 # First character match bonus multiplied by 2
                 first_char_multiplier = 2 if i == 1 else 1
