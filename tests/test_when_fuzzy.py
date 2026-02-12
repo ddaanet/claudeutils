@@ -1,6 +1,6 @@
 """Tests for fuzzy matching engine."""
 
-from claudeutils.when.fuzzy import score_match
+from claudeutils.when.fuzzy import rank_matches, score_match
 
 
 def test_subsequence_match_scores_positive() -> None:
@@ -110,3 +110,33 @@ def test_minimum_score_threshold() -> None:
     # No valid subsequence or below threshold
     no_match = score_match("zq", "writing mock tests")
     assert no_match == 0.0
+
+
+def test_rank_matches_returns_sorted_limited() -> None:
+    """Rank matches returns sorted list of (candidate, score) tuples."""
+    candidates = [
+        "mock patching",
+        "mock test",
+        "unrelated",
+        "mocking framework",
+        "something",
+    ]
+    results = rank_matches("mock", candidates, limit=3)
+
+    # Results are tuples of (candidate, score)
+    assert all(isinstance(r, tuple) and len(r) == 2 for r in results)
+    assert all(isinstance(r[0], str) and isinstance(r[1], float) for r in results)
+
+    # Results are sorted by score descending
+    scores = [r[1] for r in results]
+    assert scores == sorted(scores, reverse=True)
+
+    # Limit applied: at most 3 results
+    assert len(results) <= 3
+
+    # Zero-score candidates excluded
+    assert all(score > 0 for _, score in results)
+
+    # Test default limit is 5
+    results_default = rank_matches("mock", candidates)
+    assert len(results_default) <= 5
