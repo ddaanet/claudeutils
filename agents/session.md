@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-12
 
-**Status:** Runbook review methodology created and integrated into planning infrastructure. worktree-update outline LLM failure mode review complete.
+**Status:** Runbook review methodology created and integrated into planning infrastructure. runbook-review.md move resolved (keep in place).
 
 ## Completed This Session
 
@@ -32,6 +32,10 @@ Integrated the 4 review axes into planning workflow at two levels:
 - `agent-core/skills/plan-tdd/SKILL.md` — Phase 1.5 outline quality + Phase 3.1 cycle ordering: branch-point requirement, foundation-first ordering, edge-case collapse
 - `agent-core/skills/plan-adhoc/SKILL.md` — Point 0.75 outline quality: functional outcome requirement, foundation-first ordering, collapsible step detection
 
+### runbook-review.md move — resolved as no-op
+
+Analyzed whether `agents/decisions/runbook-review.md` should move into agent-core. Conclusion: low value, moderate cost. Content already inlined in consumers (`runbook-outline-review-agent.md` has criteria baked in, `(ref: ...)` markers were attribution only). Removed 4 attribution markers from review agent. Dropped pending task.
+
 ## Pending Tasks
 
 - [ ] **Plan worktree-update (Phase 3-5)** — Continue phase-by-phase cycle expansion | sonnet
@@ -60,12 +64,6 @@ Integrated the 4 review axes into planning workflow at two levels:
 - [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate memory in main repo or dedicated consolidation worktree | sonnet
   - Add worktree detection: skip consolidation if `git rev-parse --show-toplevel` appears in `git worktree list` output
   - Rationale: Consolidation modifies shared docs (learnings.md, decisions/, fragments) — parallel worktree modifications cause merge conflicts
-
-- [ ] **Move runbook-review.md into agent-core** — `agents/decisions/runbook-review.md` → agent-core location | sonnet
-  - Document consumed by agent-core components (review agent, plan-tdd, plan-adhoc)
-  - Methodology is project-agnostic, belongs with consumers
-  - Update references in review agent + memory index
-  - Check plugin-dev skills for similar methodology docs that should co-locate
 
 ## Blockers / Gotchas
 
