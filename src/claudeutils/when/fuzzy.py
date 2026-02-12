@@ -137,7 +137,13 @@ def score_match(query: str, candidate: str) -> float:
         if gap_length > 0:
             gap_penalty += -3 + (-1 * gap_length)
 
-    return base_score + gap_penalty
+    # Word-overlap tiebreaker: bonus for matching whole words
+    query_words = set(query.lower().split())
+    candidate_words = set(candidate_lower.split())
+    word_overlap = len(query_words & candidate_words)
+    word_overlap_bonus = word_overlap * 0.5
+
+    return base_score + gap_penalty + word_overlap_bonus
 
 
 def rank_matches(

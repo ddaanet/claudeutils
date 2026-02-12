@@ -58,8 +58,9 @@ def test_consecutive_match_bonus() -> None:
     # Consecutive bonus: 4 per consecutive char after first
     # i=1: 16*2 (first char) = 32
     # i=2: 32 + 16 + 4 (consecutive) = 52
+    # Plus word overlap bonus: "ab" query word overlaps with "ab" candidate word = +0.5
     ab_exact = score_match("ab", "ab")
-    assert ab_exact == 52
+    assert ab_exact == 52.5
 
 
 def test_gap_penalties_reduce_score() -> None:
@@ -75,3 +76,20 @@ def test_gap_penalties_reduce_score() -> None:
     double_gap = score_match("ac", "aXXc")
 
     assert single_gap > double_gap
+
+
+def test_word_overlap_tiebreaker() -> None:
+    """Word-overlap tiebreaker breaks ties when fzf scores are identical."""
+    # Two candidates with identical fzf scores but different word overlap
+    score1 = score_match("fix bug", "fix this bug")
+    score2 = score_match("fix bug", "fix your bugfix")
+
+    # Word overlap:
+    # - "fix this bug": overlap with ["fix", "this", "bug"] = 2 words
+    #   Base fzf: 150.0 + word bonus (2 * 0.5) = 151.0
+    # - "fix your bugfix": overlap with ["fix", "your", "bugfix"] = 1 word
+    #   Base fzf: 150.0 + word bonus (1 * 0.5) = 150.5
+    # Word-overlap tiebreaker breaks the tie
+    assert score1 == 151.0
+    assert score2 == 150.5
+    assert score1 > score2
