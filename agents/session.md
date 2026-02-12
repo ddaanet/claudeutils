@@ -1,43 +1,30 @@
-# Session Handoff: 2026-02-11
+# Session Handoff: 2026-02-12
 
-**Status:** worktree-skill-fixes complete. Branch rebased/merged, test isolation fixed. Ready for merge to dev.
+**Status:** worktree-update design outlined and reviewed. Ready for planning (`/plan-adhoc` or `/plan-tdd`).
 
 ## Completed This Session
 
-### worktree-skill-fixes: All 7 Phases Complete
+### worktree-update Design: Outline Complete
 
-27 findings addressed (3 critical, 12 major, 12 minor) plus T5 production bug fix.
+Designed update to worktree skill and backing Python scripts to match justfile prototype behavior:
 
-- **Phase 0 (Critical):** C6 merge --abort after commit, A1/D1 path corrections
-- **Phase 1 (Major Code):** C1 dead code, C2 slug validation, C3 git_utils extraction, C7 retry, G1 gitignore
-- **Phase 2 (Major Docs):** A2 lock file removal instruction
-- **Phase 3 (Major Tests):** T2-T7 — deleted redundant tests, consolidated fixtures, added coverage
-- **Phase 4A (Minor Code):** C4 imports, C5 subprocess consistency, G2 dead justfile recipe
-- **Phase 4B (Minor Tests):** T1/T5/T8/T10/T11/T12 — test reorganization and consolidation
-- **Phase 4C (Minor Docs):** A3/A4 — usage notes and slug docs
-- **T5 Bug:** apply_theirs_resolution silent no-op post-commit (f8b6fba)
+- **Architecture:** Modules (functions) in `src/claudeutils/worktree/`, CLI wrapper (`_worktree` hidden from help), skill as primary interface, justfile recipes as fallback
+- **Key changes:** Sibling directory paths (`<repo>-wt/<slug>`), worktree-based submodule (not `--reference` clone), sandbox registration, `focus-session` command, merge ceremony (4-phase)
+- **Conflict strategies:** agent-core keep-ours (already merged), learnings keep-both (append), source files abort (manual resolution)
+- **Single implementation:** `derive_slug()`, `focus_session()`, `wt_path()` in Python — skill calls CLI, no duplication
+- **Outline reviewed twice** (outline-review-agent), all issues fixed
 
-### Branch Maintenance
-
-- Rebased agent-core worktree onto main (16 commits, cherry-pick auto-dropped)
-- Merged dev into parent worktree (0b797d8) — consolidation commit incorporated
-- Decision: No automation for worktree rebase workflow (infrequent, judgment-dependent conflicts)
-
-### Fixed test_ls_empty xfail
-
-Added tmp_path/monkeypatch isolation — test was running against real repo with active worktrees.
-
-### Cleanup
-
-- Staged deletion of deprecated conftest_git.py (backward compat wrapper, no remaining usages)
+User also removed "resolve source conflict to ours" block from justfile `wt-merge` recipe (aligns with outline).
 
 ### Prior Session (Preserved)
 
-- Applied 12 OOR fixes to runbook outline
-- Added outline sufficiency check to plan-adhoc (Point 0.95)
-- Consolidated 13 learnings into permanent documentation (5e7b174)
+- worktree-skill-fixes: 27 findings fixed (7 phases), T5 production bug
+- Branch rebased/merged, test isolation fixed
 
 ## Pending Tasks
+
+- [ ] **Plan worktree-update** — `/plan-adhoc plans/worktree-update/outline.md` | sonnet
+  - Plan: plans/worktree-update
 
 - [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
   - Scope: worktree-skill execution process, not deliverables
@@ -64,14 +51,12 @@ Added tmp_path/monkeypatch isolation — test was running against real repo with
 **Learnings.md over soft limit:**
 - 320 lines, 54 entries, 0 entries ≥7 days — consolidation deferred until entries age
 
-**Dirty working tree (78 files):**
-- Reports deleted, superseded source/test files deleted, session files modified
-- From worktree-skill-fixes execution — all committed on branch, working tree reflects post-fixes state
-
-**Tests:** 754/756 passed, 2 xfail (inline-backticks known bug, test_ls_empty isolation in working tree)
+**Dirty working tree:**
+- From worktree-skill-fixes execution + worktree-update design artifacts
 
 ## Reference Files
 
-- `plans/worktree-skill-fixes/runbook-outline.md` — Runbook (25 steps, 7 phases)
-- `plans/worktree-skill/outline.md` — Ground truth design spec
+- `plans/worktree-update/outline.md` — Worktree update design outline (12 steps)
+- `plans/worktree-update/reports/outline-review-2.md` — Review report
+- `plans/worktree-skill/outline.md` — Ground truth design spec (worktree-skill)
 - `agents/decisions/deliverable-review.md` — Review methodology
