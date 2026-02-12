@@ -11,6 +11,24 @@ from typing import Any
 import click
 
 
+def _git(
+    *args: str,
+    check: bool = True,
+    env: dict[str, str] | None = None,
+    input_data: str | None = None,
+) -> str:
+    """Run git command and return stripped stdout."""
+    result: subprocess.CompletedProcess[str] = subprocess.run(
+        ["git", *args],
+        capture_output=True,
+        text=True,
+        check=check,
+        env=env,
+        input=input_data,
+    )
+    return result.stdout.strip()
+
+
 def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,FBT002
     """Return absolute worktree path, optionally creating -wt container."""
     if not slug or not slug.strip():
@@ -134,19 +152,8 @@ def worktree() -> None:
 @worktree.command()
 def ls() -> None:
     """List active worktrees (excluding main)."""
-    main_path = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.strip()
-
-    porcelain_output = subprocess.run(
-        ["git", "worktree", "list", "--porcelain"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.strip()
+    main_path = _git("rev-parse", "--show-toplevel")
+    porcelain_output = _git("worktree", "list", "--porcelain")
 
     lines = porcelain_output.split("\n") if porcelain_output else []
     entries = []
@@ -172,31 +179,16 @@ def ls() -> None:
 
 def _build_tree_with_session(content: str, base_tree: str, env: dict[str, str]) -> str:
     """Build git tree with session.md added."""
-    blob = subprocess.run(
-        ["git", "hash-object", "-w", "--stdin"],
-        input=content,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.strip()
-    subprocess.run(
-        ["git", "read-tree", base_tree], env=env, check=True, capture_output=True
-    )
-    subprocess.run(
-        [
-            "git",
-            "update-index",
-            "--add",
-            "--cacheinfo",
-            f"100644,{blob},agents/session.md",
-        ],
+    blob = _git("hash-object", "-w", "--stdin", input_data=content)
+    _git("read-tree", base_tree, env=env)
+    _git(
+        "update-index",
+        "--add",
+        "--cacheinfo",
+        f"100644,{blob},agents/session.md",
         env=env,
-        check=True,
-        capture_output=True,
     )
-    return subprocess.run(
-        ["git", "write-tree"], env=env, capture_output=True, text=True, check=True
-    ).stdout.strip()
+    return _git("write-tree", env=env)
 
 
 def _create_session_commit(slug: str, base: str, session: str) -> str:
@@ -212,28 +204,11 @@ def _create_session_commit(slug: str, base: str, session: str) -> str:
 
     try:
         env = {**os.environ, "GIT_INDEX_FILE": tmp_index_path}
-        base_tree = subprocess.run(
-            ["git", "rev-parse", f"{base}^{{tree}}"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
-
+        base_tree = _git("rev-parse", f"{base}^{{tree}}")
         tree = _build_tree_with_session(content, base_tree, env)
-        return subprocess.run(
-            [
-                "git",
-                "commit-tree",
-                tree,
-                "-p",
-                base,
-                "-m",
-                f"Focused session for {slug}",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
+        return _git(
+            "commit-tree", tree, "-p", base, "-m", f"Focused session for {slug}"
+        )
     finally:
         Path(tmp_index_path).unlink()
 
@@ -241,19 +216,8 @@ def _create_session_commit(slug: str, base: str, session: str) -> str:
 @worktree.command(name="clean-tree")
 def clean_tree() -> None:
     """Validate clean state, exempt session context files."""
-    parent_status = subprocess.run(
-        ["git", "status", "--porcelain"], capture_output=True, text=True, check=True
-    ).stdout
-
-    submodule_result = subprocess.run(
-        ["git", "-C", "agent-core", "status", "--porcelain"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    submodule_status = (
-        submodule_result.stdout if submodule_result.returncode == 0 else ""
-    )
+    parent_status = _git("status", "--porcelain")
+    submodule_status = _git("-C", "agent-core", "status", "--porcelain", check=False)
 
     exempt_files = {"session.md", "jobs.md", "learnings.md"}
     filtered_lines = []
@@ -286,70 +250,43 @@ def new(slug: str, base: str, session: str) -> None:
         click.echo(f"Error: existing directory {worktree_path}", err=True)
         raise SystemExit(1)
 
-    if (
-        subprocess.run(
-            ["git", "rev-parse", "--verify", slug],
-            check=False,
-            capture_output=True,
-        ).returncode
-        == 0
-    ):
+    try:
+        _git("rev-parse", "--verify", slug)
         click.echo(f"Error: existing branch {slug}", err=True)
         raise SystemExit(1)
+    except subprocess.CalledProcessError:
+        pass  # Branch doesn't exist, which is what we want
 
     try:
         if session:
             branch_commit = _create_session_commit(slug, base, session)
-            subprocess.run(
-                ["git", "branch", slug, branch_commit], check=True, capture_output=True
-            )
-            subprocess.run(
-                ["git", "worktree", "add", str(worktree_path), slug],
-                check=True,
-                capture_output=True,
-            )
+            _git("branch", slug, branch_commit)
+            _git("worktree", "add", str(worktree_path), slug)
         else:
-            subprocess.run(
-                ["git", "worktree", "add", str(worktree_path), "-b", slug, base],
-                check=True,
-                capture_output=True,
-            )
+            _git("worktree", "add", str(worktree_path), "-b", slug, base)
 
-        project_root = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
+        project_root = _git("rev-parse", "--show-toplevel")
 
         agent_core_local = Path(project_root) / "agent-core"
         if agent_core_local.exists() and (agent_core_local / ".git").exists():
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(worktree_path),
-                    "submodule",
-                    "update",
-                    "--init",
-                    "--reference",
-                    str(agent_core_local),
-                ],
+            _git(
+                "-C",
+                str(worktree_path),
+                "submodule",
+                "update",
+                "--init",
+                "--reference",
+                str(agent_core_local),
                 check=False,
-                capture_output=True,
             )
 
             submodule_path = worktree_path / "agent-core"
             if submodule_path.exists():
-                result = subprocess.run(
-                    ["git", "-C", str(submodule_path), "checkout", "-B", slug],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                )
-                if result.returncode != 0:
-                    click.echo(result.stderr, err=True)
-                    raise SystemExit(1)
+                try:
+                    _git("-C", str(submodule_path), "checkout", "-B", slug)
+                except subprocess.CalledProcessError as e:
+                    click.echo(e.stderr, err=True)
+                    raise SystemExit(1) from e
 
         click.echo(str(worktree_path))
     except subprocess.CalledProcessError as e:
@@ -361,22 +298,18 @@ def new(slug: str, base: str, session: str) -> None:
 @click.argument("files", nargs=-1, required=True)
 def add_commit(files: tuple[str, ...]) -> None:
     """Stage files and commit with message from stdin."""
-    subprocess.run(["git", "add", *list(files)], check=True)
+    _git("add", *list(files))
 
-    has_staged = (
-        subprocess.run(["git", "diff", "--quiet", "--cached"], check=False).returncode
-        == 1
-    )
+    try:
+        _git("diff", "--quiet", "--cached")
+        has_staged = False
+    except subprocess.CalledProcessError:
+        has_staged = True
 
     if has_staged:
         message = click.get_text_stream("stdin").read()
-        result = subprocess.run(
-            ["git", "commit", "-m", message],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        click.echo(result.stdout.strip())
+        output = _git("commit", "-m", message)
+        click.echo(output)
 
 
 @worktree.command()
@@ -386,27 +319,18 @@ def rm(slug: str) -> None:
     worktree_path = Path(f"wt/{slug}")
 
     if worktree_path.exists():
-        result = subprocess.run(
-            ["git", "-C", str(worktree_path), "status", "--porcelain"],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        if result.stdout.strip():
+        status = _git("-C", str(worktree_path), "status", "--porcelain", check=False)
+        if status:
             click.echo(f"Warning: {slug} has uncommitted changes")
 
-        subprocess.run(
-            ["git", "worktree", "remove", "--force", str(worktree_path)],
-            check=True,
-            capture_output=True,
-        )
+        _git("worktree", "remove", "--force", str(worktree_path))
     else:
-        subprocess.run(["git", "worktree", "prune"], check=True, capture_output=True)
+        _git("worktree", "prune")
 
-    result = subprocess.run(
-        ["git", "branch", "-D", slug], check=False, capture_output=True, text=True
-    )
-    if result.returncode != 0 and "not found" not in result.stderr.lower():
-        click.echo(result.stderr)
+    try:
+        _git("branch", "-D", slug)
+    except subprocess.CalledProcessError as e:
+        if "not found" not in e.stderr.lower():
+            click.echo(e.stderr)
 
     click.echo(f"Removed worktree {slug}")
