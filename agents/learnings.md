@@ -229,12 +229,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Handoff is NOT delegatable — it requires current agent's session context (what happened, what's pending, state transitions)
 - Handoff: do inline (structured update, not complex). Commit: mechanical, can delegate or invoke skill
 - Plan for restart boundary: planning → restart → execution (different sessions, different model tiers)
-## classifyHandoffIfNeeded crashes code-backgrounded agents too
-- Prior belief: Only user-backgrounded agents crash, code-backgrounded agents work fine
-- Evidence: Opus quiet-explore agent (code-launched via Task tool) crashed after 28 tools, 96K tokens
-- Agent wrote output file (18KB) before crashing — partial work recoverable
-- Implication: The bug is not user-vs-code backgrounding; it's a general background agent instability
-- Session RCAs for this issue may need scope expansion
+## classifyHandoffIfNeeded foreground-only bug
+- Bug: `ReferenceError: classifyHandoffIfNeeded is not defined` in Claude Code's SubagentStop processing
+- Affected: v2.1.27 through v2.1.38 (current), NOT fixed
+- Scope: Only `run_in_background=false` Task calls fail. `run_in_background=true` calls succeed (100% correlation across 26 sessions, 238 failures)
+- Severity: Low (cosmetic) — agents complete all work, only status reporting is wrong
+- Workaround: Use `run_in_background=true` for Task calls to avoid the broken code path
+- Prior learning was wrong: "crashes code-backgrounded agents too" — actually the opposite
+- GitHub issues: #22087, #22544 (open, multiple duplicates)
 ## No post-dispatch agent communication
 - Anti-pattern: Launch agent, then try to adjust scope mid-flight via resume
 - Correct pattern: Partition scope completely before launch — no mid-flight messaging available
@@ -277,55 +279,47 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: Cycle 0.6 vet flagged session filtering as UNFIXABLE despite "OUT: Session file filtering (next cycle)" in scope
 - Impact: Creates false positives in UNFIXABLE detection, requires manual judgment to continue
 ## Background agent crash recovery
-- Anti-pattern: Assume crashed agent work is lost
-- Correct pattern: Check for output files and uncommitted changes - agents write reports before crashing
-- Rationale: classifyHandoffIfNeeded crash occurs after main work completes, reports recoverable
+- Anti-pattern: Assume "failed" agent work is lost
+- Correct pattern: Check output files and git diff — agents complete work before classifyHandoffIfNeeded error fires
 - Recovery: Read report for UNFIXABLE, check git diff for changes, commit if work complete
+- Better fix: Use `run_in_background=true` to avoid the error entirely
+## Refactor agent needs quality directives
+- Anti-pattern: Delegate refactoring without quality criteria (deslop, factorization)
+- Correct pattern: Include explicit directives in refactor prompt (deslop principles, factorization requirements)
+- Rationale: Refactor agent focuses on fixing warnings (line limits, complexity), doesn't proactively optimize for token efficiency or duplication
+- Example: Add "Apply deslop principles" and "Factorize duplicated code" to refactor prompts
+- Impact: Without directives, agent splits files mechanically without reducing verbosity or extracting helpers
 - Evidence: Two agents (adf9068, ae87151) crashed this session after completing work successfully
-## Vet UNFIXABLE label misuse
-- Anti-pattern: Labeling "considered and deemed acceptable" judgments as UNFIXABLE
-- Correct pattern: UNFIXABLE means "cannot resolve without user input" or "tried and failed" — not "evaluated and acceptable as-is"
-- Rationale: UNFIXABLE detection protocol requires escalation; false positives from acceptability judgments waste orchestration cycles
-- Example: Cycle 2.3 vet flagged "test name could be more specific" then judged "name accurately describes behavior, 'appends' is clear enough" — should omit issue or mark "acceptable", not UNFIXABLE
-- Impact: Required manual judgment to proceed despite non-blocking issue
-## Phase-boundary vet reviews
-- Anti-pattern: Running vet-fix-agent after every individual step during runbook execution
-- Correct pattern: Run vet-fix-agent only at phase boundaries (after all steps in a phase complete)
-- Rationale: Individual step reviews add overhead without catching integration issues; phase-level reviews assess cumulative work
-- Post-step protocol: git status + precommit validation only (mechanical checks), not full vet review
-- Checkpoint timing: After phase completes, before starting next phase
-## Refactor agent conditional invocation
-- Anti-pattern: Always delegating to refactor agent at phase checkpoints regardless of precommit status
-- Correct pattern: Invoke refactor agent only when precommit reports complexity or lint errors
-- Rationale: If precommit passes, no refactoring needed; refactor agent is for fixing violations, not preventive review
-- Protocol: Run `just precommit` → if passes, proceed to vet checkpoint → if fails, delegate to refactor agent with desloping and factorization guidance
-## Primary source verification for deliverables
-- Anti-pattern: Trusting vet reports, cycle notes, and test passage as proof of deliverable quality
-- Correct pattern: Read every deliverable file directly, evaluate against design spec and explicit quality axes
-- Rationale: Vet may check presence not correctness, tests may be vacuous, reports don't catch path bugs or clarity issues
-- Evidence: Phase 5 vet said "ready" but primary review found 3 path bugs, 13+ SKILL.md issues, vacuous tests, dead code
-- Scope: All production artifacts (code, tests, docs, skills, fragments, config)
-## Comprehensive review prevents false confidence
-- Anti-pattern: Reviewing subset of deliverables (27%) and declaring job complete
-- Correct pattern: Inventory ALL deliverables (production files created/modified), review each against evaluation axes
-- Rationale: Partial review creates false confidence - bugs in unreviewed 73% remain undetected
-- Scope definition: Production artifacts only (exclude plans/, tmp/, reports, design docs)
-- Coverage target: 100% of deliverables, not 100% of lines
-## Type-specific evaluation axes required
-- Anti-pattern: Generic "looks good" assessment without structured evaluation
-- Correct pattern: Define explicit evaluation axes per artifact type (code: 10 axes, tests: 6, docs: 6)
-- Rationale: Without axes, reviews miss categories of issues (vacuity, actionability, efficiency)
-- Implementation: Code needs correctness/completeness/robustness/clarity/efficiency/cohesion/coupling/vacuity/testability/consistency
-- Tests: expressiveness/concision/specificity/pertinence/vacuity/coverage
-- Documentation: clarity/actionability/efficiency/correctness/completeness/consistency
-## Test density review gap
-- Anti-pattern: Review tests for correctness/coverage only, miss density and duplication
-- Correct pattern: Include excess/density sub-criteria for test files: fixture duplication count, boilerplate ratio, signal-to-noise per test, copy-paste patterns
-- Rationale: Tests are production artifacts subject to deslop — 5 implementations of git init, copy-pasted section extraction, near-duplicate assertions waste maintenance budget
-- Evidence: worktree-skill review missed T6-T12 until user prompted for density analysis
-## Behavioral RED over structural
-- Anti-pattern: Writing test that calls new API (missing parameter) → TypeError. Tests API shape, not behavior
-- Correct pattern: Write test against existing API that demonstrates wrong behavior (wrong content, wrong return value)
-- Rationale: Behavioral RED proves the bug exists and the fix resolves it. Structural RED (TypeError, ImportError) only proves the API changed
-- Example: `apply_theirs_resolution(files)` post-commit — behavioral RED shows content unchanged (merged instead of theirs), not TypeError from missing `source` param
-- Design consequence: Auto-detection (MERGE_HEAD check inside function) keeps API stable, enabling same test signature for RED and GREEN
+## Script-validated metadata must be script-generated
+- Anti-pattern: Script validates for metadata presence but expects expansion agents (cognitive) to generate it
+- Correct pattern: If metadata is deterministic and standard, script injects it during assembly
+- Example: prepare-runbook.py validated "stop/error conditions" per cycle, but neither expansion agents nor Common Context provided it. Fix: script injects DEFAULT_TDD_COMMON_CONTEXT during phase file assembly
+- Principle: Follows "always script non-cognitive solutions" — deterministic metadata injection beats relying on agent compliance
+## Sub-agents cannot spawn sub-agents
+- Anti-pattern: Assuming delegated agents can use Task tool to spawn their own sub-agents
+- Correct pattern: Task tool is unavailable in sub-agents. All delegation must originate from main session.
+- Also unavailable: MCP tools (Context7), hooks
+- Available: Read, Grep, Glob, Bash, Write, Edit (direct tool use only)
+- Confirmed: claude-code-guide agent, GitHub issue #4182
+- Impact: Planning orchestration impractical — design generation needs exploration sub-agents + MCP
+## Submodule worktree over --reference clone
+- Anti-pattern: `git submodule update --init --reference` creates independent clone with alternates — commits in worktree submodule invisible to main
+- Correct pattern: `git -C agent-core worktree add <path> <branch>` shares single object store, bidirectional commit visibility
+- Worktree removal order: submodule worktree first, then parent (git refuses parent removal while submodule worktree exists)
+- wt-merge fetch becomes no-op: objects already shared, guard with `cat-file -e` before fetching
+- Supersedes: "Git worktree submodule gotchas" learning (--reference approach)
+## git branch -m .git/config write
+- Anti-pattern: Running `git branch -m` in sandbox — fails writing `[branch "X"]` tracking section to .git/config
+- Correct pattern: `git branch -m` requires `dangerouslyDisableSandbox: true` (writes to .git/config even when no tracking section exists)
+- Partial failure mode: ref renamed successfully but config write fails — retry sees "branch not found"
+- Scope: Most git commands only read .git/config; `branch -m` is an exception
+## Worktree sibling isolation for CLAUDE.md
+- Anti-pattern: Worktrees inside repo (`wt/<slug>`) — Claude CLI loads CLAUDE.md from all parent directories
+- Correct pattern: Worktrees in sibling directory (`../<repo>-wt/<slug>`) — no parent CLAUDE.md inheritance
+- Container detection: If parent dir ends in `-wt`, already in container (siblings); otherwise create `<repo>-wt/`
+- Sandbox: Register container in `.permissions.additionalDirectories` in both main and worktree settings.local.json
+## Generic headers break index
+- Anti-pattern: `## Definition` as header — becomes useless index key, no discovery value
+- Correct pattern: Include the domain noun in the header — `## Deliverable Definition` not `## Definition`
+- Rationale: Index keys are exact lowercase match of header text; generic words match nothing useful
+- Scope: Any semantic (non-dot-prefixed) header in `agents/decisions/` files

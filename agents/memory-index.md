@@ -97,7 +97,7 @@ Success metrics — all tests pass, no regressions, clear errors, complete docum
 
 ## agents/decisions/deliverable-review.md
 
-Definition — deliverable as production artifact, review unit, identification from repo diff, gap analysis
+Deliverable definition — artifact types review axes ISO-grounded identification process
 
 ## agents/decisions/implementation-notes.md
 

@@ -11,7 +11,6 @@ from anthropic import Anthropic
 from pytest_mock import MockerFixture
 
 from claudeutils.tokens import ModelId
-from tests.conftest_git import init_repo
 
 
 # API Key Management
@@ -281,8 +280,18 @@ def repo_with_submodule(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
-    # Initialize main repo (no initial commit, will be customized below)
-    init_repo(repo_path, with_commit=False)
+    # Initialize main repo
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"], check=True, capture_output=True
+    )
+
+    # Create initial commit
     (repo_path / "README.md").write_text("test")
     subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
     subprocess.run(
@@ -292,7 +301,19 @@ def repo_with_submodule(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path
     # Initialize submodule (agent-core)
     submodule_path = repo_path / "agent-core"
     submodule_path.mkdir()
-    init_repo(submodule_path, with_commit=False)
+    subprocess.run(["git", "init"], cwd=submodule_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=submodule_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=submodule_path,
+        check=True,
+        capture_output=True,
+    )
     (submodule_path / "README.md").write_text("submodule")
     subprocess.run(
         ["git", "add", "README.md"], cwd=submodule_path, check=True, capture_output=True

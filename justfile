@@ -56,6 +56,273 @@ line-limits:
     run-line-limits
     report-end-safe "Line limits"
 
+# Create a git worktree for parallel work
+[no-exit-message]
+wt-new name base="HEAD" session="":
+    #!{{ bash_prolog }}
+    slug="{{name}}"
+    branch="$slug"
+    wt_dir=$(wt-path "$slug")
+    if [ -d "$wt_dir" ]; then
+        fail "Worktree already exists: $wt_dir"
+    fi
+    mkdir -p "$(dirname "$wt_dir")"
+    branch_exists=false
+    if git rev-parse --verify "$branch" >/dev/null 2>&1; then
+        branch_exists=true
+    fi
+    if [ "$branch_exists" = true ]; then
+        # Use existing branch
+        if [ -n "{{session}}" ]; then
+            echo "${RED}Warning: session= ignored for existing branch${NORMAL}" >&2
+        fi
+        visible git worktree add "$wt_dir" "$branch"
+    elif [ -n "{{session}}" ]; then
+        # Pre-commit focused session.md to branch before worktree creation
+        blob=$(git hash-object -w "{{session}}")
+        tmp_index=$(mktemp -p tmp/)
+        trap "rm -f '$tmp_index'" EXIT ERR
+        GIT_INDEX_FILE="$tmp_index" git read-tree "{{base}}"
+        GIT_INDEX_FILE="$tmp_index" git update-index --cacheinfo "100644,$blob,agents/session.md"
+        new_tree=$(GIT_INDEX_FILE="$tmp_index" git write-tree)
+        rm -f "$tmp_index"
+        trap - EXIT ERR
+        new_commit=$(git commit-tree "$new_tree" -p "$(git rev-parse "{{base}}")" -m "Focused session for $slug")
+        git branch "$branch" "$new_commit"
+        visible git worktree add "$wt_dir" "$branch"
+    else
+        visible git worktree add "$wt_dir" -b "$branch" "{{base}}"
+    fi
+    # Submodule: create worktree (shared object store) instead of --reference clone
+    submodule_branch_exists=false
+    if git -C agent-core rev-parse --verify "$branch" >/dev/null 2>&1; then
+        submodule_branch_exists=true
+    fi
+    if [ "$submodule_branch_exists" = true ]; then
+        visible git -C agent-core worktree add "$wt_dir/agent-core" "$branch"
+    else
+        visible git -C agent-core worktree add "$wt_dir/agent-core" -b "$branch"
+    fi
+    # Register container directory in sandbox permissions
+    wt_container="$(dirname "$wt_dir")"
+    add-sandbox-dir "$wt_container" .claude/settings.local.json
+    add-sandbox-dir "$wt_container" "$wt_dir/.claude/settings.local.json"
+    # Set up development environment in worktree
+    if (cd "$wt_dir" && just --summary 2>/dev/null | tr ' ' '\n' | grep -qx setup); then
+        (cd "$wt_dir" && just setup)
+    else
+        (cd "$wt_dir" && direnv allow && uv sync -q && npm install)
+    fi
+    echo ""
+    echo "${GREEN}✓${NORMAL} Worktree ready: $wt_dir"
+    echo "  Launch: ${COMMAND}cd $wt_dir && claude${NORMAL}"
+
+# Create worktree with focused session for a specific task
+[no-exit-message]
+wt-task name task_name base="HEAD":
+    #!{{ bash_prolog }}
+    focused_session="tmp/wt-{{name}}-session.md"
+    mkdir -p tmp
+    # Generate focused session inline (focus-session.py not yet implemented)
+    echo "# Session: Worktree — {{task_name}}" > "$focused_session"
+    echo "" >> "$focused_session"
+    echo "**Status:** Focused worktree for parallel execution." >> "$focused_session"
+    echo "" >> "$focused_session"
+    echo "## Pending Tasks" >> "$focused_session"
+    echo "" >> "$focused_session"
+    # Extract task from session.md
+    grep -A5 "^- \[ \] \*\*{{task_name}}\*\*" agents/session.md >> "$focused_session" || \
+        fail "Task not found in agents/session.md: {{task_name}}"
+    just wt-new "{{name}}" "{{base}}" "$focused_session"
+    rm -f "$focused_session"
+
+# List active git worktrees
+wt-ls:
+    @claudeutils _worktree ls
+
+# Remove a git worktree and its branch
+[no-exit-message]
+wt-rm name:
+    #!{{ bash_prolog }}
+    slug="{{name}}"
+    branch="$slug"
+    wt_dir=$(wt-path "$slug")
+    # Check if worktree exists (branch-only cleanup is valid)
+    if [ -d "$wt_dir" ]; then
+        # Warn about uncommitted changes
+        if [ -d "$wt_dir/.git" ] && ! (cd "$wt_dir" && git diff --quiet HEAD 2>/dev/null); then
+            echo "${RED}Warning: $wt_dir has uncommitted changes${NORMAL}" >&2
+        fi
+
+        # Probe: is parent worktree registered?
+        parent_registered=false
+        if git worktree list | grep -q "$wt_dir"; then
+            parent_registered=true
+        fi
+
+        # Probe: is submodule worktree registered?
+        submodule_registered=false
+        if [ -d "$wt_dir/agent-core" ] && git -C agent-core worktree list | grep -q "$wt_dir/agent-core"; then
+            submodule_registered=true
+        fi
+
+        # Remove submodule worktree first (git refuses parent removal while submodule worktree exists)
+        if [ "$submodule_registered" = true ] && [ -d "$wt_dir/agent-core" ]; then
+            visible git -C agent-core worktree remove --force "$wt_dir/agent-core"
+        fi
+        if [ "$parent_registered" = true ]; then
+            visible git worktree remove --force "$wt_dir"
+        fi
+
+        # Remove directory if still exists (orphaned or git failed)
+        if [ -d "$wt_dir" ]; then
+            rm -rf "$wt_dir"
+        fi
+
+        # Verify cleanup succeeded
+        if [ -d "$wt_dir" ]; then
+            echo "${RED}Sandbox blocked worktree removal${NORMAL}" >&2
+            echo "Retry with: Bash(\"just wt-rm $slug\", dangerouslyDisableSandbox=true)" >&2
+            exit 1
+        fi
+    fi
+    # Remove empty container directory
+    wt_parent="$(dirname "$wt_dir")"
+    if [ -d "$wt_parent" ] && [ -z "$(ls -A "$wt_parent")" ]; then
+        rmdir "$wt_parent"
+    fi
+    # Remove branch if exists
+    if git rev-parse --verify "$branch" >/dev/null 2>&1; then
+        visible git branch -d "$branch" || \
+            echo "${RED}Branch $branch has unmerged changes. Use: git branch -D $branch${NORMAL}" >&2
+    fi
+    echo "${GREEN}✓${NORMAL} Worktree removed: $wt_dir"
+
+# Merge a worktree branch back and resolve submodule + session.md
+[no-exit-message]
+wt-merge name:
+    #!{{ bash_prolog }}
+    slug="{{name}}"
+    branch="$slug"
+    wt_dir=$(wt-path "$slug")
+
+    # Pre-checks: Clean tree (exempt session files)
+    session_exempt="agents/session.md agents/jobs.md agents/learnings.md"
+    dirty=$(git status --porcelain | grep -vE "^.. ($(echo "$session_exempt" | tr ' ' '|'))$" || true)
+    if [ -n "$dirty" ]; then
+        echo "${RED}Dirty tree (non-session files):${NORMAL}" >&2
+        echo "$dirty" >&2
+        fail "Clean tree required for merge"
+    fi
+    submodule_dirty=$(git -C agent-core status --porcelain | grep -vE "^.. ($(echo "$session_exempt" | tr ' ' '|'))$" || true)
+    if [ -n "$submodule_dirty" ]; then
+        echo "${RED}Dirty agent-core submodule:${NORMAL}" >&2
+        echo "$submodule_dirty" >&2
+        fail "Clean tree required for merge"
+    fi
+
+    if ! git rev-parse --verify "$branch" >/dev/null 2>&1; then
+        fail "Branch not found: $branch"
+    fi
+    if [ ! -d "$wt_dir" ]; then
+        echo "${RED}Warning: worktree directory not found: $wt_dir${NORMAL}" >&2
+    fi
+
+    # Phase 2: Submodule Resolution
+    wt_commit=$(git ls-tree "$branch" -- agent-core | awk '{print $3}')
+    local_commit=$(git -C agent-core rev-parse HEAD)
+    if [ "$wt_commit" != "$local_commit" ]; then
+        # Check ancestry
+        if ! git -C agent-core merge-base --is-ancestor "$wt_commit" "$local_commit" 2>/dev/null; then
+            # Fetch submodule commits if not already reachable (no-op for worktree-based submodules)
+            if ! git -C agent-core cat-file -e "$wt_commit" 2>/dev/null; then
+                if [ -d "$wt_dir/agent-core" ]; then
+                    visible git -C agent-core fetch "$wt_dir/agent-core" HEAD
+                fi
+            fi
+            # Merge
+            if ! visible git -C agent-core merge --no-edit "$wt_commit"; then
+                echo "${RED}Submodule merge conflict in agent-core${NORMAL}" >&2
+                fail "Resolve in agent-core/, commit, then re-run: just wt-merge $slug"
+            fi
+            # Stage and commit
+            visible git add agent-core
+            git diff --quiet --cached || visible git commit -m "🔀 Merge agent-core from $slug"
+        fi
+    fi
+
+    # Phase 3: Parent Merge
+    if ! git merge --no-commit --no-ff "$branch" 2>&1; then
+        conflicts=$(git diff --name-only --diff-filter=U)
+
+        # agent-core: keep ours (already merged in Phase 2)
+        if echo "$conflicts" | grep -q "^agent-core$"; then
+            visible git checkout --ours agent-core
+            visible git add agent-core
+        fi
+
+        # Session files: extract tasks from theirs before keeping ours
+        if echo "$conflicts" | grep -q "^agents/session.md$"; then
+            # Extract new tasks from worktree side
+            theirs_tasks=$(git show :3:agents/session.md | grep -oP "^- \[ \] \*\*\K[^*]+" || true)
+            ours_tasks=$(git show :2:agents/session.md | grep -oP "^- \[ \] \*\*\K[^*]+" || true)
+
+            # Keep ours as base
+            visible git checkout --ours agents/session.md
+
+            # Append new tasks if any (simplified - just warns for now)
+            if [ -n "$theirs_tasks" ]; then
+                echo "${RED}Warning: Manual task extraction needed from worktree session.md${NORMAL}" >&2
+                echo "  New tasks in worktree: $theirs_tasks" >&2
+            fi
+
+            visible git add agents/session.md
+        fi
+
+        # learnings.md: keep both (append theirs to ours)
+        if echo "$conflicts" | grep -q "^agents/learnings.md$"; then
+            # Simplified: just keep ours for now (full logic needs parsing)
+            echo "${RED}Warning: Manual learning merge needed${NORMAL}" >&2
+            visible git checkout --ours agents/learnings.md
+            visible git add agents/learnings.md
+        fi
+
+        # jobs.md: keep ours with status advancement
+        if echo "$conflicts" | grep -q "^agents/jobs.md$"; then
+            # Simplified: just keep ours for now (full logic needs parsing)
+            echo "${RED}Warning: Manual jobs.md merge needed${NORMAL}" >&2
+            visible git checkout --ours agents/jobs.md
+            visible git add agents/jobs.md
+        fi
+
+        # Check for any remaining conflicts
+        remaining=$(git diff --name-only --diff-filter=U)
+        if [ -n "$remaining" ]; then
+            echo "${RED}Unresolved conflicts after auto-resolution:${NORMAL}" >&2
+            echo "$remaining" >&2
+            git merge --abort
+            # Clean up merge debris
+            git clean -fd -- agents/ src/ tests/ || true
+            fail "Manual conflict resolution required"
+        fi
+    fi
+
+    # Commit merge
+    visible git commit -m "🔀 Merge $slug"
+
+    # Post-merge precommit gate
+    echo ""
+    echo "Running precommit validation..."
+    if ! just precommit >/dev/null 2>&1; then
+        echo "${RED}Precommit failed after merge${NORMAL}" >&2
+        echo "  Fix issues and amend: git commit --amend" >&2
+        exit 1
+    fi
+
+    echo ""
+    echo "${GREEN}✓${NORMAL} Merged $branch"
+    echo "  Cleanup: ${COMMAND}just wt-rm $slug${NORMAL}"
+
 # Format, check with complexity disabled, test
 [no-exit-message]
 lint: format
@@ -249,6 +516,15 @@ end-safe () { ${status:-true}; }
 show () { echo "$COMMAND$*$NORMAL"; }
 visible () { show "$@"; "$@"; }
 fail () { echo "${ERROR}$*${NORMAL}"; exit 1; }
+wt-path() {
+    local parent
+    parent="$(cd .. && basename "$PWD")"
+    if [[ "$parent" == *-wt ]]; then
+        echo "$(cd .. && pwd)/$1"
+    else
+        echo "$(cd .. && pwd)/$(basename "$PWD")-wt/$1"
+    fi
+}
 add-sandbox-dir() {
     local dir="$1" settings="$2"
     mkdir -p "$(dirname "$settings")"
