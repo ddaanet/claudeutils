@@ -178,6 +178,7 @@ user-invocable: true
 - Replace all review delegations with plan-reviewer
 - Remove mode-specific language ("TDD runbook" / "general runbook" → "runbook")
 - Add per-phase type model explanation at top
+- Migrate `plan-tdd/references/` directory to `plan/references/` (patterns.md, anti-patterns.md, error-handling.md, examples.md — TDD cycle planning guidance references these)
 
 **Key differences from either source:**
 - Phase 1 expansion reads phase type tag, applies appropriate format
@@ -336,7 +337,7 @@ Plus:
 
 **Changes:**
 
-1. **Prerequisites** (line 14): Change "prepared with `/plan-adhoc` skill" → "prepared with `/plan` skill"
+1. **Prerequisites and routing** (lines 14, 25): Change "prepared with `/plan-adhoc` skill" and "use `/plan-adhoc` first" → "prepared with `/plan` skill" and "use `/plan` first"
 
 2. **Section 6: Completion** (lines 248-271): Unify completion behavior
 
@@ -360,7 +361,7 @@ Plus:
 
 3. **Integration with Workflows** (lines 405-426): Update references from `/plan-adhoc` and `/plan-tdd` to `/plan`
 
-4. **Error escalation** (line 166): Reference plan-reviewer for quality escalation
+4. **Weak Orchestrator Pattern** (line 285): Update "All decisions made during planning (/plan-adhoc)" → "All decisions made during planning (/plan)"
 
 ### Modified: `agent-core/skills/design/SKILL.md`
 
@@ -447,7 +448,8 @@ See `agent-core/fragments/vet-requirement.md` for full template and rationale.
 - `agent-core/bin/prepare-runbook.py` — already handles both types via header detection
 - `agent-core/agents/vet-fix-agent.md` — no changes
 - `agent-core/agents/vet-agent.md` — no changes
-- `agent-core/agents/runbook-outline-review-agent.md` — already handles both types
+- `agent-core/agents/runbook-outline-review-agent.md` — already handles both types (description references updated)
+- `agent-core/agents/review-tdd-process.md` — still used for TDD orchestration completion
 
 ### Reference Updates
 
@@ -457,10 +459,18 @@ All references to `/plan-tdd`, `/plan-adhoc`, or `tdd-plan-reviewer` must be upd
 |------|--------|
 | `CLAUDE.md` | @-reference to workflows-terminology.md (auto-updated) |
 | `agent-core/fragments/workflows-terminology.md` | Rewritten (see above) |
+| `agent-core/fragments/execute-rule.md` | Task metadata example uses `/plan-adhoc` |
+| `agent-core/fragments/continuation-passing.md` | Examples and continuation table reference both skills |
 | `agent-core/skills/design/SKILL.md` | Mode detection, routing |
 | `agent-core/skills/orchestrate/SKILL.md` | Prerequisites, completion, workflow refs |
-| `agent-core/agents/runbook-outline-review-agent.md` | Description mentions plan-adhoc/plan-tdd (line 4) |
+| `agent-core/skills/vet/SKILL.md` | Workflow reference to `/plan-adhoc` |
+| `agent-core/agents/runbook-outline-review-agent.md` | Description mentions plan-adhoc/plan-tdd (line 4, line 60, line 144) |
+| `agent-core/agents/review-tdd-process.md` | Workflow reference to `/plan-tdd` |
 | `agent-core/skills/review-plan/SKILL.md` | Internal references to /plan-tdd |
+| `agent-core/skills/handoff-haiku/SKILL.md` | Task example uses `/plan-adhoc` |
+| `agent-core/docs/tdd-workflow.md` | Multiple references to `/plan-tdd` throughout |
+| `agent-core/docs/general-workflow.md` | Multiple references to `/plan-adhoc` throughout |
+| `agent-core/README.md` | Directory listing references plan-adhoc/ and plan-tdd/ |
 | `agent-core/bin/prepare-runbook.py` | Baseline detection references (if any agent name refs) |
 | Symlinks in `.claude/` | `just sync-to-parent` after skill/agent directory changes |
 
@@ -534,6 +544,6 @@ Both TDD and general paths delegate to vet-fix-agent. TDD additionally runs revi
 
 ## Next Steps
 
-1. `/plan-adhoc plans/workflow-fixes/design.md` — create execution runbook
+1. `/plan-adhoc plans/workflow-fixes/design.md` — create execution runbook (last adhoc invocation before unification)
 2. Execute with opus for architectural artifacts (skill/agent definitions)
 3. After execution: `just sync-to-parent`, `just precommit`, manual validation

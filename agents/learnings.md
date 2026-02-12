@@ -349,3 +349,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Rationale: Each transformation can introduce specific defect types. Review gates must check for those specific defects, not generic quality
 - Example: T3 (outline → phase expansion) introduces vacuity/density. Current gate checks TDD discipline (wrong criteria) or routes to vet-fix-agent (wrong agent)
 - Key insight: Only inline recommendations propagate (Expansion Guidance pattern). Report recommendations are write-only dead-ends
+## Unify over patch architectural gaps
+- Anti-pattern: Patching G1-G7 individually within bifurcated architecture (/plan-tdd + /plan-adhoc)
+- Correct pattern: When >50% of code is shared and gaps trace to the bifurcation itself, unify first
+- Rationale: Patches add complexity to maintain; unification removes the root cause (6 of 7 gaps dissolved)
+- Decision catalyst: User observed real runbooks have mixed TDD + non-TDD phases — binary choice is artificial
+## Per-phase typing over per-runbook
+- Anti-pattern: Forcing entire runbook to be TDD or general
+- Correct pattern: Per-phase type tagging — each phase tagged `type: tdd` or `type: general`
+- Rationale: Real work mixes behavioral code (TDD) with infrastructure (general). Worktree runbook had TDD cycles for skill updates — wasteful
+- Per-step is over-granular (wouldn't mix within a phase), per-runbook forces binary choice

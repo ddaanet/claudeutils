@@ -1,48 +1,44 @@
 # Session Handoff: 2026-02-12
 
-**Status:** Workflow pipeline redesign outline complete (Phase A+B). Supersedes previous 10-artifact patch approach. 7 structural gaps identified, 3 open questions await user input before Phase C (full design).
+**Status:** Workflow pipeline unification design complete. Ready for planning: `/plan-adhoc plans/workflow-fixes/design.md`
 
 ## Completed This Session
 
-### Design: Workflow pipeline redesign (Phase A+B, second iteration)
+### Design: Workflow pipeline unification (Phase A+B+C complete)
 
-**Scope expansion:** User requested complete dataflow/control flow audit of /design, /plan-tdd, /plan-adhoc, /orchestrate — not just 10 artifact patches. Previous outline superseded.
+**Scope evolution across sessions:**
+1. Prior session: 10-artifact patch approach → superseded by pipeline analysis (G1-G7)
+2. This session: G1-G7 gap patches → superseded by unification after user identified root cause
 
-**Analysis performed:**
-- Read all 4 core skill files (plan-adhoc 1136 lines, plan-tdd 1052 lines, orchestrate 475 lines, design loaded via /design invocation)
-- Read all 4 review agent definitions (tdd-plan-reviewer, vet-fix-agent, vet-agent, runbook-outline-review-agent)
-- Read review-tdd-plan skill (456 lines)
-- Mapped pipeline as 6 transformations (T1-T6) with defect types and review gates
+**Root cause insight:** The bifurcation (/plan-tdd vs /plan-adhoc) forces a binary choice on mixed work. 75% of skill content is identical. Most gaps (G1-G5, G7) trace to having two parallel paths with inconsistent review gates.
 
-**Key finding:** T3 (outline → phase expansion) is the critical gap. All 4 LLM failure modes can be re-introduced during expansion, but the review gate either checks wrong criteria (TDD: prescriptive code only) or routes to wrong agent (adhoc: vet-fix-agent rejects planning artifacts).
+**Design approach:** Unified `/plan` skill with per-phase type tagging. Each phase tagged `type: tdd` or `type: general`. Mixed runbooks supported — behavioral phases get RED/GREEN cycles, infrastructure phases get task steps.
 
-**7 gaps identified:**
-- G1: Adhoc phase review routes to vet-fix-agent which rejects planning artifacts
-- G2: Autofix contradiction (agent fixes, then planner re-fixes)
-- G3: No LLM failure mode re-validation after expansion
-- G4: Report recommendations not consumed downstream (only Expansion Guidance works)
-- G5: Agent name ambiguity ("vet agent" unspecified)
-- G6: Missing scope IN/OUT context in review delegations
-- G7: Orchestrate general completion doesn't actually vet
+**Key decisions:**
+- D1: Per-phase granularity (not per-runbook or per-step)
+- D2: Clean rename tdd-plan-reviewer → plan-reviewer (v0.0, no aliases)
+- D3: Fix-all pattern eliminates recommendation dead-ends
+- D4: Centralized pipeline contracts in `agents/decisions/pipeline-contracts.md`
+- D5: LLM failure mode criteria in review-plan skill (four axes, all phase types)
+- D6: Outline sufficiency for TDD (<3 phases AND <10 cycles)
+- D7: Orchestrate completion unified (both types vet, resolves G7)
 
-**Research grounding:** Four axes from `agents/decisions/runbook-review.md` (Jiang 2024, Fan 2025, Mathews 2024, Microsoft 2025) connect to G3 — vacuity, ordering, density, checkpoints.
-
-**Outline written:** `plans/workflow-fixes/outline.md` — reviewed by outline-review-agent (Ready, 2 major + 4 minor fixed)
+**Artifacts:**
+- Design: `plans/workflow-fixes/design.md` — vetted by opus (3 major + 4 minor, all fixed)
+- Outline: `plans/workflow-fixes/outline.md` — reviewed (Ready)
+- Exploration: `plans/workflow-fixes/reports/explore-plan-unification.md` — 75% structural overlap evidence
 
 ### Prior work preserved
 
-- LLM failure mode integration into tdd-plan-reviewer (implemented via this design)
-- Manual runbook review findings (report at `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`)
-- Exploration reports still valid for reference
+- Pipeline analysis (T1-T6 transformations, G1-G7 gaps) — incorporated into design rationale
+- LLM failure mode methodology from `agents/decisions/runbook-review.md` — integrated into review-plan skill spec
 
 ## Pending Tasks
 
-- [ ] **Complete workflow pipeline redesign** — Answer 3 open questions, then Phase C (full design) → `/plan-adhoc` | opus
-  - Outline: `plans/workflow-fixes/outline.md`
-  - Open Q1: Agent rename (tdd-plan-reviewer → plan-reviewer) — acceptable churn or keep name?
-  - Open Q2: Edit precision for plan-adhoc (exact locations or semantic descriptions)?
-  - Open Q3: I/O contracts location (embedded in skills or central decision doc)?
-  - After design: `/plan-adhoc` → execute with opus for skill/agent edits
+- [ ] **Execute workflow pipeline unification** — `/plan-adhoc plans/workflow-fixes/design.md` (last adhoc before unification) | opus
+  - Design: `plans/workflow-fixes/design.md`
+  - Build order: pipeline-contracts → review-plan skill → plan-reviewer agent → unified /plan skill → update design/orchestrate/terminology → reference sweep → sync-to-parent → delete deprecated
+  - Execution model: opus for architectural artifacts (skill/agent definitions)
 
 - [ ] **Fix worktree-update runbook** — Apply findings from LLM failure mode review | sonnet
   - Report: `plans/worktree-update/reports/runbook-review-llm-failure-modes.md`
@@ -56,11 +52,11 @@
 
 - [ ] **RCA: Vet-fix-agent UNFIXABLE labeling** — Analyze why agent labeled stylistic judgment as UNFIXABLE | sonnet
 
-- [ ] **Consolidate learnings** — learnings.md at 319+ lines (soft limit 80), 0 entries ≥7 days | sonnet
+- [ ] **Consolidate learnings** — learnings.md at 350 lines (soft limit 80) | sonnet
 
 - [ ] **Remove duplicate memory index entries on precommit** — Autofix or fail on duplicate index entries | sonnet
 
-- [ ] **Update design skill** — Two refinements: (1) TDD non-code steps marked non-TDD; (2) Phase C density checkpoint | sonnet
+- [ ] **Update design skill** — Phase C density checkpoint (TDD non-code marking now handled by per-phase typing) | sonnet
 
 - [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate memory in main repo or dedicated consolidation worktree | sonnet
 
@@ -75,17 +71,17 @@
 - `agents/decisions/deliverable-review.md` — ISO-grounded, use this one
 
 **Learnings.md over soft limit:**
-- 319+ lines, 54 entries, 0 entries ≥7 days — consolidation deferred until entries age
+- 350 lines, ~55 entries — consolidation deferred until entries age (≥7 active days required)
 
-**Exploration agents can produce false findings:**
-- quiet-explore reported plan-tdd reference files as "not found" when they exist
-- Always verify file existence claims from exploration reports
+**Design skill "Update design skill" task note:**
+- The TDD non-code steps refinement is now addressed by per-phase typing. Only Phase C density checkpoint remains.
 
 ## Reference Files
 
-- `plans/workflow-fixes/outline.md` — Pipeline redesign outline (7 gaps, 3 decisions, transformation table)
-- `plans/workflow-fixes/reports/outline-review.md` — Outline review (Ready, 2 major + 4 minor fixed)
-- `plans/workflow-fixes/reports/explore-target-artifacts.md` — Artifact exploration (10 issues, prior iteration)
-- `plans/workflow-fixes/reports/explore-audit-overlap.md` — Workflow-skills-audit overlap
-- `plans/worktree-update/reports/runbook-review-llm-failure-modes.md` — LLM failure mode review (8 findings)
-- `agents/decisions/runbook-review.md` — LLM failure mode methodology (four axes, research citations)
+- `plans/workflow-fixes/design.md` — Unification design (vetted by opus)
+- `plans/workflow-fixes/outline.md` — Unification outline (reviewed, all questions resolved)
+- `plans/workflow-fixes/reports/design-review.md` — Opus design review (3 major + 4 minor, all fixed)
+- `plans/workflow-fixes/reports/outline-review-v2.md` — Outline review v2 (Ready)
+- `plans/workflow-fixes/reports/explore-plan-unification.md` — Structural overlap analysis (75% shared)
+- `plans/worktree-update/reports/runbook-review-llm-failure-modes.md` — LLM failure mode review
+- `agents/decisions/runbook-review.md` — LLM failure mode methodology (four axes)
