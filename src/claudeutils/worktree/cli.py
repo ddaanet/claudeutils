@@ -144,6 +144,42 @@ def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
         json.dump(settings, f, indent=2, ensure_ascii=False)
 
 
+def initialize_environment(worktree_path: Path) -> None:
+    """Initialize worktree environment via just setup.
+
+    Handles graceful failure if just is unavailable or setup fails.
+    """
+    try:
+        result = subprocess.run(
+            ["just", "--version"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        just_available = result.returncode == 0
+    except FileNotFoundError:
+        just_available = False
+
+    if just_available:
+        result = subprocess.run(
+            ["just", "setup"],
+            cwd=worktree_path,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            click.echo(
+                f"Warning: just setup failed in {worktree_path}: {result.stderr}",
+                err=True,
+            )
+    else:
+        click.echo(
+            "Warning: just command not found, skipping setup step",
+            err=True,
+        )
+
+
 @click.group(name="_worktree")
 def worktree() -> None:
     """Manage git worktrees."""
@@ -313,6 +349,8 @@ def new(slug: str, base: str, session: str) -> None:
         add_sandbox_dir(
             str(container_path), f"{worktree_path}/.claude/settings.local.json"
         )
+
+        initialize_environment(worktree_path)
 
         click.echo(str(worktree_path))
     except subprocess.CalledProcessError as e:

@@ -11,11 +11,7 @@ from claudeutils.worktree.cli import worktree
 
 
 def _init_git_repo(repo_path: Path) -> None:
-    """Initialize a basic git repository.
-
-    Args:
-        repo_path: Root directory for the git repository.
-    """
+    """Initialize a basic git repository."""
     subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
@@ -32,11 +28,7 @@ def _init_git_repo(repo_path: Path) -> None:
 
 
 def _setup_repo_with_submodule(repo_path: Path) -> None:
-    """Set up a test repo with a simulated submodule (gitlink).
-
-    Args:
-        repo_path: Root directory for the test repository.
-    """
+    """Set up a test repo with a simulated submodule (gitlink)."""
     _init_git_repo(repo_path)
 
     # Create initial commit
@@ -234,13 +226,7 @@ def test_new_basic_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
 def test_new_command_sibling_paths(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Create worktree at sibling -wt paths and reuse existing branches.
-
-    - Worktree at <repo>-wt/slug not wt/slug
-    - Container directory created if needed
-    - Existing branches reused (no -b flag)
-    - New branches created with -b flag
-    """
+    """Verify worktree sibling paths and branch reuse."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -303,7 +289,7 @@ def test_new_command_sibling_paths(
 def test_new_sandbox_registration(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Verify sandbox registration for both main and worktree settings files."""
+    """Verify sandbox registration for both settings files."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -325,7 +311,6 @@ def test_new_sandbox_registration(
     container_path = tmp_path / "repo-wt"
     worktree_path = container_path / "test-feature"
 
-    # Check main repo settings file exists and contains container path
     main_settings = repo_path / ".claude" / "settings.local.json"
     assert main_settings.exists(), "Main settings file should exist"
 
@@ -337,7 +322,6 @@ def test_new_sandbox_registration(
         f"Container path {container_path} should be in main settings"
     )
 
-    # Check worktree settings file exists and contains container path
     wt_settings = worktree_path / ".claude" / "settings.local.json"
     assert wt_settings.exists(), "Worktree settings file should exist"
 
@@ -349,11 +333,8 @@ def test_new_sandbox_registration(
         f"Container path {container_path} should be in worktree settings"
     )
 
-    # Verify both paths are absolute
-    assert container_path.is_absolute(), "Container path should be absolute in main"
-    assert container_path.is_absolute(), "Container path should be absolute in worktree"
+    assert container_path.is_absolute()
 
-    # Test deduplication: run command again (creates another worktree in same container)
     container_path / "test-feature-2"
     result = runner.invoke(worktree, ["new", "test-feature-2"])
     assert result.exit_code == 0
@@ -367,3 +348,52 @@ def test_new_sandbox_registration(
     # Count occurrences of container path - should still be 1 (deduplication works)
     count = dirs_after.count(str(container_path))
     assert count == 1, f"Container path should appear exactly once, found {count}"
+
+
+def test_new_environment_initialization(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify environment initialization via just setup."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    _init_git_repo(repo_path)
+
+    (repo_path / "README.md").write_text("test")
+    subprocess.run(["git", "add", "README.md"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"], check=True, capture_output=True
+    )
+
+    original_run = subprocess.run
+    calls: list[tuple[list[str], dict[str, object]]] = []
+
+    def mock_run(args, **kwargs) -> subprocess.CompletedProcess[str]:  # noqa: ANN001, ANN003
+        calls.append((args, kwargs))
+        if args == ["just", "--version"]:
+            return subprocess.CompletedProcess(
+                args=args, returncode=0, stdout="just 1.0\n", stderr=""
+            )
+        if args == ["just", "setup"]:
+            return subprocess.CompletedProcess(
+                args=args, returncode=0, stdout="", stderr=""
+            )
+        return original_run(args, **kwargs)
+
+    monkeypatch.setattr("claudeutils.worktree.cli.subprocess.run", mock_run)
+
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["new", "test-setup"])
+
+    assert result.exit_code == 0
+
+    container_path = tmp_path / "repo-wt"
+    worktree_path = container_path / "test-setup"
+    assert worktree_path.exists()
+
+    just_version_calls = [c for c in calls if c[0] == ["just", "--version"]]
+    assert len(just_version_calls) > 0
+    just_setup_calls = [c for c in calls if c[0] == ["just", "setup"]]
+    assert len(just_setup_calls) > 0
+    assert any(c[1].get("cwd") == worktree_path for c in just_setup_calls)
