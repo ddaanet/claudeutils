@@ -34,7 +34,14 @@ def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,
 
 
 def derive_slug(task_name: str, max_length: int = 30) -> str:
-    """Transform task name to slug: lowercase, hyphens, truncated to max_length."""
+    """Transform task name to slug: lowercase, hyphens, truncated to max_length.
+
+    Raises ValueError if task_name is empty or whitespace-only.
+    """
+    if not task_name or not task_name.strip():
+        msg = "slug cannot be empty"
+        raise ValueError(msg)
+
     slug = task_name.lower()
     slug = re.sub(r"[^a-z0-9]+", "-", slug)
     slug = slug.strip("-")

@@ -64,6 +64,23 @@ def test_derive_slug() -> None:
     assert derive_slug("A" * 35 + "test") == "a" * 30
 
 
+def test_derive_slug_edge_cases() -> None:
+    """Verify edge cases: special chars, truncation, empty input."""
+    assert derive_slug("feat: add login") == "feat-add-login"
+    assert derive_slug("fix:  space") == "fix-space"
+    assert derive_slug("feature-") == "feature"
+    assert derive_slug("-feature") == "feature"
+    assert derive_slug("Feature-Name") == "feature-name"
+    assert len(derive_slug("a" * 100)) <= 30
+    assert not derive_slug("a" * 100).endswith("-")
+
+    with pytest.raises(ValueError, match="slug cannot be empty"):
+        derive_slug("")
+
+    with pytest.raises(ValueError, match="slug cannot be empty"):
+        derive_slug("   ")
+
+
 def test_ls_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Empty output when no worktrees exist."""
     repo_path = tmp_path / "repo"
