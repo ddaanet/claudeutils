@@ -39,12 +39,12 @@ def _init_repo(repo_path: Path) -> None:
 
 
 def test_package_import() -> None:
-    """Verifies module loads."""
+    """Module loads."""
     assert worktree is not None
 
 
 def test_worktree_command_group() -> None:
-    """Help output includes command group name."""
+    """Help includes command group name."""
     runner = CliRunner()
     result = runner.invoke(worktree, ["--help"])
     assert result.exit_code == 0
@@ -65,7 +65,7 @@ def test_derive_slug() -> None:
 
 
 def test_derive_slug_edge_cases() -> None:
-    """Verify edge cases: special chars, truncation, empty input."""
+    """Edge cases: special chars, truncation, empty input."""
     assert derive_slug("feat: add login") == "feat-add-login"
     assert derive_slug("fix:  space") == "fix-space"
     assert derive_slug("feature-") == "feature"
@@ -141,10 +141,7 @@ def test_ls_multiple_worktrees(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 def test_wt_path_not_in_container(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """wt_path() returns correct container path when repo not in -wt container.
-
-    Verifies absolute path, correct slug, and -wt suffix on parent.
-    """
+    """Returns container path when repo not in -wt container."""
     repo_path = tmp_path / "my-repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -160,11 +157,7 @@ def test_wt_path_not_in_container(
 
 
 def test_wt_path_in_container(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """wt_path() detects when repo is already inside a -wt container.
-
-    When cwd is inside a container, returns sibling path (not nested). Multiple
-    slugs return different paths sharing same container parent.
-    """
+    """Detects repo inside -wt container, returns sibling path."""
     container_path = tmp_path / "my-repo-wt"
     container_path.mkdir()
     repo_path = container_path / "main"
@@ -247,31 +240,24 @@ def test_new_session_precommit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 def test_wt_path_creates_container(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Container directory creation after wt_path(create_container=True)."""
+    """Creates container directory with create_container=True."""
     repo_path = tmp_path / "my-repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
 
     _init_repo(repo_path)
 
-    # Before calling wt_path(), container directory doesn't exist
     container_path = repo_path.parent / "my-repo-wt"
     assert not container_path.exists()
 
-    # After calling wt_path(create_container=True), container directory exists
     result_path = wt_path("feature-a", create_container=True)
 
     assert container_path.exists()
     assert container_path.is_dir()
     assert result_path.parent == container_path
     assert result_path.name == "feature-a"
-
-    # Created directory should be empty (no files inside)
     assert len(list(container_path.iterdir())) == 0
-
-    # Check directory permissions (default 0o755 on Unix)
-    mode = stat.S_IMODE(container_path.stat().st_mode)
-    assert mode == 0o755
+    assert stat.S_IMODE(container_path.stat().st_mode) == 0o755
 
 
 def test_wt_path_edge_cases(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -305,11 +291,7 @@ def test_wt_path_edge_cases(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
 
 
 def test_add_sandbox_dir_happy_path(tmp_path: Path) -> None:
-    """Add container directory to existing settings file with all required keys.
-
-    Given settings file with existing additionalDirectories array, appends new
-    path and preserves JSON structure.
-    """
+    """Appends path to existing additionalDirectories array."""
     settings_file = tmp_path / "settings.json"
     initial_settings = {"permissions": {"additionalDirectories": ["/existing/path"]}}
     settings_file.write_text(json.dumps(initial_settings, indent=2))
@@ -326,11 +308,7 @@ def test_add_sandbox_dir_happy_path(tmp_path: Path) -> None:
 
 
 def test_add_sandbox_dir_missing_file(tmp_path: Path) -> None:
-    """Create settings file from scratch when it doesn't exist.
-
-    Given settings file path that doesn't exist, creates minimal JSON structure
-    with permissions.additionalDirectories containing the new path.
-    """
+    """Creates settings file from scratch when missing."""
     settings_file = tmp_path / "nonexistent" / "settings.json"
     assert not settings_file.exists()
 
@@ -343,13 +321,7 @@ def test_add_sandbox_dir_missing_file(tmp_path: Path) -> None:
 
 
 def test_add_sandbox_dir_missing_keys(tmp_path: Path) -> None:
-    """Handle case where JSON exists but nested keys are missing.
-
-    Given settings file with {} or {"permissions": {}} (missing
-    additionalDirectories key), creates nested structure correctly. Preserves
-    existing keys at each level.
-    """
-    # Case 1: Empty JSON object
+    """Creates nested structure when JSON exists but keys missing."""
     settings_file = tmp_path / "empty.json"
     settings_file.write_text(json.dumps({}))
 
@@ -360,7 +332,6 @@ def test_add_sandbox_dir_missing_keys(tmp_path: Path) -> None:
     assert isinstance(result["permissions"], dict)
     assert isinstance(result["permissions"]["additionalDirectories"], list)
 
-    # Case 2: Permissions key exists but additionalDirectories missing
     settings_file2 = tmp_path / "partial.json"
     settings_file2.write_text(json.dumps({"permissions": {"other_key": "value"}}))
 
@@ -368,18 +339,12 @@ def test_add_sandbox_dir_missing_keys(tmp_path: Path) -> None:
 
     result2 = json.loads(settings_file2.read_text())
     assert result2["permissions"]["additionalDirectories"] == ["/new/path"]
-    assert result2["permissions"]["other_key"] == "value"  # Preserved
+    assert result2["permissions"]["other_key"] == "value"
     assert isinstance(result2["permissions"]["additionalDirectories"], list)
 
 
 def test_add_sandbox_dir_deduplication(tmp_path: Path) -> None:
-    """Idempotent operation: existing paths not duplicated in array.
-
-    Given settings file with additionalDirectories: ["/path/a", "/path/b"],
-    adding "/path/a" again leaves array unchanged. Adding "/path/c" appends it.
-    Uses exact string match (no path normalization). Calling twice with same
-    path has same effect as calling once.
-    """
+    """Idempotent: existing paths not duplicated."""
     settings_file = tmp_path / "settings.json"
     initial_settings = {
         "permissions": {"additionalDirectories": ["/path/a", "/path/b"]}
