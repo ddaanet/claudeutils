@@ -49,6 +49,34 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
     return slug.rstrip("-")
 
 
+def focus_session(task_name: str, session_md_path: str | Path) -> str:
+    """Extract task from session.md and generate focused session.
+
+    Returns formatted string with H1 header, status, and extracted task.
+    """
+    session_md_path = Path(session_md_path)
+    content = session_md_path.read_text()
+
+    pattern = rf"- \[ \] \*\*{re.escape(task_name)}\*\* (.+?)(?=\n-|\n## |\Z)"
+    match = re.search(pattern, content, re.DOTALL)
+    if not match:
+        msg = f"Task '{task_name}' not found in session.md"
+        raise ValueError(msg)
+
+    task_metadata = match.group(1).rstrip()
+    task_line = f"- [ ] **{task_name}** {task_metadata}"
+
+    return (
+        f"# Session: Worktree — {task_name}\n"
+        f"\n"
+        f"**Status:** Focused worktree for parallel execution.\n"
+        f"\n"
+        f"## Pending Tasks\n"
+        f"\n"
+        f"{task_line}\n"
+    )
+
+
 def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
     """Add container to permissions.additionalDirectories."""
     settings_path = Path(settings_path)

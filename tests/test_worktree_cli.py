@@ -8,7 +8,13 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from claudeutils.worktree.cli import add_sandbox_dir, derive_slug, worktree, wt_path
+from claudeutils.worktree.cli import (
+    add_sandbox_dir,
+    derive_slug,
+    focus_session,
+    worktree,
+    wt_path,
+)
 
 
 def _init_repo(repo_path: Path) -> None:
@@ -373,3 +379,33 @@ def test_add_sandbox_dir_deduplication(tmp_path: Path) -> None:
         "/path/b",
         "/path/c",
     ]
+
+
+def test_focus_session_task_extraction(tmp_path: Path) -> None:
+    """Extract task block from session.md by matching task name."""
+    session_file = tmp_path / "session.md"
+    session_content = r"""# Session Handoff: 2026-02-12
+
+**Status:** In progress
+
+## Pending Tasks
+
+- [ ] **Implement feature X** — `\`/plan-adhoc\`` | sonnet
+- [ ] **Fix bug Y** — `\`/design\`` | haiku
+- [x] **Completed task Z** — `\`/runbook\`` | opus
+
+## Blockers
+
+None
+"""
+    session_file.write_text(session_content)
+
+    result = focus_session("Implement feature X", session_file)
+
+    assert isinstance(result, str)
+    assert "# Session: Worktree — Implement feature X" in result
+    assert "**Status:** Focused worktree for parallel execution." in result
+    assert "## Pending Tasks" in result
+    assert r"- [ ] **Implement feature X** — `\`/plan-adhoc\`` | sonnet" in result
+    assert "Fix bug Y" not in result
+    assert "Completed task Z" not in result
