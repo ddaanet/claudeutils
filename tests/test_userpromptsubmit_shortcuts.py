@@ -74,3 +74,33 @@ class TestLongFormAliases:
 
         # Both should have same systemMessage
         assert output_pending["systemMessage"] == output_p["systemMessage"]
+
+
+class TestEnhancedDDirective:
+    """Test enhanced d: directive with counterfactual evaluation structure."""
+
+    def test_enhanced_d_injection(self):
+        """Test that d: includes counterfactual evaluation framework."""
+        output = call_hook("d: should we use approach X?")
+
+        # Verify output structure
+        assert "hookSpecificOutput" in output
+        assert "systemMessage" in output
+
+        additional_context = output["hookSpecificOutput"]["additionalContext"]
+        system_message = output["systemMessage"]
+
+        # additionalContext includes all counterfactual structure elements
+        assert "identify assumptions" in additional_context.lower()
+        assert "articulate failure conditions" in additional_context.lower() or "failure" in additional_context.lower()
+        assert "name alternatives" in additional_context.lower() or "alternatives" in additional_context.lower()
+        assert "confidence level" in additional_context.lower() or "confidence" in additional_context.lower()
+
+        # additionalContext preserves "do not execute" instruction
+        assert "do not execute" in additional_context.lower()
+
+        # systemMessage stays concise (no full evaluation framework in user-visible message)
+        assert "[DIRECTIVE: DISCUSS]" in system_message
+        assert "do not execute" in system_message.lower()
+        # systemMessage should NOT have the full evaluation framework (keep it under 150 chars)
+        assert len(system_message) < 200
