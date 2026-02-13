@@ -88,6 +88,20 @@ def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,
 
 def merge(slug: str) -> None:
     """Prepare for merge: verify OURS and THEIRS clean tree."""
+    r = subprocess.run(
+        ["git", "rev-parse", "--verify", slug],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if r.returncode != 0:
+        click.echo(f"Branch {slug} not found")
+        raise SystemExit(2)
+
+    worktree_dir = wt_path(slug)
+    if not worktree_dir.exists():
+        click.echo("Worktree directory not found, merging branch only")
+
     _check_clean_for_merge(
         exempt_paths={
             "agents/session.md",

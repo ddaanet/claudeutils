@@ -121,6 +121,8 @@ def test_merge_ours_clean_tree(
     monkeypatch.chdir(repo_with_submodule)
     runner = CliRunner()
 
+    subprocess.run(["git", "branch", "test-slug"], check=True, capture_output=True)
+
     # Test 1: Main repo dirty (source files) → should fail
     src_dir = repo_with_submodule / "src" / "claudeutils"
     src_dir.mkdir(parents=True)
