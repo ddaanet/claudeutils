@@ -12,8 +12,10 @@ Plan lifecycle tracking. Updated when plans change status.
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
 | orchestrate-evolution | designed | Design.md complete, vet in progress, planning next |
 | parallel-orchestration | requirements | Deferred from orchestrate-evolution (worktree isolation needed) |
+| memory-index-recall | complete | Deliverable review found 3C/4M/8m; fix in wt/recall-fix |
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
-| reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
+| process-review | complete | RCA: 5 plans examined, root cause in planning skill, 5 recommendations |
+| reflect-rca-sequential-task-launch | complete | Folded into process-review RCA |
 | reports | — | Shared reports directory (not a plan) |
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
@@ -33,7 +35,6 @@ Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:
 - `handoff-validation` — Killed: problems resolved by existing tooling
 - `continuation-passing` — Continuation passing protocol (15 steps, hook implementation, skill updates, 0% FP rate)
 - `markdown` — Test corpus implementation (16 fixtures, 3 parametrized tests, all 5 FRs satisfied)
-- `memory-index-recall` — Memory index recall analysis tool (7 modules, 50 tests)
 - `reflect-rca-parity-iterations` — Parity test quality gap fixes (11 steps, 8 design decisions)
 - `domain-validation` — Domain-specific validation infrastructure (validation skill, rules file, plan skill updates)
 - `validator-consolidation` — Validators consolidated to claudeutils package
