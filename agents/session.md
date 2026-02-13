@@ -98,7 +98,7 @@
 - [ ] **Agentic process review and prose RCA** → `wt/process-review` — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
 - [ ] **Error handling framework design** → `wt/error-handling` — `/design` | opus
 - [ ] **Verify superseded RCAs** → `wt/verify-rcas` — Confirm fixes landed, close or reopen | sonnet
-- [ ] **Update README.md** → `wt/readme` — sonnet
+- [x] **Update README.md** → `wt/readme` — complete, README rewritten + doc-writing skill added
 
 ## Blockers / Gotchas
 
