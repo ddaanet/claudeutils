@@ -14,7 +14,7 @@ Both result in `/design` Phase A.0 re-discovering intent from scratch or working
 
 **Functional:**
 - FR-1: Conversational collection — skill guides user through structured elicitation → addressed by Elicit mode
-- FR-2: Flexible follow-up — can be followed by /handoff, /design, /runbook → addressed by Workflow Positioning
+- FR-2: Flexible follow-up — can be followed by /handoff, /design, /runbook → addressed by Workflow Positioning (note: requirements.md lists /plan-adhoc, /plan-tdd — these are now unified as /runbook)
 - FR-3: Requirements artifact — produces requirements.md that downstream skills consume → addressed by Standard Artifact Format
 
 **Non-functional:**
@@ -26,6 +26,16 @@ Both result in `/design` Phase A.0 re-discovering intent from scratch or working
 - Requirements-to-code traceability
 - Changes to `/design` or `/runbook` skills
 - Deep exploration (quiet-explore agents, Context7, web research)
+
+### Requirements Traceability
+
+| Requirement | Addressed | Design Reference |
+|-------------|-----------|------------------|
+| FR-1: Conversational collection | Yes | Elicit mode (Architecture > Dual-Mode Operation) |
+| FR-2: Flexible follow-up | Yes | Workflow Positioning section |
+| FR-3: Requirements artifact | Yes | Standard Artifact Format section |
+| NFR-1: Lightweight | Yes | Lightweight Codebase Discovery (capped scope) |
+| NFR-2: Standalone value | Yes | Workflow Positioning (standalone path) |
 
 ## Architecture
 
@@ -166,7 +176,7 @@ No changes needed to `/design` or `/runbook` — Design A.0 already consumes `re
 
 ## Empirical Grounding
 
-Design informed by requirements engineering research (details in `references/empirical-grounding.md`):
+Design informed by requirements engineering research (details in `plans/requirements-skill/reports/research-empirical.md`; distilled version will be created at `agent-core/skills/requirements/references/empirical-grounding.md`):
 
 - **HAIC pattern** (58% industry adoption) — extract + human validation, not autonomous generation
 - **Semi-structured interviews** — most effective technique; standard sections as framework with adaptive follow-ups
@@ -187,14 +197,15 @@ agent-core/skills/requirements/
 
 ### SKILL.md Content Outline
 
-1. **Frontmatter** — name, description with trigger phrases
-2. **Mode Detection** — how to determine extract vs elicit
-3. **Extract Mode Procedure** — scan conversation, structure, gap-fill
-4. **Elicit Mode Procedure** — semi-structured questions by section
-5. **Lightweight Discovery** — what to scan, boundaries
-6. **Standard Format** — artifact template
-7. **Skill Dependency Scanning** — indicator table
-8. **Default Exit** — suggest next step
+1. **Frontmatter** — name, description with trigger phrases, `user-invocable: true`
+2. **Target Model** — opus (extract mode requires synthesizing nuanced conversation)
+3. **Mode Detection** — how to determine extract vs elicit
+4. **Extract Mode Procedure** — scan conversation, structure, gap-fill
+5. **Elicit Mode Procedure** — semi-structured questions by section
+6. **Lightweight Discovery** — what to scan, boundaries
+7. **Standard Format** — artifact template
+8. **Skill Dependency Scanning** — indicator table
+9. **Default Exit** — suggest next step
 
 ### Integration Points
 
@@ -226,8 +237,9 @@ Manual validation: invoke `/requirements` in both modes, verify artifact format 
 
 ## Next Steps
 
-1. Implement SKILL.md with dual-mode procedure
-2. Create references/empirical-grounding.md from research report
-3. Update workflows-terminology.md entry point
-4. Sync symlinks via `just sync-to-parent`
-5. Manual test in both modes
+1. Load `plugin-dev:skill-development` before planning (skill creation)
+2. Implement SKILL.md with dual-mode procedure
+3. Create references/empirical-grounding.md from research report
+4. Update workflows-terminology.md entry point
+5. Sync symlinks via `just sync-to-parent`
+6. Manual test in both modes

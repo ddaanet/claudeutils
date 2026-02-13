@@ -318,3 +318,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Example: Phase 2 vet flagged test file mismatch as "unfixable design decision" when solution was: check existing files, consolidate to test_worktree_cli.py, replace references
 - Root cause: Agents treat uncertainty as escalation trigger rather than scanning existing patterns for guidance
 - Impact: Creates false blocking issues, delays execution on mechanical fixes
+## Sonnet inadequate for conversation synthesis
+- Anti-pattern: Defaulting to sonnet for requirements extraction from complex conversations
+- Correct pattern: Use opus for extracting/synthesizing requirements from nuanced multi-turn discussions
+- Rationale: Sonnet misses implicit requirements in moderately complex conversations; user reports having to repeat intent
+- Scope: Applies to any task requiring synthesis of scattered discussion points across long conversations
+## Capture-not-interview for requirements
+- Anti-pattern: Designing requirements skill as conversational elicitation guide (structured interview)
+- Correct pattern: Primary mode is conversation-to-artifact capture; elicitation is secondary mode for cold-start
+- Rationale: User's actual need was "formalize what we just discussed" not "guide me through questions"
+- Design lesson: Rephrase understanding before building — first outline missed the core concept entirely
