@@ -104,3 +104,67 @@ class TestEnhancedDDirective:
         assert "do not execute" in system_message.lower()
         # systemMessage should NOT have the full evaluation framework (keep it under 150 chars)
         assert len(system_message) < 200
+
+
+class TestFencedBlockExclusion:
+    """Test fenced code block detection for directive scanning."""
+
+    def test_fenced_block_exclusion(self):
+        """Test that lines inside fenced blocks are marked as fenced."""
+        # Test backtick fences
+        backtick_text = """```
+d: inside backticks
+```
+d: outside fence"""
+
+        # Test tilde fences
+        tilde_text = """~~~
+p: inside tildes
+~~~
+p: outside fence"""
+
+        # Test mixed valid fences (both types)
+        mixed_text = """```python
+d: inside first fence
+```
+p: between fences
+~~~
+d: inside second fence
+~~~
+d: after all fences"""
+
+        # Call the fence detection function (should not exist yet, causing RED)
+        lines_backtick = backtick_text.split('\n')
+        fenced_backtick = [hook.is_line_in_fence(lines_backtick, i) for i in range(len(lines_backtick))]
+
+        # Lines 0-2 should be in/part of fence, line 3 should not
+        assert fenced_backtick[0] is True  # opening fence
+        assert fenced_backtick[1] is True  # inside fence
+        assert fenced_backtick[2] is True  # closing fence
+        assert fenced_backtick[3] is False  # outside fence
+
+        # Test tildes
+        lines_tilde = tilde_text.split('\n')
+        fenced_tilde = [hook.is_line_in_fence(lines_tilde, i) for i in range(len(lines_tilde))]
+
+        assert fenced_tilde[0] is True  # opening fence
+        assert fenced_tilde[1] is True  # inside fence
+        assert fenced_tilde[2] is True  # closing fence
+        assert fenced_tilde[3] is False  # outside fence
+
+        # Test mixed (complex scenario)
+        lines_mixed = mixed_text.split('\n')
+        fenced_mixed = [hook.is_line_in_fence(lines_mixed, i) for i in range(len(lines_mixed))]
+
+        # First fence: lines 0-2
+        assert fenced_mixed[0] is True
+        assert fenced_mixed[1] is True
+        assert fenced_mixed[2] is True
+        # Between fences: line 3
+        assert fenced_mixed[3] is False
+        # Second fence: lines 4-6
+        assert fenced_mixed[4] is True
+        assert fenced_mixed[5] is True
+        assert fenced_mixed[6] is True
+        # After all fences: line 7
+        assert fenced_mixed[7] is False
