@@ -16,7 +16,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
 | reports | — | Shared reports directory (not a plan) |
-| requirements-skill | designed | Dual-mode extract/elicit skill, opus tier, empirical grounding |
+| requirements-skill | complete | Dual-mode extract/elicit, opus tier, empirical grounding |
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
 | worktree-update | planned | Runbook complete: 40 TDD cycles (7 phases), reviewed and assembled, haiku execution ready |
