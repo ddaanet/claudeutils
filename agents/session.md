@@ -1,42 +1,24 @@
 # Session Handoff: 2026-02-13
 
-**Status:** worktree-update runbook execution complete (37/37 cycles). Implementation ready, skill documentation needs updates.
+**Status:** Worktree skill documentation fixed. Full deliverable review pending.
 
 ## Completed This Session
 
-**worktree-update orchestration (37 cycles, 7 phases):**
-- Phase 1-5: Completed in prior session (19 cycles)
-- Phase 6 (rm command, 5 cycles): Path resolution, registration probing, cleanup, safe branch deletion — commit 503be62
-- Phase 7 (merge command, 13 cycles): 4-phase merge ceremony (validate, resolve submodule, merge parent, precommit) — commits 159e72f through 830ba7f
-- Module split: Extracted merge.py (299 lines) + utils.py (20 lines) from cli.py to maintain 400-line limit
-- Test organization: 12 test files (2854 lines total), proactive splits prevented line limit violations
-- Quality gates: Phase checkpoints (6, 7), final vet review, all passing
-- All 796/797 tests passing (1 xfail for known markdown preprocessor bug)
-
-**Research: 400-line module limit:**
-- Documented rationale in `agents/decisions/project-config.md`
-- Research validates 400-line target: code review cliff at ~400 LOC, AI sweet spot 150-500 lines
-- Refactor agent empowered to split modules (mechanical, not architectural)
-
-**RCA: Repeated refactor escalation:**
-- Root causes: Planning didn't project file growth, refactor agent lacked split authority, reactive approach = diminishing returns
-- Fixes documented: Planning-time projection, module-split authority, proactive splits at phase boundaries
-- Pending task exists for planning requirement gap
+**Fix worktree skill documentation (5 vet issues):**
+- SKILL.md Mode A: Collapsed 7 steps to 5 — manual slug derivation, focused session generation, and tmp file management replaced by single `new --task` invocation
+- SKILL.md Mode B step 4: Direct `new --task` loop instead of "execute Mode A steps 2-7"
+- Marker format `→ wt/<slug>` → `→ <slug>` in SKILL.md (Mode A, Mode C), execute-rule.md (status display, Worktree Tasks section), and handoff template
+- Cross-cutting grep found stale marker in `agent-core/skills/handoff/references/template.md` — fixed
+- All `plans/` hits are historical (reports, designs, runbooks) — not modified
+- Precommit passing (796/797, 1 xfail)
 
 ## Pending Tasks
 
-- [ ] **Fix worktree skill documentation** — Update `.claude/skills/worktree/SKILL.md` to match implementation | opus
-  - 5 issues flagged in `plans/worktree-update/reports/vet-review.md`
-  - Marker format: `→ <slug>` not `→ wt/<slug>` (lines 62, 66)
-  - Document --task flag and tab-separated output (step 5)
-  - Simplify Mode A to direct `new --task` invocation (remove manual slug derivation steps 2-4)
-  - Mode B should loop `new --task` invocations, not "execute Mode A steps 2-7"
-
 - [ ] **Review deliverables** — Opus review of worktree-update implementation quality | opus
-  - Design.md adherence
-  - Test coverage completeness
-  - User experience (error messages, edge cases)
-  - Integration with existing workflows
+  - Full deliverable review per `agents/decisions/deliverable-review.md`
+  - Design.md adherence, test coverage completeness, UX (error messages, edge cases), workflow integration
+  - Scope: cli.py, merge.py, utils.py, 12 test files (2854 lines), SKILL.md, justfile recipes, sandbox config
+  - Prior session's partial review only covered doc edits, not implementation
 
 - [ ] **RCA: Runbook planning missed file growth** — Planning phase should project file growth and insert split points. The 400-line limit caused 7+ refactor escalations (>1hr wall-clock). This is a planning requirements gap, not an execution issue | opus
 
@@ -71,15 +53,12 @@
 ## Reference Files
 
 - `plans/worktree-update/design.md` — Worktree implementation design (4-phase merge ceremony, sibling containers)
-- `plans/worktree-update/reports/checkpoint-phase-6-vet.md` — Phase 6 checkpoint (rm command)
-- `plans/worktree-update/reports/checkpoint-phase-7-vet.md` — Phase 7 checkpoint (merge command)
-- `plans/worktree-update/reports/vet-review.md` — Final review (5 skill documentation issues)
-- `plans/worktree-update/reports/cycle-7-2-module-split.md` — Module extraction rationale
-- `agents/decisions/project-config.md` — 400-line limit research and rationale
+- `plans/worktree-update/reports/vet-review.md` — Final review (5 skill documentation issues, all now fixed)
+- `agents/decisions/deliverable-review.md` — ISO-grounded review methodology for next task
 
 ## Next Steps
 
-Fix worktree skill documentation issues, then opus review of deliverables.
+Opus review of worktree-update deliverables using `agents/decisions/deliverable-review.md` methodology.
 
 ---
-*Handoff by Opus. worktree-update execution complete, 42 commits.*
+*Handoff by Sonnet. Skill documentation fixes complete, 3 files updated.*
