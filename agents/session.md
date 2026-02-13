@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-13
 
-**Status:** when-recall worktree merged to main.
+**Status:** when-recall merged, workflow-improvements worktree created.
 
 ## Completed This Session
 
@@ -11,20 +11,13 @@
 - Tests verified: 855/856 pass (1 known xfail)
 - Worktree + branch removed, session.md and jobs.md updated
 - Committed deliverable-review skill symlink (was untracked, blocking merge)
+- Recovered 6 learnings lost by `--ours` merge resolution, removed stale "Fuzzy bridge" learning
+- Fixed memory-index operator prefixes (`/when`/`/how`) and `|` separator for pipeline-contracts entries
+
+**Worktree setup:**
+- Created `workflow-improvements` worktree for Workflow improvements task
 
 ## Pending Tasks
-
-- [ ] **Workflow improvements** — Process fixes from RCA + skill/fragment/orchestration cleanup | sonnet
-  - RCA blocker resolved — reports at `plans/reports/rca-*-opus.md`
-  - Input: `plans/orchestrate-evolution/design.md`, `plans/process-review/rca.md`
-  - Orchestrate evolution — designed, stale Feb 10, refresh after RCA
-  - Fragments cleanup — remove fragments duplicating skills/workflow
-  - Reflect skill output — RCA should produce pending tasks, not inline fixes
-  - Tool-batching.md — add Task tool parallelization guidance with examples
-  - Orchestrator delegate resume — resume delegates with incomplete work
-  - Agent output optimization — remove summarize/report language from agents
-  - Investigation prerequisite rule review
-  - Design skill: Phase C density checkpoint (TDD non-code marking handled by per-phase typing)
 
 - [ ] **Protocolize RED pass recovery** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
@@ -99,6 +92,17 @@
 - [ ] **Worktree fixes** → `worktree-fixes` — `/design plans/worktree-fixes/` | opus
   - Plan: worktree-fixes | Status: requirements
   - 6 FRs: task name constraints, precommit validation, migration, session merge blocks, merge commit fix, automate session edits
+- [ ] **Workflow improvements** → `workflow-improvements` — Process fixes from RCA + skill/fragment/orchestration cleanup | sonnet
+  - RCA blocker resolved — reports at `plans/reports/rca-*-opus.md`
+  - Input: `plans/orchestrate-evolution/design.md`, `plans/process-review/rca.md`
+  - Orchestrate evolution — designed, stale Feb 10, refresh after RCA
+  - Fragments cleanup — remove fragments duplicating skills/workflow
+  - Reflect skill output — RCA should produce pending tasks, not inline fixes
+  - Tool-batching.md — add Task tool parallelization guidance with examples
+  - Orchestrator delegate resume — resume delegates with incomplete work
+  - Agent output optimization — remove summarize/report language from agents
+  - Investigation prerequisite rule review
+  - Design skill: Phase C density checkpoint (TDD non-code marking handled by per-phase typing)
 
 ## Blockers / Gotchas
 
