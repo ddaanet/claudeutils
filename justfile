@@ -264,8 +264,8 @@ wt-merge name:
         # Session files: extract tasks from theirs before keeping ours
         if echo "$conflicts" | grep -q "^agents/session.md$"; then
             # Extract new tasks from worktree side
-            theirs_tasks=$(git show :3:agents/session.md | grep -oP "^- \[ \] \*\*\K[^*]+" || true)
-            ours_tasks=$(git show :2:agents/session.md | grep -oP "^- \[ \] \*\*\K[^*]+" || true)
+            theirs_tasks=$(git show :3:agents/session.md | sed -n 's/^- \[ \] \*\*\([^*]*\)\*\*.*/\1/p' || true)
+            ours_tasks=$(git show :2:agents/session.md | sed -n 's/^- \[ \] \*\*\([^*]*\)\*\*.*/\1/p' || true)
 
             # Keep ours as base
             visible git checkout --ours agents/session.md
@@ -426,7 +426,7 @@ release *ARGS: _fail_if_claudecode dev
                 fi
             fi
 
-            version=$(git log -1 --format=%s | grep -oP '(?<=Release ).*')
+            version=$(git log -1 --format=%s | sed -n 's/^Release //p')
             current_branch=$(git symbolic-ref -q --short HEAD || echo "")
             cleanup_release "HEAD~1" "$current_branch" "$version"
             echo "${GREEN}✓${NORMAL} Rollback complete"
