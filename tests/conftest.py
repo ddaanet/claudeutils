@@ -13,6 +13,34 @@ from pytest_mock import MockerFixture
 from claudeutils.tokens import ModelId
 
 
+@pytest.fixture
+def mock_precommit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Mock subprocess.run for 'just precommit' to return success.
+
+    This fixture mocks the precommit validation step in merge operations to
+    avoid requiring an actual justfile in test environments.
+    """
+    original_run = subprocess.run
+
+    def mock_run(*args: object, **kwargs: object) -> object:
+        cmd = args[0] if args else kwargs.get("args")
+        if (
+            isinstance(cmd, list)
+            and cmd
+            and cmd[0] == "just"
+            and len(cmd) > 1
+            and cmd[1] == "precommit"
+        ):
+            mock_result = Mock()
+            mock_result.returncode = 0
+            mock_result.stdout = ""
+            mock_result.stderr = ""
+            return mock_result
+        return original_run(*args, **kwargs)  # type: ignore[call-overload]
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+
 # API Key Management
 @pytest.fixture(autouse=True)
 def clear_api_key(

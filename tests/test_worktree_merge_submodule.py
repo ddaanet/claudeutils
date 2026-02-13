@@ -12,7 +12,7 @@ from claudeutils.worktree.cli import worktree
 
 
 def test_merge_submodule_ancestry(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch
+    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
 ) -> None:
     """Verify merge performs submodule commit ancestry check.
 
@@ -155,7 +155,7 @@ def _setup_diverged_submodule(
 
 
 def test_merge_submodule_fetch(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch
+    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
 ) -> None:
     """Verify merge checks object reachability and fetches when needed."""
     monkeypatch.chdir(repo_with_submodule)
@@ -301,7 +301,7 @@ def _setup_merge_test_worktree(
 
 
 def test_merge_submodule_merge_commit(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch
+    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
 ) -> None:
     """Verify merge performs submodule merge and commits changes.
 

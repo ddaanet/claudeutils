@@ -268,8 +268,38 @@ def _phase3_merge_parent(slug: str) -> None:
         raise SystemExit(1)
 
 
+def _phase4_merge_commit_and_precommit(slug: str) -> None:
+    """Phase 4: Commit merge and run precommit validation.
+
+    If staged changes exist after merge, commit with message "🔀 Merge <slug>".
+    Then run `just precommit` and handle exit code appropriately.
+    """
+    staged_check = subprocess.run(
+        ["git", "diff", "--cached", "--quiet"],
+        check=False,
+    )
+
+    if staged_check.returncode != 0:
+        _git("commit", "-m", f"🔀 Merge {slug}")
+
+    precommit_result = subprocess.run(
+        ["just", "precommit"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    if precommit_result.returncode == 0:
+        click.echo("Precommit passed")
+    else:
+        click.echo("Precommit failed after merge")
+        click.echo(precommit_result.stderr)
+        raise SystemExit(1)
+
+
 def merge(slug: str) -> None:
     """Merge worktree branch: validate, resolve submodule, merge parent."""
     _phase1_validate_clean_trees(slug)
     _phase2_resolve_submodule(slug)
     _phase3_merge_parent(slug)
+    _phase4_merge_commit_and_precommit(slug)

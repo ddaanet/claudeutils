@@ -11,7 +11,10 @@ from claudeutils.worktree.cli import worktree
 
 
 def test_merge_branch_existence(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    init_repo: Callable[[Path], None],
+    mock_precommit: None,
 ) -> None:
     """Verify branch exists and warn about missing worktree directory."""
     repo_path = tmp_path / "repo"
@@ -41,7 +44,10 @@ def test_merge_branch_existence(
 
 
 def test_merge_conflict_source_files(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    init_repo: Callable[[Path], None],
+    mock_precommit: None,
 ) -> None:
     """Abort merge when source file conflicts remain after auto-resolution."""
     repo_path = tmp_path / "repo"

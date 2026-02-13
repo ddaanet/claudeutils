@@ -10,7 +10,7 @@ from claudeutils.worktree.cli import worktree
 
 
 def test_merge_conflict_agent_core(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch
+    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
 ) -> None:
     """Auto-resolve agent-core conflict (already merged in Phase 2)."""
     monkeypatch.chdir(repo_with_submodule)
@@ -112,7 +112,7 @@ def test_merge_conflict_agent_core(
         f"agent-core should be auto-resolved, but found in conflicts: {conflicts}"
     )
 
-    # Verify MERGE_HEAD is set (merge is in progress)
+    # Verify merge is complete (MERGE_HEAD should not exist after commit)
     merge_head = subprocess.run(
         ["git", "rev-parse", "MERGE_HEAD"],
         check=False,
@@ -120,11 +120,13 @@ def test_merge_conflict_agent_core(
         capture_output=True,
         text=True,
     )
-    assert merge_head.returncode == 0, "MERGE_HEAD should be set"
+    assert merge_head.returncode != 0, (
+        "MERGE_HEAD should not exist after merge completes"
+    )
 
 
 def test_merge_conflict_session_md(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch
+    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
 ) -> None:
     """Auto-resolve session.md, extract and warn about new tasks."""
     monkeypatch.chdir(repo_with_submodule)
@@ -250,7 +252,7 @@ def test_merge_conflict_session_md(
 
 
 def test_merge_conflict_learnings_md(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch
+    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
 ) -> None:
     """Auto-resolve learnings.md by keeping ours and appending theirs-only."""
     monkeypatch.chdir(repo_with_submodule)

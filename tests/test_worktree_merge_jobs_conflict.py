@@ -10,7 +10,7 @@ from claudeutils.worktree.cli import worktree
 
 
 def test_merge_conflict_jobs_md(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch
+    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
 ) -> None:
     """Auto-resolve jobs.md conflict with warning."""
     monkeypatch.chdir(repo_with_submodule)
