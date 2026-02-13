@@ -218,7 +218,13 @@ def _resolve_trigger(
 
     matched_candidate, _score = matches[0]
     matching_entry = _load_matched_entry(matched_candidate, entries)
-    file_path = dec_dir / f"{matching_entry.section}.md"
+    # Section: full path (agents/decisions/cli.md) or bare name
+    section_path = Path(matching_entry.section)
+    if section_path.suffix == ".md":
+        section_filename = section_path.name
+    else:
+        section_filename = f"{matching_entry.section}.md"
+    file_path = dec_dir / section_filename
 
     if not file_path.exists():
         msg = f"Decision file not found: {file_path}"
@@ -242,7 +248,7 @@ def _resolve_trigger(
     heading_text_only = actual_heading.lstrip("#").strip()
 
     ancestors = navigation.compute_ancestors(
-        heading_text_only, f"{matching_entry.section}.md", file_content
+        heading_text_only, section_filename, file_content
     )
     siblings = navigation.compute_siblings(heading_text_only, file_content, entries)
     nav_text = navigation.format_navigation(ancestors, siblings)
