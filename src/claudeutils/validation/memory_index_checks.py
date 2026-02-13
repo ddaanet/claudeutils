@@ -263,3 +263,74 @@ def check_structural_entries(
                 f"structural section"
             )
     return errors
+
+
+def check_collisions(
+    entries: dict[str, tuple[int, str, str]],
+    headers: dict[str, list[tuple[str, int, str]]],
+) -> list[str]:
+    """Check for multiple entries resolving to the same heading.
+
+    Uses fuzzy matching to detect when different entry keys match the same
+    semantic header via fuzzy scoring.
+
+    Args:
+        entries: Dictionary of entries from extract_index_entries.
+        headers: Dictionary of semantic headers from collect_semantic_headers.
+
+    Returns:
+        List of error messages for collisions.
+    """
+    errors = []
+    header_titles = list(headers.keys())
+    threshold = 50.0
+
+    # Map each entry key to the heading it matches (exact or fuzzy)
+    entry_to_heading: dict[str, str | None] = {}
+    for key, (_, _full_entry, section) in entries.items():
+        if section in EXEMPT_SECTIONS:
+            continue
+
+        # Exact match first
+        if key in headers:
+            entry_to_heading[key] = key
+            continue
+
+        # Fuzzy match
+        best_score = 0.0
+        best_header = None
+        for header_title in header_titles:
+            score = score_match(key, header_title)
+            if score > best_score:
+                best_score = score
+                best_header = header_title
+
+        if best_score >= threshold:
+            entry_to_heading[key] = best_header
+        else:
+            entry_to_heading[key] = None
+
+    # Check for collisions: multiple entries mapping to same heading
+    heading_to_entries: dict[str, list[tuple[str, int]]] = {}
+    for key, (lineno, _full_entry, section) in entries.items():
+        if section in EXEMPT_SECTIONS:
+            continue
+
+        heading = entry_to_heading.get(key)
+        if heading:
+            if heading not in heading_to_entries:
+                heading_to_entries[heading] = []
+            heading_to_entries[heading].append((key, lineno))
+
+    # Report collisions
+    for heading, entry_list in heading_to_entries.items():
+        if len(entry_list) > 1:
+            entry_descriptions = [
+                f"'{key}' (line {lineno})" for key, lineno in entry_list
+            ]
+            errors.append(
+                f"  collision: entries {', '.join(entry_descriptions)} "
+                f"resolve to same heading '{heading}'"
+            )
+
+    return errors

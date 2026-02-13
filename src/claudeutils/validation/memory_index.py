@@ -18,7 +18,11 @@ from pathlib import Path
 
 from claudeutils.when.fuzzy import score_match
 
-from .memory_index_checks import check_entry_sorting, check_trigger_format
+from .memory_index_checks import (
+    check_collisions,
+    check_entry_sorting,
+    check_trigger_format,
+)
 from .memory_index_helpers import (
     autofix_index,
     check_duplicate_entries,
@@ -240,6 +244,7 @@ def validate(index_path: Path | str, root: Path, *, autofix: bool = True) -> lis
     errors.extend(check_trigger_format(entries))
     errors.extend(_check_orphan_headers(headers, entries))
     errors.extend(check_orphan_entries(entries, headers, structural))
+    errors.extend(check_collisions(entries, headers))
     errors.extend(_check_duplicate_headers(headers))
 
     # Autofixable checks

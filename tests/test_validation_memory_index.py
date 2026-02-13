@@ -473,3 +473,46 @@ def test_fuzzy_bidirectional_integrity(tmp_path: Path, decisions_dir: Path) -> N
 
     # Should find orphan heading (no entry match)
     assert any("orphan semantic header" in e for e in errors)
+
+
+def test_collision_detection(tmp_path: Path, decisions_dir: Path) -> None:
+    """Multiple entries resolve to same heading → collision error.
+
+    Assertions:
+    - Two entries both fuzzy-matching same heading → collision error
+    - Error identifies both colliding entries with line numbers
+    - Error identifies the shared heading
+    - Two entries matching different headings → no collision error
+    """
+    (decisions_dir / "test-decision.md").write_text(
+        "# Test Decision\n\n"
+        "## When Mock Testing\nContent.\n\n"
+        "## Different Heading\nMore.\n"
+    )
+    _write_index(
+        tmp_path,
+        """# Memory Index
+
+## agents/decisions/test-decision.md
+
+/when mock test
+/when mock testing
+/when different heading
+""",
+    )
+    errors = validate("agents/memory-index.md", tmp_path, autofix=False)
+
+    # Should find collision error
+    assert any("collision" in e for e in errors)
+    collision_error = next(e for e in errors if "collision" in e)
+
+    # Should identify both colliding entries
+    assert "mock test" in collision_error
+    assert "mock testing" in collision_error
+
+    # Should identify the shared heading
+    assert "when mock testing" in collision_error.lower()
+
+    # Should include line numbers for both entries
+    assert "line 5" in collision_error
+    assert "line 6" in collision_error
