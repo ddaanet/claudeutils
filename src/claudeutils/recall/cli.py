@@ -128,6 +128,7 @@ def _generate_and_output_report(
 )
 @click.option(
     "--baseline-before",
+    "_baseline_before",
     default=None,
     type=str,
     help="ISO date cutoff for baseline sessions (format: YYYY-MM-DD)",

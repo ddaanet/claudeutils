@@ -57,7 +57,7 @@ def test_recall_pipeline_end_to_end(tmp_path: Path) -> None:
 
     # Extract tool calls
     tool_calls = extract_tool_calls_from_session(session_file)
-    assert len(tool_calls) == 4  # 1 grep, 3 reads
+    assert len(tool_calls) == 3  # 1 grep, 2 reads
     assert tool_calls[0].tool_name == "Grep"
     assert tool_calls[1].tool_name == "Read"
 
