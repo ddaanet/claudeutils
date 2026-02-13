@@ -1,49 +1,25 @@
-# Session Handoff: 2026-02-12
+# Session Handoff: 2026-02-13
 
-**Status:** Worktree-update runbook in progress — Phase 6, step 6-1 complete, test files need splitting before continuing.
+**Status:** Test files split proactively — worktree-update runbook ready to resume from Phase 6, step 6-2.
 
 ## Completed This Session
 
-### Worktree-update runbook execution (Phases 1-5 + step 6-1)
-
-Executed 19 of 37 TDD cycles across 6 phases via `/orchestrate`. All checkpoints passed.
-
-**Phase 1** (4 cycles): `wt_path()` — sibling container path computation, detection, creation, slug validation
-**Phase 2** (4 cycles): `add_sandbox_dir()` — JSON read/write, missing file creation, missing keys init, deduplication
-**Phase 3** (1 cycle): `derive_slug()` — slug derivation with edge case validation
-**Phase 4** (3 cycles): `focus_session()` — task extraction, section filtering, missing task error; introduced `_git()` helper (59d939b)
-**Phase 5** (7 cycles): `new` command — sibling paths, submodule worktree, sandbox registration, env init, session commit, `--task` mode, `rm` updates
-**Phase 6** (1 of 5 cycles): `rm` dirty tree warning — complete, blocked on line limits
-
-Tests: 777/778 passing (1 xfail). All phase checkpoints passed.
-
-### Key decisions
-
-- **`_git()` helper pattern** (59d939b): Replaced 24 `subprocess.run` calls with private helper. 477→336 lines initially (30% reduction). Pattern: `_git(*args, check=True, env=None, input_data=None) -> str`. Ruff-friendly because short function name + string args fit 88-char line.
-- **Phase 5 UNFIXABLE over-escalation**: Vet flagged `create_worktree()` not extracted as function and `_git` naming as UNFIXABLE. User approved proceeding — both are deferred/stylistic. Pattern recurring despite pipeline overhaul.
-
-### Systemic issue: Line limit whack-a-mole
-
-7+ refactor escalations due to 400-line limit across this runbook. Root pattern:
-1. Haiku implements cycle → file grows past 400
-2. Sonnet refactor reduces → formatter (ruff) expands back
-3. Next cycle adds code → over limit again
-
-**Root cause:** Runbook planning didn't account for file growth across 37 cycles. The planning requirements should include file growth projections and proactive split points. User flagged this as needing RCA.
-
-**Current state (precommit failing):**
-- `src/claudeutils/worktree/cli.py`: 398 lines ✓
-- `tests/test_worktree_cli.py`: 410 lines ❌
-- `tests/test_worktree_new.py`: 424 lines ❌
-
-**Resolution:** Split test files proactively before resuming Phase 6.
+**Test file splits for headroom:**
+- Split `test_worktree_cli.py` (410 lines) into:
+  - `test_worktree_utils.py` (225 lines) - derive_slug, wt_path, add_sandbox_dir, focus_session
+  - `test_worktree_commands.py` (193 lines) - ls, rm, task_mode_integration, CLI tests
+- Split `test_worktree_new.py` (424 lines) into:
+  - `test_worktree_new_creation.py` (215 lines) - collision detection, basic creation, sibling paths
+  - `test_worktree_new_config.py` (219 lines) - sandbox registration, environment init, session handling
+- All tests passing (777/778 passed, 1 xfail)
+- Precommit passing
+- Provides ~160-180 lines headroom per file for remaining 18 cycles
 
 ## Pending Tasks
 
-- [ ] **Split worktree test files** — Proactively split test_worktree_cli.py (410) and test_worktree_new.py (424) to provide headroom for remaining 18 cycles | sonnet
-
-- [ ] **Resume worktree-update orchestration** — `/orchestrate worktree-update` from step 6-2. Phases 6-7 remaining (18 cycles)
-  - Depends on: test file split
+- [ ] **Resume worktree-update orchestration** — `/orchestrate worktree-update` from step 6-2. Phases 6-7 remaining (18 cycles) | haiku
+  - Plan: plans/worktree-update/
+  - Orchestrator plan: plans/worktree-update/orchestrator-plan.md
 
 - [ ] **RCA: Runbook planning missed file growth** — Planning phase should project file growth and insert split points. The 400-line limit caused 7+ refactor escalations (>1hr wall-clock). This is a planning requirements gap, not an execution issue | opus
 
@@ -76,10 +52,10 @@ Tests: 777/778 passing (1 xfail). All phase checkpoints passed.
 - 369 lines, ~57 entries — consolidation deferred until entries age (≥7 active days required)
 
 **Worktree-update orchestration state:**
-- Step 6-1 complete (committed: 696a610, 7fd0be5, 069cd1e)
-- Precommit failing on 2 test files over 400-line limit
-- Must split test files before resuming from step 6-2
+- Step 6-1 complete (committed: 696a610, 7fd0be5, 069cd1e, 62b6a68)
+- Test files now split with headroom for remaining cycles
 - Orchestrator plan: `plans/worktree-update/orchestrator-plan.md`
+- Resume from step 6-2
 
 ## Reference Files
 
@@ -88,3 +64,10 @@ Tests: 777/778 passing (1 xfail). All phase checkpoints passed.
 - `plans/worktree-update/reports/checkpoint-phase-*-vet.md` — Phase checkpoint reports (1-5)
 - `plans/worktree-update/reports/cycle-4-2-git-helper-refactor.md` — `_git()` helper analysis
 - `plans/worktree-update/reports/cycle-6-1-refactor.md` — Latest refactor report
+
+## Next Steps
+
+Resume worktree-update orchestration: `/orchestrate worktree-update` from step 6-2. All prerequisites complete, test files have headroom for remaining 18 cycles.
+
+---
+*Handoff by Sonnet. Test file splits complete, ready for Phase 6-7 orchestration.*
