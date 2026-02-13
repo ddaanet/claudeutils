@@ -18,6 +18,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
 | pushback | requirements | Prevent yes-manning in design discussions |
+| process-review | complete | RCA recovered to disk for workflow-improvements reference |
 | worktree-update | planned | Runbook complete: 40 TDD cycles (7 phases), reviewed and assembled, haiku execution ready |
 
 ## Complete (Archived)

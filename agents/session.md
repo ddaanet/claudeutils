@@ -1,49 +1,28 @@
 # Session Handoff: 2026-02-13
 
-**Status:** Task recovery, handoff carry-forward fix, workwoods + pushback requirements captured.
+**Status:** Worktree-update recovery scoped, pushback worktree created, session cleanup.
 
 ## Completed This Session
 
-**Task recovery from merge losses:**
-- Traced losses through git history (commit 888273e pre-merge vs 46ce109 post-merge)
-- Restored sub-items trimmed from 3 tasks: codebase quality sweep (4), feature prototypes (3), infrastructure scripts (2)
-- Restored detail from plugin migration (recovery/drift context) and commit skill optimizations
-- Incorporated 6 new tasks from worktree sessions never merged to main: 3 from when-recall (validator fix, migration, RED pass recovery), 3 from worktree (2 RCAs, agentic process review, 2 skill fixes)
-- Updated Worktree Tasks: added worktree-update + test-feature, enriched when-recall + error-handling with current state
+**Worktree-update recovery triage:**
+- Cross-referenced deliverable review findings against workwoods requirements
+- C1 (wt-ls Python coupling) deferred — workwoods FR-1 redesigns wt-ls entirely
+- R1 (session.md/jobs.md auto-combine) deferred — workwoods FR-5/FR-6 supersede
+- C2-C5 + selected major findings: independent, fix now
+- Decision: fix independent findings → merge → workwoods designs against merged baseline
 
-**Handoff skill carry-forward fix:**
-- Root cause: handoff agent regenerated pending tasks from memory, trimming sub-items under deslop/conciseness pressure
-- Fix: SKILL.md Step 2 — pending tasks are carry-forward data (read existing, patch mutations only: mark complete, append new, update changed metadata)
-- Reinforced in references/template.md with "Pending Task Carry-Forward" section
-- Files changed: `agent-core/skills/handoff/SKILL.md`, `agent-core/skills/handoff/references/template.md`
-
-**Design discussions (requirements captured, not yet designed):**
-- Workwoods — cross-tree worktree awareness via computed status script (`plans/workwoods/requirements.md`)
-  - FR-1: wt-ls upgrade with live status (commits since handoff, latest subject, tree state)
-  - FR-2: Vet artifact tracking via filesystem mtime comparison (source newer than vet = stale)
-  - FR-3: Plan state inferred from filesystem, replaces jobs.md manual tracking
-  - FR-4: Bidirectional worktree merge (wt-merge keeps tree, wt-rm separate)
-  - FR-5: Additive task merge on worktree combine
-  - FR-6: Eliminate jobs.md (plan directories are source of truth)
-  - Key decisions: filesystem mtime for artifact validity, git commit hash for work counting, no unversioned shared files, computed not stored status
-  - Integrates with worktree-update (additive merge)
-- Pushback — prevent yes-manning in design discussions (`plans/pushback/requirements.md`)
-  - FR-1: Structural pushback in d: discussions, FR-2: detect agreement momentum, FR-3: model selection evaluation
-  - Open: where does it live (fragment/skill/hook/protocol)? Can LLM self-correct sycophancy?
-- Identified agent can't detect own model tier — new pending task for hook
-
-**Pushback meta-observations during discussion:**
-- User challenged vigorously-agreeing pattern — several ideas got pushback after prompting
-- Separate tasks.md: may not be needed if carry-forward rule holds
-- Unversioned shared file: rejected in favor of computed script reads
-- Sonnet for TDD: RCA points to planning skill, not haiku capability
-- Handoff review agent: cost/benefit doesn't work
-- Protocol/enforcement won't fix judgment errors (model selection) — agent satisfies checks without correct content
+**Session cleanup:**
+- Removed "Agentic process review and prose RCA" — was completed at process-review merge (marked `[x]` in commit 5b79869), incorrectly re-added during task recovery (a74ed85)
+- Recovered `plans/process-review/rca.md` from git history (commit 0ded1a3) — was deleted after merge per code removal rules, but workflow improvements task needs in-tree reference
+- Added input file references to composite tasks (workflow improvements, both RCAs)
+- Moved pushback to Worktree Tasks after `wt-task pushback` creation
+- Updated workflow improvements blocker to reference current pending RCAs (file growth, vet over-escalation)
 
 ## Pending Tasks
 
 - [ ] **Workflow improvements** — Process fixes from RCA + skill/fragment/orchestration cleanup | sonnet
-  - Depends on: RCA completion (for orchestrate-evolution refresh)
+  - Blocked on: pending RCAs (file growth, vet over-escalation)
+  - Input: `plans/orchestrate-evolution/design.md`, `plans/process-review/rca.md`
   - Orchestrate evolution — designed, stale Feb 10, refresh after RCA
   - Fragments cleanup — remove fragments duplicating skills/workflow
   - Reflect skill output — RCA should produce pending tasks, not inline fixes
@@ -58,13 +37,13 @@
   - Reports: `plans/when-recall/reports/tdd-process-review.md`, `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`
 
 - [ ] **RCA: Runbook planning missed file growth** — Planning phase should project file growth and insert split points | opus
+  - Input: `plans/worktree-update/reports/` (refactor escalation reports, in worktree branch)
   - 400-line limit caused 7+ refactor escalations (>1hr wall-clock) during worktree-update
   - Planning requirements gap, not execution issue
 
 - [ ] **RCA: Vet over-escalation persists post-overhaul** — Pipeline overhaul didn't fix vet UNFIXABLE over-escalation | sonnet
+  - Input: `plans/worktree-update/reports/checkpoint-phase-5-vet.md` (in worktree branch)
   - Phase 5 checkpoint flagged design deviation and naming convention as UNFIXABLE
-
-- [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
 
 - [ ] **Consolidate learnings** — learnings.md at 312+ lines (soft limit 80) | sonnet
   - Blocked on: memory redesign (/when, /how)
@@ -112,10 +91,6 @@
   - Session summary extraction prototype
   - Rewrite last-output prototype with TDD as claudeutils subcommand
 
-- [ ] **Build pushback into conversation process** — `/design plans/pushback/requirements.md` | opus
-  - Plan: pushback | Status: requirements
-  - Next task — design before other work to improve conversation quality
-
 - [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
   - Integrates with worktree-update (additive merge, bidirectional sync)
@@ -131,7 +106,8 @@
 
 - [ ] **Execute worktree-update runbook + recovery** → `wt/worktree` — `/orchestrate worktree-update` | haiku | restart
   - Plan: plans/worktree-update — 40 TDD cycles, 7 phases
-  - Recovery pending: 5 critical, 10 major findings from deliverable review
+  - Recovery scoped: C2-C5 + selected major findings (independent of workwoods)
+  - Deferred to workwoods: C1 (wt-ls), R1 (session.md/jobs.md auto-combine)
   - Requirements: `plans/worktree-update/reports/deliverable-review.md`
 - [ ] **Plan when-recall** → `wt/when-recall` — blocked on validator fix | sonnet
   - Fix validator for exact key matching (remove fuzzy, update _build_heading)
@@ -141,6 +117,8 @@
   - Blocked on: workflow improvements
   - Outline: `plans/error-handling/outline.md`
 - [ ] **Test feature** → `wt/test-feature`
+- [ ] **Build pushback into conversation process** → `wt/pushback` — `/design plans/pushback/requirements.md` | opus
+  - Plan: pushback | Status: requirements
 
 ## Blockers / Gotchas
 
@@ -157,10 +135,13 @@
 - Manual reconciliation needed after every merge (this session: 6 manual fixups)
 - Pending task to fix this in worktree-update
 
+**All tasks with documentation must have in-tree file references.**
+
 ## Reference Files
 
 - `plans/workwoods/requirements.md` — Workwoods requirements (6 FRs, cross-tree awareness)
 - `plans/pushback/requirements.md` — Pushback requirements (3 FRs, sycophancy prevention)
+- `plans/process-review/rca.md` — Process RCA (recovered from git history)
 - `plans/worktree-update/` — Runbook (40 TDD cycles, 7 phases), design, orchestrator plan
 - `plans/when-recall/design.md` — Vetted design document
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
