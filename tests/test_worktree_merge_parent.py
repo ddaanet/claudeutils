@@ -159,6 +159,88 @@ def test_merge_precommit_validation(
     )
 
 
+def test_merge_precommit_failure(
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    commit_file: Callable[[Path, str, str, str], None],
+) -> None:
+    """Test Phase 4: merge succeeds but precommit fails.
+
+    Behavior:
+    - After successful merge (no conflicts): check for staged changes
+    - Run `git diff --cached --quiet` (exit ≠ 0 means changes staged)
+    - If staged changes: `git commit -m "🔀 Merge <slug>"`
+    - Then run `just precommit` with exit code capture
+    - If precommit fails (exit ≠ 0): exit 1 with failure message
+    """
+    monkeypatch.chdir(repo_with_submodule)
+
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+
+    subprocess.run(
+        ["git", "branch", "test-merge"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+    result = CliRunner().invoke(worktree, ["new", "test-merge"])
+    assert result.exit_code == 0, f"new command should succeed, got: {result.output}"
+
+    worktree_path = (
+        repo_with_submodule.parent / f"{repo_with_submodule.name}-wt" / "test-merge"
+    )
+
+    # Add a change on the worktree branch
+    commit_file(worktree_path, "branch-file.txt", "branch content\n", "Branch change")
+
+    # Switch back to main and add a different change
+    subprocess.run(
+        ["git", "checkout", "main"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+    commit_file(repo_with_submodule, "main-file.txt", "main content\n", "Main change")
+
+    # Mock precommit to fail
+    original_run = subprocess.run
+
+    def mock_run_with_failure(*args: object, **kwargs: object) -> object:
+        cmd = args[0] if args else kwargs.get("args")
+        if (
+            isinstance(cmd, list)
+            and cmd
+            and cmd[0] == "just"
+            and len(cmd) > 1
+            and cmd[1] == "precommit"
+        ):
+            mock_result = subprocess.CompletedProcess(cmd, returncode=1)  # type: ignore[arg-type]
+            mock_result.stdout = ""  # type: ignore[attr-defined]
+            mock_result.stderr = "Precommit validation failed"  # type: ignore[attr-defined]
+            return mock_result
+        return original_run(*args, **kwargs)  # type: ignore[call-overload]
+
+    monkeypatch.setattr(subprocess, "run", mock_run_with_failure)
+
+    result = CliRunner().invoke(worktree, ["merge", "test-merge"])
+    assert result.exit_code == 1, f"merge should fail when precommit fails: {result.output}"
+    assert "Precommit" in result.output or "failed" in result.output.lower(), (
+        f"Error message should mention precommit failure: {result.output}"
+    )
+
+    # Verify merge was completed (MERGE_HEAD should not exist)
+    merge_head = subprocess.run(
+        ["git", "rev-parse", "MERGE_HEAD"],
+        check=False,
+        cwd=repo_with_submodule,
+        capture_output=True,
+        text=True,
+    )
+    assert merge_head.returncode != 0, (
+        "MERGE_HEAD should not exist after merge completes, even if precommit fails"
+    )
+
+
 def commit_file(path: Path, filename: str, content: str, message: str) -> None:
     """Create, stage, and commit a file."""
     (path / filename).write_text(content)
