@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-13
 
-**Status:** Pushback runbook prepared, ready for orchestration. prepare-runbook.py fixed for mixed runbooks.
+**Status:** Pushback runbook executed (11 steps complete). User validation required for behavioral testing.
 
 ## Completed This Session
 
@@ -32,11 +32,34 @@
 - Tier assessment: Tier 3 (Full Runbook) — testable behavioral contracts in Phase 2
 - Outline generated, reviewed, promoted to runbook
 
+**Pushback runbook execution:**
+- Phase 1 (General): Fragment creation and vet (2 steps)
+  - Created agent-core/fragments/pushback.md with 4 sections (Motivation, Design Discussion Evaluation, Agreement Momentum Detection, Model Selection)
+  - Vetted and fixed deslop violation
+  - Checkpoint: 1 issue fixed (commit 322c148)
+- Phase 2 (TDD): Hook implementation (5 cycles)
+  - Cycle 2.1: Long-form directive aliases (discuss:, pending:)
+  - Cycle 2.2: Enhanced d: directive with counterfactual evaluation framework
+  - Cycle 2.3: Fenced block exclusion (is_line_in_fence function)
+  - Cycle 2.4: Any-line directive matching with fence exclusion
+  - Cycle 2.5: Integration E2E test
+  - Checkpoint: All issues fixed (commit 63a7054)
+  - TDD process review: 100% compliance, 0 violations
+- Phase 3 (General): Wiring and documentation (4 steps)
+  - Wired fragment into CLAUDE.md Core Behavioral Rules
+  - Synced symlinks to parent .claude/
+  - Verified Phase 2 completion
+  - Created validation template for user testing (4 scenarios)
+- Final vet: All issues fixed (commit 9da5d02)
+- Reports: 6 vet/checkpoint reports in plans/pushback/reports/
+
 ## Pending Tasks
 
-- [ ] **Execute pushback runbook** — `/orchestrate plans/pushback` | sonnet | restart
-  - Plan: pushback | Status: planned
-  - 11 steps across 3 phases (general + TDD + general), sequential
+- [ ] **Validate pushback behavioral changes** — Test 4 scenarios in validation template | opus
+  - Template: plans/pushback/reports/step-3-4-validation-template.md
+  - Scenarios: good idea evaluation, flawed idea pushback, agreement momentum detection, model selection evaluation
+  - Requires fresh session (hooks active after restart)
+  - Plan: pushback | Status: awaiting user validation
 
 - [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
@@ -50,30 +73,22 @@
 
 ## Blockers / Gotchas
 
-**Restart required before orchestration:**
-- Hook changes in pushback runbook require session restart after Phase 3 Step 3.2
-- Phase 3 Step 3.4 (manual validation) must occur in fresh session
-
-**Fenced block detection dependency:**
-- Hook needs code-aware directive matching (D-7)
-- Fenced block: reuse existing preprocessor code or simpler standalone (design permits either)
-- Inline code: depends on pending markdown parser task — deferred
-
-**Test infrastructure for hooks:**
-- No existing hook tests — Cycle 2.1 establishes import pattern via importlib
-- Hook filename hyphenated (`userpromptsubmit-shortcuts.py`) — not importable via standard import
+**Submodule pointer commit pattern:**
+- Task agents committed changes in agent-core submodule but left parent repo submodule pointer uncommitted
+- Occurred after cycles 2.4 and Phase 1 checkpoint
+- Fixed via sonnet escalation (2 instances)
+- Recommendation: Add automated git status check to orchestration post-step verification (noted in TDD process review)
 
 ## Learnings (for /remember)
 
 - **Expansion introduces wrong-layer specifics**: Expansion agents add execution mechanics (git commands) and volatile references (line numbers) that belong in baseline or executing agent. Fix: constrain expansion to implementation guidance; inject layered context model awareness into expansion agent definitions
 - **Lossy intent propagation in multi-stage pipelines**: Each pipeline stage sees content but not intent. Deliberate omissions and accidental omissions are indistinguishable to downstream consumers. Fix: transformation fidelity checks or source-stage constraints
 - **prepare-runbook.py mixed type**: Script assumed single type per runbook. Mixed runbooks (general + TDD phases) require extracting both Step and Cycle headers, with per-phase type detection
+- **Task agents leave submodule pointer uncommitted**: Agents commit work in submodules but don't update parent repo pointer. Orchestrator must check git status after every step and escalate to sonnet for mechanical fix. Better: add explicit "commit submodule pointer update" instruction to agent prompts or automate in orchestrator post-step verification
 
 ## Next Steps
 
-Execute pushback runbook: `/orchestrate plans/pushback` (requires restart first — new agent definition).
-
-Copy to clipboard: `/orchestrate plans/pushback`
+User validation of pushback behavioral changes. See plans/pushback/reports/step-3-4-validation-template.md for 4 test scenarios.
 
 ---
-*Handoff by Sonnet. Runbook reviewed, fixed, prepare-runbook.py updated for mixed type support.*
+*Handoff by Sonnet. Pushback runbook executed: 11 steps complete, 100% TDD compliance, awaiting user validation.*

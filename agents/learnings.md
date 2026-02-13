@@ -342,4 +342,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Ground in research/best practices BEFORE producing outline — research findings should inform approach selection
 - Rationale: Internal reasoning + learnings are necessary but insufficient for behavioral/conversational design problems. External research validates or invalidates assumptions before they become design decisions
 - Scope: Especially important when the design problem has published prior art (sycophancy mitigation, prompt engineering patterns)
-- Example: Model tier on pending tasks — agent defaults to sonnet, precommit can verify field exists but not correctness
+- Example: Model tier on pending tasks — agent defaults to sonnet, precommit can verify field exists but not correctness## Task agents leave submodule pointer uncommitted
+- Anti-pattern: Trusting task agents to commit all changes including parent repo submodule pointer updates
+- Correct pattern: Orchestrator checks git status after every step, escalates dirty tree to sonnet for mechanical fix, or adds explicit submodule commit instruction to agent prompts
+- Rationale: Task agents focus on their assigned work (changes within submodule) and don't automatically update parent repo pointers. Orchestrator must verify clean tree as hard requirement.
+- Occurred: Phase 1 checkpoint and Cycle 2.4 in pushback execution
+- Fix: Sonnet escalation for mechanical submodule pointer commit (2 instances)
+- Better: Automate in orchestrator post-step verification with explicit instruction or git status check
