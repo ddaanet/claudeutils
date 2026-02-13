@@ -16,16 +16,25 @@
 - Includes key compression tool verification step
 - Implements FR-5 from when-recall design
 
+**Deliverable review verification:**
+- Verified all critical issues resolved (operator wired, `_build_heading()` conflict fixed, precommit passing)
+- Verified all major issues resolved (bin wrapper 94e69d6, skills 4162ad9, migration 529ffda, H3+ support)
+- All fixes implemented after initial review (2026-02-13 morning)
+- Branch appears ready for merge
+
 ## Pending Tasks
 
-- [ ] **Address when-recall deliverable review findings** — Fix critical and major issues blocking merge | sonnet
-  - Critical: Wire operator parameter through CLI → resolver (currently discarded)
-  - Critical: Fix `_build_heading()` conflict (prefix vs exact-key matching)
-  - Critical: Revert validator to dual-format OR execute atomic migration
-  - Major: Create bin wrapper (`agent-core/bin/when-resolve.py`)
-  - Major: Create skill wrappers (`/when` and `/how` skills)
-  - Major: Extend section mode to H3+ headings
-  - Report: `plans/when-recall/reports/deliverable-review.md`
+- [ ] **Run deliverable review round 2** — Verify all fixes and confirm merge readiness | sonnet
+  - Verify operator parameter implementation works correctly
+  - Verify heading resolution against prefixed format
+  - Check for any remaining gaps or edge cases
+  - Produce final go/no-go assessment
+  - Report: `plans/when-recall/reports/deliverable-review-2.md`
+
+- [x] **Address when-recall deliverable review findings** — Verified all resolved
+  - All 4 critical issues fixed (operator, heading conflict, precommit, migration)
+  - All 4 major issues fixed (bin wrapper, skills, H3+ support, migration)
+  - Commits: 94e69d6, 4162ad9, 529ffda (post-review fixes)
 
 - [ ] **Protocolize RED pass recovery** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
@@ -58,19 +67,15 @@
 
 ## Blockers / Gotchas
 
-**Autofix functions need updating:** `autofix_index` removes all entries instead of just structural ones. Root cause: autofix logic doesn't account for operator-prefixed keys. Need to strip operator prefix when comparing against structural set, but preserve full key for header matching.
-
-**Operator→prefix mapping:** `/when` → "When", `/how` → "How to". Both `_extract_entry_key` and `_build_heading` must use same mapping. Test both operators in every TDD cycle.
-
-**Learnings.md over soft limit:** 319+ lines, consolidation blocked on memory redesign.
+**Learnings.md over soft limit:** 349 lines, consolidation blocked on memory redesign.
 
 **Common context signal competition:** Structural issue in prepare-runbook.py. See `tmp/rca-common-context.md`.
 
 ## Reference Files
 
-- `plans/when-recall/reports/deliverable-review.md` — Findings that drove TDD cycles
+- `plans/when-recall/reports/deliverable-review.md` — Initial review findings (2026-02-13 morning)
 - `plans/when-recall/design.md` — Vetted design (ground truth)
 - `agent-core/skills/remember/SKILL.md` — Updated to generate `/when` or `/how` format entries
-- `src/claudeutils/validation/memory_index_helpers.py` — Contains `_strip_operator_prefix` helper and autofix logic needing update
-- `src/claudeutils/recall/index_parser.py` — Refactored: helpers extracted
-- `src/claudeutils/validation/memory_index_checks.py` — Refactored: helper extracted
+- `src/claudeutils/when/cli.py` — Operator parameter wired to resolver (line 28)
+- `src/claudeutils/when/resolver.py` — Accepts operator, H3+ support, `_build_heading()`
+- `agents/decisions/implementation-notes.md` — Prefixed headings format verified
