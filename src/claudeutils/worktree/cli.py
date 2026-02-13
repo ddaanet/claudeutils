@@ -87,7 +87,7 @@ def focus_session(task_name: str, session_md_path: str | Path) -> str:
         raise ValueError(f"Task '{task_name}' not found in session.md")  # noqa: TRY003
 
     metadata = match.group(1).rstrip()
-    plan_match = re.search(r"plan:\s*(\S+)", metadata) if "plan:" in metadata else None
+    plan_match = re.search(r"plan:\s*(\S+)", metadata)
     plan_dir = plan_match.group(1) if plan_match else None
 
     result = (
@@ -105,8 +105,7 @@ def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
     """Register container in sandbox permissions."""
     settings_path = Path(settings_path)
     if settings_path.exists():
-        with settings_path.open() as f:
-            settings: dict[str, Any] = json.load(f)
+        settings: dict[str, Any] = json.loads(settings_path.read_text())
     else:
         settings_path.parent.mkdir(parents=True, exist_ok=True)
         settings = {"permissions": {"additionalDirectories": []}}
@@ -115,8 +114,7 @@ def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
     dirs = perms.setdefault("additionalDirectories", [])
     if container not in dirs:
         dirs.append(container)
-    with settings_path.open("w") as f:
-        json.dump(settings, f, indent=2, ensure_ascii=False)
+    settings_path.write_text(json.dumps(settings, indent=2, ensure_ascii=False))
 
 
 def initialize_environment(worktree_path: Path) -> None:
@@ -208,11 +206,9 @@ def _create_parent_worktree(
     worktree_path: Path, slug: str, base: str, session: str
 ) -> None:
     """Create parent repo worktree with optional session commit."""
-    try:
-        _git("rev-parse", "--verify", slug)
-        branch_exists = True
-    except subprocess.CalledProcessError:
-        branch_exists = False
+    branch_exists = subprocess.run(
+        ["git", "rev-parse", "--verify", slug], capture_output=True, check=False
+    ).returncode == 0
 
     if branch_exists and session:
         click.echo(f"Warning: branch {slug} exists, ignoring --session", err=True)
@@ -302,15 +298,13 @@ def new(slug: str | None, base: str, session: str, task: str, session_md: str) -
         raise click.UsageError("either slug or --task is required")  # noqa: TRY003
     if task and session:
         click.echo("Warning: --session option ignored when --task provided", err=True)
-        session = ""
-
     temp_session_file = None
     try:
         if task:
             slug = derive_slug(task)
             with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
                 f.write(focus_session(task, session_md))
-                session = temp_session_file = f.name
+                temp_session_file = session = f.name
 
         if slug is None:
             raise click.UsageError("either slug or --task is required")  # noqa: TRY003
@@ -390,11 +384,11 @@ def rm(slug: str) -> None:
     else:
         _git("worktree", "prune")
 
-    try:
-        _git("branch", "-D", slug)
-    except subprocess.CalledProcessError as e:
-        if "not found" not in e.stderr.lower():
-            click.echo(e.stderr)
+    r = subprocess.run(
+        ["git", "branch", "-D", slug], capture_output=True, text=True, check=False
+    )
+    if r.returncode != 0 and "not found" not in r.stderr.lower():
+        click.echo(r.stderr)
 
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
