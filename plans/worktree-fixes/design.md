@@ -71,7 +71,7 @@ class TaskBlock:
 
 **`derive_slug(task_name: str) -> str`** (was `derive_slug(task_name, max_length=30)`)
 - Remove `max_length` parameter
-- Call `validate_task_name(task_name)` before transformation (fail-fast)
+- Call `validate_task_name_format(task_name)` before transformation (fail-fast, raises ValueError if invalid)
 - Transformation: `task_name.lower()` then `re.sub(r"[^a-z0-9]+", "-", ...).strip("-")`
 - No truncation — constrained names produce short slugs
 - Lossless: spaces/dots/sequences become single hyphens, but names are short enough that this is unambiguous
@@ -86,14 +86,16 @@ class TaskBlock:
 - Call `remove_worktree_task(session_md_path, slug, slug)` (branch name = slug)
 - Must happen before `git branch -d` (needs branch to exist for `git show`)
 
-**`focus_session():`**
+**`focus_session()` (Phase 1 — uses `extract_task_blocks()` from session.py):**
 - Replace single-line regex with `extract_task_blocks()` from session.py
 - Reconstruct focused session with full task block (all continuation lines)
+- Constrained task names simplify pattern matching (no complex escaping needed)
 
 #### `src/claudeutils/worktree/merge.py`
 
 **`_resolve_session_md_conflict()`:**
 - Replace single-line set diff with `extract_task_blocks()`
+- Use `find_section_bounds()` to locate insertion point for new blocks
 - Compare by task name (not full line text)
 - Insert full blocks (all lines) for new tasks from worktree side
 - Blank line separation before next section header
@@ -172,17 +174,17 @@ Both `derive_slug()` (fail-fast) and precommit validator call the same function.
 | Phase | FRs | Type | Files Changed |
 |-------|-----|------|---------------|
 | 0: Task name constraints | FR-1, FR-2 | TDD | `cli.py`, `validation/tasks.py`, tests |
-| 1: Merge fixes | FR-4, FR-5 | TDD | `merge.py`, NEW `session.py`, tests |
+| 1: Merge fixes | FR-4, FR-5 | TDD | `merge.py`, `cli.py` (focus_session), NEW `session.py`, tests |
 | 2: Session automation | FR-6 | TDD | `cli.py`, `session.py`, tests |
 | 3: Skill update | — | General | `SKILL.md` |
 
 **Phase 0** establishes validation infrastructure. `derive_slug()` becomes lossless with format validation. Precommit gains format checking.
 
-**Phase 1** creates shared `session.py` module with `extract_task_blocks()` and `find_section_bounds()`. Fixes `_resolve_session_md_conflict()` to use full blocks. Fixes `_phase4` with MERGE_HEAD detection.
+**Phase 1** creates shared `session.py` module with `extract_task_blocks()` and `find_section_bounds()`. Fixes `_resolve_session_md_conflict()` to use full blocks (uses `find_section_bounds()` for insertion point). Fixes `_phase4` with MERGE_HEAD detection. Updates `focus_session()` to use `extract_task_blocks()`.
 
 **Phase 2** adds `move_task_to_worktree()` and `remove_worktree_task()` to session.py. Wires into `new --task` and `rm` commands. Reorders `rm` to check branch before deletion.
 
-**Phase 3** removes Mode A step 4, Mode B step 4, Mode C step 3 from SKILL.md. Documents CLI automation.
+**Phase 3** updates SKILL.md: removes session.md editing from Mode A step 4 and Mode B step 4 (now automated by `new --task`). Simplifies Mode C step 3 to remove manual session.md editing (now automated by `rm`). Documents that CLI handles task movement automatically.
 
 ## Testing Strategy
 
@@ -194,10 +196,10 @@ All TDD phases use E2E tests with real git repos via `tmp_path` fixtures, matchi
 - `derive_slug()` rejects invalid names (ValueError)
 - Precommit integration: session.md with invalid names → validation errors
 
-**Phase 1 tests (`test_worktree_session.py`, `test_worktree_merge.py`):**
-- `extract_task_blocks()`: single-line tasks, multi-line tasks, mixed sections
-- `_resolve_session_md_conflict()`: merge with multi-line task blocks preserved
-- `_phase4`: empty-diff merge still creates commit (MERGE_HEAD detection)
+**Phase 1 tests (`test_worktree_session.py`, `test_worktree_merge_conflicts.py`, `test_worktree_merge_parent.py`):**
+- `extract_task_blocks()`: single-line tasks, multi-line tasks, mixed sections (in `test_worktree_session.py`)
+- `_resolve_session_md_conflict()`: merge with multi-line task blocks preserved (in `test_worktree_merge_conflicts.py`)
+- `_phase4`: empty-diff merge still creates commit (MERGE_HEAD detection) (in `test_worktree_merge_parent.py`)
 - `git branch -d` succeeds after empty-diff merge
 
 **Phase 2 tests (`test_worktree_session.py`, `test_worktree_cli.py`):**
