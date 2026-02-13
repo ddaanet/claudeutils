@@ -379,14 +379,38 @@ def add_commit(files: tuple[str, ...]) -> None:
 def rm(slug: str) -> None:
     """Remove worktree and branch."""
     worktree_path = wt_path(slug)
+
+    parent_registered = False
+    submodule_registered = False
+
     if worktree_path.exists():
+        parent_list = _git("worktree", "list", "--porcelain", check=False)
+        parent_registered = str(worktree_path) in parent_list
+
+        submodule_list = _git(
+            "-C", "agent-core", "worktree", "list", "--porcelain", check=False
+        )
+        submodule_registered = str(worktree_path / "agent-core") in submodule_list
+
         status_output = _git(
             "-C", str(worktree_path), "status", "--porcelain", check=False
         )
         if status_output:
             uncommitted_count = len(status_output.strip().split("\n"))
             click.echo(f"Warning: worktree has {uncommitted_count} uncommitted files")
-        _git("worktree", "remove", "--force", str(worktree_path))
+
+        if submodule_registered:
+            _git(
+                "-C",
+                "agent-core",
+                "worktree",
+                "remove",
+                "--force",
+                str(worktree_path / "agent-core"),
+            )
+
+        if parent_registered:
+            _git("worktree", "remove", "--force", str(worktree_path))
     else:
         _git("worktree", "prune")
 

@@ -191,3 +191,52 @@ def test_rm_command_dirty_tree_warning(
     assert "Warning: worktree has" in result.output
     assert "uncommitted files" in result.output
     assert not worktree_path.exists()
+
+
+def test_rm_worktree_registration_probing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, repo_with_submodule: Path
+) -> None:
+    """Rm command detects parent and submodule worktree registration states."""
+    monkeypatch.chdir(repo_with_submodule)
+
+    result = CliRunner().invoke(worktree, ["new", "test-slug"])
+    assert result.exit_code == 0
+
+    worktree_path = wt_path("test-slug")
+    assert worktree_path.exists()
+
+    parent_list = subprocess.run(
+        ["git", "worktree", "list", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert str(worktree_path) in parent_list
+
+    submodule_list = subprocess.run(
+        ["git", "-C", "agent-core", "worktree", "list", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert str(worktree_path / "agent-core") in submodule_list
+
+    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    assert result.exit_code == 0
+    assert not worktree_path.exists()
+
+    parent_list_after = subprocess.run(
+        ["git", "worktree", "list", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert str(worktree_path) not in parent_list_after
+
+    submodule_list_after = subprocess.run(
+        ["git", "-C", "agent-core", "worktree", "list", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert str(worktree_path / "agent-core") not in submodule_list_after
