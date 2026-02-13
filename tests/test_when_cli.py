@@ -48,3 +48,35 @@ def test_operator_argument_validation() -> None:
     result = runner.invoke(cli, ["when", "what", "some topic"])
     assert result.exit_code != 0
     assert "Invalid value" in result.output
+
+
+def test_query_variadic_argument() -> None:
+    """Test that query argument is variadic and joins multiple words.
+
+    Verifies:
+    1. Multiple query words joined with spaces
+    2. Dot prefix preserved in query (mode switches)
+    3. Double dot prefix preserved in query (file mode)
+    4. At least one query word required
+    """
+    runner = CliRunner()
+
+    # Multiple words joined
+    result = runner.invoke(cli, ["when", "when", "writing", "mock", "tests"])
+    assert result.exit_code == 0
+    assert "writing mock tests" in result.output
+
+    # Dot prefix preserved
+    result = runner.invoke(cli, ["when", "when", ".Section"])
+    assert result.exit_code == 0
+    assert ".Section" in result.output
+
+    # Double dot prefix preserved
+    result = runner.invoke(cli, ["when", "when", "..file.md"])
+    assert result.exit_code == 0
+    assert "..file.md" in result.output
+
+    # No query args should error
+    result = runner.invoke(cli, ["when", "when"])
+    assert result.exit_code != 0
+    assert "Missing argument" in result.output
