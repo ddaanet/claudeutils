@@ -10,7 +10,7 @@ class ResolveError(Exception):
     """Error during resolution."""
 
 
-def resolve(_mode: str, query: str, index_path: str, decisions_dir: str) -> str:
+def resolve(query: str, index_path: str, decisions_dir: str) -> str:
     """Resolve query to decision file content via prefix-based routing."""
     if query.startswith(".."):
         return _resolve_file(query[2:].strip(), decisions_dir)
@@ -26,7 +26,7 @@ def _resolve_file(filename: str, decisions_dir: str) -> str:
 
     if not file_path.exists():
         available_files = sorted(dec_dir.glob("*.md"))
-        msg = f"File '{filename}' not found in agents/decisions/."
+        msg = f"File '{filename}' not found in decision files."
         if available_files:
             msg += "\nAvailable:"
             for md_file in available_files:
@@ -48,7 +48,15 @@ def _read_file(file_path: Path) -> str:
 def _build_section_not_found_error(
     query: str, heading_to_files: dict[str, list[tuple[Path, str]]]
 ) -> ResolveError:
-    """Format error with available headings (up to 10)."""
+    """Format error with available headings (up to 10).
+
+    Args:
+        query: Section query that was not found
+        heading_to_files: Map of lowercase heading to (file, original_heading) tuples
+
+    Returns:
+        ResolveError with suggestions list (max 10 headings)
+    """
     available_headings = []
     for heading_lower in sorted(heading_to_files.keys()):
         if heading_to_files[heading_lower]:
@@ -101,27 +109,25 @@ def _resolve_section(query: str, decisions_dir: str) -> str:
 def _get_suggestions(
     query: str, candidates: list[str], limit: int = 3
 ) -> list[tuple[str, float]]:
-    """Get top fuzzy suggestions sorted by score."""
+    """Get top fuzzy suggestions sorted by score.
+
+    Uses simple sequential character matching for suggestions (looser than main
+    fuzzy engine which has minimum threshold filters).
+    """
     scored = []
+    query_lower = query.lower()
     for candidate in candidates:
-        partial_score = _get_partial_match_score(query, candidate)
-        if partial_score > 0:
-            scored.append((candidate, partial_score))
+        candidate_lower = candidate.lower()
+        matched = 0
+        q_idx = 0
+        for c in candidate_lower:
+            if q_idx < len(query_lower) and c == query_lower[q_idx]:
+                matched += 1
+                q_idx += 1
+        if matched > 0:
+            scored.append((candidate, float(matched)))
     scored.sort(key=lambda x: x[1], reverse=True)
     return scored[:limit]
-
-
-def _get_partial_match_score(query: str, candidate: str) -> float:
-    """Count sequential character matches."""
-    query_lower = query.lower()
-    candidate_lower = candidate.lower()
-    matched = 0
-    q_idx = 0
-    for c in candidate_lower:
-        if q_idx < len(query_lower) and c == query_lower[q_idx]:
-            matched += 1
-            q_idx += 1
-    return float(matched)
 
 
 def _handle_no_match(query: str, candidates: list[str]) -> None:
@@ -208,9 +214,10 @@ def _resolve_trigger(query: str, index_path: str, decisions_dir: str) -> str:
 
 def _build_heading(operator: str, trigger: str) -> str:
     """Build heading from operator and trigger."""
-    capitalized = " ".join(w.capitalize() for w in trigger.split())
+    words = trigger.split()
+    capitalized = " ".join(w.capitalize() for w in words)
     if operator == "how":
-        return f"How To {capitalized}"
+        return f"How to {capitalized}"
     return f"When {capitalized}"
 
 
@@ -237,7 +244,7 @@ def _extract_section_content(heading: str, file_content: str) -> str:
                 break
         result_lines.append(line)
 
-    return "\n".join(result_lines).rstrip()
+    return "\n".join(result_lines).rstrip("\n")
 
 
 def _extract_section(file_path: Path, heading: str) -> str:

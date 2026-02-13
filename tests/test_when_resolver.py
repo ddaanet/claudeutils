@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from claudeutils.when.resolver import ResolveError, _extract_section_content, resolve
 
 
@@ -16,11 +18,11 @@ def test_mode_detection(tmp_path: Path) -> None:
     testing_file = decisions_dir / "testing.md"
     testing_file.write_text("## Test Section\n\nTest content.\n")
 
-    section = resolve("section", ".Test Section", str(index_file), str(decisions_dir))
+    section = resolve(".Test Section", str(index_file), str(decisions_dir))
     assert "## Test Section" in section
     assert "Test content." in section
 
-    file_mode = resolve("file", "..testing.md", str(index_file), str(decisions_dir))
+    file_mode = resolve("..testing.md", str(index_file), str(decisions_dir))
     assert "## Test Section" in file_mode
     assert "Test content." in file_mode
 
@@ -48,17 +50,13 @@ def test_section_mode_resolves(tmp_path: Path) -> None:
         "Other content here.\n"
     )
 
-    result = resolve(
-        "section", ".Mock Patching Pattern", str(index_file), str(decisions_dir)
-    )
+    result = resolve(".Mock Patching Pattern", str(index_file), str(decisions_dir))
     assert "## Mock Patching Pattern" in result
     assert "Use exact match for restoration operations" in result
     assert "Prevents exploitation via command continuation" in result
     assert "## Next Section" not in result
 
-    result = resolve(
-        "section", ".mock patching pattern", str(index_file), str(decisions_dir)
-    )
+    result = resolve(".mock patching pattern", str(index_file), str(decisions_dir))
     assert "## Mock Patching Pattern" in result
 
 
@@ -73,15 +71,12 @@ def test_file_mode_resolves(tmp_path: Path) -> None:
     testing_file = decisions_dir / "testing.md"
     testing_file.write_text("## Test Section\n\nTest file content.\n")
 
-    result = resolve("file", "..testing.md", str(index_file), str(decisions_dir))
+    result = resolve("..testing.md", str(index_file), str(decisions_dir))
     assert "## Test Section" in result
     assert "Test file content." in result
 
-    try:
-        resolve("file", "..nonexistent.md", str(index_file), str(decisions_dir))
-        raise AssertionError("Expected ResolveError for missing file")
-    except ResolveError:
-        pass
+    with pytest.raises(ResolveError):
+        resolve("..nonexistent.md", str(index_file), str(decisions_dir))
 
 
 def test_trigger_mode_resolves(tmp_path: Path) -> None:
@@ -108,13 +103,11 @@ def test_trigger_mode_resolves(tmp_path: Path) -> None:
         "Handle errors gracefully.\n"
     )
 
-    result = resolve(
-        "trigger", "writing mock tests", str(index_file), str(decisions_dir)
-    )
+    result = resolve("writing mock tests", str(index_file), str(decisions_dir))
     assert "# When Writing Mock Tests" in result
     assert "Mock tests prevent side effects" in result
 
-    result = resolve("trigger", "mock test", str(index_file), str(decisions_dir))
+    result = resolve("mock test", str(index_file), str(decisions_dir))
     assert "# When Writing Mock Tests" in result
 
 
@@ -150,9 +143,7 @@ def test_resolve_output_format(tmp_path: Path) -> None:
         "Prevents exploitation via command continuation.\n"
     )
 
-    result = resolve(
-        "trigger", "writing mock tests", str(index_file), str(decisions_dir)
-    )
+    result = resolve("writing mock tests", str(index_file), str(decisions_dir))
 
     assert "# When Writing Mock Tests" in result
     assert "Mock tests prevent side effects" in result
@@ -196,18 +187,63 @@ def test_trigger_not_found_suggests_matches(tmp_path: Path) -> None:
         "Debugging strategies.\n"
     )
 
-    try:
-        resolve("trigger", "nonexistent topic xyz", str(index_file), str(decisions_dir))
-        raise AssertionError("Expected ResolveError")
-    except ResolveError as e:
-        error_msg = str(e)
-        assert "No match for" in error_msg
-        assert "nonexistent topic xyz" in error_msg
-        assert "Did you mean:" in error_msg
-        assert "/when " in error_msg
-        suggestion_count = error_msg.count("/when ")
-        assert suggestion_count >= 1
-        assert suggestion_count <= 3
+    with pytest.raises(ResolveError) as exc_info:
+        resolve("nonexistent topic xyz", str(index_file), str(decisions_dir))
+
+    error_msg = str(exc_info.value)
+    assert "No match for" in error_msg
+    assert "nonexistent topic xyz" in error_msg
+    assert "Did you mean:" in error_msg
+    assert "/when " in error_msg
+    suggestion_count = error_msg.count("/when ")
+    assert suggestion_count >= 1
+    assert suggestion_count <= 3
+
+
+def test_trigger_suggestions_limited_to_three(tmp_path: Path) -> None:
+    """Verify exactly 3 suggestions when 10+ candidates exist."""
+    index_file = tmp_path / "test_index.md"
+    index_entries = [
+        "/when topic one | first\n",
+        "/when topic two | second\n",
+        "/when topic three | third\n",
+        "/when topic four | fourth\n",
+        "/when topic five | fifth\n",
+        "/when topic six | sixth\n",
+        "/when topic seven | seventh\n",
+        "/when topic eight | eighth\n",
+        "/when topic nine | ninth\n",
+        "/when topic ten | tenth\n",
+        "/when topic eleven | eleventh\n",
+        "/when topic twelve | twelfth\n",
+    ]
+    index_file.write_text("## testing\n\n" + "".join(index_entries))
+
+    decisions_dir = tmp_path / "decisions"
+    decisions_dir.mkdir()
+
+    decision_file = decisions_dir / "testing.md"
+    decision_file.write_text(
+        "## When Topic One\n\nContent.\n\n"
+        "## When Topic Two\n\nContent.\n\n"
+        "## When Topic Three\n\nContent.\n\n"
+        "## When Topic Four\n\nContent.\n\n"
+        "## When Topic Five\n\nContent.\n\n"
+        "## When Topic Six\n\nContent.\n\n"
+        "## When Topic Seven\n\nContent.\n\n"
+        "## When Topic Eight\n\nContent.\n\n"
+        "## When Topic Nine\n\nContent.\n\n"
+        "## When Topic Ten\n\nContent.\n\n"
+        "## When Topic Eleven\n\nContent.\n\n"
+        "## When Topic Twelve\n\nContent.\n\n"
+    )
+
+    with pytest.raises(ResolveError) as exc_info:
+        resolve("nonmatching query xyz", str(index_file), str(decisions_dir))
+
+    error_msg = str(exc_info.value)
+    suggestion_count = error_msg.count("/when ")
+    assert suggestion_count == 3
 
 
 def test_section_not_found_lists_headings(tmp_path: Path) -> None:
@@ -231,18 +267,17 @@ def test_section_not_found_lists_headings(tmp_path: Path) -> None:
         "## When Optimizing\n\nOptimize content.\n"
     )
 
-    try:
-        resolve("section", ".Nonexistent Section", str(index_file), str(decisions_dir))
-        raise AssertionError("Expected ResolveError")
-    except ResolveError as e:
-        error_msg = str(e)
-        assert "Section 'Nonexistent Section' not found." in error_msg
-        assert "Available:" in error_msg
-        assert ".When Writing Tests" in error_msg
-        assert ".When Mocking Objects" in error_msg
-        assert ".When Debugging" in error_msg
-        assert ".When Refactoring" in error_msg
-        assert ".When Optimizing" in error_msg
+    with pytest.raises(ResolveError) as exc_info:
+        resolve(".Nonexistent Section", str(index_file), str(decisions_dir))
+
+    error_msg = str(exc_info.value)
+    assert "Section 'Nonexistent Section' not found." in error_msg
+    assert "Available:" in error_msg
+    assert ".When Writing Tests" in error_msg
+    assert ".When Mocking Objects" in error_msg
+    assert ".When Debugging" in error_msg
+    assert ".When Refactoring" in error_msg
+    assert ".When Optimizing" in error_msg
 
 
 def test_section_content_extraction(tmp_path: Path) -> None:
@@ -325,17 +360,16 @@ def test_file_not_found_lists_files(tmp_path: Path) -> None:
         "## Architecture Section\n\nArchitecture content.\n"
     )
 
-    try:
-        resolve("file", "..nonexistent.md", str(index_file), str(decisions_dir))
-        raise AssertionError("Expected ResolveError")
-    except ResolveError as e:
-        error_msg = str(e)
-        assert "File 'nonexistent.md' not found in agents/decisions/." in error_msg
-        assert "Available:" in error_msg
-        assert "..architecture.md" in error_msg
-        assert "..cli.md" in error_msg
-        assert "..testing.md" in error_msg
-        arch_idx = error_msg.index("..architecture.md")
-        cli_idx = error_msg.index("..cli.md")
-        test_idx = error_msg.index("..testing.md")
-        assert arch_idx < cli_idx < test_idx
+    with pytest.raises(ResolveError) as exc_info:
+        resolve("..nonexistent.md", str(index_file), str(decisions_dir))
+
+    error_msg = str(exc_info.value)
+    assert "File 'nonexistent.md' not found in decision files." in error_msg
+    assert "Available:" in error_msg
+    assert "..architecture.md" in error_msg
+    assert "..cli.md" in error_msg
+    assert "..testing.md" in error_msg
+    arch_idx = error_msg.index("..architecture.md")
+    cli_idx = error_msg.index("..cli.md")
+    test_idx = error_msg.index("..testing.md")
+    assert arch_idx < cli_idx < test_idx
