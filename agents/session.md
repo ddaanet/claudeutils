@@ -1,22 +1,24 @@
 # Session Handoff: 2026-02-13
 
-**Status:** Worktree-update recovery scoped, pushback worktree created, session cleanup.
+**Status:** Worktree merged, session reconciled, pushback worktree created.
 
 ## Completed This Session
 
-**Worktree-update recovery triage:**
-- Cross-referenced deliverable review findings against workwoods requirements
-- C1 (wt-ls Python coupling) deferred — workwoods FR-1 redesigns wt-ls entirely
-- R1 (session.md/jobs.md auto-combine) deferred — workwoods FR-5/FR-6 supersede
-- C2-C5 + selected major findings: independent, fix now
-- Decision: fix independent findings → merge → workwoods designs against merged baseline
+**Worktree-update merge + reconciliation:**
+- Triaged deliverable review findings against workwoods requirements: C2-C5 independent (fix now), C1/R1 deferred to workwoods (FR-1, FR-5/FR-6 supersede)
+- Merged worktree branch to main (95 commits: 40 TDD cycles, recovery fixes, 3 RCAs, workflow-fixes)
+- Manual session reconciliation post-merge (--ours loses worktree data):
+  - Recovered 14 worktree-side learnings (418 total lines)
+  - Extracted new task "Workflow fixes from RCA" from worktree session
+  - Marked RCA tasks complete, updated jobs.md (worktree-update + workflow-fixes complete)
+  - Cleared workflow improvements RCA blocker
+- Removed worktree (`just wt-rm worktree`)
 
 **Session cleanup:**
-- Removed "Agentic process review and prose RCA" — was completed at process-review merge (marked `[x]` in commit 5b79869), incorrectly re-added during task recovery (a74ed85)
-- Recovered `plans/process-review/rca.md` from git history (commit 0ded1a3) — was deleted after merge per code removal rules, but workflow improvements task needs in-tree reference
-- Added input file references to composite tasks (workflow improvements, both RCAs)
-- Moved pushback to Worktree Tasks after `wt-task pushback` creation
-- Updated workflow improvements blocker to reference current pending RCAs (file growth, vet over-escalation)
+- Removed "Agentic process review and prose RCA" — completed at merge 5b79869, incorrectly re-added during task recovery (a74ed85)
+- Recovered `plans/process-review/rca.md` from git history (0ded1a3) for in-tree reference
+- Added input file references to composite tasks
+- Created pushback worktree (`wt-task pushback`)
 
 ## Pending Tasks
 
@@ -36,19 +38,15 @@
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
   - Reports: `plans/when-recall/reports/tdd-process-review.md`, `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`
 
-- [x] **RCA: Runbook planning missed file growth** — Completed in worktree, opus report at `plans/reports/rca-planning-file-growth-opus.md`
-
-- [x] **RCA: Vet over-escalation persists post-overhaul** — Completed in worktree, opus report at `plans/reports/rca-vet-over-escalation-opus.md`
-
 - [ ] **Workflow fixes from RCA** — Implement process improvements from 3 RCA reports | sonnet
   - Input: `plans/reports/rca-*-opus.md` (3 authoritative reports)
   - Key fixes: normalize runbook-review.md axes, add execution-time split enforcement, add vet investigation protocol + UNFIXABLE taxonomy, orchestrate template enforcement
 
-- [ ] **Consolidate learnings** — learnings.md at 312+ lines (soft limit 80) | sonnet
+- [ ] **Consolidate learnings** — learnings.md at 418 lines (soft limit 80) | sonnet
   - Blocked on: memory redesign (/when, /how)
 
 - [ ] **Worktree merge combines session context** — Confirm wt-merge combines pending tasks/jobs (not --ours) and requires agent review | sonnet
-  - Blocked on: worktree-update delivery
+  - Worktree-update delivered — blocker cleared, but wt-merge still uses --ours
 
 - [ ] **Learning ages computation after consolidation** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
 
@@ -58,17 +56,14 @@
   - Autofix or fail on duplicate memory index entries (blocked on memory redesign)
 
 - [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate in main repo or dedicated worktree | sonnet
-  - Blocked on: worktree-update delivery
 
 - [ ] **Commit skill optimizations** — Remove handoff gate, optimize, branching fix | sonnet
-  - Blocked on: worktree-update delivery
   - Remove handoff gate, optimize with minimal custom script calls
   - Commit Gate B — coverage ratio (artifacts:reports 1:1) not boolean
   - Commit/handoff branching — move git branching point after precommit passes
 
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
-  - Blocked on: worktree-update delivery (wt-* recipes change, justfile Phase 4 invalid)
   - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite against post-worktree-update justfile, expanded phases need regeneration
   - Drift: 18 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
 
@@ -103,7 +98,6 @@
 
 ## Worktree Tasks
 
-- [x] **Execute worktree-update runbook + recovery** — Merged to main. Recovery C2-C5 fixed. C1/R1 deferred to workwoods.
 - [ ] **Plan when-recall** → `wt/when-recall` — blocked on validator fix | sonnet
   - Fix validator for exact key matching (remove fuzzy, update _build_heading)
   - Then migrate memory-index.md to /when format (152 entries)
@@ -123,12 +117,11 @@
 - Cleanup: delete review-methodology.md (confirmed fully superseded)
 
 **Learnings.md over soft limit:**
-- 312 lines, 0 entries >=7 days — consolidation blocked on memory redesign
+- 418 lines — consolidation blocked on memory redesign
 
 **wt-merge uses --ours for session.md:**
-- Worktree-side pending tasks and jobs.md changes lost on merge
-- Manual reconciliation needed after every merge (this session: 6 manual fixups)
-- Pending task to fix this in worktree-update
+- Worktree-side pending tasks, jobs.md, learnings lost on merge
+- Manual reconciliation needed after every merge (this session: learnings + tasks + jobs recovered)
 
 **All tasks with documentation must have in-tree file references.**
 
@@ -136,7 +129,9 @@
 
 - `plans/workwoods/requirements.md` — Workwoods requirements (6 FRs, cross-tree awareness)
 - `plans/pushback/requirements.md` — Pushback requirements (3 FRs, sycophancy prevention)
-- `plans/process-review/rca.md` — Process RCA (recovered from git history)
-- `plans/worktree-update/` — Runbook (40 TDD cycles, 7 phases), design, orchestrator plan
+- `plans/process-review/rca.md` — Process RCA (5 plans examined, root cause in planning skill)
+- `plans/reports/rca-*-opus.md` — 3 RCA reports (file growth, vet over-escalation, general-step detection)
+- `plans/workflow-fixes/` — Unified runbook skill, plan-reviewer, pipeline-contracts (complete)
+- `plans/worktree-update/` — Runbook + reports (complete, merged)
 - `plans/when-recall/design.md` — Vetted design document
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
