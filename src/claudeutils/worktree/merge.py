@@ -111,3 +111,27 @@ def merge(slug: str) -> None:
         }
     )
     _check_clean_for_merge(path=wt_path(slug), label="worktree")
+
+    wt_ls_output = _git("ls-tree", slug, "--", "agent-core", check=False)
+    if wt_ls_output:
+        wt_commit = wt_ls_output.split()[2]
+
+        local_commit = _git("-C", "agent-core", "rev-parse", "HEAD", check=False)
+
+        if wt_commit == local_commit:
+            return
+
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                "agent-core",
+                "merge-base",
+                "--is-ancestor",
+                wt_commit,
+                local_commit,
+            ],
+            check=False,
+        )
+        if result.returncode == 0:
+            return
