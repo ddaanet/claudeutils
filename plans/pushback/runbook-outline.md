@@ -1,6 +1,6 @@
 # Pushback Runbook Outline
 
-**Status:** Reviewed (fixes applied: C-1 test path, M-1 import mechanism, M-2 cycle reorder, M-3 dual output, m-1/2/3)
+**Status:** Promoted to runbook.md (outline sufficiency criteria met: all items specify targets/actions/verification, no unresolved decisions)
 **Created:** 2026-02-13
 
 ---

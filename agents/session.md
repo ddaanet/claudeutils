@@ -1,56 +1,79 @@
 # Session Handoff: 2026-02-13
 
-**Status:** Pushback runbook outline reviewed and fixed, ready for `/runbook` continuation.
+**Status:** Pushback runbook prepared, ready for orchestration. prepare-runbook.py fixed for mixed runbooks.
 
 ## Completed This Session
 
-**Runbook outline review + fixes:**
-- Reviewed `plans/pushback/runbook-outline.md` against design.md + runbook-review-guide.md + plugin-dev:hook-development skill
-- Found 1 critical, 3 major, 3 minor issues
-- Applied all fixes inline:
-  - C-1: Test file path → `tests/test_userpromptsubmit_shortcuts.py` (pytest discovers `tests/` only, `agent-core` excluded)
-  - M-1: Added importlib import mechanism note (hyphenated hook filename)
-  - M-2: Reordered cycles — 2.2 (enhanced d:) now independent, 2.3 (fences) independent, 2.4 (any-line) depends on 2.3
-  - M-3: Dual output visibility — enhanced content to `additionalContext` only, `systemMessage` stays concise
-  - m-1: Documented model tier deviation from design (haiku for TDD/wiring, sonnet for fragment/review)
-  - m-2: Added line 653 replacement note in Cycle 2.4
-  - m-3: Added E2E test approach for integration cycle (JSON stdin→stdout piping)
-- Status updated from Draft to Reviewed
+**Runbook expansion review:**
+- Reviewed runbook.md expansion against outline — found 2 expansion defects (hallucinated line number, `git add -A`)
+- RCA: expansion agent added specificity the outline intentionally omitted; vet can't catch because verification requires context outside vet scope (filesystem state, system prompt rules)
+- Deeper RCA: lossy intent propagation — expansion treats outline omissions as gaps to fill, not deliberate scope choices; no transformation fidelity check in pipeline
+- Fix direction: constrain expansion to implementation guidance (not execution mechanics), inject missing rules into agent definitions via `/remember` consolidation
+
+**Runbook fixes applied:**
+- Removed hallucinated "line 30" reference → content-based reference
+- Replaced `git add -A && git commit` → `/commit` skill reference
+
+**prepare-runbook.py mixed type support:**
+- Always extract both Step and Cycle headers (was either/or based on frontmatter `type`)
+- Auto-detect type: mixed (both), tdd (cycles only), general (steps only)
+- Phase preambles included in cycle validation context (stop conditions in phase header)
+- Relaxed cycle start-number validation (mixed runbooks have cycles starting at any phase)
+- Orchestrator plan generates unified execution order for both types
+- Phase numbering validation includes cycle phases (eliminates false gap warnings)
+- All tests pass (756/757, 1 pre-existing xfail)
+
+**Pushback runbook prepared:**
+- 11 items: 2 general (Phase 1) + 5 TDD cycles (Phase 2) + 4 general (Phase 3)
+- Orchestrator plan with phase boundaries
+- Agent created: `.claude/agents/pushback-task.md`
 
 **Prior session work (carried forward):**
 - Tier assessment: Tier 3 (Full Runbook) — testable behavioral contracts in Phase 2
-- Phase 0.5: Codebase discovery — doc perimeter, hook implementation, markdown parsing utilities
-- Phase 0.75: Outline generated — 3 phases, 11 items
-- Initial outline review: runbook-outline-review-agent applied 11 fixes
+- Outline generated, reviewed, promoted to runbook
 
 ## Pending Tasks
 
-- [ ] **Continue pushback runbook** — `/runbook plans/pushback/design.md` | sonnet
-  - Plan: pushback | Status: designed (outline reviewed, expansion next)
-  - Resume from Phase 0.85 (consolidation gate) or skip to Phase 0.95 (outline sufficiency check)
-  - Outline is compact (3 phases, 11 items) — check if expansion can be skipped
+- [ ] **Execute pushback runbook** — `/orchestrate plans/pushback` | sonnet | restart
+  - Plan: pushback | Status: planned
+  - 11 steps across 3 phases (general + TDD + general), sequential
 
 - [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
 
+- [ ] **Update /remember to target agent definitions** — blocked on memory redesign
+  - When consolidating learnings actionable for sub-agents, route to agent templates (quiet-task.md, tdd-task.md) as additional target
+
+- [ ] **Inject missing main-guidance rules into agent definitions** — process improvements batch
+  - Distill sub-agent-relevant rules (layered context model, no volatile references, no execution mechanics in steps) into agent templates
+  - Source: tool prompts, review guide, memory system learnings
+
 ## Blockers / Gotchas
+
+**Restart required before orchestration:**
+- Hook changes in pushback runbook require session restart after Phase 3 Step 3.2
+- Phase 3 Step 3.4 (manual validation) must occur in fresh session
 
 **Fenced block detection dependency:**
 - Hook needs code-aware directive matching (D-7)
 - Fenced block: reuse existing preprocessor code or simpler standalone (design permits either)
 - Inline code: depends on pending markdown parser task — deferred
 
-**Restart required after hook changes:**
-- Hook modifications require session restart to take effect
-- Phase 3 notes restart boundary before manual validation (Step 3.4)
-
-**Test infrastructure for hooks (new):**
+**Test infrastructure for hooks:**
 - No existing hook tests — Cycle 2.1 establishes import pattern via importlib
 - Hook filename hyphenated (`userpromptsubmit-shortcuts.py`) — not importable via standard import
 
+## Learnings (for /remember)
+
+- **Expansion introduces wrong-layer specifics**: Expansion agents add execution mechanics (git commands) and volatile references (line numbers) that belong in baseline or executing agent. Fix: constrain expansion to implementation guidance; inject layered context model awareness into expansion agent definitions
+- **Lossy intent propagation in multi-stage pipelines**: Each pipeline stage sees content but not intent. Deliberate omissions and accidental omissions are indistinguishable to downstream consumers. Fix: transformation fidelity checks or source-stage constraints
+- **prepare-runbook.py mixed type**: Script assumed single type per runbook. Mixed runbooks (general + TDD phases) require extracting both Step and Cycle headers, with per-phase type detection
+
 ## Next Steps
 
-Continue `/runbook plans/pushback/design.md` — resume from outline sufficiency check (Phase 0.95). Outline is compact (3 phases, 11 items) — may qualify for promotion to runbook without full expansion.
+Execute pushback runbook: `/orchestrate plans/pushback` (requires restart first — new agent definition).
+
+Copy to clipboard: `/orchestrate plans/pushback`
 
 ---
-*Handoff by Opus. Outline reviewed against design + hook-development skill, all fixes applied.*
+*Handoff by Sonnet. Runbook reviewed, fixed, prepare-runbook.py updated for mixed type support.*
