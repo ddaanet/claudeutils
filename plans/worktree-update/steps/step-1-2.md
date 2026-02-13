@@ -1,4 +1,4 @@
-# Cycle 1.2
+# Step 1.2
 
 **Plan**: `plans/worktree-update/runbook.md`
 **Execution Model**: haiku
@@ -6,52 +6,43 @@
 
 ---
 
-## Cycle 1.2: Container detection and sibling paths
+## Step 1.2: Fix _filter_section continuation lines and plan_dir regex
 
-**Objective:** Detect when repository is already inside a worktree container directory and verify sibling path logic for multiple worktrees.
+**Objective**: Fix two bugs in `cli.py` — continuation lines leaking into filtered output (M1), and case-sensitive plan_dir regex (M2).
 
-**RED Phase:**
+**Findings**: M1 (`cli.py:55-60` non-bullet continuation lines leak) and M2 (`cli.py:73` regex `plan:\s*(\S+)` won't match title case `Plan:`).
 
-**Test:** `test_wt_path_in_container`
-**Assertions:**
-- When `Path.cwd().parent.name` ends with `-wt`, `wt_path("feature-b")` returns sibling path (not nested container)
-- Returned path is `<parent-container>/<slug>` (parent already is the container)
-- Path does NOT contain nested `-wt/-wt` structure
-- Container name matches parent directory name exactly
-- Multiple slugs produce different paths: `wt_path("wt-a")` and `wt_path("wt-b")` return different paths
-- Both paths share same parent directory (the container)
-- Paths differ only in final slug component
-- Neither path creates nested containers
+**Implementation**:
 
-**Expected failure:** AssertionError: path contains nested `-wt/-wt` or doesn't recognize existing container
+1. **Read _filter_section function** at `src/claudeutils/worktree/cli.py:55-60`:
+   - Understand current filtering logic
+   - Identify where continuation lines are processed
 
-**Why it fails:** Container detection logic not yet implemented
+2. **Add continuation line tracking**:
+   - Track state: whether current section is relevant (should include) or filtered out (should skip)
+   - When a bullet line matches filter: set state to "including"
+   - When a bullet line doesn't match: set state to "skipping"
+   - Only append lines (bullets + continuation) when state is "including"
 
-**Verify RED:** `pytest tests/test_worktree_cli.py::test_wt_path_in_container -v`
+3. **Handle edge cases**:
+   - Empty lines between sections (preserve structure)
+   - Nested bullets (indented with spaces)
+   - Headers (always include)
 
----
+4. **Fix plan_dir regex** at `src/claudeutils/worktree/cli.py:73`:
+   - Change `plan:\s*(\S+)` to `[Pp]lan:\s*(\S+)` (explicit both cases)
+   - Check if other metadata fields (Model:, Restart:) have similar case issues — fix if found
 
-**GREEN Phase:**
+**Expected Outcome**: Focused sessions exclude continuation lines from irrelevant tasks. `focus_session` extracts plan directory from both `plan:` and `Plan:` formats.
 
-**Implementation:** Add container detection branch to `wt_path()` function
+**Error Conditions**:
+- If filtering too aggressive → verify bullet detection regex
+- If continuation lines still leak → check state tracking logic
+- If regex matches incorrectly → verify \S+ captures plan directory without whitespace
 
-**Behavior:**
-- Check if `Path.cwd().parent.name.endswith('-wt')`
-- If true: current directory is already in a container, return `parent/<slug>`
-- If false: use existing logic from 1.1 (create new container path)
-- Function is stateless (pure function of slug input) — each call with different slug returns different path with same parent
-
-**Approach:** Conditional branch at function start — container check determines path construction strategy
-
-**Changes:**
-- File: `src/claudeutils/worktree/cli.py`
-  Action: Add container detection conditional at start of `wt_path()` function
-  Location hint: Before existing path construction logic from 1.1
-
-**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_wt_path_in_container -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_worktree_cli.py::test_wt_path_not_in_container -v`
-- Cycle 1.1 test still passes (existing behavior preserved)
+**Validation**:
+```bash
+pytest tests/test_worktree_commands.py -k "filter_section or focus_session" -v 2>/dev/null || echo "Manual verification needed"
+```
 
 ---

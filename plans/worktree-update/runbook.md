@@ -1,6 +1,6 @@
 ---
 name: worktree-update-recovery
-model: sonnet
+model: haiku
 ---
 
 # Worktree Update Recovery
@@ -19,12 +19,12 @@ model: sonnet
 
 ## Weak Orchestrator Metadata
 
-**Total Steps**: 6
+**Total Steps**: 4
 
 **Execution Model**:
-- Steps 1-6: Sonnet (code fixes, config updates, test additions with behavioral verification)
+- Steps 1-4: Sonnet (code fixes, config updates, test additions with behavioral verification)
 
-**Step Dependencies**: Independent (all can run in parallel, but execute sequentially for simplicity)
+**Step Dependencies**: Steps 1-2 independent (different files). Steps 3-4 independent (different test files). Steps 3-4 should follow 1-2 (tests may exercise code from steps 1-2).
 
 **Error Escalation**:
 - Test failures → STOP, report issue to user
@@ -73,11 +73,11 @@ model: sonnet
 
 ---
 
-## Step 1.1: Fix wt-merge THEIRS clean tree check
+## Step 1.1: Fix wt-merge THEIRS clean tree check and agent-core setup recipe
 
-**Objective**: Add clean tree check for worktree side before merge to prevent uncommitted changes from being silently lost.
+**Objective**: Fix two justfile issues — add clean tree check for worktree side before merge (C2), and add setup recipe to agent-core (C3).
 
-**Finding**: C2 from deliverable review — `justfile:209-222` missing THEIRS clean tree check.
+**Findings**: C2 (`justfile:209-222` missing THEIRS clean tree check) and C3 (`agent-core/justfile` missing `setup` recipe required by design D5).
 
 **Implementation**:
 
@@ -96,70 +96,33 @@ model: sonnet
    - THEIRS check must run BEFORE `git fetch` (line 213)
    - Both clean checks (OURS and THEIRS) must complete before merge operations
 
-**Expected Outcome**: wt-merge recipe includes clean tree check for both main and worktree sides. Uncommitted changes in worktree cause early exit with clear error message.
+4. **Add agent-core setup recipe** in `agent-core/justfile`:
+   - Read existing recipes to understand structure
+   - Add after existing recipes
+   - agent-core is documentation/skills only — check if pyproject.toml or package.json exists
+   - If no package dependencies: stub recipe pointing to `just sync-to-parent`
+   - If dependencies exist: implement actual setup steps
+
+**Expected Outcome**: wt-merge recipe checks both sides for uncommitted changes. `just setup` runs successfully in agent-core directory.
 
 **Error Conditions**:
 - If git commands fail → check WT_PATH is correctly computed
 - If recipe syntax error → verify bash quoting and variable expansion
+- If justfile syntax error in agent-core → verify recipe formatting (tabs vs spaces)
 
 **Validation**:
 ```bash
-# Manual test: create dirty worktree and verify early exit
-# (Defer to Step 1.5 for automated test)
-grep -A 3 "THEIRS clean tree" justfile
+grep -A 3 "THEIRS" justfile
+cd agent-core && just setup && echo $?
 ```
 
 ---
 
-## Step 1.2: Add agent-core setup recipe
+## Step 1.2: Fix _filter_section continuation lines and plan_dir regex
 
-**Objective**: Add `setup` recipe to agent-core/justfile to support environment initialization in agent-core-only worktrees.
+**Objective**: Fix two bugs in `cli.py` — continuation lines leaking into filtered output (M1), and case-sensitive plan_dir regex (M2).
 
-**Finding**: C3 from deliverable review — `agent-core/justfile` missing `setup` recipe required by design D5.
-
-**Prerequisite**: Read `agent-core/justfile` (full file) — understand existing recipe structure and patterns.
-
-**Implementation**:
-
-1. **Read parent justfile setup recipe** at `justfile`:
-   - Find the `setup` recipe (use `grep -A 20 "^setup:"`)
-   - Understand what it does (venv, direnv, npm)
-
-2. **Create agent-core setup recipe** in `agent-core/justfile`:
-   - Add after existing recipes (around line 15-20)
-   - Minimal version for agent-core context:
-     ```just
-     setup: # Set up agent-core development environment
-         @echo "No setup required for agent-core (no venv or npm)"
-         @echo "Run 'just sync-to-parent' to update parent .claude/ symlinks"
-     ```
-   - Rationale: agent-core is documentation/skills only, no Python package dependencies
-
-3. **Alternative if agent-core needs real setup**:
-   - Check if agent-core has its own pyproject.toml or package.json
-   - If yes, implement actual setup steps
-   - If no, use stub recipe above
-
-**Expected Outcome**: `just setup` runs successfully in agent-core directory without errors. Recipe provides helpful guidance for agent-core-specific workflows.
-
-**Error Conditions**:
-- If justfile syntax error → verify recipe formatting (tabs vs spaces)
-- If recipe conflicts with existing → check for duplicate recipe names
-
-**Validation**:
-```bash
-cd agent-core
-just setup
-echo $?  # Should be 0
-```
-
----
-
-## Step 1.3: Fix _filter_section continuation line handling
-
-**Objective**: Fix `_filter_section` to exclude non-bullet continuation lines that belong to filtered-out entries.
-
-**Finding**: M1 from deliverable review — `cli.py:55-60` non-bullet continuation lines leak into filtered output.
+**Findings**: M1 (`cli.py:55-60` non-bullet continuation lines leak) and M2 (`cli.py:73` regex `plan:\s*(\S+)` won't match title case `Plan:`).
 
 **Implementation**:
 
@@ -168,77 +131,35 @@ echo $?  # Should be 0
    - Identify where continuation lines are processed
 
 2. **Add continuation line tracking**:
-   - Track state: "in relevant section" vs "in filtered-out section"
-   - When a bullet line is filtered out, set state = "skipping"
-   - When next bullet line is relevant, set state = "including"
-   - Only append lines when state = "including"
-
-3. **Implementation approach**:
    - Track state: whether current section is relevant (should include) or filtered out (should skip)
    - When a bullet line matches filter: set state to "including"
    - When a bullet line doesn't match: set state to "skipping"
    - Only append lines (bullets + continuation) when state is "including"
 
-4. **Handle edge cases**:
+3. **Handle edge cases**:
    - Empty lines between sections (preserve structure)
    - Nested bullets (indented with spaces)
    - Headers (always include)
 
-**Expected Outcome**: Focused sessions exclude continuation lines from irrelevant tasks. Example: task "Implement X" with sub-items filtered out when focus is "Implement Y".
+4. **Fix plan_dir regex** at `src/claudeutils/worktree/cli.py:73`:
+   - Change `plan:\s*(\S+)` to `[Pp]lan:\s*(\S+)` (explicit both cases)
+   - Check if other metadata fields (Model:, Restart:) have similar case issues — fix if found
+
+**Expected Outcome**: Focused sessions exclude continuation lines from irrelevant tasks. `focus_session` extracts plan directory from both `plan:` and `Plan:` formats.
 
 **Error Conditions**:
 - If filtering too aggressive → verify bullet detection regex
 - If continuation lines still leak → check state tracking logic
-- If focused session empty → verify at least one task matches filter
-
-**Validation**:
-```bash
-# Manual verification with session.md sample (test function may not exist yet)
-# If test exists: pytest tests/test_worktree_commands.py -k filter_section -v
-# Otherwise: manual test with sample session.md
-```
-
----
-
-## Step 1.4: Fix plan_dir regex case-sensitivity
-
-**Objective**: Make `plan_dir` regex case-insensitive to match both `plan:` and `Plan:` in session.md.
-
-**Finding**: M2 from deliverable review — `cli.py:73` regex `plan:\s*(\S+)` won't match title case `Plan:`.
-
-**Implementation**:
-
-1. **Read plan_dir extraction** at `src/claudeutils/worktree/cli.py:73`:
-   - Current regex: `plan:\s*(\S+)`
-   - Find where this is used in focus_session function
-
-2. **Make regex case-insensitive**:
-   - Option A: Change to `[Pp]lan:\s*(\S+)` (explicit both cases)
-   - Option B: Add `re.IGNORECASE` flag if using re.search()
-   - Option C: Use `(?i)plan:\s*(\S+)` (inline case-insensitive flag)
-   - **Recommended**: Option A (explicit, no flag needed, clearer intent)
-
-3. **Verify usage context**:
-   - Check if other fields in session.md use title case
-   - If yes, update those patterns too (Model:, Restart:, etc.)
-   - For this finding, only `plan:` → `[Pp]lan:` required
-
-**Expected Outcome**: `focus_session` extracts plan directory correctly from both `plan: foo` and `Plan: foo` metadata formats.
-
-**Error Conditions**:
 - If regex matches incorrectly → verify \S+ captures plan directory without whitespace
-- If no match found → check session.md format matches expected pattern
 
 **Validation**:
 ```bash
-# Manual verification or unit test if exists
-# If test exists: pytest tests/test_worktree_commands.py -k focus_session -v
-# Otherwise: manual test with session.md containing both `plan:` and `Plan:`
+pytest tests/test_worktree_commands.py -k "filter_section or focus_session" -v 2>/dev/null || echo "Manual verification needed"
 ```
 
 ---
 
-## Step 1.5: Add precommit failure test
+## Step 1.3: Add precommit failure test
 
 **Objective**: Add test for Phase 4 merge behavior when precommit fails after successful merge.
 
@@ -286,7 +207,7 @@ pytest tests/test_worktree_merge_parent.py::test_merge_precommit_failure -v
 
 ---
 
-## Step 1.6: Add merge idempotency test
+## Step 1.4: Add merge idempotency test
 
 **Objective**: Add test verifying merge can be safely re-run after manual fixes (idempotency).
 
@@ -347,7 +268,7 @@ pytest tests/test_worktree_merge_validation.py::test_merge_idempotency -v
    ```
 
 3. **Verify all findings resolved**:
-   - C2: `grep "THEIRS clean tree" justfile` — check present
+   - C2: `grep "THEIRS" justfile` — check present
    - C3: `cd agent-core && just setup` — check succeeds
    - M1: Manual test with session.md sample (continuation lines filtered)
    - M2: Manual test with `Plan:` (title case) in session.md
@@ -371,7 +292,7 @@ pytest tests/test_worktree_merge_validation.py::test_merge_idempotency -v
    ```
 
 **Success criteria met when:**
-- All 6 steps completed without errors
+- All 4 steps completed without errors
 - Test suite passes (all new tests green)
 - Precommit clean
 - Changes committed

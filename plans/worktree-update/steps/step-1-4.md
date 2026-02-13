@@ -1,4 +1,4 @@
-# Cycle 1.4
+# Step 1.4
 
 **Plan**: `plans/worktree-update/runbook.md`
 **Execution Model**: haiku
@@ -6,64 +6,48 @@
 
 ---
 
-## Cycle 1.4: Edge cases — special characters, root directory, deep nesting
+## Step 1.4: Add merge idempotency test
 
-**Objective:** Handle edge cases in path computation (unusual but valid scenarios).
+**Objective**: Add test verifying merge can be safely re-run after manual fixes (idempotency).
 
-**RED Phase:**
+**Finding**: C5 from deliverable review — No merge idempotency test across all merge test files. Design specifies "Idempotency: re-running after manual fix resumes correctly."
 
-**Test:** `test_wt_path_edge_cases`
-**Assertions:**
-- Slug with special characters preserved in path: `wt_path("fix-bug#123")` includes `#123` in path
-- From root directory: `wt_path("test")` doesn't crash, constructs valid path
-- From deeply nested directory (5+ levels): path construction still works correctly
-- Empty container case: if manually in empty `-wt` directory, sibling path still computed
+**Implementation**:
 
-**Expected failure:** Various: ValueError on special chars, error on root directory, incorrect path from deep nesting
+1. **Test file location**: `tests/test_worktree_merge_validation.py` (validation-focused tests — idempotency is a validation concern)
 
-**Why it fails:** Edge cases not yet handled in path computation logic
+2. **Add test function to existing file**:
+   ```python
+   def test_merge_idempotency(tmp_path, fixtures_worktree):
+       """Test merge can be re-run after manual intervention."""
+       # Setup: create worktree with changes
+       # Run merge — let it fail (e.g., dirty tree)
+       # Fix the issue (e.g., commit changes)
+       # Re-run merge — should succeed
+       # Verify: merge completes, no duplicate commits, clean state
+   ```
 
-**Verify RED:** `pytest tests/test_worktree_cli.py::test_wt_path_edge_cases -v`
+3. **Test scenarios** (choose 1-2):
+   - Dirty tree → clean → merge succeeds
+   - Precommit fail → fix code → merge succeeds
+   - Conflict → resolve → merge succeeds
+   - **Recommended**: Dirty tree scenario (simpler, tests core idempotency)
 
----
+4. **Assertions**:
+   - First run: fails with appropriate error
+   - Second run: succeeds after fix
+   - No duplicate work (no double-merge commits)
+   - Final state matches single successful merge
 
-**GREEN Phase:**
+**Expected Outcome**: Test verifies merge is safe to retry, critical for recovery workflow reliability.
 
-**Implementation:** Add edge case handling to `wt_path()` function
+**Error Conditions**:
+- If test doesn't detect non-idempotency → verify assertions check for duplicate work
+- If cleanup between runs incomplete → verify fixtures reset state
 
-**Behavior:**
-- Special characters in slug: preserve as-is (filesystem will handle)
-- Root directory: detect via `Path.cwd() == Path("/")`, construct reasonable container path
-- Deep nesting: existing logic already handles (uses `.parent` which works at any depth)
-- Error on truly invalid slug (e.g., empty string, only whitespace): raise ValueError
-
-**Approach:** Add validation at function start, handle root directory special case, rely on pathlib for deep nesting
-
-**Changes:**
-- File: `src/claudeutils/worktree/cli.py`
-  Action: Add slug validation at function start (check for empty/whitespace)
-  Location hint: First lines of function
-- File: `src/claudeutils/worktree/cli.py`
-  Action: Add root directory detection and handling
-  Location hint: Before container detection logic
-
-**Verify GREEN:** `pytest tests/test_worktree_cli.py::test_wt_path_edge_cases -v`
-- Must pass
-
-**Verify no regression:** `pytest tests/test_worktree_cli.py -v`
-- All previous tests still pass
-
----
-
-# Phase 2: Sandbox Registration
-
-**Complexity:** Medium (4 cycles)
-**Files:**
-- `src/claudeutils/worktree/cli.py`
-- `tests/test_worktree_cli.py`
-
-**Description:** JSON manipulation for sandbox permissions — add worktree container to allowed directories.
-
-**Dependencies:** Phase 1 (needs `wt_path()` for container determination)
+**Validation**:
+```bash
+pytest tests/test_worktree_merge_validation.py::test_merge_idempotency -v
+```
 
 ---
