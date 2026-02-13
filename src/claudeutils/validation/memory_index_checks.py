@@ -32,15 +32,32 @@ def check_duplicate_entries(index_path: Path | str, root: Path) -> list[str]:
         return errors
 
     seen_entry_keys: dict[str, int] = {}
+
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
+
+        # Track section headers
+        if stripped.startswith("##") and not stripped.startswith("###"):
+            stripped[3:] if stripped.startswith("## ") else None
+            continue
+
         # Skip non-entry lines
         if not stripped or stripped.startswith(("#", "**", "- ")):
             continue
-        # Extract key
-        key = (
-            stripped.split(" — ")[0].lower() if " — " in stripped else stripped.lower()
-        )
+
+        # Extract key using same logic as _extract_entry_key
+        if stripped.startswith(("/when ", "/how ")):
+            _, rest = stripped.split(" ", 1)
+            key = (
+                rest.split("|", 1)[0].strip().lower()
+                if "|" in rest
+                else rest.strip().lower()
+            )
+        elif " — " in stripped:
+            key = stripped.split(" — ")[0].lower()
+        else:
+            key = stripped.lower()
+
         # Check for duplicates
         if key in seen_entry_keys:
             errors.append(

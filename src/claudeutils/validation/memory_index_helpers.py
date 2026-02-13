@@ -218,53 +218,6 @@ def autofix_index(
         return True
 
 
-def check_duplicate_entries(index_path: Path | str, root: Path) -> list[str]:
-    """Check for duplicate index entries."""
-    errors: list[str] = []
-    try:
-        lines = _resolve_index_path(index_path, root).read_text().splitlines()
-    except FileNotFoundError:
-        return errors
-
-    seen: dict[str, int] = {}
-    for i, line in enumerate(lines, 1):
-        stripped = line.strip()
-        if not stripped or stripped.startswith(("#", "**", "- ")):
-            continue
-        key = (
-            stripped.split(" — ")[0].lower() if " — " in stripped else stripped.lower()
-        )
-        if key in seen:
-            errors.append(
-                f"  memory-index.md:{i}: duplicate index entry '{key}' "
-                f"(first at line {seen[key]})"
-            )
-        else:
-            seen[key] = i
-
-    return errors
-
-
-def check_em_dash_and_word_count(entries: dict[str, tuple[int, str, str]]) -> list[str]:
-    """Check entries for em-dash separator and 8-15 word count."""
-    errors = []
-    for lineno, full_entry, _section in entries.values():
-        if " — " not in full_entry:
-            errors.append(
-                f"  memory-index.md:{lineno}: entry lacks em-dash separator "
-                f"(D-3): '{full_entry}'"
-            )
-        else:
-            # Check word count (8-15 word hard limit for key + description total)
-            word_count = len(full_entry.split())
-            if word_count < 8 or word_count > 15:
-                errors.append(
-                    f"  memory-index.md:{lineno}: entry has {word_count} words, "
-                    f"must be 8-15: '{full_entry}'"
-                )
-    return errors
-
-
 def check_entry_placement(
     entries: dict[str, tuple[int, str, str]],
     headers: dict[str, list[tuple[str, int, str]]],

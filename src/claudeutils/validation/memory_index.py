@@ -19,12 +19,12 @@ from claudeutils.when.fuzzy import score_match
 
 from .memory_index_checks import (
     check_collisions,
+    check_duplicate_entries,
     check_entry_sorting,
     check_trigger_format,
 )
 from .memory_index_helpers import (
     autofix_index,
-    check_duplicate_entries,
     check_entry_placement,
     check_orphan_entries,
     check_structural_entries,
