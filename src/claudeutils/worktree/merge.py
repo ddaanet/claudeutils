@@ -166,8 +166,8 @@ def _resolve_jobs_md_conflict(conflicts: list[str]) -> list[str]:
     return [c for c in conflicts if c != "agents/jobs.md"]
 
 
-def merge(slug: str) -> None:
-    """Prepare for merge: verify OURS and THEIRS clean tree."""
+def _phase1_validate_clean_trees(slug: str) -> None:
+    """Phase 1: Verify branch exists and clean trees (OURS and THEIRS)."""
     r = subprocess.run(
         ["git", "rev-parse", "--verify", slug],
         capture_output=True,
@@ -192,75 +192,84 @@ def merge(slug: str) -> None:
     )
     _check_clean_for_merge(path=wt_path(slug), label="worktree")
 
+
+def _phase2_resolve_submodule(slug: str) -> None:
+    """Phase 2: Resolve submodule if worktree commit differs from local."""
     wt_ls_output = _git("ls-tree", slug, "--", "agent-core", check=False)
-    if wt_ls_output:
-        wt_commit = wt_ls_output.split()[2]
+    if not wt_ls_output:
+        return
 
-        local_commit = _git("-C", "agent-core", "rev-parse", "HEAD", check=False)
+    wt_commit = wt_ls_output.split()[2]
+    local_commit = _git("-C", "agent-core", "rev-parse", "HEAD", check=False)
 
-        if wt_commit != local_commit:
-            result = subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    "agent-core",
-                    "merge-base",
-                    "--is-ancestor",
-                    wt_commit,
-                    local_commit,
-                ],
-                check=False,
-            )
-            if result.returncode != 0:
-                result = subprocess.run(
-                    ["git", "-C", "agent-core", "cat-file", "-e", wt_commit],
-                    check=False,
-                )
-                if result.returncode != 0:
-                    wt_agent_core = wt_path(slug) / "agent-core"
-                    _git(
-                        "-C",
-                        "agent-core",
-                        "fetch",
-                        str(wt_agent_core),
-                        "HEAD",
-                    )
+    if wt_commit == local_commit:
+        return
 
-                _git("-C", "agent-core", "merge", "--no-edit", wt_commit)
-                _git("add", "agent-core")
+    result = subprocess.run(
+        [
+            "git",
+            "-C",
+            "agent-core",
+            "merge-base",
+            "--is-ancestor",
+            wt_commit,
+            local_commit,
+        ],
+        check=False,
+    )
+    if result.returncode != 0:
+        result = subprocess.run(
+            ["git", "-C", "agent-core", "cat-file", "-e", wt_commit],
+            check=False,
+        )
+        if result.returncode != 0:
+            wt_agent_core = wt_path(slug) / "agent-core"
+            _git("-C", "agent-core", "fetch", str(wt_agent_core), "HEAD")
 
-                result = subprocess.run(
-                    ["git", "diff", "--cached", "--quiet", "agent-core"],
-                    check=False,
-                )
-                if result.returncode != 0:
-                    _git("commit", "-m", f"🔀 Merge agent-core from {slug}")
+        _git("-C", "agent-core", "merge", "--no-edit", wt_commit)
+        _git("add", "agent-core")
 
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--quiet", "agent-core"],
+            check=False,
+        )
+        if result.returncode != 0:
+            _git("commit", "-m", f"🔀 Merge agent-core from {slug}")
+
+
+def _phase3_merge_parent(slug: str) -> None:
+    """Phase 3: Initiate parent merge and auto-resolve known conflicts."""
     result = subprocess.run(
         ["git", "merge", "--no-commit", "--no-ff", slug],
         capture_output=True,
         text=True,
         check=False,
     )
-    if result.returncode != 0:
-        conflicts = _git("diff", "--name-only", "--diff-filter=U", check=False).split(
-            "\n"
-        )
-        conflicts = [c for c in conflicts if c.strip()]
+    if result.returncode == 0:
+        return
 
-        if "agent-core" in conflicts:
-            _git("checkout", "--ours", "agent-core")
-            _git("add", "agent-core")
-            conflicts = [c for c in conflicts if c != "agent-core"]
+    conflicts = _git("diff", "--name-only", "--diff-filter=U", check=False).split("\n")
+    conflicts = [c for c in conflicts if c.strip()]
 
-        conflicts = _resolve_session_md_conflict(conflicts)
-        conflicts = _resolve_learnings_md_conflict(conflicts)
-        conflicts = _resolve_jobs_md_conflict(conflicts)
+    if "agent-core" in conflicts:
+        _git("checkout", "--ours", "agent-core")
+        _git("add", "agent-core")
+        conflicts = [c for c in conflicts if c != "agent-core"]
 
-        # Check if any conflicts remain (source files requiring manual resolution)
-        if conflicts:
-            _git("merge", "--abort")
-            _git("clean", "-fd")
-            conflict_list = ", ".join(conflicts)
-            click.echo(f"Merge aborted: conflicts in {conflict_list}")
-            raise SystemExit(1)
+    conflicts = _resolve_session_md_conflict(conflicts)
+    conflicts = _resolve_learnings_md_conflict(conflicts)
+    conflicts = _resolve_jobs_md_conflict(conflicts)
+
+    if conflicts:
+        _git("merge", "--abort")
+        _git("clean", "-fd")
+        conflict_list = ", ".join(conflicts)
+        click.echo(f"Merge aborted: conflicts in {conflict_list}")
+        raise SystemExit(1)
+
+
+def merge(slug: str) -> None:
+    """Merge worktree branch: validate, resolve submodule, merge parent."""
+    _phase1_validate_clean_trees(slug)
+    _phase2_resolve_submodule(slug)
+    _phase3_merge_parent(slug)
