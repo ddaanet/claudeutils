@@ -98,3 +98,29 @@ def verify_unique(trigger: str, corpus: list[str]) -> bool:
     second_score = ranked[1][1]
 
     return top_score >= 2 * second_score
+
+
+def compress_key(heading: str, corpus: list[str]) -> str:
+    """Generate minimal unique trigger from heading.
+
+    Generates candidate triggers in order of length (shortest first), tests
+    each for uniqueness, and returns the first that uniquely resolves to the
+    heading. If no shorter candidate is unique, returns the full heading
+    lowercased as fallback.
+
+    Args:
+        heading: The heading text (e.g., "How to Encode Paths")
+        corpus: List of all headings for uniqueness verification
+
+    Returns:
+        Shortest unique trigger string, or full heading lowercased if none found
+    """
+    candidates = generate_candidates(heading)
+
+    # Linear scan of candidates, shortest first
+    for candidate in candidates:
+        if verify_unique(candidate, corpus):
+            return candidate
+
+    # Fallback: full heading lowercased
+    return heading.lower()

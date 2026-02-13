@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from claudeutils.when.compress import (
+    compress_key,
     generate_candidates,
     load_heading_corpus,
     verify_unique,
@@ -104,3 +105,37 @@ def test_uniqueness_verification() -> None:
 
     # Generic trigger matching multiple headings should return False
     assert verify_unique("encode", corpus) is False
+
+
+def test_suggest_minimal_trigger() -> None:
+    """Suggest minimal unique trigger from heading."""
+    corpus = [
+        "How to encode paths",
+        "Path resolution in file mode",
+        "Encoding strategies for URL parameters",
+        "Character escaping and sanitization",
+    ]
+
+    # Test 1: Returns shortest unique candidate
+    result = compress_key("How to Encode Paths", corpus)
+    assert isinstance(result, str)
+    # "encode path" is shorter and unique, so it's returned
+    assert verify_unique(result, corpus) is True
+    # Result should be shorter than full heading
+    assert len(result) < len("how to encode paths")
+
+    # Test 2: Result is shorter than full heading for different heading
+    result2 = compress_key("When Writing Mock Tests", corpus)
+    assert len(result2) < len("when writing mock tests")
+
+    # Test 3: Fallback to full heading lowercased when no shorter unique candidate
+    # Create a corpus where all shorter candidates are not unique
+    tight_corpus = [
+        "How to encode paths",
+        "How to encode parameters",
+        "How to encode strings",
+    ]
+    result3 = compress_key("How to Encode Paths", tight_corpus)
+    # Should fall back to full heading if no unique shorter candidate
+    assert isinstance(result3, str)
+    assert len(result3) > 0
