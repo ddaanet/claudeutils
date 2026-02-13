@@ -295,3 +295,37 @@ def test_section_mode_resolves_h3_headings(tmp_path: Path) -> None:
     result = resolve("when", ".Specific Detail", str(index_file), str(decisions_dir))
     assert "#### Specific Detail" in result
     assert "Detailed content" in result
+
+
+def test_how_operator_error_suggestions(tmp_path: Path) -> None:
+    """Error suggestions use correct operator for /how queries."""
+    index_file = tmp_path / "test_index.md"
+    index_file.write_text(
+        "## procedures\n"
+        "\n"
+        "/how encode paths | url encoding, path escaping\n"
+        "/how validate input | sanitize, check bounds\n"
+    )
+
+    decisions_dir = tmp_path / "decisions"
+    decisions_dir.mkdir()
+
+    decision_file = decisions_dir / "procedures.md"
+    decision_file.write_text(
+        "## How to Encode Paths\n"
+        "\n"
+        "Encoding guidance.\n"
+        "\n"
+        "## How to Validate Input\n"
+        "\n"
+        "Validation guidance.\n"
+    )
+
+    with pytest.raises(ResolveError) as exc_info:
+        resolve("how", "nonexistent procedure", str(index_file), str(decisions_dir))
+
+    error_msg = str(exc_info.value)
+    assert "No match for" in error_msg
+    assert "/how " in error_msg
+    # Should NOT contain /when
+    assert "/when " not in error_msg

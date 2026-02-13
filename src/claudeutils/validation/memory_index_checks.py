@@ -10,7 +10,6 @@ from claudeutils.when.fuzzy import score_match
 
 from .memory_index_helpers import (
     EXEMPT_SECTIONS,
-    _strip_operator_prefix,
     extract_index_structure,
 )
 
@@ -134,35 +133,6 @@ def check_trigger_format(entries: dict[str, tuple[int, str, str]]) -> list[str]:
     return errors
 
 
-def check_entry_placement(
-    entries: dict[str, tuple[int, str, str]],
-    headers: dict[str, list[tuple[str, int, str]]],
-) -> list[str]:
-    """Check that entries are in correct file sections.
-
-    Args:
-        entries: Dictionary of entries from extract_index_entries.
-        headers: Dictionary of semantic headers from collect_semantic_headers.
-
-    Returns:
-        List of error messages for misplaced entries.
-    """
-    errors = []
-    for key, (lineno, _full_entry, section) in entries.items():
-        if section in EXEMPT_SECTIONS:
-            continue
-        # Headers have operator prefix, compare directly
-        if key in headers:
-            # Get the file this header is in
-            source_file = headers[key][0][0]  # First location's file
-            if section != source_file:
-                errors.append(
-                    f"  memory-index.md:{lineno}: entry '{key}' in section "
-                    f"'{section}' but header is in '{source_file}'"
-                )
-    return errors
-
-
 def check_entry_sorting(
     index_path: Path | str,
     root: Path,
@@ -216,82 +186,6 @@ def check_entry_sorting(
         if entry_positions != sorted_positions:
             errors.append(f"  Section '{section_name}': entries not in file order")
 
-    return errors
-
-
-def check_orphan_entries(
-    entries: dict[str, tuple[int, str, str]],
-    headers: dict[str, list[tuple[str, int, str]]],
-    structural: set[str],
-) -> list[str]:
-    """Check for orphan index entries (no matching headers).
-
-    Uses fuzzy matching to bridge compression between index triggers and
-    semantic headers (e.g., "write mock test" fuzzy-matches "When Writing Mock Tests").
-
-    Args:
-        entries: Dictionary of entries from extract_index_entries.
-        headers: Dictionary of semantic headers from collect_semantic_headers.
-        structural: Set of structural header titles.
-
-    Returns:
-        List of error messages for orphan entries.
-    """
-    errors = []
-    header_titles = list(headers.keys())
-    threshold = 50.0
-
-    for key, (lineno, _full_entry, section) in entries.items():
-        # Skip exempt sections
-        if section in EXEMPT_SECTIONS:
-            continue
-
-        # Strip operator prefix ONLY for structural check (structural has no prefix)
-        trigger = _strip_operator_prefix(key)
-        if trigger in structural:
-            continue
-
-        # Headers have operator prefix, so compare directly
-        if key in headers:
-            continue
-
-        # Fuzzy match against all headers (both have operator prefix)
-        best_score = 0.0
-        for header_title in header_titles:
-            score = score_match(key, header_title)
-            best_score = max(best_score, score)
-
-        # If no match found (exact or fuzzy above threshold), report error
-        if best_score < threshold:
-            errors.append(
-                f"  memory-index.md:{lineno}: orphan index entry '{key}' "
-                f"has no matching semantic header in agents/decisions/"
-            )
-
-    return errors
-
-
-def check_structural_entries(
-    entries: dict[str, tuple[int, str, str]], structural: set[str]
-) -> list[str]:
-    """Check for entries pointing to structural sections.
-
-    Args:
-        entries: Dictionary of entries from extract_index_entries.
-        structural: Set of structural header titles.
-
-    Returns:
-        List of error messages for structural entries.
-    """
-    errors = []
-    for key, (lineno, _full_entry, section) in entries.items():
-        if section in EXEMPT_SECTIONS:
-            continue
-        if key in structural:
-            errors.append(
-                f"  memory-index.md:{lineno}: entry '{key}' points to "
-                f"structural section"
-            )
     return errors
 
 

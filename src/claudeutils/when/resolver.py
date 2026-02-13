@@ -147,16 +147,21 @@ def _get_suggestions(
     return scored[:limit]
 
 
-def _handle_no_match(query: str, candidates: list[str]) -> None:
+def _handle_no_match(query: str, candidates: list[str], operator: str) -> None:
     """Raise ResolveError with fuzzy suggestions."""
     suggestions = _get_suggestions(query, candidates)
     msg = f"No match for '{query}'"
     if suggestions:
         msg += "\nDid you mean:"
         for candidate, _score in suggestions:
-            parts = candidate.split(" ", 1)
-            trigger = parts[1] if len(parts) > 1 else candidate
-            msg += f"\n  /when {trigger}"
+            # Parse candidate: "when <trigger>" or "how to <trigger>"
+            if candidate.startswith("how to "):
+                trigger = candidate[7:]  # Strip "how to "
+            elif candidate.startswith("when "):
+                trigger = candidate[5:]  # Strip "when "
+            else:
+                trigger = candidate
+            msg += f"\n  /{operator} {trigger}"
     raise ResolveError(msg)
 
 
@@ -215,7 +220,7 @@ def _resolve_trigger(
     matches = fuzzy.rank_matches(query_with_operator, candidates, limit=1)
 
     if not matches:
-        _handle_no_match(query, candidates)
+        _handle_no_match(query, candidates, operator)
 
     matched_candidate, _score = matches[0]
     matching_entry = _load_matched_entry(matched_candidate, entries)
@@ -269,7 +274,11 @@ def _resolve_trigger(
 def _build_heading(operator: str, trigger: str) -> str:
     """Build heading from operator and trigger."""
     words = trigger.split()
-    capitalized = " ".join(w.capitalize() for w in words)
+    # Preserve all-caps acronyms, capitalize normal words
+    capitalized = " ".join(
+        w if w.isupper() else w.capitalize()
+        for w in words
+    )
     if operator == "how":
         return f"How to {capitalized}"
     return f"When {capitalized}"

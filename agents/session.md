@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-13
 
-**Status:** Deliverable review round 2 complete. 1 critical, 2 major, 3 minor findings require fixes before merge.
+**Status:** Deliverable review round 2 findings fixed. Branch merge-ready after precommit validation.
 
 ## Completed This Session
 
@@ -11,15 +11,15 @@
 - Report: `plans/when-recall/reports/deliverable-review-2.md`
 - Go/no-go: Fix C-1 and M-1 before merge, M-2 cleanup deferrable
 
-## Pending Tasks
+**Review findings fixed:**
+- **C-1 (worktree deregistration):** Restored `worktree` import (line 27) and `add_command(worktree)` (line 149) in `cli.py` — both when_cmd and worktree now registered
+- **M-1 (operator hardcoding):** Added `operator` param to `_handle_no_match()`, fixed candidate parsing to handle "how to X" format correctly, updated call site at line 218
+- **M-2 (duplicate functions):** Deleted dead `check_entry_placement()`, `check_orphan_entries()`, `check_structural_entries()` from `memory_index_checks.py` — facade uses live versions from helpers
+- **N-1 (acronym degradation):** Modified `_build_heading()` to preserve all-caps words via `w.isupper()` check before `capitalize()` — "TDD" stays "TDD" not "Tdd"
+- Added test `test_how_operator_error_suggestions()` to verify M-1 fix
+- All tests pass (811/812, 1 expected xfail), precommit clean
 
-- [ ] **Fix when-recall review round 2 findings** — `/design plans/when-recall/reports/deliverable-review-2.md` | sonnet
-  - C-1: `cli.py` replaced worktree import/registration with when_cmd — must restore both
-  - M-1: `resolver.py:150` `_handle_no_match()` hardcodes `/when` — needs operator param, fix "how to" candidate parsing
-  - M-2: Duplicate `check_orphan_entries`, `check_entry_placement`, `check_structural_entries` in both `memory_index_checks.py` and `memory_index_helpers.py` — facade uses helpers (exact match), checks versions (fuzzy) are dead code
-  - N-1: `_build_heading()` `capitalize()` degrades acronyms (TDD→Tdd) — confirmed in `workflow-core.md:40`
-  - N-2: `_get_suggestions()` reimplements fuzzy matching (error path only, low impact)
-  - N-3: `navigation.py` HeadingInfo uses dataclass not Pydantic (minor convention)
+## Pending Tasks
 
 - [ ] **Protocolize RED pass recovery** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
@@ -56,13 +56,10 @@
 
 **Common context signal competition:** Structural issue in prepare-runbook.py. See `tmp/rca-common-context.md`.
 
-**C-1 merge hazard:** `cli.py` lines 26 and 148 will conflict on merge to main — both worktree and when_cmd must be present.
+**C-1 merge hazard resolved:** Both worktree and when_cmd now registered in `cli.py`. Merge conflict still expected at lines 27 and 149 — correct resolution is keeping both commands.
 
 ## Reference Files
 
-- `plans/when-recall/reports/deliverable-review-2.md` — Round 2 findings (this session)
-- `plans/when-recall/reports/deliverable-review.md` — Round 1 findings (2026-02-13 morning)
+- `plans/when-recall/reports/deliverable-review-2.md` — Round 2 findings
+- `plans/when-recall/reports/deliverable-review.md` — Round 1 findings
 - `plans/when-recall/design.md` — Vetted design (ground truth)
-- `src/claudeutils/when/resolver.py` — M-1 at line 150, N-1 at line 272
-- `src/claudeutils/cli.py` — C-1 at lines 26, 148
-- `src/claudeutils/validation/memory_index_checks.py` — M-2 dead code at lines 137, 222, 274
