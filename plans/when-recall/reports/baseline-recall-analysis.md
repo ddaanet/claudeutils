@@ -2,19 +2,19 @@
 
 **Date:** 2026-02-13
 **Context:** Empirical measurement of current memory index recall effectiveness before implementing `/when` system
-**Analysis:** 50 sessions from main repo (296 total sessions available)
+**Analysis:** 200 sessions from main repo (296 total sessions available)
 
 ## Executive Summary
 
-The current memory index shows **0.2% recall rate** with systematic failure across most entries. This baseline establishes the problem magnitude that `/when` aims to solve.
+The current memory index shows **2.9% recall rate** with highly uneven distribution across entries. This baseline establishes the problem magnitude that `/when` aims to solve.
 
 ### Key Findings
 
-- **Overall recall:** 0.2% (4 of 1809 relevant session-entry pairs)
-- **Sessions analyzed:** 50 of 296 available
-- **Index entries:** 87 entries analyzed
-- **Relevant pairs:** 1809 opportunities where agents could have consulted the index
-- **Successful reads:** 4 (all from `agents/decisions/testing.md`)
+- **Overall recall:** 2.9% (250 of 8639 relevant session-entry pairs)
+- **Sessions analyzed:** 200 of 296 available
+- **Index entries:** 87 entries analyzed, 118 had relevant sessions
+- **Relevant pairs:** 8639 opportunities where agents could have consulted the index
+- **Successful reads:** 250 across multiple decision files
 
 ### Discovery Patterns
 
@@ -24,28 +24,41 @@ The current memory index shows **0.2% recall rate** with systematic failure acro
 
 ## Per-Entry Results
 
-### Non-Zero Recall Entries
+### Distribution Analysis
 
-Only 4 entries showed any recall, all from the same file:
+**Recall rate distribution:**
+- 7% recall: 1 entry (Consolidation Gates)
+- 5% recall: 11 entries (mostly workflow-core.md and workflow-advanced.md)
+- 4% recall: 39 entries (mix of workflow, testing, implementation-notes)
+- 3% recall: 28 entries
+- 2% recall: 14 entries
+- 1% recall: 4 entries
+- 0% recall: 21 entries
+
+**Pattern:** Workflow and orchestration entries show moderate recall (4-7%), while many others show 0-2% despite high relevance.
+
+### Top Performers
+
+Highest recall entries (all workflow-related):
 
 | Entry | File | Recall | Sessions |
 |-------|------|--------|----------|
-| Conformance Validation for Migrations | agents/decisions/testing.md | 6% | 18 |
-| TDD RED Phase: Behavioral Verification | agents/decisions/testing.md | 4% | 23 |
-| TDD Integration Test Gap | agents/decisions/testing.md | 4% | 23 |
-| TDD: Presentation vs Behavior | agents/decisions/testing.md | 4% | 23 |
+| Consolidation Gates Reduce Orchestrator Overhead | workflow-advanced.md | 7% | 58 |
+| Outline Enables Phase-by-Phase Expansion | workflow-advanced.md | 5% | 74 |
+| Orchestration Assessment: Three-Tier Implementation Model | workflow-core.md | 5% | 100 |
+| Orchestrator Execution Mode | workflow-core.md | 5% | 101 |
+| No human escalation during refactoring | workflow-core.md | 5% | 102 |
 
 ### Zero Recall Entries (Sample)
 
-High-relevance entries with zero recall despite many relevant sessions:
+Still many high-relevance entries with zero recall:
 
-- Model Capability Differences: 0% (23 relevant sessions)
-- Phase-by-Phase Review Pattern: 0% (23 relevant sessions)
-- Oneshot workflow pattern: 0% (23 relevant sessions)
-- TDD Workflow Integration: 0% (23 relevant sessions)
-- Handoff Pattern: Inline Learnings: 0% (24 relevant sessions)
+- Model Capability Differences: 0% (109 relevant sessions)
+- Context Loading Behavior: 0% (113 relevant sessions)
+- Rule Format Effectiveness: 0% (95 relevant sessions)
+- Position Bias: 0% (46 relevant sessions)
 
-**Pattern:** Workflow, TDD, and design decision entries are highly relevant but never consulted.
+**Pattern:** Theoretical/research entries (prompt-structure-research.md) have near-zero recall despite relevance.
 
 ## Root Cause Analysis
 
@@ -55,11 +68,12 @@ Current memory index relies on agents "mentally scanning" loaded content:
 > "Scan the loaded content mentally, identify relevant entries, then Read the referenced file directly."
 
 **Evidence of failure:**
-- 1809 opportunities where scanning should have triggered reads
-- 0.2% follow-through rate
+- 8639 opportunities where scanning should have triggered reads
+- 2.9% follow-through rate (250 reads)
+- Highly uneven: workflow entries 4-7%, research entries 0-1%
 - No evidence of active scanning behavior in tool call patterns
 
-**Conclusion:** Agents do not perform proactive mental scanning. The passive model is broken.
+**Conclusion:** Agents occasionally scan when workflow terms appear in current task, but don't proactively scan for related knowledge. The passive model shows minimal effectiveness.
 
 ### Contributing Factors
 
@@ -99,12 +113,12 @@ From design.md D-4:
 
 ### Success Metrics
 
-Baseline: **0.2% recall**
+Baseline: **2.9% recall** (200 sessions, 8639 pairs, 250 reads)
 
 Target for `/when` system:
-- Minimum viable: **>10% recall** (50× improvement)
-- Good: **>30% recall** (150× improvement)
-- Excellent: **>50% recall** (250× improvement)
+- Minimum viable: **>15% recall** (5× improvement)
+- Good: **>30% recall** (10× improvement)
+- Excellent: **>50% recall** (17× improvement)
 
 Measurement approach:
 - Same 50-session dataset for before/after comparison
@@ -144,15 +158,14 @@ This analysis reflects corrected recall measurement after fixing two bugs:
 ## Comparison to Prior Analysis
 
 Previous analysis (2026-02-08) showed:
-- Main repo: 0.0% recall (0 of 1583 pairs)
-- Worktree: 3.5% recall (4 of 114 pairs)
+- Main repo: 0.0% recall (0 of 1583 pairs, 50 sessions)
+- Worktree: 3.5% recall (4 of 114 pairs, 3 sessions)
 
-Current analysis (2026-02-13):
-- Main repo: 0.2% recall (4 of 1809 pairs)
-- More sessions analyzed (50 vs previous)
-- Bug fixes reveal actual reads
+Current analysis after bug fixes (2026-02-13):
+- 50 sessions: 0.2% recall (4 of 1809 pairs)
+- 200 sessions: 2.9% recall (250 of 8639 pairs)
 
-**Conclusion:** 0.2% is the true baseline. Previous 0.0% was measurement error from path matching bug.
+**Conclusion:** 2.9% is the robust baseline. Small samples (50 sessions) show high variance (0.2% vs 2.9%). Large sample needed for reliable measurement. Previous 0.0% was measurement error from path matching bug (M-2).
 
 ## Recommendations
 
@@ -173,7 +186,9 @@ The 0.2% recall rate confirms the memory index in its current form is non-functi
 
 ## Files
 
-**Analysis report:** `plans/memory-index-recall/reports/recall-rerun.md`
+**Analysis reports:**
+- 50 sessions: `plans/memory-index-recall/reports/recall-rerun.md`
+- 200 sessions: `plans/memory-index-recall/reports/recall-200-sessions.md`
 **Deliverable review:** `plans/memory-index-recall/reports/deliverable-review-report.md`
 **Tool implementation:** `src/claudeutils/recall/` (7 modules, 1184 lines)
 **Tests:** `tests/test_recall_*.py` (6 modules, 1128 lines, 51 tests passing)
