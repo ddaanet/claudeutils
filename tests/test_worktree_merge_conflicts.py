@@ -1,6 +1,7 @@
 """Tests for worktree merge conflict auto-resolution."""
 
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -10,12 +11,15 @@ from claudeutils.worktree.cli import worktree
 
 
 def test_merge_conflict_agent_core(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
     """Auto-resolve agent-core conflict (already merged in Phase 2)."""
     monkeypatch.chdir(repo_with_submodule)
 
-    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
     subprocess.run(
         ["git", "branch", "test-merge"],
@@ -31,7 +35,7 @@ def test_merge_conflict_agent_core(
     )
 
     # Add a change on the worktree branch to a non-agent-core file
-    _commit_file(worktree_path, "branch-file.txt", "branch content\n", "Branch change")
+    commit_file(worktree_path, "branch-file.txt", "branch content\n", "Branch change")
 
     # Also update submodule on branch
     (worktree_path / "agent-core" / "branch-change.txt").write_text("branch change\n")
@@ -67,7 +71,7 @@ def test_merge_conflict_agent_core(
         check=True,
         capture_output=True,
     )
-    _commit_file(repo_with_submodule, "main-file.txt", "main content\n", "Main change")
+    commit_file(repo_with_submodule, "main-file.txt", "main content\n", "Main change")
 
     # Also update agent-core on main to different commit
     (repo_with_submodule / "agent-core" / "main-change.txt").write_text("main change\n")
@@ -126,12 +130,15 @@ def test_merge_conflict_agent_core(
 
 
 def test_merge_conflict_session_md(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
     """Auto-resolve session.md, extract and warn about new tasks."""
     monkeypatch.chdir(repo_with_submodule)
 
-    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
     subprocess.run(
         ["git", "branch", "test-merge"],
@@ -252,12 +259,15 @@ def test_merge_conflict_session_md(
 
 
 def test_merge_conflict_learnings_md(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
     """Auto-resolve learnings.md by keeping ours and appending theirs-only."""
     monkeypatch.chdir(repo_with_submodule)
 
-    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
     subprocess.run(
         ["git", "branch", "test-merge"],
@@ -381,7 +391,7 @@ def test_merge_conflict_learnings_md(
     )
 
 
-def _commit_file(path: Path, filename: str, content: str, message: str) -> None:
+def commit_file(path: Path, filename: str, content: str, message: str) -> None:
     """Create, stage, and commit a file."""
     (path / filename).write_text(content)
     subprocess.run(["git", "add", filename], cwd=path, check=True, capture_output=True)

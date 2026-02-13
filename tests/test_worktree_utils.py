@@ -7,12 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from claudeutils.worktree.cli import (
-    add_sandbox_dir,
-    derive_slug,
-    focus_session,
-    wt_path,
-)
+from claudeutils.worktree.cli import add_sandbox_dir, derive_slug, focus_session
+from claudeutils.worktree.utils import wt_path
 
 
 def test_derive_slug() -> None:

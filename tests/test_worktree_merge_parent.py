@@ -1,6 +1,7 @@
 """Tests for worktree merge parent operations."""
 
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,10 @@ from claudeutils.worktree.cli import worktree
 
 
 def test_merge_parent_initiate(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
     """Verify parent merge initiation with conflict detection.
 
@@ -24,7 +28,7 @@ def test_merge_parent_initiate(
     """
     monkeypatch.chdir(repo_with_submodule)
 
-    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
     subprocess.run(
         ["git", "branch", "test-merge"],
@@ -40,7 +44,7 @@ def test_merge_parent_initiate(
     )
 
     # Add a change on the worktree branch
-    _commit_file(worktree_path, "branch-file.txt", "branch content\n", "Branch change")
+    commit_file(worktree_path, "branch-file.txt", "branch content\n", "Branch change")
 
     # Switch back to main and add a different change
     subprocess.run(
@@ -49,7 +53,7 @@ def test_merge_parent_initiate(
         check=True,
         capture_output=True,
     )
-    _commit_file(repo_with_submodule, "main-file.txt", "main content\n", "Main change")
+    commit_file(repo_with_submodule, "main-file.txt", "main content\n", "Main change")
 
     result = CliRunner().invoke(worktree, ["merge", "test-merge"])
     assert result.exit_code == 0, f"merge command should succeed: {result.output}"
@@ -83,7 +87,10 @@ def test_merge_parent_initiate(
 
 
 def test_merge_precommit_validation(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
     """Verify merge commits staged changes and runs precommit validation.
 
@@ -97,7 +104,7 @@ def test_merge_precommit_validation(
     """
     monkeypatch.chdir(repo_with_submodule)
 
-    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
     subprocess.run(
         ["git", "branch", "test-merge"],
@@ -113,7 +120,7 @@ def test_merge_precommit_validation(
     )
 
     # Add a change on the worktree branch
-    _commit_file(worktree_path, "branch-file.txt", "branch content\n", "Branch change")
+    commit_file(worktree_path, "branch-file.txt", "branch content\n", "Branch change")
 
     # Switch back to main and add a different change
     subprocess.run(
@@ -122,7 +129,7 @@ def test_merge_precommit_validation(
         check=True,
         capture_output=True,
     )
-    _commit_file(repo_with_submodule, "main-file.txt", "main content\n", "Main change")
+    commit_file(repo_with_submodule, "main-file.txt", "main content\n", "Main change")
 
     result = CliRunner().invoke(worktree, ["merge", "test-merge"])
     assert result.exit_code == 0, f"merge command should succeed: {result.output}"
@@ -152,7 +159,7 @@ def test_merge_precommit_validation(
     )
 
 
-def _commit_file(path: Path, filename: str, content: str, message: str) -> None:
+def commit_file(path: Path, filename: str, content: str, message: str) -> None:
     """Create, stage, and commit a file."""
     (path / filename).write_text(content)
     subprocess.run(["git", "add", filename], cwd=path, check=True, capture_output=True)

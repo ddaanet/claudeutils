@@ -152,3 +152,20 @@ def repo_with_submodule(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path
     )
 
     return repo_path
+
+
+@pytest.fixture
+def commit_file() -> Callable[[Path, str, str, str], None]:
+    """Return function to create, stage, and commit a file."""
+
+    def _commit_file(path: Path, filename: str, content: str, message: str) -> None:
+        """Create, stage, and commit a file."""
+        (path / filename).write_text(content)
+        subprocess.run(
+            ["git", "add", filename], cwd=path, check=True, capture_output=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", message], cwd=path, check=True, capture_output=True
+        )
+
+    return _commit_file

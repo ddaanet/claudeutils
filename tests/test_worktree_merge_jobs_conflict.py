@@ -1,6 +1,7 @@
 """Test for worktree merge jobs.md conflict auto-resolution."""
 
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -10,12 +11,15 @@ from claudeutils.worktree.cli import worktree
 
 
 def test_merge_conflict_jobs_md(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
     """Auto-resolve jobs.md conflict with warning."""
     monkeypatch.chdir(repo_with_submodule)
 
-    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
     subprocess.run(
         ["git", "branch", "test-merge"],
@@ -134,7 +138,7 @@ def test_merge_conflict_jobs_md(
     )
 
 
-def _commit_file(path: Path, filename: str, content: str, message: str) -> None:
+def commit_file(path: Path, filename: str, content: str, message: str) -> None:
     """Create, stage, and commit a file."""
     (path / filename).write_text(content)
     subprocess.run(["git", "add", filename], cwd=path, check=True, capture_output=True)

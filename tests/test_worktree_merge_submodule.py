@@ -1,6 +1,7 @@
 """Tests for worktree merge submodule operations."""
 
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
@@ -12,7 +13,10 @@ from claudeutils.worktree.cli import worktree
 
 
 def test_merge_submodule_ancestry(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
     """Verify merge performs submodule commit ancestry check.
 
@@ -23,7 +27,7 @@ def test_merge_submodule_ancestry(
     """
     monkeypatch.chdir(repo_with_submodule)
 
-    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
     subprocess.run(
         ["git", "branch", "test-feature"],
@@ -43,7 +47,7 @@ def test_merge_submodule_ancestry(
         check=True,
     ).stdout.strip()
 
-    _commit_file(agent_core_path, "change.txt", "submodule change", "Submodule change")
+    commit_file(agent_core_path, "change.txt", "submodule change", "Submodule change")
 
     new_commit = subprocess.run(
         ["git", "rev-parse", "HEAD"],
@@ -92,17 +96,19 @@ def test_merge_submodule_ancestry(
 
 
 def _setup_diverged_submodule(
-    repo_with_submodule: Path, branch_name: str
+    repo_with_submodule: Path,
+    branch_name: str,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> tuple[Path, str]:
     """Set up diverged submodule state for fetch testing.
 
     Returns:
         Tuple of (agent_core_path, wt_submodule_commit)
     """
-    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
     agent_core_path = repo_with_submodule / "agent-core"
-    _commit_file(
+    commit_file(
         agent_core_path,
         "fetch_change.txt",
         "fetch test change",
@@ -133,7 +139,7 @@ def _setup_diverged_submodule(
         capture_output=True,
     )
 
-    _commit_file(
+    commit_file(
         agent_core_path,
         "diverged_change.txt",
         "diverged change",
@@ -155,13 +161,16 @@ def _setup_diverged_submodule(
 
 
 def test_merge_submodule_fetch(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
     """Verify merge checks object reachability and fetches when needed."""
     monkeypatch.chdir(repo_with_submodule)
 
     agent_core_path, wt_submodule_commit = _setup_diverged_submodule(
-        repo_with_submodule, "fetch-test"
+        repo_with_submodule, "fetch-test", commit_file
     )
 
     orig_subprocess_run = subprocess.run
@@ -222,15 +231,6 @@ def test_merge_submodule_fetch(
         )
 
 
-def _commit_file(path: Path, filename: str, content: str, message: str) -> None:
-    """Create, stage, and commit a file."""
-    (path / filename).write_text(content)
-    subprocess.run(["git", "add", filename], cwd=path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", message], cwd=path, check=True, capture_output=True
-    )
-
-
 def _update_submodule_pointer(repo: Path, message: str) -> None:
     """Stage and commit submodule pointer update."""
     subprocess.run(
@@ -242,17 +242,19 @@ def _update_submodule_pointer(repo: Path, message: str) -> None:
 
 
 def _setup_merge_test_worktree(
-    repo_with_submodule: Path, branch_name: str
+    repo_with_submodule: Path,
+    branch_name: str,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> tuple[Path, str, str]:
     """Set up worktree with diverged submodule for merge commit testing.
 
     Returns:
         Tuple of (agent_core_path, main_commit, wt_commit)
     """
-    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
     agent_core_path = repo_with_submodule / "agent-core"
-    _commit_file(agent_core_path, "base_change.txt", "base change", "Base change")
+    commit_file(agent_core_path, "base_change.txt", "base change", "Base change")
     _update_submodule_pointer(repo_with_submodule, "Update agent-core to base")
 
     subprocess.run(
@@ -264,7 +266,7 @@ def _setup_merge_test_worktree(
     result = CliRunner().invoke(worktree, ["new", branch_name])
     assert result.exit_code == 0
 
-    _commit_file(
+    commit_file(
         agent_core_path,
         "main_change.txt",
         "main change",
@@ -284,7 +286,7 @@ def _setup_merge_test_worktree(
         / branch_name
         / "agent-core"
     )
-    _commit_file(wt_agent_core, "wt_change.txt", "wt change", "Worktree change")
+    commit_file(wt_agent_core, "wt_change.txt", "wt change", "Worktree change")
     wt_commit = subprocess.run(
         ["git", "-C", str(wt_agent_core), "rev-parse", "HEAD"],
         capture_output=True,
@@ -301,7 +303,10 @@ def _setup_merge_test_worktree(
 
 
 def test_merge_submodule_merge_commit(
-    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch, mock_precommit: None
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
     """Verify merge performs submodule merge and commits changes.
 
@@ -316,7 +321,7 @@ def test_merge_submodule_merge_commit(
     monkeypatch.chdir(repo_with_submodule)
 
     agent_core_path, main_commit, wt_commit = _setup_merge_test_worktree(
-        repo_with_submodule, "merge-test"
+        repo_with_submodule, "merge-test", commit_file
     )
 
     result = CliRunner().invoke(worktree, ["merge", "merge-test"])
