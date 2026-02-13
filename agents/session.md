@@ -23,16 +23,8 @@
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
   - Reports: `plans/when-recall/reports/tdd-process-review.md`, `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`
 
-- [ ] **Workflow fixes from RCA** — Implement process improvements from 3 RCA reports | sonnet
-  - Input: `plans/reports/rca-*-opus.md` (3 authoritative reports)
-  - Key fixes: normalize runbook-review.md axes, add execution-time split enforcement, add vet investigation protocol + UNFIXABLE taxonomy, orchestrate template enforcement
-
-- [ ] **Consolidate learnings** — learnings.md at 428 lines (soft limit 80) | sonnet
+- [ ] **Consolidate learnings** — learnings.md at 458 lines (soft limit 80) | sonnet
   - Blocker cleared: /when and /how merged from when-recall worktree
-
-- [ ] **Worktree merge combines session context** — Confirm wt-merge combines pending tasks/jobs (not --ours) and requires agent review | sonnet
-  - Worktree-update delivered — blocker cleared, but wt-merge still uses --ours
-  - Partially addressed: merge.py now has `_resolve_session_md_conflict` (set diff) but loses continuation lines → FR-4 in worktree-fixes
 
 - [ ] **Learning ages computation after consolidation** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
 
@@ -43,17 +35,10 @@
 
 - [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate in main repo or dedicated worktree | sonnet
 
-- [ ] **Commit skill optimizations** — Remove handoff gate, optimize, branching fix | sonnet
-  - Remove handoff gate, optimize with minimal custom script calls
-  - Commit Gate B — coverage ratio (artifacts:reports 1:1) not boolean
-  - Commit/handoff branching — move git branching point after precommit passes
-
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
   - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite against post-worktree-update justfile, expanded phases need regeneration
   - Drift: 18 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
-
-- [ ] **Fix skill-based agents not using skills prolog section** — Agents duplicate content instead of referencing skills via `skills:` frontmatter | sonnet
 
 - [ ] **Upstream plugin-dev: document `skills:` frontmatter** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` field | sonnet
 
@@ -103,6 +88,9 @@
   - Agent output optimization — remove summarize/report language from agents
   - Investigation prerequisite rule review
   - Design skill: Phase C density checkpoint (TDD non-code marking handled by per-phase typing)
+  - Workflow fixes from RCA — `plans/reports/rca-*-opus.md`, normalize runbook-review axes, execution-time split, vet investigation protocol, orchestrate template
+  - Commit skill optimizations — remove handoff gate, Gate B coverage ratio, branching after precommit
+  - Fix skill-based agents not using skills prolog section — `skills:` frontmatter
 
 ## Blockers / Gotchas
 
