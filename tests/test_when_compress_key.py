@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from claudeutils.when.compress import load_heading_corpus
+from claudeutils.when.compress import generate_candidates, load_heading_corpus
 
 
 def test_load_heading_corpus(tmp_path: Path) -> None:
@@ -63,3 +63,24 @@ def test_load_heading_corpus_empty(tmp_path: Path) -> None:
     headings = load_heading_corpus(decisions_dir)
 
     assert headings == []
+
+
+def test_generate_candidates() -> None:
+    """Generate candidates from heading via word-drop algorithm."""
+    candidates = generate_candidates("How to Encode Paths")
+
+    # Must include specific combinations
+    assert "how encode paths" in candidates
+    assert "how encode path" in candidates
+    assert "encode paths" in candidates
+    assert "how paths" in candidates
+
+    # All candidates must be lowercase
+    assert all(c.islower() for c in candidates)
+
+    # All candidates must have at least 2 words
+    assert all(len(c.split()) >= 2 for c in candidates)
+
+    # Candidates must be sorted by length (shortest first)
+    word_counts = [len(c.split()) for c in candidates]
+    assert word_counts == sorted(word_counts)

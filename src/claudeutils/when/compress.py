@@ -1,6 +1,7 @@
 """Compress key functionality for heading corpus loading."""
 
 import re
+from itertools import combinations
 from pathlib import Path
 
 
@@ -29,3 +30,38 @@ def load_heading_corpus(decisions_dir: Path) -> list[str]:
                 headings.append(heading_text)
 
     return headings
+
+
+def generate_candidates(heading: str) -> list[str]:
+    """Generate candidate triggers from heading via word-drop algorithm.
+
+    Generates all combinations by dropping words from the heading, keeping
+    only those with 2+ words. Also generates singularized versions by
+    removing trailing 's'. Returns lowercase candidates sorted by length
+    (shortest first).
+
+    Args:
+        heading: Heading text (e.g., "How to Encode Paths")
+
+    Returns:
+        List of candidate triggers, sorted by word count ascending.
+    """
+    words = heading.lower().split()
+    candidates = set()
+
+    # Generate all combinations of words (drop varying word counts)
+    for r in range(len(words) - 1, 1, -1):  # r from len-1 down to 2 (keep 2+ words)
+        for combo in combinations(range(len(words)), r):
+            candidate = " ".join(words[i] for i in combo)
+            candidates.add(candidate)
+
+            # Add singularized version (drop trailing 's')
+            words_in_combo = [words[i] for i in combo]
+            if words_in_combo[-1].endswith("s"):
+                singularized_words = [*words_in_combo[:-1], words_in_combo[-1][:-1]]
+                if len(singularized_words) >= 2:
+                    singularized = " ".join(singularized_words)
+                    candidates.add(singularized)
+
+    # Sort by word count (length), then alphabetically for stability
+    return sorted(candidates, key=lambda x: (len(x.split()), x))
