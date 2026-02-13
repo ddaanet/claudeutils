@@ -86,6 +86,43 @@ def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,
     return container_path / slug
 
 
+def _resolve_session_md_conflict(conflicts: list[str]) -> list[str]:
+    """Resolve agents/session.md conflict.
+
+    Keep ours and extract new tasks from theirs. Returns updated conflict list
+    with session.md removed if present.
+    """
+    if "agents/session.md" not in conflicts:
+        return conflicts
+
+    ours_content = _git("show", ":2:agents/session.md", check=False)
+    theirs_content = _git("show", ":3:agents/session.md", check=False)
+
+    ours_tasks = {
+        line
+        for line in ours_content.split("\n")
+        if line.strip().startswith("- [ ] **") and "**" in line
+    }
+    theirs_tasks = {
+        line
+        for line in theirs_content.split("\n")
+        if line.strip().startswith("- [ ] **") and "**" in line
+    }
+
+    new_tasks = theirs_tasks - ours_tasks
+
+    _git("checkout", "--ours", "agents/session.md")
+    _git("add", "agents/session.md")
+
+    if new_tasks:
+        click.echo("New tasks from worktree (manual extraction needed):")
+        for task in sorted(new_tasks):
+            click.echo(f"  {task}")
+        click.echo("")
+
+    return [c for c in conflicts if c != "agents/session.md"]
+
+
 def merge(slug: str) -> None:
     """Prepare for merge: verify OURS and THEIRS clean tree."""
     r = subprocess.run(
@@ -172,3 +209,5 @@ def merge(slug: str) -> None:
             _git("checkout", "--ours", "agent-core")
             _git("add", "agent-core")
             conflicts = [c for c in conflicts if c != "agent-core"]
+
+        conflicts = _resolve_session_md_conflict(conflicts)

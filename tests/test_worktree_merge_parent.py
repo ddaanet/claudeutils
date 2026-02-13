@@ -196,6 +196,139 @@ def test_merge_conflict_agent_core(
     assert merge_head.returncode == 0, "MERGE_HEAD should be set"
 
 
+def test_merge_conflict_session_md(
+    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify session.md conflict auto-resolution with task extraction.
+
+    Behavior:
+    - When agents/session.md in conflict list: extract new tasks from `:3:` (theirs)
+    - New tasks: lines matching `- [ ] **<name>**` not in `:2:` (ours)
+    - Resolution: `git checkout --ours agents/session.md && git add agents/session.md`
+    - Print warning with list of new tasks for manual extraction
+    """
+    monkeypatch.chdir(repo_with_submodule)
+
+    _commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+
+    subprocess.run(
+        ["git", "branch", "test-merge"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+    result = CliRunner().invoke(worktree, ["new", "test-merge"])
+    assert result.exit_code == 0, f"new command should succeed, got: {result.output}"
+
+    worktree_path = (
+        repo_with_submodule.parent / f"{repo_with_submodule.name}-wt" / "test-merge"
+    )
+
+    # Create agents dir and initial session.md on both sides
+    (repo_with_submodule / "agents").mkdir(exist_ok=True)
+    (worktree_path / "agents").mkdir(exist_ok=True)
+
+    # Main: session.md with task A
+    (repo_with_submodule / "agents" / "session.md").write_text(
+        "# Session\n\n- [ ] **Task A** — `/design` | sonnet\n"
+    )
+    subprocess.run(
+        ["git", "add", "agents/session.md"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add session.md with Task A"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+
+    # Worktree: start with same, then add task B
+    (worktree_path / "agents" / "session.md").write_text(
+        "# Session\n\n- [ ] **Task A** — `/design` | sonnet\n"
+    )
+    subprocess.run(
+        ["git", "add", "agents/session.md"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add session.md"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Worktree: add Task B
+    (worktree_path / "agents" / "session.md").write_text(
+        "# Session\n\n- [ ] **Task A** — `/design` | sonnet\n"
+        "- [ ] **Task B** — `/runbook` | haiku\n"
+    )
+    subprocess.run(
+        ["git", "add", "agents/session.md"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add Task B in worktree"],
+        cwd=worktree_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Switch back to main and add conflicting change
+    subprocess.run(
+        ["git", "checkout", "main"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+
+    # Main: update session.md (different change, will conflict)
+    (repo_with_submodule / "agents" / "session.md").write_text(
+        "# Session\n\n- [ ] **Task A** — `/design` | opus\n"
+    )
+    subprocess.run(
+        ["git", "add", "agents/session.md"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Update session.md on main"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+
+    result = CliRunner().invoke(worktree, ["merge", "test-merge"])
+    assert result.exit_code == 0, f"merge command should succeed: {result.output}"
+
+    # Verify session.md is NOT in unmerged paths (auto-resolved)
+    unmerged = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=U"],
+        check=False,
+        cwd=repo_with_submodule,
+        capture_output=True,
+        text=True,
+    )
+    conflicts = [c for c in unmerged.stdout.strip().split("\n") if c.strip()]
+    msg = (
+        "agents/session.md should be auto-resolved, "
+        f"but found in conflicts: {conflicts}"
+    )
+    assert "agents/session.md" not in conflicts, msg
+
+    # Verify output contains warning about new tasks
+    assert "Task B" in result.output, (
+        f"Output should mention new task Task B, got: {result.output}"
+    )
+
+
 def _commit_file(path: Path, filename: str, content: str, message: str) -> None:
     """Create, stage, and commit a file."""
     (path / filename).write_text(content)
