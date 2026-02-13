@@ -1,24 +1,28 @@
 # Session Handoff: 2026-02-13
 
-**Status:** Worktree merged, session reconciled, pushback worktree created.
+**Status:** Worktree skill tested end-to-end, worktree-fixes requirements captured.
 
 ## Completed This Session
 
-**Worktree-update merge + reconciliation:**
-- Triaged deliverable review findings against workwoods requirements: C2-C5 independent (fix now), C1/R1 deferred to workwoods (FR-1, FR-5/FR-6 supersede)
-- Merged worktree branch to main (95 commits: 40 TDD cycles, recovery fixes, 3 RCAs, workflow-fixes)
-- Manual session reconciliation post-merge (--ours loses worktree data):
-  - Recovered 14 worktree-side learnings (418 total lines)
-  - Extracted new task "Workflow fixes from RCA" from worktree session
-  - Marked RCA tasks complete, updated jobs.md (worktree-update + workflow-fixes complete)
-  - Cleared workflow improvements RCA blocker
-- Removed worktree (`just wt-rm worktree`)
+**Worktree skill end-to-end testing (12 tests, all passing):**
+- Mode A: create worktree via `claudeutils _worktree new --task`, focused session generation
+- Mode C: merge ceremony via `claudeutils _worktree merge`, precommit validation
+- Error handling: non-existent task (exit 1), duplicate worktree (exit 1), non-existent slug (exit 2)
+- Special chars: backticks/colons stripped, slug truncated at 30 chars (finding → FR-1)
+- Clean state: branch deleted, worktree removed, session.md references cleared
+- Cleaned up test artifacts (test-feature worktree removed, test report deleted)
 
-**Session cleanup:**
-- Removed "Agentic process review and prose RCA" — completed at merge 5b79869, incorrectly re-added during task recovery (a74ed85)
-- Recovered `plans/process-review/rca.md` from git history (0ded1a3) for in-tree reference
-- Added input file references to composite tasks
-- Created pushback worktree (`wt-task pushback`)
+**Findings from testing → requirements:**
+- Session merge loses continuation lines: `_resolve_session_md_conflict` set-diffs single lines, loses indented metadata
+- No-op merge skips commit: when conflict resolves to no net changes, phase 4 skips merge commit → branch orphaned → `git branch -d` rejects
+- Task name slugs truncate badly: 30-char limit cuts mid-word, special chars stripped silently
+
+**Requirements captured:** `plans/worktree-fixes/requirements.md` (5 FRs)
+- FR-1: Task name constraints — prose identifiers `[a-zA-Z0-9 ]`, no truncation
+- FR-2: Precommit task name validation
+- FR-3: Migrate existing task names
+- FR-4: Session merge preserves full task blocks (continuation lines)
+- FR-5: Always create merge commit when merge initiated (fix orphan branch)
 
 ## Pending Tasks
 
@@ -47,6 +51,7 @@
 
 - [ ] **Worktree merge combines session context** — Confirm wt-merge combines pending tasks/jobs (not --ours) and requires agent review | sonnet
   - Worktree-update delivered — blocker cleared, but wt-merge still uses --ours
+  - Partially addressed: merge.py now has `_resolve_session_md_conflict` (set diff) but loses continuation lines → FR-4 in worktree-fixes
 
 - [ ] **Learning ages computation after consolidation** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
 
@@ -56,6 +61,11 @@
   - Autofix or fail on duplicate memory index entries (blocked on memory redesign)
 
 - [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate in main repo or dedicated worktree | sonnet
+
+- [ ] **Commit skill optimizations** — Remove handoff gate, optimize, branching fix | sonnet
+  - Remove handoff gate, optimize with minimal custom script calls
+  - Commit Gate B — coverage ratio (artifacts:reports 1:1) not boolean
+  - Commit/handoff branching — move git branching point after precommit passes
 
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
@@ -91,8 +101,10 @@
   - History cleanup tooling — git history rewriting, reusable scripts
   - Rewrite agent-core ad-hoc scripts via TDD to claudeutils package
 
+- [ ] **Worktree fixes** — `/design plans/worktree-fixes/` | opus
+  - Plan: worktree-fixes | Status: requirements
+  - 5 FRs: task name constraints, precommit validation, migration, session merge blocks, merge commit fix
 
-- [ ] **Worktree-spawned task** — Task created inside worktree to test merge reconciliation | sonnet
 ## Worktree Tasks
 
 - [ ] **Plan when-recall** → `wt/when-recall` — blocked on validator fix | sonnet
@@ -102,13 +114,8 @@
 - [ ] **Error handling framework design** → `wt/error-handling` — Resume `/design` Phase B | opus
   - Blocked on: workflow improvements
   - Outline: `plans/error-handling/outline.md`
-- [ ] **Test feature** → `wt/test-feature`
 - [ ] **Build pushback into conversation process** → `wt/pushback` — `/design plans/pushback/requirements.md` | opus
   - Plan: pushback | Status: requirements
-- [ ] **Commit skill optimizations** → `commit-skill-optimizations` — Remove handoff gate, optimize, branching fix | sonnet
-  - Remove handoff gate, optimize with minimal custom script calls
-  - Commit Gate B — coverage ratio (artifacts:reports 1:1) not boolean
-  - Commit/handoff branching — move git branching point after precommit passes
 
 ## Blockers / Gotchas
 
@@ -120,9 +127,10 @@
 **Learnings.md over soft limit:**
 - 418 lines — consolidation blocked on memory redesign
 
-**wt-merge uses --ours for session.md:**
-- Worktree-side pending tasks, jobs.md, learnings lost on merge
-- Manual reconciliation needed after every merge (this session: learnings + tasks + jobs recovered)
+**wt-merge session reconciliation incomplete:**
+- merge.py has auto-resolvers for session.md, learnings.md, jobs.md
+- Session merge loses continuation lines (single-line set diff) → worktree-fixes FR-4
+- No-op merge skips commit → orphan branch → worktree-fixes FR-5
 
 **All tasks with documentation must have in-tree file references.**
 
@@ -136,3 +144,4 @@
 - `plans/worktree-update/` — Runbook + reports (complete, merged)
 - `plans/when-recall/design.md` — Vetted design document
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
+- `plans/worktree-fixes/requirements.md` — Worktree fixes requirements (5 FRs, task naming + merge fixes)

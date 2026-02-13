@@ -16,6 +16,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | reports | — | Shared reports directory (not a plan) |
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
+| worktree-fixes | requirements | Task name constraints, session merge blocks, merge commit fix (5 FRs) |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
 | pushback | requirements | Prevent yes-manning in design discussions |
 | process-review | complete | RCA recovered to disk for workflow-improvements reference |

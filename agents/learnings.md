@@ -417,3 +417,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Enforcement works for structural/mechanical checks; judgment requires conversation-level intervention
 - Rationale: Writing agent can satisfy any structural check with wrong content (write `| sonnet` to pass model-required validation)
 - Example: Model tier on pending tasks — agent defaults to sonnet, precommit can verify field exists but not correctness
+## No-op merge orphans branch
+- Anti-pattern: Skip merge commit when conflict resolution nullifies diff (`git diff --cached --quiet` → skip)
+- Correct pattern: Always create merge commit when `git merge --no-commit` was initiated — branch must become ancestor of HEAD
+- Rationale: Without merge commit, branch is unreachable from HEAD → `git branch -d` rejects as "not fully merged"
+- Evidence: test-feature worktree had focused-session commit, session.md conflict resolved to no changes, phase 4 skipped commit
+## Task names are branch-suitable identifiers
+- Anti-pattern: Prose task names with special chars (backticks, colons) → lossy slug derivation with truncation
+- Correct pattern: Constrain task names to `[a-zA-Z0-9 ]` — slug derivation is near-identity (lowercase + spaces→hyphens)
+- Rationale: Task names serve as git branch names, search keys (`git log -S`), and session identifiers — lossy transformation creates ambiguity
+- Example: "Upstream plugin-dev: document \`skills:\` frontmatter" → `upstream-plugin-dev-document-s` (truncated, information lost)
