@@ -15,7 +15,6 @@ Plan lifecycle tracking. Updated when plans change status.
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
 | reflect-rca-sequential-task-launch | requirements | RCA on Task parallelization + vet context issues |
 | reports | — | Shared reports directory (not a plan) |
-| requirements-skill | requirements | Evaluate with opus |
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
 | worktree-update | planned | Runbook complete: 40 TDD cycles (7 phases), reviewed and assembled, haiku execution ready |
@@ -28,6 +27,7 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `requirements-skill` — Dual-mode extract/elicit requirements skill, empirical grounding
 - `worktree-skill` — Worktree skill implementation (42/42 cycles, merged to dev)
 - `worktree-skill-fixes` — Worktree skill findings (27 fixes across 7 phases, merged to dev)
 - `handoff-validation` — Killed: problems resolved by existing tooling
