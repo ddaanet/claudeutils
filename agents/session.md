@@ -28,11 +28,6 @@
 
 ## Pending Tasks
 
-- [ ] **Update plan-tdd skill** — Document background phase review agent pattern | sonnet
-  - Add run_in_background=true delegation pattern to Phase 3 guidance
-  - Update holistic review step to wait for all agents before proceeding
-  - Pattern proven efficient: 7 parallel reviews vs sequential
-
 - [ ] **Execute worktree-update runbook** — Run /orchestrate worktree-update | haiku | restart
   - Plan: plans/worktree-update
   - 40 TDD cycles across 7 phases
