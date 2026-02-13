@@ -19,6 +19,21 @@ INDEXED_GLOBS = [
 EXEMPT_SECTIONS: set[str] = set()
 
 
+def _strip_operator_prefix(key: str) -> str:
+    """Strip operator prefix from entry key for header matching.
+
+    Entry keys include operator: "when x" or "how to x"
+    Headers don't have operator prefix.
+    Returns just the trigger text: "x"
+    """
+    if key.startswith("when "):
+        return key[5:]  # len("when ") = 5
+    if key.startswith("how to "):
+        return key[7:]  # len("how to ") = 7
+    # Old em-dash format or bare key - no prefix to strip
+    return key
+
+
 def collect_structural_headers(root: Path) -> set[str]:
     """Scan indexed files for dot-prefixed structural headers."""
     structural = set()
@@ -246,8 +261,11 @@ def check_orphan_entries(
     """Check for orphan index entries with no matching semantic headers."""
     errors = []
     for key, (lineno, _full_entry, section) in entries.items():
-        if section in EXEMPT_SECTIONS or key in structural:
+        # Strip operator prefix ONLY for structural check (structural has no prefix)
+        trigger = _strip_operator_prefix(key)
+        if section in EXEMPT_SECTIONS or trigger in structural:
             continue
+        # Headers have operator prefix, compare directly
         if key not in headers:
             errors.append(
                 f"  memory-index.md:{lineno}: orphan index entry '{key}' "
@@ -264,7 +282,9 @@ def check_structural_entries(
     for key, (lineno, _full_entry, section) in entries.items():
         if section in EXEMPT_SECTIONS:
             continue
-        if key in structural:
+        # Strip operator prefix for comparison against structural headers
+        trigger = _strip_operator_prefix(key)
+        if trigger in structural:
             errors.append(
                 f"  memory-index.md:{lineno}: entry '{key}' points to "
                 f"structural section"

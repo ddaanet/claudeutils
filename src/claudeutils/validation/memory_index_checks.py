@@ -8,7 +8,11 @@ from pathlib import Path
 
 from claudeutils.when.fuzzy import score_match
 
-from .memory_index_helpers import EXEMPT_SECTIONS, extract_index_structure
+from .memory_index_helpers import (
+    EXEMPT_SECTIONS,
+    _strip_operator_prefix,
+    extract_index_structure,
+)
 
 
 def check_duplicate_entries(index_path: Path | str, root: Path) -> list[str]:
@@ -147,6 +151,7 @@ def check_entry_placement(
     for key, (lineno, _full_entry, section) in entries.items():
         if section in EXEMPT_SECTIONS:
             continue
+        # Headers have operator prefix, compare directly
         if key in headers:
             # Get the file this header is in
             source_file = headers[key][0][0]  # First location's file
@@ -188,15 +193,21 @@ def check_entry_sorting(
         # Get entries with their source line numbers
         entry_positions = []
         for entry in entry_lines:
-            # Extract key using same logic as _extract_entry_key
-            if entry.startswith(("/when ", "/how ")):
+            # Extract key using same logic as _extract_entry_key WITH operator prefix
+            if entry.startswith("/when "):
                 _, rest = entry.split(" ", 1)
-                key = rest.split("|", 1)[0].strip().lower()
+                trigger = rest.split("|", 1)[0].strip()
+                key = f"when {trigger}".lower() if trigger else None
+            elif entry.startswith("/how "):
+                _, rest = entry.split(" ", 1)
+                trigger = rest.split("|", 1)[0].strip()
+                key = f"how to {trigger}".lower() if trigger else None
             elif " — " in entry:
                 key = entry.split(" — ")[0].lower()
             else:
                 key = entry.lower()
-            if key in headers:
+            # Headers have operator prefix, compare directly
+            if key and key in headers:
                 source_lineno = headers[key][0][1]  # Line number in source file
                 entry_positions.append((source_lineno, entry))
 
@@ -234,15 +245,17 @@ def check_orphan_entries(
         # Skip exempt sections
         if section in EXEMPT_SECTIONS:
             continue
-        # Skip entries pointing to structural sections (will be removed by autofix)
-        if key in structural:
+
+        # Strip operator prefix ONLY for structural check (structural has no prefix)
+        trigger = _strip_operator_prefix(key)
+        if trigger in structural:
             continue
 
-        # Exact match first
+        # Headers have operator prefix, so compare directly
         if key in headers:
             continue
 
-        # Fuzzy match against all headers
+        # Fuzzy match against all headers (both have operator prefix)
         best_score = 0.0
         for header_title in header_titles:
             score = score_match(key, header_title)
@@ -308,12 +321,12 @@ def check_collisions(
         if section in EXEMPT_SECTIONS:
             continue
 
-        # Exact match first
+        # Headers have operator prefix, compare directly
         if key in headers:
             entry_to_heading[key] = key
             continue
 
-        # Fuzzy match
+        # Fuzzy match (both have operator prefix)
         best_score = 0.0
         best_header = None
         for header_title in header_titles:
