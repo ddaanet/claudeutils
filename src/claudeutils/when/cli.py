@@ -4,7 +4,7 @@ import click
 
 
 @click.command(name="when")
-@click.argument("operator")
+@click.argument("operator", type=click.Choice(["when", "how"]))
 @click.argument("query")
 def when_cmd(operator: str, query: str) -> None:
     """Query memory index with fuzzy matching operators.

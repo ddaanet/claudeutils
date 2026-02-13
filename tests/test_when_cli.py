@@ -23,3 +23,28 @@ def test_when_command_exists() -> None:
 
     assert result.exit_code == 0
     assert "Usage:" in result.output
+
+
+def test_operator_argument_validation() -> None:
+    """Test that operator argument is constrained to when/how choices.
+
+    Verifies:
+    1. CLI accepts 'when' as operator
+    2. CLI accepts 'how' as operator
+    3. CLI rejects invalid operators like 'what'
+    4. Error output contains "Invalid value" for invalid operators
+    """
+    runner = CliRunner()
+
+    # Valid operator: 'when'
+    result = runner.invoke(cli, ["when", "when", "writing mock tests"])
+    assert result.exit_code == 0
+
+    # Valid operator: 'how'
+    result = runner.invoke(cli, ["when", "how", "encode paths"])
+    assert result.exit_code == 0
+
+    # Invalid operator: 'what'
+    result = runner.invoke(cli, ["when", "what", "some topic"])
+    assert result.exit_code != 0
+    assert "Invalid value" in result.output
