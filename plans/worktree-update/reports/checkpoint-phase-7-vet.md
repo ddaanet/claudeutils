@@ -39,15 +39,17 @@ None found.
 
 ## Fixes Applied
 
-- tests/fixtures_worktree.py:144 — added `commit_file` helper (extracted from 4 test modules)
-- tests/test_worktree_merge_conflicts.py:384 — replaced local helper with fixture import
-- tests/test_worktree_merge_jobs_conflict.py:137 — replaced local helper with fixture import
-- tests/test_worktree_merge_parent.py:155 — replaced local helper with fixture import
-- tests/test_worktree_merge_submodule.py:225 — replaced local helper with fixture import
-- src/claudeutils/worktree/cli.py:351 — updated merge command docstring
-- src/claudeutils/worktree/utils.py:14 — extracted wt_path to shared utils module
-- src/claudeutils/worktree/merge.py:1 — imported wt_path from utils, removed duplication
-- src/claudeutils/worktree/cli.py:13 — imported wt_path from utils, removed local implementation
+- tests/fixtures_worktree.py:156 — added `commit_file` helper (extracted from 4 test modules)
+- tests/test_worktree_merge_conflicts.py — replaced local helper with fixture import, updated 3 test signatures
+- tests/test_worktree_merge_jobs_conflict.py — replaced local helper with fixture import, updated test signature
+- tests/test_worktree_merge_parent.py — replaced local helper with fixture import, updated 2 test signatures
+- tests/test_worktree_merge_submodule.py — replaced local helper with fixture import, updated 3 test signatures + 2 setup functions
+- src/claudeutils/worktree/cli.py:351 — updated merge command docstring to "Merge worktree branch: validate, resolve submodule, merge parent"
+- src/claudeutils/worktree/utils.py — created utils module with wt_path function
+- src/claudeutils/worktree/merge.py:7 — imported wt_path from utils, removed 15-line duplication
+- src/claudeutils/worktree/cli.py:14 — imported wt_path from utils, removed 15-line local implementation
+- tests/test_worktree_utils.py:11 — updated import to use wt_path from utils
+- tests/test_worktree_commands.py:11 — updated import to use wt_path from utils
 
 ## Requirements Validation
 
