@@ -357,3 +357,42 @@ def test_rm_post_removal_cleanup_idempotent(
 
     result = CliRunner().invoke(worktree, ["rm", "test-slug"])
     assert result.exit_code == 0
+
+
+def test_rm_safe_branch_deletion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """Safe branch deletion with -d and warning on unmerged changes."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    init_repo(repo_path)
+
+    result = CliRunner().invoke(worktree, ["new", "test-slug"])
+    assert result.exit_code == 0
+
+    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    assert result.exit_code == 0
+    assert "Branch test-slug" not in result.output
+
+    result = CliRunner().invoke(worktree, ["new", "unmerged-slug"])
+    assert result.exit_code == 0
+
+    worktree_path = wt_path("unmerged-slug")
+    test_file = worktree_path / "unmerged.txt"
+    test_file.write_text("unmerged content")
+    subprocess.run(
+        ["git", "-C", str(worktree_path), "add", "unmerged.txt"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(worktree_path), "commit", "-m", "unmerged commit"],
+        check=True,
+        capture_output=True,
+    )
+
+    result = CliRunner().invoke(worktree, ["rm", "unmerged-slug"])
+    assert result.exit_code == 0
+    assert "Branch unmerged-slug has unmerged changes" in result.output
+    assert "git branch -D unmerged-slug" in result.output

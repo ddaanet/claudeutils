@@ -206,9 +206,12 @@ def _create_parent_worktree(
     worktree_path: Path, slug: str, base: str, session: str
 ) -> None:
     """Create parent repo worktree with optional session commit."""
-    branch_exists = subprocess.run(
-        ["git", "rev-parse", "--verify", slug], capture_output=True, check=False
-    ).returncode == 0
+    branch_exists = (
+        subprocess.run(
+            ["git", "rev-parse", "--verify", slug], capture_output=True, check=False
+        ).returncode
+        == 0
+    )
 
     if branch_exists and session:
         click.echo(f"Warning: branch {slug} exists, ignoring --session", err=True)
@@ -385,10 +388,10 @@ def rm(slug: str) -> None:
         _git("worktree", "prune")
 
     r = subprocess.run(
-        ["git", "branch", "-D", slug], capture_output=True, text=True, check=False
+        ["git", "branch", "-d", slug], capture_output=True, text=True, check=False
     )
     if r.returncode != 0 and "not found" not in r.stderr.lower():
-        click.echo(r.stderr)
+        click.echo(f"Branch {slug} has unmerged changes. Use: git branch -D {slug}")
 
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
