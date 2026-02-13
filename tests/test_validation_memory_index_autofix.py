@@ -219,3 +219,90 @@ def test_empty_index_file_no_errors(tmp_path: Path) -> None:
 
     errors = validate("agents/memory-index.md", tmp_path)
     assert errors == []
+
+
+def test_autofix_new_format(tmp_path: Path) -> None:
+    """Test that autofix handles /when format entries correctly.
+
+    Verifies:
+    - Entry in wrong file section → autofix moves to correct section
+    - Entries out of file order within section → autofix reorders
+    - Entry pointing to structural heading (. prefix) → autofix removes
+    - After autofix: re-running validation produces zero errors
+    """
+    decisions_dir = tmp_path / "agents" / "decisions"
+    decisions_dir.mkdir(parents=True)
+
+    file1 = decisions_dir / "file-one.md"
+    file1.write_text("""# File One
+
+## Mock Test
+Content here.
+
+## Real Header
+More content.
+""")
+
+    file2 = decisions_dir / "file-two.md"
+    file2.write_text("""# File Two
+
+## .Structural Section
+This is structural.
+""")
+
+    # Index with issues:
+    # 1. /when mock test in file-two section (wrong section)
+    # 2. Entries out of order
+    # 3. /when structural section pointing to dot-prefixed header
+    index_file = tmp_path / "agents" / "memory-index.md"
+    index_file.write_text("""# Memory Index
+
+## agents/decisions/file-two.md
+
+/when mock test
+/when structural section
+
+## agents/decisions/file-one.md
+
+/when real header
+""")
+
+    # Run autofix
+    errors = validate("agents/memory-index.md", tmp_path, autofix=True)
+    assert errors == []
+
+    # Verify the index was fixed:
+    content = index_file.read_text()
+
+    # Verify correct sections exist
+    assert "## agents/decisions/file-one.md" in content
+    assert "## agents/decisions/file-two.md" in content
+
+    # Verify /when format is preserved
+    assert "/when mock test" in content
+    assert "/when real header" in content
+
+    # Verify structural entry was removed
+    assert "/when structural section" not in content
+
+    # Verify mock test is in file-one section (correct location)
+    lines = content.splitlines()
+    file1_idx = next(
+        i for i, line in enumerate(lines) if "agents/decisions/file-one.md" in line
+    )
+    file2_idx = next(
+        i for i, line in enumerate(lines) if "agents/decisions/file-two.md" in line
+    )
+
+    mock_test_idx = next(i for i, line in enumerate(lines) if "/when mock test" in line)
+    assert file1_idx < mock_test_idx < file2_idx
+
+    # Verify ordering (mock test at line 3, real header at line 6)
+    real_header_idx = next(
+        i for i, line in enumerate(lines) if "/when real header" in line
+    )
+    assert mock_test_idx < real_header_idx
+
+    # Re-running validation should produce no errors
+    errors = validate("agents/memory-index.md", tmp_path, autofix=False)
+    assert errors == []

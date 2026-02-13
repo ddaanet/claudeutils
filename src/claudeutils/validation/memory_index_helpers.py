@@ -168,18 +168,33 @@ def _rebuild_index_content(
     sections: list[tuple[str, list[str]]],
     file_entries: dict[str, list[tuple[int, str]]],
 ) -> list[str]:
-    """Rebuild index: preamble, exempt sections, then file sections sorted."""
-    output = list(preamble)
+    """Rebuild index: preamble, exempt sections, then file sections sorted.
+
+    File sections in file_entries are output in sorted order. File sections from
+    the original index that are not in file_entries (all entries removed/structural)
+    are added as empty sections.
+    """
+    output: list[str] = []
+    output.extend(preamble)
 
     for section_name, entry_lines in sections:
         if section_name in EXEMPT_SECTIONS:
             output.append(f"\n## {section_name}\n")
             output.extend(entry_lines)
 
+    # Collect file sections from original index
+    file_sections_set = {s for s, _ in sections if s.endswith(".md")}
+
+    # Output entries grouped by file, in sorted order
     for filepath in sorted(file_entries.keys()):
         output.append(f"\n## {filepath}\n")
         for _, entry in file_entries[filepath]:
             output.append(entry)
+        file_sections_set.discard(filepath)
+
+    # Output empty file sections (had entries but all were removed as structural)
+    empty_sections = [f"\n## {filepath}\n" for filepath in sorted(file_sections_set)]
+    output.extend(empty_sections)
 
     return output
 
