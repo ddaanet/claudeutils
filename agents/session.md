@@ -1,29 +1,29 @@
 # Session Handoff: 2026-02-13
 
-**Status:** Deliverable review complete. 4 critical, 4 major findings. Code fixes scoped for TDD, then mechanical steps (bin wrapper, skills, migration). Precommit broken until migration completes.
+**Status:** TDD Cycles 1-4 complete (5 commits). Cycle 5 partial: check functions fixed, autofix pending. Precommit 20/24 tests passing.
 
 ## Completed This Session
 
-**Deliverable review:**
-- Full review per `agents/decisions/deliverable-review.md` process
-- 7/12 design steps complete, 1 partial, 4 missing (phases 5, 8, 9, 10 unexecuted)
-- Report: `plans/when-recall/reports/deliverable-review.md`
+**TDD code fixes (Cycles 1-4):**
+- Cycle 1 (e935321): `_extract_entry_key` includes operator prefix — `/when X` → "when x", `/how X` → "how to x"
+- Cycle 2 (d11e279): Wire `operator` through `resolve()` signature — query includes operator for fuzzy matching
+- Cycle 3 (80f744e): Wire operator from CLI to resolver — removed `# noqa: ARG001`, CLI passes operator
+- Cycle 4 (2ade5c3): Extend section mode to H3+ headings — `_resolve_section` now matches all heading levels
+- Cycle 5 partial (1e1b404): Validator consistency — check functions fixed, autofix pending
 
-**Design decisions resolved:**
-- Headings DO get operator prefix: `/when X` → "When X", `/how X` → "How to X" (confirms D-6)
-- Approach B (not A): `_extract_entry_key` includes operator in key, maps `/how` → "how to"
-- `/how` stays as operator (not `/howto` — "howto" ≠ "how to" in exact matching)
+**Key insight (Cycle 5):**
+- Headers dict keys include operator prefix (from heading text "When X")
+- Entry dict keys include operator prefix (from `_extract_entry_key`)
+- Structural set has NO operator prefix (just title text)
+- Solution: Compare headers and entries directly (both have prefix), strip only for structural comparison
 
 ## Pending Tasks
 
-- [ ] **Fix when-recall code findings (TDD)** — `plans/when-recall/reports/deliverable-review.md` §3 | sonnet
-  - Cycle 1: `_extract_entry_key` include operator, `/how` → "how to" mapping (memory_index.py)
-  - Cycle 2: Wire `operator` param through `resolve()` signature (resolver.py)
-  - Cycle 3: Wire `operator` from CLI into resolver call (cli.py)
-  - Cycle 4: `_resolve_section` extend to H3+ headings (resolver.py)
-  - Cycle 5: Validator consistency — `check_orphan_entries`, `check_collisions` with new keys
-  - Tests: test_validation_memory_index.py, test_when_resolver.py, test_when_cli.py
-  - Acceptance: `just precommit` passes after migration; `/when` and `/how` produce different results
+- [ ] **Complete Cycle 5: Fix autofix functions** — Remaining validator work | sonnet
+  - Fix `autofix_index` in memory_index_helpers.py to handle operator-prefixed entry keys
+  - 4 failing tests: test_entry_in_wrong_section_autofixed, test_entries_out_of_order_autofixed, test_structural_header_entries_removed_by_autofix, test_multiple_autofix_issues_resolved
+  - Acceptance: All 24 validation tests pass
+  - Note: Check functions already fixed (orphan, collisions, placement, sorting, structural)
 
 - [ ] **Create bin wrapper** — Phase 5 deliverable | haiku
   - `agent-core/bin/when-resolve.py` — thin wrapper calling `claudeutils when` CLI
@@ -76,7 +76,9 @@
 
 ## Blockers / Gotchas
 
-**Precommit broken:** Phase 6 validator enforces /when format but Phase 9 migration not yet executed. 152+ entries fail `check_trigger_format`. Precommit will stay broken until migration completes.
+**Autofix functions need updating:** `autofix_index` removes all entries instead of just structural ones. Root cause: autofix logic doesn't account for operator-prefixed keys. Need to strip operator prefix when comparing against structural set, but preserve full key for header matching.
+
+**Precommit broken:** Phase 6 validator enforces /when format but Phase 9 migration not yet executed. 152+ entries fail `check_trigger_format`. Precommit will stay broken until migration completes. Currently 20/24 validation tests pass (4 autofix tests fail).
 
 **Operator→prefix mapping:** `/when` → "When", `/how` → "How to". Both `_extract_entry_key` and `_build_heading` must use same mapping. Test both operators in every TDD cycle.
 
@@ -86,7 +88,7 @@
 
 ## Reference Files
 
-- `plans/when-recall/reports/deliverable-review.md` — **Primary input for next session**
+- `plans/when-recall/reports/deliverable-review.md` — Findings that drove TDD cycles
 - `plans/when-recall/design.md` — Vetted design (ground truth)
-- `plans/when-recall/reports/migration-findings.md` — Migration design conflict analysis (Approach A superseded by Approach B per deliverable review)
-- `tmp/migrate-index.py` — Migration script with 152-entry operator mapping
+- `src/claudeutils/validation/memory_index_helpers.py` — Contains `_strip_operator_prefix` helper and autofix logic needing update
+- `tests/test_validation_memory_index.py` — 20/24 passing, 4 autofix tests failing
