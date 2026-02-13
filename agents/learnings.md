@@ -342,3 +342,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Include explicit "Commit all changes and report before returning" in every vet delegation prompt
 - Evidence: Phases 2, 4, 6 checkpoints all left changes uncommitted, required resume to commit
 - Recurrence: Same root cause as "Delegation requires commit instruction" learning but specific to vet-fix-agent
+## Index exact keys not fuzzy
+- Anti-pattern: Using fuzzy matching in validator to bridge compressed triggers to verbose headings
+- Correct pattern: Index entry key must exactly match heading key — fuzzy matching is only for resolver runtime recovery
+- Rationale: Exact keys are deterministic and debuggable; fuzzy in validation creates invisible mismatches when scores drift below threshold
+- Impact: D-6 heading prefix (When/How to) creates key mismatch — entry key strips operator, heading key includes it
+- Invalidates: "Fuzzy bridge: density and clarity" learning's claim that validator uses fuzzy engine
