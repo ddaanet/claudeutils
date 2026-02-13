@@ -6,6 +6,8 @@ Contains validation check functions extracted from memory_index_helpers.py.
 import re
 from pathlib import Path
 
+from claudeutils.when.fuzzy import score_match
+
 from .memory_index_helpers import EXEMPT_SECTIONS, extract_index_structure
 
 
@@ -196,6 +198,9 @@ def check_orphan_entries(
 ) -> list[str]:
     """Check for orphan index entries (no matching headers).
 
+    Uses fuzzy matching to bridge compression between index triggers and
+    semantic headers (e.g., "write mock test" fuzzy-matches "When Writing Mock Tests").
+
     Args:
         entries: Dictionary of entries from extract_index_entries.
         headers: Dictionary of semantic headers from collect_semantic_headers.
@@ -205,6 +210,9 @@ def check_orphan_entries(
         List of error messages for orphan entries.
     """
     errors = []
+    header_titles = list(headers.keys())
+    threshold = 50.0
+
     for key, (lineno, _full_entry, section) in entries.items():
         # Skip exempt sections
         if section in EXEMPT_SECTIONS:
@@ -212,11 +220,24 @@ def check_orphan_entries(
         # Skip entries pointing to structural sections (will be removed by autofix)
         if key in structural:
             continue
-        if key not in headers:
+
+        # Exact match first
+        if key in headers:
+            continue
+
+        # Fuzzy match against all headers
+        best_score = 0.0
+        for header_title in header_titles:
+            score = score_match(key, header_title)
+            best_score = max(best_score, score)
+
+        # If no match found (exact or fuzzy above threshold), report error
+        if best_score < threshold:
             errors.append(
                 f"  memory-index.md:{lineno}: orphan index entry '{key}' "
                 f"has no matching semantic header in agents/decisions/"
             )
+
     return errors
 
 

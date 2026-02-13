@@ -16,6 +16,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from claudeutils.when.fuzzy import score_match
+
 from .memory_index_checks import check_entry_sorting, check_trigger_format
 from .memory_index_helpers import (
     autofix_index,
@@ -100,15 +102,35 @@ def _check_orphan_headers(
     headers: dict[str, list[tuple[str, int, str]]],
     entries: dict[str, tuple[int, str, str]],
 ) -> list[str]:
-    """Check for semantic headers without index entries."""
+    """Check for semantic headers without index entries.
+
+    Uses fuzzy matching to bridge compression between semantic headers and index
+    triggers (e.g., "When Writing Mock Tests" fuzzy-matches "write mock test").
+    """
     errors = []
+    entry_keys = list(entries.keys())
+    threshold = 50.0
+
     for title, locations in sorted(headers.items()):
-        if title not in entries:
+        # Exact match first
+        if title in entries:
+            continue
+
+        # Fuzzy match: entry keys are substrings of header titles, so we
+        # score each entry key against the header title
+        best_score = 0.0
+        for entry_key in entry_keys:
+            score = score_match(entry_key, title)
+            best_score = max(best_score, score)
+
+        # If no match found (exact or fuzzy above threshold), report error
+        if best_score < threshold:
             for filepath, lineno, level in locations:
                 errors.append(
                     f"  {filepath}:{lineno}: orphan semantic header '{title}' "
                     f"({level} level) has no memory-index.md entry"
                 )
+
     return errors
 
 

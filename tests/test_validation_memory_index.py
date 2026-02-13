@@ -436,3 +436,40 @@ Valid Trigger — Valid entry with em-dash
         for e in errors
         if "error" in e.lower() or "invalid" in e.lower() or "empty" in e.lower()
     )
+
+
+def test_fuzzy_bidirectional_integrity(tmp_path: Path, decisions_dir: Path) -> None:
+    """Fuzzy matching bridges compression in entry↔heading validation.
+
+    Index entries are compressed (e.g., "write mock test") but must match
+    headings that use full prose (e.g., "When Writing Mock Tests"). Fuzzy
+    matching should bridge this gap.
+
+    Assertions:
+    - Index entry matches heading via fuzzy matching (compressed vs full text)
+    - Index entry with no matching heading raises orphan entry error
+    - Heading with no index entry raises orphan heading error
+    - Fuzzy matching bridges compression between index trigger and heading text
+    """
+    (decisions_dir / "test-decision.md").write_text(
+        "# Test Decision\n\n"
+        "## When Writing Mock Tests\nContent.\n\n"
+        "## When Auth Fails\nMore content.\n"
+    )
+    _write_index(
+        tmp_path,
+        """# Memory Index
+
+## agents/decisions/test-decision.md
+
+/when writing mock tests
+/when writing mock tests with no heading match
+""",
+    )
+    errors = validate("agents/memory-index.md", tmp_path, autofix=False)
+
+    # Should find orphan entry (no heading match)
+    assert any("orphan index entry" in e for e in errors)
+
+    # Should find orphan heading (no entry match)
+    assert any("orphan semantic header" in e for e in errors)
