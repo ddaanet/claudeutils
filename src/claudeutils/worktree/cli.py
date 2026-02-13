@@ -27,7 +27,6 @@ def _git(
     )
     return r.stdout.strip()
 
-
 def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,FBT002
     """Worktree path in sibling -wt container."""
     if not slug or not slug.strip():
@@ -44,7 +43,6 @@ def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,
         container_path.mkdir(parents=True, exist_ok=True)
     return container_path / slug
 
-
 def derive_slug(task_name: str, max_length: int = 30) -> str:
     """Task name to slug."""
     if not task_name or not task_name.strip():
@@ -52,7 +50,6 @@ def derive_slug(task_name: str, max_length: int = 30) -> str:
         raise ValueError(msg)
     slug = re.sub(r"[^a-z0-9]+", "-", task_name.lower()).strip("-")[:max_length]
     return slug.rstrip("-")
-
 
 def _filter_section(
     content: str, section_name: str, task_name: str, plan_dir: str | None
@@ -74,7 +71,6 @@ def _filter_section(
     ]
     return f"## {section_name}\n\n" + "\n".join(lines) + "\n" if lines else ""
 
-
 def focus_session(task_name: str, session_md_path: str | Path) -> str:
     """Filter session.md to task_name with relevant context sections."""
     content = Path(session_md_path).read_text()
@@ -84,9 +80,9 @@ def focus_session(task_name: str, session_md_path: str | Path) -> str:
         raise ValueError(msg)
 
     metadata = match.group(1).rstrip()
-    plan_match = re.search(r"plan:\s*(\S+)", metadata)
-    plan_dir = plan_match.group(1) if plan_match else None
-
+    plan_dir = (
+        m.group(1) if (m := re.search(r"plan:\s*(\S+)", metadata)) else None
+    )
     result = (
         f"# Session: Worktree — {task_name}\n\n"
         f"**Status:** Focused worktree for parallel execution.\n\n"
@@ -97,7 +93,6 @@ def focus_session(task_name: str, session_md_path: str | Path) -> str:
             result += f"\n{filtered}"
     return result
 
-
 def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
     """Add container to sandbox additionalDirectories."""
     path = Path(settings_path)
@@ -106,13 +101,12 @@ def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
     else:
         path.parent.mkdir(parents=True, exist_ok=True)
         settings = {"permissions": {"additionalDirectories": []}}
-
-    perms = settings.setdefault("permissions", {})
-    dirs = perms.setdefault("additionalDirectories", [])
+    dirs = settings.setdefault("permissions", {}).setdefault(
+        "additionalDirectories", []
+    )
     if container not in dirs:
         dirs.append(container)
     path.write_text(json.dumps(settings, indent=2, ensure_ascii=False))
-
 
 def initialize_environment(worktree_path: Path) -> None:
     """Run just setup if just is available."""
@@ -120,7 +114,6 @@ def initialize_environment(worktree_path: Path) -> None:
         subprocess.run(["just", "--version"], capture_output=True, check=True)
     except (FileNotFoundError, subprocess.CalledProcessError):
         return
-
     r = subprocess.run(
         ["just", "setup"],
         cwd=worktree_path,
@@ -131,11 +124,9 @@ def initialize_environment(worktree_path: Path) -> None:
     if r.returncode != 0:
         click.echo(f"Warning: just setup failed: {r.stderr}", err=True)
 
-
 @click.group(name="_worktree")
 def worktree() -> None:
     """Worktree commands."""
-
 
 def _parse_worktree_list(porcelain: str, main_path: str) -> list[tuple[str, str, str]]:
     """Parse git worktree list --porcelain, exclude main."""
@@ -146,8 +137,7 @@ def _parse_worktree_list(porcelain: str, main_path: str) -> list[tuple[str, str,
         if not lines[i].startswith("worktree "):
             i += 1
             continue
-        path, branch = lines[i].split(maxsplit=1)[1], ""
-        i += 1
+        path, branch, i = lines[i].split(maxsplit=1)[1], "", i + 1
         while i < len(lines) and lines[i]:
             if lines[i].startswith("branch "):
                 branch = lines[i].split(maxsplit=1)[1]
@@ -157,7 +147,6 @@ def _parse_worktree_list(porcelain: str, main_path: str) -> list[tuple[str, str,
             entries.append((Path(path).name, branch, path))
     return entries
 
-
 @worktree.command()
 def ls() -> None:
     """List worktrees excluding main."""
@@ -166,15 +155,14 @@ def ls() -> None:
     for slug, branch, path in _parse_worktree_list(porcelain, main_path):
         click.echo(f"{slug}\t{branch}\t{path}")
 
-
 def _create_session_commit(slug: str, base: str, session: str) -> str:
     """Create commit with session.md from file."""
-    content = Path(session).read_text()
     with tempfile.NamedTemporaryFile(delete=False, suffix=".index") as tmp:
         env = {**os.environ, "GIT_INDEX_FILE": tmp.name}
     try:
-        blob = _git("hash-object", "-w", "--stdin", input_data=content)
         _git("read-tree", _git("rev-parse", f"{base}^{{tree}}"), env=env)
+        content = Path(session).read_text()
+        blob = _git("hash-object", "-w", "--stdin", input_data=content)
         _git(
             "update-index",
             "--add",
@@ -193,22 +181,16 @@ def _create_session_commit(slug: str, base: str, session: str) -> str:
     finally:
         Path(tmp.name).unlink(missing_ok=True)
 
-
 def _create_parent_worktree(
     worktree_path: Path, slug: str, base: str, session: str
 ) -> None:
     """Create parent worktree, optionally with session commit."""
-    branch_exists = (
-        subprocess.run(
-            ["git", "rev-parse", "--verify", slug], capture_output=True, check=False
-        ).returncode
-        == 0
-    )
-
+    branch_exists = subprocess.run(
+        ["git", "rev-parse", "--verify", slug], capture_output=True, check=False
+    ).returncode == 0
     if branch_exists and session:
         click.echo(f"Warning: branch {slug} exists, ignoring --session", err=True)
         session = ""
-
     if session:
         _git("branch", slug, _create_session_commit(slug, base, session))
         _git("worktree", "add", str(worktree_path), slug)
@@ -216,7 +198,6 @@ def _create_parent_worktree(
         _git("worktree", "add", str(worktree_path), slug)
     else:
         _git("worktree", "add", str(worktree_path), "-b", slug, base)
-
 
 def _create_submodule_worktree(
     project_root: str, worktree_path: Path, slug: str
@@ -241,22 +222,20 @@ def _create_submodule_worktree(
         slug,
     )
 
-
 def _setup_worktree(
     worktree_path: Path, slug: str, base: str, session: str, task: str
 ) -> None:
     """Create worktrees, register sandbox, init environment."""
     _create_parent_worktree(worktree_path, slug, base, session)
-    project_root = _git("rev-parse", "--show-toplevel")
-    _create_submodule_worktree(project_root, worktree_path, slug)
-
-    container = worktree_path.parent
-    add_sandbox_dir(str(container), ".claude/settings.local.json")
-    add_sandbox_dir(str(container), f"{worktree_path}/.claude/settings.local.json")
-
+    _create_submodule_worktree(
+        _git("rev-parse", "--show-toplevel"), worktree_path, slug
+    )
+    add_sandbox_dir(str(worktree_path.parent), ".claude/settings.local.json")
+    add_sandbox_dir(
+        str(worktree_path.parent), f"{worktree_path}/.claude/settings.local.json"
+    )
     initialize_environment(worktree_path)
     click.echo(f"{slug}\t{worktree_path}" if task else str(worktree_path))
-
 
 @worktree.command(name="clean-tree")
 def clean_tree() -> None:
@@ -278,7 +257,6 @@ def clean_tree() -> None:
         click.echo("\n".join(dirty))
         raise SystemExit(1)
 
-
 @worktree.command()
 @click.argument("slug", required=False)
 @click.option("--base", default="HEAD")
@@ -288,11 +266,9 @@ def clean_tree() -> None:
 def new(slug: str | None, base: str, session: str, task: str, session_md: str) -> None:
     """Create worktree in sibling container."""
     if task and slug:
-        msg = "slug and --task are mutually exclusive"
-        raise click.UsageError(msg)
+        raise click.UsageError("slug and --task are mutually exclusive")
     if not task and not slug:
-        msg = "either slug or --task is required"
-        raise click.UsageError(msg)
+        raise click.UsageError("either slug or --task is required")
     temp_session_file = None
     try:
         if task:
@@ -301,16 +277,13 @@ def new(slug: str | None, base: str, session: str, task: str, session_md: str) -
                 f.write(focus_session(task, session_md))
                 temp_session_file = session = f.name
         assert slug is not None
-        worktree_path = wt_path(slug, create_container=True)
-        if worktree_path.exists():
-            click.echo(f"Error: existing directory {worktree_path}", err=True)
+        if (path := wt_path(slug, create_container=True)).exists():
+            click.echo(f"Error: existing directory {path}", err=True)
             raise SystemExit(1)
-
-        _setup_worktree(worktree_path, slug, base, session, task)
+        _setup_worktree(path, slug, base, session, task)
     finally:
         if temp_session_file:
             Path(temp_session_file).unlink(missing_ok=True)
-
 
 @worktree.command(name="add-commit")
 @click.argument("files", nargs=-1, required=True)
@@ -322,7 +295,6 @@ def add_commit(files: tuple[str, ...]) -> None:
     except subprocess.CalledProcessError:
         click.echo(_git("commit", "-m", click.get_text_stream("stdin").read()))
 
-
 def _probe_registrations(worktree_path: Path) -> tuple[bool, bool]:
     """Check parent and submodule worktree registration."""
     parent_list = _git("worktree", "list", "--porcelain", check=False)
@@ -332,7 +304,6 @@ def _probe_registrations(worktree_path: Path) -> tuple[bool, bool]:
     parent_reg = str(worktree_path) in parent_list
     submodule_reg = str(worktree_path / "agent-core") in submodule_list
     return parent_reg, submodule_reg
-
 
 def _remove_worktrees(
     worktree_path: Path,
@@ -352,67 +323,64 @@ def _remove_worktrees(
     if parent_registered:
         _git("worktree", "remove", "--force", str(worktree_path))
 
+def _check_clean_for_merge(
+    path: Path | None = None,
+    exempt_paths: set[str] | None = None,
+    label: str = "main",
+) -> None:
+    """Verify clean tree for merge.
 
-def _check_merge_clean(exempt_paths: set[str]) -> None:
-    """Verify OURS clean tree for merge."""
-    parent = _git("status", "--porcelain", "--untracked-files=no", check=False)
-    dirty = [
-        line
-        for line in parent.split("\n")
-        if line and not any(path in line for path in exempt_paths)
-    ]
+    Args:
+        path: Directory to check (None = current directory)
+        exempt_paths: Paths to exempt from dirty check (None = strict mode)
+        label: Location label for error messages
+    """
+    parent_cmd = ["-C", str(path)] if path else []
+    parent_cmd.extend(["status", "--porcelain", "--untracked-files=no"])
+    parent = _git(*parent_cmd, check=False)
+
+    if exempt_paths:
+        dirty = [
+            line
+            for line in parent.split("\n")
+            if line and not any(p in line for p in exempt_paths)
+        ]
+    else:
+        dirty = [line for line in parent.split("\n") if line.strip()]
+
     if dirty:
-        click.echo("Clean tree required for merge (main)")
+        suffix = ": uncommitted changes would be lost" if not exempt_paths else ""
+        click.echo(f"Clean tree required for merge ({label}{suffix})")
         raise SystemExit(1)
+
+    submodule_path = (path / "agent-core") if path else Path("agent-core")
+    if not (submodule_path.exists() and (submodule_path / ".git").exists()):
+        return
     submodule = _git(
-        "-C", "agent-core", "status", "--porcelain", "--untracked-files=no", check=False
-    )
-    if submodule.strip():
-        click.echo("Clean tree required for merge (main submodule)")
-        raise SystemExit(1)
-
-
-def _check_worktree_clean(worktree_path: Path) -> None:
-    """Verify THEIRS (worktree) clean tree for merge (strict, no exemptions)."""
-    parent = _git(
         "-C",
-        str(worktree_path),
+        str(submodule_path),
         "status",
         "--porcelain",
         "--untracked-files=no",
         check=False,
     )
-    if parent.strip():
-        click.echo(
-            "Clean tree required for merge"
-            " (worktree: uncommitted changes would be lost)"
-        )
+    if submodule.strip():
+        click.echo(f"Clean tree required for merge ({label} submodule)")
         raise SystemExit(1)
-    submodule_path = worktree_path / "agent-core"
-    if submodule_path.exists() and (submodule_path / ".git").exists():
-        submodule = _git(
-            "-C",
-            str(submodule_path),
-            "status",
-            "--porcelain",
-            "--untracked-files=no",
-            check=False,
-        )
-        if submodule.strip():
-            click.echo("Clean tree required for merge (worktree submodule)")
-            raise SystemExit(1)
-
 
 @worktree.command()
 @click.argument("slug")
 def merge(slug: str) -> None:
     """Prepare for merge: verify OURS and THEIRS clean tree."""
-    _check_merge_clean(
-        {"agents/session.md", "agents/jobs.md", "agents/learnings.md", "agent-core"}
+    _check_clean_for_merge(
+        exempt_paths={
+            "agents/session.md",
+            "agents/jobs.md",
+            "agents/learnings.md",
+            "agent-core",
+        }
     )
-    worktree_path = wt_path(slug)
-    _check_worktree_clean(worktree_path)
-
+    _check_clean_for_merge(path=wt_path(slug), label="worktree")
 
 @worktree.command()
 @click.argument("slug")
@@ -441,8 +409,8 @@ def rm(slug: str) -> None:
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
 
-    container_path = worktree_path.parent
-    if container_path.exists() and not list(container_path.iterdir()):
-        container_path.rmdir()
+    container = worktree_path.parent
+    if container.exists() and not list(container.iterdir()):
+        container.rmdir()
 
     click.echo(f"Removed worktree {slug}")
