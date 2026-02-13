@@ -57,11 +57,6 @@
 
 - [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate in main repo or dedicated worktree | sonnet
 
-- [ ] **Commit skill optimizations** — Remove handoff gate, optimize, branching fix | sonnet
-  - Remove handoff gate, optimize with minimal custom script calls
-  - Commit Gate B — coverage ratio (artifacts:reports 1:1) not boolean
-  - Commit/handoff branching — move git branching point after precommit passes
-
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
   - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite against post-worktree-update justfile, expanded phases need regeneration
@@ -108,6 +103,10 @@
 - [ ] **Test feature** → `wt/test-feature`
 - [ ] **Build pushback into conversation process** → `wt/pushback` — `/design plans/pushback/requirements.md` | opus
   - Plan: pushback | Status: requirements
+- [ ] **Commit skill optimizations** → `commit-skill-optimizations` — Remove handoff gate, optimize, branching fix | sonnet
+  - Remove handoff gate, optimize with minimal custom script calls
+  - Commit Gate B — coverage ratio (artifacts:reports 1:1) not boolean
+  - Commit/handoff branching — move git branching point after precommit passes
 
 ## Blockers / Gotchas
 
