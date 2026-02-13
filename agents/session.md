@@ -1,12 +1,10 @@
-# Session: Worktree — Agentic process review and prose RCA
+# Session: Worktree — Fix recall path matching and rerun baseline
 
 **Status:** Focused worktree for parallel execution.
 
 ## Pending Tasks
 
-- [ ] **Agentic process review and prose RCA** — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
-  - Scope: worktree-skill execution process, not deliverables
-  - Signals: plan specified opus but session showed haiku, vacuous tests passed vet, vet checked presence not correctness
-  - Blocker cleared: methodology docs now on dev after worktree merge
+- [ ] **Fix recall path matching and rerun baseline** — M-2 path normalization, M-1 e2e fix, rerun analysis | sonnet
+  - Review: `tmp/memory-index-recall-review/deliverable-review-report.md`
 
 - [ ] **Workflow improvements** — Process fixes from RCA + skill/fragment/orchestration cleanup | sonnet
