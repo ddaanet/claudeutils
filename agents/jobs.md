@@ -25,6 +25,7 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `process-review` — RCA: 5 plans examined, root cause in planning skill, 5 recommendations
 - `workflow-skills-audit` — Superseded by runbook unification (all 12 items landed)
 - `reflect-rca-sequential-task-launch` — Subsumed into process-review worktree
 - `requirements-skill` — Dual-mode extract/elicit requirements skill, empirical grounding

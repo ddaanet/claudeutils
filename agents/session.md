@@ -95,7 +95,7 @@
 - [ ] **Plan when-recall** → `wt/when-recall` — `/plan-tdd plans/when-recall/design.md` | sonnet
 - [x] **Handoff validation design** → `wt/handoff-validation` — killed, problems resolved by existing tooling
 - [x] **Evaluate requirements-skill** → `wt/requirements-skill` — complete, skill implemented
-- [ ] **Agentic process review and prose RCA** → `wt/process-review` — Analyze why deliveries are "expensive, incomplete, buggy, sloppy, overdone" | opus
+- [x] **Agentic process review and prose RCA** → `wt/process-review` — RCA complete, 5 recommendations in plans/process-review/rca.md
 - [ ] **Error handling framework design** → `wt/error-handling` — `/design` | opus
 - [x] **Verify superseded RCAs** → `wt/verify-rcas` — both fixes landed, closed
 - [x] **Update README.md** → `wt/readme` — complete, README rewritten + doc-writing skill added
