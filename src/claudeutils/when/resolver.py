@@ -74,6 +74,24 @@ def _resolve_file(filename: str, decisions_dir: str) -> str:
     return content
 
 
+def _build_section_not_found_error(
+    query: str, heading_to_files: dict[str, list[tuple[Path, str]]]
+) -> ResolveError:
+    """Format error with list of available headings (up to 10 items)."""
+    available_headings = []
+    for heading_lower in sorted(heading_to_files.keys()):
+        if heading_to_files[heading_lower]:
+            original_text = heading_to_files[heading_lower][0][1]
+            available_headings.append(f".{original_text}")
+
+    msg = f"Section '{query}' not found."
+    if available_headings:
+        suggestions = available_headings[:10]
+        msg += "\nAvailable:\n  " + "\n  ".join(suggestions)
+
+    return ResolveError(msg)
+
+
 def _resolve_section(query: str, decisions_dir: str) -> str:
     """Resolve section mode query via heading lookup.
 
@@ -118,8 +136,7 @@ def _resolve_section(query: str, decisions_dir: str) -> str:
     query_lower = query.lower()
 
     if query_lower not in heading_to_files:
-        msg = f"Heading not found: {query}"
-        raise ResolveError(msg)
+        raise _build_section_not_found_error(query, heading_to_files)
 
     matches = heading_to_files[query_lower]
 
@@ -194,9 +211,7 @@ def _handle_no_match(query: str, candidates: list[str]) -> None:
     raise ResolveError(msg)
 
 
-def _load_matched_entry(
-    matched_candidate: str, entries: list[WhenEntry]
-) -> WhenEntry:
+def _load_matched_entry(matched_candidate: str, entries: list[WhenEntry]) -> WhenEntry:
     """Find matching entry for candidate string."""
     parts = matched_candidate.split(" ", 1)
     operator = parts[0]

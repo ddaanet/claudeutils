@@ -269,6 +269,52 @@ def test_trigger_not_found_suggests_matches(tmp_path: Path) -> None:
         assert suggestion_count <= 3  # At most 3 suggestions
 
 
+def test_section_not_found_lists_headings(tmp_path: Path) -> None:
+    """Section mode error lists available headings.
+
+    When section lookup fails, error includes list of available headings formatted
+    as `.HeadingName` suggestions (up to 10 items).
+    """
+    # Create index file
+    index_file = tmp_path / "test_index.md"
+    index_file.write_text("## testing\n\n/when test | extra\n")
+
+    # Create decisions directory with multiple files and headings
+    decisions_dir = tmp_path / "decisions"
+    decisions_dir.mkdir()
+
+    # Create file with several headings
+    file1 = decisions_dir / "workflow.md"
+    file1.write_text(
+        "## When Writing Tests\n\nTest content.\n\n"
+        "## When Mocking Objects\n\nMock content.\n\n"
+        "## When Debugging\n\nDebug content.\n"
+    )
+
+    file2 = decisions_dir / "patterns.md"
+    file2.write_text(
+        "## When Refactoring\n\nRefactor content.\n\n"
+        "## When Optimizing\n\nOptimize content.\n"
+    )
+
+    # Query for non-existent section should raise ResolveError
+    try:
+        resolve("section", ".Nonexistent Section", str(index_file), str(decisions_dir))
+        raise AssertionError("Expected ResolveError")
+    except ResolveError as e:
+        error_msg = str(e)
+        # Must contain section not found message
+        assert "Section 'Nonexistent Section' not found." in error_msg
+        # Must contain Available: marker
+        assert "Available:" in error_msg
+        # Must list headings with . prefix
+        assert ".When Writing Tests" in error_msg
+        assert ".When Mocking Objects" in error_msg
+        assert ".When Debugging" in error_msg
+        assert ".When Refactoring" in error_msg
+        assert ".When Optimizing" in error_msg
+
+
 def test_section_content_extraction(tmp_path: Path) -> None:
     """Extract content between heading boundaries.
 
