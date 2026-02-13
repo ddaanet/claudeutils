@@ -385,3 +385,15 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Both were deferred design deviation (future phase) and stylistic naming (mechanical find-replace)
 - Pipeline overhaul (workflow-fixes) unified skills but didn't address vet judgment calibration
 - User directive: Needs planned work to fix
+## Opus for autonomous RCA delegation
+- Anti-pattern: Using sonnet for RCA delegation — accepts secondary summaries (session.md descriptions), misses primary source verification
+- Correct pattern: Use opus for RCA Task agents. Opus first-pass ≈ sonnet + one deepening round
+- Key delta: Opus reads actual artifacts (outline files, git history) where sonnet trusts summarized descriptions
+- Evidence: RCA #2 — sonnet said "no projection exists" (wrong), opus found projection in outline with wrong threshold (700 vs 400)
+- Evidence: RCA #3 — sonnet said "missing taxonomy" (WHAT), opus said "binary status model" (structural WHY)
+- Cost: ~30% more tokens per agent, but eliminates orchestrator deepening round (saves one full agent invocation)
+## Fixture shadowing creates dead code
+- Anti-pattern: Defining local function with same name as pytest fixture — function is unreachable dead code
+- Correct pattern: When conftest registers a fixture (via pytest_plugins), all test functions receiving that name get the fixture, not the local function
+- Evidence: `commit_file` defined locally in 3 test files, but all test functions already declared it as fixture parameter — local was never called
+- Detection: Grep for function definitions that duplicate fixture names, check if test functions use fixture injection

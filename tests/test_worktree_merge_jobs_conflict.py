@@ -136,12 +136,3 @@ def test_merge_conflict_jobs_md(
     assert "kept ours" in result.output, (
         f"Output should mention 'kept ours', got: {result.output}"
     )
-
-
-def commit_file(path: Path, filename: str, content: str, message: str) -> None:
-    """Create, stage, and commit a file."""
-    (path / filename).write_text(content)
-    subprocess.run(["git", "add", filename], cwd=path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", message], cwd=path, check=True, capture_output=True
-    )

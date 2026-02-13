@@ -11,24 +11,7 @@ from pathlib import Path
 import click
 
 from claudeutils.worktree.merge import merge as merge_impl
-from claudeutils.worktree.utils import wt_path
-
-
-def _git(
-    *args: str,
-    check: bool = True,
-    env: dict[str, str] | None = None,
-    input_data: str | None = None,
-) -> str:
-    r = subprocess.run(
-        ["git", *args],
-        capture_output=True,
-        text=True,
-        check=check,
-        env=env,
-        input=input_data,
-    )
-    return r.stdout.strip()
+from claudeutils.worktree.utils import _git, wt_path
 
 
 def derive_slug(task_name: str, max_length: int = 30) -> str:

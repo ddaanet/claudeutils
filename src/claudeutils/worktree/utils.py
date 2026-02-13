@@ -1,6 +1,24 @@
 """Shared worktree utilities."""
 
+import subprocess
 from pathlib import Path
+
+
+def _git(
+    *args: str,
+    check: bool = True,
+    env: dict[str, str] | None = None,
+    input_data: str | None = None,
+) -> str:
+    r = subprocess.run(
+        ["git", *args],
+        capture_output=True,
+        text=True,
+        check=check,
+        env=env,
+        input=input_data,
+    )
+    return r.stdout.strip()
 
 
 def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,FBT002

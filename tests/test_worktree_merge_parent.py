@@ -246,12 +246,3 @@ def test_merge_precommit_failure(
     assert merge_head.returncode != 0, (
         "MERGE_HEAD should not exist after merge completes, even if precommit fails"
     )
-
-
-def commit_file(path: Path, filename: str, content: str, message: str) -> None:
-    """Create, stage, and commit a file."""
-    (path / filename).write_text(content)
-    subprocess.run(["git", "add", filename], cwd=path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", message], cwd=path, check=True, capture_output=True
-    )

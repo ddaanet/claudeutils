@@ -389,12 +389,3 @@ def test_merge_conflict_learnings_md(
     assert "Learning B" in merged_content, (
         f"Merged should contain theirs-only learning, got: {merged_content}"
     )
-
-
-def commit_file(path: Path, filename: str, content: str, message: str) -> None:
-    """Create, stage, and commit a file."""
-    (path / filename).write_text(content)
-    subprocess.run(["git", "add", filename], cwd=path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", message], cwd=path, check=True, capture_output=True
-    )
