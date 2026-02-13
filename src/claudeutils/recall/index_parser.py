@@ -90,7 +90,10 @@ def _extract_keywords(text: str) -> set[str]:
 def parse_memory_index(index_file: Path) -> list[IndexEntry]:
     """Parse memory-index.md into structured entries.
 
-    Extracts H2 sections (file paths) and entries (key — description format).
+    Extracts H2 sections (file paths) and entries in two formats:
+    - New format: `/when trigger | extra keywords` or `/how trigger | extra keywords`
+    - Old format: `key — description` (deprecated but still supported)
+
     Skips special sections that don't map to clear Read targets:
     - "Behavioral Rules (fragments — already loaded)"
     - "Technical Decisions (mixed — check entry for specific file)"
@@ -137,11 +140,42 @@ def parse_memory_index(index_file: Path) -> list[IndexEntry]:
         if not line.strip() or not current_file:
             continue
 
-        # Skip lines that don't match entry format (key — description)
+        # Parse new format: /when trigger | extras or /how trigger | extras
+        if line.startswith(("/when ", "/how ")):
+            prefix_end = line.find(" ")
+            trigger_start = prefix_end + 1
+            pipe_idx = line.find(" | ")
+
+            if pipe_idx != -1:
+                trigger = line[trigger_start:pipe_idx].strip()
+                extras = line[pipe_idx + 3 :].strip()
+            else:
+                trigger = line[trigger_start:].strip()
+                extras = ""
+
+            if not trigger:
+                continue
+
+            key = trigger
+            description = ""
+
+            # Extract keywords from trigger and extras
+            keywords = _extract_keywords(trigger + " " + extras)
+
+            entry = IndexEntry(
+                key=key,
+                description=description,
+                referenced_file=current_file,
+                section=current_section,
+                keywords=keywords,
+            )
+            entries.append(entry)
+            continue
+
+        # Parse old format: key — description
         if " — " not in line:
             continue
 
-        # Parse entry: key — description
         parts = line.split(" — ", 1)
         if len(parts) != 2:
             continue

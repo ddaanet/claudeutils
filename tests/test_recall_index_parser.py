@@ -167,3 +167,49 @@ def test_parse_memory_index_real_format(tmp_path: Path) -> None:
         in ["agents/decisions/implementation-notes.md", "agents/decisions/testing.md"]
         for e in result
     )
+
+
+def test_recall_parser_when_format(tmp_path: Path) -> None:
+    """Parse /when and /how format entries in memory index."""
+    index_file = tmp_path / "index.md"
+    index_file.write_text(
+        "# Memory Index\n\n"
+        "## agents/decisions/testing.md\n\n"
+        "/when writing mock tests | mock patch, test doubles\n"
+        "/how structure test fixtures | setup, teardown, fixtures\n"
+        "Old em-dash format — should be parsed too\n\n"
+        "## agents/decisions/implementation-notes.md\n\n"
+        "/when refactoring code | duplication, extraction, abstraction\n"
+    )
+
+    result = parse_memory_index(index_file)
+
+    # Should have 3 new format + 1 old format = 4 entries total
+    assert len(result) == 4
+
+    # Check first entry (/when writing mock tests)
+    when_entry = next(e for e in result if e.key == "writing mock tests")
+    assert when_entry.referenced_file == "agents/decisions/testing.md"
+    assert "writing" in when_entry.keywords
+    assert "mock" in when_entry.keywords
+    assert "tests" in when_entry.keywords
+    assert "patch" in when_entry.keywords
+    assert "test" in when_entry.keywords
+    assert "doubles" in when_entry.keywords
+
+    # Check second entry (/how structure)
+    how_entry = next(e for e in result if e.key == "structure test fixtures")
+    assert how_entry.referenced_file == "agents/decisions/testing.md"
+    assert "structure" in how_entry.keywords
+    assert "fixtures" in how_entry.keywords
+
+    # Check third entry (/when refactoring)
+    refactor_entry = next(e for e in result if e.key == "refactoring code")
+    assert refactor_entry.referenced_file == "agents/decisions/implementation-notes.md"
+    assert "refactoring" in refactor_entry.keywords
+    assert "code" in refactor_entry.keywords
+
+    # Check fourth entry (old format)
+    old_format_entry = next(e for e in result if e.key == "Old em-dash format")
+    assert old_format_entry.referenced_file == "agents/decisions/testing.md"
+    assert old_format_entry.description == "should be parsed too"
