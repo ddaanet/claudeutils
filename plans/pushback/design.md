@@ -119,95 +119,38 @@ The fragment provides behavioral rules loaded via CLAUDE.md `@`-reference. Alway
 
 #### Enhanced `d:` Directive
 
-Current injection:
-```python
-'d': (
-    '[DIRECTIVE: DISCUSS] Discussion mode. Analyze and discuss only — '
-    'do not execute, implement, or invoke workflow skills. '
-    "The user's topic follows in their message."
-),
-```
+**Current injection** (line 61-65 in hook): Generic "do not execute" instruction with no evaluation structure.
 
-Enhanced injection:
-```python
-'d': (
-    '[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute. '
-    'Before agreeing with any proposal: (1) identify assumptions it makes, '
-    '(2) articulate what would need to be true for it to fail, '
-    '(3) name at least one unconsidered alternative. '
-    'If the idea is good, state specifically WHY — not vague agreement. '
-    'State your confidence level.'
-),
-```
+**Enhanced injection** must include:
+1. Evaluate critically, do not execute (preserves existing behavior)
+2. Before agreeing: identify assumptions, articulate failure conditions, name alternatives (counterfactual structure from research)
+3. If idea is good: state specifically WHY (genuine evaluation, not vague agreement)
+4. State confidence level (calibration)
 
 The hook reinforces the fragment's behavioral rules at the exact moment discussion mode activates. This is the "targeted salience" layer.
 
 #### Long-Form Directive Aliases
 
-Add `'discuss'` and `'pending'` as keys in `DIRECTIVES` dict pointing to same expansions:
-
-```python
-DIRECTIVES = {
-    'd': DISCUSS_EXPANSION,
-    'discuss': DISCUSS_EXPANSION,
-    'p': PENDING_EXPANSION,
-    'pending': PENDING_EXPANSION,
-}
-```
-
-Both short and long forms map to identical behavior. Self-documenting for new users, muscle memory preserved.
+Add `discuss` and `pending` as long-form aliases in `DIRECTIVES` dict, mapping to the same expansions as `d` and `p` respectively. Both short and long forms produce identical behavior. Self-documenting for new users, muscle memory preserved for existing.
 
 #### Any-Line Directive Matching
 
 **Current:** `re.match(r'^(\w+):\s+(.+)', prompt)` — matches only at prompt start.
 
-**New:** Scan all lines for directive patterns, excluding lines inside fenced code blocks.
+**New:** Scan all lines for directive patterns, excluding lines inside fenced code blocks. Return first match.
 
-```python
-def find_directive(prompt: str) -> Optional[tuple[str, str]]:
-    """Find first directive in prompt, skipping fenced code blocks.
+**Behavioral specification:**
+- Iterate lines in prompt order
+- Skip lines inside fenced code blocks (3+ backticks or tildes; closing fence must use same character and at least same count)
+- Match directive pattern (`<word>: <text>`) on non-fenced lines
+- Return first match where key is in DIRECTIVES
+- Return None if no match found
 
-    Returns (directive_key, rest_of_line) or None.
-    """
-    in_fence = False
-    fence_pattern = None
-
-    for line in prompt.split('\n'):
-        stripped = line.strip()
-
-        # Track fenced code blocks (3+ backticks or tildes)
-        fence_match = re.match(r'^(`{3,}|~{3,})', stripped)
-        if fence_match:
-            if not in_fence:
-                in_fence = True
-                fence_pattern = fence_match.group(1)[0]  # ` or ~
-                fence_min_len = len(fence_match.group(1))
-                continue
-            elif stripped.startswith(fence_pattern * fence_min_len) and \
-                 stripped.rstrip(fence_pattern) == '':
-                in_fence = False
-                fence_pattern = None
-                continue
-
-        if in_fence:
-            continue
-
-        # Match directive pattern on this line
-        match = re.match(r'^(\w+):\s+(.+)', stripped)
-        if match:
-            key = match.group(1)
-            if key in DIRECTIVES:
-                return (key, match.group(2))
-
-    return None
-```
-
-**Fenced block handling:**
-- Tracks opening fence (3+ backticks or tildes)
-- Closing fence must use same character and at least same count
-- Lines inside fenced blocks are skipped entirely
+**Fenced block tracking** can be standalone (simpler than the full markdown parser's nesting-aware version). The hook only needs to skip fenced regions, not parse them.
 
 **Inline code spans:** Not handled initially. Depends on pending markdown parser task. Low risk — directives inside inline backticks in chat messages is an exotic edge case.
+
+**Integration with existing Tier 2 flow:** Replace the current `re.match(r'^(\w+):\s+(.+)', prompt)` at line 653 with the new any-line scanner. The rest of the Tier 2 logic (lookup in DIRECTIVES, output formatting) remains identical.
 
 **Tier 1 commands (exact match) remain unchanged.** Only Tier 2 directive matching is updated.
 
@@ -258,11 +201,11 @@ Hook unit tests:
 
 ### Phase Typing
 
-All phases are **general** (not TDD). This is behavioral rule creation and hook string modification — not code with testable behavioral contracts.
+Phase 1 (fragment creation) and Phase 3 (wiring) are **general**. Phase 2 (hook enhancement) could be TDD — the any-line matching and fenced block detection have testable behavioral contracts (see unit tests below). Planner should assess whether TDD cycles add value for Phase 2.
 
 ### Dependencies
 
-- **Fenced block detection:** Existing markdown preprocessor code — refactoring opportunity to shared utility
+- **Fenced block detection:** Existing fence-tracking code in `src/claudeutils/markdown_parsing.py` (`_extract_fence_info`, `_find_fenced_block_end`) and `src/claudeutils/markdown_block_fixes.py` (`_track_fence_depth`). Refactoring opportunity to shared utility, or simpler standalone implementation in the hook (the hook's needs are simpler than the full parser's).
 - **Inline code span detection:** Pending markdown parser task — deferred, added when parser lands
 
 ## Documentation Perimeter
@@ -275,6 +218,22 @@ All phases are **general** (not TDD). This is behavioral rule creation and hook 
 - `plans/pushback/reports/explore-hooks.md` — hook exploration results
 
 **Additional research allowed:** Planner may do additional exploration for markdown fenced block detection patterns in the existing preprocessor.
+
+## Requirements Traceability
+
+| Requirement | Addressed | Design Reference |
+|-------------|-----------|------------------|
+| FR-1 | Yes | Layer 1 fragment rules (Design Discussion Evaluation) + Layer 2 hook injection (counterfactual structure) |
+| FR-2 | Yes | Layer 1 fragment rules (Agreement Momentum self-monitoring) |
+| FR-3 | Yes | Layer 1 fragment rules (Model Selection section) |
+| NFR-1 | Yes | Evaluator framing (not devil's advocate), "articulate WHY" rules, D-1/D-2 design principles |
+| NFR-2 | Yes | Fragment is zero per-turn cost, hook enhancement is string modification only (D-2) |
+
+**Open Questions Resolution:**
+- Q-1 (Where does pushback live?): Resolved — Fragment + hook two-layer mechanism (D-1, D-2)
+- Q-2 (Can LLM self-correct?): Acknowledged as empirical — lightest viable intervention, escalate if insufficient
+- Q-3 (Agreement momentum detection): Resolved — Self-monitoring via fragment rule (D-3)
+- Q-4 (Genuine vs sycophantic agreement): Resolved — "articulate WHY specifically" forces evaluation depth
 
 ## Next Steps
 

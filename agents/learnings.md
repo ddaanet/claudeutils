@@ -337,4 +337,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Adding precommit validation for judgment calls (model selection, task completeness)
 - Correct pattern: Enforcement works for structural/mechanical checks; judgment requires conversation-level intervention
 - Rationale: Writing agent can satisfy any structural check with wrong content (write `| sonnet` to pass model-required validation)
+## Research before outline in design
+- Anti-pattern: Skipping external research (Phase A.3-4) and proceeding directly to outline based on internal knowledge
+- Correct pattern: Ground in research/best practices BEFORE producing outline — research findings should inform approach selection
+- Rationale: Internal reasoning + learnings are necessary but insufficient for behavioral/conversational design problems. External research validates or invalidates assumptions before they become design decisions
+- Scope: Especially important when the design problem has published prior art (sycophancy mitigation, prompt engineering patterns)
 - Example: Model tier on pending tasks — agent defaults to sonnet, precommit can verify field exists but not correctness
