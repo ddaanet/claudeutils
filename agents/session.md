@@ -18,9 +18,14 @@
 
 ## Pending Tasks
 
-- [x] **Update remember skill** | haiku
-  - Generate `/when` or `/how` entries with trigger naming guidelines
-  - Design spec: §Remember Skill Update
+- [ ] **Address when-recall deliverable review findings** — Fix critical and major issues blocking merge | sonnet
+  - Critical: Wire operator parameter through CLI → resolver (currently discarded)
+  - Critical: Fix `_build_heading()` conflict (prefix vs exact-key matching)
+  - Critical: Revert validator to dual-format OR execute atomic migration
+  - Major: Create bin wrapper (`agent-core/bin/when-resolve.py`)
+  - Major: Create skill wrappers (`/when` and `/how` skills)
+  - Major: Extend section mode to H3+ headings
+  - Report: `plans/when-recall/reports/deliverable-review.md`
 
 - [ ] **Protocolize RED pass recovery** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
