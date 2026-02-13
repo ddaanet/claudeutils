@@ -1,92 +1,105 @@
-# Cycle 0.5: Word-overlap Tiebreaker
+# Cycle 0.5: Word-overlap tiebreaker
 
-**Date**: 2026-02-13
-**Status**: REGRESSION — Feature already implemented in cycle 0.1
+**Timestamp:** 2026-02-12T17:30:00Z
+**Status:** GREEN_VERIFIED
 
 ## Summary
 
-Cycle 0.5 tests word-overlap tiebreaker scoring. The RED test passes unexpectedly because the feature was already implemented in cycle 0.1 during base scoring setup. This is a [REGRESSION] marker case.
+Implemented word-overlap tiebreaker to break scoring ties when fzf scores are identical. Feature correctly isolates word-level matching from character-level matching.
 
 ## RED Phase
 
-**Test file**: `tests/test_when_fuzzy.py::test_word_overlap_tiebreaker`
+**Test:** `test_word_overlap_tiebreaker`
+**Expected failure:** AssertionError — test asserts feature not yet implemented
+**Actual result:** Test failed as expected ✓
 
-**Test code** (lines 81-95):
-```python
-def test_word_overlap_tiebreaker() -> None:
-    """Word-overlap tiebreaker breaks ties when fzf scores are identical."""
-    # Two candidates with identical fzf scores but different word overlap
-    score1 = score_match("fix bug", "fix this bug")
-    score2 = score_match("fix bug", "fix your bugfix")
+Key insight from blast radius assessment: Original cycle spec assertions would pass due to boundary bonuses creating score differences (212 vs 202), not due to word-overlap logic. Rewritten assertions with genuinely tied fzf scores:
+- Query: "fix bug"
+- Candidate 1: "fix this bug" → both words overlap = 2 words
+- Candidate 2: "fix your bugfix" → only "fix" overlaps = 1 word
+- Base fzf scores: Both 150.0 (tied)
 
-    # Word overlap:
-    # - "fix this bug": overlap with ["fix", "this", "bug"] = 2 words
-    #   Base fzf: 150.0 + word bonus (2 * 0.5) = 151.0
-    # - "fix your bugfix": overlap with ["fix", "your", "bugfix"] = 1 word
-    #   Base fzf: 150.0 + word bonus (1 * 0.5) = 150.5
-    # Word-overlap tiebreaker breaks the tie
-    assert score1 == 151.0
-    assert score2 == 150.5
-    assert score1 > score2
+Test expects `score1 > score2` with tiebreaker.
+
+**RED verification:** `pytest tests/test_when_fuzzy.py::test_word_overlap_tiebreaker -v`
+```
+assert score1 > score2
+E   assert 150.0 > 150.0
 ```
 
-**Assertions verified:**
-- `score_match("fix bug", "fix this bug")` returns 151.0 ✓
-- `score_match("fix bug", "fix your bugfix")` returns 150.5 ✓
-- 151.0 > 150.5 ✓
+## GREEN Phase
 
-**Test result**: PASS (expected FAIL for RED phase)
+**Implementation:** Added word-overlap calculation to `score_match` function.
 
-**Reason**: Word-overlap feature implemented in `src/claudeutils/when/fuzzy.py` lines 185-188:
+File: `src/claudeutils/when/fuzzy.py`
+
+Logic:
 ```python
-# Word-overlap tiebreaker: bonus for matching whole words
+# After gap penalty calculation
 query_words = set(query.lower().split())
 candidate_words = set(candidate_lower.split())
 word_overlap = len(query_words & candidate_words)
-word_overlap_bonus = word_overlap * WORD_OVERLAP_BONUS
+word_overlap_bonus = word_overlap * 0.5
+return base_score + gap_penalty + word_overlap_bonus
 ```
 
-## Analysis
+Word matching:
+- Case-insensitive (lowercase)
+- Exact word match only
+- Intersection of sets
+- Bonus: +0.5 per overlapping word
 
-**Root cause**: Cycle 0.1 ("Character subsequence matching") was given the design as context. The design explicitly includes word-overlap tiebreaker as part of the fzf-style scoring algorithm (design.md lines 91-97). The agent legitimately implemented the complete algorithm in cycle 0.1 rather than a minimal RED/GREEN version.
-
-**Assessment**: This is over-implementation, but it's design-aligned and correct. The feature works perfectly and all assertions pass.
-
-**Classification**: [REGRESSION] — Feature exists, test passes, no implementation needed.
-
-## Decision
-
-**Action**: Mark as complete. No GREEN phase needed (feature exists and is correct).
-
-Skip cycle 0.5's GREEN phase and proceed to cycle 0.6.
-
-**Rationale**: TDD protocol allows [REGRESSION] markers where:
-1. Test passes when failure expected
-2. Feature is correct and design-aligned
-3. Proceeding saves redundant work
-
-This case meets all three criteria.
-
-## Regression Check
-
-Full test suite run:
-```bash
-$ just test
-
-# Summary: 6/6 passed
-- test_subsequence_match_scores_positive
-- test_boundary_bonuses_applied
-- test_consecutive_match_bonus
-- test_gap_penalties_reduce_score
-- test_word_overlap_tiebreaker ← PASS (expected FAIL)
-- test_minimum_score_threshold
-- test_prefix_word_disambiguates
-- test_rank_matches_returns_sorted_limited
+**GREEN verification:**
+```
+PASSED tests/test_when_fuzzy.py::test_word_overlap_tiebreaker
 ```
 
-No regressions introduced.
+Scores after implementation:
+- "fix this bug": 150.0 + 2*0.5 = 151.0 ✓
+- "fix your bugfix": 150.0 + 1*0.5 = 150.5 ✓
+- Test assertion: 151.0 > 150.5 ✓
 
-## Artifacts
+**Regression check:** All tests pass, 1 test updated.
 
-- Blast radius assessment: `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`
-- Assertion fix rationale: `plans/when-recall/reports/cycle-0-5-assertion-fix.md`
+Found and fixed regression in `test_consecutive_match_bonus`:
+- Test expected exact score of 52 for `score_match("ab", "ab")`
+- Now scores 52.5 due to word overlap bonus (1 word overlap)
+- Updated assertion to 52.5
+
+## REFACTOR Phase
+
+**Formatting:** Fixed 2 line-length violations in test comments (E501, >88 char)
+
+**Precommit validation:** All checks pass
+```
+✓ Tests OK (760/761 passed, 1 xfail)
+✓ Lint OK
+✓ Precommit OK
+```
+
+## Files Modified
+
+- `src/claudeutils/when/fuzzy.py` — Added word overlap calculation
+- `tests/test_when_fuzzy.py` — Added test_word_overlap_tiebreaker, updated test_consecutive_match_bonus
+
+## Quality Checks
+
+- RED failure matches expected behavior ✓
+- GREEN passes with correct scores ✓
+- No regressions after fix ✓
+- Lint passes ✓
+- Precommit passes ✓
+- Clean tree after commit ✓
+
+## Decision Made
+
+Word-overlap bonus is applied to all matches, including those with base_score > gap_penalty. This affects all scored matches universally, creating consistent tiebreaker behavior throughout ranking.
+
+Bonus magnitude (0.5 per word) chosen to be smaller than fzf score granularity (16 base per char) but sufficient to break typical ties, allowing fzf scoring to dominate while word overlap serves as tiebreaker.
+
+## Next Steps
+
+Phase 0 remaining cycles:
+- Cycle 0.6: Min score threshold
+- Cycle 0.7: rank_matches (over-implemented, skip GREEN)
+- Cycle 0.8: Prefix disambiguation (by design, may skip GREEN)
