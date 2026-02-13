@@ -12,6 +12,8 @@
 
 @agent-core/fragments/execute-rule.md
 
+@agent-core/fragments/pushback.md
+
 **Pending task notation:**
 
 When user says "pending: task description":
