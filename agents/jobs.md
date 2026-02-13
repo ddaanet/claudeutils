@@ -10,6 +10,7 @@ Plan lifecycle tracking. Updated when plans change status.
 |------|--------|-------|
 | continuation-prepend | requirements | Problem statement only |
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
+| memory-index-recall | complete | Bug fixes + reanalysis (M-1, M-2 fixed, 0.2% recall confirmed) |
 | orchestrate-evolution | designed | Design.md complete, vet in progress, planning next |
 | parallel-orchestration | requirements | Deferred from orchestrate-evolution (worktree isolation needed) |
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |

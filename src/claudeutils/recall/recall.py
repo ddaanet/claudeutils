@@ -78,8 +78,8 @@ def _matches_file_or_parent(target_file: str, tool_file: str) -> bool:
     """Check if tool file matches target file or its parent directory.
 
     Args:
-        target_file: Referenced file from index entry
-        tool_file: File from tool input
+        target_file: Referenced file from index entry (may be relative)
+        tool_file: File from tool input (may be absolute)
 
     Returns:
         True if tool targets the file or its parent directory
@@ -87,26 +87,56 @@ def _matches_file_or_parent(target_file: str, tool_file: str) -> bool:
     target_path = Path(target_file)
     tool_path = Path(tool_file)
 
-    # Exact match
+    # Exact match (both absolute or both relative with same path)
     if target_path == tool_path:
+        return True
+
+    # Normalize: compare via suffix match when paths differ in absoluteness
+    # e.g., "/Users/.../agents/decisions/testing.md" matches
+    # "agents/decisions/testing.md"
+    if _paths_match_by_suffix(target_path, tool_path):
         return True
 
     # Tool targets parent directory of target file
     # e.g., tool_file="src/", target_file="src/file.md"
     try:
         target_path.relative_to(tool_path)
-        # Only match if tool_path is a directory (doesn't have a file extension)
-        if not tool_path.suffix:
-            return True
+        # Only match if tool_path is a directory (no file extension)
+        return bool(not tool_path.suffix)
     except ValueError:
-        pass
+        return False
 
-    # Tool is a file in target's parent directory
-    # e.g., tool_file="src/other.py", target_file="src/file.md"
-    # This should NOT match - they're different files
-    # Only match if they're the same file
 
+def _paths_match_by_suffix(target_path: Path, tool_path: Path) -> bool:
+    """Check if absolute and relative paths match by suffix comparison.
+
+    Args:
+        target_path: Target path (may be relative)
+        tool_path: Tool path (may be absolute)
+
+    Returns:
+        True if paths match by suffix
+    """
+    if tool_path.is_absolute() and not target_path.is_absolute():
+        return _suffix_matches(tool_path, target_path)
+    if target_path.is_absolute() and not tool_path.is_absolute():
+        return _suffix_matches(target_path, tool_path)
     return False
+
+
+def _suffix_matches(abs_path: Path, rel_path: Path) -> bool:
+    """Check if absolute path ends with relative path components.
+
+    Args:
+        abs_path: Absolute path
+        rel_path: Relative path
+
+    Returns:
+        True if abs_path ends with rel_path
+    """
+    if len(rel_path.parts) > len(abs_path.parts):
+        return False
+    return abs_path.parts[-len(rel_path.parts) :] == rel_path.parts
 
 
 def classify_discovery_pattern(

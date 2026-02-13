@@ -291,3 +291,33 @@ def test_calculate_recall_empty_input() -> None:
     assert analysis.pairs_with_read == 0
     assert analysis.overall_recall_percent == 0.0
     assert analysis.per_entry_results == []
+
+
+def test_discovery_pattern_absolute_vs_relative_paths() -> None:
+    """Path matching works with absolute tool paths and relative index paths."""
+    # Index entry uses relative path (as stored in memory-index.md)
+    entry_file = "agents/decisions/testing.md"
+    relevant = RelevanceScore(
+        session_id="session1",
+        entry_key="test entry",
+        score=0.8,
+        is_relevant=True,
+        matched_keywords={"test"},
+    )
+
+    # Tool call uses absolute path (as recorded in real sessions)
+    tool_calls = [
+        ToolCall(
+            tool_name="Read",
+            tool_id="read_1",
+            input={
+                "file_path": "/Users/david/code/claudeutils/agents/decisions/testing.md"
+            },
+            timestamp="2025-12-16T10:00:00.000Z",
+            session_id="session1",
+        ),
+    ]
+
+    pattern = classify_discovery_pattern(relevant, tool_calls, entry_file, "session1")
+    # Should match despite path format difference
+    assert pattern == DiscoveryPattern.DIRECT
