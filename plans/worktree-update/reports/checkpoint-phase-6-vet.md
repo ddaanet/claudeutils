@@ -44,10 +44,13 @@ None found.
 
 ## Fixes Applied
 
-- cli.py:352 — Added docstring explaining `--force` flag removes worktrees even with uncommitted changes
-- cli.py:377-383 — Refactored control flow: moved probe call outside existence check, handles both registered and orphaned cases
-- test_worktree_commands.py:303-304 — Made assertion messages more specific about cleanup behavior
-- cli.py:388 — Removed period from branch deletion warning for consistency with other messages
+- cli.py:355 — Condensed `--force` documentation into single-line docstring (saves 2 lines for limit)
+- cli.py:377-385 — Refactored rm() control flow: probe outside existence check, handles both registered and orphaned cases
+- test_worktree_commands.py:303-304 — Made assertion messages more specific (shutil.rmtree, rmdir)
+- cli.py:388 — Standardized error message format (removed period, used em dash)
+- cli.py:61 — Used walrus operator in _filter_section to reduce 1 line (maintains 400-line limit)
+
+**Line count:** 398/400 (precommit passing)
 
 ## Requirements Validation
 
