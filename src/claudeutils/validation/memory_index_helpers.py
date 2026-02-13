@@ -156,13 +156,17 @@ def _build_file_entries_map(
         for entry in entry_lines:
             # Extract key using same logic as _extract_entry_key in memory_index.py
             if entry.startswith(("/when ", "/how ")):
-                _, rest = entry.split(" ", 1)
-                key = rest.split("|", 1)[0].strip().lower()
+                operator, rest = entry.split(" ", 1)
+                trigger = rest.split("|", 1)[0].strip() if "|" in rest else rest.strip()
+                # Map /how to "how to" for heading matching
+                operator_prefix = "how to" if operator == "/how" else "when"
+                key = f"{operator_prefix} {trigger}".lower()
             elif " — " in entry:
                 key = entry.split(" — ")[0].lower()
             else:
                 key = entry.lower()
-            if key in structural:
+            # Strip operator prefix for structural comparison (structural has no prefix)
+            if _strip_operator_prefix(key) in structural:
                 continue
             if key in headers:
                 source_file = headers[key][0][0]

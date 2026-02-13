@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-13
 
-**Status:** TDD Cycles 1-4 complete (5 commits). Cycle 5 partial: check functions fixed, autofix pending. Precommit 20/24 tests passing.
+**Status:** TDD Cycles 1-5 complete (6 commits). All 24 validation tests passing. Precommit blocked on memory-index.md migration (Phase 9).
 
 ## Completed This Session
 
@@ -9,7 +9,7 @@
 - Cycle 2 (d11e279): Wire `operator` through `resolve()` signature — query includes operator for fuzzy matching
 - Cycle 3 (80f744e): Wire operator from CLI to resolver — removed `# noqa: ARG001`, CLI passes operator
 - Cycle 4 (2ade5c3): Extend section mode to H3+ headings — `_resolve_section` now matches all heading levels
-- Cycle 5 partial (1e1b404): Validator consistency — check functions fixed, autofix pending
+- Cycle 5: Autofix function operator prefix handling — `_build_file_entries_map` now includes operator prefix in keys, matches `_extract_entry_key` logic
 
 **Key insight (Cycle 5):**
 - Headers dict keys include operator prefix (from heading text "When X")
@@ -18,12 +18,6 @@
 - Solution: Compare headers and entries directly (both have prefix), strip only for structural comparison
 
 ## Pending Tasks
-
-- [ ] **Complete Cycle 5: Fix autofix functions** — Remaining validator work | sonnet
-  - Fix `autofix_index` in memory_index_helpers.py to handle operator-prefixed entry keys
-  - 4 failing tests: test_entry_in_wrong_section_autofixed, test_entries_out_of_order_autofixed, test_structural_header_entries_removed_by_autofix, test_multiple_autofix_issues_resolved
-  - Acceptance: All 24 validation tests pass
-  - Note: Check functions already fixed (orphan, collisions, placement, sorting, structural)
 
 - [ ] **Create bin wrapper** — Phase 5 deliverable | haiku
   - `agent-core/bin/when-resolve.py` — thin wrapper calling `claudeutils when` CLI

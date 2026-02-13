@@ -13,7 +13,7 @@ def test_exempt_sections_removed_after_migration(tmp_path: Path) -> None:
     decision_file = decisions_dir / "test-decision.md"
     decision_file.write_text("""# Test Decision
 
-## Test Header
+## When Test Header
 Content here.
 """)
 
@@ -43,10 +43,10 @@ def test_autofix_false_reports_all_issues(tmp_path: Path) -> None:
     file1 = decisions_dir / "file-one.md"
     file1.write_text("""# File One
 
-## First Header
+## When First Header
 Content here.
 
-## Second Header
+## When Second Header
 More content.
 """)
 
@@ -73,14 +73,14 @@ def test_duplicate_headers_across_files_error(tmp_path: Path) -> None:
     file1 = decisions_dir / "file-one.md"
     file1.write_text("""# File One
 
-## Duplicate Name
+## When Duplicate Name
 Content here.
 """)
 
     file2 = decisions_dir / "file-two.md"
     file2.write_text("""# File Two
 
-## Duplicate Name
+## When Duplicate Name
 Different content.
 """)
 
@@ -98,7 +98,7 @@ Different content.
 
     errors = validate("agents/memory-index.md", tmp_path, autofix=False)
     assert len(errors) > 0
-    assert any("Duplicate header 'duplicate name'" in e for e in errors)
+    assert any("Duplicate header 'when duplicate name'" in e for e in errors)
 
 
 def test_multiple_autofix_issues_resolved_in_single_pass(tmp_path: Path) -> None:
@@ -109,17 +109,17 @@ def test_multiple_autofix_issues_resolved_in_single_pass(tmp_path: Path) -> None
     file1 = decisions_dir / "file-one.md"
     file1.write_text("""# File One
 
-## First Header
+## When First Header
 Content here.
 
-## Second Header
+## When Second Header
 More content.
 """)
 
     file2 = decisions_dir / "file-two.md"
     file2.write_text("""# File Two
 
-## Third Header
+## When Third Header
 Content here.
 """)
 
@@ -185,7 +185,7 @@ def test_document_intro_exemption(tmp_path: Path) -> None:
 Intro content with ## that looks like header syntax
 But this content should be skipped before first real header
 
-## Real Header
+## When Real Header
 Actual content here.
 """)
 
@@ -226,10 +226,10 @@ def test_autofix_new_format(tmp_path: Path) -> None:
     file1 = decisions_dir / "file-one.md"
     file1.write_text("""# File One
 
-## Mock Test
+## When Mock Test
 Content here.
 
-## Real Header
+## When Real Header
 More content.
 """)
 
