@@ -1,6 +1,6 @@
 # Pushback Runbook Outline
 
-**Status:** Draft
+**Status:** Reviewed (fixes applied: C-1 test path, M-1 import mechanism, M-2 cycle reorder, M-3 dual output, m-1/2/3)
 **Created:** 2026-02-13
 
 ---
@@ -41,14 +41,16 @@
 
 **Model:** Haiku (implementation), Sonnet (review)
 
-**Test file:** `agent-core/hooks/tests/test_userpromptsubmit_shortcuts.py` (new)
+**Test file:** `tests/test_userpromptsubmit_shortcuts.py` (new — in project `tests/` directory, not `agent-core/`; `pyproject.toml` `testpaths = ["tests"]` and `exclude = ["agent-core"]`)
+
+**Import mechanism:** Hook filename contains hyphen — requires `importlib.util.spec_from_file_location` to import. Cycle 2.1 RED phase must establish this import pattern.
 
 **Items:**
-- Cycle 2.1: Long-form directive aliases (`discuss` → same as `d`, `pending` → same as `p`)
-- Cycle 2.2: Fenced block exclusion in directive scanning (skip lines inside 3+ backtick/tilde fences). **Depends on:** None (foundation for 2.3)
-- Cycle 2.3: Any-line directive matching (scan all non-fenced lines, return first match). **Depends on:** Cycle 2.2 (uses fenced block detection)
-- Cycle 2.4: Enhanced d: directive injection with counterfactual structure (assumptions, failure conditions, alternatives, confidence). **Depends on:** Cycle 2.3 (uses any-line matcher)
-- Cycle 2.5: Integration test verifying: long-form alias + any-line matching + fenced exclusion work together, Tier 1 exact-match unchanged
+- Cycle 2.1: Long-form directive aliases (`discuss` → same as `d`, `pending` → same as `p`). **Depends on:** None
+- Cycle 2.2: Enhanced d: directive injection with counterfactual structure (assumptions, failure conditions, alternatives, confidence). **Depends on:** None (modifies DIRECTIVES dict value, independent of matching mechanism). Enhanced content goes to `additionalContext` only; `systemMessage` stays concise (e.g., "[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically, do not execute.")
+- Cycle 2.3: Fenced block exclusion in directive scanning (skip lines inside 3+ backtick/tilde fences). **Depends on:** None (foundation for 2.4)
+- Cycle 2.4: Any-line directive matching (scan all non-fenced lines, return first match; replaces inline `re.match` at hook line 653). **Depends on:** Cycle 2.3 (uses fenced block detection)
+- Cycle 2.5: Integration test — E2E via JSON stdin→stdout (pipe `{"user_prompt": "..."}`, assert JSON output) verifying: long-form alias + any-line matching + fenced exclusion work together, Tier 1 exact-match unchanged. **Depends on:** All prior cycles
 
 ---
 
@@ -94,6 +96,8 @@
 | Phase 2 | 2 (1 modify, 1 new test) | ~150 additions | Medium (testable features) | Haiku |
 | Phase 3 | 1 (modify CLAUDE.md) | ~5 | Low | Haiku |
 
+**Model tier note:** Design recommends "Sonnet for all phases" (line 242). Haiku for Phase 2/3 is a deliberate deviation — TDD cycles have clear behavioral contracts (haiku-appropriate), Phase 3 is mechanical wiring. Sonnet reserved for Phase 1 (behavioral content requiring judgment) and Phase 2 review checkpoints.
+
 **Total:** ~200 lines across 3-4 files, sequential phases.
 
 ---
@@ -109,10 +113,12 @@
 - RED/GREEN cycle format for each feature
 - RED cycle stop conditions: test file created, test fails with expected error (import error, assertion failure, function not found)
 - GREEN cycle behavioral descriptions: describe behavior and approach hint, not prescriptive code
+- Cycle 2.1 RED phase establishes test infrastructure: `importlib.util.spec_from_file_location` import pattern for hyphenated hook filename
 - Reuse existing fence tracking code from `src/claudeutils/markdown_parsing.py` (_extract_fence_info, _track_fence_depth) OR implement simpler standalone version (hook needs are simpler than full parser)
+- Unit tests (Cycles 2.1-2.4) import and test extracted functions; integration test (Cycle 2.5) tests E2E via JSON stdin→stdout piping (matches hook execution model)
 - Integration test (Cycle 2.5) ensures all features work together: long-form alias on non-first line inside fenced block should be excluded
 - Each cycle: testable behavioral contract, not structural scaffolding
-- Dependency order: 2.1 (aliases) and 2.2 (fences) are independent foundations, 2.3 (any-line) depends on 2.2, 2.4 (enhanced d:) depends on 2.3
+- Dependency order: 2.1 (aliases, independent), 2.2 (enhanced d:, independent), 2.3 (fences, independent), 2.4 (any-line, depends on 2.3), 2.5 (integration, depends on all)
 
 **Phase 3 (Wiring):**
 - Insertion point in CLAUDE.md: After `@agent-core/fragments/execute-rule.md` in Core Behavioral Rules section
@@ -152,11 +158,11 @@ The following recommendations should be incorporated during full runbook expansi
 - Model Selection section: evaluate cognitive requirements (opus for design/architecture/synthesis, sonnet for balanced work, haiku for mechanical execution), do not default to sonnet
 
 **Phase 2 TDD Cycle Expansion:**
-- Cycle 2.1 (long-form aliases): Test `discuss: <text>` produces same additionalContext as `d: <text>`, same for `pending`/`p`
-- Cycle 2.2 (fenced block detection): Test lines between opening fence (3+ backticks or tildes) and closing fence (same char, at least same count) are marked as fenced
-- Cycle 2.3 (any-line matching): Test directive on line 2, line 3, etc. are found (not just line 1). Test directive inside fenced block returns None (excluded)
-- Cycle 2.4 (enhanced d: injection): Verify additionalContext includes all counterfactual structure elements (assumptions, failure conditions, alternatives, confidence), preserves existing "do not execute" behavior
-- Cycle 2.5 (integration): Test `discuss: <text>` on line 3 inside a fenced code block is excluded, but `discuss: <text>` on line 5 after closing fence is matched
+- Cycle 2.1 (long-form aliases): Establish importlib import pattern for hyphenated hook filename. Test `discuss: <text>` produces same additionalContext as `d: <text>`, same for `pending`/`p`
+- Cycle 2.2 (enhanced d: injection): Verify additionalContext includes all counterfactual structure elements (assumptions, failure conditions, alternatives, confidence), preserves existing "do not execute" behavior. Enhanced content to `additionalContext` only; `systemMessage` stays concise (short mode indicator, not full evaluation framework)
+- Cycle 2.3 (fenced block detection): Test lines between opening fence (3+ backticks or tildes) and closing fence (same char, at least same count) are marked as fenced
+- Cycle 2.4 (any-line matching): Test directive on line 2, line 3, etc. are found (not just line 1). Test directive inside fenced block returns None (excluded). GREEN phase must replace inline `re.match` at hook line 653 with call to new any-line scanner function
+- Cycle 2.5 (integration): E2E test via JSON stdin→stdout piping. Test `discuss: <text>` on line 3 inside a fenced code block is excluded, but `discuss: <text>` on line 5 after closing fence is matched
 
 **Phase 2 Implementation Choice:**
 - Consider simpler standalone fence tracking for the hook (only needs to skip fenced regions, not parse them) versus reusing markdown_parsing.py code (more complex, handles nesting)
