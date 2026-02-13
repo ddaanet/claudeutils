@@ -31,7 +31,9 @@ def resolve(_mode: str, query: str, index_path: str, decisions_dir: str) -> str:
         ResolveError: If no match found or ambiguous match
     """
     if query.startswith(".."):
-        return "file"
+        # File mode: strip prefix and resolve
+        filename = query[2:].strip()
+        return _resolve_file(filename, decisions_dir)
     if query.startswith("."):
         # Section mode: strip prefix and resolve
         section_query = query[1:].strip()
@@ -39,6 +41,37 @@ def resolve(_mode: str, query: str, index_path: str, decisions_dir: str) -> str:
 
     # Trigger mode: fuzzy match against index entries
     return _resolve_trigger(query, index_path, decisions_dir)
+
+
+def _resolve_file(filename: str, decisions_dir: str) -> str:
+    """Resolve file mode query via filename lookup.
+
+    Resolves relative to decisions_dir, reads and returns full file content.
+
+    Args:
+        filename: Filename to lookup (e.g., "testing.md")
+        decisions_dir: Directory containing decision files
+
+    Returns:
+        Full file content
+
+    Raises:
+        ResolveError: If file not found
+    """
+    dec_dir = Path(decisions_dir)
+    file_path = dec_dir / filename
+
+    if not file_path.exists():
+        msg = f"File not found: {filename}"
+        raise ResolveError(msg)
+
+    try:
+        content = file_path.read_text()
+    except OSError as e:
+        msg = f"Failed to read {file_path}: {e}"
+        raise ResolveError(msg) from e
+
+    return content
 
 
 def _resolve_section(query: str, decisions_dir: str) -> str:

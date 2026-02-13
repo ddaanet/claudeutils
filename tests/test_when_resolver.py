@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from claudeutils.when.resolver import resolve
+from claudeutils.when.resolver import ResolveError, resolve
 
 
 def test_mode_detection(tmp_path: Path) -> None:
@@ -26,10 +26,10 @@ def test_mode_detection(tmp_path: Path) -> None:
     assert "## Test Section" in section
     assert "Test content." in section
 
-    # File mode detection (returns "file" mode identifier for now)
-    # Note: Full file mode implementation is in a later cycle
+    # File mode resolves to file content
     file_mode = resolve("file", "..testing.md", str(index_file), str(decisions_dir))
-    assert file_mode == "file"
+    assert "## Test Section" in file_mode
+    assert "Test content." in file_mode
 
 
 def test_section_mode_resolves(tmp_path: Path) -> None:
@@ -77,6 +77,36 @@ def test_section_mode_resolves(tmp_path: Path) -> None:
         "section", ".mock patching pattern", str(index_file), str(decisions_dir)
     )
     assert "## Mock Patching Pattern" in result
+
+
+def test_file_mode_resolves(tmp_path: Path) -> None:
+    """File mode resolves relative path to file content.
+
+    Tests filename lookup relative to decisions_dir, file reading, and error
+    handling for missing files.
+    """
+    # Create index file
+    index_file = tmp_path / "test_index.md"
+    index_file.write_text("## testing\n\n/when test | extra\n")
+
+    # Create decisions directory with a test file
+    decisions_dir = tmp_path / "decisions"
+    decisions_dir.mkdir()
+
+    testing_file = decisions_dir / "testing.md"
+    testing_file.write_text("## Test Section\n\nTest file content.\n")
+
+    # File mode should return full file content
+    result = resolve("file", "..testing.md", str(index_file), str(decisions_dir))
+    assert "## Test Section" in result
+    assert "Test file content." in result
+
+    # File mode should raise ResolveError for missing files
+    try:
+        resolve("file", "..nonexistent.md", str(index_file), str(decisions_dir))
+        raise AssertionError("Expected ResolveError for missing file")
+    except ResolveError:
+        pass
 
 
 def test_trigger_mode_resolves(tmp_path: Path) -> None:
