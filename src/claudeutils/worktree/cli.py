@@ -122,7 +122,6 @@ def initialize_environment(worktree_path: Path) -> None:
     try:
         subprocess.run(["just", "--version"], capture_output=True, check=True)
     except (FileNotFoundError, subprocess.CalledProcessError):
-        click.echo("Warning: just command not found, skipping setup step", err=True)
         return
 
     r = subprocess.run(
@@ -299,8 +298,6 @@ def new(slug: str | None, base: str, session: str, task: str, session_md: str) -
         raise click.UsageError("slug and --task are mutually exclusive")  # noqa: TRY003
     if not task and not slug:
         raise click.UsageError("either slug or --task is required")  # noqa: TRY003
-    if task and session:
-        click.echo("Warning: --session option ignored when --task provided", err=True)
     temp_session_file = None
     try:
         if task:
@@ -308,10 +305,7 @@ def new(slug: str | None, base: str, session: str, task: str, session_md: str) -
             with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
                 f.write(focus_session(task, session_md))
                 temp_session_file = session = f.name
-
-        if slug is None:
-            raise click.UsageError("either slug or --task is required")  # noqa: TRY003
-
+        assert slug is not None
         worktree_path = wt_path(slug, create_container=True)
         if worktree_path.exists():
             click.echo(f"Error: existing directory {worktree_path}", err=True)
