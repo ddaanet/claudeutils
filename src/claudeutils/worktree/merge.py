@@ -135,3 +135,17 @@ def merge(slug: str) -> None:
         )
         if result.returncode == 0:
             return
+
+        result = subprocess.run(
+            ["git", "-C", "agent-core", "cat-file", "-e", wt_commit],
+            check=False,
+        )
+        if result.returncode != 0:
+            wt_agent_core = wt_path(slug) / "agent-core"
+            _git(
+                "-C",
+                "agent-core",
+                "fetch",
+                str(wt_agent_core),
+                "HEAD",
+            )

@@ -3,6 +3,7 @@
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
+from typing import cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -143,3 +144,157 @@ def test_merge_submodule_ancestry(
 
         ls_tree_called = any("ls-tree" in str(call) for call in mock_git.call_args_list)
         assert ls_tree_called, "merge should extract submodule commit via git ls-tree"
+
+
+def test_merge_submodule_fetch(  # noqa: PLR0915
+    repo_with_submodule: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify merge checks object reachability and fetches when needed."""
+    monkeypatch.chdir(repo_with_submodule)
+
+    (repo_with_submodule / ".gitignore").write_text("wt/\n")
+    subprocess.run(
+        ["git", "add", ".gitignore"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add gitignore"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+
+    agent_core_path = repo_with_submodule / "agent-core"
+
+    (agent_core_path / "fetch_change.txt").write_text("fetch test change")
+    subprocess.run(
+        ["git", "add", "fetch_change.txt"],
+        cwd=agent_core_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Fetch test change"],
+        cwd=agent_core_path,
+        check=True,
+        capture_output=True,
+    )
+
+    base_commit = subprocess.run(
+        ["git", "-C", str(agent_core_path), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+    subprocess.run(
+        ["git", "add", "agent-core"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Update agent-core pointer"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+
+    subprocess.run(
+        ["git", "branch", "fetch-test"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+    result = CliRunner().invoke(worktree, ["new", "fetch-test"])
+    assert result.exit_code == 0
+
+    subprocess.run(
+        ["git", "-C", str(agent_core_path), "reset", "--hard", base_commit],
+        check=True,
+        capture_output=True,
+    )
+
+    (agent_core_path / "diverged_change.txt").write_text("diverged change")
+    subprocess.run(
+        ["git", "add", "diverged_change.txt"],
+        cwd=agent_core_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Diverged change"],
+        cwd=agent_core_path,
+        check=True,
+        capture_output=True,
+    )
+
+    result = subprocess.run(
+        ["git", "ls-tree", "fetch-test", "--", "agent-core"],
+        cwd=repo_with_submodule,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    if not result.stdout.strip():
+        pytest.skip("Branch has no agent-core submodule entry (test setup incomplete)")
+    wt_submodule_commit = result.stdout.split()[2]
+
+    orig_subprocess_run = subprocess.run
+    cat_file_calls = []
+    fetch_calls = []
+    merge_base_calls = []
+
+    def fake_run(
+        *args: object,
+        **kwargs: object,
+    ) -> MagicMock | object:
+        if args and isinstance(args[0], list):
+            cmd = args[0]
+            if "merge-base" in cmd:
+                merge_base_calls.append(cmd)
+                result_obj = MagicMock()
+                result_obj.returncode = 1
+                return result_obj
+            if "cat-file" in cmd and "-e" in cmd:
+                cat_file_calls.append(cmd)
+                if wt_submodule_commit in cmd:
+                    result_obj = MagicMock()
+                    result_obj.returncode = 1
+                    return result_obj
+            elif "fetch" in cmd:
+                fetch_calls.append(cmd)
+        result = orig_subprocess_run(*args, **kwargs)  # type: ignore[call-overload]
+        return cast("object", result)
+
+    local_commit = subprocess.run(
+        ["git", "-C", str(agent_core_path), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+    assert wt_submodule_commit != local_commit, (
+        f"Test setup issue: wt commit ({wt_submodule_commit}) "
+        f"should differ from local ({local_commit})"
+    )
+
+    with patch("claudeutils.worktree.merge.subprocess.run", side_effect=fake_run):
+        result = CliRunner().invoke(worktree, ["merge", "fetch-test"])
+        assert result.exit_code == 0, f"merge failed: {result.output}"
+
+        assert len(merge_base_calls) > 0, (
+            f"merge should check ancestor, calls: {merge_base_calls}"
+        )
+
+        cat_file_has_wt = any(wt_submodule_commit in str(c) for c in cat_file_calls)
+        assert cat_file_has_wt, (
+            f"merge should check reachability with cat-file -e, "
+            f"merge_base: {merge_base_calls}, cat_file: {cat_file_calls}"
+        )
+
+        assert len(fetch_calls) > 0, (
+            f"merge should fetch when unreachable, fetch_calls: {fetch_calls}"
+        )
