@@ -277,3 +277,83 @@ def test_rm_submodule_first_ordering(
     assert parent_cmd[1] == "worktree"
     assert parent_cmd[2] == "remove"
     assert parent_cmd[3] == "--force"
+
+
+def test_rm_post_removal_cleanup(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """Clean orphaned directories and empty containers after removal."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    init_repo(repo_path)
+
+    result = CliRunner().invoke(worktree, ["new", "test-slug"])
+    assert result.exit_code == 0
+
+    worktree_path = wt_path("test-slug")
+    assert worktree_path.exists()
+
+    container_path = worktree_path.parent
+    assert container_path.exists()
+
+    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    assert result.exit_code == 0
+
+    assert not worktree_path.exists(), "Orphaned worktree directory should be removed"
+    assert not container_path.exists(), "Empty container directory should be removed"
+
+
+def test_rm_post_removal_cleanup_non_empty_container(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """Container is NOT removed when other worktrees are present."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    init_repo(repo_path)
+
+    result = CliRunner().invoke(worktree, ["new", "test-slug-1"])
+    assert result.exit_code == 0
+
+    result = CliRunner().invoke(worktree, ["new", "test-slug-2"])
+    assert result.exit_code == 0
+
+    worktree_path_1 = wt_path("test-slug-1")
+    worktree_path_2 = wt_path("test-slug-2")
+    container_path = worktree_path_1.parent
+
+    assert worktree_path_1.exists()
+    assert worktree_path_2.exists()
+    assert container_path.exists()
+
+    result = CliRunner().invoke(worktree, ["rm", "test-slug-1"])
+    assert result.exit_code == 0
+
+    assert not worktree_path_1.exists(), "First worktree removed"
+    assert worktree_path_2.exists(), "Second worktree still exists"
+    assert container_path.exists(), "Container should remain (non-empty)"
+
+
+def test_rm_post_removal_cleanup_idempotent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """Cleanup is idempotent: running twice has same effect as once."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    init_repo(repo_path)
+
+    result = CliRunner().invoke(worktree, ["new", "test-slug"])
+    assert result.exit_code == 0
+
+    worktree_path = wt_path("test-slug")
+    container_path = worktree_path.parent
+
+    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    assert result.exit_code == 0
+    assert not worktree_path.exists()
+    assert not container_path.exists()
+
+    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    assert result.exit_code == 0

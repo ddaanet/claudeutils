@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -394,4 +395,12 @@ def rm(slug: str) -> None:
     except subprocess.CalledProcessError as e:
         if "not found" not in e.stderr.lower():
             click.echo(e.stderr)
+
+    if worktree_path.exists():
+        shutil.rmtree(worktree_path)
+
+    container_path = worktree_path.parent
+    if container_path.exists() and not list(container_path.iterdir()):
+        container_path.rmdir()
+
     click.echo(f"Removed worktree {slug}")
