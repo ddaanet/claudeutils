@@ -1,32 +1,16 @@
 # Session Handoff: 2026-02-13
 
-**Status:** Worktree-fixes worktree created, FR-6 added (automate session.md edits).
+**Status:** when-recall worktree merged to main.
 
 ## Completed This Session
 
-**Worktree skill end-to-end testing (12 tests, all passing):**
-- Mode A: create worktree via `claudeutils _worktree new --task`, focused session generation
-- Mode C: merge ceremony via `claudeutils _worktree merge`, precommit validation
-- Error handling: non-existent task (exit 1), duplicate worktree (exit 1), non-existent slug (exit 2)
-- Special chars: backticks/colons stripped, slug truncated at 30 chars (finding → FR-1)
-- Clean state: branch deleted, worktree removed, session.md references cleared
-- Cleaned up test artifacts (test-feature worktree removed, test report deleted)
-
-**Findings from testing → requirements:**
-- Session merge loses continuation lines: `_resolve_session_md_conflict` set-diffs single lines, loses indented metadata
-- No-op merge skips commit: when conflict resolves to no net changes, phase 4 skips merge commit → branch orphaned → `git branch -d` rejects
-- Task name slugs truncate badly: 30-char limit cuts mid-word, special chars stripped silently
-
-**Requirements captured:** `plans/worktree-fixes/requirements.md` (6 FRs)
-- FR-1: Task name constraints — prose identifiers `[a-zA-Z0-9 ]`, no truncation
-- FR-2: Precommit task name validation
-- FR-3: Migrate existing task names
-- FR-4: Session merge preserves full task blocks (continuation lines)
-- FR-5: Always create merge commit when merge initiated (fix orphan branch)
-- FR-6: Automate session.md task movement on worktree create/remove (added post-commit)
-
-**Worktree setup:**
-- Created `worktree-fixes` worktree, moved task to Worktree Tasks
+**Merged when-recall worktree:**
+- 42/42 TDD cycles, 8 phases — `/when` and `/how` memory recall system
+- cli.py conflict resolved (added `when_cmd` import/registration)
+- Cleaned untracked debris from failed first merge attempt (`git clean -fd`)
+- Tests verified: 855/856 pass (1 known xfail)
+- Worktree + branch removed, session.md and jobs.md updated
+- Committed deliverable-review skill symlink (was untracked, blocking merge)
 
 ## Pending Tasks
 
@@ -50,8 +34,8 @@
   - Input: `plans/reports/rca-*-opus.md` (3 authoritative reports)
   - Key fixes: normalize runbook-review.md axes, add execution-time split enforcement, add vet investigation protocol + UNFIXABLE taxonomy, orchestrate template enforcement
 
-- [ ] **Consolidate learnings** — learnings.md at 418 lines (soft limit 80) | sonnet
-  - Blocked on: memory redesign (/when, /how)
+- [ ] **Consolidate learnings** — learnings.md at 428 lines (soft limit 80) | sonnet
+  - Blocker cleared: /when and /how merged from when-recall worktree
 
 - [ ] **Worktree merge combines session context** — Confirm wt-merge combines pending tasks/jobs (not --ours) and requires agent review | sonnet
   - Worktree-update delivered — blocker cleared, but wt-merge still uses --ours
@@ -124,7 +108,7 @@
 - Cleanup: delete review-methodology.md (confirmed fully superseded)
 
 **Learnings.md over soft limit:**
-- 418 lines — consolidation blocked on memory redesign
+- 428 lines — /when and /how now available, consolidation unblocked
 
 **wt-merge session reconciliation incomplete:**
 - merge.py has auto-resolvers for session.md, learnings.md, jobs.md

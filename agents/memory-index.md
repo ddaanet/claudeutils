@@ -43,10 +43,10 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 ## agents/decisions/pipeline-contracts.md
 
-Transformation table — T1-T6 pipeline stages defect types review gates criteria
-Review delegation scope template — scope IN OUT changed files requirements
-UNFIXABLE escalation — fix-all pattern grep UNFIXABLE stop escalate
-Phase type model — tdd general per-phase typing expansion review criteria
+/when transformation table | T1-T6 pipeline stages defect types review gates criteria
+/how review delegation scope template | scope IN OUT changed files requirements
+/when UNFIXABLE escalation | fix-all pattern grep UNFIXABLE stop escalate
+/when phase type model | tdd general per-phase typing expansion review criteria
 
 ## agents/decisions/deliverable-review.md
 

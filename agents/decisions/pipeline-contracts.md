@@ -2,7 +2,7 @@
 
 Centralized I/O contracts for the design-to-deliverable pipeline. Authoritative source — skills reference this document for their input/output specifications.
 
-## Transformation Table
+## When Transformation Table
 
 | # | Transformation | Input | Output | Defect Types | Review Gate | Review Criteria |
 |---|---------------|-------|--------|-------------|-------------|----------------|
@@ -13,7 +13,7 @@ Centralized I/O contracts for the design-to-deliverable pipeline. Authoritative 
 | T5 | Runbook → Step artifacts | runbook.md | steps/step-*.md, agent | Generation errors | prepare-runbook.py | Automated validation |
 | T6 | Steps → Implementation | step-*.md | Code/artifacts | Wrong behavior, stubs, drift | vet-fix-agent (checkpoints) | Scope IN/OUT, design alignment |
 
-## Review Delegation Scope Template
+## How To Review Delegation Scope Template
 
 Every review delegation must include execution context (per `agent-core/fragments/vet-requirement.md`):
 
@@ -27,7 +27,7 @@ Every review delegation must include execution context (per `agent-core/fragment
 - **Prior state:** What earlier transformations established
 - **Design reference:** Path to design document
 
-## UNFIXABLE Escalation
+## When UNFIXABLE Escalation
 
 Reviewers at every gate follow fix-all pattern:
 1. Fix all issues directly (critical, major, minor)
@@ -35,7 +35,7 @@ Reviewers at every gate follow fix-all pattern:
 3. Caller greps for UNFIXABLE — if found, stop and escalate to user
 4. No recommendation dead-ends — fix or escalate, nothing in between
 
-## Phase Type Model
+## When Phase Type Model
 
 Runbook phases declare type: `tdd` or `general` (default: general).
 
