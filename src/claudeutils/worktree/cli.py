@@ -59,8 +59,7 @@ def _filter_section(
 ) -> str:
     """Extract section entries matching task_name or plan_dir."""
     pattern = rf"## {re.escape(section_name)}\n\n(.*?)(?=\n## |\Z)"
-    match = re.search(pattern, content, re.DOTALL)
-    if not match:
+    if not (match := re.search(pattern, content, re.DOTALL)):
         return ""
 
     def is_relevant(entry: str) -> bool:
@@ -354,7 +353,7 @@ def _remove_worktrees(
     parent_registered: bool,  # noqa: FBT001
     submodule_registered: bool,  # noqa: FBT001
 ) -> None:
-    """Remove registered worktrees, submodule first."""
+    """Remove registered worktrees (submodule first, --force flag)."""
     if submodule_registered:
         _git(
             "-C",
@@ -373,10 +372,12 @@ def _remove_worktrees(
 def rm(slug: str) -> None:
     """Remove worktree and its branch."""
     worktree_path = wt_path(slug)
+    parent_reg, submodule_reg = _probe_registrations(worktree_path)
 
     if worktree_path.exists():
-        parent_reg, submodule_reg = _probe_registrations(worktree_path)
         _warn_uncommitted(worktree_path)
+
+    if parent_reg or submodule_reg:
         _remove_worktrees(worktree_path, parent_reg, submodule_reg)
     else:
         _git("worktree", "prune")
@@ -385,7 +386,7 @@ def rm(slug: str) -> None:
         ["git", "branch", "-d", slug], capture_output=True, text=True, check=False
     )
     if r.returncode != 0 and "not found" not in r.stderr.lower():
-        click.echo(f"Branch {slug} has unmerged changes. Use: git branch -D {slug}")
+        click.echo(f"Branch {slug} has unmerged changes — use: git branch -D {slug}")
 
     if worktree_path.exists():
         shutil.rmtree(worktree_path)

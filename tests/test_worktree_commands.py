@@ -300,8 +300,8 @@ def test_rm_post_removal_cleanup(
     result = CliRunner().invoke(worktree, ["rm", "test-slug"])
     assert result.exit_code == 0
 
-    assert not worktree_path.exists(), "Orphaned worktree directory should be removed"
-    assert not container_path.exists(), "Empty container directory should be removed"
+    assert not worktree_path.exists(), "Orphaned directory removed via shutil.rmtree"
+    assert not container_path.exists(), "Empty container removed via rmdir"
 
 
 def test_rm_post_removal_cleanup_non_empty_container(
