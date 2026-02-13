@@ -2,7 +2,11 @@
 
 from pathlib import Path
 
-from claudeutils.when.compress import generate_candidates, load_heading_corpus
+from claudeutils.when.compress import (
+    generate_candidates,
+    load_heading_corpus,
+    verify_unique,
+)
 
 
 def test_load_heading_corpus(tmp_path: Path) -> None:
@@ -84,3 +88,19 @@ def test_generate_candidates() -> None:
     # Candidates must be sorted by length (shortest first)
     word_counts = [len(c.split()) for c in candidates]
     assert word_counts == sorted(word_counts)
+
+
+def test_uniqueness_verification() -> None:
+    """Verify uniqueness checking via fuzzy scoring."""
+    corpus = [
+        "How to encode paths",
+        "Path resolution in file mode",
+        "Encoding strategies for URL parameters",
+        "Character escaping and sanitization",
+    ]
+
+    # Specific trigger should uniquely resolve to "How to encode paths"
+    assert verify_unique("how encode path", corpus) is True
+
+    # Generic trigger matching multiple headings should return False
+    assert verify_unique("encode", corpus) is False

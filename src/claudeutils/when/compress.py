@@ -4,6 +4,8 @@ import re
 from itertools import combinations
 from pathlib import Path
 
+from claudeutils.when.fuzzy import rank_matches
+
 
 def load_heading_corpus(decisions_dir: Path) -> list[str]:
     """Load heading corpus from decision files.
@@ -65,3 +67,34 @@ def generate_candidates(heading: str) -> list[str]:
 
     # Sort by word count (length), then alphabetically for stability
     return sorted(candidates, key=lambda x: (len(x.split()), x))
+
+
+def verify_unique(trigger: str, corpus: list[str]) -> bool:
+    """Verify that a trigger uniquely resolves to one heading in the corpus.
+
+    Uses fuzzy scoring to rank candidates. A trigger is unique if the top
+    match's score is significantly higher than the second match's score
+    (2x or larger gap).
+
+    Args:
+        trigger: The search trigger (index key)
+        corpus: List of headings to search against
+
+    Returns:
+        True if trigger uniquely resolves to one heading, False otherwise
+    """
+    if not corpus:
+        return False
+
+    ranked = rank_matches(trigger, corpus, limit=2)
+
+    if not ranked:
+        return False
+
+    if len(ranked) == 1:
+        return True
+
+    top_score = ranked[0][1]
+    second_score = ranked[1][1]
+
+    return top_score >= 2 * second_score
