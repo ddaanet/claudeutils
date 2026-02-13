@@ -13,7 +13,17 @@
   - Style matched to user's writing corpus (`tmp/STYLE_CORPUS.md`)
   - Current installation note: submodule + symlinks via `just sync-to-parent`, converting to plugin
 
+## Pending Tasks
+
+- [ ] **Write agent-core README** — Create README.md for agent-core submodule | sonnet
+  - Research findings: `plans/reports/readme-skill-research.md`
+  - Reuse: reader-testing pattern, style corpus, motivation-first opener
+  - Style corpus: `tmp/STYLE_CORPUS.md`
+  - Scope: agent-core as standalone — workflow, memory management, skills, agents, fragments, hooks
+  - Context: `plans/plugin-migration/design.md` for future plugin framing (edify-plugin)
+
 ## Reference Files
 
+- `plans/reports/readme-skill-research.md` — documentation skill research findings
 - `tmp/STYLE_CORPUS.md` — writing style corpus for voice matching
 - `plans/plugin-migration/design.md` — informed agent framework framing (edify-plugin future state)
