@@ -42,8 +42,8 @@ Worktree operations span 5 justfile recipes with known defects: blind `--ours` s
 src/claudeutils/worktree/
 ├── __init__.py        # Empty (minimal __init__.py convention)
 ├── cli.py             # Click group + subcommand handlers
-├── merge.py           # Merge orchestration (submodule + parent)
-└── conflicts.py       # Session file + source code conflict resolution
+├── merge.py           # Merge orchestration + conflict resolution
+└── utils.py           # Path utilities and helper functions
 ```
 
 Registration in main `cli.py`:
@@ -60,25 +60,31 @@ tests/
 └── test_worktree_conflicts.py # Session file + source code conflicts
 ```
 
+**Implementation note:** Conflict resolution functions are in `merge.py`, not a separate `conflicts.py` module. The design initially specified `conflicts.py`, but implementation consolidated all merge-related logic into `merge.py` for cohesion.
+
 ### Conventions and Naming
 
 | Item | Convention | Rationale |
 |------|-----------|-----------|
 | Branch name | `<slug>` (no prefix) | User requirement. Collision check on create. |
-| Directory | `wt/<slug>/` inside project root | Sandbox-compatible. Add `wt/` to `.gitignore`. |
-| Merge commit | `🔀 Merge wt/<slug>` (or `🔀 <custom>` via `--message`) | Hardcoded gitmoji — always correct for merges. |
+| Directory | `../<repo>-wt/<slug>/` (sibling container) | Avoids CLAUDE.md inheritance from parent directories. |
+| Merge commit | `🔀 Merge <slug>` (or `🔀 <custom>` via `--message`) | Hardcoded gitmoji — always correct for merges. |
 | Submodule merge commit | `🔀 Merge agent-core from <slug>` | Deterministic, no `/commit` skill. |
 | CLI name | `_worktree` (underscore prefix) | Internal subcommand — skill invokes it, users don't. |
 
-### Directory Layout Change
+### Directory Layout: Sibling Container
 
-**Current:** `../<repo>-<slug>/` (outside project, requires sandbox bypass)
-**New:** `wt/<slug>/` (inside project root, within sandbox write scope)
+**Implementation:** `../<repo>-wt/<slug>/` (sibling to project root)
 
-Prerequisites:
-- Add `wt/` to `.gitignore`
-- No sandbox bypass needed for worktree creation/removal
-- Submodule `--reference` uses absolute path: `$(git rev-parse --show-toplevel)/agent-core`
+**Rationale:** Claude CLI loads CLAUDE.md from all parent directories. Worktrees inside the project (`wt/<slug>/`) would inherit the main repo's CLAUDE.md, causing context pollution. Sibling containers isolate worktree sessions.
+
+**Container detection:**
+- If parent directory ends in `-wt`, already in container (use sibling)
+- Otherwise create `<repo>-wt/` sibling directory
+
+**Sandbox registration:** Both main and worktree register the container in `.claude/settings.local.json` under `permissions.additionalDirectories`
+
+**No `.gitignore` entry needed:** Worktrees are outside the project root, so no gitignore entry required.
 
 ## CLI Specification
 
@@ -87,7 +93,7 @@ Prerequisites:
 Creates a new worktree with optional pre-committed focused session.
 
 **Flow:**
-1. Validate: no existing `wt/<slug>/` dir, no existing `<slug>` branch
+1. Validate: no existing sibling container worktree, no existing `<slug>` branch
 2. **If `--session`:** Pre-commit session.md via git plumbing (uses temp index to avoid polluting main):
    - `GIT_INDEX_FILE=<tmpfile>` for all index operations below
    - `git hash-object -w <session-path>` → blob
@@ -96,30 +102,33 @@ Creates a new worktree with optional pre-committed focused session.
    - `GIT_INDEX_FILE=<tmpfile> git write-tree` → tree
    - `git commit-tree <tree> -p <base> -m "Focused session for <slug>"` → commit
    - `git branch <slug> <commit>`
-   - `git worktree add wt/<slug> <slug>`
+   - `git worktree add <sibling-path> <slug>`
    - Clean up temp index file
-3. **Else:** `git worktree add wt/<slug> -b <slug> <base>`
-4. Submodule init: `git -C wt/<slug> submodule update --init --reference <project-root>/agent-core`
-5. Branch submodule: `git -C wt/<slug>/agent-core checkout -b <slug>`
-6. Environment: `cd wt/<slug> && uv sync` (creates .venv)
-7. Direnv: `cd wt/<slug> && direnv allow 2>/dev/null || true`
+3. **Else:** `git worktree add <sibling-path> -b <slug> <base>`
+4. **Submodule via worktree:** `git -C agent-core worktree add <sibling-path>/agent-core <slug>`
+   - Creates worktree of the submodule (shares object store with main submodule)
+   - Bidirectional commit visibility (objects shared, not cloned)
+5. Environment: `cd <sibling-path> && uv sync` (creates .venv)
+6. Direnv: `cd <sibling-path> && direnv allow 2>/dev/null || true`
 
-**Output (stdout):** `wt/<slug>` (machine-readable path)
+**Output (stdout):** `<sibling-container-path>/<slug>` (machine-readable path)
 **Status (stderr):** Progress messages
 **Exit:** 0 success, 1 error
 
-**Note:** Steps 6-7 (uv sync, direnv) require network/filesystem access outside sandbox. The skill invokes these with `dangerouslyDisableSandbox: true`. The CLI itself doesn't manage sandbox — the caller does.
+**Note:** Steps 5-6 (uv sync, direnv) require network/filesystem access outside sandbox. The skill invokes these with `dangerouslyDisableSandbox: true`. The CLI itself doesn't manage sandbox — the caller does.
 
 ### _worktree rm \<slug\>
 
 Removes worktree and branch.
 
 **Flow:**
-1. Check if `wt/<slug>/` exists (worktree may already be removed, branch-only cleanup is valid)
+1. Check if sibling container worktree exists (worktree may already be removed, branch-only cleanup is valid)
 2. If worktree exists:
-   a. Check uncommitted changes: `git -C wt/<slug> diff --quiet HEAD` — warn to stderr if dirty
-   b. `git worktree remove --force wt/<slug>`
+   a. Check uncommitted changes — warn to stderr if dirty
+   b. Remove submodule worktree first: `git -C agent-core worktree remove <sibling-path>/agent-core`
+   c. Remove parent worktree: `git worktree remove --force <sibling-path>`
 3. `git branch -d <slug>` — if unmerged, warn to stderr (don't force-delete)
+4. Clean up empty container if no other worktrees remain
 
 **Output:** Success message to stderr
 **Exit:** 0 success, 1 error

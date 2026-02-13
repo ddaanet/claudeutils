@@ -169,3 +169,98 @@ def commit_file() -> Callable[[Path, str, str, str], None]:
         )
 
     return _commit_file
+
+
+@pytest.fixture
+def setup_repo_with_submodule() -> Callable[[Path, Callable[[Path], None]], None]:
+    """Return function to set up test repo with simulated submodule (gitlink).
+
+    The submodule is created using git plumbing commands (gitlink).
+    """
+
+    def _setup(repo_path: Path, init_repo: Callable[[Path], None]) -> None:
+        """Set up test repo with submodule using gitlink."""
+        init_repo(repo_path)
+
+        agent_core_path = repo_path / "agent-core"
+        agent_core_path.mkdir()
+        subprocess.run(
+            ["git", "init"], cwd=agent_core_path, check=True, capture_output=True
+        )
+        subprocess.run(
+            ["git", "config", "user.email", "test@example.com"],
+            cwd=agent_core_path,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test User"],
+            cwd=agent_core_path,
+            check=True,
+            capture_output=True,
+        )
+
+        (agent_core_path / "core.txt").write_text("core content")
+        subprocess.run(
+            ["git", "add", "core.txt"],
+            cwd=agent_core_path,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "Initial core commit"],
+            cwd=agent_core_path,
+            check=True,
+            capture_output=True,
+        )
+
+        (repo_path / ".gitmodules").write_text(
+            '[submodule "agent-core"]\n\tpath = agent-core\n\turl = ./agent-core\n'
+        )
+
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=agent_core_path,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        commit_hash = result.stdout.strip()
+
+        subprocess.run(
+            [
+                "git",
+                "update-index",
+                "--add",
+                "--cacheinfo",
+                f"160000,{commit_hash},agent-core",
+            ],
+            cwd=repo_path,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "add", ".gitmodules"],
+            cwd=repo_path,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "Add submodule"],
+            cwd=repo_path,
+            check=True,
+            capture_output=True,
+        )
+
+        (repo_path / ".gitignore").write_text("wt/\n")
+        subprocess.run(
+            ["git", "add", ".gitignore"], cwd=repo_path, check=True, capture_output=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "Add gitignore"],
+            cwd=repo_path,
+            check=True,
+            capture_output=True,
+        )
+
+    return _setup

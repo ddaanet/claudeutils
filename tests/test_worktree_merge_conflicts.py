@@ -252,9 +252,10 @@ def test_merge_conflict_session_md(
     )
     assert "agents/session.md" not in conflicts, msg
 
-    # Verify output contains warning about new tasks
-    assert "Task B" in result.output, (
-        f"Output should mention new task Task B, got: {result.output}"
+    # Verify Task B was extracted from worktree and added to main session
+    session_content = (repo_with_submodule / "agents" / "session.md").read_text()
+    assert "Task B" in session_content, (
+        f"Task B should be extracted and present in session.md, got: {session_content}"
     )
 
 

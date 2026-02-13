@@ -79,14 +79,27 @@ def _resolve_session_md_conflict(conflicts: list[str]) -> list[str]:
 
     new_tasks = theirs_tasks - ours_tasks
 
-    _git("checkout", "--ours", "agents/session.md")
-    _git("add", "agents/session.md")
-
     if new_tasks:
-        click.echo("New tasks from worktree (manual extraction needed):")
-        for task in sorted(new_tasks):
-            click.echo(f"  {task}")
-        click.echo("")
+        ours_lines = ours_content.split("\n")
+        pending_idx = next(
+            (i for i, line in enumerate(ours_lines) if "## Pending Tasks" in line), None
+        )
+        if pending_idx is not None:
+            next_section_idx = next(
+                (
+                    i
+                    for i in range(pending_idx + 1, len(ours_lines))
+                    if ours_lines[i].startswith("## ")
+                ),
+                len(ours_lines),
+            )
+            ours_lines[next_section_idx:next_section_idx] = ["", *sorted(new_tasks)]
+        else:
+            ours_lines.extend(["", "## Pending Tasks", "", *sorted(new_tasks)])
+        ours_content = "\n".join(ours_lines)
+
+    Path("agents/session.md").write_text(ours_content)
+    _git("add", "agents/session.md")
 
     return [c for c in conflicts if c != "agents/session.md"]
 

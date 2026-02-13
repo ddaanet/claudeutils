@@ -138,7 +138,7 @@ wt-task name task_name base="HEAD":
 
 # List active git worktrees
 wt-ls:
-    @claudeutils _worktree ls
+    @git worktree list --porcelain | awk '/^worktree/ {path=$2; branch=""} /^branch/ {branch=$2; sub(/^refs\/heads\//, "", branch)} /^$/ && branch != "" && path != "{{justfile_directory()}}" {n=split(path, parts, "/"); print parts[n] "\t" branch "\t" path; branch=""}'
 
 # Remove a git worktree and its branch
 [no-exit-message]
