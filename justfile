@@ -221,6 +221,13 @@ wt-merge name:
         fail "Clean tree required for merge"
     fi
 
+    # Check worktree (THEIRS) for uncommitted changes
+    if ! git -C "$wt_dir" diff --quiet --exit-code 2>/dev/null && ! git -C "$wt_dir" diff --cached --quiet --exit-code 2>/dev/null; then
+        echo "${RED}Worktree has uncommitted changes:${NORMAL}" >&2
+        git -C "$wt_dir" status --short >&2
+        fail "Worktree has uncommitted changes. Commit or stash before merging."
+    fi
+
     if ! git rev-parse --verify "$branch" >/dev/null 2>&1; then
         fail "Branch not found: $branch"
     fi
