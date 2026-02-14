@@ -2,7 +2,7 @@
 
 Centralized I/O contracts for the design-to-deliverable pipeline. Authoritative source — skills reference this document for their input/output specifications.
 
-## Transformation Table
+## When Transformation Table
 
 | # | Transformation | Input | Output | Defect Types | Review Gate | Review Criteria |
 |---|---------------|-------|--------|-------------|-------------|----------------|
@@ -13,7 +13,7 @@ Centralized I/O contracts for the design-to-deliverable pipeline. Authoritative 
 | T5 | Runbook → Step artifacts | runbook.md | steps/step-*.md, agent | Generation errors | prepare-runbook.py | Automated validation |
 | T6 | Steps → Implementation | step-*.md | Code/artifacts | Wrong behavior, stubs, drift | vet-fix-agent (checkpoints) | Scope IN/OUT, design alignment |
 
-## Review Delegation Scope Template
+## How To Review Delegation Scope Template
 
 Every review delegation must include execution context (per `agent-core/fragments/vet-requirement.md`):
 
@@ -27,7 +27,7 @@ Every review delegation must include execution context (per `agent-core/fragment
 - **Prior state:** What earlier transformations established
 - **Design reference:** Path to design document
 
-## UNFIXABLE Escalation
+## When UNFIXABLE Escalation
 
 Reviewers at every gate follow fix-all pattern:
 1. Fix all issues directly (critical, major, minor)
@@ -35,7 +35,7 @@ Reviewers at every gate follow fix-all pattern:
 3. Caller greps for UNFIXABLE — if found, stop and escalate to user
 4. No recommendation dead-ends — fix or escalate, nothing in between
 
-## Phase Type Model
+## When Phase Type Model
 
 Runbook phases declare type: `tdd` or `general` (default: general).
 
@@ -45,3 +45,65 @@ Type determines:
 - **LLM failure modes:** Apply universally regardless of type
 
 Type does NOT affect: tier assessment, outline generation, consolidation gates, assembly, orchestration, checkpoints.
+
+## When Vet Escalation Calibration
+
+**Decision Date:** 2026-02-12
+
+**Problem:** Vet agents over-escalate alignment issues as UNFIXABLE — pattern-matching tasks labeled as design decisions requiring user input.
+
+**Evidence:** Persistent across overhaul — Phase 5 checkpoint flagged `create_worktree()` not extracted and `_git` naming as UNFIXABLE. Both were deferred design deviation (future phase) and stylistic naming (mechanical find-replace).
+
+**Anti-pattern:** Labeling straightforward pattern-matching tasks as UNFIXABLE.
+
+**Correct pattern:** Check existing patterns, apply consistent choice, execute alignment.
+
+**Root cause:** Agents treat uncertainty as escalation trigger rather than scanning existing patterns for guidance.
+
+### When Vet Flags Out-of-Scope Items
+
+**Decision Date:** 2026-02-12
+
+**Decision:** Distinguish DEFERRED (expected, in scope statement) from UNFIXABLE (blocking).
+
+**Anti-pattern:** Flagging explicitly out-of-scope items as UNFIXABLE.
+
+**Rationale:** UNFIXABLE triggers escalation to user; out-of-scope items are expected and shouldn't block.
+
+**Example:** Cycle 0.6 vet flagged session filtering as UNFIXABLE despite "OUT: Session file filtering (next cycle)" in scope.
+
+### When Vet Receives Execution Context
+
+**Decision Date:** 2026-02-12
+
+**Decision:** Vet validates against current filesystem, not execution-time state — context must be provided explicitly.
+
+**Anti-pattern:** Trusting vet-fix-agent output without providing execution context.
+
+**Evidence:** Phase 6 error: vet "fixed" edify-plugin → agent-core based on stale filesystem state.
+
+**Correct pattern:** Provide execution context (IN/OUT scope, changed files, requirements). Grep UNFIXABLE after return.
+
+### When Vet-Fix-Agent Rejects Planning Artifacts
+
+**Decision Date:** 2026-02-12
+
+**Decision:** vet-fix-agent reviews implementation changes only. Planning artifacts need plan-reviewer agent.
+
+**Evidence:** vet-fix-agent line 27: "Error: Wrong agent type... This agent reviews implementation changes, not planning artifacts."
+
+**Routing:** plan-reviewer for both TDD and general planning artifacts.
+
+## When Expansion Reintroduces Defects
+
+**Decision Date:** 2026-02-12
+
+**Decision:** LLM failure mode checks must run at BOTH outline AND expanded phase levels.
+
+**Anti-pattern:** Outline review catches vacuous cycles and density issues, but phase expansion re-introduces them.
+
+**Evidence:** Outline was fixed. But expanded phases contained 3 vacuous cycles and 1 missing requirement.
+
+**Root cause:** plan-reviewer checks TDD discipline but not LLM failure modes after expansion.
+
+**Gap:** Outline checks → expansion → phase review (TDD only) → no LLM failure mode re-validation.

@@ -18,6 +18,23 @@
   - 4 phases: P0 TDD (FR-1,2), P1 TDD (FR-4,5), P2 TDD (FR-6), P3 general (SKILL.md update)
   - Outline complete, reviewed, ready for phase-by-phase expansion
 
+
+- [ ] **Build pushback into conversation process** → `wt/pushback` — `/design plans/pushback/requirements.md` | opus
+- [ ] **Codebase quality sweep** — Tests, deslop, factorization, dead code | sonnet
+- [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
+- [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
+- [ ] **Error handling framework design** → `wt/error-handling` — Resume `/design` Phase B | opus
+- [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
+- [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet
+- [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate in main repo or dedicated worktree | sonnet
+- [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
+- [ ] **Learning ages computation after consolidation** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
+- [ ] **Model tier awareness hook** — Hook injecting "Response by Opus/Sonnet/Haiku" into context | sonnet | restart
+- [ ] **Precommit validation improvements** — Expand precommit checks | sonnet
+- [ ] **Protocolize RED pass recovery** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
+- [ ] **Upstream plugin-dev: document skills frontmatter** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` field | sonnet
+- [ ] **Workflow improvements** → `workflow-improvements` — Process fixes from RCA + skill/fragment/orchestration cleanup | sonnet
+- [ ] **Worktree fixes** → `worktree-fixes` — `/design plans/worktree-fixes/` | opus
 ## Blockers / Gotchas
 
 - Session merge loses continuation lines (single-line set diff) → worktree-fixes FR-4
