@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-14
 
-**Status:** Pushback improvement design complete. Three interventions to fix agreement momentum detection. Ready for runbook.
+**Status:** Pushback improvement complete. Three interventions implemented and vetted. Restart required for hook changes. Validation next.
 
 ## Completed This Session
 
@@ -14,9 +14,17 @@
 - Three interventions: A) definition fix (conclusion-level tracking), B) disagree-first protocol, C) third-person reframing in hook
 - Design decisions D-8 through D-12 extend original D-1 through D-7
 
+**Pushback improvement implementation (Tier 1 direct):**
+- Tier assessment: 2 files, ~32 lines, exact replacement text → Tier 1
+- Intervention A: `agent-core/fragments/pushback.md` Agreement Momentum section — conclusion-level tracking definition
+- Intervention B: `agent-core/fragments/pushback.md` Design Discussion Evaluation section — disagree-first protocol restructure
+- Intervention C: `agent-core/hooks/userpromptsubmit-shortcuts.py` _DISCUSS_EXPANSION constant — third-person reframing
+- Symlinks synced via `just sync-to-parent`
+- Vet review: plans/pushback-improvement/reports/implementation-review.md — no issues, mechanically correct
+
 ## Pending Tasks
 
-- [ ] **Implement pushback improvement** — `/runbook plans/pushback-improvement/design.md` | sonnet
+- [x] **Implement pushback improvement** — `/runbook plans/pushback-improvement/design.md` | sonnet
   - Design: `plans/pushback-improvement/design.md`
   - Two files: `agent-core/fragments/pushback.md`, `agent-core/hooks/userpromptsubmit-shortcuts.py`
   - Mechanical text replacement — exact before/after text specified in design
@@ -28,7 +36,6 @@
   - Template: plans/pushback/reports/step-3-4-validation-template.md
   - Scenarios 1, 2, 4 not yet tested; Scenario 3 requires re-test after fix
   - Requires fresh session (hooks active after restart)
-  - Blocked on: implement pushback improvement
 
 - [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
@@ -53,7 +60,7 @@
 
 ## Next Steps
 
-`/runbook plans/pushback-improvement/design.md` — implementation is mechanical text replacement, sonnet tier.
+Restart session for hook changes, then validate with opus using `plans/pushback/reports/step-3-4-validation-template.md`.
 
 ---
 *Handoff by Opus. Design complete, runbook next.*

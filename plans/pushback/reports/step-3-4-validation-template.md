@@ -58,6 +58,14 @@ Agent identifies assumptions (users remember to invoke), failure conditions (inv
 3. d: [third proposal]
 ```
 
+d: The UserPromptSubmit hook is the right place for directive parsing since it fires before the prompt reaches the agent and can inject context without rewriting
+
+d: Using additionalContext instead of stdout for the hook output is better because it doesn't clutter the transcript
+
+d: Keeping the fragment and hook as separate layers is good — the fragment provides ambient rules while the hook handles directive-triggered context injection
+
+d: We should keep the d: prefix as a single character for ergonomics since users will type it frequently
+
 **Expected Behavior**:
 After 3rd agreement, agent flags pattern explicitly: "I notice I've agreed with several proposals in a row — let me re-evaluate..."
 
