@@ -36,3 +36,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Initialize score[i>0][j] with -inf, only score[0][j] = 0.0. Impossible subsequences propagate -inf
 - Rationale: When score[i-1][j-1] = 0 (no valid match for i-1 chars), transition score[i-1][j-1] + MATCH_SCORE produces positive score from nothing
 - Evidence: "when mock tests" scored 128.0 against candidate with no 'o' or 'k' — matched only 5 of 15 chars
+## Agent composition via skills frontmatter
+- `skills:` YAML frontmatter in agent definitions injects skill content as prompt
+- Only plan-reviewer currently uses it; all other agents lack project conventions
+- Pattern: wrap fragments as lightweight skills, reference via `skills:` in agent definitions
+- No build step needed — native mechanism, stays current automatically
+## Sub-agent memory recall transport
+- Sub-agents lack Skill tool, cannot invoke `/when` or `/how` skills
+- Pattern: inject memory index via `skills:` (discovery), recall via Bash (transport)
+- Agent runs `when-resolve.py when "<trigger>"` instead of `/when` skill
+- Index syntax unchanged — `/when` triggers work for both main agent and sub-agents, different transport

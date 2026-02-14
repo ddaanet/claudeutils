@@ -16,6 +16,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | reports | — | Shared reports directory (not a plan) |
 | tweakcc | requirements | Local instances research |
 | when-recall | complete | `/when` memory recall system — 42/42 TDD cycles, 8 phases, all checkpoints passed |
+| workflow-rca-fixes | requirements | 17 FRs: RCA prose fixes + agent composition + pipeline integration |
 | worktree-fixes | requirements | Task name constraints, session merge blocks, merge commit fix (5 FRs) |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
 | pushback | requirements | Prevent yes-manning in design discussions |
