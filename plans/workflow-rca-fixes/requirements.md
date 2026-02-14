@@ -5,7 +5,7 @@
 ### Functional Requirements
 
 **FR-1: Restructure runbook-review.md as type-agnostic**
-Restructure the four review axes (vacuity, dependency ordering, density, checkpoint spacing) with type-neutral definitions, then TDD-specific and general-specific detection bullets under each. Update process section to use "item" instead of "cycle." Add file growth projection as fifth axis.
+Restructure the four review axes (vacuity, dependency ordering, density, checkpoint spacing) with type-neutral definitions, then TDD-specific and general-specific detection bullets under each. Update process section to use "item" instead of "cycle." Add file growth projection as fifth axis. Vacuity axis must cover both scaffolding vacuity (existence-check-only tests) and behavioral vacuity (cycle N+1's RED entailed by cycle N's GREEN on the same function).
 
 Acceptance: Each axis has a type-agnostic concept definition, `**TDD:**` detection bullets, `**General:**` detection bullets, and a type-neutral action. Process section references "item (cycle or step)" not "cycle."
 
@@ -122,6 +122,13 @@ Document the requirement for global replanning escalation when execution discove
 Acceptance: Requirement documented with clear handoff to error handling framework design (`wt/error-handling`).
 
 Grounding: When-recall incident — test plan required redesign, sonnet orchestrator patched ad-hoc. Planner-executor research distinguishes local replanning (revise subtask) from global replanning (escalate when issues exceed local scope). Our system has local but not global.
+
+**FR-18: Review-fix integration rule**
+When review agent recommendations target an existing section (by heading match), merge into that section rather than appending a parallel section. Applies to outline-review-agent, vet-fix-agent, and plan-reviewer fix application.
+
+Acceptance: Fix-application logic includes integration check: if recommendation references an existing heading, insert within that section. No duplicate heading concepts in output.
+
+Grounding: RCA runbook-outline-review Pattern 2. Round 1 review appended "## Expansion Guidance (from outline review)" when "## Expansion Guidance" already existed 60 lines above. Default append behavior creates structural duplication.
 
 ### Constraints
 

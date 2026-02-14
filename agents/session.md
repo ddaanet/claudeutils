@@ -1,38 +1,57 @@
 # Session Handoff: 2026-02-14
 
-**Status:** RCA analysis complete, requirements artifact written for workflow-rca-fixes (17 FRs).
+**Status:** Design Phase B complete for workflow-rca-fixes (18 FRs). Outline reviewed, validated, ready for Phase C (design document).
 
 ## Completed This Session
 
-**RCA Analysis:**
-- Collected and summarized all 5 in-tree RCA reports (general-step detection, file growth, vet over-escalation, UNFIXABLE evidence, process review)
-- Mapped RCA fixes to existing Workflow improvements sub-items — identified 13 uncaptured fixes
-- Clustered into 5 editing sessions: runbook-review overhaul, vet agent overhaul, outline review agent, runbook skill cleanup, process RCA gaps
+**FR-18 Added:**
+- Added FR-18 (review-fix integration rule) to `plans/workflow-rca-fixes/requirements.md`
+- Updated FR-1 with behavioral vacuity detection requirement
 
-**Requirements Capture:**
-- Wrote `plans/workflow-rca-fixes/requirements.md` — 17 FRs, research-grounded
-- Research grounding: van der Aalst workflow net soundness, IBM ODC defect taxonomy, Microsoft agent orchestration patterns, DyFlow replanning framework
-- FR-1 through FR-11: Direct RCA fixes (prose edits to existing files)
-- FR-12/13: Agent composition infrastructure (skills frontmatter injection, memory index for sub-agents)
-- FR-14/15: Design skill fixes (Phase C density, repetition helper prescription)
-- FR-16: Deliverable review as post-orchestration workflow step
-- FR-17: Execution-to-planning feedback requirement (deferred to error-handling framework)
+**Design Phase A (Research + Outline):**
+- Three parallel explorations: target files structure, skills frontmatter behavior, review-plan skill
+- Q-1 resolved: `skills:` injects full SKILL.md (all-or-nothing, no section selection)
+- Q-2 resolved: ~300-400 tokens per small skill, ~1200 for large, 2-3 skills per agent manageable
+- Q-3 resolved: conformance gate = outline-review-agent (FR-11), scaffolding detection = Section 11.1 (FR-2)
+- CC system prompt gap analysis: sub-agents receive minimal prompt — no prose quality, no token economy, no tmp-directory. Gap analysis report: `plans/workflow-rca-fixes/reports/explore-agent-knowledge-gaps.md`
+- Revised FR-12: bundle deslop + token-economy + tmp-directory into `project-conventions` skill (~400 tokens). Drop code-removal (CC covers "delete unused"). Keep error-handling separate (~100 tokens) for bash-heavy agents.
+- Outline produced, reviewed by outline-review-agent (7 fixes applied, assessment: Ready)
 
-**Design Discussion Outcomes:**
-- Agent composition mechanism: `skills:` YAML frontmatter injects prompt content — native, no build step
-- Memory index for sub-agents: index injected via `skills:`, recall via Bash (`when-resolve.py`)
-- Deliverable review placement: post-orchestration, requires opus session
-- Execution feedback: local replanning (refactor) vs global replanning (escalate) gap identified
-- Commit CLI tool: branched to pending task, not on this worktree
+**Design Phase B (Iterative Discussion) — Key Decisions:**
+- Reflexive bootstrapping: reordered phases by tool-usage dependency (composition → runbook review → vet → outline review → skills → cleanup). Each improvement applied before downstream agent uses it.
+- Review-after-edit rule: skill-reviewer for skills, agent-creator (plugin-dev, has Write) for agents, vet-fix-agent for decisions/fragments
+- Diagnostic opus review: interactive RCA after reviewer pass (Phases 1-4 only). Session stops primed with methodology + prompts, user switches to opus. NOT delegated — opus needs full conversation context.
+- Restart rule: after every agent/fragment edit. Skill content resolves at spawn time (no restart for content-only).
+- Plugin-dev prerequisites: load skill-development + agent-development before Phase 1. Read continuation passing design + existing non-invocable skill patterns.
+
+**Research Grounding:**
+- Anthropic context engineering: focused task context over comprehensive information
+- ACE framework (arXiv 2510.04618): 10.6% performance gain from strategic knowledge injection
+- MAR (Multi-Agent Reflexion): multi-agent reflection breaks "degeneration of thought"
+- Flow-of-Action: SOP-constrained RCA reduces hallucinations
+- Reflexion (NeurIPS 2023): verbal reinforcement learning without weight updates
+
+**Exploration Reports:**
+- `plans/workflow-rca-fixes/reports/explore-target-files.md` — 7 target files structure
+- `plans/workflow-rca-fixes/reports/explore-skills-frontmatter.md` — Skills injection mechanism + Q-1/Q-2
+- `plans/workflow-rca-fixes/reports/explore-review-plan-skill.md` — Review-plan Section 11 analysis
+- `plans/workflow-rca-fixes/reports/explore-agent-knowledge-gaps.md` — CC system prompt gap analysis
+- `plans/workflow-rca-fixes/reports/outline-review.md` — Outline review (Ready)
+- `plans/reports/rca-runbook-outline-review.md` — RCA from worktree-fixes (3 patterns, FR-18 source)
 
 ## Pending Tasks
 
-- [ ] **Workflow RCA fixes** — `/design plans/workflow-rca-fixes/` | sonnet
-  - Requirements complete: `plans/workflow-rca-fixes/requirements.md` (17 FRs)
-  - Open questions: Q-1 (skills injection scope), Q-2 (token cost), Q-3 (conformance gate placement)
-  - Dependency: skill-reviewer verdict on fragment-as-skill viability (FR-12)
-  - 5 clusters: runbook-review, vet agent, outline review, runbook skill, design skill
-  - RCA source reports: `plans/reports/rca-*-opus.md`, `plans/process-review/rca.md`
+- [>] **Workflow RCA fixes** — Resume `/design plans/workflow-rca-fixes/` Phase C | sonnet
+  - Requirements: `plans/workflow-rca-fixes/requirements.md` (18 FRs)
+  - Outline: `plans/workflow-rca-fixes/outline.md` (reviewed, Ready)
+  - Open questions: all resolved (Q-1, Q-2, Q-3)
+  - Phase C: generate design.md, checkpoint commit, design-vet-agent review, handoff+commit
+  - Prerequisite for Phase C: check Anthropic official skills repo for RCA patterns to integrate into diagnostic review methodology
+- [ ] **Diagnostic opus review methodology** — New task from design discussion | `/requirements` | opus
+  - Interactive post-vet RCA using domain-specific methodology + iterative deepening
+  - Extends /reflect skill with proactive invocation, two-model separation, feedback loops
+  - Needs: review methodology documents (design-review, agent-review), integration into workflow
+  - Research: MAR, Flow-of-Action, Reflexion, Five Whys, TAMO, AgentErrorTaxonomy
 - [ ] **Workflow improvements** — Remaining sub-items not captured in workflow-rca-fixes | sonnet
   - Orchestrate evolution — designed, stale Feb 10, refresh after RCA
   - Fragments cleanup — remove fragments duplicating skills/workflow
@@ -74,19 +93,19 @@
 
 ## Blockers / Gotchas
 
-**Skills frontmatter behavior unknown:**
-- Q-1: Does `skills:` inject full SKILL.md or specific sections? Affects fragment skill design
-- Q-2: Token cost per injection — crowding risk with multiple skills
-- Test with plan-reviewer (only current user of `skills:`) to answer empirically
-
 **Execution feedback gap connects to error-handling:**
 - FR-17 documents requirement, implementation in `wt/error-handling`
 - RCA data (when-recall test plan redesign incident) provides grounding for error-handling design
 - All 5 RCAs provide grounding material for error classification taxonomy
 
+**Diagnostic review methodology gap:**
+- No formal design-review-methodology.md or agent-review-methodology.md exists
+- For workflow-rca-fixes, use pipeline-contracts + plugin-dev patterns as interim
+- Formal methodology documents are follow-on work (diagnostic opus review methodology task)
+
 ## Next Steps
 
-Start `/design plans/workflow-rca-fixes/` to resolve open questions and produce design for the 17 FRs.
+Resume `/design plans/workflow-rca-fixes/` Phase C — generate design.md from outline.
 
 ---
-*Handoff by Sonnet. Requirements captured, ready for design.*
+*Handoff by Sonnet. Design Phase B complete, outline validated.*

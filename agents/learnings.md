@@ -46,3 +46,24 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Pattern: inject memory index via `skills:` (discovery), recall via Bash (transport)
 - Agent runs `when-resolve.py when "<trigger>"` instead of `/when` skill
 - Index syntax unchanged — `/when` triggers work for both main agent and sub-agents, different transport
+## Reflexive bootstrapping for self-referential improvements
+- When improving tools/agents, apply each improvement before using that tool in subsequent steps
+- Phase ordering follows tool-usage dependency graph, not logical grouping
+- Collapses design→plan→execute into design→apply for prose-edit work
+- Avoids the bootstrapping problem: unimproved agents reviewing their own improvements
+- Generalizes: any self-referential improvement task should order by downstream usage, not by topic cluster
+## CC sub-agent prompt is minimal
+- Sub-agents (Task tool) receive only: identity, "do what was asked; nothing more, nothing less", file search guidance, absolute paths, no emojis
+- No prose quality rules, no token economy, no error handling philosophy, no project conventions
+- CC main agent gets "avoid over-engineering" and "delete unused" but these may not reach sub-agents
+- Gap analysis: deslop prose rules (0% coverage), token-economy (0%), tmp-directory (0%), code-removal (~50% — CC covers deletion)
+- Implication: `skills:` injection of project-conventions is high value for sub-agents
+## agent-creator can review+fix agents
+- plugin-dev agent-creator has Write+Read tools — can be prompted to review and fix agent definitions, not just create
+- No dedicated agent-reviewer exists in plugin-dev (only skill-reviewer, plugin-validator, agent-creator)
+- Pattern: "Review and fix this agent definition at [path]" works for validation + autofix
+## Diagnostic review needs interactivity
+- Anti-pattern: delegating opus diagnostic review to sub-agent (loses full conversation context)
+- Correct pattern: stop session primed with methodology + prompts, user switches to opus for interactive RCA
+- Rationale: opus needs conversation state for effective RCA; sub-agent gets only task prompt
+- Two-model separation avoids MAR's "degeneration of thought" from single-model self-reflection
