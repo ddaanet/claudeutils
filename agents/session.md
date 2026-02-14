@@ -1,33 +1,34 @@
-# Session Handoff: 2026-02-13
+# Session Handoff: 2026-02-14
 
-**Status:** Pushback validation Scenario 3 failed. Research complete for improvement design.
+**Status:** Pushback improvement design complete. Three interventions to fix agreement momentum detection. Ready for runbook.
 
 ## Completed This Session
 
-**Pushback validation (partial):**
-- Ran Scenario 3 (agreement momentum) from `plans/pushback/reports/step-3-4-validation-template.md`
-- Result: FAIL — agent agreed with all 4 proposals' conclusions while pushing back on reasoning only
-- Failure mode: "correcting reasoning while agreeing with conclusions" evades momentum detection
-- Root cause: "substantive pushback" undefined in fragment; design heuristic ("vague = sycophantic") fails when agent gives specific reasoning while agreeing
-
-**Improvement research:**
-- Comprehensive literature review: 16 references (10 arXiv, 3 Anthropic, ACL, blog, alignment post)
-- Report: `plans/pushback/reports/pushback-improvement-research.md`
-- Key findings: sycophantic agreement is mechanistically distinct from reasoning engagement; third-person reframing reduces sycophancy 63.8%; sequential presentation maximizes vulnerability; LLMs accept user framing in 90% of responses
-- 8 actionable techniques identified, grounded in cited research
+**Pushback improvement design (full A→C):**
+- Outline: `plans/pushback-improvement/outline.md` — 3 interventions selected from 8 research techniques
+- Outline review: 7 minor fixes applied, no UNFIXABLE
+- User discussion: validated approach, discussed sequential awareness technique exclusion
+- Design: `plans/pushback-improvement/design.md` — exact replacement text for both files
+- Design vet (opus): 1 major fix (missing NFR-1 closing paragraph), 4 minor fixes, no UNFIXABLE
+- Checkpoint commit: 326c418
+- Three interventions: A) definition fix (conclusion-level tracking), B) disagree-first protocol, C) third-person reframing in hook
+- Design decisions D-8 through D-12 extend original D-1 through D-7
 
 ## Pending Tasks
 
-- [ ] **Improve pushback agreement momentum detection** — `/design plans/pushback/reports/pushback-improvement-research.md` | opus
-  - Research grounding: `plans/pushback/reports/pushback-improvement-research.md`
-  - Scope: fragment rule refinement + hook injection improvements
-  - Must address: conclusion-level tracking, definition of "substantive pushback"
-  - Strongest-evidence techniques: third-person reframing, disagree-first protocol, explicit conclusion stance
+- [ ] **Implement pushback improvement** — `/runbook plans/pushback-improvement/design.md` | sonnet
+  - Design: `plans/pushback-improvement/design.md`
+  - Two files: `agent-core/fragments/pushback.md`, `agent-core/hooks/userpromptsubmit-shortcuts.py`
+  - Mechanical text replacement — exact before/after text specified in design
+  - Single general phase, no TDD
+  - Symlink sync via `just sync-to-parent` after hook changes
+  - Requires restart after implementation
 
 - [ ] **Complete pushback validation** — Re-run all 4 scenarios after momentum fix | opus
   - Template: plans/pushback/reports/step-3-4-validation-template.md
   - Scenarios 1, 2, 4 not yet tested; Scenario 3 requires re-test after fix
   - Requires fresh session (hooks active after restart)
+  - Blocked on: implement pushback improvement
 
 - [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
@@ -52,7 +53,7 @@
 
 ## Next Steps
 
-Design session for pushback agreement momentum improvement. Clear session first (opus needs full context budget). Research is self-contained in the report file.
+`/runbook plans/pushback-improvement/design.md` — implementation is mechanical text replacement, sonnet tier.
 
 ---
-*Handoff by Sonnet. Scenario 3 failed, research complete, design next.*
+*Handoff by Opus. Design complete, runbook next.*

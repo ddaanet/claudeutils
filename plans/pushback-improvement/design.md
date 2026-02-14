@@ -4,7 +4,7 @@
 
 Agreement momentum detection (FR-2) failed Scenario 3 validation. Agent agreed with all 4 proposals' conclusions while correcting reasoning on each — satisfying the structural evaluation checklist without triggering momentum detection.
 
-Root cause: "substantive pushback" is undefined in the fragment. The design heuristic ("vague = sycophantic", D-4 from original design) fails when the agent provides specific reasoning while agreeing with every conclusion. Research confirms: sycophantic agreement and reasoning engagement are mechanistically distinct (arXiv 2509.21305).
+Root cause: "substantive pushback" is undefined in the fragment. The design heuristic ("vague = sycophantic", Q-4 resolution from original design) fails when the agent provides specific reasoning while agreeing with every conclusion. Research confirms: sycophantic agreement and reasoning engagement are mechanistically distinct (arXiv 2509.21305).
 
 ## Requirements
 
@@ -114,7 +114,11 @@ Then articulate the strongest case against the most recent conclusion before re-
 **Always:**
 - State your confidence level
 - Name what evidence would change your assessment
+
+**Evaluate critically, examining strengths and weaknesses.** Do not "play devil's advocate" — that's performative. This is substantive assessment.
 ```
+
+**Note:** The closing paragraph ("Evaluate critically...") is preserved unchanged from the current fragment. It reinforces NFR-1 (genuine evaluation, not reflexive disagreement).
 
 **Design rationale:**
 - "Evaluate the conclusion first" replaces "Before agreeing" — removes agreement-as-default framing
@@ -204,8 +208,8 @@ The three interventions are independent but reinforcing:
 
 | File | Change | Lines affected |
 |------|--------|----------------|
-| `agent-core/fragments/pushback.md` | MODIFY — Design Discussion Evaluation + Agreement Momentum sections | ~30 lines changed |
-| `agent-core/hooks/userpromptsubmit-shortcuts.py` | MODIFY — `_DISCUSS_EXPANSION` string constant | ~15 lines changed |
+| `agent-core/fragments/pushback.md` | MODIFY — Design Discussion Evaluation + Agreement Momentum sections | ~20 lines changed |
+| `agent-core/hooks/userpromptsubmit-shortcuts.py` | MODIFY — `_DISCUSS_EXPANSION` string constant | ~12 lines changed |
 | Symlinks via `just sync-to-parent` | UPDATE — sync after hook changes | N/A |
 
 ## Testing Strategy
@@ -233,9 +237,20 @@ Single general phase. Both changes are prompt-level content — fragment behavio
 
 **No additional research needed.** All external references resolved during design. Implementation is mechanical text replacement.
 
+## Requirements Traceability
+
+| Requirement | Addressed | Design Reference |
+|-------------|-----------|------------------|
+| FR-1 | Regression only | Intervention B preserves evaluation checklist items; no structural change to FR-1 coverage |
+| FR-2 | Yes (primary) | Intervention A (definition fix), B (protocol restructure), C (hook reframing) |
+| FR-3 | Regression only | Model Selection section unchanged |
+| NFR-1 | Yes | Disagree-first is evaluation protocol, not reflexive disagreement; closing paragraph preserved; overcorrection safeguard documented |
+| NFR-2 | Yes | Same two files, string content changes only, no new infrastructure |
+
 ## Next Steps
 
 1. `/runbook plans/pushback-improvement/design.md` — create execution runbook
-2. Execution model: sonnet (mechanical text replacement, no architectural decisions)
-3. Restart required after changes land
-4. Validation requires fresh opus session (behavioral evaluation, not mechanical)
+2. **Skill loading for planning:** `plugin-dev:hook-development` if planner needs hook API details
+3. Execution model: sonnet (mechanical text replacement, no architectural decisions)
+4. Restart required after changes land
+5. Validation requires fresh opus session (behavioral evaluation, not mechanical)

@@ -14,7 +14,8 @@ Plan lifecycle tracking. Updated when plans change status.
 | parallel-orchestration | requirements | Deferred from orchestrate-evolution (worktree isolation needed) |
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
 | reports | — | Shared reports directory (not a plan) |
-| pushback | complete | Two-layer anti-sycophancy: fragment + hook. Scenario 3 (agreement momentum) failed validation — improvement design pending |
+| pushback | complete | Two-layer anti-sycophancy: fragment + hook. Scenario 3 (agreement momentum) failed validation — improvement designed |
+| pushback-improvement | designed | Three interventions: definition fix, disagree-first protocol, third-person reframing. Runbook next |
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
