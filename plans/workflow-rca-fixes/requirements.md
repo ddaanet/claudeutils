@@ -155,7 +155,7 @@ FR-17 captures the requirement but implementation belongs in `wt/error-handling`
 
 ### Dependencies
 
-- `wt/error-handling` — FR-15 documents requirement; implementation lives there
+- `wt/error-handling` — FR-17 documents requirement; implementation lives there
 - Skill-reviewer verdict on fragment-as-skill viability — affects FR-12 approach
 - Plugin convention constraints — affects memory index recall transport path (FR-13)
 

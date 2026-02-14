@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-14
 
-**Status:** Design Phase B complete for workflow-rca-fixes (18 FRs). Outline reviewed, validated, ready for Phase C (design document).
+**Status:** Design Phase C complete for workflow-rca-fixes. Design.md generated, opus-reviewed (Ready), checkpoint committed. Next: `/runbook`.
 
 ## Completed This Session
 
@@ -39,14 +39,23 @@
 - `plans/workflow-rca-fixes/reports/outline-review.md` — Outline review (Ready)
 - `plans/reports/rca-runbook-outline-review.md` — RCA from worktree-fixes (3 patterns, FR-18 source)
 
+**Design Phase C (Design Document Generation):**
+- Prerequisite cleared: Anthropic skills repo has no RCA patterns (creative/document skills only). Superpowers repo systematic-debugging targets code debugging, not process RCA — our `/reflect` already covers process-level equivalent.
+- Bootstrap: created project-conventions skill (FR-12), updated design-vet-agent + outline-review-agent frontmatter with `skills: [project-conventions]`, added density checkpoint (FR-14) + repetition helper (FR-15) to design skill
+- Ran updated outline-review-agent: assessment Ready, all 18 FRs traced, no issues
+- Generated `plans/workflow-rca-fixes/design.md` (6 phases, reflexive bootstrapping, three-layer validation, vet taxonomy, convention injection)
+- Opus design-vet-agent review: assessment Ready, no critical/major issues, 3 minor (informational)
+- Fixed requirements.md typo (FR-15→FR-17 in dependencies section)
+- Design review: `plans/workflow-rca-fixes/reports/design-review.md`
+- Outline review: `plans/workflow-rca-fixes/reports/outline-review-phase-c.md`
+
 ## Pending Tasks
 
-- [>] **Workflow RCA fixes** — Resume `/design plans/workflow-rca-fixes/` Phase C | sonnet
+- [ ] **Workflow RCA fixes** — `/runbook plans/workflow-rca-fixes/design.md` | sonnet
+  - Design: `plans/workflow-rca-fixes/design.md` (opus-reviewed, Ready)
   - Requirements: `plans/workflow-rca-fixes/requirements.md` (18 FRs)
-  - Outline: `plans/workflow-rca-fixes/outline.md` (reviewed, Ready)
-  - Open questions: all resolved (Q-1, Q-2, Q-3)
-  - Phase C: generate design.md, checkpoint commit, design-vet-agent review, handoff+commit
-  - Prerequisite for Phase C: check Anthropic official skills repo for RCA patterns to integrate into diagnostic review methodology
+  - Load `plugin-dev:skill-development` and `plugin-dev:agent-development` before planning
+  - Early bootstrap done: project-conventions skill created, design-vet-agent + outline-review-agent updated, design skill updated (FR-14, FR-15)
 - [ ] **Diagnostic opus review methodology** — New task from design discussion | `/requirements` | opus
   - Interactive post-vet RCA using domain-specific methodology + iterative deepening
   - Extends /reflect skill with proactive invocation, two-model separation, feedback loops
@@ -105,7 +114,7 @@
 
 ## Next Steps
 
-Resume `/design plans/workflow-rca-fixes/` Phase C — generate design.md from outline.
+`/runbook plans/workflow-rca-fixes/design.md` — generate execution runbook from design.
 
 ---
-*Handoff by Sonnet. Design Phase B complete, outline validated.*
+*Handoff by Sonnet. Design Phase C complete, design opus-reviewed (Ready).*
