@@ -76,6 +76,10 @@
       }
     ]
   },
+  "enabledPlugins": {
+    "hookify@claude-plugins-official": false,
+    "feature-dev@claude-plugins-official": true
+  },
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
@@ -85,8 +89,5 @@
       "agent-core/bin/prepare-runbook.py"
     ]
   },
-  "plansDirectory": "plans/claude/",
-  "enabledPlugins": {
-    "hookify@claude-plugins-official": false
-  }
+  "plansDirectory": "plans/claude/"
 }
