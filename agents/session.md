@@ -1,19 +1,38 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Validation template revised and relocated. Ready for manual testing.
+**Status:** Pushback protocol rewritten (verdict-first). Ready for re-validation.
 
 ## Completed This Session
 
-**Validation template revision:**
-- Revised all 4 scenarios: replaced stale Scenario 1 (settled decision), added mixed-validity proposals to Scenario 3 (subtly flawed 4th proposal), expanded Scenario 4 to 3 sub-scenarios (deceptively mechanical, deceptively simple, ambiguous)
-- Added Scenario Design Principles header for refreshability
-- Moved from `plans/pushback/reports/step-3-4-validation-template.md` → `tests/manual/pushback-validation.md` (won't be archived with plan)
+**Validation analysis:**
+- Ran pushback validation from `tests/manual/pushback-validation.md`
+- Results: S1 PASS, S2 PASS, S3 FAIL (contrarian — disagreed with all 4 including 3 correct), S4 FAIL (uniform sonnet)
+- Root cause: AGAINST-first framing in fragment produces contrarianism — mirror image of sycophancy
+- Fragment alone (without hook) also too negative; no signal at all → no evaluation
+- Test report: `tmp/pushback-test-report.md`
+
+**Pushback protocol fix (verdict-first):**
+- Fragment (`agent-core/fragments/pushback.md`): Replaced AGAINST-first with verdict-first
+  - "Form your assessment" → "Stress-test your OWN position" (agent argues against itself, not the proposal)
+  - Closing: "Agreement with specific reasons is valuable. Disagreement without substance is noise."
+  - Agreement momentum: stress-test agreement instead of AGAINST-first re-evaluation
+- Hook (`agent-core/hooks/userpromptsubmit-shortcuts.py`):
+  - `_DISCUSS_EXPANSION`: Compressed, removed framework restatement, added "Reflexive disagreement is as harmful as reflexive agreement"
+  - `_PENDING_EXPANSION`: Added inline model tier assessment with "State reasoning", removed "Infer defaults"
+
+**Validation script:**
+- Created `tests/manual/pushback-prompts.md` — copy-paste prompt script with session reset before S3
 
 ## Pending Tasks
 
-- [ ] **Complete pushback validation** — Run all scenarios from revised template | opus
+- [ ] **Prototype session scraping** — script or sub-agent | sonnet
+  - Scrape second most recent session in project to auto-generate pushback validation report
+  - User should not have to manually write the report
+  - Prompts are labeled S1-S4 in `tests/manual/pushback-prompts.md`
+
+- [ ] **Re-validate pushback** — Run all scenarios after session scraping works | opus
   - Template: tests/manual/pushback-validation.md
-  - All scenarios need fresh run (template rewritten)
+  - Prompt script: tests/manual/pushback-prompts.md
   - Requires fresh session (hooks active after restart)
 
 - [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
@@ -31,12 +50,8 @@
 
 ## Blockers / Gotchas
 
-**Submodule pointer commit pattern:**
-- Task agents committed changes in agent-core submodule but left parent repo submodule pointer uncommitted
-- Occurred after cycles 2.4 and Phase 1 checkpoint
-- Fixed via sonnet escalation (2 instances)
-- Recommendation: Add automated git status check to orchestration post-step verification
+- S4 validation `p:` prompts generated test artifact tasks in previous session.md — removed (not real tasks)
 
 ## Next Steps
 
-Restart session, then run manual validation using `tests/manual/pushback-validation.md` with opus.
+Prototype session scraping, then re-validate pushback with verdict-first protocol.
