@@ -120,15 +120,10 @@
   - Load plugin-dev:hook-development skill for hook modification guidance
   - Current hook blocks ALL bash when cwd wrong, including `cd` to restore — creates catch-22
 
-- [ ] **Error handling design** — Resume `/design` Phase B | opus
+- [ ] **Error handling design** — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
+  - Blocked: pending workflow improvements must land first
   - Outline: `plans/error-handling/outline.md`
-  - Design Phase A complete, Phase B blocked on workflow improvements (now complete)
-  - Reports: `plans/error-handling/reports/explore-error-handling.md`, `plans/error-handling/reports/explore-cps-chains.md`, `plans/error-handling/reports/outline-review.md`
-
-## Worktree Tasks
-
-- [ ] **Error handling design** → `error-handling` — Resume `/design` Phase B | opus
-  - Outline: `plans/error-handling/outline.md`
+  - Key decisions: D-1 CPS abort-and-record, D-2 task `[!]`/`[✗]` states, D-3 escalation acceptance criteria, D-5 rollback = revert to step start
 
 ## Blockers / Gotchas
 
