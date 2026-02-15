@@ -169,5 +169,3 @@ def test_dp_rejects_non_subsequence() -> None:
 
     # Valid subsequence still scores positive
     assert score_match("mock", "mock patching") > 0
-
-

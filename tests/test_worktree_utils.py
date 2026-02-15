@@ -13,23 +13,31 @@ from claudeutils.worktree.utils import wt_path
 
 def test_derive_slug() -> None:
     """Transforms task names to slugs."""
-    assert derive_slug("Implement ambient awareness") == "implement-ambient-awareness"
-    assert derive_slug("Design runbook identifiers") == "design-runbook-identifiers"
-    assert (
-        derive_slug("Review agent-core orphaned revisions")
-        == "review-agent-core-orphaned-rev"
-    )
-    assert derive_slug("Multiple    spaces   here") == "multiple-spaces-here"
-    assert derive_slug("Special!@#$%chars") == "special-chars"
-    assert derive_slug("A" * 35 + "test") == "a" * 30
-    assert derive_slug("feat: add login") == "feat-add-login"
+    assert derive_slug("Build docs") == "build-docs"
+    assert derive_slug("Fix bug-123") == "fix-bug-123"
+    assert derive_slug("Add v2.0 support") == "add-v2-0-support"
+    assert derive_slug("a") == "a"
+    assert derive_slug("Test   multiple   spaces") == "test-multiple-spaces"
     assert derive_slug("Feature-Name") == "feature-name"
-    assert len(derive_slug("a" * 100)) <= 30
-    assert not derive_slug("a" * 100).endswith("-")
     with pytest.raises(ValueError, match="task_name must not be empty"):
         derive_slug("")
     with pytest.raises(ValueError, match="task_name must not be empty"):
         derive_slug("   ")
+
+
+def test_derive_slug_validates_format() -> None:
+    """derive_slug validates task name format."""
+    with pytest.raises(ValueError, match="forbidden character '_'"):
+        derive_slug("task_name")
+
+    with pytest.raises(ValueError, match="forbidden character '@'"):
+        derive_slug("task@host")
+
+    with pytest.raises(ValueError, match="exceeds 25 character limit"):
+        derive_slug("This is a very long task name that exceeds limit")
+
+    with pytest.raises(ValueError, match="empty"):
+        derive_slug("")
 
 
 def test_wt_path_not_in_container(

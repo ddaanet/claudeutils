@@ -42,13 +42,13 @@
 - [ ] **Error handling framework design** → `wt/error-handling` — Resume `/design` Phase B | opus
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
 - [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet
-- [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate in main repo or dedicated worktree | sonnet
+- [ ] **Handoff consol scope** — Only consolidate in main repo or dedicated worktree | sonnet
 - [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
-- [ ] **Learning ages computation after consolidation** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
+- [ ] **Learning ages consol** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
 - [ ] **Model tier awareness hook** — Hook injecting "Response by Opus/Sonnet/Haiku" into context | sonnet | restart
-- [ ] **Precommit validation improvements** — Expand precommit checks | sonnet
-- [ ] **Protocolize RED pass recovery** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
-- [ ] **Upstream plugin-dev: document skills frontmatter** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` field | sonnet
+- [ ] **Precommit improvements** — Expand precommit checks | sonnet
+- [ ] **RED pass recovery** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
+- [ ] **Upstream skills field** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` field | sonnet
 - [ ] **Workflow improvements** → `workflow-improvements` — Process fixes from RCA + skill/fragment/orchestration cleanup | sonnet
 - [ ] **Worktree fixes** → `worktree-fixes` — `/design plans/worktree-fixes/` | opus
 ## Blockers / Gotchas

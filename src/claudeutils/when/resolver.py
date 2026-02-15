@@ -275,10 +275,7 @@ def _build_heading(operator: str, trigger: str) -> str:
     """Build heading from operator and trigger."""
     words = trigger.split()
     # Preserve all-caps acronyms, capitalize normal words
-    capitalized = " ".join(
-        w if w.isupper() else w.capitalize()
-        for w in words
-    )
+    capitalized = " ".join(w if w.isupper() else w.capitalize() for w in words)
     if operator == "how":
         return f"How to {capitalized}"
     return f"When {capitalized}"

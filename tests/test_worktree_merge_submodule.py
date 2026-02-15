@@ -268,14 +268,25 @@ def test_merge_submodule_merge_commit(
         == 0
     ), "merged_commit should have wt_commit as ancestor"
 
-    commit_message = subprocess.run(
-        ["git", "log", "-1", "--format=%s"],
-        cwd=repo_with_submodule,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.strip()
+    # Should have two commits: Phase 2 submodule merge, Phase 4 parent merge
+    recent_commits = (
+        subprocess.run(
+            ["git", "log", "-2", "--format=%s"],
+            cwd=repo_with_submodule,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        .stdout.strip()
+        .split("\n")
+    )
 
-    assert "🔀 Merge agent-core from merge-test" in commit_message, (
-        f"commit message should reflect merge, got: {commit_message}"
+    assert len(recent_commits) == 2, (
+        f"Expected 2 commits (submodule + parent), got {len(recent_commits)}"
+    )
+    assert recent_commits[0] == "🔀 Merge merge-test", (
+        f"Latest commit should be parent merge, got: {recent_commits[0]}"
+    )
+    assert recent_commits[1] == "🔀 Merge agent-core from merge-test", (
+        f"Previous commit should be submodule merge, got: {recent_commits[1]}"
     )
