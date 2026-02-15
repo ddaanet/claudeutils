@@ -1,23 +1,40 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Three RCAs on chain-shortcircuit pattern. Two worktrees outstanding.
+**Status:** RCA on skill primitive decomposition. One worktree remaining (error-handling).
 
 ## Completed This Session
 
-**RCA: Premature termination of multi-step chains (3 instances, same pattern):**
-- Pattern: Evaluate downstream preconditions before running upstream steps → abort chain that would have succeeded
-- Instance 1: `/design` triage → "Simple" → skipped skill/recipe checks → raw `cd` into worktrees
-  - Fix: Design skill Simple path — "Check for applicable skills and project recipes first, then execute directly" (6e7f7c9)
-- Instance 2: RCA concluded "behavioral, no rule change needed" → appended learning to 482-line file
-  - Fix: User pushback — learning alone is not a fix when learnings.md is effectively /dev/null at 6× soft limit
-- Instance 3: `hc` → checked git status (clean) → skipped handoff entirely → `p:` task never written
-  - Fix: execute-rule.md shortcuts — "Shortcuts are mechanical expansions — invoke directly. Do not pre-evaluate."
+**RCA: Skill primitive decomposition (4th instance of "execute directly" pattern):**
+- Trigger: Used `just wt-rm` instead of `claudeutils _worktree rm` during worktree merge
+- Root cause: "Execute directly" in design skill Simple path is a global throughput optimizer — agent decomposes skills into primitives and selects "simpler" one
+- Prior rule fixes (3 instances) failed: rules compete for attention weight, each new rule dilutes all others
+- Deeper: agent reads skill, understands internals, replays ad-hoc — makes skill into documentation not interface
+- Structural fix A: Removed primitives from context — curated CLAUDE.md recipe list (5 recipes, no wt-*)
+- Structural fix B: Design skill "execute directly" → "Skip design — all other operational rules remain in effect"
+- Infrastructure: Removed entire cache system (.cache/ dir, agent-core/Makefile, `cache` recipe, `gmake check` from precommit)
 
-**Prior uncommitted:** `execution-routing.md` fragment updated (added "Check loaded context" as step 1, renumbered)
+**Worktree cleanup (partial):**
+- Removed remember-skill-update worktree (ancestry-only — no work products, just focused session)
+- Confirmed pushback worktree already gone (no branch exists)
+- error-handling merge still pending (interrupted by RCA)
 
 ## Pending Tasks
 
+- [ ] **Merge error-handling wt** — `wt merge error-handling` | sonnet
+  - Has real artifacts: outline.md, 2 explore reports, outline-review
+  - Use `claudeutils _worktree merge` (skill CLI), not justfile recipe
+
+- [ ] **Remember skill update** — Resume `/design` Phase B | sonnet
+  - Requirements: `plans/remember-skill-update/requirements.md` (7 FRs, When/How prefix mandate)
+  - Outline: `plans/remember-skill-update/outline.md` (reviewed, Phase B discussion next)
+  - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
+  - Key decisions pending: hyphen handling, agent duplication, frozen-domain priority
+  - Reports: `plans/remember-skill-update/reports/outline-review.md`, `plans/remember-skill-update/reports/explore-remember-skill.md`
+  - Immediate sub-task: Migrate 64 learning titles to When/How format (FR-7)
+
 - [ ] **Rename remember skill** — Test brainstorm-name agent, pick new name, update all references | sonnet | restart
+
+- [ ] **Pushback design** — `/design plans/pushback/requirements.md` | opus
 
 - [ ] **RED pass protocol** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
@@ -103,25 +120,17 @@
   - Load plugin-dev:hook-development skill for hook modification guidance
   - Current hook blocks ALL bash when cwd wrong, including `cd` to restore — creates catch-22
 
+- [ ] **Error handling design** — Resume `/design` Phase B | opus
+  - Outline: `plans/error-handling/outline.md`
+  - Design Phase A complete, Phase B blocked on workflow improvements (now complete)
+  - Reports: `plans/error-handling/reports/explore-error-handling.md`, `plans/error-handling/reports/explore-cps-chains.md`, `plans/error-handling/reports/outline-review.md`
+
 ## Worktree Tasks
 
-- [ ] **Remember skill update** → `remember-skill-update` — Resume `/design` Phase B | sonnet
-  - Requirements: `plans/remember-skill-update/requirements.md` (7 FRs, When/How prefix mandate)
-  - Outline: `plans/remember-skill-update/outline.md` (reviewed, Phase B discussion next)
-  - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
-  - Key decisions pending: hyphen handling, agent duplication, frozen-domain priority
-  - Reports: `plans/remember-skill-update/reports/outline-review.md`, `plans/remember-skill-update/reports/explore-remember-skill.md`
-  - Immediate sub-task: Migrate 64 learning titles to When/How format (FR-7)
-- [ ] **Error handling framework design** → `wt/error-handling` — Resume `/design` Phase B | opus
+- [ ] **Error handling design** → `error-handling` — Resume `/design` Phase B | opus
   - Outline: `plans/error-handling/outline.md`
-- [ ] **Build pushback into conversation process** → `wt/pushback` — `/design plans/pushback/requirements.md` | opus
 
 ## Blockers / Gotchas
-
-**Execution feedback gap connects to error-handling:**
-- FR-17 documents requirement, implementation in `wt/error-handling`
-- RCA data (when-recall test plan redesign incident) provides grounding for error-handling design
-- All 5 RCAs provide grounding material for error classification taxonomy
 
 **Diagnostic review methodology converging:**
 - Taxonomy, iteration protocol, priming template designed in conversation
@@ -133,32 +142,22 @@
 - Must manually remove entries from memory-index.md before running precommit
 - Autofix only handles placement, ordering, and structural entry removal — not orphans
 
-**Rule file directive adherence unreliable:**
-- Agents ignore injected "load X before modifying" directives
-- Same failure mode as passive index (2.9% baseline recall)
-- Blocking hooks or inline code comments may be more effective than suggestion-based rules
-
-**Learnings.md bloated after pushback merge (400 lines, 69 entries):**
-- Pushback worktree accumulated 62 entries over its lifecycle
-- Merge unioned both files — all worktree entries show 0 days (merge commit date)
-- Cannot consolidate: 0 entries ≥7 active days despite 5x soft limit
+**Learnings.md bloated (486 lines, ~69 entries):**
+- Cannot consolidate: entries show 0 days (pushback merge reset dates)
 - Many entries may already be consolidated in pushback's permanent docs — need manual review
 - Title migration to When/How format (FR-7) should happen before or alongside consolidation
 
-**Pushback S3 agreement momentum:**
-- Known limitation — prompt-level self-monitoring can't detect agreement momentum without persistent state across turns
-- Not pursuing further (arXiv 2509.21305 confirms sycophancy is mechanistically distinct)
-
 ## Next Steps
 
-Merge outstanding worktrees (`just wt-merge`), preserve session data, remove ancestry-only merges.
+Merge error-handling worktree: `wt merge error-handling`
 
 ## Reference Files
 
 - `plans/remember-skill-update/requirements.md` — 7 FRs (When/How prefix, validation, migration)
 - `plans/remember-skill-update/outline.md` — Design outline (reviewed, Phase B ready)
-- `plans/remember-skill-update/reports/explore-remember-skill.md` — Full pipeline exploration
+- `plans/error-handling/outline.md` — Error handling design outline (Phase A complete)
+- `plans/error-handling/reports/explore-error-handling.md` — Error handling landscape
+- `plans/error-handling/reports/explore-cps-chains.md` — CPS chain mechanics
 - `plans/reports/memory-index-actionability-review.md` — Opus actionability review of all index entries
 - `plans/when-recall/reports/baseline-recall-analysis.md` — 2.9% baseline recall measurement
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
-- `plans/workflow-rca-fixes/design.md` — 20 FRs, 6 phases (complete)

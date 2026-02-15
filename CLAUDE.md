@@ -83,10 +83,10 @@ When user says "pending: task description":
 
 ### Available Recipes
 
-**Root justfile:**
-@.cache/just-help.txt
-
-**agent-core justfile:**
-@.cache/just-help-agent-core.txt
+- `just precommit` — Run all checks
+- `just test *ARGS` — Run test suite
+- `just dev` — Format and run all checks
+- `just format` / `just lint` / `just check` — Code formatting and style
+- `just sync-to-parent` (agent-core) — Sync skills/agents to `.claude/` via symlinks
 
 @agent-core/fragments/tool-batching.md

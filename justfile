@@ -12,11 +12,7 @@ help:
 
 # Format and run all checks
 [no-exit-message]
-dev: format cache precommit
-
-# Rebuild cached just help output (if justfiles changed)
-cache:
-    gmake --no-print-directory -C agent-core all
+dev: format precommit
 
 # Run all checks
 [no-exit-message]
@@ -24,7 +20,6 @@ precommit:
     #!{{ bash_prolog }}
     sync
     claudeutils validate
-    gmake --no-print-directory -C agent-core check
     run-checks
     pytest_output=$(safe pytest 2>&1)
     echo "$pytest_output"
