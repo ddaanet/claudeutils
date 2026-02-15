@@ -6,7 +6,7 @@ Complements `deliverable-review.md` (post-execution artifact review).
 
 ## .Review Axes
 
-### When Detecting Vacuous Tdd Cycles
+### When Detecting Vacuous Items
 
 Items where RED tests don't constrain implementation (TDD) or steps produce no functional outcome (general). Haiku satisfies them with degenerate output — structurally correct, behaviorally meaningless.
 
@@ -20,6 +20,11 @@ Items where RED tests don't constrain implementation (TDD) or steps produce no f
 - Step creates scaffolding (empty class, stub file, directory structure) without functional outcome
 - Step N+1 produces outcome achievable by extending step N alone → merge
 - Consecutive steps modify same artifact with composable changes
+
+**Behavioral vacuity detection:**
+- **TDD:** For each cycle pair (N, N+1) on the same function, verify N+1's RED assertion would fail given N's GREEN implementation. If not, cycles are behaviorally vacuous — N+1 adds no constraint beyond N.
+- **General:** For consecutive steps modifying the same artifact, verify step N+1 produces an outcome not achievable by extending step N's implementation alone. If achievable, steps should be merged.
+- **Heuristic (both types):** cycles/steps > LOC/20 signals consolidation needed — item count exceeds the behavioral surface area of the code.
 
 **Action:** Eliminate, or merge into the nearest behavioral item.
 
@@ -42,9 +47,9 @@ Items that reference structures not yet created. The executing model must either
 
 **Grounding:** WebApp1K error taxonomy identifies "API Call Mismatch" (Type C) and "Scope Violation" (Type F) as direct consequences of executing against structures that don't match expected state. Non-reasoning models default to pretraining patterns when spec contradicts expectations. ([Fan et al., 2025](https://arxiv.org/html/2505.09027v1))
 
-### When Evaluating Cycle Density
+### When Evaluating Item Density
 
-Unnecessary items that dilute expansion quality and increase execution context pressure. Every item adds prompt length during both expansion (planner attention budget) and execution (haiku context window).
+Unnecessary items that dilute expansion quality and increase execution context pressure. Every item adds prompt length during both expansion (planner attention budget) and execution (context window).
 
 **TDD:**
 - Two adjacent cycles test the same function and differ by only a single branch point
@@ -102,12 +107,12 @@ Growth projection prevents refactor escalations from line-limit violations disco
 
 ## .Process
 
-1. Read runbook outline (phase structure, item descriptions, dependency declarations)
-2. For each item, evaluate against vacuity and dependency ordering axes
-3. For each phase, evaluate item density and identify collapse candidates
-4. Check checkpoint spacing across full runbook
-5. Project file growth per phase, flag threshold breaches
-6. Classify findings: High (dependency ordering — causes regression), Medium (vacuity/density/growth — wastes budget), Low (checkpoint gaps — drift risk)
+1. Read runbook outline (phase structure, item descriptions, dependency declarations). Identify phase types (TDD or general) — apply type-appropriate criteria in subsequent steps.
+2. For each item (cycle or step), evaluate against vacuity and dependency ordering axes. Apply behavioral vacuity detection for consecutive items on the same target.
+3. For each phase, evaluate item (cycle or step) density and identify collapse candidates.
+4. Check checkpoint spacing across full runbook — count items (cycles or steps) between quality gates.
+5. Project file growth per phase, flag threshold breaches.
+6. Classify findings: High (dependency ordering — causes regression), Medium (vacuity/density/growth — wastes budget), Low (checkpoint gaps — drift risk).
 
 ## .Sources
 
