@@ -1,26 +1,17 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Requirements formalized for remember-skill-update, worktree reorganized.
+**Status:** Organized reports directory, merging worktree-fixes.
 
 ## Completed This Session
 
-**Remember skill update — requirements formalization:**
-- User required learning titles in "When ..." / "How to ..." format (matching decision file headings)
-- Identified 64 new entries since last consolidation (`8a62c85`) needing title migration
-- Captured as `plans/remember-skill-update/requirements.md` (7 FRs)
-- Key refinement vs outline: titles include When/How prefix, eliminating operator selection as agent judgment
-- Folded `learning-title-reformat` plan scope into remember-skill-update (created and deleted same session)
-- Removed old worktree `design-remember-skill-update` (branch force-deleted, outline preserved on main)
-- Created fresh worktree `remember-skill-update` with requirements.md
-
-**Prior session (committed):**
-- Design outline for remember-skill-update Phase A, pushback merge, justfile tweak
+**Organized plans/reports directory:**
+- Moved 7 RCA reports → `plans/process-review/reports/` (plan that produced them)
+- Deleted 5 orphaned execution/debug reports (git history preserves)
+- `plans/reports/` now contains only shared research (2 files)
+- Updated all cross-references (session.md, internal RCA refs)
+- Convention enforced: `plans/<plan>/reports/` = plan-specific, `plans/reports/` = shared research
 
 ## Pending Tasks
-
-- [ ] **Organize plans/reports directory** — Separate persistent research from context-specific reports | sonnet
-  - Currently 14 files mixing grounding research (reusable) with plan-specific reports (context-bound)
-  - Define directory structure or naming convention for discoverability
 
 - [ ] **Rename remember skill** — Test brainstorm-name agent, pick new name, update all references | sonnet | restart
 
@@ -95,7 +86,7 @@
   - Plan: worktree-fixes | Status: requirements
   - 6 FRs: task name constraints, precommit validation, migration, session merge blocks, merge commit fix, automate session edits
 - [ ] **Workflow improvements** → `workflow-improvements` — Process fixes from RCA + skill/fragment/orchestration cleanup | sonnet
-  - RCA blocker resolved — reports at `plans/reports/rca-*-opus.md`
+  - RCA blocker resolved — reports at `plans/process-review/reports/rca-*-opus.md`
   - Input: `plans/orchestrate-evolution/design.md`, `plans/process-review/rca.md`
   - Orchestrate evolution — designed, stale Feb 10, refresh after RCA
   - Fragments cleanup — remove fragments duplicating skills/workflow
@@ -105,7 +96,7 @@
   - Agent output optimization — remove summarize/report language from agents
   - Investigation prerequisite rule review
   - Design skill: Phase C density checkpoint (TDD non-code marking handled by per-phase typing)
-  - Workflow fixes from RCA — `plans/reports/rca-*-opus.md`, normalize runbook-review axes, execution-time split, vet investigation protocol, orchestrate template
+  - Workflow fixes from RCA — `plans/process-review/reports/rca-*-opus.md`, normalize runbook-review axes, execution-time split, vet investigation protocol, orchestrate template
   - Commit skill optimizations — remove handoff gate, Gate B coverage ratio, branching after precommit
   - Fix skill-based agents not using skills prolog section — `skills:` frontmatter
 
@@ -120,6 +111,10 @@
 - merge.py has auto-resolvers for session.md, learnings.md, jobs.md
 - Session merge loses continuation lines (single-line set diff) → worktree-fixes FR-4
 - No-op merge skips commit → orphan branch → worktree-fixes FR-5
+
+**workflow-improvements worktree has stale RCA paths:**
+- Worktree references `plans/reports/rca-*-opus.md` — moved to `plans/process-review/reports/`
+- Update references in worktree session.md after merge
 
 **Validator orphan entries not autofixable:**
 - Marking headings structural (`.` prefix) causes `check_orphan_entries` non-autofixable error

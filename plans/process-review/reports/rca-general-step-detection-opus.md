@@ -271,7 +271,7 @@ With:
 
 ## 6. Comparison with Prior RCA
 
-An existing RCA exists at `plans/reports/rca-general-step-detection.md`. This opus analysis confirms and extends that report:
+An existing RCA exists at `plans/process-review/reports/rca-general-step-detection.md`. This opus analysis confirms and extends that report:
 
 **Confirmed findings:**
 - Root cause (TDD-specific detection criteria in authoritative source) — identical diagnosis

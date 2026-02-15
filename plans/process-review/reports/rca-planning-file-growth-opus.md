@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-13
 **Model:** opus
-**Prior RCA:** `plans/reports/rca-planning-file-growth.md` (sonnet, same date)
+**Prior RCA:** `plans/process-review/reports/rca-planning-file-growth.md` (sonnet, same date)
 **Runbook:** worktree-update (37 TDD cycles, 7 phases, 18 refactor reports)
 
 ---
@@ -249,7 +249,7 @@ Fix 4 has low cost (one design guideline) and high benefit (eliminates the large
 
 ### Relationship to prior RCA
 
-The sonnet RCA (`plans/reports/rca-planning-file-growth.md`) identifies the same root cause but frames it as "missing projection." This opus analysis corrects that: the projection existed but had three failures (wrong threshold, deferred split, no review validation). The distinction matters because:
+The sonnet RCA (`plans/process-review/reports/rca-planning-file-growth.md`) identifies the same root cause but frames it as "missing projection." This opus analysis corrects that: the projection existed but had three failures (wrong threshold, deferred split, no review validation). The distinction matters because:
 
 - "Missing projection" suggests adding a data-gathering step
 - "Projection-action gap" suggests adding validation at the existing review gate
