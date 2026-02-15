@@ -12,7 +12,7 @@ import click
 
 from claudeutils.validation.tasks import validate_task_name_format
 from claudeutils.worktree.merge import merge as merge_impl
-from claudeutils.worktree.session import extract_task_blocks
+from claudeutils.worktree.session import extract_task_blocks, move_task_to_worktree
 from claudeutils.worktree.utils import _git, wt_path
 
 
@@ -282,6 +282,8 @@ def new(slug: str | None, base: str, session: str, task: str, session_md: str) -
             click.echo(f"Error: existing directory {path}", err=True)
             raise SystemExit(1)
         _setup_worktree(path, slug, base, session, task)
+        if task:
+            move_task_to_worktree(Path(session_md), task, slug)
     finally:
         if temp_session_file:
             Path(temp_session_file).unlink(missing_ok=True)

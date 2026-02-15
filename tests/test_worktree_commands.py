@@ -397,3 +397,42 @@ def test_rm_safe_branch_deletion(
     assert result.exit_code == 0
     assert "Branch unmerged-slug has unmerged changes" in result.output
     assert "git branch -D unmerged-slug" in result.output
+
+
+def test_new_task_mode_moves_task_to_worktree(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """Task mode: after worktree created, moves task from Pending to Worktree Tasks."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    init_repo(repo_path)
+
+    session_file = repo_path / "agents" / "session.md"
+    session_file.parent.mkdir(parents=True, exist_ok=True)
+    session_content = r"""# Session Handoff
+
+## Pending Tasks
+
+- [ ] **Implement feature X** — `\`/runbook\`` | sonnet
+- [ ] **Fix bug Y** — `\`/design\`` | haiku
+
+## Blockers / Gotchas
+
+- None currently
+"""
+    session_file.write_text(session_content)
+
+    result = CliRunner().invoke(worktree, ["new", "--task", "Implement feature X"])
+    assert result.exit_code == 0
+
+    updated_session = session_file.read_text()
+    assert "## Pending Tasks" in updated_session
+    assert (
+        "Implement feature X"
+        not in updated_session.split("## Pending Tasks")[1].split("## ")[0]
+    )
+    assert "## Worktree Tasks" in updated_session
+    assert "Implement feature X" in updated_session.split("## Worktree Tasks")[1]
+    assert "→ `implement-feature-x`" in updated_session
+    assert "Fix bug Y" in updated_session
