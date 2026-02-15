@@ -1,27 +1,19 @@
-# Session Handoff: 2026-02-14
+# Session Handoff: 2026-02-15
 
-**Status:** Pushback validation pending. Hook messages compressed. Restart required for hook changes.
+**Status:** Validation template revised and relocated. Ready for manual testing.
 
 ## Completed This Session
 
-**Pushback mechanism validation (manual):**
-- User tested pushback by proposing something already implemented (fragment for pushback rules) — agent correctly pushed back
-- Tested `d:` hook fire and inspected additionalContext vs systemMessage difference
-- Scenario 1 results filled into validation template (behavior correct, overly verbose)
-
-**Hook message compression:**
-- Applied compression learning: remove redundancy while preserving information
-- `[SHORTCUT: X]` / `[DIRECTIVE: X]` → `[X]` across all COMMANDS and DIRECTIVES
-- Removed prose restating tag names: "Smart execute:", "Strict resume:", "Record pending task."
-- Trimmed filler: "all workflow" → just enumerated items, "entry point" → "entry"
-- Agent-directed behavioral instructions preserved (intentional reinforcement)
-- New learning added: compression = remove redundancy, preserve information (generalized from Python docstrings)
+**Validation template revision:**
+- Revised all 4 scenarios: replaced stale Scenario 1 (settled decision), added mixed-validity proposals to Scenario 3 (subtly flawed 4th proposal), expanded Scenario 4 to 3 sub-scenarios (deceptively mechanical, deceptively simple, ambiguous)
+- Added Scenario Design Principles header for refreshability
+- Moved from `plans/pushback/reports/step-3-4-validation-template.md` → `tests/manual/pushback-validation.md` (won't be archived with plan)
 
 ## Pending Tasks
 
-- [ ] **Complete pushback validation** — Re-run all 4 scenarios after momentum fix | opus
-  - Template: plans/pushback/reports/step-3-4-validation-template.md
-  - Scenarios 1, 2, 4 not yet tested; Scenario 3 requires re-test after fix
+- [ ] **Complete pushback validation** — Run all scenarios from revised template | opus
+  - Template: tests/manual/pushback-validation.md
+  - All scenarios need fresh run (template rewritten)
   - Requires fresh session (hooks active after restart)
 
 - [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
@@ -47,4 +39,4 @@
 
 ## Next Steps
 
-Restart session for hook changes, then validate with opus using `plans/pushback/reports/step-3-4-validation-template.md`.
+Restart session, then run manual validation using `tests/manual/pushback-validation.md` with opus.
