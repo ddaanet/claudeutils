@@ -18,7 +18,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | when-recall | complete | `/when` memory recall system — 42/42 TDD cycles, 8 phases, all checkpoints passed |
 | worktree-fixes | requirements | Task name constraints, session merge blocks, merge commit fix (5 FRs) |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
-| pushback | requirements | Prevent yes-manning in design discussions |
+| pushback | complete | Two-layer anti-sycophancy: fragment + hook, S1/S2/S4 validated |
 | pushback-improvement | designed | Design complete (from pushback worktree) |
 | remember-skill-update | requirements | Outline complete, Phase B discussion next (trigger framing, frozen-domain recall) |
 | process-review | complete | RCA recovered to disk for workflow-improvements reference |

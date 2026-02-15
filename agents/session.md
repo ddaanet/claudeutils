@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Design remember skill update — Phase A complete (outline reviewed), ready for Phase B discussion.
+**Status:** Design outline, pushback merge, worktree setup, justfile tweak.
 
 ## Completed This Session
 
@@ -9,7 +9,15 @@
 - Wrote outline covering two workstreams: title-trigger alignment (3 enforcement layers) + frozen-domain recall analysis
 - Outline reviewed by outline-review-agent — 4 major, 5 minor fixes applied
 - User reviewed outline, 3 key decisions surfaced for Phase B discussion
-- Spinning off to worktree for continued design work
+- Spun off to worktree `design-remember-skill-update` for continued design
+
+**Pushback worktree merged:**
+- Precommit fix: added `pushback-improvement` plan to jobs.md (missing plan error)
+- Session state recovery: 3 tasks + 1 blocker lost by set-diff resolver (FR-4), manually restored
+- Pushback plan complete: two-layer anti-sycophancy (fragment + hook), validated S1/S2/S4, S3 known limitation
+
+**Justfile:**
+- Removed `-q` flag from pytest in precommit and lint recipes
 
 ## Pending Tasks
 
@@ -73,6 +81,7 @@
 
 - [ ] **Design behavioral intervention for nuanced conversational patterns** — `/design` | opus
   - Requires synthesis from research on conversational patterns
+
 ## Worktree Tasks
 
 - [ ] **Design remember skill update** → `design-remember-skill-update` — Resume `/design` Phase B (outline complete) | sonnet
@@ -122,6 +131,13 @@
 - Agents ignore injected "load X before modifying" directives
 - Same failure mode as passive index (2.9% baseline recall)
 - Blocking hooks or inline code comments may be more effective than suggestion-based rules
+
+**Learnings.md bloated after pushback merge (400 lines, 69 entries):**
+- Pushback worktree accumulated 62 entries over its lifecycle
+- Merge unioned both files — all worktree entries show 0 days (merge commit date)
+- Cannot consolidate: 0 entries ≥7 active days despite 5x soft limit
+- Many entries may already be consolidated in pushback's permanent docs — need manual review
+- Run `/remember` manually or wait for entries to age past 7-day threshold
 
 **Pushback S3 agreement momentum:**
 - Known limitation — prompt-level self-monitoring can't detect agreement momentum without persistent state across turns
