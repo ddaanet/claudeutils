@@ -1,39 +1,25 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Pushback protocol rewritten (verdict-first). Ready for re-validation.
+**Status:** Pushback validation complete. S1/S2 pass, S3 known limitation, S4 fixed.
 
 ## Completed This Session
 
-**Validation analysis:**
-- Ran pushback validation from `tests/manual/pushback-validation.md`
-- Results: S1 PASS, S2 PASS, S3 FAIL (contrarian — disagreed with all 4 including 3 correct), S4 FAIL (uniform sonnet)
-- Root cause: AGAINST-first framing in fragment produces contrarianism — mirror image of sycophancy
-- Fragment alone (without hook) also too negative; no signal at all → no evaluation
-- Test report: `tmp/pushback-test-report.md`
+**Pushback validation and S4 fix:**
+- Ran scraper on validation sessions — S1 PASS, S2 PASS, S3 FAIL (momentum), S4 FAIL (model assessment + replace bug)
+- Enhanced scraper with tool call capture: ToolCall dataclass, tool_use/tool_result JSONL pairing, per-turn display in report
+- Added Edit input display — output-only was insufficient to verify session.md mutations
+- S4 root cause: hook said "Append to session.md" (immediate), fragment said "on next handoff" (deferred). Agent followed hook (recency), botched Edit (replaced previous task instead of appending)
+- Fixed `p:` directive in 3 files: hook expansion (defer write), CLAUDE.md notation (add model assessment), execute-rule description
+- S3 declared known limitation — agreement momentum detection hits prompt engineering ceiling. No persistent state across turns for self-monitoring agreement count. Research (arXiv 2509.21305) confirms sycophancy is mechanistically distinct.
+- S4 fix does not need re-validation — mechanical (removed contradictory instruction), clear mechanism
 
-**Pushback protocol fix (verdict-first):**
-- Fragment (`agent-core/fragments/pushback.md`): Replaced AGAINST-first with verdict-first
-  - "Form your assessment" → "Stress-test your OWN position" (agent argues against itself, not the proposal)
-  - Closing: "Agreement with specific reasons is valuable. Disagreement without substance is noise."
-  - Agreement momentum: stress-test agreement instead of AGAINST-first re-evaluation
-- Hook (`agent-core/hooks/userpromptsubmit-shortcuts.py`):
-  - `_DISCUSS_EXPANSION`: Compressed, removed framework restatement, added "Reflexive disagreement is as harmful as reflexive agreement"
-  - `_PENDING_EXPANSION`: Added inline model tier assessment with "State reasoning", removed "Infer defaults"
-
-**Validation script:**
-- Created `tests/manual/pushback-prompts.md` — copy-paste prompt script with session reset before S3
+**Prior sessions (scraping + verdict-first):**
+- Created `scripts/scrape-validation.py` — JSONL session scraper with tool call capture
+- Pushback protocol: AGAINST-first → verdict-first (fragment + hook)
+- Created `tests/manual/pushback-prompts.md` — validation prompt script
+- Vet reviewed: `plans/pushback/reports/scrape-validation-vet.md`
 
 ## Pending Tasks
-
-- [ ] **Prototype session scraping** — script or sub-agent | sonnet
-  - Scrape second most recent session in project to auto-generate pushback validation report
-  - User should not have to manually write the report
-  - Prompts are labeled S1-S4 in `tests/manual/pushback-prompts.md`
-
-- [ ] **Re-validate pushback** — Run all scenarios after session scraping works | opus
-  - Template: tests/manual/pushback-validation.md
-  - Prompt script: tests/manual/pushback-prompts.md
-  - Requires fresh session (hooks active after restart)
 
 - [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
@@ -50,8 +36,9 @@
 
 ## Blockers / Gotchas
 
-- S4 validation `p:` prompts generated test artifact tasks in previous session.md — removed (not real tasks)
+- S3 agreement momentum: known limitation, not pursuing further. Prompt-level self-monitoring can't work without persistent state across turns.
+- Learnings.md at 362 lines (61 entries, 25 eligible for consolidation). Run `/remember` when convenient.
 
 ## Next Steps
 
-Prototype session scraping, then re-validate pushback with verdict-first protocol.
+Design workwoods or pick from unscheduled plans (orchestrate-evolution designed, when-recall designed, plugin-migration planned, worktree-update planned).

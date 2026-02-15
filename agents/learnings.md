@@ -360,3 +360,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Tolerated redundancy: Item name and its one-line description (Python object + docstring first line, CLI option + help text)
 - Generalizes beyond code: hook messages, index entries, section headers — anywhere name + description coexist
 - Example: `[DIRECTIVE: DISCUSS] Discussion mode — evaluate critically` → `[DISCUSS] Evaluate critically` (DIRECTIVE+DISCUSS+Discussion = 3× same concept)
+## Hook-fragment alignment required
+- Anti-pattern: Hook says "write now", fragment says "write on handoff" — agent follows hook (recency position), creates behavioral bugs
+- Correct pattern: Hook reinforces fragment, never contradicts. Both layers must give consistent instructions.
+- Rationale: Hook content sits in recency zone, fragment in primacy zone. Contradictions resolve to recency — agent can't reconcile, follows stronger signal
+- Example: `p:` directive — hook said "Append to session.md", fragment said "on next handoff". Agent wrote immediately, replaced previous task instead of appending.
