@@ -64,9 +64,15 @@
   - Rewrite agent-core ad-hoc scripts via TDD to claudeutils package
 
 
-- [ ] **Design behavioral intervention for nuanced conversational patterns** — `/design` | opus
-- [ ] **Inject missing main-guidance rules into agent definitions** — process improvements batch
 - [ ] **Update /remember to target agent definitions** — blocked on memory redesign
+  - When consolidating learnings actionable for sub-agents, route to agent templates (quiet-task.md, tdd-task.md) as additional target
+
+- [ ] **Inject missing main-guidance rules into agent definitions** — process improvements batch
+  - Distill sub-agent-relevant rules (layered context model, no volatile references, no execution mechanics in steps) into agent templates
+  - Source: tool prompts, review guide, memory system learnings
+
+- [ ] **Design behavioral intervention for nuanced conversational patterns** — `/design` | opus
+  - Requires synthesis from research on conversational patterns
 ## Worktree Tasks
 
 - [ ] **Design remember skill update** → `design-remember-skill-update` — Resume `/design` Phase B (outline complete) | sonnet
@@ -116,6 +122,10 @@
 - Agents ignore injected "load X before modifying" directives
 - Same failure mode as passive index (2.9% baseline recall)
 - Blocking hooks or inline code comments may be more effective than suggestion-based rules
+
+**Pushback S3 agreement momentum:**
+- Known limitation — prompt-level self-monitoring can't detect agreement momentum without persistent state across turns
+- Not pursuing further (arXiv 2509.21305 confirms sycophancy is mechanistically distinct)
 
 ## Reference Files
 
