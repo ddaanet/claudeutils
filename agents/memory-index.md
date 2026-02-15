@@ -241,6 +241,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when unifying over patching | shared code bifurcation root cause
 /when common context competes with step | phase-neutral only
 /when capturing requirements from conversation | capture over interview
+/when execution escalation tiers | item-level local-recovery global-replanning
+/when global replanning needed | design assumptions invalidated scope creep
 
 ## agents/decisions/operational-practices.md
 
