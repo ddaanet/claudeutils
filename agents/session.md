@@ -1,17 +1,21 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Runbook reviewed and fixed. Ready for prepare-runbook.py → restart → orchestrate.
+**Status:** Orchestration complete. All 20 FRs implemented across 6 phases.
 
 ## Completed This Session
 
-**Runbook Review (workflow-rca-fixes):**
-- Reviewed runbook.md following runbook-review-guide.md layered protocol (baseline → common context → steps)
-- Found 2 major issues, 2 minor observations
-- M-1: Phase 2 restart incorrect — runbook-review.md NOT @-referenced, accessed via /when recall. Fixed: restart → No, updated metadata + final validation
-- M-2: Step 2.3 forward-referenced unmodified agent. Fixed: changed to reference runbook-review.md (upstream source)
-- RCA'd both errors: M-1 = conflation of indexing with loading; M-2 = source confusion in bootstrapping pipeline
-- Applied 2 recurrence prevention proposals: restart-reason verification added to Step 2.2, reference-direction anti-pattern added to Step 5.1
-- All 20 FRs verified covered, all validation reviewers match artifact types, report paths consistent
+**Runbook Execution (workflow-rca-fixes):**
+- Executed all 16 steps across 6 phases with opus/sonnet model routing
+- Phase 1: Skill composition (error-handling, memory-index skills; 5 agent frontmatter updates)
+- Phase 2: Review logic type-agnostic (runbook-review.md 5 axes, review-plan Section 11 General detection, runbook Phase 0.95 LLM gate)
+- Phase 3: Vet 4-status taxonomy (vet-taxonomy.md, vet-fix-agent investigation protocol, vet-requirement enforcement, orchestrate template)
+- Phase 4: Outline review enhancements (growth validation, semantic propagation, deliverable traceability)
+- Phase 5: Content edits (general-step references, design skill validations, workflows terminology, design-vet-agent criteria)
+- Phase 6: Cleanup (Phase 1.4 deletion, execution escalation documentation)
+- Model correction: 9 prose-heavy steps switched sonnet→opus during validation
+- Delegation pattern: main session handled all skill-reviewer/agent-creator validations (sub-agents can't spawn plugin-dev agents)
+- All 6 phase checkpoints passed, final vet review: 0 UNFIXABLE issues
+- 25 reports in plans/workflow-rca-fixes/reports/
 
 **Prior Sessions:**
 - Runbook promoted from outline (16 steps, 6 phases, all general type)
@@ -22,13 +26,13 @@
 
 ## Pending Tasks
 
-- [>] **Workflow RCA fixes** — `agent-core/bin/prepare-runbook.py plans/workflow-rca-fixes/runbook.md` | sonnet
+- [x] **Workflow RCA fixes** — `agent-core/bin/prepare-runbook.py plans/workflow-rca-fixes/runbook.md` | sonnet
   - Runbook: `plans/workflow-rca-fixes/runbook.md` (16 steps, 6 phases, reviewed and fixed)
   - Design: `plans/workflow-rca-fixes/design.md` (20 FRs, 6 phases)
   - Requirements: `plans/workflow-rca-fixes/requirements.md`
-  - Next: run prepare-runbook.py, restart, `/orchestrate workflow-rca-fixes`
-  - Key: Phase 2 does NOT need restart (decision docs + skills on-demand). Phases 1, 3-5 do.
-  - Key: Step 3.1 creates vet-taxonomy.md (taxonomy split from vet-fix-agent)
+  - Orchestrated: All 16 steps executed, all 6 phase checkpoints passed, final vet complete
+  - Key artifacts: vet-taxonomy.md, general-patterns.md, error-handling/memory-index skills
+  - Model routing applied: 9 steps opus (prose edits), 7 steps sonnet (mechanical)
 - [ ] **RCA failures to load skills during /runbook** — Investigate why plugin-dev skills required explicit invocation | sonnet
   - Context: /runbook skill documentation perimeter says "Load plugin-dev:skill-development before planning"
   - Expected: Auto-load or clearer failure message when missing
@@ -42,6 +46,10 @@
   - Taxonomy (6 categories): completeness, consistency, feasibility, clarity, traceability, coupling
   - Two-tier context augmentation: always-inject (skills prolog) vs index-and-recall (on-demand). Haiku paradox resolved: discovery stays with capable agents, haiku gets pre-assembled context
   - Methodology as skill referenced in design-vet-agent + outline-review-agent `skills:` frontmatter
+- [ ] **Review runbook skill delegation language** — Validation steps delegate to skill-reviewer/vet but orchestrator does delegation, not execution agent | sonnet
+  - Context: Step validation sections say "Delegate to skill-reviewer" but execution agents can't spawn plugin-dev agents
+  - Pattern used: orchestrator handled reviews from main session after agents committed
+  - Fix: Update validation language to match orchestrator responsibility
 - [ ] **Workflow improvements** — Remaining sub-items not captured in workflow-rca-fixes | sonnet
   - Orchestrate evolution — designed, stale Feb 10, refresh after RCA
   - Fragments cleanup — remove fragments duplicating skills/workflow
@@ -96,9 +104,7 @@
 
 ## Next Steps
 
-1. Run `agent-core/bin/prepare-runbook.py plans/workflow-rca-fixes/runbook.md` (requires dangerouslyDisableSandbox)
-2. Restart session
-3. `/orchestrate workflow-rca-fixes`
+Review pending tasks list for next work item.
 
 ---
-*Handoff by Sonnet. Runbook reviewed, 2 major issues fixed, recurrence prevention applied.*
+*Handoff by Sonnet. Orchestration complete: 16 steps, 6 phases, 20 FRs implemented.*

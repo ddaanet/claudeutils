@@ -94,3 +94,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: referencing a downstream consumer of criteria (e.g., "same criteria as outline-review-agent") when the consumer hasn't been updated yet in the bootstrapping sequence
 - Correct pattern: reference the upstream source where criteria are defined (e.g., runbook-review.md), not agents/skills that consume them
 - Rationale: in reflexive bootstrapping, each tool is improved before downstream use. References must follow the dependency chain direction.
+## Orchestrator handles validation delegation
+- Anti-pattern: Step validation sections say "Delegate to skill-reviewer" expecting execution agent to spawn plugin-dev agents
+- Correct pattern: Orchestrator delegates reviews from main session after execution agents commit
+- Rationale: Sub-agents can't spawn plugin-dev agents (skill-reviewer, agent-creator). Orchestrator has plugin-dev access, execution agents don't. Validation delegation is orchestrator responsibility, not execution agent responsibility.
