@@ -18,6 +18,37 @@ LEARNING_PATTERN = re.compile(r"^## (.+)$")
 H1_PATTERN = re.compile(r"^# ")
 
 
+def validate_task_name_format(name: str) -> list[str]:
+    """Validate task name format.
+
+    Args:
+        name: Task name to validate.
+
+    Returns:
+        List of error strings. Empty list if valid.
+    """
+    errors = []
+
+    # Check for empty or whitespace-only
+    if not name.strip():
+        errors.append("empty or whitespace-only")
+        return errors
+
+    # Check for forbidden characters
+    if not re.fullmatch(r"[a-zA-Z0-9 .\-]+", name):
+        # Find first forbidden character
+        for char in name:
+            if not re.match(r"[a-zA-Z0-9 .\-]", char):
+                errors.append(f"contains forbidden character '{char}'")
+                break
+
+    # Check length
+    if len(name) > 25:
+        errors.append(f"exceeds 25 character limit ({len(name)} chars)")
+
+    return errors
+
+
 def extract_task_names(lines: list[str]) -> list[tuple[int, str]]:
     """Extract (line_number, task_name) pairs from task lines.
 
@@ -257,7 +288,7 @@ def validate(session_path: str, learnings_path: str, root: Path) -> list[str]:
     full_session_path = root / session_path
     full_learnings_path = root / learnings_path
 
-    errors = []
+    errors: list[str] = []
 
     # Read session.md
     try:
@@ -276,6 +307,13 @@ def validate(session_path: str, learnings_path: str, root: Path) -> list[str]:
     # Extract task names and learning keys
     tasks = extract_task_names(session_lines)
     learning_keys = extract_learning_keys(learning_lines)
+
+    # Check format of each task name
+    for lineno, task_name in tasks:
+        errors.extend(
+            f"  line {lineno}: Task '{task_name}': {msg}"
+            for msg in validate_task_name_format(task_name)
+        )
 
     # Check uniqueness within session.md
     seen: dict[str, int] = {}

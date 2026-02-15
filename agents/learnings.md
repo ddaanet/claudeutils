@@ -398,3 +398,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Hook reinforces fragment, never contradicts. Both layers must give consistent instructions.
 - Rationale: Hook content sits in recency zone, fragment in primacy zone. Contradictions resolve to recency — agent can't reconcile, follows stronger signal
 - Example: `p:` directive — hook said "Append to session.md", fragment said "on next handoff". Agent wrote immediately, replaced previous task instead of appending.
+## Vet introduces path bugs
+- Anti-pattern: `_find_git_root()` traversing parents of relative `Path("agents")` — loop exits at `Path(".")` without checking it
+- Correct pattern: Always `.resolve()` paths before parent traversal in `_find_git_root()` and similar functions
+- Rationale: `Path(".").parent == Path(".")` terminates the while loop before checking cwd for `.git`
+## Block matching by first line
+- Anti-pattern: `line in task_block.lines` — matches ANY line in the block (including continuation lines like `  - Plan: foo`), causing false positives if that text appears elsewhere in the file
+- Correct pattern: `line == task_block.lines[0]` — match only the unique task header line
+- Rationale: Continuation lines are often generic (indented metadata) and not unique; first line contains the `**TaskName**` identifier which is guaranteed unique

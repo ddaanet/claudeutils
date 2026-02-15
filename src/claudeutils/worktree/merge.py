@@ -5,6 +5,7 @@ from pathlib import Path
 
 import click
 
+from claudeutils.worktree.session import extract_task_blocks, find_section_bounds
 from claudeutils.worktree.utils import _git, wt_path
 
 
@@ -66,36 +67,44 @@ def _resolve_session_md_conflict(conflicts: list[str]) -> list[str]:
     ours_content = _git("show", ":2:agents/session.md", check=False)
     theirs_content = _git("show", ":3:agents/session.md", check=False)
 
-    ours_tasks = {
-        line
-        for line in ours_content.split("\n")
-        if line.strip().startswith("- [ ] **") and "**" in line
-    }
-    theirs_tasks = {
-        line
-        for line in theirs_content.split("\n")
-        if line.strip().startswith("- [ ] **") and "**" in line
-    }
+    # Extract task blocks from both sides (all pending tasks)
+    # Handles both modern (with "## Pending Tasks") and legacy (tasks at root)
+    ours_blocks = extract_task_blocks(ours_content)
+    theirs_blocks = extract_task_blocks(theirs_content)
 
-    new_tasks = theirs_tasks - ours_tasks
+    # Compare by task name to find new tasks
+    ours_names = {b.name for b in ours_blocks}
+    new_blocks = [b for b in theirs_blocks if b.name not in ours_names]
 
-    if new_tasks:
+    if new_blocks:
+        bounds = find_section_bounds(ours_content, "Pending Tasks")
         ours_lines = ours_content.split("\n")
-        pending_idx = next(
-            (i for i, line in enumerate(ours_lines) if "## Pending Tasks" in line), None
-        )
-        if pending_idx is not None:
-            next_section_idx = next(
-                (
-                    i
-                    for i in range(pending_idx + 1, len(ours_lines))
-                    if ours_lines[i].startswith("## ")
-                ),
-                len(ours_lines),
-            )
-            ours_lines[next_section_idx:next_section_idx] = ["", *sorted(new_tasks)]
+
+        if bounds is not None:
+            # Insert full task blocks (all lines) before next section
+            insertion_point = bounds[1]
+            new_task_lines = []
+            for block in sorted(new_blocks, key=lambda b: b.name):
+                new_task_lines.extend(block.lines)
+
+            # Ensure blank line separation before next section header.
+            # Add blank line after new tasks if:
+            # - next line exists and is not already blank, AND
+            # - new tasks don't already end with blank line
+            if (
+                insertion_point < len(ours_lines)
+                and ours_lines[insertion_point] != ""
+                and (not new_task_lines or new_task_lines[-1] != "")
+            ):
+                new_task_lines.append("")
+
+            ours_lines[insertion_point:insertion_point] = new_task_lines
         else:
-            ours_lines.extend(["", "## Pending Tasks", "", *sorted(new_tasks)])
+            # Create Pending Tasks section if missing
+            new_task_lines = []
+            for block in sorted(new_blocks, key=lambda b: b.name):
+                new_task_lines.extend(block.lines)
+            ours_lines.extend(["", "## Pending Tasks", "", *new_task_lines])
         ours_content = "\n".join(ours_lines)
 
     Path("agents/session.md").write_text(ours_content)
@@ -252,15 +261,27 @@ def _phase3_merge_parent(slug: str) -> None:
 def _phase4_merge_commit_and_precommit(slug: str) -> None:
     """Phase 4: Commit merge and run precommit validation.
 
-    If staged changes exist after merge, commit with message "🔀 Merge <slug>".
+    If MERGE_HEAD exists (merge in progress), always commit even if no staged
+    changes (use --allow-empty). Otherwise, only commit if staged changes exist.
     Then run `just precommit` and handle exit code appropriately.
     """
+    merge_in_progress = (
+        subprocess.run(
+            ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+            capture_output=True,
+            check=False,
+        ).returncode
+        == 0
+    )
+
     staged_check = subprocess.run(
         ["git", "diff", "--cached", "--quiet"],
         check=False,
     )
 
-    if staged_check.returncode != 0:
+    if merge_in_progress:
+        _git("commit", "--allow-empty", "-m", f"🔀 Merge {slug}")
+    elif staged_check.returncode != 0:
         _git("commit", "-m", f"🔀 Merge {slug}")
 
     precommit_result = subprocess.run(

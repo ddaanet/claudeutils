@@ -234,9 +234,7 @@ def check_collisions(
     errors = []
     for heading, entry_list in heading_to_entries.items():
         if len(entry_list) > 1:
-            descriptions = [
-                f"'{k}' (line {ln})" for k, ln in entry_list
-            ]
+            descriptions = [f"'{k}' (line {ln})" for k, ln in entry_list]
             errors.append(
                 f"  collision: entries {', '.join(descriptions)} "
                 f"resolve to same heading '{heading}'"

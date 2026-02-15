@@ -15,24 +15,24 @@
 
 - [ ] **Rename remember skill** — Test brainstorm-name agent, pick new name, update all references | sonnet | restart
 
-- [ ] **Protocolize RED pass recovery** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
+- [ ] **RED pass protocol** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
   - Reports: `plans/when-recall/reports/tdd-process-review.md`, `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`
 
-- [ ] **Precommit validation improvements** — Expand precommit checks | sonnet
+- [ ] **Precommit improvements** — Expand precommit checks | sonnet
   - Validate session.md references point to versioned files (reject tmp/ references) — recurring failure mode
   - Validate session.md pending tasks/worktree structure
   - Reject references to tmp/ files in all committed content
   - Autofix or fail on duplicate memory index entries (blocked on memory redesign)
 
-- [ ] **Handoff skill memory consolidation worktree awareness** — Only consolidate in main repo or dedicated worktree | sonnet
+- [ ] **Handoff wt awareness** — Only consolidate memory in main repo or dedicated worktree | sonnet
 
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
   - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite against post-worktree-update justfile, expanded phases need regeneration
   - Drift: 18 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
 
-- [ ] **Upstream plugin-dev: document skills frontmatter** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` field | sonnet
+- [ ] **Upstream skills field** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` frontmatter | sonnet
 
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
   - Plan: continuation-prepend | Status: requirements
@@ -60,14 +60,16 @@
   - Rewrite agent-core ad-hoc scripts via TDD to claudeutils package
 
 
-- [ ] **Update /remember to target agent definitions** — blocked on memory redesign
+- [ ] **Learning ages consol** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
+
+- [ ] **Remember agent routing** — blocked on memory redesign
   - When consolidating learnings actionable for sub-agents, route to agent templates (quiet-task.md, tdd-task.md) as additional target
 
-- [ ] **Inject missing main-guidance rules into agent definitions** — process improvements batch
+- [ ] **Agent rule injection** — process improvements batch
   - Distill sub-agent-relevant rules (layered context model, no volatile references, no execution mechanics in steps) into agent templates
   - Source: tool prompts, review guide, memory system learnings
 
-- [ ] **Design behavioral intervention for nuanced conversational patterns** — `/design` | opus
+- [ ] **Behavioral design** — `/design` nuanced conversational pattern intervention | opus
   - Requires synthesis from research on conversational patterns
 
 ## Worktree Tasks

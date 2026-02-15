@@ -15,8 +15,8 @@ Plan lifecycle tracking. Updated when plans change status.
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
 | reports | — | Shared reports directory (not a plan) |
 | tweakcc | requirements | Local instances research |
-| when-recall | complete | `/when` memory recall system — 42/42 TDD cycles, 8 phases, all checkpoints passed |
-| worktree-fixes | requirements | Task name constraints, session merge blocks, merge commit fix (5 FRs) |
+| when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
+| worktree-fixes | complete | All 4 phases done, 5 FRs satisfied, 25 TDD cycles + 4 prose edits |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
 | pushback | complete | Two-layer anti-sycophancy: fragment + hook, S1/S2/S4 validated |
 | pushback-improvement | designed | Design complete (from pushback worktree) |

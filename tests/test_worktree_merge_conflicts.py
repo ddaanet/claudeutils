@@ -10,6 +10,28 @@ from click.testing import CliRunner
 from claudeutils.worktree.cli import worktree
 
 
+def _git(*args: str, cwd: Path | None = None) -> str:
+    r = subprocess.run(
+        ["git", *args], cwd=cwd, check=True, capture_output=True, text=True
+    )
+    return r.stdout.strip()
+
+
+def _write_commit(path: Path, filepath: str, content: str, msg: str) -> None:
+    (path / filepath).parent.mkdir(parents=True, exist_ok=True)
+    (path / filepath).write_text(content)
+    _git("add", filepath, cwd=path)
+    _git("commit", "-m", msg, cwd=path)
+
+
+def _setup_merge_worktree(repo: Path, slug: str = "test-merge") -> Path:
+    """Create branch and worktree, return worktree path."""
+    _git("branch", slug, cwd=repo)
+    result = CliRunner().invoke(worktree, ["new", slug])
+    assert result.exit_code == 0, f"new failed: {result.output}"
+    return repo.parent / f"{repo.name}-wt" / slug
+
+
 def test_merge_conflict_agent_core(
     repo_with_submodule: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -18,114 +40,71 @@ def test_merge_conflict_agent_core(
 ) -> None:
     """Auto-resolve agent-core conflict (already merged in Phase 2)."""
     monkeypatch.chdir(repo_with_submodule)
-
     commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
 
-    subprocess.run(
-        ["git", "branch", "test-merge"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-    result = CliRunner().invoke(worktree, ["new", "test-merge"])
-    assert result.exit_code == 0, f"new command should succeed, got: {result.output}"
+    wt_path = _setup_merge_worktree(repo_with_submodule)
 
-    worktree_path = (
-        repo_with_submodule.parent / f"{repo_with_submodule.name}-wt" / "test-merge"
-    )
+    # Branch: file change + submodule update
+    commit_file(wt_path, "branch-file.txt", "branch content\n", "Branch change")
+    (wt_path / "agent-core" / "branch-change.txt").write_text("branch change\n")
+    _git("add", "branch-change.txt", cwd=wt_path / "agent-core")
+    _git("commit", "-m", "Branch change in submodule", cwd=wt_path / "agent-core")
+    _git("add", "agent-core", cwd=wt_path)
+    _git("commit", "-m", "Update agent-core on branch", cwd=wt_path)
 
-    # Add a change on the worktree branch to a non-agent-core file
-    commit_file(worktree_path, "branch-file.txt", "branch content\n", "Branch change")
-
-    # Also update submodule on branch
-    (worktree_path / "agent-core" / "branch-change.txt").write_text("branch change\n")
-    subprocess.run(
-        ["git", "add", "branch-change.txt"],
-        cwd=worktree_path / "agent-core",
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Branch change in submodule"],
-        cwd=worktree_path / "agent-core",
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "add", "agent-core"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Update agent-core submodule on branch"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Switch back to main and add a conflicting change
-    subprocess.run(
-        ["git", "checkout", "main"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
+    # Main: file change + different submodule update
+    _git("checkout", "main", cwd=repo_with_submodule)
     commit_file(repo_with_submodule, "main-file.txt", "main content\n", "Main change")
-
-    # Also update agent-core on main to different commit
     (repo_with_submodule / "agent-core" / "main-change.txt").write_text("main change\n")
-    subprocess.run(
-        ["git", "add", "main-change.txt"],
+    _git("add", "main-change.txt", cwd=repo_with_submodule / "agent-core")
+    _git(
+        "commit",
+        "-m",
+        "Main change in submodule",
         cwd=repo_with_submodule / "agent-core",
-        check=True,
-        capture_output=True,
     )
-    subprocess.run(
-        ["git", "commit", "-m", "Main change in submodule"],
-        cwd=repo_with_submodule / "agent-core",
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "add", "agent-core"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Update agent-core on main"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
+    _git("add", "agent-core", cwd=repo_with_submodule)
+    _git("commit", "-m", "Update agent-core on main", cwd=repo_with_submodule)
 
     result = CliRunner().invoke(worktree, ["merge", "test-merge"])
-    assert result.exit_code == 0, f"merge command should succeed: {result.output}"
+    assert result.exit_code == 0, f"merge should succeed: {result.output}"
 
-    # Check that agent-core is NOT in unmerged paths (it should have been auto-resolved)
-    unmerged = subprocess.run(
-        ["git", "diff", "--name-only", "--diff-filter=U"],
-        check=False,
-        cwd=repo_with_submodule,
-        capture_output=True,
-        text=True,
-    )
-    conflicts = [c for c in unmerged.stdout.strip().split("\n") if c.strip()]
-    assert "agent-core" not in conflicts, (
-        f"agent-core should be auto-resolved, but found in conflicts: {conflicts}"
-    )
+    # agent-core auto-resolved
+    unmerged = _git("diff", "--name-only", "--diff-filter=U", cwd=repo_with_submodule)
+    assert "agent-core" not in unmerged
 
-    # Verify merge is complete (MERGE_HEAD should not exist after commit)
-    merge_head = subprocess.run(
+    # Merge complete (no MERGE_HEAD)
+    r = subprocess.run(
         ["git", "rev-parse", "MERGE_HEAD"],
         check=False,
         cwd=repo_with_submodule,
         capture_output=True,
         text=True,
     )
-    assert merge_head.returncode != 0, (
-        "MERGE_HEAD should not exist after merge completes"
+    assert r.returncode != 0, "MERGE_HEAD should not exist after merge"
+
+
+def _setup_session_conflict(
+    repo: Path,
+    wt: Path,
+    sessions: dict[str, str],
+) -> None:
+    """Set up session.md conflict scenario on both sides.
+
+    Args:
+        repo: Main repo path
+        wt: Worktree path
+        sessions: Dict with keys 'main', 'wt_base', 'wt_updated', 'main_updated'
+    """
+    (repo / "agents").mkdir(exist_ok=True)
+    (wt / "agents").mkdir(exist_ok=True)
+
+    _write_commit(repo, "agents/session.md", sessions["main"], "Add session.md")
+    _write_commit(wt, "agents/session.md", sessions["wt_base"], "Add session.md")
+    _write_commit(wt, "agents/session.md", sessions["wt_updated"], "Update session.md")
+    _git("checkout", "main", cwd=repo)
+    _write_commit(
+        repo, "agents/session.md", sessions["main_updated"], "Update session.md on main"
     )
 
 
@@ -135,127 +114,135 @@ def test_merge_conflict_session_md(
     mock_precommit: None,
     commit_file: Callable[[Path, str, str, str], None],
 ) -> None:
-    """Auto-resolve session.md, extract and warn about new tasks."""
+    """Auto-resolve session.md, extract new tasks from worktree."""
     monkeypatch.chdir(repo_with_submodule)
-
     commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    wt_path = _setup_merge_worktree(repo_with_submodule)
 
-    subprocess.run(
-        ["git", "branch", "test-merge"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-    result = CliRunner().invoke(worktree, ["new", "test-merge"])
-    assert result.exit_code == 0, f"new command should succeed, got: {result.output}"
-
-    worktree_path = (
-        repo_with_submodule.parent / f"{repo_with_submodule.name}-wt" / "test-merge"
-    )
-
-    # Create agents dir and initial session.md on both sides
-    (repo_with_submodule / "agents").mkdir(exist_ok=True)
-    (worktree_path / "agents").mkdir(exist_ok=True)
-
-    # Main: session.md with task A
-    (repo_with_submodule / "agents" / "session.md").write_text(
-        "# Session\n\n- [ ] **Task A** — `/design` | sonnet\n"
-    )
-    subprocess.run(
-        ["git", "add", "agents/session.md"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add session.md with Task A"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-
-    # Worktree: start with same, then add task B
-    (worktree_path / "agents" / "session.md").write_text(
-        "# Session\n\n- [ ] **Task A** — `/design` | sonnet\n"
-    )
-    subprocess.run(
-        ["git", "add", "agents/session.md"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add session.md"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Worktree: add Task B
-    (worktree_path / "agents" / "session.md").write_text(
-        "# Session\n\n- [ ] **Task A** — `/design` | sonnet\n"
-        "- [ ] **Task B** — `/runbook` | haiku\n"
-    )
-    subprocess.run(
-        ["git", "add", "agents/session.md"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add Task B in worktree"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Switch back to main and add conflicting change
-    subprocess.run(
-        ["git", "checkout", "main"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-
-    # Main: update session.md (different change, will conflict)
-    (repo_with_submodule / "agents" / "session.md").write_text(
-        "# Session\n\n- [ ] **Task A** — `/design` | opus\n"
-    )
-    subprocess.run(
-        ["git", "add", "agents/session.md"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Update session.md on main"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
+    base = "# Session\n\n- [ ] **Task A** — `/design` | sonnet\n"
+    _setup_session_conflict(
+        repo_with_submodule,
+        wt_path,
+        {
+            "main": base,
+            "wt_base": base,
+            "wt_updated": base + "- [ ] **Task B** — `/runbook` | haiku\n",
+            "main_updated": "# Session\n\n- [ ] **Task A** — `/design` | opus\n",
+        },
     )
 
     result = CliRunner().invoke(worktree, ["merge", "test-merge"])
-    assert result.exit_code == 0, f"merge command should succeed: {result.output}"
+    assert result.exit_code == 0, f"merge should succeed: {result.output}"
 
-    # Verify session.md is NOT in unmerged paths (auto-resolved)
-    unmerged = subprocess.run(
-        ["git", "diff", "--name-only", "--diff-filter=U"],
-        check=False,
-        cwd=repo_with_submodule,
-        capture_output=True,
-        text=True,
-    )
-    conflicts = [c for c in unmerged.stdout.strip().split("\n") if c.strip()]
-    msg = (
-        "agents/session.md should be auto-resolved, "
-        f"but found in conflicts: {conflicts}"
-    )
-    assert "agents/session.md" not in conflicts, msg
+    unmerged = _git("diff", "--name-only", "--diff-filter=U", cwd=repo_with_submodule)
+    assert "agents/session.md" not in unmerged
 
-    # Verify Task B was extracted from worktree and added to main session
-    session_content = (repo_with_submodule / "agents" / "session.md").read_text()
-    assert "Task B" in session_content, (
-        f"Task B should be extracted and present in session.md, got: {session_content}"
+    session = (repo_with_submodule / "agents" / "session.md").read_text()
+    assert "Task B" in session, f"Task B missing in: {session}"
+
+
+def test_merge_conflict_session_md_multiline_blocks(
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
+) -> None:
+    """Auto-resolve session.md preserving multi-line task blocks."""
+    monkeypatch.chdir(repo_with_submodule)
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    wt_path = _setup_merge_worktree(repo_with_submodule)
+
+    base = (
+        "# Session\n\n## Pending Tasks\n\n"
+        "- [ ] **Task A** — `/design` | sonnet\n\n## Blockers\n"
+    )
+    _setup_session_conflict(
+        repo_with_submodule,
+        wt_path,
+        {
+            "main": base,
+            "wt_base": base,
+            "wt_updated": (
+                "# Session\n\n## Pending Tasks\n\n"
+                "- [ ] **Task A** — `/design` | sonnet\n"
+                "- [ ] **Task B** — `/runbook plans/foo/runbook.md` | haiku\n"
+                "  - Plan: foo | Status: planned\n"
+                "  - Notes: Multi-line task block\n\n"
+                "## Blockers\n"
+            ),
+            "main_updated": (
+                "# Session\n\n## Pending Tasks\n\n"
+                "- [ ] **Task A** — `/design` | opus\n\n## Blockers\n"
+            ),
+        },
+    )
+
+    result = CliRunner().invoke(worktree, ["merge", "test-merge"])
+    assert result.exit_code == 0, f"merge should succeed: {result.output}"
+
+    unmerged = _git("diff", "--name-only", "--diff-filter=U", cwd=repo_with_submodule)
+    assert "agents/session.md" not in unmerged
+
+    session = (repo_with_submodule / "agents" / "session.md").read_text()
+    assert "Task B" in session, f"Task B missing: {session}"
+    assert "Plan: foo | Status: planned" in session, (
+        f"Task B continuation line 1 missing: {session}"
+    )
+    assert "Notes: Multi-line task block" in session, (
+        f"Task B continuation line 2 missing: {session}"
+    )
+
+
+def test_merge_conflict_session_md_insertion_position(
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
+) -> None:
+    """New tasks inserted before next section with blank line separation."""
+    monkeypatch.chdir(repo_with_submodule)
+    commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    wt_path = _setup_merge_worktree(repo_with_submodule)
+
+    base = (
+        "# Session\n\n## Pending Tasks\n\n"
+        "- [ ] **Task A** — `/design` | sonnet\n\n"
+        "## Blockers / Gotchas\n\n- Some blocker note\n"
+    )
+    _setup_session_conflict(
+        repo_with_submodule,
+        wt_path,
+        {
+            "main": base,
+            "wt_base": base,
+            "wt_updated": (
+                "# Session\n\n## Pending Tasks\n\n"
+                "- [ ] **Task A** — `/design` | sonnet\n"
+                "- [ ] **Task B** — `/runbook` | haiku\n\n"
+                "## Blockers / Gotchas\n\n- Some blocker note\n"
+            ),
+            "main_updated": (
+                "# Session\n\n## Pending Tasks\n\n"
+                "- [ ] **Task A** — `/design` | opus\n\n"
+                "## Blockers / Gotchas\n\n- Some blocker note\n"
+            ),
+        },
+    )
+
+    result = CliRunner().invoke(worktree, ["merge", "test-merge"])
+    assert result.exit_code == 0, f"merge should succeed: {result.output}"
+
+    session = (repo_with_submodule / "agents" / "session.md").read_text()
+    assert "Task B" in session, f"Task B missing: {session}"
+
+    # Task B before Blockers section
+    assert session.find("Task B") < session.find("## Blockers")
+
+    # Blank line before Blockers
+    lines = session.split("\n")
+    blockers_idx = next(i for i, ln in enumerate(lines) if "## Blockers" in ln)
+    assert lines[blockers_idx - 1] == "", (
+        f"Expected blank line before Blockers, got: {lines[blockers_idx - 1]!r}"
     )
 
 
@@ -267,126 +254,35 @@ def test_merge_conflict_learnings_md(
 ) -> None:
     """Auto-resolve learnings.md by keeping ours and appending theirs-only."""
     monkeypatch.chdir(repo_with_submodule)
-
     commit_file(repo_with_submodule, ".gitignore", "wt/\n", "Add gitignore")
+    wt_path = _setup_merge_worktree(repo_with_submodule)
 
-    subprocess.run(
-        ["git", "branch", "test-merge"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-    result = CliRunner().invoke(worktree, ["new", "test-merge"])
-    assert result.exit_code == 0, f"new command should succeed, got: {result.output}"
-
-    worktree_path = (
-        repo_with_submodule.parent / f"{repo_with_submodule.name}-wt" / "test-merge"
-    )
-
-    # Create agents dir and initial learnings.md on both sides
     (repo_with_submodule / "agents").mkdir(exist_ok=True)
-    (worktree_path / "agents").mkdir(exist_ok=True)
+    (wt_path / "agents").mkdir(exist_ok=True)
 
-    # Main: learnings.md with learning A
-    (repo_with_submodule / "agents" / "learnings.md").write_text(
-        "# Learnings\n\n- Learning A: Common content\n"
+    base = "# Learnings\n\n- Learning A: Common content\n"
+    _write_commit(repo_with_submodule, "agents/learnings.md", base, "Add learnings")
+    _write_commit(wt_path, "agents/learnings.md", base, "Add learnings")
+    _write_commit(
+        wt_path,
+        "agents/learnings.md",
+        base + "- Learning B: Worktree-only learning\n",
+        "Add Learning B",
     )
-    subprocess.run(
-        ["git", "add", "agents/learnings.md"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add learnings.md with Learning A"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-
-    # Worktree: start with same, then add learning B
-    (worktree_path / "agents" / "learnings.md").write_text(
-        "# Learnings\n\n- Learning A: Common content\n"
-    )
-    subprocess.run(
-        ["git", "add", "agents/learnings.md"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add learnings.md"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Worktree: add Learning B
-    (worktree_path / "agents" / "learnings.md").write_text(
-        "# Learnings\n\n- Learning A: Common content\n"
-        "- Learning B: Worktree-only learning\n"
-    )
-    subprocess.run(
-        ["git", "add", "agents/learnings.md"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add Learning B in worktree"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Switch back to main and add conflicting change
-    subprocess.run(
-        ["git", "checkout", "main"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-
-    # Main: update learnings.md (different change, will conflict)
-    (repo_with_submodule / "agents" / "learnings.md").write_text(
-        "# Learnings\n\n- Learning A: Common content (modified on main)\n"
-    )
-    subprocess.run(
-        ["git", "add", "agents/learnings.md"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Update learnings.md on main"],
-        cwd=repo_with_submodule,
-        check=True,
-        capture_output=True,
+    _git("checkout", "main", cwd=repo_with_submodule)
+    _write_commit(
+        repo_with_submodule,
+        "agents/learnings.md",
+        "# Learnings\n\n- Learning A: Common content (modified on main)\n",
+        "Update learnings on main",
     )
 
     result = CliRunner().invoke(worktree, ["merge", "test-merge"])
-    assert result.exit_code == 0, f"merge command should succeed: {result.output}"
+    assert result.exit_code == 0, f"merge should succeed: {result.output}"
 
-    # Verify learnings.md is NOT in unmerged paths (auto-resolved)
-    unmerged = subprocess.run(
-        ["git", "diff", "--name-only", "--diff-filter=U"],
-        check=False,
-        cwd=repo_with_submodule,
-        capture_output=True,
-        text=True,
-    )
-    conflicts = [c for c in unmerged.stdout.strip().split("\n") if c.strip()]
-    msg = (
-        "agents/learnings.md should be auto-resolved, "
-        f"but found in conflicts: {conflicts}"
-    )
-    assert "agents/learnings.md" not in conflicts, msg
+    unmerged = _git("diff", "--name-only", "--diff-filter=U", cwd=repo_with_submodule)
+    assert "agents/learnings.md" not in unmerged
 
-    # Verify merged result contains both ours content and theirs-only content
-    merged_content = (repo_with_submodule / "agents" / "learnings.md").read_text()
-    assert "Common content (modified on main)" in merged_content, (
-        f"Merged should contain ours content, got: {merged_content}"
-    )
-    assert "Learning B" in merged_content, (
-        f"Merged should contain theirs-only learning, got: {merged_content}"
-    )
+    merged = (repo_with_submodule / "agents" / "learnings.md").read_text()
+    assert "Common content (modified on main)" in merged
+    assert "Learning B" in merged

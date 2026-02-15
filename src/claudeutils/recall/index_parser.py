@@ -164,9 +164,7 @@ def parse_memory_index(index_file: Path) -> list[IndexEntry]:
     for line in content.split("\n"):
         if line.startswith("## "):
             current_section = line[3:].strip()
-            if current_section.startswith(
-                ("Behavioral Rules", "Technical Decisions")
-            ):
+            if current_section.startswith(("Behavioral Rules", "Technical Decisions")):
                 skip_section = True
                 current_file = ""
             else:

@@ -10,17 +10,29 @@ from pathlib import Path
 
 import click
 
+from claudeutils.validation.tasks import validate_task_name_format
 from claudeutils.worktree.merge import merge as merge_impl
+from claudeutils.worktree.session import (
+    extract_task_blocks,
+    move_task_to_worktree,
+    remove_worktree_task,
+)
 from claudeutils.worktree.utils import _git, wt_path
 
 
-def derive_slug(task_name: str, max_length: int = 30) -> str:
+def derive_slug(task_name: str) -> str:
     """Task name to slug."""
     if not task_name or not task_name.strip():
         msg = "task_name must not be empty"
         raise ValueError(msg)
-    slug = re.sub(r"[^a-z0-9]+", "-", task_name.lower()).strip("-")[:max_length]
-    return slug.rstrip("-")
+
+    # Validate task name format
+    format_errors = validate_task_name_format(task_name)
+    if format_errors:
+        msg = format_errors[0]
+        raise ValueError(msg)
+
+    return re.sub(r"[^a-z0-9]+", "-", task_name.lower()).strip("-")
 
 
 def _filter_section(
@@ -50,17 +62,21 @@ def _filter_section(
 def focus_session(task_name: str, session_md_path: str | Path) -> str:
     """Filter session.md to task_name with relevant context sections."""
     content = Path(session_md_path).read_text()
-    pattern = rf"- \[ \] \*\*{re.escape(task_name)}\*\* (.+?)(?=\n-|\n## |\Z)"
-    if not (match := re.search(pattern, content, re.DOTALL)):
+
+    blocks = extract_task_blocks(content, section="Pending Tasks")
+    task_block = next((b for b in blocks if b.name == task_name), None)
+    if not task_block:
         msg = f"Task '{task_name}' not found in session.md"
         raise ValueError(msg)
 
-    metadata = match.group(1).rstrip()
-    plan_dir = m.group(1) if (m := re.search(r"[Pp]lan:\s*(\S+)", metadata)) else None
+    task_lines_str = "\n".join(task_block.lines)
+    plan_dir = (
+        m.group(1) if (m := re.search(r"[Pp]lan:\s*(\S+)", task_lines_str)) else None
+    )
     result = (
         f"# Session: Worktree — {task_name}\n\n"
         f"**Status:** Focused worktree for parallel execution.\n\n"
-        f"## Pending Tasks\n\n- [ ] **{task_name}** {metadata}\n"
+        f"## Pending Tasks\n\n{task_lines_str}\n"
     )
     for section in ["Blockers / Gotchas", "Reference Files"]:
         if filtered := _filter_section(content, section, task_name, plan_dir):
@@ -269,6 +285,12 @@ def new(slug: str | None, base: str, session: str, task: str, session_md: str) -
             click.echo(f"Error: existing directory {path}", err=True)
             raise SystemExit(1)
         _setup_worktree(path, slug, base, session, task)
+        if task:
+            session_md_path = Path(session_md)
+            if not session_md_path.exists():
+                click.echo(f"Error: session.md not found at {session_md}", err=True)
+                raise SystemExit(1)
+            move_task_to_worktree(session_md_path, task, slug)
     finally:
         if temp_session_file:
             Path(temp_session_file).unlink(missing_ok=True)
@@ -334,6 +356,10 @@ def rm(slug: str) -> None:
         if status:
             count = len(status.strip().split("\n"))
             click.echo(f"Warning: worktree has {count} uncommitted files")
+
+    session_md_path = Path("agents/session.md")
+    if session_md_path.exists():
+        remove_worktree_task(session_md_path, slug, slug)
 
     if parent_reg or submodule_reg:
         _remove_worktrees(worktree_path, parent_reg, submodule_reg)
