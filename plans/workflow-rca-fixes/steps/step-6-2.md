@@ -1,7 +1,7 @@
 # Step 6.2
 
 **Plan**: `plans/workflow-rca-fixes/runbook.md`
-**Execution Model**: sonnet
+**Execution Model**: opus
 **Phase**: 6
 
 ---
