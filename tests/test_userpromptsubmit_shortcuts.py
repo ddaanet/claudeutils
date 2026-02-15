@@ -104,23 +104,20 @@ class TestEnhancedDDirective:
         additional_context = output["hookSpecificOutput"]["additionalContext"]
         system_message = output["systemMessage"]
 
-        # additionalContext includes all counterfactual structure elements
-        assert "identify assumptions" in additional_context.lower()
-        assert "articulate failure conditions" in additional_context.lower() or (
-            "failure" in additional_context.lower()
+        # additionalContext includes verdict-first evaluation structure
+        assert "assess" in additional_context.lower() or (
+            "verdict" in additional_context.lower()
         )
-        assert "name alternatives" in additional_context.lower() or (
-            "alternatives" in additional_context.lower()
-        )
-        assert "confidence level" in additional_context.lower() or (
-            "confidence" in additional_context.lower()
+        assert "stress-test" in additional_context.lower()
+        assert "agree" in additional_context.lower() or (
+            "disagree" in additional_context.lower()
         )
 
         # additionalContext preserves "do not execute" instruction
         assert "do not execute" in additional_context.lower()
 
         # systemMessage stays concise (no full evaluation framework)
-        assert "[DIRECTIVE: DISCUSS]" in system_message
+        assert "[DISCUSS]" in system_message
         assert "do not execute" in system_message.lower()
         # systemMessage should NOT have full evaluation framework
         assert len(system_message) < 200
@@ -204,12 +201,12 @@ class TestAnyLineMatching:
         # Directive on line 2 (not line 1)
         output_line2 = call_hook("some text before\nd: directive on line 2")
         assert "hookSpecificOutput" in output_line2
-        assert "[DIRECTIVE: DISCUSS]" in output_line2["systemMessage"]
+        assert "[DISCUSS]" in output_line2["systemMessage"]
 
         # Directive on line 3
         output_line3 = call_hook("line 1\nline 2\np: directive on line 3")
         assert "hookSpecificOutput" in output_line3
-        assert "[DIRECTIVE: PENDING]" in output_line3["systemMessage"]
+        assert "[PENDING]" in output_line3["systemMessage"]
 
         # Directive inside fenced block returns None (excluded by fence detection)
         fenced_prompt = """some text
@@ -220,7 +217,7 @@ p: outside fence"""
         output_fenced = call_hook(fenced_prompt)
         # Should match the p: directive outside fence, not the d: inside
         assert "hookSpecificOutput" in output_fenced
-        assert "[DIRECTIVE: PENDING]" in output_fenced["systemMessage"]
+        assert "[PENDING]" in output_fenced["systemMessage"]
 
         # First non-fenced directive match is returned (not all matches)
         multi_prompt = """d: first directive
@@ -228,7 +225,7 @@ p: second directive"""
         output_multi = call_hook(multi_prompt)
         # Should return first match (d:), not second
         assert "hookSpecificOutput" in output_multi
-        assert "[DIRECTIVE: DISCUSS]" in output_multi["systemMessage"]
+        assert "[DISCUSS]" in output_multi["systemMessage"]
 
 
 class TestIntegration:
@@ -258,13 +255,15 @@ code block
 discuss: after fence should match"""
         output_after_fence = call_hook(prompt_after_fence)
         assert "hookSpecificOutput" in output_after_fence
-        assert "[DIRECTIVE: DISCUSS]" in output_after_fence["systemMessage"]
+        assert "[DISCUSS]" in output_after_fence["systemMessage"]
         # Verify enhanced content includes counterfactual structure
         additional_context = output_after_fence["hookSpecificOutput"][
             "additionalContext"
         ]
-        assert "identify assumptions" in additional_context.lower()
-        assert "confidence" in additional_context.lower()
+        assert "stress-test" in additional_context.lower()
+        assert "verdict" in additional_context.lower() or (
+            "agree" in additional_context.lower()
+        )
 
         # Scenario 3: Tier 1 command s → exact match output unchanged from baseline
         output_s = call_hook("s")
@@ -272,17 +271,17 @@ discuss: after fence should match"""
         assert "hookSpecificOutput" in output_s
         assert "systemMessage" in output_s
         # Both should contain the expansion text
-        assert "[SHORTCUT: #status]" in output_s["systemMessage"]
+        assert "[#status]" in output_s["systemMessage"]
         assert (
-            "[SHORTCUT: #status]" in output_s["hookSpecificOutput"]["additionalContext"]
+            "[#status]" in output_s["hookSpecificOutput"]["additionalContext"]
         )
 
         # Scenario 4: Tier 1 command x → exact match unchanged
         output_x = call_hook("x")
         assert "hookSpecificOutput" in output_x
         assert "systemMessage" in output_x
-        assert "[SHORTCUT: #execute]" in output_x["systemMessage"]
+        assert "[#execute]" in output_x["systemMessage"]
         assert (
-            "[SHORTCUT: #execute]"
+            "[#execute]"
             in output_x["hookSpecificOutput"]["additionalContext"]
         )
