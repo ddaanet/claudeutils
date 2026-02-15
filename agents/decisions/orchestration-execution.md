@@ -74,6 +74,51 @@ Patterns for delegation, orchestration protocol, model selection, and execution-
 
 **Constraint:** Per-phase review needs full outline context. Holistic review runs once after all phases complete.
 
+## .Execution Escalation
+
+Three escalation tiers for handling failures during runbook execution, ordered by scope of recovery.
+
+### When Item-Level Escalation Blocks Execution
+
+**Decision Date:** 2026-02-15
+
+**Trigger:** Single item classified UNFIXABLE by vet-fix-agent — execution blocked by missing design decision, ambiguous requirement, or external dependency.
+
+**Response:** Orchestrator stops, surfaces UNFIXABLE item to user with investigation summary and subcategory (U-REQ, U-ARCH, U-DESIGN). User provides decision, execution resumes.
+
+**Existing protocol:** `vet-requirement.md` UNFIXABLE Detection Protocol (grep-based, mechanical).
+
+### When Local Recovery Suffices
+
+**Decision Date:** 2026-02-15
+
+**Trigger:** Implementation needs restructuring within the same design — refactoring, reorganization, or alternative approach that doesn't invalidate design assumptions.
+
+**Response:** Delegate to `refactor` agent (`agent-core/agents/refactor.md`) within current phase. Design and runbook remain valid; only the implementation path changes.
+
+**Distinction from item-level:** Problem is solvable without user input. Distinction from global: design assumptions still hold.
+
+### When Global Replanning Is Needed
+
+**Decision Date:** 2026-02-15
+
+**Trigger:** Execution reveals a design flaw requiring return to the planning phase. Symptoms:
+
+- **Design assumptions invalidated** — implementation discovers a capability doesn't exist, an API doesn't support the required operation, or a dependency behaves differently than designed for
+- **Scope creep accumulation** — multiple UNFIXABLE items of the same type, indicating a missing phase or underspecified area rather than isolated gaps
+- **Runbook structure broken** — dependency cycles between steps, blocked items accumulating across phases, execution order no longer viable
+- **Test plan inadequate** — coverage gaps discovered during implementation that require rethinking the test strategy, not just adding cases
+
+**Response:** Stop execution, return to planning phase. Current runbook is abandoned or revised; design may need amendment.
+
+**Distinction from local:** The design itself is flawed, not just the implementation approach. Local restructuring cannot resolve the problem.
+
+### .Implementation Deferral
+
+FR-17 documents the three-tier escalation requirement. Concrete detection mechanisms, escalation protocols, and replanning handoff procedures are deferred to `wt/error-handling` worktree.
+
+**Grounding:** When-recall incident — test plan required redesign mid-execution; sonnet orchestrator patched ad-hoc rather than escalating to replanning. Planner-executor research distinguishes local replanning (revise subtask) from global replanning (escalate when issues exceed local scope).
+
 ## .Model Selection Patterns
 
 ### When Stabilizing Orchestrator Model

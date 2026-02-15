@@ -14,6 +14,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 **Append-only.** Do not index content already loaded via CLAUDE.md fragments.
 
+
 ## agents/decisions/cli.md
 
 /when getting current working directory
@@ -98,6 +99,52 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when evolving markdown processing
 /when choosing markdown formatter tool
 
+## agents/decisions/operational-practices.md
+
+/when placing deliverable artifacts | plans vs tmp referenced later
+/when requiring per-artifact vet coverage | batch momentum skip prevention
+/when launching task agents in parallel | single message batch
+/when background agents crash | check output files recovery
+/when refactoring agents need quality directives | deslop factorization
+/when exploration agents report false findings | verify file existence
+/when scrubbing learnings before design input | validate against evidence
+/when temporal validation required for analysis | git history correlation
+/when no-op merge orphans branch | always create merge commit
+/when naming tasks for worktrees | branch-suitable alphanumeric constraint
+/when classifyHandoffIfNeeded bug occurs | foreground Task calls fail background works
+/when sub-agents cannot spawn sub-agents | Task MCP hooks unavailable
+/when extracting git helper functions | _git pattern subprocess reduction
+/when fixture shadowing creates dead code | pytest fixture vs local function
+/when test corpus defines correct behavior | fixtures are spec not workaround
+/when DP matrix has zero-ambiguity | -inf initialization impossible states
+/when phase numbering is flexible | 0-based or 1-based detect from first
+/when checking self-referential modification | exclude plan own directory
+/when avoiding CLI skill name collision | check built-ins before naming
+
+## agents/decisions/orchestration-execution.md
+
+/when delegation requires commit instruction | agents leave tree dirty
+/when limiting agent scope | context defines scope boundary relevant files structural
+/when deduplicating delegation prompts | shared file reference
+/when managing orchestration context | handoff not delegatable
+/when partitioning work for parallel agents | no post-dispatch communication fire-and-forget
+/when running post-step verification | git status UNFIXABLE grep
+/when planning is parallelizable | phase expansion concurrent agents
+/when item-level escalation blocks execution | UNFIXABLE grep mechanical stop
+/when local recovery suffices | refactor within design no global replan
+/when global replanning is needed | design flaw scope creep runbook broken
+/when stabilizing orchestrator model | sonnet before haiku optimization
+/when using opus for RCA delegation | primary source verification
+/when sonnet inadequate for synthesis | opus for multi-turn extraction
+/when no model tier introspection available | no API ask or use hook
+/when choosing script vs agent judgment | scripting non-cognitive deterministic
+/when script should generate metadata | validates not just validate
+/when bootstrapping around broken tools | design as execution plan
+/when assessing RED pass blast radius | over-implementation test-flaw correct
+/when shared code is bifurcated | unifying over patching root cause
+/when agent context has conflicting signals | common context competes phase-neutral
+/when capturing requirements from conversation | capture over interview
+
 ## agents/decisions/project-config.md
 
 /how inject context with rule files
@@ -119,11 +166,11 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 ## agents/decisions/runbook-review.md
 
-/when detecting vacuous tdd cycles
+/when detecting vacuous items
 /when ordering runbook dependencies
-/when evaluating cycle density
+/when evaluating item density
 /when spacing runbook checkpoints
-/when planning for file growth | lines-per-cycle projection split points
+/when planning for file growth
 
 ## agents/decisions/testing.md
 
@@ -211,46 +258,3 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how format runbook outlines
 /how chain multiple skills together | continuation passing tail calls
 /when using hook based parsing
-
-## agents/decisions/orchestration-execution.md
-
-/when delegation requires commit instruction | agents leave tree dirty
-/when limiting agent scope | context defines scope boundary relevant files structural
-/when deduplicating delegation prompts | shared file reference
-/when managing orchestration context | handoff not delegatable
-/when partitioning work for parallel agents | no post-dispatch communication fire-and-forget
-/when running post-step verification | git status UNFIXABLE grep
-/when planning is parallelizable | phase expansion concurrent agents
-/when stabilizing orchestrator model | sonnet before haiku optimization
-/when using opus for RCA delegation | primary source verification
-/when sonnet inadequate for synthesis | opus for multi-turn extraction
-/when no model tier introspection available | no API ask or use hook
-/when choosing script vs agent judgment | scripting non-cognitive deterministic
-/when script should generate metadata | validates not just validate
-/when bootstrapping around broken tools | design as execution plan
-/when assessing RED pass blast radius | over-implementation test-flaw correct
-/when shared code is bifurcated | unifying over patching root cause
-/when agent context has conflicting signals | common context competes phase-neutral
-/when capturing requirements from conversation | capture over interview
-
-## agents/decisions/operational-practices.md
-
-/when placing deliverable artifacts | plans vs tmp referenced later
-/when requiring per-artifact vet coverage | batch momentum skip prevention
-/when launching task agents in parallel | single message batch
-/when background agents crash | check output files recovery
-/when refactoring agents need quality directives | deslop factorization
-/when exploration agents report false findings | verify file existence
-/when scrubbing learnings before design input | validate against evidence
-/when temporal validation required for analysis | git history correlation
-/when no-op merge orphans branch | always create merge commit
-/when naming tasks for worktrees | branch-suitable alphanumeric constraint
-/when classifyHandoffIfNeeded bug occurs | foreground Task calls fail background works
-/when sub-agents cannot spawn sub-agents | Task MCP hooks unavailable
-/when extracting git helper functions | _git pattern subprocess reduction
-/when fixture shadowing creates dead code | pytest fixture vs local function
-/when test corpus defines correct behavior | fixtures are spec not workaround
-/when DP matrix has zero-ambiguity | -inf initialization impossible states
-/when phase numbering is flexible | 0-based or 1-based detect from first
-/when checking self-referential modification | exclude plan own directory
-/when avoiding CLI skill name collision | check built-ins before naming

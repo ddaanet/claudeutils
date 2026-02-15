@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Reports organized, worktree-fixes merged (manual recovery required).
+**Status:** Reports organized, worktree-fixes merged, workflow-improvements merged.
 
 ## Completed This Session
 
@@ -16,6 +16,15 @@
 - `checkout --ours` on session files lost 2 learnings + 1 task — recovered manually
 - Renamed 7 task names to comply with new 25-char validation (FR-1)
 - 884 tests passing (24 new from worktree-fixes)
+
+**Merged workflow-improvements (workflow-rca-fixes: 20 FRs, 6 phases, 16 steps):**
+- Skill-loading directive fix in runbook skill
+- Skill composition via `skills:` frontmatter (6 agents updated)
+- Type-agnostic review in plan-reviewer and runbook-review.md
+- Vet 4-status taxonomy (FIXED/DEFERRED/OUT-OF-SCOPE/UNFIXABLE)
+- Outline review agent enhancements (growth/propagation/traceability)
+- Content edits: design skill, workflows-terminology, vet-requirement.md
+- 17 new learnings from worktree
 
 ## Pending Tasks
 
@@ -44,27 +53,15 @@
   - Plan: continuation-prepend | Status: requirements
 
 - [ ] **Codebase quality sweep** — Tests, deslop, factorization, dead code | sonnet
-  - Review all tests for vacuous tests
-  - Deslop entire codebase
-  - Review codebase for factorization
-  - Remove deprecated code — init_repo_with_commit() in conftest_git.py
 
 - [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet
-  - Redesign markdown preprocessor — multi-line inline markup parsing
-  - Session summary extraction prototype
-  - Rewrite last-output prototype with TDD as claudeutils subcommand
 
 - [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
-  - Integrates with worktree-update (additive merge, bidirectional sync)
 
 - [ ] **Model tier awareness hook** — Hook injecting "Response by Opus/Sonnet/Haiku" into context | sonnet | restart
-  - NOT UserPromptSubmit — correct event TBD (load hook skill when executing)
 
 - [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
-  - History cleanup tooling — git history rewriting, reusable scripts
-  - Rewrite agent-core ad-hoc scripts via TDD to claudeutils package
-
 
 - [ ] **Learning ages consol** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
 
@@ -78,6 +75,41 @@
 - [ ] **Behavioral design** — `/design` nuanced conversational pattern intervention | opus
   - Requires synthesis from research on conversational patterns
 
+- [ ] **Diagnostic opus review** — Interactive post-vet RCA methodology | `/requirements` | opus
+  - Extends /reflect skill with proactive invocation, two-model separation, feedback loops
+  - Research: MAR, Flow-of-Action, Reflexion, Five Whys, TAMO, AgentErrorTaxonomy
+  - Taxonomy (6 categories): completeness, consistency, feasibility, clarity, traceability, coupling
+  - Two-tier context augmentation: always-inject vs index-and-recall
+  - Methodology as skill referenced in design-vet-agent + outline-review-agent `skills:` frontmatter
+
+- [ ] **Review runbook delegation** — Update validation language to match orchestrator responsibility | sonnet
+  - Step validation sections say "Delegate to skill-reviewer" but execution agents can't spawn plugin-dev agents
+  - Fix: validation delegation is orchestrator responsibility, not execution agent
+
+- [ ] **Remaining workflow items** — Sub-items not captured in workflow-rca-fixes | sonnet
+  - Orchestrate evolution — designed, ready for `/runbook` (design refreshed Feb 13)
+  - Reflect skill output — RCA should produce pending tasks, not inline fixes
+  - Tool-batching.md — add Task tool parallelization guidance with examples
+  - Orchestrator delegate resume — resume delegates with incomplete work (no mechanism exists)
+  - Agent output optimization — remove summarize/report language from agents
+  - Commit skill optimizations — remove handoff gate, Gate B coverage ratio, branching after precommit
+
+- [ ] **Memory-index auto-sync** — Sync memory-index/SKILL.md from canonical agents/memory-index.md on consolidation | sonnet
+  - Deliverable review found skill drifted (3 entries missing, ordering wrong)
+  - Hook into /remember consolidation flow or add precommit check
+
+- [ ] **Commit CLI tool** — CLI for precommit/stage/commit across both modules | `/design` | sonnet
+  - Modeled on worktree CLI pattern (mechanical ops in CLI, judgment in skill)
+  - Single command: precommit → stage → commit in main + agent-core submodule
+
+- [ ] **Workflow formal analysis** — Formal verification of agent workflow | `/requirements` then `/design` | opus
+  - Candidates: TLA+ (temporal), Alloy (structural), Petri nets (visual flow)
+
+- [ ] **Vet proportionality** — Trivial edits shouldn't require full vet-fix-agent delegation | sonnet
+  - 1-line bullet addition to runbook skill triggered full vet agent
+  - Needs: proportionality threshold in vet-requirement.md fragment
+  - Also review Gate B in commit skill — same over-application pattern
+
 ## Worktree Tasks
 
 - [ ] **Remember skill update** → `remember-skill-update` — Resume `/design` Phase B | sonnet
@@ -88,33 +120,20 @@
   - Reports: `plans/remember-skill-update/reports/outline-review.md`, `plans/remember-skill-update/reports/explore-remember-skill.md`
   - Immediate sub-task: Migrate 64 learning titles to When/How format (FR-7)
 - [ ] **Error handling framework design** → `wt/error-handling` — Resume `/design` Phase B | opus
-  - Blocked on: workflow improvements
   - Outline: `plans/error-handling/outline.md`
-- [ ] **Workflow improvements** → `workflow-improvements` — Process fixes from RCA + skill/fragment/orchestration cleanup | sonnet
-  - RCA blocker resolved — reports at `plans/process-review/reports/rca-*-opus.md`
-  - Input: `plans/orchestrate-evolution/design.md`, `plans/process-review/rca.md`
-  - Orchestrate evolution — designed, stale Feb 10, refresh after RCA
-  - Fragments cleanup — remove fragments duplicating skills/workflow
-  - Reflect skill output — RCA should produce pending tasks, not inline fixes
-  - Tool-batching.md — add Task tool parallelization guidance with examples
-  - Orchestrator delegate resume — resume delegates with incomplete work
-  - Agent output optimization — remove summarize/report language from agents
-  - Investigation prerequisite rule review
-  - Design skill: Phase C density checkpoint (TDD non-code marking handled by per-phase typing)
-  - Workflow fixes from RCA — `plans/process-review/reports/rca-*-opus.md`, normalize runbook-review axes, execution-time split, vet investigation protocol, orchestrate template
-  - Commit skill optimizations — remove handoff gate, Gate B coverage ratio, branching after precommit
-  - Fix skill-based agents not using skills prolog section — `skills:` frontmatter
+- [ ] **Build pushback into conversation process** → `wt/pushback` — `/design plans/pushback/requirements.md` | opus
 
 ## Blockers / Gotchas
 
-**Two methodology documents exist:**
-- `agents/decisions/review-methodology.md` — sonnet-generated, user distrusts, do NOT use
-- `agents/decisions/deliverable-review.md` — ISO-grounded, use this one
-- Cleanup: delete review-methodology.md (confirmed fully superseded)
+**Execution feedback gap connects to error-handling:**
+- FR-17 documents requirement, implementation in `wt/error-handling`
+- RCA data (when-recall test plan redesign incident) provides grounding for error-handling design
+- All 5 RCAs provide grounding material for error classification taxonomy
 
-**workflow-improvements worktree has stale RCA paths:**
-- Worktree references `plans/reports/rca-*-opus.md` — moved to `plans/process-review/reports/`
-- Update references in worktree session.md after merge
+**Diagnostic review methodology converging:**
+- Taxonomy, iteration protocol, priming template designed in conversation
+- Opus critique validated approach, identified haiku paradox (resolved: discovery at capable tier, pre-assembled context for haiku)
+- Methodology skill + design-vet-agent integration planned as follow-on task
 
 **Validator orphan entries not autofixable:**
 - Marking headings structural (`.` prefix) causes `check_orphan_entries` non-autofixable error
@@ -145,3 +164,4 @@
 - `plans/reports/memory-index-actionability-review.md` — Opus actionability review of all index entries
 - `plans/when-recall/reports/baseline-recall-analysis.md` — 2.9% baseline recall measurement
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
+- `plans/workflow-rca-fixes/design.md` — 20 FRs, 6 phases (complete)

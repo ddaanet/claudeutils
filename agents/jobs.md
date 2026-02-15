@@ -16,6 +16,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | reports | — | Shared reports directory (not a plan) |
 | tweakcc | requirements | Local instances research |
 | when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
+| workflow-rca-fixes | complete | 20 FRs: skill composition, type-agnostic review, vet taxonomy, outline enhancements, content edits |
 | worktree-fixes | complete | All 4 phases done, 5 FRs satisfied, 25 TDD cycles + 4 prose edits |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
 | pushback | complete | Two-layer anti-sycophancy: fragment + hook, S1/S2/S4 validated |
@@ -24,7 +25,6 @@ Plan lifecycle tracking. Updated when plans change status.
 | process-review | complete | RCA recovered to disk for workflow-improvements reference |
 | workflow-fixes | complete | Unified /runbook skill, plan-reviewer agent, review-plan skill, pipeline-contracts |
 | worktree-skill | complete | Design.md retained on disk for reference |
-| workflow-rca-fixes | complete | 6 phases, 16 steps, deliverable review done |
 | worktree-update | complete | 40 TDD cycles, recovery (C2-C5), merged to main |
 
 ## Complete (Archived)
