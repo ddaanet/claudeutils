@@ -479,3 +479,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Root cause: "Simple" classification creates execution mode that optimizes throughput by rationalizing away ALL friction, not just design-level ceremony
 - Same mechanism as "Proceed" scope (per-artifact vet learning) — any permission to accelerate gets generalized to skip everything
 - Fix: Design skill Simple path updated to say "Check for applicable skills and project recipes first, then execute directly"
+## Shortcuts are mechanical, not goal-oriented
+- Anti-pattern: Pre-evaluating whether a shortcut's chain has work to do (e.g., `hc` → check git status → clean → skip handoff entirely)
+- Correct pattern: Invoke the expansion directly. Each step in the chain creates preconditions for the next. Checking downstream preconditions before running upstream steps aborts chains that would have succeeded.
+- Same class as "execute directly" deviation — premature termination of multi-step chains based on downstream precondition evaluation
+- Fix: execute-rule.md Tier 1 shortcuts section: "Shortcuts are mechanical expansions — invoke directly. Do not pre-evaluate."

@@ -1,22 +1,19 @@
 # Session Handoff: 2026-02-15
 
-**Status:** RCA on design skill safety-check bypass. Two worktrees outstanding.
+**Status:** Three RCAs on chain-shortcircuit pattern. Two worktrees outstanding.
 
 ## Completed This Session
 
-**RCA: "Execute directly" disables safety checks:**
-- Deviation: `/design` triage → Simple → raw `cd` into worktrees, bypassing worktree skill and `just wt-merge` recipe
-- Root cause: "Simple" classification creates execution mode that rationalizes away ALL operational rules, not just design ceremony
-- Same mechanism as "Proceed" scope learning (vet checkpoints)
-- Fix: Design skill Simple path updated — now says "Check for applicable skills and project recipes first, then execute directly"
-- Learning appended to learnings.md with fix reference
+**RCA: Premature termination of multi-step chains (3 instances, same pattern):**
+- Pattern: Evaluate downstream preconditions before running upstream steps → abort chain that would have succeeded
+- Instance 1: `/design` triage → "Simple" → skipped skill/recipe checks → raw `cd` into worktrees
+  - Fix: Design skill Simple path — "Check for applicable skills and project recipes first, then execute directly" (6e7f7c9)
+- Instance 2: RCA concluded "behavioral, no rule change needed" → appended learning to 482-line file
+  - Fix: User pushback — learning alone is not a fix when learnings.md is effectively /dev/null at 6× soft limit
+- Instance 3: `hc` → checked git status (clean) → skipped handoff entirely → `p:` task never written
+  - Fix: execute-rule.md shortcuts — "Shortcuts are mechanical expansions — invoke directly. Do not pre-evaluate."
 
-**Prior uncommitted:** `execution-routing.md` fragment updated (added "Check loaded context" as step 1, renumbered). Already matches loaded CLAUDE.md content.
-- Fixed 4 orphan memory-index entries (3 structural heading removals, 1 stale key update)
-- Integrated 7 new pending tasks and 17 new learnings from worktree
-- Added workflow-rca-fixes as complete in jobs.md (20 FRs, 6 phases, 16 steps)
-- Removed "Blocked on: workflow improvements" from error-handling worktree task
-- 884 tests passing, precommit OK
+**Prior uncommitted:** `execution-routing.md` fragment updated (added "Check loaded context" as step 1, renumbered)
 
 ## Pending Tasks
 
@@ -102,6 +99,10 @@
   - Needs: proportionality threshold in vet-requirement.md fragment
   - Also review Gate B in commit skill — same over-application pattern
 
+- [ ] **Pretool hook cd pattern** — Allow `cd <path> &&` pattern, check security implications | sonnet | restart
+  - Load plugin-dev:hook-development skill for hook modification guidance
+  - Current hook blocks ALL bash when cwd wrong, including `cd` to restore — creates catch-22
+
 ## Worktree Tasks
 
 - [ ] **Remember skill update** → `remember-skill-update` — Resume `/design` Phase B | sonnet
@@ -150,7 +151,7 @@
 
 ## Next Steps
 
-Original task (merge outstanding worktrees, remove ancestry-only merges) not yet started — use `/worktree` skill or `just wt-merge`.
+Merge outstanding worktrees (`just wt-merge`), preserve session data, remove ancestry-only merges.
 
 ## Reference Files
 
