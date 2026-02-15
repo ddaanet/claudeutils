@@ -492,3 +492,65 @@ def test_rm_calls_remove_worktree_task_before_branch_delete(
 
     final_session = session_file.read_text()
     assert "## Worktree Tasks" not in final_session or "Feature A" not in final_session
+
+
+def test_rm_e2e_removes_completed_task_from_worktree_tasks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """E2E: rm removes task from Worktree Tasks when task completed in branch."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+    init_repo(repo_path)
+
+    session_file = repo_path / "agents" / "session.md"
+    session_file.parent.mkdir(parents=True, exist_ok=True)
+    session_content = r"""# Session Handoff
+
+## Pending Tasks
+
+- [ ] **Other task** — `\`/design\`` | sonnet
+
+## Worktree Tasks
+
+- [ ] **Complete the feature** → `complete-the-feature` — `\`/runbook\`` | haiku
+"""
+    session_file.write_text(session_content)
+
+    result = CliRunner().invoke(
+        worktree, ["new", "complete-the-feature", "--session", str(session_file)]
+    )
+    assert result.exit_code == 0
+
+    worktree_path = wt_path("complete-the-feature")
+    worktree_session = worktree_path / "agents" / "session.md"
+
+    worktree_content = worktree_session.read_text()
+    assert "## Pending Tasks" in worktree_content
+    assert "Complete the feature" in worktree_content
+
+    worktree_session_completed = r"""# Focused Session
+
+## Pending Tasks
+
+## Blockers / Gotchas
+"""
+    worktree_session.write_text(worktree_session_completed)
+    subprocess.run(
+        ["git", "-C", str(worktree_path), "add", "agents/session.md"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(worktree_path), "commit", "-m", "complete task"],
+        check=True,
+        capture_output=True,
+    )
+
+    result = CliRunner().invoke(worktree, ["rm", "complete-the-feature"])
+    assert result.exit_code == 0
+    assert "Removed worktree complete-the-feature" in result.output
+
+    final_session = session_file.read_text()
+    assert "Complete the feature" not in final_session
+    assert "Other task" in final_session
