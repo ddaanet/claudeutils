@@ -26,7 +26,7 @@ model: sonnet
 
 **Error Escalation**:
 - Sonnet → User: Review finds UNFIXABLE issues, skill-reviewer/agent-creator escalates validation failures
-- Phase checkpoints: Restart required after Phases 1-5, interactive diagnostic review after Phases 1-4
+- Phase checkpoints: Restart required after Phases 1, 3-5; interactive diagnostic review after Phases 1-4
 
 **Report Locations**: plans/workflow-rca-fixes/reports/
 
@@ -243,7 +243,7 @@ Update frontmatter for 5 agents in single edit session:
 
 **Complexity:** High (3 steps, ~200 lines)
 **Model:** Sonnet
-**Restart required:** Yes (runbook-review.md loaded via CLAUDE.md)
+**Restart required:** No (runbook-review.md accessed via /when recall, skills loaded on demand — none require restart)
 **Diagnostic review:** Yes (improving review logic)
 **FRs addressed:** FR-1, FR-2, FR-3
 
@@ -331,7 +331,14 @@ Expand Section 11 (LLM Failure Mode Detection):
      - Multi-step sequences collapsible to single step
      - Over-granular decomposition without clear boundary
 
-**Expected Outcome**: Section 11 expanded with General detection criteria mirroring runbook-review.md's new axes.
+4. **Add restart-reason verification** (metadata validation):
+   - For each phase claiming "Restart required: Yes", verify the stated reason matches restart trigger rules
+   - Restart triggers: agent definitions (.claude/agents/), hooks, plugins, MCP only
+   - NOT restart triggers: decision documents, skills, fragments loaded on-demand via /when recall
+   - Distinction: @-referenced files have content loaded at startup; indexed-but-recalled files do not
+   - Detection: grep phase headers for "Restart required: Yes", cross-reference artifact type against trigger rules
+
+**Expected Outcome**: Section 11 expanded with General detection criteria mirroring runbook-review.md's new axes. Restart-reason verification added to metadata validation.
 
 **Error Conditions**:
 - If General criteria duplicate TDD → differentiate by artifact type (tests vs implementations)
@@ -366,7 +373,7 @@ In Phase 0.95 (Outline Sufficiency Check), add validation step before promotion:
 2. **Gate content**:
    ```
    **LLM failure mode gate (before promotion):**
-   Check for common planning defects (same criteria as runbook-outline-review-agent):
+   Check for common planning defects (criteria from runbook-review.md updated in Step 2.1):
    - Vacuity: any items that only create scaffolding without functional outcome?
    - Ordering: any items referencing structures from later items?
    - Density: adjacent items on same function with <1 branch difference?
@@ -396,7 +403,7 @@ In Phase 0.95 (Outline Sufficiency Check), add validation step before promotion:
 
 **Phase 2 Checkpoint**:
 1. All review logic updated (runbook-review.md, review-plan, runbook skill)
-2. Restart session required (runbook-review.md loaded via CLAUDE.md @-ref)
+2. No restart required (decision documents and skills loaded on demand, not at startup)
 3. Proceed to Phase 3
 
 ---
@@ -727,6 +734,7 @@ Update `agent-core/skills/runbook/references/anti-patterns.md`:
    - Success criteria checking structure when step should verify content/behavior
    - Steps without concrete Expected Outcome
    - Ambiguous Error Conditions
+   - Referencing downstream consumers instead of upstream source (e.g., referencing an agent that applies criteria instead of the decision document that defines them — in bootstrapping pipelines, downstream consumers may not be updated yet)
 
 **Part C: Update examples.md**
 
@@ -1045,9 +1053,8 @@ After Phase 6 completion:
    - All fragments/decisions passed vet-fix-agent
    - No unresolved UNFIXABLE issues
 
-3. **Restart verification** (Phases 1-5 only):
+3. **Restart verification** (Phases 1, 3-5):
    - Phase 1: Agent frontmatter changes functional
-   - Phase 2: runbook-review.md loaded correctly
    - Phase 3: vet-fix-agent + vet-requirement.md changes active
    - Phase 4: runbook-outline-review-agent changes active
    - Phase 5: design-vet-agent + workflows-terminology.md changes active

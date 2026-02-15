@@ -86,3 +86,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: commit artifacts before delegating to review agents (outline-review, plan-reviewer, vet-fix-agent)
 - Rationale: review agents operate on filesystem state; uncommitted work may be stale or inconsistent
 - Applied to runbook skill: Phase 0.75 (commit outline before review) and Phase 1 (commit phase file before review)
+## Indexing is not loading
+- Anti-pattern: claiming a file requires restart because it appears in an @-referenced index (memory-index.md)
+- Correct pattern: only files whose content is injected at startup (@-referenced or agent definitions) require restart. Indexed files accessed via /when recall load on-demand.
+- Rationale: memory-index.md is @-referenced (metadata loaded at startup); indexed decision documents are not (content loaded on-demand via /when). Conflating the two produces false restart requirements.
+## Reference upstream in bootstrapping
+- Anti-pattern: referencing a downstream consumer of criteria (e.g., "same criteria as outline-review-agent") when the consumer hasn't been updated yet in the bootstrapping sequence
+- Correct pattern: reference the upstream source where criteria are defined (e.g., runbook-review.md), not agents/skills that consume them
+- Rationale: in reflexive bootstrapping, each tool is improved before downstream use. References must follow the dependency chain direction.

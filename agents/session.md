@@ -1,36 +1,34 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Runbook promoted to full format (runbook.md). Ready for interactive opus review before prepare-runbook.py.
+**Status:** Runbook reviewed and fixed. Ready for prepare-runbook.py → restart → orchestrate.
 
 ## Completed This Session
 
-**Runbook Promotion (workflow-rca-fixes):**
-- Loaded plugin-dev:skill-development + plugin-dev:agent-development (prerequisites for Phase 1)
-- Promoted outline → runbook.md following Phase 0.95 sufficiency path
-- Runbook structure: 16 steps across 6 phases, all general type
-- Frontmatter: name (workflow-rca-fixes), model (sonnet)
-- Common Context: requirements summary, scope boundaries, key decisions, project structure
-- All steps formatted: Objective, Prerequisites, Implementation, Expected Outcome, Error Conditions, Validation
-- Phase checkpoints: restart requirements and diagnostic review guidance documented
-- Final validation checklist included
-- File: `plans/workflow-rca-fixes/runbook.md`
+**Runbook Review (workflow-rca-fixes):**
+- Reviewed runbook.md following runbook-review-guide.md layered protocol (baseline → common context → steps)
+- Found 2 major issues, 2 minor observations
+- M-1: Phase 2 restart incorrect — runbook-review.md NOT @-referenced, accessed via /when recall. Fixed: restart → No, updated metadata + final validation
+- M-2: Step 2.3 forward-referenced unmodified agent. Fixed: changed to reference runbook-review.md (upstream source)
+- RCA'd both errors: M-1 = conflation of indexing with loading; M-2 = source confusion in bootstrapping pipeline
+- Applied 2 recurrence prevention proposals: restart-reason verification added to Step 2.2, reference-direction anti-pattern added to Step 5.1
+- All 20 FRs verified covered, all validation reviewers match artifact types, report paths consistent
 
 **Prior Sessions:**
-- Outline generated and reviewed (runbook-outline-review-agent): 16 steps, 6 phases, 20 FRs mapped
+- Runbook promoted from outline (16 steps, 6 phases, all general type)
+- Outline generated and reviewed (runbook-outline-review-agent): 20 FRs mapped
 - Interactive opus review: 3 fixes applied, deliverable-level traceability added to Phase 4
 - Design complete: `plans/workflow-rca-fixes/design.md` (6 phases, 20 FRs)
 - Reports: `plans/workflow-rca-fixes/reports/` (exploration + review artifacts)
 
 ## Pending Tasks
 
-- [>] **Workflow RCA fixes** — Interactive opus review of runbook, then prepare-runbook | opus then sonnet
-  - Runbook: `plans/workflow-rca-fixes/runbook.md` (16 steps, 6 phases, promoted from outline)
-  - Outline: `plans/workflow-rca-fixes/runbook-outline.md` (outline-review complete)
+- [>] **Workflow RCA fixes** — `agent-core/bin/prepare-runbook.py plans/workflow-rca-fixes/runbook.md` | sonnet
+  - Runbook: `plans/workflow-rca-fixes/runbook.md` (16 steps, 6 phases, reviewed and fixed)
   - Design: `plans/workflow-rca-fixes/design.md` (20 FRs, 6 phases)
   - Requirements: `plans/workflow-rca-fixes/requirements.md`
-  - Next: Switch to opus, review runbook.md for quality, alignment, completeness
-  - After opus review: run prepare-runbook.py, restart, `/orchestrate workflow-rca-fixes`
-  - Key review finding: vet-fix-agent.md needs taxonomy split (Step 3.1 creates vet-taxonomy.md)
+  - Next: run prepare-runbook.py, restart, `/orchestrate workflow-rca-fixes`
+  - Key: Phase 2 does NOT need restart (decision docs + skills on-demand). Phases 1, 3-5 do.
+  - Key: Step 3.1 creates vet-taxonomy.md (taxonomy split from vet-fix-agent)
 - [ ] **RCA failures to load skills during /runbook** — Investigate why plugin-dev skills required explicit invocation | sonnet
   - Context: /runbook skill documentation perimeter says "Load plugin-dev:skill-development before planning"
   - Expected: Auto-load or clearer failure message when missing
@@ -98,10 +96,9 @@
 
 ## Next Steps
 
-1. Switch to opus model for interactive runbook review
-2. Review `plans/workflow-rca-fixes/runbook.md` for quality, alignment with design, completeness
-3. After review fixes: sonnet session runs `agent-core/bin/prepare-runbook.py plans/workflow-rca-fixes/runbook.md`
-4. Restart session, paste `/orchestrate workflow-rca-fixes`
+1. Run `agent-core/bin/prepare-runbook.py plans/workflow-rca-fixes/runbook.md` (requires dangerouslyDisableSandbox)
+2. Restart session
+3. `/orchestrate workflow-rca-fixes`
 
 ---
-*Handoff by Sonnet. Runbook promoted to full format, ready for opus review.*
+*Handoff by Sonnet. Runbook reviewed, 2 major issues fixed, recurrence prevention applied.*
