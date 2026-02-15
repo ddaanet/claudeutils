@@ -1,38 +1,40 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Runbook outline generated and reviewed for workflow-rca-fixes. Ready for interactive outline review before runbook promotion.
+**Status:** Runbook promoted to full format (runbook.md). Ready for interactive opus review before prepare-runbook.py.
 
 ## Completed This Session
 
-**Runbook Planning (workflow-rca-fixes):**
-- Tier 3 assessment: 23 files, 6 phases, multi-session, mixed models → Full Runbook
-- Phase 0.5: Read full documentation perimeter (14+ files), verified all target files exist
-- Loaded plugin-dev:skill-development + plugin-dev:agent-development prerequisites
-- Phase 0.75: Generated outline — 16 steps, 6 phases, 20 FRs mapped
-- Runbook skill updated: commit-before-review rule at Phase 0.75 + Phase 1
-- Outline review (runbook-outline-review-agent): Ready, 6 fixes applied
-  - Critical: vet-fix-agent.md at 436 lines, +150 → 586 → split taxonomy to `vet-taxonomy.md`
-  - Major: Phase 5 restart must include workflows-terminology.md (fragment loaded via CLAUDE.md)
-  - 4 minor: bootstrap notes, step dependency, growth projection, Phase 4 density justification
-- Phase 0.85: No consolidation candidates
-- Phase 0.9: 16 items, no callbacks
-- Phase 0.95: Sufficiency check passed — outline detailed enough for promotion
+**Runbook Promotion (workflow-rca-fixes):**
+- Loaded plugin-dev:skill-development + plugin-dev:agent-development (prerequisites for Phase 1)
+- Promoted outline → runbook.md following Phase 0.95 sufficiency path
+- Runbook structure: 16 steps across 6 phases, all general type
+- Frontmatter: name (workflow-rca-fixes), model (sonnet)
+- Common Context: requirements summary, scope boundaries, key decisions, project structure
+- All steps formatted: Objective, Prerequisites, Implementation, Expected Outcome, Error Conditions, Validation
+- Phase checkpoints: restart requirements and diagnostic review guidance documented
+- Final validation checklist included
+- File: `plans/workflow-rca-fixes/runbook.md`
 
-**Prior Session (Design):**
+**Prior Sessions:**
+- Outline generated and reviewed (runbook-outline-review-agent): 16 steps, 6 phases, 20 FRs mapped
+- Interactive opus review: 3 fixes applied, deliverable-level traceability added to Phase 4
 - Design complete: `plans/workflow-rca-fixes/design.md` (6 phases, 20 FRs)
-- Diagnostic review complete: 3 major findings fixed (C-1, F-1, CL-1)
-- Early bootstrap: project-conventions skill, design-vet-agent + outline-review-agent updated
-- Reports: `plans/workflow-rca-fixes/reports/` (7 exploration + review reports)
+- Reports: `plans/workflow-rca-fixes/reports/` (exploration + review artifacts)
 
 ## Pending Tasks
 
-- [ ] **Workflow RCA fixes** — Interactive outline review then promote to runbook | opus
-  - Outline: `plans/workflow-rca-fixes/runbook-outline.md` (16 steps, reviewed Ready)
-  - Outline review: `plans/workflow-rca-fixes/reports/runbook-outline-review.md`
+- [>] **Workflow RCA fixes** — Interactive opus review of runbook, then prepare-runbook | opus then sonnet
+  - Runbook: `plans/workflow-rca-fixes/runbook.md` (16 steps, 6 phases, promoted from outline)
+  - Outline: `plans/workflow-rca-fixes/runbook-outline.md` (outline-review complete)
   - Design: `plans/workflow-rca-fixes/design.md` (20 FRs, 6 phases)
   - Requirements: `plans/workflow-rca-fixes/requirements.md`
-  - Next: interactive opus review of outline, then promote to runbook.md, then Phase 4 (prepare-runbook.py)
-  - Key review finding: vet-fix-agent.md needs taxonomy split (436 + 150 = 586 lines)
+  - Next: Switch to opus, review runbook.md for quality, alignment, completeness
+  - After opus review: run prepare-runbook.py, restart, `/orchestrate workflow-rca-fixes`
+  - Key review finding: vet-fix-agent.md needs taxonomy split (Step 3.1 creates vet-taxonomy.md)
+- [ ] **RCA failures to load skills during /runbook** — Investigate why plugin-dev skills required explicit invocation | sonnet
+  - Context: /runbook skill documentation perimeter says "Load plugin-dev:skill-development before planning"
+  - Expected: Auto-load or clearer failure message when missing
+  - Actual: User had to manually invoke skills before runbook promotion could proceed
 - [ ] **Diagnostic opus review methodology** — New task from design discussion | `/requirements` | opus
   - Interactive post-vet RCA using domain-specific methodology + iterative deepening
   - Extends /reflect skill with proactive invocation, two-model separation, feedback loops
@@ -96,7 +98,10 @@
 
 ## Next Steps
 
-Interactive opus review of `plans/workflow-rca-fixes/runbook-outline.md` — then promote to runbook.md and run prepare-runbook.py.
+1. Switch to opus model for interactive runbook review
+2. Review `plans/workflow-rca-fixes/runbook.md` for quality, alignment with design, completeness
+3. After review fixes: sonnet session runs `agent-core/bin/prepare-runbook.py plans/workflow-rca-fixes/runbook.md`
+4. Restart session, paste `/orchestrate workflow-rca-fixes`
 
 ---
-*Handoff by Sonnet. Outline reviewed Ready, planning paused for interactive review.*
+*Handoff by Sonnet. Runbook promoted to full format, ready for opus review.*

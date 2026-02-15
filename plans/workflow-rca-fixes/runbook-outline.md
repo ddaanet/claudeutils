@@ -20,7 +20,7 @@
 | FR-7: Vet status taxonomy (4-status) | 3 | 3.1 | Replace binary with FIXED/DEFERRED/OUT-OF-SCOPE/UNFIXABLE |
 | FR-8: Investigation-before-escalation protocol | 3 | 3.1 | Add 4-gate checklist to vet-fix-agent (same step as FR-7) |
 | FR-9: UNFIXABLE validation in detection protocol | 3 | 3.2 | Add validation steps to vet-requirement.md |
-| FR-10: Orchestrate template enforcement | 3 | 3.3 | Add delegation template guidance to orchestrate skill |
+| FR-10: Orchestrate template enforcement | 3 | 3.2-3.3 | Strengthen vet-requirement.md execution context + orchestrate skill delegation template |
 | FR-11: Semantic propagation checklist | 4 | 4.1 | Add grep-based classification (same step as FR-5) |
 | FR-12: Agent convention injection via skills | 1 | 1.1-1.3 | Create 2 skills (project-conventions exists) + update 5 agent frontmatters |
 | FR-13: Memory index injection for sub-agents | 1 | 1.2-1.3 | Create memory-index skill + update vet-fix-agent |
@@ -170,14 +170,16 @@ Sonnet for edits, opus for diagnostic review (Phases 1-4 only)
   - Commit both files
   - Review: delegate to agent-creator (plugin-dev) for both files
 
-- **Step 3.2:** Add UNFIXABLE validation to vet-requirement.md
+- **Step 3.2:** Update vet-requirement.md (UNFIXABLE validation + execution context enforcement)
   - Depends on: Step 3.1 (vet-fix-agent taxonomy committed)
   - Read `agent-core/fragments/vet-requirement.md`
+  - Update "Three issue statuses" section to four statuses: add OUT-OF-SCOPE between DEFERRED and UNFIXABLE, matching taxonomy from Step 3.1
   - Add validation steps after grep-for-UNFIXABLE:
     - Check each has subcategory code
     - Check each has investigation summary
     - Check not in scope OUT list
     - Resume agent for reclassification if validation fails
+  - Strengthen execution context section (FR-10): add enforcement language that IN/OUT scope fields must be structured lists, not empty prose; add fail-loudly guidance when fields are missing or unstructured
   - Commit changes
   - Review: delegate to vet-fix-agent (uses updated taxonomy from 3.1, must be committed first)
 
@@ -214,6 +216,10 @@ Sonnet for edits, opus for diagnostic review (Phases 1-4 only)
     - When design introduces new terminology/types: verify artifact inventory
     - Grep-based classification: producer (rewrite) or consumer (update)
     - All files referencing old semantics must be in outline
+  - Add deliverable-level traceability check:
+    - Cross-reference outline coverage against design deliverables table, not just FR numbers
+    - Each design deliverable row must map to an outline step (FRs with multiple deliverables need multiple step mappings)
+    - Grounding: interactive opus review caught FR-10 with 2 deliverables mapped to 1 step; FR-presence check marked "Complete"
   - Commit changes
   - Review: delegate to agent-creator (plugin-dev)
 
