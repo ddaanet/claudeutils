@@ -1,51 +1,30 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Memory index actionability review complete, brainstorm-name agent created.
+**Status:** Memory index actionability improvements complete. 24 key renames, 18 removals, 4 additions across 12 files.
 
 ## Completed This Session
 
-**Memory index actionability discussion:**
-- Opus agent reviewed all 150 index entries for actionability — report at `plans/reports/memory-index-actionability-review.md`
-- Identified 6 systemic patterns: archival entries (~27%), root-cause-not-symptom triggers, meta-index noise, missing coverage (defense-in-depth.md), 3 redundancy clusters, frozen-domain inflation
-- External research grounded in Anthropic contextual retrieval, RAG precision/recall literature
-- Local research: when-recall design.md, corpus-analysis.md, baseline-recall-analysis.md (2.9% baseline)
+**Memory index actionability improvements:**
+- 24 index entry keys renamed from root-cause/jargon to symptom-oriented phrasing (old keys preserved as pipe synonyms)
+  - Examples: `transformation table` → `choosing review gate`, `prose gates` → `prevent skill steps from being skipped`, `task names must be branch-suitable` → `naming tasks for worktrees`
+- 18 entries removed: 6 meta-index (about maintaining the index itself), 5 dead/archival, 4 dead, 3 dedup merges
+- 4 entries added: 2 for defense-in-depth.md (new semantic headings added), 1 deliverable-review.md expansion, dedup merges
+- 24 corresponding heading renames across 8 decision files (validator requires key-heading match)
+- 17 headings marked structural (`.` prefix) in 6 decision files for entries being removed
+- Report: `plans/reports/memory-index-actionability-review.md`
+- Precommit passes, all 855/856 tests pass (1 xfail)
 
-**Discussion outcomes (not yet executed):**
-- Frozen-domain entries (markdown-tooling, validation-quality, data-processing ~41 entries) need passive recall mechanism, not active index — original decision file purpose was forward compliance
-- Rule files (`.claude/rules/`) considered but user reports unreliable adherence — agents ignore injected directives to load files. Inline code comments at module level may be more reliable
-- Symptom-oriented trigger phrasing confirmed as intent — drift toward root-cause phrasing happened during consolidation
-- Learning headers in learnings.md should conform to memory-index trigger constraints at staging time (not `/when` format, but behavioral trigger framing) to prevent consolidation rephrasing
-- Pipe-delimiter synonyms (`| extra triggers`) underused — cheapest intervention for trigger surface expansion
-- Meta-index entries (5-6 entries about maintaining the index) should move to rules files and/or relevant skills/agents — noise in the index itself
-- Reusable research should stay in-tree and be made discoverable (cross-references in decision files)
-- `defense-in-depth.md` completely unindexed, `deliverable-review.md` has only 1 entry for multi-section file
-
-**brainstorm-name agent created:**
-- `agent-core/agents/brainstorm-name.md` — opus model, magenta, Read-only tools
-- Generates 8-10 name candidates across verb/metaphor/compound/terse angles
-- Symlinked via `just sync-to-parent` but not discovered on first restart — needs second restart
-
-**Dropped tasks:**
-- Learning ages computation after consolidation — working fine per user observation
-
-## Continue in Next Session
-
-**Test brainstorm-name agent** — verify discovery after restart, then test with remember skill rename:
-- Remember skill name is misleading — skill consolidates/distills learnings OUT of context, not "remembering"
-- Functional description for brainstorm: takes accumulated learnings, triages (superseded/redundant/documented?), routes survivors into permanent decision files, compresses/deduplicates, prunes from active context
-- Constraints: slash command (`/name`), avoid collision with existing commands, invoked rarely
+**Not addressed (remaining from original task):**
+- Frozen-domain passive recall mechanism — needs design, rule files unreliable per prior discussion
+- Enforce behavioral trigger framing at learning staging time — folded into new design task below
 
 ## Pending Tasks
 
-- [ ] **Memory index actionability improvements** — Apply findings from opus review | sonnet
-  - Report: `plans/reports/memory-index-actionability-review.md`
-  - Symptom-oriented trigger rephrasing (~15 entries)
-  - Add pipe-delimiter synonyms to entries with trigger surface gaps (~10 entries)
-  - Deduplicate 3 redundancy pairs
-  - Index defense-in-depth.md (3 entries) and expand deliverable-review.md coverage
-  - Move meta-index entries to rules/skills (5-6 entries)
-  - Frozen-domain passive recall mechanism — rule files unreliable, explore alternatives (code comments, hooks)
-  - Enforce behavioral trigger framing at learning staging time (remember skill or hook)
+- [ ] **Design remember skill update** — `/design` based on index actionability findings | sonnet
+  - Trigger framing: enforce symptom-oriented keys at learning staging time (not `/when` format but behavioral trigger framing)
+  - Learning headers in learnings.md should conform to memory-index trigger constraints to prevent consolidation rephrasing
+  - Frozen-domain passive recall mechanism — explore alternatives to rule files (code comments, hooks)
+  - Input: this session's key renames as examples of good vs bad triggers
 
 - [ ] **Organize plans/reports directory** — Separate persistent research from context-specific reports | sonnet
   - Currently 14 files mixing grounding research (reusable) with plan-specific reports (context-bound)
@@ -134,7 +113,10 @@
 - Session merge loses continuation lines (single-line set diff) → worktree-fixes FR-4
 - No-op merge skips commit → orphan branch → worktree-fixes FR-5
 
-**All tasks with documentation must have in-tree file references.**
+**Validator orphan entries not autofixable:**
+- Marking headings structural (`.` prefix) causes `check_orphan_entries` non-autofixable error
+- Must manually remove entries from memory-index.md before running precommit
+- Autofix only handles placement, ordering, and structural entry removal — not orphans
 
 **Rule file directive adherence unreliable:**
 - Agents ignore injected "load X before modifying" directives
@@ -147,12 +129,4 @@
 - `plans/when-recall/reports/corpus-analysis.md` — Index corpus analysis (entry patterns, compatibility)
 - `plans/when-recall/reports/baseline-recall-analysis.md` — 2.9% baseline recall measurement
 - `plans/when-recall/design.md` — When-recall system design
-- `plans/workwoods/requirements.md` — Workwoods requirements (6 FRs, cross-tree awareness)
-- `plans/pushback/requirements.md` — Pushback requirements (3 FRs, sycophancy prevention)
-- `plans/process-review/rca.md` — Process RCA (5 plans examined, root cause in planning skill)
-- `plans/reports/rca-*-opus.md` — 3 RCA reports (file growth, vet over-escalation, general-step detection)
-- `plans/workflow-fixes/` — Unified runbook skill, plan-reviewer, pipeline-contracts (complete)
-- `plans/worktree-update/` — Runbook + reports (complete, merged)
-- `plans/when-recall/design.md` — Vetted design document
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
-- `plans/worktree-fixes/requirements.md` — Worktree fixes requirements (6 FRs)

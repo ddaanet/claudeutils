@@ -4,7 +4,7 @@ Distilled from prompt-composer design (Dec 2025). Original research in `plans/pr
 
 ---
 
-## When Ordering Content For Position Bias
+## When Ordering Fragments In CLAUDE.md
 
 LLMs exhibit **strong primacy bias** — content at the beginning of context receives disproportionate attention. Secondary **recency bias** exists at the end. Middle content has weakest influence ("lost in the middle").
 
@@ -59,7 +59,7 @@ Different model classes benefit from different instruction density:
 
 ---
 
-## When Managing Rule Count Budget
+## When Too Many Rules In Context
 
 LLM adherence degrades with excessive rules. Empirical observation: adherence collapses >200 rules. Claude system prompt consumes ~50, leaving ~150 for user rules.
 
@@ -75,7 +75,7 @@ LLMs only read explicitly provided context. No inherent behavior to load additio
 
 ---
 
-## When Evaluating Prompt Structure Tools
+## .When Evaluating Prompt Structure Tools
 
 No existing tool combines position bias optimization + model-specific variants + rule budgeting. Closest matches:
 - **Airia Prompt Layering** — modular composition but no tiering/budgeting (commercial only)
@@ -86,7 +86,7 @@ No existing tool combines position bias optimization + model-specific variants +
 
 ---
 
-## When Applying Prompt Research
+## .When Applying Prompt Research
 
 The fragment system (`agent-core/fragments/` + CLAUDE.md `@` references) solves modular composition. Remaining opportunities:
 - ~~**Position optimization** — order fragments/rules by criticality (primacy/recency)~~ **Done** (Feb 2026)
@@ -95,7 +95,7 @@ The fragment system (`agent-core/fragments/` + CLAUDE.md `@` references) solves 
 
 ---
 
-## How to Order Fragments By Position Bias
+## .How to Order Fragments By Position Bias
 
 CLAUDE.md sections ordered by position bias research (primacy strongest, recency secondary, middle weakest).
 

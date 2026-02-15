@@ -17,7 +17,7 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Impact:** Skill documentation must use inline content or relative paths for supporting files.
 
-## When Placing Skill Constraint Rules
+## When Placing DO NOT Rules In Skills
 
 **Context:** Multi-phase skill procedures with content generation and cleanup.
 
@@ -127,7 +127,7 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Impact:** More efficient token usage for identifiers and headers.
 
-### When Formatting Index Entry Lines
+### .When Formatting Index Entry Lines
 
 **Decision:** Use bare lines without markers for flat keyword lists.
 
@@ -139,7 +139,7 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Impact:** 14% token reduction for index structures.
 
-### When Classifying Section Headers
+### .When Classifying Section Headers
 
 **Decision:** Default semantic, `.` prefix marks structural (`## .Title`).
 
@@ -171,7 +171,7 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Impact:** Implementation matches design intent without interpretation drift.
 
-### When Writing Memory Index Entry Keys
+### .When Writing Memory Index Entry Keys
 
 **Anti-pattern:** Adding header titles to memory-index.md and claiming "entries exist".
 
@@ -195,7 +195,7 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Impact:** Runbook processing tools work correctly with phase-grouped structure.
 
-## How to Implement Prose Gates
+## How to Prevent Skill Steps From Being Skipped
 
 **Decision Date:** 2026-02-06
 
@@ -232,7 +232,7 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Impact:** Clear pass/fail states, no ambiguity about compliance.
 
-### When Marking Organizational Sections
+### .When Marking Organizational Sections
 
 **Decision Date:** 2026-02-11
 
@@ -246,7 +246,7 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Impact:** Cleaner indexes pointing only to actual content sections.
 
-### When Shortening Index Entry Keys
+### .When Shortening Index Entry Keys
 
 **Decision Date:** 2026-02-11
 

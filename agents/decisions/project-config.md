@@ -4,7 +4,7 @@ Project-level configuration decisions for Claude Code, models, skills, and devel
 
 ## .Memory Index Pruning
 
-### How to Manage Memory Index Growth
+### .How to Manage Memory Index Growth
 
 **Memory index append-only:**
 
@@ -87,7 +87,7 @@ Project-level configuration decisions for Claude Code, models, skills, and devel
 
 ## .Skill Discovery
 
-### How to Surface Skills Through Discovery Layers
+### How to Make Skills Discoverable
 
 **Skill discovery layers:**
 

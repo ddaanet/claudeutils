@@ -31,8 +31,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how resolve history directories
 /how extract session titles
 /how format session titles
-/how detect trivial messages
-/how layer feedback extraction
+/how detect trivial messages | filter noise skip short
+/how order feedback extraction | layer feedback filter priority
 /how validate session uuid files
 /when sorting glob results
 /how parse first line metadata
@@ -43,24 +43,29 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 ## agents/decisions/pipeline-contracts.md
 
-/when transformation table | T1-T6 pipeline stages defect types review gates criteria
+/when choosing review gate | transformation table artifact type T1-T6 pipeline stages
 /how review delegation scope template | scope IN OUT changed files requirements
 /when UNFIXABLE escalation | fix-all pattern grep UNFIXABLE stop escalate
-/when phase type model | tdd general per-phase typing expansion review criteria
+/when declaring phase type | tdd or general per-phase typing model expansion review
 /when vet escalation calibration | over-escalation pattern-matching not design
 /when vet flags out-of-scope items | DEFERRED vs UNFIXABLE distinction
 /when vet receives execution context | filesystem vs execution-time state
 /when vet-fix-agent rejects planning artifacts | plan-reviewer routing
-/when expansion reintroduces defects | LLM failure modes at both levels
+/when reviewing expanded phases | expansion reintroduces defects regression LLM failure modes
 
 ## agents/decisions/deliverable-review.md
 
-/when identifying deliverable artifacts
+/when identifying deliverable artifacts | classify artifact types review axes agentic prose code test
+
+## agents/decisions/defense-in-depth.md
+
+/when designing quality gates | layered defense multiple independent checks
+/when reviewing quality gate coverage | defense layer checklist
 
 ## agents/decisions/implementation-notes.md
 
 /when using at-sign references
-/when placing skill constraint rules
+/when placing DO NOT rules in skills | skill constraint rules negative constraints
 /when using session start hooks
 /how filter user prompt submit hooks
 /when using hooks in subagents
@@ -69,15 +74,10 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when treating commits as sync points
 /when deciding to commit interactively
 /when choosing naming convention format
-/when formatting index entry lines
-/when classifying section headers
 /when reading design classification tables
-/when writing memory index entry keys
 /how format runbook phase headers
-/how implement prose gates
+/how prevent skill steps from being skipped | prose gates no tool call D+B hybrid
 /when choosing hard or soft limits
-/when marking organizational sections
-/when shortening index entry keys
 /how format batch edits efficiently
 /when removing stale learnings on commit
 
@@ -100,10 +100,9 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 ## agents/decisions/project-config.md
 
-/how manage memory index growth
 /how inject context with rule files
 /when naming model capability tiers
-/how surface skills through discovery layers
+/how make skills discoverable | surface discovery layers agents miss
 /when writing agent yaml frontmatter
 /when verifying symlinks after operations
 /when using heredocs in sandbox
@@ -112,14 +111,11 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 ## agents/decisions/prompt-structure-research.md
 
-/when ordering content for position bias
+/when ordering fragments in CLAUDE.md | position bias fragment where to put
 /when formatting rules for adherence
 /when writing rules for different models
-/when managing rule count budget
+/when too many rules in context | managing rule count budget length
 /when loading context for llm processing
-/when evaluating prompt structure tools
-/when applying prompt research
-/how order fragments by position bias
 
 ## agents/decisions/runbook-review.md
 
@@ -165,21 +161,18 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how merge templates safely
 /when requirements change during execution
 /when embedding knowledge in context
-/how name tasks as prose keys
+/how name session tasks | prose keys task naming
 /when committing rca fixes
 /when running precommit validation
-/how expand outlines into phases
-/how review phases iteratively
+/how expand outlines into phases | review phases iteratively expansion
 /when assembling runbooks manually
 /how use review agent fix all pattern
 /how transmit recommendations inline
 /how name review reports
-/when writing test descriptions in prose
+/when writing test descriptions in prose | RED phase runbook test description
 /when checking complexity before expansion
-/when using consolidation gates
-/when applying feedback loop insights
-/when dogfooding process design
-/when scanning requirements for skills
+/when merging trivial cycles with adjacent work | consolidation gates
+/when requirements mention agent or skill creation | scanning requirements
 /when crossing phase boundaries
 /how write green phase descriptions
 /when verifying model analysis results
@@ -189,10 +182,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 /when using oneshot workflow
 /how integrate tdd workflow
-/how store learnings in handoffs
 /when optimizing design phase output
 /how document three stream planning
-/how squash tdd cycle commits
 /when setting orchestrator execution mode
 /when assessing orchestration tier
 /how checkpoint runbook execution
@@ -204,42 +195,42 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 ## agents/decisions/workflow-optimization.md
 
-/how chain handoff tail calls
+/how end workflow with handoff and commit | chain handoff tail calls
 /when handoff includes commit flag
 /when context already loaded for delegation
-/when assessing routing layer efficiency
+/when complexity assessed twice | assessing routing layer efficiency double assessment
 /when reusing vet agent context
 /how design with outline first approach
 /when selecting model for design guidance
 /when choosing model for design review
 /when vet catches structural issues
 /when reviewing agent definitions
-/when template context contradicts rules
-/when orchestrator model differs from step
+/when agent ignores injected directive | template context contradicts rules
+/when step agent uses wrong model | orchestrator model differs
 /when ordering tdd test cases
 /how format runbook outlines
-/how implement continuation passing
+/how chain multiple skills together | continuation passing tail calls
 /when using hook based parsing
 
 ## agents/decisions/orchestration-execution.md
 
 /when delegation requires commit instruction | agents leave tree dirty
-/when context defines scope boundary | structural not prose constraints
+/when limiting agent scope | context defines scope boundary relevant files structural
 /when deduplicating delegation prompts | shared file reference
 /when managing orchestration context | handoff not delegatable
-/when no post-dispatch communication available | fire-and-forget partitioning
+/when partitioning work for parallel agents | no post-dispatch communication fire-and-forget
 /when running post-step verification | git status UNFIXABLE grep
 /when planning is parallelizable | phase expansion concurrent agents
 /when stabilizing orchestrator model | sonnet before haiku optimization
 /when using opus for RCA delegation | primary source verification
 /when sonnet inadequate for synthesis | opus for multi-turn extraction
 /when no model tier introspection available | no API ask or use hook
-/when always scripting non-cognitive solutions | deterministic pattern-based
-/when script validates it should generate | metadata injection
+/when choosing script vs agent judgment | scripting non-cognitive deterministic
+/when script should generate metadata | validates not just validate
 /when bootstrapping around broken tools | design as execution plan
 /when assessing RED pass blast radius | over-implementation test-flaw correct
-/when unifying over patching | shared code bifurcation root cause
-/when common context competes with step | phase-neutral only
+/when shared code is bifurcated | unifying over patching root cause
+/when agent context has conflicting signals | common context competes phase-neutral
 /when capturing requirements from conversation | capture over interview
 
 ## agents/decisions/operational-practices.md
@@ -252,16 +243,13 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when exploration agents report false findings | verify file existence
 /when scrubbing learnings before design input | validate against evidence
 /when temporal validation required for analysis | git history correlation
-/when behavioral triggers beat passive knowledge | when how only
-/when enforcement cannot fix judgment | structural vs conversation-level
 /when no-op merge orphans branch | always create merge commit
-/when task names must be branch-suitable | alphanumeric constraint
+/when naming tasks for worktrees | branch-suitable alphanumeric constraint
 /when classifyHandoffIfNeeded bug occurs | foreground Task calls fail background works
 /when sub-agents cannot spawn sub-agents | Task MCP hooks unavailable
 /when extracting git helper functions | _git pattern subprocess reduction
 /when fixture shadowing creates dead code | pytest fixture vs local function
 /when test corpus defines correct behavior | fixtures are spec not workaround
-/when index keys must be exact | fuzzy only for runtime recovery
 /when DP matrix has zero-ambiguity | -inf initialization impossible states
 /when phase numbering is flexible | 0-based or 1-based detect from first
 /when checking self-referential modification | exclude plan own directory

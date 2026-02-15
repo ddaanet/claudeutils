@@ -36,3 +36,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Initialize score[i>0][j] with -inf, only score[0][j] = 0.0. Impossible subsequences propagate -inf
 - Rationale: When score[i-1][j-1] = 0 (no valid match for i-1 chars), transition score[i-1][j-1] + MATCH_SCORE produces positive score from nothing
 - Evidence: "when mock tests" scored 128.0 against candidate with no 'o' or 'k' — matched only 5 of 15 chars
+## Symptom-oriented index trigger keys
+- Anti-pattern: Index entry key describes root cause or uses internal jargon (e.g., "transformation table", "prose gates", "non-cognitive solutions")
+- Correct pattern: Key describes the situation an agent encounters (e.g., "choosing review gate", "prevent skill steps from being skipped"). Old key preserved as pipe synonym
+- Rationale: Agents search by symptom (what they observe), not root cause (what the entry teaches). Synonyms alone don't fix jargon keys — the key itself must be the primary search surface
+## Structural headings need manual cleanup
+- Anti-pattern: Marking headings structural (`.` prefix) and expecting validator autofix to remove corresponding index entries
+- Correct pattern: Manually remove orphan entries from memory-index.md first — `check_orphan_entries` is non-autofixable and blocks precommit before autofix runs
+- Rationale: Validator runs orphan check (non-autofixable) and structural check (autofixable) separately; orphan errors block the autofix pass

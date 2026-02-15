@@ -14,7 +14,7 @@ Patterns for delegation, orchestration protocol, model selection, and execution-
 
 **Root cause:** Agents optimize for the stated task; cleanup is not implied. Vet-fix-agent especially frequent offender.
 
-### When Context Defines Scope Boundary
+### When Limiting Agent Scope
 
 **Decision Date:** 2026-02-12
 
@@ -42,7 +42,7 @@ Patterns for delegation, orchestration protocol, model selection, and execution-
 
 **Correct pattern:** Plan for restart boundary: planning → restart → execution (different sessions, different model tiers).
 
-### When No Post-Dispatch Communication Available
+### When Partitioning Work For Parallel Agents
 
 **Decision Date:** 2026-02-12
 
@@ -114,7 +114,7 @@ Patterns for delegation, orchestration protocol, model selection, and execution-
 
 ## .Scripting Principles
 
-### When Always Scripting Non-Cognitive Solutions
+### When Choosing Script Vs Agent Judgment
 
 **Decision Date:** 2026-02-12
 
@@ -124,7 +124,7 @@ Patterns for delegation, orchestration protocol, model selection, and execution-
 
 **Corollary:** Reserve agent invocations for cognitive work (design, review, ambiguous decisions).
 
-### When Script Validates It Should Generate
+### When Script Should Generate Metadata
 
 **Decision Date:** 2026-02-12
 
@@ -152,7 +152,7 @@ Patterns for delegation, orchestration protocol, model selection, and execution-
 
 **Critical finding:** Test flaws are deliverable defects — feature silently skipped when test passes for wrong reason.
 
-### When Unifying Over Patching
+### When Shared Code Is Bifurcated
 
 **Decision Date:** 2026-02-12
 
@@ -162,7 +162,7 @@ Patterns for delegation, orchestration protocol, model selection, and execution-
 
 ## .Agent Context Patterns
 
-### When Common Context Competes With Step
+### When Agent Context Has Conflicting Signals
 
 **Decision Date:** 2026-02-12
 

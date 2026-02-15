@@ -100,7 +100,7 @@ from claudeutils.extraction import extract_feedback_recursively
 **Keywords:**
 `{"y", "n", "k", "g", "ok", "go", "yes", "no", "continue", "proceed", "sure", "okay", "resume"}`
 
-### How to Layer Feedback Extraction
+### How to Order Feedback Extraction
 
 **Decision:** Type filter → error check → interruption check → trivial filter
 

@@ -1,5 +1,7 @@
 # Defense-in-Depth Pattern
 
+## When Designing Quality Gates
+
 **Decision Date:** 2026-02-08
 
 **Decision:** Quality gates should be layered with multiple independent checks to prevent single-point failures. No single gate should be trusted as the sole enforcement mechanism.
@@ -81,7 +83,7 @@ This pattern applies beyond parity tests—use for any quality gate design:
 - **Fix (Phase 1 Step 1): Commit skill WIP-only restriction** — Implements inner defense scoping
 - **Fix (Phase 1 Step 2): D+B hybrid validation** — Implements outer defense execution flow
 
-**Defense layer checklist for design reviews:**
+## When Reviewing Quality Gate Coverage
 
 When designing a new quality gate or quality process:
 

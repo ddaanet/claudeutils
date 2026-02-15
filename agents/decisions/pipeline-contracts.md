@@ -2,7 +2,7 @@
 
 Centralized I/O contracts for the design-to-deliverable pipeline. Authoritative source — skills reference this document for their input/output specifications.
 
-## When Transformation Table
+## When Choosing Review Gate
 
 | # | Transformation | Input | Output | Defect Types | Review Gate | Review Criteria |
 |---|---------------|-------|--------|-------------|-------------|----------------|
@@ -35,7 +35,7 @@ Reviewers at every gate follow fix-all pattern:
 3. Caller greps for UNFIXABLE — if found, stop and escalate to user
 4. No recommendation dead-ends — fix or escalate, nothing in between
 
-## When Phase Type Model
+## When Declaring Phase Type
 
 Runbook phases declare type: `tdd` or `general` (default: general).
 
@@ -94,7 +94,7 @@ Type does NOT affect: tier assessment, outline generation, consolidation gates, 
 
 **Routing:** plan-reviewer for both TDD and general planning artifacts.
 
-## When Expansion Reintroduces Defects
+## When Reviewing Expanded Phases
 
 **Decision Date:** 2026-02-12
 

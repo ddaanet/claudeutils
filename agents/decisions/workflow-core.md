@@ -83,7 +83,7 @@ Workflow-related architectural decisions and patterns.
 - Consistent terminology across test and implementation phases
 - Proper execution flow: design → plan → review → prepare → orchestrate
 
-## How to Store Learnings In Handoffs
+## .How to Store Learnings In Handoffs
 
 **Handoff pattern:**
 
@@ -153,7 +153,7 @@ plans/<stream-name>/
 - User can prioritize work streams easily
 - Clear separation of analysis vs design
 
-## How to Squash Tdd Cycle Commits
+## .How to Squash Tdd Cycle Commits
 
 **TDD commit squashing:**
 

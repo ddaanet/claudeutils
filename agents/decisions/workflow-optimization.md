@@ -4,7 +4,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 ## .Handoff Workflow
 
-### How to Chain Handoff Tail Calls
+### How to End Workflow With Handoff And Commit
 
 **Handoff tail-call:**
 
@@ -56,7 +56,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Reduces token waste from redundant context loading.
 
-### When Assessing Routing Layer Efficiency
+### When Complexity Assessed Twice
 
 **Single-layer complexity:**
 
@@ -172,7 +172,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Higher quality agent files through specialized review.
 
-### When Template Context Contradicts Rules
+### When Agent Ignores Injected Directive
 
 **Template commit contradiction:**
 
@@ -188,7 +188,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Resolved directive conflict, clarified when commits are required.
 
-### When Orchestrator Model Differs From Step
+### When Step Agent Uses Wrong Model
 
 **Orchestrator model mismatch:**
 
@@ -278,7 +278,7 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 ## .Continuation Passing
 
-### How to Implement Continuation Passing
+### How to Chain Multiple Skills Together
 
 **Decision Date:** 2026-02-09
 

@@ -70,7 +70,7 @@ Agent reliability patterns, artifact management, implementation practices, and k
 
 **Git commands:** `git log --format="%ai" --follow <file>` for creation date, session mtime for analysis window.
 
-### When Behavioral Triggers Beat Passive Knowledge
+### .When Behavioral Triggers Beat Passive Knowledge
 
 **Decision Date:** 2026-02-12
 
@@ -78,7 +78,7 @@ Agent reliability patterns, artifact management, implementation practices, and k
 
 **Consequence:** If a learning can't be phrased as `/when` or `/how`, it's either a fragment (ambient) or lacks actionable content.
 
-### When Enforcement Cannot Fix Judgment
+### .When Enforcement Cannot Fix Judgment
 
 **Decision Date:** 2026-02-12
 
@@ -96,7 +96,7 @@ Agent reliability patterns, artifact management, implementation practices, and k
 
 **Rationale:** Without merge commit, branch is unreachable from HEAD → `git branch -d` rejects.
 
-### When Task Names Must Be Branch-Suitable
+### When Naming Tasks For Worktrees
 
 **Decision Date:** 2026-02-12
 
@@ -148,7 +148,7 @@ Agent reliability patterns, artifact management, implementation practices, and k
 
 ## .Memory Index Patterns
 
-### When Index Keys Must Be Exact
+### .When Index Keys Must Be Exact
 
 **Decision:** Index entry key must exactly match heading key — fuzzy matching is only for resolver runtime recovery.
 

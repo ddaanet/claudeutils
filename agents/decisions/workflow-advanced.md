@@ -80,7 +80,7 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Always-available context beats sometimes-invoked skills.
 
-### How to Name Tasks As Prose Keys
+### How to Name Session Tasks
 
 **Task prose keys pattern:**
 
@@ -137,7 +137,7 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Earlier feedback, better cross-phase coherence, reduced rework.
 
-### How to Review Phases Iteratively
+### .How to Review Phases Iteratively
 
 **Decision Date:** 2026-02-05
 
@@ -266,7 +266,7 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Impact:** Catch structure problems early, prevent executor overload.
 
-### When Using Consolidation Gates
+### When Merging Trivial Cycles With Adjacent Work
 
 **Decision Date:** 2026-02-05
 
@@ -284,7 +284,7 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Impact:** Reduced orchestrator overhead for trivial work without losing test granularity.
 
-### When Applying Feedback Loop Insights
+### .When Applying Feedback Loop Insights
 
 **Decision Date:** 2026-02-05
 
@@ -298,7 +298,7 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Impact:** Self-correcting planning process prevents late-stage rework.
 
-### When Dogfooding Process Design
+### .When Dogfooding Process Design
 
 **Decision Date:** 2026-02-05
 
@@ -312,7 +312,7 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Impact:** Design validation through practical application.
 
-### When Scanning Requirements For Skills
+### When Requirements Mention Agent Or Skill Creation
 
 **Decision Date:** 2026-02-11
 
