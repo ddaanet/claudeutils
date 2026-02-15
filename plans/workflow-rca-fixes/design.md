@@ -4,7 +4,7 @@
 
 Five root cause analyses identified 18 process gaps in the agent workflow pipeline. All gaps are prose defects in skill definitions, agent definitions, decision documents, and fragments. No code changes required.
 
-**Source:** `plans/workflow-rca-fixes/requirements.md` (18 FRs, 4 constraints)
+**Source:** `plans/workflow-rca-fixes/requirements.md` (20 FRs, 4 constraints)
 
 ## Requirements
 
@@ -27,6 +27,8 @@ Five root cause analyses identified 18 process gaps in the agent workflow pipeli
 - FR-16: Deliverable review as workflow step — Phase 5
 - FR-17: Execution-to-planning feedback requirement — Phase 6
 - FR-18: Review-fix integration rule — Phase 3
+- FR-19: Design skill agent-name validation and late-addition check — Phase 5
+- FR-20: Design-vet-agent cross-reference and mechanism-check criteria — Phase 5
 
 **Constraints:**
 - C-1: All prose edits. No code changes.
@@ -123,7 +125,7 @@ When review agent recommendations target an existing section (by heading match),
 | `agent-core/skills/review-plan/SKILL.md` | Expand Section 11.1-11.3 with `**General:**` detection bullets | FR-2 |
 | `agent-core/skills/runbook/SKILL.md` | Add LLM failure mode gate to Phase 0.95 fast-path | FR-3 |
 
-**FR-1 behavioral vacuity detection:** For each cycle pair (N, N+1) on same function, verify N+1's RED assertion would fail given N's GREEN. If not, cycles are behaviorally vacuous. Heuristic: cycles > LOC/20 signals consolidation.
+**FR-1 behavioral vacuity detection:** **TDD:** For each cycle pair (N, N+1) on same function, verify N+1's RED assertion would fail given N's GREEN. If not, cycles are behaviorally vacuous. **General:** For consecutive steps modifying the same artifact, verify step N+1 produces outcome not achievable by extending step N's implementation alone. If achievable, steps should be merged. Heuristic: cycles/steps > LOC/20 signals consolidation.
 
 **FR-3 fast-path gate:** Before Phase 0.95 promotion, check vacuity, ordering, density, checkpoints inline. Fix before promotion.
 
@@ -139,7 +141,7 @@ When review agent recommendations target an existing section (by heading match),
 |----------|--------|-----|
 | `agent-core/agents/vet-fix-agent.md` | Add four-status taxonomy with criteria, examples, subcategory codes, Deferred Items report section | FR-7 |
 | `agent-core/agents/vet-fix-agent.md` | Add investigation-before-escalation protocol: 4-gate checklist before UNFIXABLE | FR-8 |
-| `agent-core/agents/vet-fix-agent.md` | Add review-fix integration rule: merge into existing sections by heading match | FR-18 |
+| `agent-core/agents/vet-fix-agent.md` | Add review-fix integration rule: before applying fix, Grep target file for heading the fix targets; if heading exists, Edit within that section; if no match, append as new section | FR-18 |
 | `agent-core/fragments/vet-requirement.md` | Add UNFIXABLE validation: subcategory code check, investigation summary check, scope OUT cross-reference, resume agent for reclassification if invalid | FR-9 |
 | `agent-core/fragments/vet-requirement.md` | Strengthen execution context: structured IN/OUT scope fields, fail loudly if empty | FR-10 |
 | `agent-core/skills/orchestrate/SKILL.md` | Add checkpoint delegation template enforcement guidance | FR-10 |
@@ -148,20 +150,20 @@ When review agent recommendations target an existing section (by heading match),
 **Restart required:** Yes (agent definition + fragment changes).
 **Diagnostic review:** Yes (improving vet tools).
 
-### Phase 4: Outline Review Agent (FR-5, FR-11)
+### Phase 4: Runbook Outline Review Agent (FR-5, FR-11)
 
 **Deliverables:**
 
 | Artifact | Action | FR |
 |----------|--------|-----|
-| `agent-core/agents/outline-review-agent.md` | Add outline growth validation: projected sizes vs 400-line threshold, split phases before 350 cumulative, flag >10 cycles same file without projection | FR-5 |
-| `agent-core/agents/outline-review-agent.md` | Add semantic propagation checklist: grep-based classification of files as producer (rewrite) or consumer (update) when design introduces new terminology/types | FR-11 |
+| `agent-core/agents/runbook-outline-review-agent.md` | Add outline growth validation: projected sizes vs 400-line threshold, split phases before 350 cumulative, flag >10 cycles same file without projection | FR-5 |
+| `agent-core/agents/runbook-outline-review-agent.md` | Add semantic propagation checklist: grep-based classification of files as producer (rewrite) or consumer (update) when design introduces new terminology/types | FR-11 |
 
-**Review:** agent-creator for outline-review-agent.md.
+**Review:** agent-creator for runbook-outline-review-agent.md.
 **Restart required:** Yes (agent definition changes).
 **Diagnostic review:** Yes (improving outline review).
 
-### Phase 5: Design + Runbook Skill Fixes (FR-4, FR-14, FR-15, FR-16)
+### Phase 5: Design + Runbook Skill Fixes (FR-4, FR-14, FR-15, FR-16, FR-19, FR-20)
 
 **Deliverables:**
 
@@ -172,11 +174,14 @@ When review agent recommendations target an existing section (by heading match),
 | `agent-core/skills/runbook/references/examples.md` | Add complete general-step example | FR-4 |
 | `agent-core/skills/design/SKILL.md` Phase C.1 | Add density checkpoint | FR-14 |
 | `agent-core/skills/design/SKILL.md` Phase C.1 | Add repetition helper prescription | FR-15 |
+| `agent-core/skills/design/SKILL.md` Phase C | Add agent-name validation step: verify agent/file references resolve to actual files on disk | FR-19 |
+| `agent-core/skills/design/SKILL.md` Phase C | Add late-addition completeness check: requirements added after outline review must be re-validated for traceability | FR-19 |
+| `agent-core/agents/design-vet-agent.md` | Add review criteria: cross-reference agent names against disk (Glob agents directories), flag mechanism-free specifications | FR-20 |
 | `agent-core/fragments/workflows-terminology.md` | Add deliverable review as post-orchestration workflow step | FR-16 |
 
-**Review:** skill-reviewer for SKILL.md edits, vet-fix-agent for fragments.
-**Restart required:** No (skill content resolves at spawn time; workflows-terminology.md loaded via @-ref requires restart only for structural changes).
-**Diagnostic review:** No (content edits, not self-referential improvements).
+**Review:** skill-reviewer for SKILL.md edits, agent-creator for design-vet-agent.md, vet-fix-agent for fragments.
+**Restart required:** Yes (design-vet-agent.md agent definition change).
+**Diagnostic review:** No (content edits informed by diagnostic review findings).
 
 ### Phase 6: Cleanup + Feedback Requirement (FR-6, FR-17)
 
@@ -207,7 +212,7 @@ When review agent recommendations target an existing section (by heading match),
 
 7. **Execution model** — sonnet for edits, opus for diagnostic review (Phases 1-4 only).
 
-8. **Behavioral vacuity detection** — cycle N+1 RED must fail given cycle N GREEN. Addresses both scaffolding vacuity (existence-only tests) and behavioral vacuity (entailed assertions).
+8. **Behavioral vacuity detection** — TDD: cycle N+1 RED must fail given cycle N GREEN. General: step N+1 must produce outcome not achievable by extending step N alone. Addresses both scaffolding vacuity (existence-only tests/steps) and behavioral vacuity (entailed assertions/outcomes).
 
 ## Documentation Perimeter
 
@@ -216,7 +221,8 @@ When review agent recommendations target an existing section (by heading match),
 - `agents/decisions/pipeline-contracts.md` — T1-T6 defect classification, review gates
 - `agents/decisions/orchestration-execution.md` — current orchestration patterns (Phase 3, 6 targets)
 - `agent-core/agents/vet-fix-agent.md` — current vet agent (Phase 3 target)
-- `agent-core/agents/outline-review-agent.md` — current outline review (Phase 4 target)
+- `agent-core/agents/runbook-outline-review-agent.md` — current runbook outline review (Phase 4 target)
+- `agent-core/agents/design-vet-agent.md` — current design vet agent (Phase 5 target)
 - `agent-core/skills/runbook/SKILL.md` — current runbook skill (Phase 2, 5, 6 targets)
 - `agent-core/skills/design/SKILL.md` — current design skill (Phase 5 target)
 - `agent-core/skills/review-plan/SKILL.md` — current review-plan skill (Phase 2 target)

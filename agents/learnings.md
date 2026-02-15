@@ -67,3 +67,17 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: stop session primed with methodology + prompts, user switches to opus for interactive RCA
 - Rationale: opus needs conversation state for effective RCA; sub-agent gets only task prompt
 - Two-model separation avoids MAR's "degeneration of thought" from single-model self-reflection
+## Design references need disk verification
+- Anti-pattern: reviewing design document content without checking that referenced agent/file names exist on disk
+- Correct pattern: Glob agent directories to verify all agent references resolve to actual files
+- Rationale: design-vet-agent opus review missed outline-review-agent vs runbook-outline-review-agent — two distinct agents, design targeted the wrong one
+- Extends to: any design reference to files, skills, or scripts should be verified against codebase state
+## Late-addition requirements bypass outline review
+- Anti-pattern: adding FRs after outline review without re-validating completeness
+- Correct pattern: requirements added after outline review must trigger re-check for traceability and mechanism specification
+- Rationale: FR-18 added during design session bypassed outline-level validation, resulting in mechanism-free specification that a planner couldn't implement
+## Two-tier context for agent augmentation
+- Always-inject (skills prolog): universal conventions, cached in system prompt, ~400 tokens
+- Index-and-recall (on-demand): domain-specific knowledge, triggers only in prompt, recalled via bash transport
+- Haiku paradox resolved: discovery burden stays with capable agents (design/planning), haiku gets pre-assembled context in runbook steps and agent system prompts
+- Prototype before infrastructure: test whether agents actually recall when needed before building context-resolve.py

@@ -33,7 +33,7 @@ Acceptance: Each of patterns.md, anti-patterns.md, examples.md has a general-ste
 Grounding: RCA #1 §2.4. All four reference files are TDD-only. Planners have no reference material for general steps.
 
 **FR-5: Outline growth validation gate**
-Add review criterion to outline-review-agent: validate projected file sizes against 400-line enforcement threshold. Split phases must precede first phase exceeding 350 cumulative. Flag outlines with >10 cycles modifying same file but no growth projection.
+Add review criterion to runbook-outline-review-agent: validate projected file sizes against 400-line enforcement threshold. Split phases must precede first phase exceeding 350 cumulative. Flag outlines with >10 cycles modifying same file but no growth projection.
 
 Acceptance: `runbook-outline-review-agent.md` includes growth projection validation with specific thresholds.
 
@@ -129,6 +129,20 @@ When review agent recommendations target an existing section (by heading match),
 Acceptance: Fix-application logic includes integration check: if recommendation references an existing heading, insert within that section. No duplicate heading concepts in output.
 
 Grounding: RCA runbook-outline-review Pattern 2. Round 1 review appended "## Expansion Guidance (from outline review)" when "## Expansion Guidance" already existed 60 lines above. Default append behavior creates structural duplication.
+
+**FR-19: Design skill agent-name validation and late-addition check**
+Add two validation steps to design skill: (1) verify all agent/file references in design resolve to actual files on disk, (2) requirements added after outline review must be re-validated for completeness and traceability.
+
+Acceptance: Design skill Phase C includes agent-name validation step (Glob verification) and late-addition completeness re-check.
+
+Grounding: Diagnostic review finding C-1 — design referenced `outline-review-agent.md` for FR-5/FR-11 when the correct target is `runbook-outline-review-agent.md`. Root cause: design review does not cross-reference agent names against actual agent files on disk. Finding F-1 — FR-18 added after outline review bypassed completeness validation.
+
+**FR-20: Design-vet-agent cross-reference and mechanism-check criteria**
+Add review criteria to design-vet-agent: (1) cross-reference agent/file names in design against actual files on disk (Glob `.claude/agents/` and `agent-core/agents/`), (2) flag specifications that describe behavior without a concrete mechanism (e.g., "merge by heading match" with no protocol).
+
+Acceptance: `design-vet-agent.md` includes cross-reference and mechanism-check as explicit review criteria.
+
+Grounding: Diagnostic review findings C-1 and F-1 — prior opus design-vet-agent review missed both because it operates on document content without verifying codebase state, and has no criteria for detecting mechanism-free specifications.
 
 ### Constraints
 

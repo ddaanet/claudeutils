@@ -1,6 +1,6 @@
-# Session Handoff: 2026-02-14
+# Session Handoff: 2026-02-15
 
-**Status:** Design Phase C complete for workflow-rca-fixes. Design.md generated, opus-reviewed (Ready), checkpoint committed. Next: `/runbook`.
+**Status:** Design diagnostic review complete for workflow-rca-fixes. 3 major findings fixed, 2 new FRs (19-20) added. Ready for `/runbook`.
 
 ## Completed This Session
 
@@ -49,18 +49,36 @@
 - Design review: `plans/workflow-rca-fixes/reports/design-review.md`
 - Outline review: `plans/workflow-rca-fixes/reports/outline-review-phase-c.md`
 
+**Diagnostic Design Review (Post-Phase C):**
+- Design review methodology discussion: 6-category taxonomy, iteration protocol, priming template
+- Opus critique of methodology synthesis: `tmp/design-review-methodology-critique.md` — haiku paradox (token savings vs recall capability), `context:` frontmatter feasibility gaps
+- Opus diagnostic review of design.md: `tmp/design-diagnostic-review.md` — 3 major findings:
+  - C-1: Phase 4 targeted wrong agent (outline-review-agent vs runbook-outline-review-agent)
+  - F-1: FR-18 mechanism unspecified (added Grep→Edit protocol)
+  - CL-1: Behavioral vacuity undefined for general phases (added step N+1 definition)
+- Root causes traced via Five Whys: no agent-name disk validation, late-addition requirements bypass outline review
+- Added FR-19 (design skill validation steps) and FR-20 (design-vet-agent review criteria) to requirements.md and design.md
+- Phase 5 now includes design-vet-agent behavioral changes, restart changed to Yes
+
 ## Pending Tasks
 
 - [ ] **Workflow RCA fixes** — `/runbook plans/workflow-rca-fixes/design.md` | sonnet
-  - Design: `plans/workflow-rca-fixes/design.md` (opus-reviewed, Ready)
-  - Requirements: `plans/workflow-rca-fixes/requirements.md` (18 FRs)
+  - Design: `plans/workflow-rca-fixes/design.md` (diagnostic-reviewed, Ready with fixes applied)
+  - Requirements: `plans/workflow-rca-fixes/requirements.md` (20 FRs — added FR-19, FR-20)
   - Load `plugin-dev:skill-development` and `plugin-dev:agent-development` before planning
   - Early bootstrap done: project-conventions skill created, design-vet-agent + outline-review-agent updated, design skill updated (FR-14, FR-15)
+  - Diagnostic review fixes applied: C-1 (Phase 4 target → runbook-outline-review-agent), F-1 (FR-18 mechanism specified), CL-1 (general-phase vacuity defined)
+  - FR-19: design skill agent-name validation + late-addition completeness check
+  - FR-20: design-vet-agent cross-reference and mechanism-check criteria
 - [ ] **Diagnostic opus review methodology** — New task from design discussion | `/requirements` | opus
   - Interactive post-vet RCA using domain-specific methodology + iterative deepening
   - Extends /reflect skill with proactive invocation, two-model separation, feedback loops
   - Needs: review methodology documents (design-review, agent-review), integration into workflow
   - Research: MAR, Flow-of-Action, Reflexion, Five Whys, TAMO, AgentErrorTaxonomy
+  - Design review methodology conversation: `tmp/design-review-methodology-synthesis.md`, `tmp/design-review-methodology-critique.md`
+  - Taxonomy (6 categories): completeness, consistency, feasibility, clarity, traceability, coupling
+  - Two-tier context augmentation: always-inject (skills prolog) vs index-and-recall (on-demand). Haiku paradox resolved: discovery stays with capable agents, haiku gets pre-assembled context
+  - Methodology as skill referenced in design-vet-agent + outline-review-agent `skills:` frontmatter
 - [ ] **Workflow improvements** — Remaining sub-items not captured in workflow-rca-fixes | sonnet
   - Orchestrate evolution — designed, stale Feb 10, refresh after RCA
   - Fragments cleanup — remove fragments duplicating skills/workflow
@@ -107,14 +125,15 @@
 - RCA data (when-recall test plan redesign incident) provides grounding for error-handling design
 - All 5 RCAs provide grounding material for error classification taxonomy
 
-**Diagnostic review methodology gap:**
-- No formal design-review-methodology.md or agent-review-methodology.md exists
-- For workflow-rca-fixes, use pipeline-contracts + plugin-dev patterns as interim
-- Formal methodology documents are follow-on work (diagnostic opus review methodology task)
+**Diagnostic review methodology converging:**
+- Taxonomy, iteration protocol, priming template designed in conversation
+- Opus critique validated approach, identified haiku paradox (resolved: discovery at capable tier, pre-assembled context for haiku)
+- Methodology skill + design-vet-agent integration planned as follow-on task
+- Synthesis and critique in tmp/ (ephemeral — capture in requirements before cleanup)
 
 ## Next Steps
 
-`/runbook plans/workflow-rca-fixes/design.md` — generate execution runbook from design.
+`/runbook plans/workflow-rca-fixes/design.md` — generate execution runbook from design (20 FRs, 6 phases).
 
 ---
-*Handoff by Sonnet. Design Phase C complete, design opus-reviewed (Ready).*
+*Handoff by Sonnet. Diagnostic review complete, design fixes applied, ready for /runbook.*
