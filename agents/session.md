@@ -1,75 +1,38 @@
 # Session Handoff: 2026-02-15
 
-**Status:** Design diagnostic review complete for workflow-rca-fixes. 3 major findings fixed, 2 new FRs (19-20) added. Ready for `/runbook`.
+**Status:** Runbook outline generated and reviewed for workflow-rca-fixes. Ready for interactive outline review before runbook promotion.
 
 ## Completed This Session
 
-**FR-18 Added:**
-- Added FR-18 (review-fix integration rule) to `plans/workflow-rca-fixes/requirements.md`
-- Updated FR-1 with behavioral vacuity detection requirement
+**Runbook Planning (workflow-rca-fixes):**
+- Tier 3 assessment: 23 files, 6 phases, multi-session, mixed models → Full Runbook
+- Phase 0.5: Read full documentation perimeter (14+ files), verified all target files exist
+- Loaded plugin-dev:skill-development + plugin-dev:agent-development prerequisites
+- Phase 0.75: Generated outline — 16 steps, 6 phases, 20 FRs mapped
+- Runbook skill updated: commit-before-review rule at Phase 0.75 + Phase 1
+- Outline review (runbook-outline-review-agent): Ready, 6 fixes applied
+  - Critical: vet-fix-agent.md at 436 lines, +150 → 586 → split taxonomy to `vet-taxonomy.md`
+  - Major: Phase 5 restart must include workflows-terminology.md (fragment loaded via CLAUDE.md)
+  - 4 minor: bootstrap notes, step dependency, growth projection, Phase 4 density justification
+- Phase 0.85: No consolidation candidates
+- Phase 0.9: 16 items, no callbacks
+- Phase 0.95: Sufficiency check passed — outline detailed enough for promotion
 
-**Design Phase A (Research + Outline):**
-- Three parallel explorations: target files structure, skills frontmatter behavior, review-plan skill
-- Q-1 resolved: `skills:` injects full SKILL.md (all-or-nothing, no section selection)
-- Q-2 resolved: ~300-400 tokens per small skill, ~1200 for large, 2-3 skills per agent manageable
-- Q-3 resolved: conformance gate = outline-review-agent (FR-11), scaffolding detection = Section 11.1 (FR-2)
-- CC system prompt gap analysis: sub-agents receive minimal prompt — no prose quality, no token economy, no tmp-directory. Gap analysis report: `plans/workflow-rca-fixes/reports/explore-agent-knowledge-gaps.md`
-- Revised FR-12: bundle deslop + token-economy + tmp-directory into `project-conventions` skill (~400 tokens). Drop code-removal (CC covers "delete unused"). Keep error-handling separate (~100 tokens) for bash-heavy agents.
-- Outline produced, reviewed by outline-review-agent (7 fixes applied, assessment: Ready)
-
-**Design Phase B (Iterative Discussion) — Key Decisions:**
-- Reflexive bootstrapping: reordered phases by tool-usage dependency (composition → runbook review → vet → outline review → skills → cleanup). Each improvement applied before downstream agent uses it.
-- Review-after-edit rule: skill-reviewer for skills, agent-creator (plugin-dev, has Write) for agents, vet-fix-agent for decisions/fragments
-- Diagnostic opus review: interactive RCA after reviewer pass (Phases 1-4 only). Session stops primed with methodology + prompts, user switches to opus. NOT delegated — opus needs full conversation context.
-- Restart rule: after every agent/fragment edit. Skill content resolves at spawn time (no restart for content-only).
-- Plugin-dev prerequisites: load skill-development + agent-development before Phase 1. Read continuation passing design + existing non-invocable skill patterns.
-
-**Research Grounding:**
-- Anthropic context engineering: focused task context over comprehensive information
-- ACE framework (arXiv 2510.04618): 10.6% performance gain from strategic knowledge injection
-- MAR (Multi-Agent Reflexion): multi-agent reflection breaks "degeneration of thought"
-- Flow-of-Action: SOP-constrained RCA reduces hallucinations
-- Reflexion (NeurIPS 2023): verbal reinforcement learning without weight updates
-
-**Exploration Reports:**
-- `plans/workflow-rca-fixes/reports/explore-target-files.md` — 7 target files structure
-- `plans/workflow-rca-fixes/reports/explore-skills-frontmatter.md` — Skills injection mechanism + Q-1/Q-2
-- `plans/workflow-rca-fixes/reports/explore-review-plan-skill.md` — Review-plan Section 11 analysis
-- `plans/workflow-rca-fixes/reports/explore-agent-knowledge-gaps.md` — CC system prompt gap analysis
-- `plans/workflow-rca-fixes/reports/outline-review.md` — Outline review (Ready)
-- `plans/reports/rca-runbook-outline-review.md` — RCA from worktree-fixes (3 patterns, FR-18 source)
-
-**Design Phase C (Design Document Generation):**
-- Prerequisite cleared: Anthropic skills repo has no RCA patterns (creative/document skills only). Superpowers repo systematic-debugging targets code debugging, not process RCA — our `/reflect` already covers process-level equivalent.
-- Bootstrap: created project-conventions skill (FR-12), updated design-vet-agent + outline-review-agent frontmatter with `skills: [project-conventions]`, added density checkpoint (FR-14) + repetition helper (FR-15) to design skill
-- Ran updated outline-review-agent: assessment Ready, all 18 FRs traced, no issues
-- Generated `plans/workflow-rca-fixes/design.md` (6 phases, reflexive bootstrapping, three-layer validation, vet taxonomy, convention injection)
-- Opus design-vet-agent review: assessment Ready, no critical/major issues, 3 minor (informational)
-- Fixed requirements.md typo (FR-15→FR-17 in dependencies section)
-- Design review: `plans/workflow-rca-fixes/reports/design-review.md`
-- Outline review: `plans/workflow-rca-fixes/reports/outline-review-phase-c.md`
-
-**Diagnostic Design Review (Post-Phase C):**
-- Design review methodology discussion: 6-category taxonomy, iteration protocol, priming template
-- Opus critique of methodology synthesis: `tmp/design-review-methodology-critique.md` — haiku paradox (token savings vs recall capability), `context:` frontmatter feasibility gaps
-- Opus diagnostic review of design.md: `tmp/design-diagnostic-review.md` — 3 major findings:
-  - C-1: Phase 4 targeted wrong agent (outline-review-agent vs runbook-outline-review-agent)
-  - F-1: FR-18 mechanism unspecified (added Grep→Edit protocol)
-  - CL-1: Behavioral vacuity undefined for general phases (added step N+1 definition)
-- Root causes traced via Five Whys: no agent-name disk validation, late-addition requirements bypass outline review
-- Added FR-19 (design skill validation steps) and FR-20 (design-vet-agent review criteria) to requirements.md and design.md
-- Phase 5 now includes design-vet-agent behavioral changes, restart changed to Yes
+**Prior Session (Design):**
+- Design complete: `plans/workflow-rca-fixes/design.md` (6 phases, 20 FRs)
+- Diagnostic review complete: 3 major findings fixed (C-1, F-1, CL-1)
+- Early bootstrap: project-conventions skill, design-vet-agent + outline-review-agent updated
+- Reports: `plans/workflow-rca-fixes/reports/` (7 exploration + review reports)
 
 ## Pending Tasks
 
-- [ ] **Workflow RCA fixes** — `/runbook plans/workflow-rca-fixes/design.md` | sonnet
-  - Design: `plans/workflow-rca-fixes/design.md` (diagnostic-reviewed, Ready with fixes applied)
-  - Requirements: `plans/workflow-rca-fixes/requirements.md` (20 FRs — added FR-19, FR-20)
-  - Load `plugin-dev:skill-development` and `plugin-dev:agent-development` before planning
-  - Early bootstrap done: project-conventions skill created, design-vet-agent + outline-review-agent updated, design skill updated (FR-14, FR-15)
-  - Diagnostic review fixes applied: C-1 (Phase 4 target → runbook-outline-review-agent), F-1 (FR-18 mechanism specified), CL-1 (general-phase vacuity defined)
-  - FR-19: design skill agent-name validation + late-addition completeness check
-  - FR-20: design-vet-agent cross-reference and mechanism-check criteria
+- [ ] **Workflow RCA fixes** — Interactive outline review then promote to runbook | opus
+  - Outline: `plans/workflow-rca-fixes/runbook-outline.md` (16 steps, reviewed Ready)
+  - Outline review: `plans/workflow-rca-fixes/reports/runbook-outline-review.md`
+  - Design: `plans/workflow-rca-fixes/design.md` (20 FRs, 6 phases)
+  - Requirements: `plans/workflow-rca-fixes/requirements.md`
+  - Next: interactive opus review of outline, then promote to runbook.md, then Phase 4 (prepare-runbook.py)
+  - Key review finding: vet-fix-agent.md needs taxonomy split (436 + 150 = 586 lines)
 - [ ] **Diagnostic opus review methodology** — New task from design discussion | `/requirements` | opus
   - Interactive post-vet RCA using domain-specific methodology + iterative deepening
   - Extends /reflect skill with proactive invocation, two-model separation, feedback loops
@@ -133,7 +96,7 @@
 
 ## Next Steps
 
-`/runbook plans/workflow-rca-fixes/design.md` — generate execution runbook from design (20 FRs, 6 phases).
+Interactive opus review of `plans/workflow-rca-fixes/runbook-outline.md` — then promote to runbook.md and run prepare-runbook.py.
 
 ---
-*Handoff by Sonnet. Diagnostic review complete, design fixes applied, ready for /runbook.*
+*Handoff by Sonnet. Outline reviewed Ready, planning paused for interactive review.*

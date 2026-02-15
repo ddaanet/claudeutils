@@ -76,13 +76,15 @@ Sonnet for edits, opus for diagnostic review (Phases 1-4 only)
 **Steps:**
 
 - **Step 1.1:** Create error-handling skill
+  - Note: project-conventions skill already created in early bootstrap (session.md Phase C)
   - Create `agent-core/skills/error-handling/SKILL.md` wrapping `agent-core/fragments/error-handling.md`
+  - Follow pattern from project-conventions: skill prolog + fragment content
   - Commit changes
   - Review: delegate to skill-reviewer (plugin-dev)
 
 - **Step 1.2:** Create memory-index skill
   - Create `agent-core/skills/memory-index/SKILL.md` wrapping `agents/memory-index.md` with Bash transport prolog
-  - Note: project-conventions skill exists (early bootstrap)
+  - Transport prolog explains sub-agents use Bash, not Skill tool: `agent-core/bin/when-resolve.py when "<trigger>"`
   - Commit changes
   - Review: delegate to skill-reviewer
 
@@ -151,20 +153,25 @@ Sonnet for edits, opus for diagnostic review (Phases 1-4 only)
 **Steps:**
 
 - **Step 3.1:** Add four-status taxonomy and investigation protocol to vet-fix-agent
-  - Read `agent-core/agents/vet-fix-agent.md`
-  - Add FIXED/DEFERRED/OUT-OF-SCOPE/UNFIXABLE status definitions with criteria
-  - Add Deferred Items report section
-  - Add subcategory codes (U-REQ, U-ARCH, U-DESIGN) with examples
-  - Add 4-gate investigation-before-escalation checklist before UNFIXABLE:
-    1. Check scope OUT list → OUT-OF-SCOPE
-    2. Check design for documented deferral → DEFERRED
-    3. Glob/Grep for existing patterns → FIXED via pattern-matching
-    4. Only then classify UNFIXABLE with evidence
-  - Add review-fix integration rule (FR-18): before applying fix, Grep target file for heading; if heading exists → Edit within that section; if no match → append new section
-  - Commit changes
-  - Review: delegate to agent-creator (plugin-dev)
+  - Note: vet-fix-agent.md currently 436 lines, projected +150 would exceed 400-line threshold
+  - Split approach: create taxonomy reference file, update vet-fix-agent to reference it
+  - Create `agent-core/agents/vet-taxonomy.md`:
+    - FIXED/DEFERRED/OUT-OF-SCOPE/UNFIXABLE status definitions with criteria
+    - Subcategory codes (U-REQ, U-ARCH, U-DESIGN) with examples
+    - Deferred Items report section template
+  - Update `agent-core/agents/vet-fix-agent.md`:
+    - Add reference to vet-taxonomy.md in frontmatter or instructions
+    - Add 4-gate investigation-before-escalation checklist before UNFIXABLE:
+      1. Check scope OUT list → OUT-OF-SCOPE
+      2. Check design for documented deferral → DEFERRED
+      3. Glob/Grep for existing patterns → FIXED via pattern-matching
+      4. Only then classify UNFIXABLE with evidence
+    - Add review-fix integration rule (FR-18): before applying fix, Grep target file for heading; if heading exists → Edit within that section; if no match → append new section
+  - Commit both files
+  - Review: delegate to agent-creator (plugin-dev) for both files
 
 - **Step 3.2:** Add UNFIXABLE validation to vet-requirement.md
+  - Depends on: Step 3.1 (vet-fix-agent taxonomy committed)
   - Read `agent-core/fragments/vet-requirement.md`
   - Add validation steps after grep-for-UNFIXABLE:
     - Check each has subcategory code
@@ -172,7 +179,7 @@ Sonnet for edits, opus for diagnostic review (Phases 1-4 only)
     - Check not in scope OUT list
     - Resume agent for reclassification if validation fails
   - Commit changes
-  - Review: delegate to vet-fix-agent (uses updated taxonomy from 3.1)
+  - Review: delegate to vet-fix-agent (uses updated taxonomy from 3.1, must be committed first)
 
 - **Step 3.3:** Add orchestrate template enforcement
   - Read `agent-core/skills/orchestrate/SKILL.md`
@@ -219,7 +226,7 @@ Sonnet for edits, opus for diagnostic review (Phases 1-4 only)
 **Complexity:** Medium
 **Steps:** 4
 **Model:** Sonnet
-**Restart required:** Yes (design-vet-agent.md changes only)
+**Restart required:** Yes (design-vet-agent.md agent definition + workflows-terminology.md fragment)
 **Diagnostic review:** No (content edits informed by diagnostic findings)
 
 **FRs addressed:** FR-4, FR-14, FR-15, FR-16, FR-19, FR-20
@@ -319,7 +326,7 @@ Sonnet for edits, opus for diagnostic review (Phases 1-4 only)
 - Phase 2: runbook-review.md loaded via CLAUDE.md @-reference
 - Phase 3: Agent definitions (vet-fix-agent) + fragment (vet-requirement.md)
 - Phase 4: Agent definitions (runbook-outline-review-agent)
-- Phase 5: Agent definition (design-vet-agent) only — skill content resolves at spawn
+- Phase 5: Agent definition (design-vet-agent) + fragment (workflows-terminology.md loaded via CLAUDE.md)
 - Phase 6: No restart needed
 
 **Review routing:**
@@ -335,12 +342,24 @@ Sonnet for edits, opus for diagnostic review (Phases 1-4 only)
 
 **Consolidation candidates:**
 - Phase 6 is trivial (2 steps, Low complexity) but cannot merge with Phase 5 (different restart requirement)
+- Phase 4 is single-step (1 step, Medium complexity) but cannot merge with Phase 3 (different agent target, maintains reflexive ordering)
 - All other phases have substantial complexity or cross-phase dependencies
 
+**Step density note:**
+- Phase 2 has 3 steps (High complexity), Phase 4 has 1 step (Medium complexity handling 2 FRs)
+- Phase 4 step handles two related criteria (growth validation + semantic propagation) for same agent
+- Splitting Phase 4 into 2 steps would create unnecessary commits/reviews for same file
+
 **File growth projection:**
-- No target file projected to exceed 350 lines from these edits
-- Largest changes: vet-fix-agent.md (+~150 lines for taxonomy + protocol + integration)
-- runbook-review.md (+~50 lines for general detection + file growth axis)
+- **CRITICAL:** vet-fix-agent.md growth exceeds threshold
+  - Current: 436 lines
+  - Adding: ~150 lines (taxonomy + protocol + integration rule)
+  - Projected: ~586 lines (46% over 400-line threshold)
+  - **Split required:** Extract taxonomy to `agent-core/agents/vet-taxonomy.md` referenced by vet-fix-agent
+  - Step 3.1 must create taxonomy file separately, then update vet-fix-agent to reference it
+- Other files within threshold:
+  - runbook-review.md: current ~200 lines, adding ~50 → ~250 lines
+  - All other edits <100 lines per file
 - All edits are additions/restructuring, not new file creation
 
 **Cross-phase dependencies:**

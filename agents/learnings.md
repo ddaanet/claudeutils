@@ -81,3 +81,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Index-and-recall (on-demand): domain-specific knowledge, triggers only in prompt, recalled via bash transport
 - Haiku paradox resolved: discovery burden stays with capable agents (design/planning), haiku gets pre-assembled context in runbook steps and agent system prompts
 - Prototype before infrastructure: test whether agents actually recall when needed before building context-resolve.py
+## Commit before review agent delegation
+- Anti-pattern: delegating to review agent while work is uncommitted (dirty tree)
+- Correct pattern: commit artifacts before delegating to review agents (outline-review, plan-reviewer, vet-fix-agent)
+- Rationale: review agents operate on filesystem state; uncommitted work may be stale or inconsistent
+- Applied to runbook skill: Phase 0.75 (commit outline before review) and Phase 1 (commit phase file before review)
