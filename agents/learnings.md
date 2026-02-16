@@ -91,3 +91,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Using `subprocess.run(..., check=True, capture_output=True)` in test setup — CalledProcessError shows command and exit code but stderr is swallowed. Opaque failures invite confabulation.
 - Correct pattern: Test setup should produce self-diagnosing failures. Either use `check=False` + explicit assertion with stderr, or use a helper that surfaces stderr on failure.
 - Evidence: `git merge` failed with "untracked working tree files would be overwritten" but test only showed `CalledProcessError: exit status 1`.
+## When choosing model for edits
+- Anti-pattern: Assigning sonnet/haiku to prose edits on skills, fragments, and agent definitions based on "edit complexity" rather than artifact type
+- Correct pattern: Apply design-decisions.md directive: "Workflow/skill/agent edits: opus required." Prose instructions consumed by LLMs require nuanced understanding — wording directly determines downstream agent behavior
+- Evidence: Tier 2 plan assigned sonnet to skill/fragment edits, haiku to agent audit. User corrected: all were prose edits to architectural artifacts requiring opus

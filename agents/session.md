@@ -20,6 +20,15 @@
 
 **Backlog re-scored:** 27 tasks, rev 2. Expand runbook topped at 2.6 (now complete). Report: `plans/reports/prioritization-2026-02-16.md`
 
+**remaining-workflow-items merged:**
+- FR-1: Reflect skill exit paths — produce session.md task format instead of prose descriptions
+- FR-2: Tool-batching.md — Task tool parallelization section
+- FR-3: Delegation.md — Delegate Resume pattern (resume before relaunch, 15-message heuristic)
+- FR-4: Agent output audit — simplified verbose output in 3 agents (quiet-task, review-tdd-process, refactor)
+- FR-5: Commit skill — removed Gate A (session freshness), kept Gate B (vet checkpoint) with proportionality
+- Conflict: SKILL.md Gate A/B — branch deleted both, kept Gate B from main with proportionality update
+- Artifacts: `plans/remaining-workflow-items/requirements.md`, `plans/remaining-workflow-items/reports/vet-review.md`
+
 ## Pending Tasks
 
 <!-- Priority order per plans/reports/prioritization-2026-02-16.md (rev 2) -->
@@ -132,6 +141,11 @@
 
 - [ ] **Test diagnostic helper** — Replace `subprocess.run(..., check=True)` in test setup with stderr surfacing | sonnet
 
+- [ ] **Runbook model assignment** — runbook skill assigns sonnet/haiku to prose edits on architectural artifacts; should apply design-decisions.md directive (opus for skill/fragment/agent edits) | opus
+
+- [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
+  - Design.md complete, vet in progress, planning next (design refreshed Feb 13)
+
 ## Worktree Tasks
 
 - [ ] **Error handling design** → `error-handling-design` — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
@@ -140,14 +154,6 @@
 
 - [ ] **Design workwoods** → `design-workwoods` — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
-
-- [ ] **Remaining workflow items** → `remaining-workflow-items` — Sub-items not captured in workflow-rca-fixes | sonnet
-  - Orchestrate evolution — designed, ready for `/runbook` (design refreshed Feb 13)
-  - Reflect skill output — RCA should produce pending tasks, not inline fixes
-  - Tool-batching.md — add Task tool parallelization guidance with examples
-  - Orchestrator delegate resume — resume delegates with incomplete work (no mechanism exists)
-  - Agent output optimization — remove summarize/report language from agents
-  - Commit skill optimizations — remove handoff gate, Gate B coverage ratio, branching after precommit
 
 ## Blockers / Gotchas
 
@@ -167,7 +173,7 @@
 
 ## Next Steps
 
-Next: Address merge data loss review (sonnet). 3 worktrees active (error-handling-design, design-workwoods, remaining-workflow-items). Learnings at 92/80 lines — run `/remember` soon.
+Next: Address merge data loss review (sonnet). 2 worktrees active (error-handling-design, design-workwoods). Learnings at 95/80 lines — run `/remember` soon.
 
 ## Reference Files
 
@@ -178,3 +184,4 @@ Next: Address merge data loss review (sonnet). 3 worktrees active (error-handlin
 - `plans/error-handling/outline.md` — Error handling design outline (Phase A complete)
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
 - `plans/reports/safety-review-grounding.md` — Safety review grounding research
+- `plans/remaining-workflow-items/requirements.md` — 6 FRs (reflect, batching, delegation, agents, commit)
