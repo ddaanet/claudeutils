@@ -32,8 +32,8 @@
 - Cycle 1.2: Branch classification — `_classify_branch(slug)` returns count and focused flag
 - Cycle 1.3: Classification edge case — orphan branch (merge-base failure)
 - Cycle 1.4: Guard refuses unmerged real history (exit 1, stderr message with count)
-- Cycle 1.5: Guard allows merged branch removal (exit 0, `git branch -d`, "Removed {slug}")
-- Cycle 1.6: Guard allows focused-session-only removal (exit 0, `git branch -D`, "Removed {slug} (focused session only)")
+- Cycle 1.5: Guard allows merged branch removal (exit 0, `git branch -d` safe delete, "Removed {slug}")
+- Cycle 1.6: Guard allows focused-session-only removal (exit 0, `git branch -D` force delete, "Removed {slug} (focused session only)")
 - Cycle 1.7: Guard integration — cli.py rm() calls guard before all destructive operations
 - Cycle 1.8: No `git branch -D` in output — verify no destructive suggestions in stderr/stdout
 
@@ -93,7 +93,7 @@
 - `test_worktree_rm_guard.py` — Track 1 (removal guard, classification, exit codes, messaging)
 - `test_worktree_merge_correctness.py` — Track 2 (MERGE_HEAD checkpoint, ancestry validation, parent file preservation)
 
-**Cycle 1.7 integration note:** This cycle integrates guard logic into cli.py rm() function. Implementation must call guard before existing operations (probe, warn, remove_session_task, remove_worktrees, branch deletion, rmtree). Guard refusal (exit 1) must prevent ALL downstream operations.
+**Cycle 1.7 integration note:** This cycle integrates guard logic into cli.py rm() function. Guard ordering matches design: `check_exists → guard → probe → warn → remove_session_task → remove_worktrees → branch -d/-D → rmtree → clean`. Probe (`_probe_registrations`) is non-destructive and runs after guard — guard refusal (exit 1) must prevent probe and ALL downstream operations. Include branch-not-found case: guard skips, directory cleanup proceeds.
 
 **Cycle 1.13 end-to-end scope:** This regression test validates the original incident scenario. Create branch in worktree with both parent repo changes (e.g., new file in parent) and submodule changes. Merge via Phase 4. Verify parent repo file exists in HEAD after merge. Test may pass without fixes if bug was environment-specific — defensive checks still valuable.
 
