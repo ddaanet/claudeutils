@@ -77,3 +77,48 @@ def test_phase_level_fallback_glob(tmp_path: Path) -> None:
     chain = vet_status.chains[0]
     assert chain.source == "runbook-phase-3.md"
     assert chain.report == "reports/checkpoint-3-vet.md"
+
+
+def test_mtime_comparison_staleness(tmp_path: Path) -> None:
+    """Test mtime comparison determines staleness correctly."""
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+    reports_dir = plan_dir / "reports"
+    reports_dir.mkdir()
+
+    # Case 1: Fresh report (report_mtime > source_mtime, so stale = False)
+    source_fresh = plan_dir / "design.md"
+    report_fresh = reports_dir / "design-review.md"
+    source_fresh.write_text("")
+    report_fresh.write_text("")
+    os.utime(source_fresh, (1000, 1000))  # older
+    os.utime(report_fresh, (2000, 2000))  # newer
+
+    vet_status = get_vet_status(plan_dir)
+    assert vet_status is not None
+    assert len(vet_status.chains) == 1
+    chain = vet_status.chains[0]
+    assert chain.source == "design.md"
+    assert chain.report == "reports/design-review.md"
+    assert chain.stale is False
+    assert chain.source_mtime == 1000.0
+    assert chain.report_mtime == 2000.0
+
+    # Case 2: Stale report (source_mtime > report_mtime, so stale = True)
+    source_stale = plan_dir / "outline.md"
+    report_stale = reports_dir / "outline-review.md"
+    source_stale.write_text("")
+    report_stale.write_text("")
+    os.utime(source_stale, (5000, 5000))  # newer
+    os.utime(report_stale, (3000, 3000))  # older
+
+    vet_status = get_vet_status(plan_dir)
+    assert vet_status is not None
+    assert len(vet_status.chains) == 2
+
+    stale_chain = next((c for c in vet_status.chains if c.source == "outline.md"), None)
+    assert stale_chain is not None
+    assert stale_chain.report == "reports/outline-review.md"
+    assert stale_chain.stale is True
+    assert stale_chain.source_mtime == 5000.0
+    assert stale_chain.report_mtime == 3000.0
