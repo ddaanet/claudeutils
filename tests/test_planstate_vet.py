@@ -1,5 +1,6 @@
 """Tests for planstate vet module."""
 
+import os
 from pathlib import Path
 
 import pytest
@@ -41,3 +42,38 @@ def test_source_report_mapping_conventions(
     chain = vet_status.chains[0]
     assert chain.source == source_file
     assert chain.report == expected_report
+
+
+def test_phase_level_fallback_glob(tmp_path: Path) -> None:
+    """Test fallback glob when phase-level report naming varies."""
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+    reports_dir = plan_dir / "reports"
+    reports_dir.mkdir()
+
+    # Create source artifact
+    (plan_dir / "runbook-phase-3.md").write_text("")
+
+    # Create multiple report naming variants with different mtimes
+    # but NOT the primary pattern (phase-3-review.md)
+    checkpoint_3_vet = reports_dir / "checkpoint-3-vet.md"
+    phase_3_review_opus = reports_dir / "phase-3-review-opus.md"
+
+    # Write files and set mtimes to establish precedence
+    checkpoint_3_vet.write_text("")
+    os.utime(checkpoint_3_vet, (2000, 2000))
+
+    phase_3_review_opus.write_text("")
+    os.utime(phase_3_review_opus, (1500, 1500))
+
+    # Without fallback glob, no report would be found (primary pattern doesn't exist).
+    # With fallback, we should find one of the variants.
+    # Most recent (highest mtime) should win: checkpoint-3-vet.md
+    vet_status = get_vet_status(plan_dir)
+
+    assert vet_status is not None
+    assert len(vet_status.chains) == 1
+
+    chain = vet_status.chains[0]
+    assert chain.source == "runbook-phase-3.md"
+    assert chain.report == "reports/checkpoint-3-vet.md"
