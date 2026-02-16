@@ -30,13 +30,6 @@
 
 <!-- Priority order per plans/reports/prioritization-2026-02-16.md -->
 
-- [ ] **Remaining workflow items** — Sub-items not captured in workflow-rca-fixes | sonnet
-  - Orchestrate evolution — designed, ready for `/runbook` (design refreshed Feb 13)
-  - Reflect skill output — RCA should produce pending tasks, not inline fixes
-  - Tool-batching.md — add Task tool parallelization guidance with examples
-  - Orchestrator delegate resume — resume delegates with incomplete work (no mechanism exists)
-  - Agent output optimization — remove summarize/report language from agents
-  - Commit skill optimizations — remove handoff gate, Gate B coverage ratio, branching after precommit
 
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | opus
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
@@ -145,6 +138,14 @@
 - [ ] **Worktree rm amend** → `worktree-rm-amend` — Script amend into `_worktree rm` when HEAD is merge commit | `/design` | sonnet
   - Option B from discussion: rm detects merge commit via parent count, stages+amends session.md
   - Also address lint debt from worktree-merge-data-loss branch before merge
+
+- [ ] **Remaining workflow items** → `remaining-workflow-items` — Sub-items not captured in workflow-rca-fixes | sonnet
+  - Orchestrate evolution — designed, ready for `/runbook` (design refreshed Feb 13)
+  - Reflect skill output — RCA should produce pending tasks, not inline fixes
+  - Tool-batching.md — add Task tool parallelization guidance with examples
+  - Orchestrator delegate resume — resume delegates with incomplete work (no mechanism exists)
+  - Agent output optimization — remove summarize/report language from agents
+  - Commit skill optimizations — remove handoff gate, Gate B coverage ratio, branching after precommit
 
 ## Blockers / Gotchas
 
