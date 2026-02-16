@@ -8,17 +8,17 @@
 
 ## Requirements Mapping
 
-| Requirement | Implementation Phase |
-|-------------|---------------------|
-| FR-1: Branch classification (merged/focused/unmerged) | Phase 1, Cycles 1.1-1.3 |
-| FR-2: Refuse removal with unmerged history, exit 1 | Phase 1, Cycle 1.4 |
-| FR-3: Allow removal of focused-session-only branches | Phase 1, Cycle 1.3 |
-| FR-4: Exit codes (0/1/2) | Phase 1, Cycle 1.4 |
-| FR-5: No destructive commands in output | Phase 1, Cycle 1.5 |
-| FR-6: MERGE_HEAD checkpoint, exit 2 when lost | Phase 1, Cycles 1.6-1.8 |
-| FR-7: Post-merge ancestry validation | Phase 1, Cycle 1.9 |
-| FR-8: Report removal type in success message | Phase 1, Cycle 1.5 |
-| FR-9: Skill Mode C handles rm exit 1 | Phase 2, Step 2.1 |
+| Requirement | Phase | Steps/Cycles | Notes |
+|-------------|-------|--------------|-------|
+| FR-1: Branch classification (merged/focused/unmerged) | 1 | 1.1-1.3 | Helper functions + classification logic |
+| FR-2: Refuse removal with unmerged history, exit 1 | 1 | 1.4 | Guard refusal with exit 1 |
+| FR-3: Allow removal of focused-session-only branches | 1 | 1.3 | Marker text detection |
+| FR-4: Exit codes (0/1/2) | 1 | 1.4 | Implemented in guard logic |
+| FR-5: No destructive commands in output | 1 | 1.5 | Message cleanup |
+| FR-6: MERGE_HEAD checkpoint, exit 2 when lost | 1 | 1.6-1.8 | Three-branch checkpoint logic |
+| FR-7: Post-merge ancestry validation | 1 | 1.9 | Defense-in-depth validation |
+| FR-8: Report removal type in success message | 1 | 1.5 | Success message differentiation |
+| FR-9: Skill Mode C handles rm exit 1 | 2 | 2.1 | Prose update to SKILL.md |
 
 ---
 
@@ -28,7 +28,7 @@
 
 **Scope:** Implement removal safety guard (Track 1) and merge correctness fixes (Track 2). All behavioral changes to cli.py, merge.py, utils.py, with comprehensive test coverage.
 
-**Estimated complexity:** ~12 cycles, haiku execution
+**Estimated complexity:** 11 cycles, haiku execution
 
 **Key design decisions:**
 - D-1: Focused session detection via marker text `"Focused session for {slug}"`
@@ -78,24 +78,25 @@
 - **Dependencies:** Extends Cycle 1.7 flow
 - Test: No MERGE_HEAD, no staged, branch not merged exits 2
 
-#### Cycle 1.9: Add post-merge ancestry validation
-- **Integration:** _validate_merge_result called after commit, before precommit
+#### Cycle 1.9: Add post-merge ancestry validation with diagnostic logging
+- **Integration:** _validate_merge_result called after commit, before precommit; includes parent count diagnostic
 - **Dependencies:** Uses _is_branch_merged from Cycle 1.1
-- Test: Branch ancestry check after merge, exits 2 if branch not ancestor
+- Test: Branch ancestry check after merge (exits 2 if branch not ancestor), parent count logged when <2 (warning)
 
-#### Cycle 1.10: Add diagnostic parent count logging
-- **Integration:** Warning output when merge commit has <2 parents
-- Test: Parent count logged (observation, not error)
+#### Cycle 1.10: Integration test — parent repo file preservation (Track 2)
+- **Integration:** End-to-end test for original bug scenario — verifies MERGE_HEAD checkpoint + ancestry validation working together
+- **RED assertion:** Create worktree branch with both parent repo changes (e.g., add file `parent-change.md`) AND submodule changes → merge → verify parent repo file exists in merge result commit (tests that single-parent commit bug is fixed)
+- Test: Parent repo file preservation across merge (regression test for data loss bug)
 
-#### Cycle 1.11: Integration test — parent repo file preservation
-- **Integration:** End-to-end test for original bug scenario
-- Test: Branch with parent repo + submodule changes → merge → all files present
+#### Cycle 1.11: Integration test — orphan branch handling (Track 1)
+- **Integration:** Edge case coverage for rm guard with branch that has no merge-base (orphan branch)
+- **RED assertion:** Create orphan branch (git checkout --orphan) with 1+ commits → create worktree pointing to it → rm worktree → exit 1 with "Branch {slug} is orphaned (no common ancestor). Merge first." message AND worktree directory still exists (regression test: guard must prevent directory removal)
+- Test: Orphan branch refused by rm guard with specific message, directory preserved
 
-#### Cycle 1.12: Integration test — orphan branch handling
-- **Integration:** Edge case coverage for branch with no merge-base
-- Test: Orphan branch refused by rm guard with specific message
-
-**Checkpoint:** Full checkpoint after Phase 1 (Fix + Vet + Functional)
+**Checkpoint:** Full checkpoint after Phase 1
+- Fix: All cycles complete, code committed
+- Vet: vet-fix-agent review with execution context (scope: all Phase 1 changes)
+- Functional: Run reproduction scenario — create worktree with parent repo changes, merge, verify rm refuses unmerged branch (if any), verify parent repo files present in merge result
 
 ---
 
@@ -145,12 +146,28 @@
 
 ---
 
+## Design Reference
+
+Full design at: `plans/worktree-merge-data-loss/design.md`
+
+**Key sections:**
+- Architecture: Track 1 (cli.py rm), Track 2 (merge.py Phase 4), Track 3 (SKILL.md)
+- Helpers: _is_branch_merged (shared), _classify_branch (rm-specific)
+- Guard Logic: insertion point, flow, exit codes
+- MERGE_HEAD Checkpoint: three-path flow, validation
+- Post-Merge Validation: ancestry check, diagnostic logging
+
+---
+
 ## Expansion Guidance
+
+The following recommendations should be incorporated during full runbook expansion:
 
 **Cycle granularity:**
 - Each cycle tests one branch point or error condition
 - Foundation-first: helper functions → guard logic → checkpoint logic
 - Integration tests last (after all unit cycles)
+- No further consolidation recommended — 11 cycles test distinct branch points
 
 **Test patterns (from test_worktree_merge_parent.py):**
 - Use `repo_with_submodule` fixture for main repo setup
@@ -164,27 +181,25 @@
 - Exit codes AND stderr messages for error cases
 - Filesystem state verification (worktree directory existence, branch existence)
 - No vacuous assertions (per testing.md): distinguish correct output from empty/default
+- Integration tests (C1.10-C1.11) include specific scenario verification (parent repo file exists, directory preserved on refusal)
 
 **GREEN phase implementation:**
-- Shared helpers first (Cycle 1.1: _is_branch_merged)
-- Guard logic incremental (Cycles 1.2-1.5)
-- Checkpoint logic incremental (Cycles 1.6-1.8)
-- Validation last (Cycle 1.9-1.10)
-- Integration tests final (Cycles 1.11-1.12)
+- Track 1 (rm guard): Cycles 1.1-1.5, 1.11 — shared helper → classification → guard logic → messaging → orphan edge case
+- Track 2 (merge correctness): Cycles 1.6-1.10 — checkpoint logic → idempotency → no-op case → validation → integration test
+- Dependencies: C1.6 depends on C1.1 (_is_branch_merged helper) — ensure C1.1 completes first
+
+**File growth monitoring:**
+- cli.py: baseline 382 lines + ~35 LOC (guard logic) = 417 projected (borderline)
+- If implementation exceeds 420 lines during expansion, extract to cli_guards.py module
+- Split point: _classify_branch and guard logic to separate module
+- merge.py: baseline 299 lines + ~25 LOC = 324 projected (safe)
+- utils.py: baseline 38 lines + ~8 LOC = 46 projected (safe)
+
+**Checkpoint validation detail:**
+- Functional checkpoint includes reproduction scenario: parent repo changes + merge + rm behavior
+- Verifies both tracks working together: merge preserves files AND rm refuses unmerged branches
+- Use real git operations (no mocks) per testing.md conventions
 
 **Prerequisite validation:**
 - Transformation cycles (delete, modify): self-contained
 - Creation cycles (new tests, new helpers): include prerequisite to read relevant implementation context
-
----
-
-## Design Reference
-
-Full design at: `plans/worktree-merge-data-loss/design.md`
-
-**Key sections:**
-- Architecture: Track 1 (cli.py rm), Track 2 (merge.py Phase 4), Track 3 (SKILL.md)
-- Helpers: _is_branch_merged (shared), _classify_branch (rm-specific)
-- Guard Logic: insertion point, flow, exit codes
-- MERGE_HEAD Checkpoint: three-path flow, validation
-- Post-Merge Validation: ancestry check, diagnostic logging

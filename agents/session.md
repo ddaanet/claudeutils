@@ -1,20 +1,30 @@
 # Session: Worktree — Worktree merge data loss
 
-**Status:** Focused worktree for parallel execution.
+**Status:** Runbook outline complete, reviewed. Expansion next.
 
 ## Completed This Session
 
-- Design document generated and vetted (`plans/worktree-merge-data-loss/design.md`)
-  - Three tracks: removal safety guard (cli.py rm), merge correctness (merge.py Phase 4), skill update (SKILL.md Mode C)
-  - Design review: Ready, 1 major + 2 minor issues fixed by vet, no UNFIXABLE
-  - Report: `plans/worktree-merge-data-loss/reports/design-review.md`
-  - Checkpoint commit: 9f7c51e
+**Design (prior session):**
+- Design document vetted: `plans/worktree-merge-data-loss/design.md` (commit 9f7c51e)
+
+**Runbook planning (Phase 0.75):**
+- Tier assessment: Tier 3 (Full Runbook) — 3 tracks, ~11 TDD cycles, shared helpers
+- Runbook outline generated: `plans/worktree-merge-data-loss/runbook-outline.md` (commit 67bc97d)
+  - Phase 1 (TDD, 11 cycles): removal guard (Track 1) + merge correctness (Track 2)
+  - Phase 2 (general, 1 step): SKILL.md Mode C update (Track 3)
+  - FR-1 through FR-9 mapped to implementation cycles
+- Outline review: all fixes applied by runbook-outline-review-agent, no UNFIXABLE
+  - Report: `plans/worktree-merge-data-loss/reports/outline-review-fix.md`
+  - Key fixes: consolidated Cycle 1.9+1.10 (diagnostic logging merged), added Track labels to integration tests, enhanced RED assertions for integration cycles, added Expansion Guidance section
 
 ## Pending Tasks
 
-- [ ] **Worktree merge data loss** — `/runbook plans/worktree-merge-data-loss/design.md` | sonnet
-  - Design: `plans/worktree-merge-data-loss/design.md` (vetted, ready)
-  - Phase 1 (TDD): removal guard + merge correctness — cli.py, merge.py, utils.py
-  - Phase 2 (general): skill update — SKILL.md Mode C
-  - Key decisions: D-1 marker text detection, D-2 exit codes (0/1/2), D-3 no destructive output, D-4 MERGE_HEAD checkpoint, D-5 ancestry validation, D-6 guard before destruction, D-7 shared helper in utils.py
-  - Reports: `plans/worktree-merge-data-loss/reports/` (explore-merge-logic, explore-git-history, outline-review, design-review)
+- [ ] **Worktree merge data loss** — Continue `/runbook` from Phase 0.85 (consolidation gate) | sonnet
+  - Outline: `plans/worktree-merge-data-loss/runbook-outline.md` (reviewed, ready for expansion)
+  - Design: `plans/worktree-merge-data-loss/design.md`
+  - Remaining: Phase 0.85 consolidation gate → Phase 0.9 complexity check → Phase 0.95 sufficiency check → Phase 1 expansion → Phase 2 assembly → Phase 3 review → Phase 4 prepare artifacts
+  - Reports: `plans/worktree-merge-data-loss/reports/` (explore-merge-logic, explore-git-history, outline-review, design-review, outline-review-fix)
+
+## Next Steps
+
+Continue `/runbook` from Phase 0.85 (outline consolidation gate). The outline has 2 phases, 12 total items (11 cycles + 1 step) — check Phase 0.95 sufficiency criteria before committing to full expansion.
