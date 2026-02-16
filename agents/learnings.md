@@ -74,3 +74,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Attributing git failure to a plausible-sounding restriction without reading the error message. Confabulated "git refuses to merge with active worktree" (false). Actual cause: untracked session.md on main would be overwritten by merge. Built reasoning chain on false premise, deleted test coverage to work around the non-existent limitation.
 - Correct pattern: Read actual error output. Reproduce with a minimal case before restructuring. Test failures that seem like infrastructure problems may reveal real production bugs — the test was correctly detecting that `new --session` leaves session.md untracked on main.
 - Deeper pattern: Confabulation served as license to stop investigating. A "can't be fixed" explanation converts a solvable problem into an unsolvable one, justifying coverage-reducing workarounds.
+## When selecting model for TDD execution
+- Anti-pattern: Assigning model by task type (execution = haiku) without considering reasoning complexity. Haiku over-implemented step 1-2, building guard logic meant for 6 subsequent steps.
+- Correct pattern: Assign model by complexity type: pattern complexity (regexp, wiring, flags) → haiku fine; state machine complexity (git ancestry, merge state) → sonnet minimum; synthesis complexity (trade-offs, architecture) → opus. Classification happens during /runbook expansion, not at orchestration time.
+- Related: TDD granularity doesn't help haiku — each step is "simple" but haiku can't stay within scope. Batching code+tests per phase at sonnet produces fewer, better tests with opus review.
+## When test setup steps fail
+- Anti-pattern: Using `subprocess.run(..., check=True, capture_output=True)` in test setup — CalledProcessError shows command and exit code but stderr is swallowed. Opaque failures invite confabulation.
+- Correct pattern: Test setup should produce self-diagnosing failures. Either use `check=False` + explicit assertion with stderr, or use a helper that surfaces stderr on failure.
+- Evidence: `git merge` failed with "untracked working tree files would be overwritten" but test only showed `CalledProcessError: exit status 1`.

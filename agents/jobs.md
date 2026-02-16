@@ -19,7 +19,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | when-recall | complete | `/when` memory recall system — 12 phases, merged to main, 2 deliverable reviews |
 | worktree-skill | complete | Design.md retained on disk for reference |
 | worktree-update | complete | 40 TDD cycles, recovery (C2-C5), merged to main |
-| worktree-merge-data-loss | planned | Runbook prepared (14 steps), 3-way diagnostic review complete, ready for orchestration |
+| worktree-merge-data-loss | complete | 14 steps executed (13 TDD + 1 general), rm guard + merge correctness, vet passed |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
 | remember-skill-update | requirements | Outline + requirements.md complete, Phase B discussion next |
 
