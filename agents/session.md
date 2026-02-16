@@ -158,6 +158,13 @@
   - Design.md complete, vet in progress, planning next (design refreshed Feb 13)
 
 
+- [ ] **Debug failed merge** — Investigate the original merge failure (exit 128 during session.md conflict resolution) | sonnet
+  - Context: Merge of `remaining-workflow-items` worktree on 2026-02-16
+  - Branch had 1 post-merge commit (683fc7d), conflicts on `agent-core` submodule + `agents/session.md`
+  - Main at 9bb45d0, merge result at 5e024c2
+  - `git add agents/session.md` returned exit 128 during `_resolve_session_md_conflict` in `_phase3_merge_parent`
+  - Now that error handling is fixed, we can reproduce and see the actual git error message
+
 ## Worktree Tasks
 
 - [ ] **Error handling design** → `error-handling-design` — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
