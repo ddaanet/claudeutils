@@ -268,6 +268,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how design with outline first approach
 /when selecting model for design guidance
 /when choosing model for design review
+/when brainstorming | always opus generative divergence
 /when research required before outline | external prior art ground
 /when design references need verification | glob disk verify names
 /when vet catches structural issues

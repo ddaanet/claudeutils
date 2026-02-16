@@ -1,20 +1,25 @@
 # Session Handoff: 2026-02-16
 
-**Status:** Deliverable review completed for prioritize skill, all minor fixes applied.
+**Status:** Ground skill deliverable review completed, all fixes applied, brainstorming decision documented.
 
 ## Completed This Session
 
-**Deliverable review — prioritize skill:**
-- Inventoried 3 artifacts (441 lines): SKILL.md (127), scoring-tables.md (150), methodology.md (164)
-- Single-agent review (< 500 line threshold): universal + agentic prose + human docs axes
-- Report: `plans/reports/deliverable-review-prioritize.md`
-- Assessment: No critical/major issues, 4 minor fixes applied:
-  - Fibonacci bound `(1,2,3,5,8,13)` → `(1,2,3,5,8)` in methodology.md
-  - Added CRC cap rationale to methodology.md Context Recovery Cost section
-  - Added `(from project root)` to git evidence source in scoring-tables.md
-  - Replaced non-executable `diff <(...)` with prose description in methodology.md
+**Ground skill deliverable review:**
+- Interactive review with full context (not delegated — catches cross-project structural issues)
+- Report: `plans/grounding-skill/reports/deliverable-review.md`
+- 1 major, 6 minor findings; all fixes applied:
+  - F-1: Added `Write` to allowed-tools (was missing despite file-writing phases)
+  - Brainstorm parameterization: always opus in SKILL.md and grounding-criteria.md
+  - M-2: Added output format expectations for explore mode delegation
+  - M-6: Specified subagent_type (general-purpose) for brainstorm delegation
+- Added `/when brainstorming` to workflow-optimization.md and memory index
+- Discussion: evaluated "new brainstorm skill" — `/when` entry more proportionate
 
 ## Pending Tasks
+
+- [ ] **Grounding refs in skills** — Update requirements and design skills to explicitly reference grounding research or external references | sonnet
+
+- [ ] **Interactive review skill** — Update deliverable-review skill so review runs interactively, not delegated (benefits from full context) | sonnet
 
 - [ ] **Design skill outline gate** — Update /design skill to add direct execution gate after outline validated | sonnet
   - When outline has sufficient specificity, skip Phase C (design generation) and implement directly
@@ -153,22 +158,22 @@
 - Index keys must NOT include "to" — validator adds it automatically
 - Including "to" in key causes double-to: `"how to to X"`
 
+**Deliverable review delegation loses context:**
+- Task agent missed major finding (Write missing from allowed-tools) — lacked cross-project context
+- Interactive review with full fragment/learnings context catches structural issues delegation misses
+
 ## Next Steps
 
-Remember skill update: Resume `/design` Phase B with outline discussion. New scope addition: trigger name validation during consolidation.
+Remember skill update: Resume `/design` Phase B with outline discussion. Two new pending tasks for skills referencing grounding research and deliverable-review interactive pattern.
 
 ## Reference Files
 
-- `plans/reports/deliverable-review-prioritize.md` — Prioritize skill deliverable review (4 minor, all fixed)
-- `plans/reports/task-prioritization-methodology.md` — WSJF-adapted prioritization methodology
-- `plans/reports/ground-skill-research-synthesis.md` — Grounding skill research synthesis (Double Diamond + Rapid Review + RAG)
-- `plans/reports/prototype-review-capture-script.md` — Sub-agent output capture prototype (third-party agents)
+- `plans/grounding-skill/reports/deliverable-review.md` — Ground skill review (1 major, 6 minor, all fixed)
+- `plans/reports/ground-skill-research-synthesis.md` — Grounding skill research synthesis
 - `plans/grounding-skill/outline.md` — Ground skill design outline (8 decisions)
+- `plans/reports/deliverable-review-prioritize.md` — Prioritize skill deliverable review
+- `plans/reports/task-prioritization-methodology.md` — WSJF-adapted prioritization methodology
 - `plans/remember-skill-update/requirements.md` — 7 FRs (When/How prefix, validation, migration)
 - `plans/remember-skill-update/outline.md` — Design outline (reviewed, Phase B ready)
 - `plans/error-handling/outline.md` — Error handling design outline (Phase A complete)
-- `plans/error-handling/reports/explore-error-handling.md` — Error handling landscape
-- `plans/error-handling/reports/explore-cps-chains.md` — CPS chain mechanics
-- `plans/reports/memory-index-actionability-review.md` — Opus actionability review of all index entries
-- `plans/when-recall/reports/baseline-recall-analysis.md` — 2.9% baseline recall measurement
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology

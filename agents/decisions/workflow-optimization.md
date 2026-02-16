@@ -138,6 +138,18 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Three-agent vet system: vet-agent (code, sonnet), vet-fix-agent (code + fixes, sonnet), design-vet-agent (architecture, opus).
 
+### When Brainstorming
+
+**Decision Date:** 2026-02-16
+
+**Decision:** Brainstorming always delegates to opus. Use `Task(subagent_type: "general-purpose", model: "opus")`.
+
+**Anti-pattern:** Running brainstorm at sonnet tier because the parent workflow is sonnet.
+
+**Correct pattern:** Brainstorming is generative divergence — requires opus regardless of the invoking workflow's model tier. Explore (codebase pattern extraction) can run at sonnet.
+
+**Rationale:** Sonnet underperforms on open-ended generative tasks. The ground skill's internal branch and design exploration both need opus for brainstorming to surface non-obvious dimensions.
+
 ### When Research Required Before Outline
 
 **Decision Date:** 2026-02-15
