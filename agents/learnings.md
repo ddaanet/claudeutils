@@ -59,3 +59,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Segment by origin. `p:` directives (n=29) distribute evenly (34.5% prepend). Workflow continuations dominate the prepend signal. Different insertion policies needed per origin type.
 - Evidence: Session scraping + git correlation across 337 sessions, 506 commits. Handoff skill says "append" but agents correctly override for both populations.
 - Implication: Handoff skill should say "insert at estimated priority position" not "append" — agents already exercise good judgment.
+## When reviewing runbooks after expansion
+- Anti-pattern: Relying on text-based review (plan-reviewer) to catch all runbook defects. Text review validates TDD discipline, prescriptive code, vacuity — but misses execution-time concerns.
+- Correct pattern: Add structural validation after text review: (1) file lifecycle graph (create→modify ordering), (2) RED plausibility (expected failures valid given prior GREEN), (3) test count reconciliation (checkpoint numbers match test functions). File lifecycle and test count are deterministic (scriptable). RED plausibility may need LLM judgment.
+- Evidence: Holistic review caught formatting/metadata issues and one dependency ordering bug, but would not have caught an "already-passing RED" from cycle consolidation.
+## When batching runbook cycles
+- Anti-pattern: Planning 4 identical-pattern cycles separately (e.g., 4 status levels each adding one artifact check to the same function), then optimizing post-hoc.
+- Correct pattern: Detect identical patterns during Phase 1 expansion and consolidate upfront. Indicators: same function modified, same test structure, only the fixture data differs. Parametrized cycle with table of inputs replaces N separate RED/GREEN rounds.
+- Evidence: Workwoods P1 cycles 1.2-1.5, P5 cycles 5.5-5.7, P4 cycles 4.3-4.6 all exhibited this pattern. Post-hoc optimization saved 12 items but required 5 parallel agents + holistic re-review.

@@ -19,8 +19,9 @@ Plan lifecycle tracking. Updated when plans change status.
 | when-recall | complete | `/when` memory recall system — 12 phases, merged to main, 2 deliverable reviews |
 | worktree-skill | complete | Design.md retained on disk for reference |
 | worktree-update | complete | 40 TDD cycles, recovery (C2-C5), merged to main |
+| runbook-quality-gates | requirements | Post-planning simplification + pre-execution validation gates |
 | worktree-merge-data-loss | planned | Design + outline synced to main, runbook expansion next (worktree active) |
-| workwoods | planned | Runbook complete: 6 phases (43 TDD cycles + 12 general steps), prepare-runbook.py next |
+| workwoods | planned | Runbook optimized: 6 phases (33 TDD cycles + 10 general steps), pre-execution reviews next |
 | prototypes | requirements | Session extraction feature gap, multi-project scanning |
 | remember-skill-update | requirements | Outline + requirements.md complete, Phase B discussion next |
 
