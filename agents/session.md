@@ -123,10 +123,6 @@
 
 ## Worktree Tasks
 
-- [ ] **Vet proportionality** → `vet-proportionality` — Trivial edits shouldn't require full vet-fix-agent delegation | opus
-  - 1-line bullet addition to runbook skill triggered full vet agent
-  - Needs: proportionality threshold in vet-requirement.md fragment
-  - Also review Gate B in commit skill — same over-application pattern
 
 - [ ] **Error handling design** → `error-handling-design` — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
   - Outline: `plans/error-handling/outline.md`
