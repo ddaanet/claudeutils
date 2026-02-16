@@ -1,29 +1,22 @@
 # Session Handoff: 2026-02-16
 
-**Status:** Precommit improvements implemented (3/4 items). Vet proportionality next.
+**Status:** Parallel worktrees set up for top 3 opus design tasks. Skill sandbox fix applied.
 
 ## Completed This Session
 
-**Precommit improvements (3/4 items):**
-- Two new validators: `session_refs.py` (tmp/ reference rejection), `session_structure.py` (worktree format, cross-section uniqueness, reference file existence)
-- 42 new tests across both validators, all passing
-- Registered in CLI: `claudeutils validate session-refs`, `claudeutils validate session-structure`
-- Pattern refinement: `\btmp/[a-zA-Z0-9][a-zA-Z0-9._/-]*` avoids sentence-ending `tmp/.` false positives
-- Remaining item (duplicate memory-index autofix) blocked on memory redesign — unchanged
+**Worktree skill sandbox fix:**
+- Added `dangerouslyDisableSandbox: true` annotations to all mutation commands in SKILL.md (`new`, `merge`, `rm`)
+- Updated `agent-core/fragments/sandbox-exemptions.md` — corrected worktree section to document mutation bypass requirement
+- Root cause: `_worktree new` writes `.claude/settings.local.json` (sandbox allowlist), sandbox blocks it
+
+**Parallel worktree setup:**
+- Created 3 worktrees for top independent opus tasks: vet-proportionality, error-handling-design, design-workwoods
+- Cleaned stale worktree debris (orphaned branches/directories from prior failed attempts in both parent and submodule)
+- Model tier correction: all 3 tasks are design-tier opus (vet proportionality was incorrectly sonnet — fragments are behavioral contracts)
 
 ## Pending Tasks
 
 <!-- Priority order per plans/reports/prioritization-2026-02-16.md -->
-
-- [x] **Precommit improvements** — Expand precommit checks | sonnet
-  - ✅ session_refs.py: tmp/ reference rejection in session.md, learnings.md, jobs.md
-  - ✅ session_structure.py: worktree task format, cross-section uniqueness, reference file existence
-  - Remaining: autofix/fail on duplicate memory index entries (blocked on memory redesign)
-
-- [ ] **Vet proportionality** — Trivial edits shouldn't require full vet-fix-agent delegation | sonnet
-  - 1-line bullet addition to runbook skill triggered full vet agent
-  - Needs: proportionality threshold in vet-requirement.md fragment
-  - Also review Gate B in commit skill — same over-application pattern
 
 - [ ] **Remaining workflow items** — Sub-items not captured in workflow-rca-fixes | sonnet
   - Orchestrate evolution — designed, ready for `/runbook` (design refreshed Feb 13)
@@ -33,14 +26,7 @@
   - Agent output optimization — remove summarize/report language from agents
   - Commit skill optimizations — remove handoff gate, Gate B coverage ratio, branching after precommit
 
-- [ ] **Error handling design** — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
-  - Outline: `plans/error-handling/outline.md`
-  - Key decisions: D-1 CPS abort-and-record, D-2 task `[!]`/`[✗]` states, D-3 escalation acceptance criteria, D-5 rollback = revert to step start
-
-- [ ] **Design workwoods** — `/design plans/workwoods/requirements.md` | opus
-  - Plan: workwoods | Status: requirements
-
-- [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
+- [ ] **Execute plugin migration** — Refresh outline then orchestrate | opus
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
   - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite against post-worktree-update justfile, expanded phases need regeneration
   - Drift: 19 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
@@ -58,7 +44,7 @@
 
 - [ ] **Model tier awareness hook** — Hook injecting "Response by Opus/Sonnet/Haiku" into context | sonnet | restart
 
-- [ ] **Remember skill update** — Resume `/design` Phase B | sonnet
+- [ ] **Remember skill update** — Resume `/design` Phase B | opus
   - Requirements: `plans/remember-skill-update/requirements.md` (7 FRs, When/How prefix mandate)
   - Outline: `plans/remember-skill-update/outline.md` (reviewed, Phase B discussion next)
   - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
@@ -135,6 +121,20 @@
   - Opus review findings to incorporate during expansion: `plans/worktree-merge-data-loss/reports/runbook-outline-review-opus.md`
 - [ ] **Worktree skill adhoc mode** — Add mode for creating worktree from specific commit without task tracking | sonnet
 
+## Worktree Tasks
+
+- [ ] **Vet proportionality** → `vet-proportionality` — Trivial edits shouldn't require full vet-fix-agent delegation | opus
+  - 1-line bullet addition to runbook skill triggered full vet agent
+  - Needs: proportionality threshold in vet-requirement.md fragment
+  - Also review Gate B in commit skill — same over-application pattern
+
+- [ ] **Error handling design** → `error-handling-design` — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
+  - Outline: `plans/error-handling/outline.md`
+  - Key decisions: D-1 CPS abort-and-record, D-2 task `[!]`/`[✗]` states, D-3 escalation acceptance criteria, D-5 rollback = revert to step start
+
+- [ ] **Design workwoods** → `design-workwoods` — `/design plans/workwoods/requirements.md` | opus
+  - Plan: workwoods | Status: requirements
+
 ## Blockers / Gotchas
 
 **Diagnostic review methodology converging:**
@@ -159,7 +159,7 @@
 
 ## Next Steps
 
-Vet proportionality — proportionality threshold for trivial edits. Then remaining workflow items.
+3 opus worktrees active for parallel design work. Next in main: Remaining workflow items (sonnet).
 
 ## Reference Files
 
