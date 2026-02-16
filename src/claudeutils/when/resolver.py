@@ -242,7 +242,9 @@ def _resolve_trigger(
     actual_heading = None
     for line in file_content.split("\n"):
         line_stripped = line.strip()
-        if line_stripped.endswith(heading_text) and line_stripped.startswith("#"):
+        if line_stripped.startswith("#") and _heading_matches(
+            line_stripped, heading_text
+        ):
             actual_heading = line_stripped
             break
 
@@ -259,7 +261,7 @@ def _resolve_trigger(
     siblings = navigation.compute_siblings(heading_text_only, file_content, entries)
     nav_text = navigation.format_navigation(ancestors, siblings)
 
-    formatted_heading = f"# {heading_text}"
+    formatted_heading = f"# {heading_text_only}"
     content_lines = content.split("\n")
     section_content = "\n".join(content_lines[1:]).lstrip()
 
@@ -269,6 +271,26 @@ def _resolve_trigger(
         output_parts.append(nav_text)
 
     return "\n".join(output_parts).rstrip()
+
+
+def _heading_matches(line: str, target_heading: str) -> bool:
+    """Check if line matches target heading (case-insensitive).
+
+    Args:
+        line: The line to check (may include leading # markers)
+        target_heading: The heading text to match against (may include # markers)
+
+    Returns:
+        True if line matches the heading (ignoring case and whitespace)
+    """
+    line_stripped = line.strip().lower()
+    target_stripped = target_heading.strip().lower()
+
+    # Extract heading text (remove # markers for comparison)
+    line_text = line_stripped.lstrip("#").strip()
+    target_text = target_stripped.lstrip("#").strip()
+
+    return line_text == target_text
 
 
 def _build_heading(operator: str, trigger: str) -> str:
@@ -288,7 +310,7 @@ def _extract_section_content(heading: str, file_content: str) -> str:
 
     start_idx = None
     for idx, line in enumerate(lines):
-        if line.strip() == heading.strip():
+        if _heading_matches(line, heading):
             start_idx = idx
             break
 

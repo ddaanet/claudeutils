@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-16
 
-**Status:** Prioritization skill created and reviewed. Vet delegation routing identified as design task.
+**Status:** When/how resolution bug fixed. Case-insensitive heading matching now works for hyphenated triggers.
 
 ## Completed This Session
 
@@ -10,6 +10,15 @@
 - Output: priority-ordered table + parallel batches with scheduling modifiers
 - Skill-reviewer passed — 3 fixes applied: criteria duplication eliminated, trigger phrases expanded, CRC cap documented
 - Synced via `just sync-to-parent`
+
+**When/how resolution bug fix:**
+- Fixed case-insensitive heading matching for hyphenated triggers (e.g., "agent-creator")
+- Root cause: Two comparison sites with inconsistent strategies — line 245 used case-sensitive `endswith()`, line 291 had partial fix
+- Solution: Extracted `_heading_matches()` helper for centralized case-insensitive comparison
+- Bonus fix: Output now uses actual heading capitalization from file instead of imperfect `_build_heading()` output
+- TDD: Created `tests/test_when_resolver_hyphenated.py`, all 47 tests pass
+- End-to-end verified: `/when agent-creator reviews agents` now resolves correctly
+- Resolves pending task "How-resolve section lookup failure"
 
 ## Pending Tasks
 
@@ -125,10 +134,6 @@
   - skill-reviewer: Read/Grep/Glob only — cannot autofix, would need tool additions
   - No hook reviewer exists; no doc reviewer exists (readme skill is creation, not review)
   - Precedent: agent-creator repurposed for review via prompting (`/when agent-creator reviews agents`)
-
-- [ ] **How-resolve section lookup failure** — Debug when-resolve.py section not found after index match | haiku
-  - `/how agent-creator` — index entry exists but section lookup fails: "Section not found in project-config.md: When Agent-creator Reviews Agents"
-  - Root cause unknown — needs investigation
 
 ## Blockers / Gotchas
 
