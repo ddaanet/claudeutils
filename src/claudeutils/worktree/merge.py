@@ -10,6 +10,18 @@ from claudeutils.worktree.session import extract_task_blocks, find_section_bound
 from claudeutils.worktree.utils import _git, _is_branch_merged, wt_path
 
 
+def _format_git_error(e: subprocess.CalledProcessError) -> str:
+    """Format git error with command, exit code, and stderr."""
+    cmd_str = " ".join(str(arg) for arg in e.cmd)
+    stderr = e.stderr.rstrip('\n') if e.stderr else "(no error output)"
+    return (
+        f"Git command failed: {cmd_str}\n"
+        f"Exit code: {e.returncode}\n"
+        f"{stderr}\n\n"
+        f"Resolve the issue and retry the merge."
+    )
+
+
 def _check_clean_for_merge(
     path: Path | None = None,
     exempt_paths: set[str] | None = None,

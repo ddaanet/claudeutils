@@ -11,6 +11,7 @@ from pathlib import Path
 import click
 
 from claudeutils.validation.tasks import validate_task_name_format
+from claudeutils.worktree.merge import _format_git_error
 from claudeutils.worktree.merge import merge as merge_impl
 from claudeutils.worktree.session import (
     extract_task_blocks,
@@ -35,13 +36,9 @@ def derive_slug(task_name: str) -> str:
     if not task_name or not task_name.strip():
         msg = "task_name must not be empty"
         raise ValueError(msg)
-
-    # Validate task name format
     format_errors = validate_task_name_format(task_name)
     if format_errors:
-        msg = format_errors[0]
-        raise ValueError(msg)
-
+        raise ValueError(format_errors[0])
     return re.sub(r"[^a-z0-9]+", "-", task_name.lower()).strip("-")
 
 
@@ -72,13 +69,11 @@ def _filter_section(
 def focus_session(task_name: str, session_md_path: str | Path) -> str:
     """Filter session.md to task_name with relevant context sections."""
     content = Path(session_md_path).read_text()
-
     blocks = extract_task_blocks(content, section="Pending Tasks")
     task_block = next((b for b in blocks if b.name == task_name), None)
     if not task_block:
         msg = f"Task '{task_name}' not found in session.md"
         raise ValueError(msg)
-
     task_lines_str = "\n".join(task_block.lines)
     plan_dir = (
         m.group(1) if (m := re.search(r"[Pp]lan:\s*(\S+)", task_lines_str)) else None
@@ -301,14 +296,20 @@ def add_commit(files: tuple[str, ...]) -> None:
 @click.argument("slug")
 def merge(slug: str) -> None:
     """Merge worktree branch back to main."""
-    merge_impl(slug)
+    try:
+        merge_impl(slug)
+    except subprocess.CalledProcessError as e:
+        click.echo(_format_git_error(e), err=True)
+        raise SystemExit(1) from None
 
 
 def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:
     """Check if branch can be removed safely."""
     branch_check = subprocess.run(
         ["git", "rev-parse", "--verify", slug],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if branch_check.returncode != 0:
         return False, None
@@ -337,7 +338,9 @@ def _delete_branch(slug: str, removal_type: str | None) -> None:
     delete_flag = "-D" if removal_type == "focused" else "-d"
     r = subprocess.run(
         ["git", "branch", delete_flag, slug],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if r.returncode != 0 and "not found" not in r.stderr.lower():
         click.echo(f"Branch {slug} deletion failed: {r.stderr.strip()}", err=True)
@@ -350,9 +353,7 @@ def _update_session_and_amend(slug: str) -> bool:
     remove_worktree_task(session_md_path, slug, slug)
     if not _is_merge_commit():
         return False
-    status_output = _git(
-        "status", "--porcelain", "agents/session.md", check=False
-    )
+    status_output = _git("status", "--porcelain", "agents/session.md", check=False)
     if not status_output.strip():
         return False
     _git("add", "agents/session.md")
@@ -390,7 +391,6 @@ def rm(slug: str) -> None:
 
     if branch_exists:
         _delete_branch(slug, removal_type)
-
     suffix = " Merge commit amended." if amended else ""
     if removal_type == "merged":
         click.echo(f"Removed {slug}{suffix}")
