@@ -1,6 +1,7 @@
 """Tests for planstate inference module."""
 
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
@@ -126,3 +127,34 @@ def test_next_action_derivation(
 
     assert result is not None
     assert result.next_action == expected_next_action
+
+
+def test_gate_attachment_with_mock(tmp_path: Path) -> None:
+    """Test gate field attachment from mock VetStatus."""
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+    (plan_dir / "design.md").write_text("")
+
+    # Test with no vet_status_func (default behavior)
+    result = infer_state(plan_dir)
+    assert result is not None
+    assert result.gate is None
+
+    # Test with mock VetStatus returning stale design chain
+    mock_vet_status = Mock()
+    mock_vet_status.chains = [
+        Mock(
+            source="design.md",
+            report="reports/design-review.md",
+            stale=True,
+            source_mtime=200.0,
+            report_mtime=100.0,
+        )
+    ]
+
+    def mock_get_vet_status(p: Path) -> object:
+        return mock_vet_status
+
+    result = infer_state(plan_dir, vet_status_func=mock_get_vet_status)
+    assert result is not None
+    assert result.gate == "design vet stale — re-vet before planning"

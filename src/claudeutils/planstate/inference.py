@@ -1,5 +1,6 @@
 """Plan state inference from directory artifacts."""
 
+from collections.abc import Callable
 from pathlib import Path
 
 from .models import PlanState
@@ -53,11 +54,17 @@ def _derive_next_action(status: str, plan_name: str) -> str:
             return ""
 
 
-def infer_state(plan_dir: Path) -> PlanState | None:
+def infer_state(
+    plan_dir: Path, vet_status_func: Callable[[Path], object] | None = None
+) -> PlanState | None:
     """Infer plan state from directory artifacts.
 
     Scans for recognized artifacts and returns PlanState or None if no artifacts
     found. Status priority: ready > planned > designed > requirements
+
+    Args:
+        plan_dir: Path to the plan directory
+        vet_status_func: Optional callable that returns VetStatus for testing
     """
     if not plan_dir.exists():
         return None
@@ -70,11 +77,21 @@ def infer_state(plan_dir: Path) -> PlanState | None:
     status = _determine_status(plan_dir)
     next_action = _derive_next_action(status, name)
 
+    gate = None
+    if vet_status_func is not None:
+        vet_status = vet_status_func(plan_dir)
+        if vet_status is not None and hasattr(vet_status, "chains"):
+            for chain in vet_status.chains:
+                if chain.stale:
+                    if chain.source == "design.md":
+                        gate = "design vet stale — re-vet before planning"
+                    break
+
     return PlanState(
         name=name,
         status=status,
         next_action=next_action,
-        gate=None,
+        gate=gate,
         artifacts=artifacts,
     )
 
