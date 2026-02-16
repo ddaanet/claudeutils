@@ -368,6 +368,15 @@ def rm(slug: str) -> None:
     if session_md_path.exists():
         remove_worktree_task(session_md_path, slug, slug)
 
+        # If HEAD is a merge commit and session.md was modified, amend it
+        if _is_merge_commit():
+            status_output = _git(
+                "status", "--porcelain", "agents/session.md", check=False
+            )
+            if status_output.strip():
+                _git("add", "agents/session.md")
+                _git("commit", "--amend", "--no-edit")
+
     if parent_reg or submodule_reg:
         _remove_worktrees(worktree_path, parent_reg, submodule_reg)
     else:
