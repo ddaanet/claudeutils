@@ -1,37 +1,19 @@
 # Session Handoff: 2026-02-16
 
-**Status:** Updated deliverable-review and design skills.
+**Status:** Closed stale task, set up parallel worktrees.
 
 ## Completed This Session
 
-**Deliverable-review skill — two-layer review model:**
-- Layer 1 (optional): Delegated per-file review gated on deliverable volume (< 500 lines skips, 500-2000 two agents, > 2000 three agents)
-- Layer 2 (mandatory): Interactive full-artifact review in main session with cross-project context
-- Layers are independent — Layer 2 reads deliverables directly, not delegation reports
-- Added `user-invocable: true`, timing clarification in "Not for" section
-- Parallel skill-reviewer agents confirmed structure; applied all fixes (1 critical, 3 major, 6 minor from design skill review)
+**Outline agent Write perm — verified stale:**
+- Write permission existed in outline-review-agent since creation (commit d87adc2)
+- Design skill A.6 delegation template always included report path
+- No changes needed; marked complete
 
-**Design skill — outline sufficiency gate:**
-- Gate between Phase B and Phase C: when outline has sufficient specificity, skip design generation
-- Five criteria (all must hold): concrete approach, resolved decisions, explicit scope, identified files, no uncertainty
-- User confirmation required before skipping Phase C
-- Terminal action: `/handoff [CONTINUATION: /commit]` (continuation passing, not obsolete `--commit`)
-- Added `name: design` field, third-person description with trigger phrases, passive voice fix
-
-**Discussion outcome:** Evaluated routing gate to direct execution vs `/runbook` — concluded `/runbook` is correct. Sufficiency gate answers "is the design complete?" (skip Phase C), not "is the work small enough?" (`/runbook` tier assessment handles that). Two bypass layers is defense-in-depth.
+**Worktree setup:**
+- Created worktrees for parallel group: handoff-memory-naming, review-runbook-delegation
+- Recreated handoff-memory-naming (prior stale worktree removed)
 
 ## Pending Tasks
-
-- [x] **Interactive review skill** — Two-layer review model (optional delegation + mandatory interactive) | sonnet
-
-- [x] **Design skill outline gate** — Sufficiency gate between Phase B and C, continuation passing terminal | sonnet
-
-- [ ] **Outline agent Write perm** — Add Write permission to outline-review-agent, update design skill to specify report path | sonnet | restart
-  - Prototype use case for third-party agents is separate (plans/reports/prototype-review-capture-script.md)
-
-- [ ] **Handoff memory naming** — Add trigger naming guidance to handoff skill's learning-writing section | sonnet
-  - Principle: triggers match activity at decision point, broadest verb, no self-assessment terms
-  - Same principle as `/when choosing name`: discovery and recall over precision
 
 - [ ] **Remember skill update** — Resume `/design` Phase B | sonnet
   - Requirements: `plans/remember-skill-update/requirements.md` (7 FRs, When/How prefix mandate)
@@ -96,9 +78,6 @@
   - Two-tier context augmentation: always-inject vs index-and-recall
   - Methodology as skill referenced in design-vet-agent + outline-review-agent `skills:` frontmatter
 
-- [ ] **Review runbook delegation** — Update validation language to match orchestrator responsibility | sonnet
-  - Step validation sections say "Delegate to skill-reviewer" but execution agents can't spawn plugin-dev agents
-  - Fix: validation delegation is orchestrator responsibility, not execution agent
 
 - [ ] **Remaining workflow items** — Sub-items not captured in workflow-rca-fixes | sonnet
   - Orchestrate evolution — designed, ready for `/runbook` (design refreshed Feb 13)
@@ -139,6 +118,16 @@
   - No hook reviewer exists; no doc reviewer exists (readme skill is creation, not review)
   - Precedent: agent-creator repurposed for review via prompting (`/when agent-creator reviews agents`)
 
+## Worktree Tasks
+
+- [ ] **Review runbook delegation** → `review-runbook-delegation` — Update validation language to match orchestrator responsibility | sonnet
+  - Step validation sections say "Delegate to skill-reviewer" but execution agents can't spawn plugin-dev agents
+  - Fix: validation delegation is orchestrator responsibility, not execution agent
+
+- [ ] **Handoff memory naming** → `handoff-memory-naming` — Add trigger naming guidance to handoff skill's learning-writing section | sonnet
+  - Principle: triggers match activity at decision point, broadest verb, no self-assessment terms
+  - Same principle as `/when choosing name`: discovery and recall over precision
+
 ## Blockers / Gotchas
 
 **Diagnostic review methodology converging:**
@@ -163,7 +152,7 @@
 
 ## Next Steps
 
-Outline agent Write perm or handoff memory naming — both small edits.
+Complete worktree tasks (handoff-memory-naming, review-runbook-delegation), then merge back.
 
 ## Reference Files
 
