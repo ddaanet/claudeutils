@@ -223,3 +223,52 @@ def test_classify_branch(
     count, is_focused = _classify_branch("wrong-format")
     assert count == 1
     assert is_focused is False
+
+
+def test_classify_orphan_branch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """Verify orphan branch classification (no common ancestor).
+
+    Tests that _classify_branch handles orphan branches (no merge-base)
+    by returning (0, False) to treat as real history.
+    """
+    repo_path = tmp_path / "test-repo"
+    repo_path.mkdir()
+    init_repo(repo_path)
+    monkeypatch.chdir(repo_path)
+
+    # Create orphan branch (unrelated history)
+    subprocess.run(
+        ["git", "checkout", "--orphan", "orphan-test"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    # Commit on orphan branch
+    (repo_path / "orphan-file.txt").write_text("orphan content")
+    subprocess.run(
+        ["git", "add", "orphan-file.txt"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Orphan commit"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Switch back to main before calling _classify_branch
+    subprocess.run(
+        ["git", "checkout", "main"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Verify orphan branch returns (0, False)
+    count, is_focused = _classify_branch("orphan-test")
+    assert count == 0, f"Expected count=0 for orphan branch but got {count}"
+    assert is_focused is False, f"Expected is_focused=False but got {is_focused}"
