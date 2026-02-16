@@ -19,7 +19,7 @@
 
 ---
 
-## TDD Portion (Cycles 6.1-6.6)
+## TDD Portion (Cycles 6.1-6.4)
 
 ### Cycle 6.1: Validator detects missing artifacts (no recognized files)
 
@@ -197,47 +197,9 @@
 
 ---
 
-
-### Cycle 6.5: Remove jobs validator tests, add planstate validator tests
-
-**RED Phase:**
-
-**Test:** `test_jobs_validator_removed`
-**Assertions:**
-- tests/test_validation_jobs.py file deleted
-- No imports of validate_jobs in test files
-- All jobs validator references removed from test suite
-
-**Expected failure:** jobs validator tests still exist
-
-**Why it fails:** Test deletion not yet performed
-
-**Verify RED:** `pytest tests/ -k "jobs" -v` shows test_validation_jobs.py tests
-
-**GREEN Phase:**
-
-**Implementation:** Delete jobs validator test file
-
-**Behavior:**
-- Remove tests/test_validation_jobs.py
-- Verify no other test files import or reference it
-- All planstate validator tests (6.1-6.4) serve as replacement
-
-**Approach:** File deletion
-
-**Changes:**
-- File: `tests/test_validation_jobs.py`
-  Action: Delete file
-  Location hint: Entire file removed
-
-**Verify GREEN:** `pytest tests/ -k "jobs" -v` shows no test_validation_jobs.py tests
-**Verify no regression:** `pytest tests/test_validation_planstate.py -v` (all new tests pass)
-
----
-
 ## TDD Checkpoint
 
-**After Cycle 6.5:**
+**After Cycle 6.4:**
 
 1. Run `just dev` to verify code quality
 2. Functional review: Verify planstate validator catches all expected issues
@@ -246,17 +208,16 @@
 
 **Expected state:**
 - validation/planstate.py exists with complete validator
-- All 6 tests pass (or 5 if 6.5 merged with 6.4)
+- All 4 tests pass
 - Validator registered in CLI
-- jobs validator tests deleted
 
 ---
 
-## General Portion (Steps 6.7-6.15)
+## General Portion (Steps 6.5-6.11)
 
-### Step 6.7: Create agents/plan-archive.md via jobs.md migration
+### Step 6.5: Create agents/plan-archive.md via jobs.md migration
 
-**Model:** Sonnet (data migration task)
+**Model:** **Opus** (synthesis task — writing meaningful summaries for 48 plans from git history)
 
 **Objective:** Migrate completed plans from jobs.md to rich archive format.
 
@@ -289,7 +250,7 @@ Key decision: [architectural choice].
 
 ---
 
-### Step 6.8: Update handoff skill (write plan-archive.md instead of jobs.md)
+### Step 6.6: Update handoff skill (write plan-archive.md instead of jobs.md)
 
 **Model:** Opus (skill modification per design directive)
 
@@ -312,7 +273,7 @@ Read handoff skill to locate jobs.md update logic.
 
 ---
 
-### Step 6.9: Update design skill (A.1 loads plan-archive.md on demand)
+### Step 6.7: Update design skill (A.1 loads plan-archive.md on demand)
 
 **Model:** Opus (skill modification per design directive)
 
@@ -335,54 +296,71 @@ Read design skill Phase A.1 (research phase) to locate jobs.md loading.
 
 ---
 
-### Step 6.10: Remove jobs.md from CLAUDE.md @-reference
+### Step 6.8: Remove non-code jobs.md references and delete file
 
-**Model:** Sonnet (configuration update)
+**Model:** Haiku (mechanical removal — grep, delete lines, delete file)
 
-**File:** `CLAUDE.md`
+**Files:**
+- `CLAUDE.md` - Remove @agents/jobs.md reference
+- `agents/jobs.md` - Delete file
+- Any focus_session() references (conditional)
 
-**Objective:** Remove `@agents/jobs.md` line from CLAUDE.md references.
+**Objective:** Remove all non-code jobs.md references and delete the file.
 
 **Implementation:**
 
-1. Read CLAUDE.md
-2. Locate `@agents/jobs.md` line (likely in "Current Work" section)
-3. Delete line
-4. Verify no other jobs.md references remain in CLAUDE.md
+1. Read CLAUDE.md, locate `@agents/jobs.md` line (in "Current Work" section), delete line
+2. Grep codebase for `focus_session()` definition (`rg "def focus_session" --type py`)
+   - If found and references jobs.md: remove or update to use planstate module
+   - If not found or no jobs.md references: no action needed
+3. Verify plan-archive.md created and populated (Step 6.5 complete)
+4. Verify all consumers updated (Steps 6.6-6.7 complete)
+5. Delete agents/jobs.md
 
-**Expected Outcome:** CLAUDE.md contains no jobs.md references.
+**Expected Outcome:**
+- CLAUDE.md contains no jobs.md references
+- agents/jobs.md file no longer exists
+- focus_session() has no jobs.md references (or function doesn't exist)
 
-**Validation:** Grep CLAUDE.md for "jobs.md" → no matches.
+**Validation:**
+- Grep CLAUDE.md for "jobs.md" → no matches
+- `ls agents/jobs.md` → file not found
+- `rg "def focus_session.*jobs" --type py` → no matches
 
 ---
 
-### Step 6.11: Remove validation/jobs.py and CLI integration
+### Step 6.9: Remove jobs validator code, tests, and CLI integration
 
-**Model:** Sonnet (file removal + cleanup)
+**Model:** Sonnet (code removal from existing modules)
 
 **Files:**
 - `src/claudeutils/validation/jobs.py` - Delete
+- `tests/test_validation_jobs.py` - Delete
 - `src/claudeutils/validation/cli.py` - Remove import and call
 
-**Objective:** Remove jobs validator module and CLI integration.
+**Objective:** Remove jobs validator module, its tests, and CLI integration.
 
 **Implementation:**
 
 1. Delete src/claudeutils/validation/jobs.py
-2. Edit src/claudeutils/validation/cli.py:
+2. Delete tests/test_validation_jobs.py
+3. Edit src/claudeutils/validation/cli.py:
    - Remove: `from claudeutils.validation.jobs import validate as validate_jobs`
    - Remove: `_run_validator("jobs", validate_jobs, all_errors, root)` line
    - Remove: `@validate.command() def jobs():` function (lines 148-156)
+4. Verify no other test files import or reference validate_jobs
 
-**Expected Outcome:** No jobs validator code remains.
+**Expected Outcome:** No jobs validator code or tests remain.
 
 **Validation:**
 - `ls src/claudeutils/validation/jobs.py` → file not found
+- `ls tests/test_validation_jobs.py` → file not found
 - Grep cli.py for "validate_jobs" → no matches
+- `pytest tests/ -k "jobs" -v` shows no test_validation_jobs.py tests
 
 ---
 
-### Step 6.12: Remove all jobs.md references from merge.py
+### Step 6.10: Remove all jobs.md references from merge.py
 
 **Model:** Sonnet (code cleanup)
 
@@ -402,65 +380,24 @@ Read design skill Phase A.1 (research phase) to locate jobs.md loading.
 
 ---
 
-### Step 6.13: Update focus_session() if it references jobs.md
-
-**Model:** Sonnet (conditional cleanup)
-
-**Prerequisite:** Grep codebase for focus_session() to locate implementation (if exists).
-
-**Objective:** Remove or update any jobs.md reference in focus_session().
-
-**Implementation:**
-
-1. Search for focus_session() definition: `rg "def focus_session" --type py`
-2. If found:
-   - Read function implementation
-   - Check for jobs.md references: `rg "jobs\.md" <file-containing-focus_session>`
-   - If references exist: remove or update to use planstate module
-3. If function not found or no jobs.md references: no action needed
-
-**Expected Outcome:** focus_session() has no jobs.md references (or function doesn't exist).
-
-**Validation:** `rg "def focus_session.*jobs" --type py` → no matches.
-
----
-
 ## Checkpoint: jobs.md Removal Progress
 
-**After Step 6.13:**
+**After Step 6.10:**
 
 1. Verify all code references removed: `rg "jobs\.md" --type py`
 2. Verify CLAUDE.md reference removed: `grep "jobs.md" CLAUDE.md`
 3. Verify skill updates consistent (handoff, design skills reference plan-archive.md)
+4. Verify agents/jobs.md deleted
 
 **Expected state:**
 - No Python code references to jobs.md
 - Skills reference plan-archive.md instead
-- Ready for file deletion (6.14) and final skill update (6.15)
+- File deleted
+- Ready for final skill update (6.11)
 
 ---
 
-### Step 6.14: Delete agents/jobs.md
-
-**Model:** Sonnet (file removal)
-
-**File:** `agents/jobs.md`
-
-**Objective:** Remove obsolete jobs.md file from repository.
-
-**Implementation:**
-
-1. Verify plan-archive.md created and populated (Step 6.7 complete)
-2. Verify all consumers updated (Steps 6.8-6.13 complete)
-3. Delete agents/jobs.md
-
-**Expected Outcome:** jobs.md file no longer exists.
-
-**Validation:** `ls agents/jobs.md` → file not found.
-
----
-
-### Step 6.15: Update worktree skill Mode B (read planstate instead of jobs.md)
+### Step 6.11: Update worktree skill Mode B (read planstate instead of jobs.md)
 
 **Model:** Opus (skill modification per design directive)
 
@@ -485,7 +422,7 @@ Read worktree skill Mode B (lines 47-82) to locate jobs.md dependency logic.
 
 ## Phase 6 Complete
 
-**After Step 6.15:**
+**After Step 6.11:**
 
 1. Full checkpoint: Fix + Vet + Functional
 2. Verify no jobs.md references remain in codebase: `rg "jobs\.md" --type md --type py`

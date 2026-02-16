@@ -17,7 +17,7 @@
 **Estimated Complexity:** Medium (new module setup with clear requirements)
 
 **Weak Orchestrator Metadata:**
-- Total Steps: 8
+- Total Steps: 5
 - Restart required: No
 
 ---
@@ -75,179 +75,72 @@
 
 ---
 
-## Cycle 1.2-1.5: Status priority detection (consolidated)
+## Cycle 1.2: Status priority detection (parametrized — all 4 levels)
 
-**Note:** These four cycles test status inference with different artifact combinations. They are kept separate for incremental RED→GREEN progression, but could be collapsed into a single parametrized test after Cycle 1.5 completes. Each cycle adds one artifact type to the priority chain.
+**Rationale:** Four status levels follow the same pattern — create artifacts, assert correct status and priority. Consolidated into a single parametrized cycle to avoid redundant RED/GREEN rounds for identical logic.
 
-### Cycle 1.2: Requirements status detection (requirements.md only)
+**Prerequisite:** Read design State Inference Rules table for artifact patterns and priority order.
 
 **RED Phase:**
 
-**Test:** `test_requirements_status_detection`
-**Assertions:**
-- `infer_state(plan_dir).status` equals string `"requirements"` (exact match) when only requirements.md exists
-- `infer_state(plan_dir).artifacts` equals set `{"requirements.md"}` (exact set equality)
+**Test:** `test_status_priority_detection` (parametrized)
+**Parameters:**
+
+| Status | Artifacts to create | Expected status | Expected artifacts |
+|--------|-------------------|----------------|-------------------|
+| requirements | requirements.md | "requirements" | {"requirements.md"} |
+| designed | requirements.md + design.md | "designed" | {"requirements.md", "design.md"} |
+| planned | design.md + runbook-phase-1.md + runbook-phase-2.md | "planned" | superset of {"runbook-phase-1.md", "runbook-phase-2.md"} |
+| ready | design.md + runbook-phase-1.md + steps/ (mkdir) + orchestrator-plan.md | "ready" | superset of {"steps/", "orchestrator-plan.md"} |
+
+**Assertions (per parameter set):**
+- `infer_state(plan_dir).status` equals expected status string (exact match)
+- `infer_state(plan_dir).artifacts` matches expected artifacts set
 - `infer_state(plan_dir).name` equals directory basename (e.g., `"test-plan"` for `plans/test-plan/`)
-- Result is PlanState instance (type check: `isinstance(result, PlanState)`)
+- Result is PlanState instance (`isinstance(result, PlanState)`)
+- Priority verified: higher-status artifacts override lower (designed > requirements, planned > designed, ready > planned)
 
-**Expected failure:** `AttributeError: 'NoneType' object has no attribute 'status'` (infer_state returns None, not PlanState)
+**Expected failure:** `AttributeError: 'NoneType' object has no attribute 'status'` for requirements case (infer_state returns None)
 
-**Why it fails:** infer_state() doesn't scan for requirements.md yet
+**Why it fails:** infer_state() doesn't scan for any artifacts yet
 
-**Verify RED:** `pytest tests/test_planstate_inference.py::test_requirements_status_detection -v`
+**Verify RED:** `pytest tests/test_planstate_inference.py::test_status_priority_detection -v`
 
 **GREEN Phase:**
 
-**Implementation:** Scan for requirements.md artifact, set status="requirements"
+**Implementation:** Build complete artifact detection priority chain in infer_state()
 
 **Behavior:**
-- Check if requirements.md exists in plan_dir
-- If found and no higher-status artifacts, return PlanState with status="requirements"
-- Extract plan name from directory name
+- Scan in priority order: ready (steps/ + orchestrator-plan.md) → planned (runbook-phase-*.md glob) → designed (design.md) → requirements (requirements.md)
+- Highest-found status wins
+- Collect all artifacts found, not just highest-status ones
+- Extract plan name from directory basename
 
-**Approach:** Scan artifacts in priority order (ready → planned → designed → requirements)
+**Approach:** Check highest priority first, set status on first match, continue collecting all artifacts
 
 **Changes:**
+- File: `src/claudeutils/planstate/__init__.py`
+  Action: Create module with public API exports (infer_state, list_plans)
+  Location hint: New file
+
+- File: `src/claudeutils/planstate/models.py`
+  Action: Define PlanState dataclass (name, status, next_action, gate, artifacts fields)
+  Location hint: New file
+
 - File: `src/claudeutils/planstate/inference.py`
-  Action: Add requirements.md detection to infer_state()
-  Location hint: After empty-dir check, before return None
+  Action: Implement full artifact detection priority chain in infer_state()
+  Location hint: New file, check ready → planned → designed → requirements
 
 - File: `tests/test_planstate_inference.py`
-  Action: Create test with tmp_path, write requirements.md to plans/<name>/
-  Location hint: New test function
+  Action: Create parametrized test with @pytest.mark.parametrize covering all 4 status levels
+  Location hint: New file, use tmp_path fixture
 
-**Verify GREEN:** `pytest tests/test_planstate_inference.py::test_requirements_status_detection -v`
+**Verify GREEN:** `pytest tests/test_planstate_inference.py::test_status_priority_detection -v`
 **Verify no regression:** `pytest tests/test_planstate_inference.py -v`
 
 ---
 
-### Cycle 1.3: Designed status detection (design.md exists)
-
-**RED Phase:**
-
-**Test:** `test_designed_status_detection`
-**Assertions:**
-- `infer_state(plan_dir).status == "designed"` (exact string) when design.md exists
-- Status is `"designed"` even if requirements.md also exists (priority: designed > requirements)
-- `infer_state(plan_dir).artifacts == {"requirements.md", "design.md"}` (exact set with both files)
-- Test fixture creates both requirements.md and design.md in plan_dir
-
-**Expected failure:** `AssertionError: assert 'requirements' == 'designed'` (status returns lower priority, not higher)
-
-**Why it fails:** Artifact priority not implemented correctly
-
-**Verify RED:** `pytest tests/test_planstate_inference.py::test_designed_status_detection -v`
-
-**GREEN Phase:**
-
-**Implementation:** Scan for design.md before requirements.md in priority order
-
-**Behavior:**
-- Check ready → planned → designed → requirements (highest first)
-- design.md found → status="designed" regardless of other artifacts
-- Collect all artifacts found, not just highest
-
-**Approach:** Reverse priority order in scan (check highest status artifacts first)
-
-**Changes:**
-- File: `src/claudeutils/planstate/inference.py`
-  Action: Add design.md detection with higher priority than requirements.md
-  Location hint: In infer_state(), check design.md before requirements.md
-
-- File: `tests/test_planstate_inference.py`
-  Action: Create test with both requirements.md and design.md present
-  Location hint: New test function
-
-**Verify GREEN:** `pytest tests/test_planstate_inference.py::test_designed_status_detection -v`
-**Verify no regression:** `pytest tests/test_planstate_inference.py -v`
-
----
-
-### Cycle 1.4: Planned status detection (runbook-phase-*.md files)
-
-**RED Phase:**
-
-**Test:** `test_planned_status_detection`
-**Assertions:**
-- `infer_state(plan_dir).status == "planned"` (exact string) when runbook-phase-*.md files exist
-- Status is `"planned"` even if design.md exists (priority: planned > designed)
-- `infer_state(plan_dir).artifacts` is superset of `{"runbook-phase-1.md", "runbook-phase-2.md"}` (contains at least these)
-- Test fixture creates design.md + runbook-phase-1.md + runbook-phase-2.md
-
-**Expected failure:** `AssertionError: assert 'designed' == 'planned'` (glob pattern not working, status stays at designed)
-
-**Why it fails:** No glob pattern for runbook-phase-*.md files
-
-**Verify RED:** `pytest tests/test_planstate_inference.py::test_planned_status_detection -v`
-
-**GREEN Phase:**
-
-**Implementation:** Use glob pattern to detect runbook-phase-*.md files
-
-**Behavior:**
-- Use `plan_dir.glob("runbook-phase-*.md")` to find phase files
-- If any found → status="planned"
-- Include actual phase filenames in artifacts set
-
-**Approach:** Glob returns iterator, convert to list and check if non-empty
-
-**Changes:**
-- File: `src/claudeutils/planstate/inference.py`
-  Action: Add glob pattern for runbook-phase-*.md before design.md check
-  Location hint: Priority order in infer_state()
-
-- File: `tests/test_planstate_inference.py`
-  Action: Create test with design.md + runbook-phase-1.md, runbook-phase-2.md
-  Location hint: New test function, use tmp_path.touch() to create files
-
-**Verify GREEN:** `pytest tests/test_planstate_inference.py::test_planned_status_detection -v`
-**Verify no regression:** `pytest tests/test_planstate_inference.py -v`
-
----
-
-### Cycle 1.5: Ready status detection (steps/ + orchestrator-plan.md)
-
-**RED Phase:**
-
-**Test:** `test_ready_status_detection`
-**Assertions:**
-- `infer_state(plan_dir).status == "ready"` (exact string) when both steps/ directory and orchestrator-plan.md exist
-- Status is `"ready"` even if runbook-phase-*.md files exist (priority: ready > planned)
-- `infer_state(plan_dir).artifacts` is superset of `{"steps/", "orchestrator-plan.md"}` (contains at least these markers)
-- Test fixture creates all artifacts: design.md, runbook-phase-1.md, steps/ directory (via mkdir), orchestrator-plan.md
-
-**Expected failure:** `AssertionError: assert 'planned' == 'ready'` (steps/ directory detection not implemented)
-
-**Why it fails:** No detection for steps/ directory and orchestrator-plan.md
-
-**Verify RED:** `pytest tests/test_planstate_inference.py::test_ready_status_detection -v`
-
-**GREEN Phase:**
-
-**Implementation:** Check for steps/ directory AND orchestrator-plan.md (both required for ready)
-
-**Behavior:**
-- `(plan_dir / "steps").is_dir()` → steps directory exists
-- `(plan_dir / "orchestrator-plan.md").exists()` → orchestrator plan exists
-- Both must be true for status="ready"
-
-**Approach:** Directory check first (cheaper), then file check
-
-**Changes:**
-- File: `src/claudeutils/planstate/inference.py`
-  Action: Add steps/ + orchestrator-plan.md detection as highest priority
-  Location hint: First check in infer_state() priority order
-
-- File: `tests/test_planstate_inference.py`
-  Action: Create test with all artifacts including steps/ directory (use mkdir) and orchestrator-plan.md
-  Location hint: New test function
-
-**Verify GREEN:** `pytest tests/test_planstate_inference.py::test_ready_status_detection -v`
-**Verify no regression:** `pytest tests/test_planstate_inference.py -v`
-
----
-
-## Cycle 1.6: Next action derivation from status
+## Cycle 1.3: Next action derivation from status
 
 **RED Phase:**
 
@@ -291,7 +184,7 @@
 
 ---
 
-## Cycle 1.7: Gate attachment interface (stub vet call)
+## Cycle 1.4: Gate attachment interface (stub vet call)
 
 **Note:** Actual vet.py built in Phase 2. This cycle wires the interface and tests with mock VetStatus.
 
@@ -340,7 +233,7 @@
 
 ---
 
-## Cycle 1.8: list_plans() helper for directory scanning
+## Cycle 1.5: list_plans() helper for directory scanning
 
 **RED Phase:**
 
@@ -399,6 +292,6 @@
 
 **Expected state:**
 - planstate module exists with inference.py, models.py, __init__.py
-- All 8 tests pass in test_planstate_inference.py
+- All tests pass in test_planstate_inference.py
 - list_plans() correctly scans plan directories and filters out non-plans
 - Gate interface wired (actual vet integration in Phase 2)

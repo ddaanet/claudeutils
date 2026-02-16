@@ -21,7 +21,7 @@
 
 ---
 
-## TDD Portion (Cycles 5.1-5.10)
+## TDD Portion (Cycles 5.1-5.8)
 
 ### Cycle 5.1: Section identification via find_section_bounds()
 
@@ -194,145 +194,72 @@
 
 ---
 
-### Cycle 5.5: Worktree Tasks strategy (keep ours)
-
-**RED Phase:**
-
-**Test:** `test_worktree_tasks_preserve_mains`
-**Assertions:**
-- Ours has "Worktree Tasks" section with tasks assigned to worktrees
-- Theirs has different "Worktree Tasks" section (worktree's own tracking)
-- Result: Ours section preserved (main tracks worktree assignments, worktree's view is session-local)
-
-**Expected failure:** Theirs worktree tasks appear in result
-
-**Why it fails:** Worktree Tasks section not handled with keep-ours strategy
-
-**Verify RED:** `pytest tests/test_worktree_merge_sections.py::test_worktree_tasks_preserve_mains -v`
-
-**GREEN Phase:**
-
-**Implementation:** Apply keep-ours strategy for Worktree Tasks section
-
-**Behavior:**
-- Locate "Worktree Tasks" section in ours
-- Keep ours section unchanged
-- Discard theirs section
-
-**Approach:** Section strategy mapping, Worktree Tasks → keep-ours
-
-**Changes:**
-- File: `src/claudeutils/worktree/merge.py`
-  Action: Add Worktree Tasks to section strategy mapping with keep-ours
-  Location hint: In _resolve_session_md_conflict() section processing
-
-- File: `tests/test_worktree_merge_sections.py`
-  Action: Create test with Worktree Tasks in both ours and theirs
-  Location hint: New test function
-
-**Verify GREEN:** `pytest tests/test_worktree_merge_sections.py::test_worktree_tasks_preserve_mains -v`
-**Verify no regression:** `pytest tests/test_worktree_merge_sections.py -v`
-
----
-
 ## Checkpoint 5.a: Section strategies (squash + additive)
 
-**After Cycle 5.5:**
+**After Cycle 5.4:**
 
 1. Run test suite: `pytest tests/test_worktree_merge_sections.py -v`
-2. Verify 5 tests pass (section identification + 4 section strategies)
+2. Verify 4 tests pass (section identification + 3 section strategies)
 3. Functional check: Core merge refactor complete, remaining cycles build on this foundation
 
 **Expected state:**
 - Section-based merge architecture implemented
-- Status line, Completed, Pending Tasks, Worktree Tasks strategies working
+- Status line, Completed, Pending Tasks strategies working
 - No regression in existing worktree merge tests
 
 ---
 
-### Cycle 5.6: Reference Files strategy (keep ours)
+### Cycle 5.5: Keep-ours strategies (Worktree Tasks, Reference Files, Next Steps)
+
+**Model:** Haiku (mechanical pattern — add 3 section names to existing strategy mapping)
 
 **RED Phase:**
 
-**Test:** `test_reference_files_squash_strategy`
-**Assertions:**
-- Ours has "Reference Files" section with main repo paths
-- Theirs has "Reference Files" with worktree paths
-- Result: Ours section preserved (worktree paths don't apply to main)
+**Test:** `test_keep_ours_strategies` (parametrized)
+**Parameters:**
 
-**Expected failure:** Theirs reference files appear in result
+| Section name | Description |
+|-------------|-------------|
+| Worktree Tasks | Main tracks worktree assignments; worktree's view is session-local |
+| Reference Files | Worktree paths don't apply to main |
+| Next Steps | Worktree direction is session-local |
 
-**Why it fails:** Reference Files section not handled with keep-ours strategy
+**Assertions (per section):**
+- Ours has section with main content
+- Theirs has section with worktree content
+- Result: Ours section preserved, theirs discarded
 
-**Verify RED:** `pytest tests/test_worktree_merge_sections.py::test_reference_files_squash_strategy -v`
+**Expected failure:** Theirs section content appears in merged result
+
+**Why it fails:** Section not handled with keep-ours strategy
+
+**Verify RED:** `pytest tests/test_worktree_merge_sections.py::test_keep_ours_strategies -v`
 
 **GREEN Phase:**
 
-**Implementation:** Apply keep-ours strategy for Reference Files section
+**Implementation:** Add all three section names to keep-ours strategy mapping
 
 **Behavior:**
-- Locate "Reference Files" section in ours
-- Keep ours section unchanged
-- Discard theirs section
+- Add "Worktree Tasks", "Reference Files", "Next Steps" to section strategy mapping
+- All use identical keep-ours logic (already implemented for Status and Completed)
 
-**Approach:** Section strategy mapping, Reference Files → keep-ours
+**Approach:** Add section names to existing strategy dict/mapping
 
 **Changes:**
 - File: `src/claudeutils/worktree/merge.py`
-  Action: Add Reference Files to section strategy mapping with keep-ours
+  Action: Add Worktree Tasks, Reference Files, Next Steps to section strategy mapping with keep-ours
   Location hint: In _resolve_session_md_conflict() section processing
 
 - File: `tests/test_worktree_merge_sections.py`
-  Action: Create test with Reference Files in both ours and theirs
-  Location hint: New test function
+  Action: Create parametrized test covering all three sections
+  Location hint: New test function with @pytest.mark.parametrize
 
-**Verify GREEN:** `pytest tests/test_worktree_merge_sections.py::test_reference_files_squash_strategy -v`
+**Verify GREEN:** `pytest tests/test_worktree_merge_sections.py::test_keep_ours_strategies -v`
 **Verify no regression:** `pytest tests/test_worktree_merge_sections.py -v`
 
 ---
 
-### Cycle 5.7: Next Steps strategy (keep ours)
-
-**RED Phase:**
-
-**Test:** `test_next_steps_squash_strategy`
-**Assertions:**
-- Ours has "Next Steps" section with main repo direction
-- Theirs has "Next Steps" with worktree direction
-- Result: Ours section preserved (worktree direction is session-local)
-
-**Expected failure:** Theirs next steps appear in result
-
-**Why it fails:** Next Steps section not handled with keep-ours strategy
-
-**Verify RED:** `pytest tests/test_worktree_merge_sections.py::test_next_steps_squash_strategy -v`
-
-**GREEN Phase:**
-
-**Implementation:** Apply keep-ours strategy for Next Steps section
-
-**Behavior:**
-- Locate "Next Steps" section in ours
-- Keep ours section unchanged
-- Discard theirs section
-
-**Approach:** Section strategy mapping, Next Steps → keep-ours
-
-**Changes:**
-- File: `src/claudeutils/worktree/merge.py`
-  Action: Add Next Steps to section strategy mapping with keep-ours
-  Location hint: In _resolve_session_md_conflict() section processing
-
-- File: `tests/test_worktree_merge_sections.py`
-  Action: Create test with Next Steps in both ours and theirs
-  Location hint: New test function
-
-**Verify GREEN:** `pytest tests/test_worktree_merge_sections.py::test_next_steps_squash_strategy -v`
-**Verify no regression:** `pytest tests/test_worktree_merge_sections.py -v`
-
----
-
-### Cycle 5.8: extract_blockers() function in session.py
+### Cycle 5.6: extract_blockers() function in session.py
 
 **RED Phase:**
 
@@ -375,7 +302,7 @@
 
 ---
 
-### Cycle 5.9: Blockers evaluation strategy (extract, tag, append)
+### Cycle 5.7: Blockers evaluation strategy (extract, tag, append)
 
 **RED Phase:**
 
@@ -423,7 +350,7 @@
 
 ---
 
-### Cycle 5.10: Integration test for per-section merge
+### Cycle 5.8: Integration test for per-section merge
 
 **RED Phase:**
 
@@ -467,7 +394,7 @@
 
 ## Checkpoint 5.mid: TDD Portion Complete
 
-**After Cycle 5.10:**
+**After Cycle 5.8:**
 
 1. Run `just dev` to verify code quality
 2. Functional review: Verify all merge strategies pass tests
@@ -477,14 +404,14 @@
 **Expected state:**
 - Per-section merge strategies fully implemented
 - extract_blockers() function working correctly
-- All 10 tests pass in test_worktree_merge_sections.py
+- All 8 tests pass in test_worktree_merge_sections.py
 - No regression in existing worktree merge test suite
 
 ---
 
-## General Portion (Steps 5.11-5.13)
+## General Portion (Steps 5.9-5.11)
 
-### Step 5.11: Update worktree skill Mode C (no auto-rm after merge)
+### Step 5.9: Update worktree skill Mode C (no auto-rm after merge)
 
 **Prerequisite:** Read `agent-core/skills/worktree/SKILL.md` Mode C section (lines 84-114) — understand merge ceremony workflow and exit code 0 auto-rm behavior.
 
@@ -525,7 +452,7 @@ Exit code 0 (merge success):
 
 ---
 
-### Step 5.12: Update execute-rule.md STATUS + Unscheduled Plans (full planstate transition)
+### Step 5.10: Update execute-rule.md STATUS + Unscheduled Plans (full planstate transition)
 
 **Depends on:** Phase 1 (list_plans(), PlanState model)
 
@@ -565,7 +492,7 @@ Locate STATUS display format section and Unscheduled Plans subsection.
 
 ---
 
-### Step 5.13: Verify Phase 5 changes with integration test
+### Step 5.11: Verify Phase 5 changes with integration test
 
 **Model:** Sonnet (verification task)
 
@@ -599,7 +526,7 @@ Locate STATUS display format section and Unscheduled Plans subsection.
 
 ## Phase 5 Complete
 
-**After Step 5.13:**
+**After Step 5.11:**
 
 1. Full checkpoint: Fix + Vet + Functional
 2. Commit: All Phase 5 changes (TDD + general)

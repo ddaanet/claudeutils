@@ -110,97 +110,56 @@
 
 ---
 
-## Cycle 3.3: Commits since handoff (git log anchor on agents/session.md)
+## Cycle 3.3: Git metadata helpers (commits since handoff + latest commit)
 
 **RED Phase:**
 
-**Test:** `test_commits_since_handoff_counting`
+**Test:** `test_git_metadata_helpers`
 **Assertions:**
-- Setup: Create git repo, commit session.md, make 3 additional commits (total 4 commits)
-- Call _commits_since_handoff(repo_path) → returns integer 3 (commits after session.md)
-- Edge case: No session.md in history → returns integer 0 (not None or exception)
-- Edge case: session.md modified in HEAD → returns integer 0 (anchor is HEAD itself)
-- Verification: Test uses real subprocess calls to git log and git rev-list (no mocking)
-- Format check: git log command uses `--format=%H` (full hash), git rev-list uses `--count` (integer output)
+- _commits_since_handoff:
+  - Setup: Create git repo, commit session.md, make 3 additional commits (total 4 commits)
+  - `_commits_since_handoff(repo_path)` returns integer 3 (commits after session.md)
+  - No session.md in history → returns integer 0 (not None or exception)
+  - session.md modified in HEAD → returns integer 0 (anchor is HEAD itself)
+- _latest_commit:
+  - Setup: Create git repo, commit with subject "Test commit message"
+  - `_latest_commit(repo_path)` returns tuple (str, int)
+  - First element equals "Test commit message" exactly
+  - Second element is integer type, Unix epoch (10-digit)
+- Both use real subprocess calls to git (no mocking)
 
-**Expected failure:** NameError: name '_commits_since_handoff' is not defined, or always returns 0 regardless of commit count
+**Expected failure:** NameError: name '_commits_since_handoff' is not defined
 
-**Why it fails:** No git integration for commit counting
+**Why it fails:** No git integration for commit counting or latest commit extraction
 
-**Verify RED:** `pytest tests/test_planstate_aggregation.py::test_commits_since_handoff_counting -v`
+**Verify RED:** `pytest tests/test_planstate_aggregation.py::test_git_metadata_helpers -v`
 
 **GREEN Phase:**
 
-**Implementation:** Use git log to find session.md anchor, git rev-list to count commits
+**Implementation:** Use git log to find session.md anchor, git rev-list to count commits; extract latest commit subject and timestamp
 
 **Behavior:**
-- Run: `git -C <tree> log -1 --format=%H -- agents/session.md`
-- If empty output: return 0 (no session.md commits)
-- Otherwise: run `git -C <tree> rev-list <anchor>..HEAD --count`
-- Parse count as integer
+- _commits_since_handoff: Run `git -C <tree> log -1 --format=%H -- agents/session.md`, then `git -C <tree> rev-list <anchor>..HEAD --count`
+- _latest_commit: Run `git -C <tree> log -1 --format=%s%n%ct`, split output, parse timestamp as int
+- Both return default values for edge cases (0 for no anchor, etc.)
 
 **Approach:** subprocess.run with capture_output, check stderr for errors
 
 **Changes:**
 - File: `src/claudeutils/planstate/aggregation.py`
-  Action: Implement _commits_since_handoff(tree_path: Path) -> int using subprocess
-  Location hint: New helper function
+  Action: Implement _commits_since_handoff(tree_path: Path) -> int and _latest_commit(tree_path: Path) -> tuple[str, int]
+  Location hint: New helper functions
 
 - File: `tests/test_planstate_aggregation.py`
-  Action: Create test with real git repo via tmp_path, create commits and session.md changes
+  Action: Create test with real git repo via tmp_path, covering both helpers
   Location hint: New test function, use subprocess to init repo and make commits
 
-**Verify GREEN:** `pytest tests/test_planstate_aggregation.py::test_commits_since_handoff_counting -v`
+**Verify GREEN:** `pytest tests/test_planstate_aggregation.py::test_git_metadata_helpers -v`
 **Verify no regression:** `pytest tests/test_planstate_aggregation.py -v`
 
 ---
 
-## Cycle 3.4: Latest commit subject + timestamp
-
-**RED Phase:**
-
-**Test:** `test_latest_commit_extraction`
-**Assertions:**
-- Setup: Create git repo, commit with subject "Test commit message"
-- Call _latest_commit(repo_path) → returns tuple (str, int)
-- First element equals "Test commit message" exactly (string match, not substring)
-- Second element is integer type (type(timestamp) == int)
-- Second element value is Unix epoch (10-digit integer, approximately time.time())
-- Verification: Uses real git log command with `--format=%s%n%ct` (subject newline timestamp)
-
-**Expected failure:** NameError: name '_latest_commit' is not defined, or returns wrong types (not tuple[str, int])
-
-**Why it fails:** Latest commit extraction not implemented
-
-**Verify RED:** `pytest tests/test_planstate_aggregation.py::test_latest_commit_extraction -v`
-
-**GREEN Phase:**
-
-**Implementation:** Run git log with format %s (subject) and %ct (committer timestamp)
-
-**Behavior:**
-- Run: `git -C <tree> log -1 --format=%s%n%ct`
-- Split output by newline
-- First line = subject string
-- Second line = timestamp integer (parse with int())
-
-**Approach:** Two-line output, split and parse separately
-
-**Changes:**
-- File: `src/claudeutils/planstate/aggregation.py`
-  Action: Implement _latest_commit(tree_path: Path) -> tuple[str, int]
-  Location hint: New helper function
-
-- File: `tests/test_planstate_aggregation.py`
-  Action: Create test with real git repo, make commit with known message
-  Location hint: New test function, verify exact subject and timestamp type
-
-**Verify GREEN:** `pytest tests/test_planstate_aggregation.py::test_latest_commit_extraction -v`
-**Verify no regression:** `pytest tests/test_planstate_aggregation.py -v`
-
----
-
-## Cycle 3.5: Dirty state detection (git status --porcelain)
+## Cycle 3.4: Dirty state detection (git status --porcelain)
 
 **RED Phase:**
 
@@ -243,7 +202,7 @@
 
 ---
 
-## Cycle 3.6: Task summary from session.md (first pending task)
+## Cycle 3.5: Task summary from session.md (first pending task)
 
 **RED Phase:**
 
@@ -290,7 +249,7 @@
 
 ---
 
-## Cycle 3.7: Per-tree plan discovery (list_plans per tree)
+## Cycle 3.6: Per-tree plan discovery (list_plans per tree)
 
 **RED Phase:**
 
@@ -336,7 +295,7 @@
 
 ---
 
-## Cycle 3.8: Sort trees by latest_commit_timestamp descending
+## Cycle 3.7: Sort trees by latest_commit_timestamp descending
 
 **RED Phase:**
 
@@ -390,7 +349,7 @@
 
 **Expected state:**
 - aggregation.py module exists with aggregate_trees() function
-- All 8 tests pass in test_planstate_aggregation.py
+- All 7 tests pass in test_planstate_aggregation.py
 - Real git repos used in all tests (tmp_path fixtures)
 - Cross-tree plan discovery works correctly
 - Trees sorted by recency (most recent first)
