@@ -341,7 +341,8 @@ def _is_merge_commit() -> bool:
     """Return True if HEAD is a merge commit (has 2+ parents)."""
     output = _git("rev-list", "--parents", "-n", "1", "HEAD")
     parts = output.split()
-    return len(parts) >= 2
+    # Output: "<commit> <parent1> [<parent2> ...]" — need 3+ parts for merge
+    return len(parts) >= 3
 
 
 @worktree.command()
@@ -364,6 +365,7 @@ def rm(slug: str) -> None:
             count = len(status.strip().split("\n"))
             click.echo(f"Warning: worktree has {count} uncommitted files")
 
+    amended = False
     session_md_path = Path("agents/session.md")
     if session_md_path.exists():
         remove_worktree_task(session_md_path, slug, slug)
@@ -376,6 +378,7 @@ def rm(slug: str) -> None:
             if status_output.strip():
                 _git("add", "agents/session.md")
                 _git("commit", "--amend", "--no-edit")
+                amended = True
 
     if parent_reg or submodule_reg:
         _remove_worktrees(worktree_path, parent_reg, submodule_reg)
@@ -395,4 +398,6 @@ def rm(slug: str) -> None:
     if container.exists() and not list(container.iterdir()):
         container.rmdir()
 
-    click.echo(f"Removed worktree {slug}")
+    click.echo(
+        f"Removed worktree {slug}" + (" Merge commit amended." if amended else "")
+    )
