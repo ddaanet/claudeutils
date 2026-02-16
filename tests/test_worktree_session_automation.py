@@ -74,7 +74,10 @@ def test_rm_calls_remove_worktree_task_before_branch_delete(
     session_file.write_text(session_content)
     # Track session.md on main (matches production state)
     subprocess.run(
-        ["git", "add", "agents/session.md"], cwd=repo_path, check=True, capture_output=True
+        ["git", "add", "agents/session.md"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "commit", "-m", "track session"],
@@ -148,7 +151,10 @@ def test_rm_e2e_removes_completed_task_from_worktree_tasks(
     session_file.write_text(session_content)
     # Track session.md on main (matches production state)
     subprocess.run(
-        ["git", "add", "agents/session.md"], cwd=repo_path, check=True, capture_output=True
+        ["git", "add", "agents/session.md"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "commit", "-m", "track session"],
@@ -196,12 +202,15 @@ def test_rm_e2e_removes_completed_task_from_worktree_tasks(
     )
     # Restore main's session.md after merge (production merge command handles this;
     # raw git merge does not)
-    session_file.write_text(session_content.replace(
-        '- [ ] **Complete the feature** → `complete-the-feature` — `/runbook` | haiku\n',
-        "",
-    ))
+    task_line = (
+        "- [ ] **Complete the feature** → `complete-the-feature` — `/runbook` | haiku\n"
+    )
+    session_file.write_text(session_content.replace(task_line, ""))
     subprocess.run(
-        ["git", "add", "agents/session.md"], cwd=repo_path, check=True, capture_output=True
+        ["git", "add", "agents/session.md"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "commit", "-m", "restore session after merge"],
