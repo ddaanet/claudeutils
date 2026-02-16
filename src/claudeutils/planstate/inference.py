@@ -38,6 +38,21 @@ def _determine_status(plan_dir: Path) -> str:
     return "requirements"
 
 
+def _derive_next_action(status: str, plan_name: str) -> str:
+    """Map status to next action command."""
+    match status:
+        case "requirements":
+            return f"/design plans/{plan_name}/requirements.md"
+        case "designed":
+            return f"/runbook plans/{plan_name}/design.md"
+        case "planned":
+            return f"agent-core/bin/prepare-runbook.py plans/{plan_name}"
+        case "ready":
+            return f"/orchestrate {plan_name}"
+        case _:
+            return ""
+
+
 def infer_state(plan_dir: Path) -> PlanState | None:
     """Infer plan state from directory artifacts.
 
@@ -53,7 +68,7 @@ def infer_state(plan_dir: Path) -> PlanState | None:
 
     name = plan_dir.name
     status = _determine_status(plan_dir)
-    next_action = f"/design plans/{name}/requirements.md"
+    next_action = _derive_next_action(status, name)
 
     return PlanState(
         name=name,

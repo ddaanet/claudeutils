@@ -78,3 +78,51 @@ def test_status_priority_detection(
     assert result.status == expected_status
     assert result.name == "test-plan"
     assert result.artifacts == expected_artifacts
+
+
+@pytest.mark.parametrize(
+    ("status", "create_artifacts", "expected_next_action"),
+    [
+        (
+            "requirements",
+            ["requirements.md"],
+            "/design plans/test-plan/requirements.md",
+        ),
+        (
+            "designed",
+            ["requirements.md", "design.md"],
+            "/runbook plans/test-plan/design.md",
+        ),
+        (
+            "planned",
+            ["design.md", "runbook-phase-1.md", "runbook-phase-2.md"],
+            "agent-core/bin/prepare-runbook.py plans/test-plan",
+        ),
+        (
+            "ready",
+            ["design.md", "runbook-phase-1.md", "steps", "orchestrator-plan.md"],
+            "/orchestrate test-plan",
+        ),
+    ],
+)
+def test_next_action_derivation(
+    tmp_path: Path,
+    status: str,
+    create_artifacts: list[str],
+    expected_next_action: str,
+) -> None:
+    """Test next_action derivation from status."""
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+
+    for artifact in create_artifacts:
+        artifact_path = plan_dir / artifact
+        if artifact == "steps":
+            artifact_path.mkdir()
+        else:
+            artifact_path.write_text("")
+
+    result = infer_state(plan_dir)
+
+    assert result is not None
+    assert result.next_action == expected_next_action
