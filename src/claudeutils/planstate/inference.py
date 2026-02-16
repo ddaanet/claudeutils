@@ -65,6 +65,9 @@ def infer_state(
     Args:
         plan_dir: Path to the plan directory
         vet_status_func: Optional callable that returns VetStatus for testing
+
+    Returns:
+        PlanState with inferred status and metadata, or None if no artifacts found
     """
     if not plan_dir.exists():
         return None
@@ -97,7 +100,11 @@ def infer_state(
 
 
 def list_plans(plans_dir: Path) -> list[PlanState]:
-    """List all plans in a plans directory, filtering out empty directories."""
+    """List all plans in a plans directory, filtering out empty directories.
+
+    Returns:
+        List of PlanState objects for all valid plans, sorted by directory name
+    """
     if not plans_dir.exists():
         return []
 
