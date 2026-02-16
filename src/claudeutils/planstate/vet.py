@@ -61,7 +61,7 @@ def get_vet_status(plan_dir: Path) -> VetStatus | None:
         if source_path.exists():
             stale = False
             source_mtime = 0.0
-            report_mtime = 0.0
+            report_mtime = None
             actual_report = report_file
 
             if report_path.exists():
@@ -86,6 +86,8 @@ def get_vet_status(plan_dir: Path) -> VetStatus | None:
 
                 if not report_path.exists():
                     source_mtime = source_path.stat().st_mtime
+                    stale = True
+                    actual_report = None
 
             chain = VetChain(
                 source=source_file,

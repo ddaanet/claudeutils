@@ -8,10 +8,10 @@ class VetChain:
     """Source artifact → report mapping."""
 
     source: str
-    report: str
+    report: str | None
     stale: bool = False
     source_mtime: float = 0.0
-    report_mtime: float = 0.0
+    report_mtime: float | None = 0.0
 
 
 @dataclass
@@ -19,6 +19,11 @@ class VetStatus:
     """Vet chain status for all source artifacts in a plan."""
 
     chains: list[VetChain]
+
+    @property
+    def any_stale(self) -> bool:
+        """Check if any chain is stale."""
+        return any(chain.stale for chain in self.chains)
 
 
 @dataclass

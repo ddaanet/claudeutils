@@ -122,3 +122,24 @@ def test_mtime_comparison_staleness(tmp_path: Path) -> None:
     assert stale_chain.stale is True
     assert stale_chain.source_mtime == 5000.0
     assert stale_chain.report_mtime == 3000.0
+
+
+def test_missing_report_treated_as_stale(tmp_path: Path) -> None:
+    """Test missing report file is treated as stale."""
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+    reports_dir = plan_dir / "reports"
+    reports_dir.mkdir()
+
+    # Create source artifact without report file
+    (plan_dir / "design.md").write_text("")
+
+    vet_status = get_vet_status(plan_dir)
+
+    assert vet_status is not None
+    assert len(vet_status.chains) == 1
+
+    chain = vet_status.chains[0]
+    assert chain.stale is True
+    assert chain.report is None
+    assert chain.report_mtime is None
