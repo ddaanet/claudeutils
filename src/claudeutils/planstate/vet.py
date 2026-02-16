@@ -18,32 +18,89 @@ SOURCE_TO_REPORT_MAP = {
 }
 
 
-def _find_fallback_phase_report(plan_dir: Path, phase_num: int) -> str | None:
-    """Glob for phase-level reports when primary pattern not found.
+def _extract_iteration_number(filename: str) -> int | None:
+    """Extract iteration number from report filename.
 
-    Searches for reports matching patterns with phase number N in the reports
-    directory. Returns the most recent by mtime if multiple matches are found.
+    Returns the numeric suffix (e.g., outline-review-3.md → 3). Returns None if
+    no number found.
     """
-    reports_dir = plan_dir / "reports"
-    if not reports_dir.exists():
-        return None
+    # Match patterns like -2, -3 at the end before extension
+    # But exclude variant suffixes like -opus
+    match = re.search(r"-(\d+)(?:\.[^.]*)?$", filename)
+    if match:
+        return int(match.group(1))
+    return None
 
-    # Glob for files containing the phase number and report-like keywords
-    pattern = f"*{phase_num}*"
-    candidates = []
 
-    for report_file in reports_dir.glob(pattern):
-        # Check if filename contains keywords like 'review' or 'vet'
-        name = report_file.name
-        if "review" in name or "vet" in name:
-            candidates.append(report_file)
+def _find_best_report(candidates: list[Path]) -> Path | None:
+    """Select best report from candidates: highest iteration number or highest mtime.
 
+    Candidates can include both numbered iterations (e.g., outline-review-3.md)
+    and variants (e.g., outline-review-opus.md).
+    """
     if not candidates:
         return None
 
-    # Return highest mtime
-    most_recent = max(candidates, key=lambda p: p.stat().st_mtime)
-    return f"reports/{most_recent.name}"
+    # Separate candidates with iteration numbers from variants
+    numbered = []
+    unnumbered = []
+
+    for candidate in candidates:
+        iteration = _extract_iteration_number(candidate.name)
+        if iteration is not None:
+            numbered.append((iteration, candidate))
+        else:
+            unnumbered.append(candidate)
+
+    # If we have numbered reports, return the one with highest iteration number
+    if numbered:
+        highest = max(numbered, key=lambda x: x[0])
+        return highest[1]
+
+    # No numbered reports; use highest mtime among all candidates
+    if candidates:
+        return max(candidates, key=lambda p: p.stat().st_mtime)
+
+    return None
+
+
+def _find_iterative_report_for_source(
+    reports_dir: Path, source_file: str, report_file: str
+) -> str | None:
+    """Find best iterative review for a source artifact.
+
+    Returns report path (relative to plan_dir) with highest iteration number, or
+    highest mtime if no iterations found. Returns None if no matches.
+    """
+    if not reports_dir.exists():
+        return None
+
+    if source_file.startswith("runbook-phase-"):
+        # For phase sources, glob using phase number
+        match = re.search(r"runbook-phase-(\d+)", source_file)
+        if match:
+            phase_num = int(match.group(1))
+            pattern = f"*{phase_num}*"
+            candidates = [
+                f
+                for f in reports_dir.glob(pattern)
+                if "review" in f.name or "vet" in f.name
+            ]
+            if candidates:
+                best = _find_best_report(candidates)
+                if best:
+                    return f"reports/{best.name}"
+    else:
+        # For non-phase sources, glob by report base name
+        report_base = report_file.replace(".md", "").replace("reports/", "")
+        pattern = f"{report_base}*.md"
+        candidates = list(reports_dir.glob(pattern))
+        if candidates:
+            best = _find_best_report(candidates)
+            if best:
+                return f"reports/{best.name}"
+
+    return None
 
 
 def get_vet_status(plan_dir: Path) -> VetStatus | None:
@@ -53,50 +110,42 @@ def get_vet_status(plan_dir: Path) -> VetStatus | None:
     None if no source artifacts are found.
     """
     chains = []
+    reports_dir = plan_dir / "reports"
 
     for source_file, report_file in SOURCE_TO_REPORT_MAP.items():
         source_path = plan_dir / source_file
-        report_path = plan_dir / report_file
 
-        if source_path.exists():
-            stale = False
-            source_mtime = 0.0
-            report_mtime = None
+        if not source_path.exists():
+            continue
+
+        # Check for iterative reviews first, then fall back to primary
+        actual_report = _find_iterative_report_for_source(
+            reports_dir, source_file, report_file
+        )
+        if not actual_report:
             actual_report = report_file
 
-            if report_path.exists():
-                source_mtime = source_path.stat().st_mtime
-                report_mtime = report_path.stat().st_mtime
-                stale = source_mtime > report_mtime
-            else:
-                # Try fallback glob for phase-level reports
-                if source_file.startswith("runbook-phase-"):
-                    # Extract phase number from runbook-phase-N.md
-                    match = re.search(r"runbook-phase-(\d+)", source_file)
-                    if match:
-                        phase_num = int(match.group(1))
-                        fallback = _find_fallback_phase_report(plan_dir, phase_num)
-                        if fallback:
-                            actual_report = fallback
-                            report_path = plan_dir / actual_report
-                            if report_path.exists():
-                                source_mtime = source_path.stat().st_mtime
-                                report_mtime = report_path.stat().st_mtime
-                                stale = source_mtime > report_mtime
+        report_path = plan_dir / actual_report
 
-                if not report_path.exists():
-                    source_mtime = source_path.stat().st_mtime
-                    stale = True
-                    actual_report = None
+        # Determine staleness
+        source_mtime = source_path.stat().st_mtime
+        report_mtime = None
+        stale = True
 
-            chain = VetChain(
-                source=source_file,
-                report=actual_report,
-                stale=stale,
-                source_mtime=source_mtime,
-                report_mtime=report_mtime,
-            )
-            chains.append(chain)
+        if report_path.exists():
+            report_mtime = report_path.stat().st_mtime
+            stale = source_mtime > report_mtime
+        else:
+            actual_report = None
+
+        chain = VetChain(
+            source=source_file,
+            report=actual_report,
+            stale=stale,
+            source_mtime=source_mtime,
+            report_mtime=report_mtime,
+        )
+        chains.append(chain)
 
     if not chains:
         return None

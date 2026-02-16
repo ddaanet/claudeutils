@@ -143,3 +143,42 @@ def test_missing_report_treated_as_stale(tmp_path: Path) -> None:
     assert chain.stale is True
     assert chain.report is None
     assert chain.report_mtime is None
+
+
+def test_iterative_review_highest_wins(tmp_path: Path) -> None:
+    """Test highest-numbered or highest-mtime review report wins."""
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+    reports_dir = plan_dir / "reports"
+    reports_dir.mkdir()
+
+    # Create source artifact
+    (plan_dir / "outline.md").write_text("")
+
+    # Create multiple review reports with iteration numbers
+    outline_review = reports_dir / "outline-review.md"
+    outline_review_2 = reports_dir / "outline-review-2.md"
+    outline_review_3 = reports_dir / "outline-review-3.md"
+    outline_review_opus = reports_dir / "outline-review-opus.md"
+
+    # Write files with different mtimes
+    outline_review.write_text("")
+    os.utime(outline_review, (1000, 1000))
+
+    outline_review_2.write_text("")
+    os.utime(outline_review_2, (1500, 1500))
+
+    outline_review_3.write_text("")
+    os.utime(outline_review_3, (2000, 2000))  # highest number, should win
+
+    outline_review_opus.write_text("")
+    os.utime(outline_review_opus, (1800, 1800))  # variant, but lower mtime than 3
+
+    vet_status = get_vet_status(plan_dir)
+
+    assert vet_status is not None
+    assert len(vet_status.chains) == 1
+
+    chain = vet_status.chains[0]
+    assert chain.source == "outline.md"
+    assert chain.report == "reports/outline-review-3.md"
