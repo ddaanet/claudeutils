@@ -43,6 +43,8 @@
 
 <!-- Priority order per plans/reports/prioritization-2026-02-16.md (rev 2) -->
 
+
+
 - [ ] **Address merge data loss review** — Fix 3 major findings from deliverable review | sonnet
   - Major 1: `_delete_branch` exit 2 on unexpected failure (cli.py:351)
   - Major 2: `sys.stderr.write` → `click.echo(..., err=True)` in merge.py + test capfd migration
@@ -106,10 +108,6 @@
   - Evidence: `p:` tasks distribute evenly (n=29), not append-biased. Agents correctly judge position.
   - Scripts: `plans/prototypes/correlate-pending-v2.py`
 
-- [ ] **Pretool hook cd pattern** — Allow `cd <path> &&` pattern, check security implications | sonnet | restart
-  - Load plugin-dev:hook-development skill for hook modification guidance
-  - Current hook blocks ALL bash when cwd wrong, including `cd` to restore — creates catch-22
-
 - [ ] **Handoff wt awareness** — Only consolidate memory in main repo or dedicated worktree | sonnet
 
 - [ ] **Learning ages consol** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
@@ -168,6 +166,15 @@
 
 - [ ] **Design workwoods** → `design-workwoods` — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
+
+- [ ] **Pretool hook cd pattern** → `pretool-hook-cd-pattern` — Allow `cd <path> &&` pattern, check security implications | sonnet | restart
+  - Load plugin-dev:hook-development skill for hook modification guidance
+  - Current hook blocks ALL bash when cwd wrong, including `cd` to restore — creates catch-22
+
+- [ ] **Worktree merge errors** → `worktree-merge-errors` — Catch exceptions in merge CLI, report errors without stack traces; surface failed command output | sonnet
+  - Stack traces on merge errors are user-hostile; report cause and recovery steps instead
+  - `_git()` CalledProcessError swallows stderr — surface the actual git error message (thought this was already done in merge-data-loss work)
+  - Reproduce: `git add agents/session.md` returned exit 128 during `_resolve_session_md_conflict` in `_phase3_merge_parent`. Merge of `remaining-workflow-items` worktree, 2026-02-16. Branch had 1 post-merge commit (683fc7d). Conflict on both `agent-core` (submodule) and `agents/session.md`. Main at 9bb45d0, merge result at 5e024c2.
 
 ## Blockers / Gotchas
 
