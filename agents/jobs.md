@@ -21,6 +21,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | worktree-update | complete | 40 TDD cycles, recovery (C2-C5), merged to main |
 | worktree-merge-data-loss | requirements | Outline complete (Phase B done), Phase C design generation next |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
+| prototypes | requirements | Session extraction feature gap, multi-project scanning |
 | remember-skill-update | requirements | Outline + requirements.md complete, Phase B discussion next |
 
 ## Complete (Archived)
