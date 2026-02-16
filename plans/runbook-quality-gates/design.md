@@ -2,7 +2,7 @@
 
 ## Problem
 
-The runbook pipeline has validation gaps between Phase 3 (holistic review) and Phase 4 (prepare-runbook.py). Expanded phase files may contain redundant patterns, incorrect model assignments, file lifecycle violations, implausible RED states, and inaccurate test count checkpoints. These defects propagate to execution, wasting cycles on avoidable failures.
+The runbook pipeline has validation gaps at two points: (1) between outline finalization and expansion, where redundant patterns inflate expansion cost and cycle count; and (2) between Phase 3 (holistic review) and Phase 4 (prepare-runbook.py), where expanded phase files may contain incorrect model assignments, file lifecycle violations, implausible RED states, and inaccurate test count checkpoints. These defects propagate to execution, wasting cycles on avoidable failures.
 
 ## Requirements
 
@@ -192,7 +192,7 @@ Single line addition. Criteria detail lives in review-plan skill (already preloa
 - Independent same-module functions → batched single item
 - Sequential additions to same structure → merged single item
 
-**When to skip:** Outline has ≤10 items (consolidation unlikely to find patterns worth merging).
+**When to skip:** Outline has ≤10 items (consolidation unlikely to find patterns worth merging). Agent still runs but reports "no consolidation candidates" rather than skipping entirely — maintains mandatory gate (D-4) while avoiding wasted effort on small outlines.
 ```
 
 **3. New section after Phase 3 (after line ~645):** Add Phase 3.5.
@@ -232,6 +232,16 @@ Single line addition. Criteria detail lives in review-plan skill (already preloa
 - `red-plausibility`: Prior GREENs vs RED expectations. Flags already-passing states.
 ```
 
+### Scaling (FR-6) — Addressed by Design
+
+FR-6 originally specified delegated-per-phase agents for large runbooks vs single-agent for small. This design simplifies: all validation is mandatory for all Tier 3 runbooks (D-4). The scaling concern dissolves because:
+
+- **Scripts (Phase 3.5):** Text parsing — O(n) in runbook size, fast regardless of scale. No agent delegation needed.
+- **Simplification agent (Phase 0.86):** Operates on outline (not expanded phases), so input size bounded by outline item count. Cost scales linearly with outline size, not expanded cycle count.
+- **Plan-reviewer enrichment (FR-2 semantic):** Already runs per-phase — no change to scaling model.
+
+No separate small/large code paths needed. FR-6 acceptance criteria (equivalent quality for both sizes) satisfied by uniform mandatory execution.
+
 ### Pipeline Contracts Updates — Phase A
 
 **File:** `agents/decisions/pipeline-contracts.md`
@@ -258,7 +268,7 @@ Single line addition. Criteria detail lives in review-plan skill (already preloa
 
 **File:** `agent-core/bin/validate-runbook.py`
 
-Single script, 4 subcommands. Orchestrator-invoked internal tooling — not user-facing CLI.
+Single script, 4 subcommands. Orchestrator-invoked internal tooling — not user-facing CLI. Incremental adoption (NFR-2) achieved via subcommand granularity — orchestrator invokes each check independently and can omit any subset.
 
 **Shared infrastructure:**
 - Reuse parsing patterns from prepare-runbook.py: `extract_cycles()`, `extract_sections()`, `extract_file_references()`, `extract_step_metadata()`, `assemble_phase_files()`
@@ -353,7 +363,7 @@ Exit 2 for ambiguous cases (function exists but behavior might differ). Exit 1 f
 
 ## Key Design Decisions
 
-**D-1: FR-1 at outline level (from outline).** Consolidation operates on outline items, not expanded phases. Saves expansion cost. Workwoods evidence confirms patterns detectable from titles.
+**D-1: FR-1 at outline level (from outline).** Consolidation operates on outline items, not expanded phases. Saves expansion cost. Workwoods evidence confirms patterns detectable from titles. Note: requirements.md FR-1 text says "After Phase 1 expansion completes" — this was superseded by the outline discussion (Phase B) which moved consolidation earlier to Phase 0.86. Requirements.md should be updated to reflect this decision.
 
 **D-2: FR-2 split (from outline).** Mechanical (file path → model) is script. Semantic (task complexity → model) is plan-reviewer enrichment. Different enforcement layers for different failure modes.
 
@@ -366,6 +376,21 @@ Exit 2 for ambiguous cases (function exists but behavior might differ). Exit 1 f
 **D-6: Advisory model review.** FR-2 semantic findings are advisory (Minor severity), not blocking. Model assignment involves judgment — hard rules would produce false positives on edge cases.
 
 **D-7: Reuse prepare-runbook.py patterns.** validate-runbook.py reuses parsing infrastructure (cycle extraction, file reference extraction, step metadata). Avoids duplicating 200+ lines of regex patterns. Implementation detail left to Phase B planner.
+
+## Requirements Traceability
+
+| Requirement | Design Element | Delivery Phase |
+|-------------|---------------|----------------|
+| FR-1 | Simplification Agent (Phase 0.86) | A |
+| FR-2 (mechanical) | validate-runbook.py `model-tags` | B |
+| FR-2 (semantic) | Review-Plan Skill Section 12 + plan-reviewer update | A |
+| FR-3 | validate-runbook.py `lifecycle` | B |
+| FR-4 (structural) | validate-runbook.py `red-plausibility` | B |
+| FR-4 (semantic) | Optional agent on exit 2 (ambiguous) | B |
+| FR-5 | validate-runbook.py `test-counts` | B |
+| FR-6 | Scaling section — mandatory uniform execution | A (design) |
+| NFR-1 | SKILL.md Phase 0.86 + Phase 3.5 + pipeline-contracts T2.5/T4.5 | A |
+| NFR-2 | Graceful degradation (existence checks), `--skip-*` flags | A (skill) + B (script) |
 
 ## Documentation Perimeter
 
