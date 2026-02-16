@@ -54,3 +54,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: CLI suggesting destructive commands in output (e.g., `"use: git branch -D <slug>"`). LLM agents treat CLI output as instructions and execute the suggested command.
 - Correct pattern: Report the problem without prescribing destructive workarounds. Let the calling agent or user decide the action. CLI should refuse destructive operations, not suggest them.
 - Evidence: `_worktree rm` suggested `git branch -D` for unmerged branch. Agent followed the instruction, permanently deleting the only copy of unmerged parent repo changes.
+## When running multi-reviewer diagnostics
+- Anti-pattern: Running a single reviewer and trusting all findings. Exploration agents produce false positives from over-reading (e.g., "line number wrong" when insertion point was correct); opus reviewers miss implementation-level issues (e.g., helper function return value semantics).
+- Correct pattern: Run 3+ independent reviewers in parallel (opus review, exploration, inline RCA against source code). Cross-reference findings — real issues appear in multiple or survive verification against source. False positives get filtered by disagreement.
+- Evidence: 3-way review of runbook-phase-1.md found 8 real issues (each reviewer found unique ones) and filtered 2 false positives. Exploration flagged "critical" line number issue that was correct; opus missed `_git()` return value issue only caught by reading source code directly.
