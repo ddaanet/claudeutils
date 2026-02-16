@@ -8,17 +8,17 @@
 
 ## Requirements Mapping
 
-| Requirement | Implementation Phase |
-|-------------|---------------------|
-| FR-1: Branch classification (merged/focused/unmerged) | Phase 1, Cycles 1.1-1.3 |
-| FR-2: Refuse removal with unmerged history, exit 1 | Phase 1, Cycle 1.4 |
-| FR-3: Allow removal of focused-session-only branches | Phase 1, Cycle 1.3 |
-| FR-4: Exit codes (0/1/2) | Phase 1, Cycle 1.4 |
-| FR-5: No destructive commands in output | Phase 1, Cycle 1.5 |
-| FR-6: MERGE_HEAD checkpoint, exit 2 when lost | Phase 1, Cycles 1.6-1.8 |
-| FR-7: Post-merge ancestry validation | Phase 1, Cycle 1.9 |
-| FR-8: Report removal type in success message | Phase 1, Cycle 1.5 |
-| FR-9: Skill Mode C handles rm exit 1 | Phase 2, Step 2.1 |
+| Requirement | Implementation Phase | Notes |
+|-------------|---------------------|-------|
+| FR-1: Branch classification (merged/focused/unmerged) | Phase 1, Cycles 1.1-1.3 | _classify_branch helper + merge-base check |
+| FR-2: Refuse removal with unmerged history, exit 1 | Phase 1, Cycle 1.4 | Guard logic with exit code enforcement |
+| FR-3: Allow removal of focused-session-only branches | Phase 1, Cycle 1.3 | Marker text detection in _classify_branch |
+| FR-4: Exit codes (0/1/2) | Phase 1, Cycle 1.4 | Enforced in guard logic, tested in 1.4 |
+| FR-5: No destructive commands in output | Phase 1, Cycle 1.5 | Remove git branch -D suggestions from rm |
+| FR-6: MERGE_HEAD checkpoint, exit 2 when lost | Phase 1, Cycles 1.6-1.8 | Three-path flow in Phase 4 with branch-merged checks |
+| FR-7: Post-merge ancestry validation | Phase 1, Cycle 1.9 | _validate_merge_result using merge-base --is-ancestor |
+| FR-8: Report removal type in success message | Phase 1, Cycle 1.5 | Success messages differentiate merged vs focused-session-only |
+| FR-9: Skill Mode C handles rm exit 1 | Phase 2, Step 2.1 | Escalation guidance added to SKILL.md Mode C step 3 |
 
 ---
 
@@ -28,7 +28,7 @@
 
 **Scope:** Implement removal safety guard (Track 1) and merge correctness fixes (Track 2). All behavioral changes to cli.py, merge.py, utils.py, with comprehensive test coverage.
 
-**Estimated complexity:** ~12 cycles, haiku execution
+**Estimated complexity:** 11 cycles, haiku execution
 
 **Key design decisions:**
 - D-1: Focused session detection via marker text `"Focused session for {slug}"`
@@ -45,57 +45,58 @@
 
 #### Cycle 1.2: Add _classify_branch helper to cli.py
 - **Integration:** Used by rm guard to determine branch type
-- **Dependencies:** Uses _is_branch_merged from Cycle 1.1
+- **Depends on:** Cycle 1.1 (_is_branch_merged helper)
 - Test: Branch classification (count + focused marker detection), handles orphan branches
 
 #### Cycle 1.3: Implement rm guard logic for focused-session-only branches
 - **Integration:** Guard inserted before destructive operations in rm
-- **Dependencies:** Uses _classify_branch from Cycle 1.2
+- **Depends on:** Cycle 1.2 (_classify_branch helper)
 - Test: Focused-session-only branch removal succeeds with appropriate message
 
 #### Cycle 1.4: Implement rm guard refusal for real-history unmerged branches
 - **Integration:** Complete guard logic with exit codes
-- **Dependencies:** Extends Cycle 1.3 guard
+- **Depends on:** Cycle 1.3 (guard logic for focused-session branches)
 - Test: Unmerged real history refused (exit 1), worktree directory NOT removed
 
 #### Cycle 1.5: Update rm success messages and remove destructive suggestions
 - **Integration:** Final rm messaging cleanup
-- **Dependencies:** Extends Cycle 1.4
+- **Depends on:** Cycle 1.4 (complete guard logic with exit codes)
 - Test: No `git branch -D` in output, reports removal type correctly
 
 #### Cycle 1.6: Implement MERGE_HEAD checkpoint in Phase 4
 - **Integration:** Add branch-merged check before single-parent commit path
-- **Dependencies:** Uses _is_branch_merged from Cycle 1.1
+- **Depends on:** Cycle 1.1 (_is_branch_merged helper)
 - Test: Simulated lost MERGE_HEAD with unmerged branch exits 2
 
 #### Cycle 1.7: Handle already-merged idempotency in Phase 4
 - **Integration:** elif path only executes for merged branches
-- **Dependencies:** Extends Cycle 1.6 checkpoint logic
+- **Depends on:** Cycle 1.6 (MERGE_HEAD checkpoint logic)
 - Test: Re-merge already-merged branch succeeds without error
 
 #### Cycle 1.8: Handle no-MERGE_HEAD + no-staged + unmerged case
 - **Integration:** else path with branch-merged check
-- **Dependencies:** Extends Cycle 1.7 flow
+- **Depends on:** Cycle 1.7 (elif path for merged branches)
 - Test: No MERGE_HEAD, no staged, branch not merged exits 2
 
 #### Cycle 1.9: Add post-merge ancestry validation
 - **Integration:** _validate_merge_result called after commit, before precommit
-- **Dependencies:** Uses _is_branch_merged from Cycle 1.1
+- **Depends on:** Cycle 1.1 (_is_branch_merged helper)
 - Test: Branch ancestry check after merge, exits 2 if branch not ancestor
 
-#### Cycle 1.10: Add diagnostic parent count logging
-- **Integration:** Warning output when merge commit has <2 parents
-- Test: Parent count logged (observation, not error)
-
-#### Cycle 1.11: Integration test — parent repo file preservation
+#### Cycle 1.10: Integration test — parent repo file preservation
 - **Integration:** End-to-end test for original bug scenario
 - Test: Branch with parent repo + submodule changes → merge → all files present
 
-#### Cycle 1.12: Integration test — orphan branch handling
+#### Cycle 1.11: Integration test — orphan branch handling
 - **Integration:** Edge case coverage for branch with no merge-base
 - Test: Orphan branch refused by rm guard with specific message
 
 **Checkpoint:** Full checkpoint after Phase 1 (Fix + Vet + Functional)
+
+**File size projection:**
+- cli.py: ~382 lines (current) + ~35 lines (guard logic) = ~417 lines (within 400-line threshold)
+- merge.py: ~299 lines (current) + ~25 lines (checkpoint + validation) = ~324 lines (within threshold)
+- utils.py: ~150 lines (current) + ~8 lines (_is_branch_merged) = ~158 lines (within threshold)
 
 ---
 
@@ -176,6 +177,15 @@
 - Transformation cycles (delete, modify): self-contained
 - Creation cycles (new tests, new helpers): include prerequisite to read relevant implementation context
 
+**Consolidation note:**
+- Cycles 1.6-1.8 modify same Phase 4 logic, considered for consolidation, but kept separate for incremental test coverage of three distinct commit paths (MERGE_HEAD present, staged changes with merged branch, no changes with unmerged branch)
+- Diagnostic parent count logging (original Cycle 1.10) removed as vacuous — observation-only test with no behavioral verification
+
+**Checkpoint guidance:**
+- After Cycle 1.5: Track 1 (rm guard) complete, validate full guard flow before proceeding to Track 2
+- After Cycle 1.9: Track 2 (merge correctness) complete, validate MERGE_HEAD checkpoint and ancestry validation
+- After Cycle 1.11: Full integration test coverage, validate end-to-end merge + rm flow
+
 ---
 
 ## Design Reference
@@ -187,4 +197,4 @@ Full design at: `plans/worktree-merge-data-loss/design.md`
 - Helpers: _is_branch_merged (shared), _classify_branch (rm-specific)
 - Guard Logic: insertion point, flow, exit codes
 - MERGE_HEAD Checkpoint: three-path flow, validation
-- Post-Merge Validation: ancestry check, diagnostic logging
+- Post-Merge Validation: ancestry check (diagnostic logging removed as vacuous)
