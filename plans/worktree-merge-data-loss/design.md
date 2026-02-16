@@ -52,7 +52,7 @@ if count == 1:
 return (count, is_focused)
 ```
 
-Handles `merge-base` failure (orphan branch): returns `(0, False)` — treated as real history, refused.
+Handles `merge-base` failure (orphan branch): returns `(0, False)` — treated as real history, refused. Guard message for orphan: "Branch {slug} is orphaned (no common ancestor). Merge first."
 
 #### Guard Logic
 
@@ -65,7 +65,10 @@ Insert before ALL destructive operations in `rm`:
 4. If not merged:
    a. count, focused = _classify_branch(slug)
    b. If not focused:
-      stderr: "Branch {slug} has {count} unmerged commit(s). Merge first."
+      if count == 0:  # orphan branch (merge-base failed)
+        stderr: "Branch {slug} is orphaned (no common ancestor). Merge first."
+      else:
+        stderr: "Branch {slug} has {count} unmerged commit(s). Merge first."
       exit 1
 5. Proceed with removal
 ```
@@ -104,9 +107,15 @@ elif staged_check.returncode != 0:
         click.echo("Error: merge state lost — MERGE_HEAD absent, branch not merged", err=True)
         raise SystemExit(2)
     _git("commit", "-m", f"🔀 Merge {slug}")
+else:
+    # No MERGE_HEAD, no staged changes
+    if not _is_branch_merged(slug):
+        click.echo("Error: nothing to commit and branch not merged", err=True)
+        raise SystemExit(2)
+    # Already merged, nothing to do — skip commit
 ```
 
-The `elif` path now only executes for already-merged branches (idempotent case). For unmerged branches with lost MERGE_HEAD, exit 2 fires before any commit.
+The `elif` path now only executes for already-merged branches (idempotent case). The `else` path handles the no-MERGE_HEAD, no-staged-changes case: if the branch is already merged, skip silently; if not merged, exit 2. For unmerged branches with lost MERGE_HEAD, exit 2 fires before any commit.
 
 #### Post-Merge Ancestry Validation
 
@@ -137,11 +146,13 @@ if parent_count < 2:
 
 ```
 check MERGE_HEAD → check staged →
-  if MERGE_HEAD: commit --allow-empty (merge commit) → validate ancestry → precommit
-  elif staged + branch merged: commit (idempotent) → precommit
+  if MERGE_HEAD: commit --allow-empty (merge commit)
+  elif staged + branch merged: commit (idempotent)
   elif staged + branch NOT merged: exit 2 (bug detected)
-  else (no MERGE_HEAD, no staged): check if already merged → skip or exit 2
-→ validate ancestry (after any commit) → precommit
+  else (no MERGE_HEAD, no staged):
+    if branch merged: skip commit
+    else: exit 2 (nothing to commit, branch not merged)
+→ validate ancestry (after any successful commit or skip) → precommit
 ```
 
 ### Track 3: Skill Update (`SKILL.md` Mode C)
@@ -179,6 +190,7 @@ Track 1 tests (removal guard):
 - Real-history unmerged removal refused (exit 1, stderr message)
 - Worktree directory NOT removed when guard refuses (regression test)
 - No `git branch -D` in output for any case
+- Orphan branch: refused with specific message (exit 1)
 - Branch-not-found: directory cleanup proceeds
 
 Track 2 tests (merge correctness):
@@ -187,6 +199,7 @@ Track 2 tests (merge correctness):
 - Branch ancestry: slug is ancestor of HEAD after merge
 - MERGE_HEAD checkpoint: simulate absent MERGE_HEAD with unmerged branch → exit 2
 - Already-merged idempotency: re-merge already-merged branch → no error
+- No MERGE_HEAD + no staged + branch not merged → exit 2
 
 **Reproduction test note:** The parent repo file preservation test (Track 2, first test) may or may not reproduce the original bug. If it passes without code changes, the bug was environment-specific and the defensive checks serve as belt-and-suspenders. If it fails, the fix addresses the root cause.
 
