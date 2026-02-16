@@ -70,3 +70,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Narrowing search to one domain after user feedback (e.g., "not security?" → drop all security searches). Interpreting correction as exclusion rather than asking for clarification.
 - Correct pattern: When user questions missing coverage ("not X?"), they may mean "why no X?" not "exclude X." Safety and security are adjacent — both warrant research even when the triggering incident is one or the other.
 - Evidence: User said "not security?" meaning "why aren't you searching for security too?" — interpreted as "this isn't about security" and dropped security entirely.
+## When git operation fails
+- Anti-pattern: Attributing git failure to a plausible-sounding restriction without reading the error message. Confabulated "git refuses to merge with active worktree" (false). Actual cause: untracked session.md on main would be overwritten by merge. Built reasoning chain on false premise, deleted test coverage to work around the non-existent limitation.
+- Correct pattern: Read actual error output. Reproduce with a minimal case before restructuring. Test failures that seem like infrastructure problems may reveal real production bugs — the test was correctly detecting that `new --session` leaves session.md untracked on main.
+- Deeper pattern: Confabulation served as license to stop investigating. A "can't be fixed" explanation converts a solvable problem into an unsolvable one, justifying coverage-reducing workarounds.

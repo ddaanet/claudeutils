@@ -72,6 +72,16 @@ def test_rm_calls_remove_worktree_task_before_branch_delete(
 - [ ] **Feature A** → `feature-a` — `/design` | haiku
 """
     session_file.write_text(session_content)
+    # Track session.md on main (matches production state)
+    subprocess.run(
+        ["git", "add", "agents/session.md"], cwd=repo_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "track session"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
 
     result = CliRunner().invoke(
         worktree, ["new", "feature-a", "--session", str(session_file)]
@@ -81,8 +91,32 @@ def test_rm_calls_remove_worktree_task_before_branch_delete(
     worktree_path = wt_path("feature-a")
     worktree_session = worktree_path / "agents" / "session.md"
 
-    # Branch has only the focused-session marker commit (from `new`),
-    # so guard allows removal (focused-session-only path)
+    worktree_session_content = """# Focused Session
+
+## Pending Tasks
+
+## Worktree Tasks
+"""
+    worktree_session.write_text(worktree_session_content)
+    subprocess.run(
+        ["git", "-C", str(worktree_path), "add", "agents/session.md"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(worktree_path), "commit", "-m", "mark task complete"],
+        check=True,
+        capture_output=True,
+    )
+
+    # Merge branch so rm guard allows removal
+    subprocess.run(
+        ["git", "merge", "feature-a", "--no-edit"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
     result = CliRunner().invoke(worktree, ["rm", "feature-a"])
     assert result.exit_code == 0
 
@@ -112,6 +146,16 @@ def test_rm_e2e_removes_completed_task_from_worktree_tasks(
 - [ ] **Complete the feature** → `complete-the-feature` — `/runbook` | haiku
 """
     session_file.write_text(session_content)
+    # Track session.md on main (matches production state)
+    subprocess.run(
+        ["git", "add", "agents/session.md"], cwd=repo_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "track session"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
 
     result = CliRunner().invoke(
         worktree, ["new", "complete-the-feature", "--session", str(session_file)]
@@ -125,8 +169,47 @@ def test_rm_e2e_removes_completed_task_from_worktree_tasks(
     assert "## Pending Tasks" in worktree_content
     assert "Complete the feature" in worktree_content
 
-    # Branch has only the focused-session marker commit (from `new`),
-    # so guard allows removal (focused-session-only path)
+    worktree_session_completed = """# Focused Session
+
+## Pending Tasks
+
+## Blockers / Gotchas
+"""
+    worktree_session.write_text(worktree_session_completed)
+    subprocess.run(
+        ["git", "-C", str(worktree_path), "add", "agents/session.md"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(worktree_path), "commit", "-m", "complete task"],
+        check=True,
+        capture_output=True,
+    )
+
+    # Merge branch (--no-ff to preserve main's content in merge commit)
+    subprocess.run(
+        ["git", "merge", "complete-the-feature", "--no-ff", "--no-edit"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    # Restore main's session.md after merge (production merge command handles this;
+    # raw git merge does not)
+    session_file.write_text(session_content.replace(
+        '- [ ] **Complete the feature** → `complete-the-feature` — `/runbook` | haiku\n',
+        "",
+    ))
+    subprocess.run(
+        ["git", "add", "agents/session.md"], cwd=repo_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "restore session after merge"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
     result = CliRunner().invoke(worktree, ["rm", "complete-the-feature"])
     assert result.exit_code == 0
     assert "Removed complete-the-feature" in result.output
