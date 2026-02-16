@@ -258,6 +258,35 @@ def _phase3_merge_parent(slug: str) -> None:
         raise SystemExit(1)
 
 
+def _validate_merge_result(slug: str) -> None:
+    """Validate merge result: verify slug is ancestor of HEAD.
+
+    Also emits diagnostic warning if HEAD has fewer than 2 parents.
+    """
+    import sys
+
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", slug, "HEAD"],
+        check=False,
+    )
+
+    if result.returncode != 0:
+        sys.stderr.write(f"Error: branch {slug} not fully merged\n")
+        raise SystemExit(2)
+
+    # Diagnostic: Check parent count
+    parent_output = subprocess.run(
+        ["git", "cat-file", "-p", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+
+    parent_count = len([line for line in parent_output.split("\n") if line.startswith("parent ")])
+    if parent_count < 2:
+        sys.stderr.write(f"Warning: merge commit has {parent_count} parent(s)\n")
+
+
 def _phase4_merge_commit_and_precommit(slug: str) -> None:
     """Phase 4: Commit merge and run precommit validation.
 
@@ -300,6 +329,8 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
             )
             raise SystemExit(2)
         # Branch is merged, nothing to commit — skip commit, continue to validation
+
+    _validate_merge_result(slug)
 
     precommit_result = subprocess.run(
         ["just", "precommit"],

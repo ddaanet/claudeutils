@@ -543,3 +543,223 @@ def test_phase4_handles_no_merge_head_no_staged(tmp_path: Path) -> None:
     assert commit_after_b == commit_before_b, (
         f"Scenario B: No commit should be created (already merged), but commit changed from '{commit_before_b}' to '{commit_after_b}'"
     )
+
+
+def test_validate_merge_result(tmp_path: Path) -> None:
+    """Post-merge ancestry validation ensures slug is ancestor of HEAD."""
+    from claudeutils.worktree.merge import _validate_merge_result
+    import os
+    import sys
+    from io import StringIO
+
+    # Scenario A: Valid merge - slug IS ancestor of HEAD
+    repo_dir_a = tmp_path / "repo_a"
+    repo_dir_a.mkdir()
+    subprocess.run(["git", "init"], cwd=repo_dir_a, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Test"], cwd=repo_dir_a, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=repo_dir_a,
+        check=True,
+        capture_output=True,
+    )
+
+    # Initial commit
+    (repo_dir_a / "file.txt").write_text("initial")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_a, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "initial"],
+        cwd=repo_dir_a,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create branch
+    subprocess.run(
+        ["git", "branch", "test-branch"], cwd=repo_dir_a, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "checkout", "test-branch"], cwd=repo_dir_a, check=True, capture_output=True
+    )
+
+    # Make changes on branch
+    (repo_dir_a / "file.txt").write_text("branch content")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_a, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "branch commit"],
+        cwd=repo_dir_a,
+        check=True,
+        capture_output=True,
+    )
+
+    # Return to main and merge properly
+    subprocess.run(
+        ["git", "checkout", "main"], cwd=repo_dir_a, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "merge", "test-branch"],
+        cwd=repo_dir_a,
+        check=True,
+        capture_output=True,
+    )
+
+    # Call validation - should pass
+    original_cwd = os.getcwd()
+    exit_code_a = 0
+    stderr_a = StringIO()
+
+    try:
+        os.chdir(repo_dir_a)
+        old_stderr = sys.stderr
+        sys.stderr = stderr_a
+        try:
+            _validate_merge_result("test-branch")
+        except SystemExit as e:
+            exit_code_a = e.code
+        finally:
+            sys.stderr = old_stderr
+    finally:
+        os.chdir(original_cwd)
+
+    stderr_output_a = stderr_a.getvalue()
+
+    # Assertions for Scenario A
+    assert exit_code_a == 0, f"Expected exit code 0, got {exit_code_a}"
+    assert "Error" not in stderr_output_a, f"Should not have errors, got: {stderr_output_a}"
+
+    # Scenario B: Invalid merge - slug NOT ancestor of HEAD
+    repo_dir_b = tmp_path / "repo_b"
+    repo_dir_b.mkdir()
+    subprocess.run(["git", "init"], cwd=repo_dir_b, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Test"], cwd=repo_dir_b, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=repo_dir_b,
+        check=True,
+        capture_output=True,
+    )
+
+    # Initial commit
+    (repo_dir_b / "file.txt").write_text("initial")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_b, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "initial"],
+        cwd=repo_dir_b,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create branch
+    subprocess.run(
+        ["git", "branch", "test-branch"], cwd=repo_dir_b, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "checkout", "test-branch"], cwd=repo_dir_b, check=True, capture_output=True
+    )
+
+    # Make changes on branch
+    (repo_dir_b / "file.txt").write_text("branch content")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_b, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "branch commit"],
+        cwd=repo_dir_b,
+        check=True,
+        capture_output=True,
+    )
+
+    # Return to main without merging
+    subprocess.run(
+        ["git", "checkout", "main"], cwd=repo_dir_b, check=True, capture_output=True
+    )
+
+    # Call validation - should fail
+    exit_code_b = 0
+    stderr_b = StringIO()
+
+    try:
+        os.chdir(repo_dir_b)
+        old_stderr = sys.stderr
+        sys.stderr = stderr_b
+        try:
+            _validate_merge_result("test-branch")
+        except SystemExit as e:
+            exit_code_b = e.code
+        finally:
+            sys.stderr = old_stderr
+    finally:
+        os.chdir(original_cwd)
+
+    stderr_output_b = stderr_b.getvalue()
+
+    # Assertions for Scenario B
+    assert exit_code_b == 2, f"Expected exit code 2, got {exit_code_b}"
+    assert "Error: branch test-branch not fully merged" in stderr_output_b, (
+        f"Should have merge error, got: {stderr_output_b}"
+    )
+
+    # Scenario C: Diagnostic - single parent commit triggers warning
+    repo_dir_c = tmp_path / "repo_c"
+    repo_dir_c.mkdir()
+    subprocess.run(["git", "init"], cwd=repo_dir_c, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Test"], cwd=repo_dir_c, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=repo_dir_c,
+        check=True,
+        capture_output=True,
+    )
+
+    # Initial commit
+    (repo_dir_c / "file.txt").write_text("initial")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_c, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "initial"],
+        cwd=repo_dir_c,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create branch at same commit (fast-forward scenario)
+    subprocess.run(
+        ["git", "branch", "test-branch"], cwd=repo_dir_c, check=True, capture_output=True
+    )
+
+    # Make a single-parent commit on main
+    (repo_dir_c / "main-file.txt").write_text("main content")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_c, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "main commit"],
+        cwd=repo_dir_c,
+        check=True,
+        capture_output=True,
+    )
+
+    # Call validation - should pass ancestry but warn about single parent
+    exit_code_c = 0
+    stderr_c = StringIO()
+
+    try:
+        os.chdir(repo_dir_c)
+        old_stderr = sys.stderr
+        sys.stderr = stderr_c
+        try:
+            _validate_merge_result("test-branch")
+        except SystemExit as e:
+            exit_code_c = e.code
+        finally:
+            sys.stderr = old_stderr
+    finally:
+        os.chdir(original_cwd)
+
+    stderr_output_c = stderr_c.getvalue()
+
+    # Assertions for Scenario C
+    assert "Warning: merge commit has 1 parent(s)" in stderr_output_c, (
+        f"Should have single-parent warning, got: {stderr_output_c}"
+    )
