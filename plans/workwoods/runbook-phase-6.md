@@ -197,46 +197,8 @@
 
 ---
 
-### Cycle 6.5: Validator registration in cli.py
 
-**Note:** This cycle merges with 6.4 (registration IS the integration). Keeping as separate cycle for clarity.
-
-**RED Phase:**
-
-**Test:** `test_planstate_validator_registered`
-**Assertions:**
-- validate_planstate imported in cli.py
-- _run_validator called with "planstate" name
-- Planstate command appears in `claudeutils validate --help`
-
-**Expected failure:** Test passes if 6.4 completed correctly
-
-**Why it might pass:** Already implemented in 6.4
-
-**Verify RED:** `pytest tests/test_validation_planstate.py::test_planstate_validator_registered -v`
-
-**GREEN Phase:**
-
-**Implementation:** Verify registration is complete and tested
-
-**Behavior:**
-- Confirm import statement exists
-- Confirm _run_validator call exists
-- Confirm subcommand decorator exists
-
-**Approach:** This is a verification cycle, no new code unless 6.4 missed something
-
-**Changes:**
-- File: `tests/test_validation_planstate.py`
-  Action: Add registration verification test
-  Location hint: New test function checking imports and calls
-
-**Verify GREEN:** `pytest tests/test_validation_planstate.py::test_planstate_validator_registered -v`
-**Verify no regression:** `pytest tests/test_validation_planstate.py -v`
-
----
-
-### Cycle 6.6: Remove jobs validator tests, add planstate validator tests
+### Cycle 6.5: Remove jobs validator tests, add planstate validator tests
 
 **RED Phase:**
 
@@ -259,7 +221,7 @@
 **Behavior:**
 - Remove tests/test_validation_jobs.py
 - Verify no other test files import or reference it
-- All planstate validator tests (6.1-6.5) serve as replacement
+- All planstate validator tests (6.1-6.4) serve as replacement
 
 **Approach:** File deletion
 
@@ -275,7 +237,7 @@
 
 ## TDD Checkpoint
 
-**After Cycle 6.6:**
+**After Cycle 6.5:**
 
 1. Run `just dev` to verify code quality
 2. Functional review: Verify planstate validator catches all expected issues
@@ -444,19 +406,37 @@ Read design skill Phase A.1 (research phase) to locate jobs.md loading.
 
 **Model:** Sonnet (conditional cleanup)
 
-**File:** `src/claudeutils/worktree/session.py` (or location of focus_session)
+**Prerequisite:** Grep codebase for focus_session() to locate implementation (if exists).
 
 **Objective:** Remove or update any jobs.md reference in focus_session().
 
 **Implementation:**
 
-1. Grep for focus_session() function definition
-2. If function references jobs.md: remove or update reference
-3. If no reference: skip this step (no action needed)
+1. Search for focus_session() definition: `rg "def focus_session" --type py`
+2. If found:
+   - Read function implementation
+   - Check for jobs.md references: `rg "jobs\.md" <file-containing-focus_session>`
+   - If references exist: remove or update to use planstate module
+3. If function not found or no jobs.md references: no action needed
 
-**Expected Outcome:** focus_session() has no jobs.md references.
+**Expected Outcome:** focus_session() has no jobs.md references (or function doesn't exist).
 
-**Validation:** Grep focus_session() implementation for "jobs" → no matches (or function doesn't exist).
+**Validation:** `rg "def focus_session.*jobs" --type py` → no matches.
+
+---
+
+## Checkpoint: jobs.md Removal Progress
+
+**After Step 6.13:**
+
+1. Verify all code references removed: `rg "jobs\.md" --type py`
+2. Verify CLAUDE.md reference removed: `grep "jobs.md" CLAUDE.md`
+3. Verify skill updates consistent (handoff, design skills reference plan-archive.md)
+
+**Expected state:**
+- No Python code references to jobs.md
+- Skills reference plan-archive.md instead
+- Ready for file deletion (6.14) and final skill update (6.15)
 
 ---
 

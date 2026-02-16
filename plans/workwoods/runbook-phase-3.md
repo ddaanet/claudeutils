@@ -22,12 +22,15 @@
 
 **Test:** `test_parse_worktree_list_porcelain`
 **Assertions:**
-- Parses `worktree /path/to/main` + `branch refs/heads/main` → TreeInfo(path="/path/to/main", branch="main")
-- Parses `worktree /path/to/wt/slug` + `branch refs/heads/slug` → TreeInfo(path="/path/to/wt/slug", branch="slug")
-- Handles multiple worktrees in single output
-- Returns list of TreeInfo objects (internal model for parsing)
+- Input: porcelain format with blocks separated by blank lines
+- Each block contains "worktree <path>" on first line, "branch <ref>" on second line
+- Output: list of TreeInfo objects with path and branch fields
+- Specific case: "worktree /path/to/main\nbranch refs/heads/main\n\n" → TreeInfo(path="/path/to/main", branch="main")
+- Specific case: "worktree /path/to/wt/slug\nbranch refs/heads/slug\n\n" → TreeInfo(path="/path/to/wt/slug", branch="slug")
+- Multi-worktree: two blocks → two TreeInfo objects in list
+- Branch format: "refs/heads/" prefix stripped from output (branch="main", not "refs/heads/main")
 
-**Expected failure:** ImportError (aggregation module doesn't exist)
+**Expected failure:** ImportError: cannot import name '_parse_worktree_list' from 'claudeutils.planstate.aggregation'
 
 **Why it fails:** No aggregation.py module yet
 
@@ -65,12 +68,14 @@
 
 **Test:** `test_main_tree_detection`
 **Assertions:**
-- First worktree in `git worktree list` output is marked is_main=True
-- First worktree has slug=None
-- Other worktrees have is_main=False and slug extracted from path
-- Slug extraction uses path basename (e.g., /path/wt/my-task → "my-task")
+- Input: list with 3 TreeInfo objects representing main + 2 worktrees
+- First TreeInfo: is_main field equals True (boolean True, not truthy value)
+- First TreeInfo: slug field equals None (not empty string)
+- Second TreeInfo: is_main equals False, slug equals "worktree-1" (extracted from path "/path/wt/worktree-1")
+- Third TreeInfo: is_main equals False, slug equals "worktree-2" (extracted from path "/path/wt/worktree-2")
+- Slug extraction verifies basename only (path.name, not parent directories)
 
-**Expected failure:** is_main is always False or slug is None for main tree (detection wrong)
+**Expected failure:** AssertionError: TreeInfo object missing is_main or slug attributes, or is_main=False for first tree
 
 **Why it fails:** Main tree detection logic not implemented
 
@@ -111,12 +116,14 @@
 
 **Test:** `test_commits_since_handoff_counting`
 **Assertions:**
-- With session.md in git history: counts commits from last session.md change to HEAD
-- Without session.md commits: returns 0 (no anchor = no session commits)
-- Uses `git log -1 --format=%H -- agents/session.md` for anchor
-- Uses `git rev-list <anchor>..HEAD --count` for counting
+- Setup: Create git repo, commit session.md, make 3 additional commits (total 4 commits)
+- Call _commits_since_handoff(repo_path) → returns integer 3 (commits after session.md)
+- Edge case: No session.md in history → returns integer 0 (not None or exception)
+- Edge case: session.md modified in HEAD → returns integer 0 (anchor is HEAD itself)
+- Verification: Test uses real subprocess calls to git log and git rev-list (no mocking)
+- Format check: git log command uses `--format=%H` (full hash), git rev-list uses `--count` (integer output)
 
-**Expected failure:** Always returns 0 or raises exception (git command not implemented)
+**Expected failure:** NameError: name '_commits_since_handoff' is not defined, or always returns 0 regardless of commit count
 
 **Why it fails:** No git integration for commit counting
 
@@ -154,12 +161,14 @@
 
 **Test:** `test_latest_commit_extraction`
 **Assertions:**
-- `git log -1 --format=%s%n%ct` returns subject on first line, unix timestamp on second
-- Correctly parses both fields
-- latest_commit_subject contains commit message text
-- latest_commit_timestamp is integer (Unix epoch)
+- Setup: Create git repo, commit with subject "Test commit message"
+- Call _latest_commit(repo_path) → returns tuple (str, int)
+- First element equals "Test commit message" exactly (string match, not substring)
+- Second element is integer type (type(timestamp) == int)
+- Second element value is Unix epoch (10-digit integer, approximately time.time())
+- Verification: Uses real git log command with `--format=%s%n%ct` (subject newline timestamp)
 
-**Expected failure:** Fields not extracted or wrong format
+**Expected failure:** NameError: name '_latest_commit' is not defined, or returns wrong types (not tuple[str, int])
 
 **Why it fails:** Latest commit extraction not implemented
 
@@ -197,11 +206,13 @@
 
 **Test:** `test_dirty_state_detection`
 **Assertions:**
-- `git status --porcelain --untracked-files=no` with empty output → is_dirty=False
-- `git status --porcelain --untracked-files=no` with non-empty output → is_dirty=True
-- Only tracked file changes count (untracked files ignored)
+- Setup: Create git repo, commit tracked file, create clean state
+- Clean state: Call _is_dirty(repo_path) → returns False (boolean False, not falsy value)
+- Dirty state: Modify tracked file without staging, call _is_dirty(repo_path) → returns True
+- Untracked ignored: Create new untracked file, call _is_dirty(repo_path) → returns False (untracked files don't trigger dirty)
+- Verification: Uses git status --porcelain --untracked-files=no (exact command, not --short or other variants)
 
-**Expected failure:** is_dirty always False or always True (detection wrong)
+**Expected failure:** NameError: name '_is_dirty' is not defined, or always returns False even when tracked file modified
 
 **Why it fails:** Dirty state detection not implemented
 
@@ -238,13 +249,14 @@
 
 **Test:** `test_task_summary_extraction`
 **Assertions:**
-- Reads <tree>/agents/session.md
-- Extracts first pending task name via extract_task_blocks()
-- task_summary contains task name string
-- Returns None if no pending tasks exist
-- Returns None if session.md doesn't exist
+- Setup: Create git repo with agents/session.md containing "## Pending Tasks\n- [ ] **Fix bug** — description"
+- Call _task_summary(repo_path) → returns string "Fix bug" (task name only, not markdown formatting)
+- Edge case: session.md exists but no Pending Tasks section → returns None (not exception)
+- Edge case: Pending Tasks section empty (no task lines) → returns None
+- Edge case: session.md file doesn't exist → returns None (not FileNotFoundError)
+- Verification: Uses extract_task_blocks(content, section="Pending Tasks") and returns blocks[0].name
 
-**Expected failure:** task_summary always None or exception when session.md missing
+**Expected failure:** NameError: name '_task_summary' is not defined, or returns None when pending task exists
 
 **Why it fails:** Session.md reading and task extraction not implemented
 
@@ -284,12 +296,14 @@
 
 **Test:** `test_per_tree_plan_discovery`
 **Assertions:**
-- For each tree, runs list_plans(tree_path / "plans")
-- Aggregates all plans across all trees
-- Plans from main tree and worktree trees both included
-- Plans deduplicated by name if same plan exists in multiple trees (main wins)
+- Setup: Create main repo with plans/plan-a/, create worktree with plans/plan-b/
+- Call aggregate_trees() → AggregatedStatus.plans contains 2 PlanState objects
+- Plan names: "plan-a" from main and "plan-b" from worktree both present
+- Deduplication: Create same plan (plans/plan-c/) in both trees → only 1 PlanState in result
+- Deduplication precedence: main tree plan overrides worktree plan (main wins on conflict)
+- Verification: Uses actual list_plans() function (from Phase 1), not mocked
 
-**Expected failure:** Plans from worktrees not discovered or duplicates exist
+**Expected failure:** AggregatedStatus.plans contains only main tree plans, or contains duplicate plan-c entries
 
 **Why it fails:** Per-tree plan scanning not implemented
 
@@ -328,12 +342,13 @@
 
 **Test:** `test_tree_sorting_by_timestamp`
 **Assertions:**
-- Trees sorted with most recent commit first
-- latest_commit_timestamp used as sort key
-- Descending order (highest timestamp = index 0)
-- TreeStatus list in AggregatedStatus.trees is sorted
+- Setup: Create main + 2 worktrees, commit to main at T1, worktree1 at T2, worktree2 at T3 (T3 > T2 > T1)
+- Call aggregate_trees() → AggregatedStatus.trees[0] is worktree2 (most recent)
+- Order verification: trees[0].latest_commit_timestamp > trees[1].latest_commit_timestamp > trees[2].latest_commit_timestamp
+- Specific index check: trees[0].slug == "worktree-2", trees[1].slug == "worktree-1", trees[2].is_main == True
+- Type check: All latest_commit_timestamp values are integers
 
-**Expected failure:** Trees in arbitrary order or sorted incorrectly
+**Expected failure:** Trees in wrong order (main first, or worktree1 before worktree2), or timestamps not descending
 
 **Why it fails:** No sorting applied to trees list
 

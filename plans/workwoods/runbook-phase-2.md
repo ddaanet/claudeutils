@@ -12,6 +12,11 @@
 
 **Estimated Complexity:** Medium (mtime logic + naming convention handling)
 
+**Weak Orchestrator Metadata:**
+- Model: sonnet
+- Total Cycles: 5
+- Restart required: No
+
 ---
 
 ## Cycle 2.1: Source→report mapping for all convention types (parametrized)

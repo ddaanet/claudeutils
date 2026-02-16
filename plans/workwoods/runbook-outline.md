@@ -34,7 +34,7 @@
 - Cycle 1.4: Planned status detection (runbook-phase-*.md files)
 - Cycle 1.5: Ready status detection (steps/ + orchestrator-plan.md)
 - Cycle 1.6: Next action derivation from status
-- Cycle 1.7: Gate attachment from vet status (integration with Phase 2)
+- Cycle 1.7: Gate attachment interface (stub vet call — actual vet.py built in Phase 2; test gate wiring with mock VetStatus)
 - Cycle 1.8: list_plans() helper for directory scanning
 
 **Dependencies:** None (foundation phase)
@@ -45,18 +45,16 @@
 
 **Scope:** `src/claudeutils/planstate/vet.py`
 
-**Complexity:** ~7 cycles (source types, mtime comparison, missing reports, iterative reviews, escalation variants)
+**Complexity:** ~5 cycles (mapping conventions, mtime comparison, missing reports, iterative reviews, escalation variants)
 
 **Model:** sonnet
 
 **Cycles:**
-- Cycle 2.1: Outline.md → reports/outline-review.md mapping
-- Cycle 2.2: Design.md → reports/design-review.md mapping
-- Cycle 2.3: runbook-outline.md → reports/runbook-outline-review.md mapping
-- Cycle 2.4: runbook-phase-N.md → reports/phase-N-review.md mapping with fallback glob
-- Cycle 2.5: Mtime comparison (stale = source_mtime > report_mtime)
-- Cycle 2.6: Missing report handling (report_mtime = None → stale = True)
-- Cycle 2.7: Iterative review handling (highest-numbered or highest-mtime wins)
+- Cycle 2.1: Source→report mapping for all convention types (parametrized: outline→outline-review, design→design-review, runbook-outline→runbook-outline-review, runbook-phase-N→phase-N-review)
+- Cycle 2.2: Phase-level fallback glob (runbook-phase-N when primary pattern missing — checkpoint/vet naming variants)
+- Cycle 2.3: Mtime comparison (stale = source_mtime > report_mtime)
+- Cycle 2.4: Missing report handling (report_mtime = None → stale = True)
+- Cycle 2.5: Iterative review handling (highest-numbered or highest-mtime wins, escalation *-opus.md variants)
 
 **Dependencies:** Phase 1 (planstate module must exist for integration)
 
@@ -110,7 +108,7 @@
 - TDD: `src/claudeutils/worktree/merge.py`, `src/claudeutils/worktree/session.py`
 - General: `agent-core/skills/worktree/SKILL.md`, `agent-core/fragments/execute-rule.md`
 
-**Complexity:** ~10 TDD cycles + 4 general steps
+**Complexity:** ~10 TDD cycles + 3 general steps
 
 **Model:** sonnet (TDD), opus (skill edits)
 
@@ -128,24 +126,23 @@
 - Cycle 5.9: Blockers evaluation strategy (extract, tag with [from: slug], append)
 - Cycle 5.10: Integration test for per-section merge
 
+**Checkpoint 5.mid:** After Cycle 5.10 (TDD portion complete — verify merge strategies pass before skill edits)
+
 **General Steps:**
 - Step 5.11: Update worktree skill Mode C (no auto-rm after merge)
   - Model: opus
   - File: agent-core/skills/worktree/SKILL.md
   - Change: Mode C step 3 exit code 0 path → "Output merge success. To remove: `wt-rm <slug>`"
 
-- Step 5.12: Update execute-rule.md STATUS (use planstate instead of jobs.md)
+- Step 5.12: Update execute-rule.md STATUS + Unscheduled Plans (full planstate transition)
+  - Depends on: Phase 1 (list_plans(), PlanState model)
   - Model: opus
   - File: agent-core/fragments/execute-rule.md
   - Change: Replace jobs.md reads with list_plans() calls
-  - Change: Unscheduled Plans section uses planstate instead of parse_jobs_md()
+  - Change: Unscheduled Plans uses planstate instead of parse_jobs_md()
+  - Change: Remove jobs.md status value references, use PlanState.status
 
-- Step 5.13: Update execute-rule.md Unscheduled Plans (full transition)
-  - Model: opus
-  - File: agent-core/fragments/execute-rule.md (continuation)
-  - Change: Remove jobs.md status value reference, use PlanState.status
-
-- Step 5.14: Verify Phase 5 changes with integration test
+- Step 5.13: Verify Phase 5 changes with integration test
   - Model: sonnet
   - Action: Run test suite for merge + session parsing
   - Expected: All tests pass
@@ -160,7 +157,7 @@
 - TDD: `src/claudeutils/validation/planstate.py`
 - General: Migration, removals, skill updates
 
-**Complexity:** ~6 TDD cycles + 8 general steps
+**Complexity:** ~6 TDD cycles + 9 general steps
 
 **Model:** sonnet (TDD), opus (skill edits), sonnet (removals)
 
@@ -198,17 +195,22 @@
   - Files: src/claudeutils/validation/jobs.py, cli.py (remove import/call)
   - Action: Delete jobs.py, remove from cli.py _run_all_validators()
 
-- Step 6.12: Remove _resolve_jobs_md_conflict() from merge.py
+- Step 6.12: Remove all jobs.md references from merge.py
   - Model: sonnet
   - File: src/claudeutils/worktree/merge.py
-  - Change: Remove function and call from _phase3_merge_parent()
-
-- Step 6.13: Remove jobs.md from merge exempt_paths
-  - Model: sonnet
-  - File: src/claudeutils/worktree/merge.py
+  - Change: Remove _resolve_jobs_md_conflict() function and call from _phase3_merge_parent()
   - Change: Remove "agents/jobs.md" from exempt_paths set in _phase1_validate_clean_trees()
 
-- Step 6.14: Update worktree skill Mode B (read planstate instead of jobs.md)
+- Step 6.13: Update focus_session() if it references jobs.md
+  - Model: sonnet
+  - File: src/claudeutils/worktree/session.py (or location of focus_session)
+  - Change: Remove or update any jobs.md reference in focus_session()
+
+- Step 6.14: Delete agents/jobs.md
+  - Model: sonnet
+  - Action: Remove agents/jobs.md from repository
+
+- Step 6.15: Update worktree skill Mode B (read planstate instead of jobs.md)
   - Model: opus
   - File: agent-core/skills/worktree/SKILL.md
   - Change: Parallel group analysis uses list_plans() instead of parse_jobs_md()
@@ -233,12 +235,12 @@
 | Phase | Cycles/Steps | Type | Model | Estimated Effort |
 |-------|-------------|------|-------|-----------------|
 | 1 | 8 cycles | TDD | sonnet | Medium (new module setup) |
-| 2 | 7 cycles | TDD | sonnet | Medium (mtime logic + conventions) |
+| 2 | 5 cycles | TDD | sonnet | Medium (mtime logic + conventions) |
 | 3 | 8 cycles | TDD | sonnet | High (git interaction complexity) |
 | 4 | 6 cycles | TDD | sonnet | Low-Medium (CLI output formatting) |
-| 5 | 10 cycles + 4 steps | Mixed | sonnet + opus | High (merge refactor + skill edits) |
-| 6 | 6 cycles + 8 steps | Mixed | sonnet + opus | Medium (validator + removals) |
-| **Total** | **45 cycles + 12 steps** | | | **~57 items** |
+| 5 | 10 cycles + 3 steps | Mixed | sonnet + opus | High (merge refactor + skill edits) |
+| 6 | 6 cycles + 9 steps | Mixed | sonnet + opus | Medium (validator + removals) |
+| **Total** | **43 cycles + 12 steps** | | | **~55 items** |
 
 ## Checkpoints
 
@@ -261,8 +263,9 @@
 - Gate computation integrated after status inference
 
 **Phase 2 expansion notes:**
+- Cycles consolidated from 7→5: source→report mappings are parametrized (one cycle for standard conventions, one for phase-level fallback glob)
 - Use os.utime() in tests to set known mtimes
-- Cover all source artifact types from vet chain conventions table
+- Cover all source artifact types from design Vet Chain Conventions table
 - Handle iterative review numbering (highest-numbered file wins)
 - Handle escalation variants (*-opus.md suffix)
 - Only most recent report counts per source artifact
@@ -304,6 +307,13 @@ The D-5 per-section merge strategies table is binding on planners and implemente
 - Reference Files: Squash (keep ours)
 - Next Steps: Squash (keep ours)
 
+**Vacuity notes:**
+- Cycles 5.2-5.7 (keep-ours strategies) are low-branch-point: each strategy is identical (return ours section unchanged). Consider parametrizing as a single cycle with 6 section names, plus separate cycles for the two non-trivial strategies (Pending Tasks additive, Blockers evaluate).
+
+**Growth projection:**
+- worktree/cli.py: 382 lines + ~70 lines (rich output formatting) = ~452 lines. Exceeds 400-line threshold. Consider extracting rich formatting into a separate `format.py` or `display.py` module during Phase 4 expansion if growth materializes.
+- worktree/merge.py: 307 lines + ~90 lines (per-section strategies) - ~25 lines (jobs conflict removal in Phase 6) = ~372 lines. Within threshold but monitor.
+
 **Investigation prerequisites:**
 - Phase 3 cycles touching git operations need prerequisite: Read explore-worktree-cli.md to understand worktree discovery
 - Phase 4 cycles need prerequisite: Read current cli.py ls implementation
@@ -312,7 +322,7 @@ The D-5 per-section merge strategies table is binding on planners and implemente
 
 ## Affected Files Summary
 
-**New files (6):**
+**New files (7):**
 - src/claudeutils/planstate/__init__.py
 - src/claudeutils/planstate/models.py
 - src/claudeutils/planstate/inference.py

@@ -10,13 +10,21 @@
 
 **Dependencies:** None (foundation phase)
 
+**Note:** Files in scope do not exist yet — this phase creates them. File references are validated as creation targets, not existing paths.
+
 **Execution Model:** Sonnet (standard TDD implementation)
 
 **Estimated Complexity:** Medium (new module setup with clear requirements)
 
+**Weak Orchestrator Metadata:**
+- Total Steps: 8
+- Restart required: No
+
 ---
 
 ## Cycle 1.1: Empty directory detection (not a plan)
+
+**Rationale:** Testing empty directory first establishes the None-return baseline and list_plans() filtering contract. This is foundational behavior that all subsequent cycles depend on (empty dirs must not appear in results). Alternative ordering (happy path first) would require mocking list_plans() filtering before implementing it.
 
 **Prerequisite:** Read design State Inference Rules table for artifact patterns.
 
@@ -24,11 +32,11 @@
 
 **Test:** `test_empty_directory_not_a_plan`
 **Assertions:**
-- `infer_state(tmp_path / "plans/empty")` returns `None` (not a plan)
-- Empty directory in plans/ should be filtered out by list_plans()
-- No exception raised for empty directory
+- `infer_state(tmp_path / "plans/empty")` returns exactly `None` (type check: `result is None`)
+- `list_plans(tmp_path / "plans")` returns empty list `[]` when only empty directories exist
+- No exception raised for empty directory (no try/except needed)
 
-**Expected failure:** TypeError or AttributeError (infer_state not implemented)
+**Expected failure:** `ModuleNotFoundError: No module named 'claudeutils.planstate'` (module doesn't exist)
 
 **Why it fails:** No planstate module exists yet
 
@@ -67,17 +75,22 @@
 
 ---
 
-## Cycle 1.2: Requirements status detection (requirements.md only)
+## Cycle 1.2-1.5: Status priority detection (consolidated)
+
+**Note:** These four cycles test status inference with different artifact combinations. They are kept separate for incremental RED→GREEN progression, but could be collapsed into a single parametrized test after Cycle 1.5 completes. Each cycle adds one artifact type to the priority chain.
+
+### Cycle 1.2: Requirements status detection (requirements.md only)
 
 **RED Phase:**
 
 **Test:** `test_requirements_status_detection`
 **Assertions:**
-- `infer_state(plan_dir).status == "requirements"` when only requirements.md exists
-- `infer_state(plan_dir).artifacts == {"requirements.md"}`
-- Returns PlanState object with name matching directory name
+- `infer_state(plan_dir).status` equals string `"requirements"` (exact match) when only requirements.md exists
+- `infer_state(plan_dir).artifacts` equals set `{"requirements.md"}` (exact set equality)
+- `infer_state(plan_dir).name` equals directory basename (e.g., `"test-plan"` for `plans/test-plan/`)
+- Result is PlanState instance (type check: `isinstance(result, PlanState)`)
 
-**Expected failure:** Status is None or wrong value (inference logic not implemented)
+**Expected failure:** `AttributeError: 'NoneType' object has no attribute 'status'` (infer_state returns None, not PlanState)
 
 **Why it fails:** infer_state() doesn't scan for requirements.md yet
 
@@ -108,17 +121,18 @@
 
 ---
 
-## Cycle 1.3: Designed status detection (design.md exists)
+### Cycle 1.3: Designed status detection (design.md exists)
 
 **RED Phase:**
 
 **Test:** `test_designed_status_detection`
 **Assertions:**
-- `infer_state(plan_dir).status == "designed"` when design.md exists
-- Status is "designed" even if requirements.md also exists (higher priority wins)
-- `infer_state(plan_dir).artifacts` includes both "requirements.md" and "design.md"
+- `infer_state(plan_dir).status == "designed"` (exact string) when design.md exists
+- Status is `"designed"` even if requirements.md also exists (priority: designed > requirements)
+- `infer_state(plan_dir).artifacts == {"requirements.md", "design.md"}` (exact set with both files)
+- Test fixture creates both requirements.md and design.md in plan_dir
 
-**Expected failure:** Status is "requirements" instead of "designed" (priority logic wrong)
+**Expected failure:** `AssertionError: assert 'requirements' == 'designed'` (status returns lower priority, not higher)
 
 **Why it fails:** Artifact priority not implemented correctly
 
@@ -149,17 +163,18 @@
 
 ---
 
-## Cycle 1.4: Planned status detection (runbook-phase-*.md files)
+### Cycle 1.4: Planned status detection (runbook-phase-*.md files)
 
 **RED Phase:**
 
 **Test:** `test_planned_status_detection`
 **Assertions:**
-- `infer_state(plan_dir).status == "planned"` when runbook-phase-*.md files exist
-- Status is "planned" even if design.md exists (higher priority wins)
-- `artifacts` set includes "runbook-phase-1.md", "runbook-phase-2.md" (actual filenames)
+- `infer_state(plan_dir).status == "planned"` (exact string) when runbook-phase-*.md files exist
+- Status is `"planned"` even if design.md exists (priority: planned > designed)
+- `infer_state(plan_dir).artifacts` is superset of `{"runbook-phase-1.md", "runbook-phase-2.md"}` (contains at least these)
+- Test fixture creates design.md + runbook-phase-1.md + runbook-phase-2.md
 
-**Expected failure:** Status is "designed" instead of "planned" (glob pattern not working)
+**Expected failure:** `AssertionError: assert 'designed' == 'planned'` (glob pattern not working, status stays at designed)
 
 **Why it fails:** No glob pattern for runbook-phase-*.md files
 
@@ -190,17 +205,18 @@
 
 ---
 
-## Cycle 1.5: Ready status detection (steps/ + orchestrator-plan.md)
+### Cycle 1.5: Ready status detection (steps/ + orchestrator-plan.md)
 
 **RED Phase:**
 
 **Test:** `test_ready_status_detection`
 **Assertions:**
-- `infer_state(plan_dir).status == "ready"` when steps/ directory and orchestrator-plan.md exist
-- Status is "ready" even if runbook-phase-*.md files exist (highest priority)
-- `artifacts` includes "steps/" (directory marker) and "orchestrator-plan.md"
+- `infer_state(plan_dir).status == "ready"` (exact string) when both steps/ directory and orchestrator-plan.md exist
+- Status is `"ready"` even if runbook-phase-*.md files exist (priority: ready > planned)
+- `infer_state(plan_dir).artifacts` is superset of `{"steps/", "orchestrator-plan.md"}` (contains at least these markers)
+- Test fixture creates all artifacts: design.md, runbook-phase-1.md, steps/ directory (via mkdir), orchestrator-plan.md
 
-**Expected failure:** Status is "planned" instead of "ready" (steps/ detection missing)
+**Expected failure:** `AssertionError: assert 'planned' == 'ready'` (steps/ directory detection not implemented)
 
 **Why it fails:** No detection for steps/ directory and orchestrator-plan.md
 
@@ -237,12 +253,13 @@
 
 **Test:** `test_next_action_derivation`
 **Assertions:**
-- `infer_state(requirements_only).next_action == "/design plans/<name>/requirements.md"` for requirements status
-- `infer_state(designed).next_action == "/runbook plans/<name>/design.md"` for designed status
-- `infer_state(planned).next_action == "agent-core/bin/prepare-runbook.py plans/<name>"` for planned status (note: per design, this should be the full path)
-- `infer_state(ready).next_action == "/orchestrate <name>"` for ready status
+- Requirements status: `infer_state(requirements_only).next_action == "/design plans/test-plan/requirements.md"` (exact string with plan name substituted)
+- Designed status: `infer_state(designed).next_action == "/runbook plans/test-plan/design.md"` (exact string)
+- Planned status: `infer_state(planned).next_action == "agent-core/bin/prepare-runbook.py plans/test-plan"` (exact string, full path per design)
+- Ready status: `infer_state(ready).next_action == "/orchestrate test-plan"` (exact string with plan name)
+- Use parametrized test with 4 fixtures (one per status)
 
-**Expected failure:** next_action is empty string or None (derivation not implemented)
+**Expected failure:** `AssertionError: assert '' == '/design plans/test-plan/requirements.md'` or `assert None == '/design ...'` (next_action field is empty/None)
 
 **Why it fails:** next_action field not populated from status
 
@@ -282,11 +299,12 @@
 
 **Test:** `test_gate_attachment_with_mock`
 **Assertions:**
-- `infer_state(plan_dir).gate` is None when vet status has no stale chains
-- `infer_state(plan_dir).gate == "design vet stale — re-vet before planning"` when mock vet status returns stale design
-- Gate is None by default (no vet status available)
+- `infer_state(plan_dir).gate is None` (exact None check) when vet status has no stale chains (all fresh)
+- `infer_state(plan_dir).gate == "design vet stale — re-vet before planning"` (exact string) when mock VetStatus returns stale design.md → design-review.md chain
+- `infer_state(plan_dir).gate is None` when no vet_status_func provided (default behavior)
+- Mock VetStatus with `VetChain(source="design.md", report="reports/design-review.md", stale=True, source_mtime=200.0, report_mtime=100.0)`
 
-**Expected failure:** PlanState has no gate field or gate is always None (interface not wired)
+**Expected failure:** `AttributeError: 'PlanState' object has no attribute 'gate'` (field doesn't exist in dataclass)
 
 **Why it fails:** Gate field not populated, no integration point for vet status
 
@@ -328,12 +346,13 @@
 
 **Test:** `test_list_plans_directory_scanning`
 **Assertions:**
-- `list_plans(plans_dir)` returns list of PlanState objects for all plan directories
-- Plans in plans/ are included, plans/reports/ is excluded
-- Empty directories are excluded (return None from infer_state → filtered)
-- Returns empty list if plans_dir doesn't exist
+- `list_plans(plans_dir)` returns `list[PlanState]` with length 2 when plans/ contains "plan-a" (with requirements.md) and "plan-b" (with design.md)
+- `"reports"` directory excluded (not in result list even if present in plans/)
+- Empty directories excluded (create "empty-dir" with no artifacts → not in result)
+- `list_plans(tmp_path / "nonexistent")` returns empty list `[]` (no exception for missing directory)
+- Result list item names match directory names: `[ps.name for ps in result] == ["plan-a", "plan-b"]` (sorted)
 
-**Expected failure:** NameError (list_plans not defined)
+**Expected failure:** `NameError: name 'list_plans' is not defined` (function doesn't exist)
 
 **Why it fails:** Helper function not implemented
 

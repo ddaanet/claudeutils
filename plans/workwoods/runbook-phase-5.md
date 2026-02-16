@@ -31,10 +31,11 @@
 
 **Test:** `test_section_identification`
 **Assertions:**
-- find_section_bounds(content, "Pending Tasks") returns (start_line, end_line) tuple
-- find_section_bounds(content, "Worktree Tasks") finds section correctly
-- find_section_bounds(content, "Blockers / Gotchas") handles slash in header name
-- Returns None for non-existent sections
+- find_section_bounds(content, "Pending Tasks") returns tuple (2, 8) for content with Pending Tasks at line 2, next section at line 8
+- find_section_bounds(content, "Worktree Tasks") returns tuple (9, 14) for section at line 9
+- find_section_bounds(content, "Blockers / Gotchas") returns tuple (15, 20) for section with slash in name
+- find_section_bounds(content, "Nonexistent") returns None
+- Section at EOF: returns (N, len(lines)) where N is section start line
 
 **Expected failure:** Test passes (find_section_bounds already exists) OR new test reveals edge cases
 
@@ -234,6 +235,21 @@
 
 ---
 
+## Checkpoint 5.a: Section strategies (squash + additive)
+
+**After Cycle 5.5:**
+
+1. Run test suite: `pytest tests/test_worktree_merge_sections.py -v`
+2. Verify 5 tests pass (section identification + 4 section strategies)
+3. Functional check: Core merge refactor complete, remaining cycles build on this foundation
+
+**Expected state:**
+- Section-based merge architecture implemented
+- Status line, Completed, Pending Tasks, Worktree Tasks strategies working
+- No regression in existing worktree merge tests
+
+---
+
 ### Cycle 5.6: Reference Files strategy (keep ours)
 
 **RED Phase:**
@@ -322,10 +338,10 @@
 
 **Test:** `test_extract_blockers_function`
 **Assertions:**
-- extract_blockers(content) returns list of blocker items as line groups
-- Each blocker is a list of strings (bullet + continuation lines)
-- Handles multi-line blockers correctly
-- Returns empty list if no Blockers section
+- extract_blockers(content) with single blocker `"- Issue X\n  Details here"` returns `[["- Issue X", "  Details here"]]`
+- extract_blockers(content) with two blockers returns list of length 2, each containing their respective lines
+- extract_blockers(content) with no Blockers section returns empty list `[]`
+- Multi-line blocker with 3 continuation lines returns list item with 4 strings (bullet + 3 continuations)
 
 **Expected failure:** NameError (extract_blockers not defined)
 
@@ -413,14 +429,13 @@
 
 **Test:** `test_full_session_md_merge_integration`
 **Assertions:**
-- Complete session.md merge with all sections present in ours and theirs
-- Status line: ours preserved
-- Completed: ours preserved
-- Pending Tasks: additive merge
-- Worktree Tasks: ours preserved
-- Blockers: theirs tagged and appended
-- Reference Files: ours preserved
-- Next Steps: ours preserved
+- Status line: ours `"# Session Handoff: 2026-02-16"` preserved, theirs `"2026-02-15"` discarded
+- Completed This Session: ours section with 2 items preserved, theirs section with 1 item discarded
+- Pending Tasks: ours has task A+B, theirs has B+C → result contains A, B, C (no duplicate B)
+- Worktree Tasks: ours section preserved, theirs discarded
+- Blockers: ours has 1 blocker, theirs has 2 → result has 3 total, theirs two tagged with `[from: test-slug]`
+- Reference Files: ours section preserved, theirs discarded
+- Next Steps: ours section preserved, theirs discarded
 
 **Expected failure:** Some sections not handled correctly in integration
 
@@ -471,6 +486,8 @@
 
 ### Step 5.11: Update worktree skill Mode C (no auto-rm after merge)
 
+**Prerequisite:** Read `agent-core/skills/worktree/SKILL.md` Mode C section (lines 84-114) — understand merge ceremony workflow and exit code 0 auto-rm behavior.
+
 **Model:** Opus (skill modification per design directive)
 
 **File:** `agent-core/skills/worktree/SKILL.md`
@@ -479,7 +496,7 @@
 
 **Implementation:**
 
-Read worktree skill Mode C (lines 84-114) and locate step 3 exit code 0 path.
+Locate step 3 exit code 0 path in Mode C.
 
 **Current behavior (lines ~97-101):**
 ```
@@ -512,6 +529,8 @@ Exit code 0 (merge success):
 
 **Depends on:** Phase 1 (list_plans(), PlanState model)
 
+**Prerequisite:** Read `agent-core/fragments/execute-rule.md` STATUS mode section (lines 16-54) — understand current jobs.md data source and Unscheduled Plans display format.
+
 **Model:** Opus (fragment modification per design directive)
 
 **File:** `agent-core/fragments/execute-rule.md`
@@ -520,23 +539,23 @@ Exit code 0 (merge success):
 
 **Implementation:**
 
-Read execute-rule.md STATUS display format section (lines ~20-50).
+Locate STATUS display format section and Unscheduled Plans subsection.
 
 **Changes needed:**
 
-1. **STATUS display format** (lines ~23-42):
-   - Replace "Read `agents/jobs.md` for all plans" with "Call `list_plans(Path('plans'))` for all plans"
-   - Replace "Exclude plans that appear in any pending task" logic (unchanged)
-   - Update **Status source** line (~line 48): "Read planstate via list_plans() as authoritative source for plan status"
+1. **Pending list format subsection**:
+   - Locate line `"Nested line: plan directory, status from jobs.md, notes if present"`
+   - Replace with: `"Nested line: plan directory, status from planstate, notes if present"`
 
-2. **Unscheduled Plans section** (lines ~35-42):
-   - Current: "Read `agents/jobs.md` for all plans... Status values: `complete`, `planned`, `designed`, `requirements`"
-   - New: "Plans in jobs.md that have no..." → "Plans returned by list_plans() that have no..."
-   - Status values come from PlanState.status field, not jobs.md column
+2. **Unscheduled Plans subsection**:
+   - Locate line `"Read \`agents/jobs.md\` for all plans"`
+   - Replace with: `"Call list_plans(Path('plans')) for all plans"`
+   - Locate `"Status values: \`complete\`, \`planned\`, \`designed\`, \`requirements\`"`
+   - Replace with: `"Status values: \`requirements\`, \`designed\`, \`planned\`, \`ready\`"` (Phase 1 PlanState enum values)
 
-3. **Remove jobs.md @-reference note**:
-   - Find any mentions of jobs.md as data source
-   - Replace with planstate module references
+3. **Status source line**:
+   - Locate `"Read \`agents/jobs.md\` as authoritative source for plan status and notes"`
+   - Replace with: `"Call list_plans() as authoritative source for plan status; session.md for task notes"`
 
 **Expected Outcome:** STATUS mode uses planstate exclusively, no jobs.md references remain.
 

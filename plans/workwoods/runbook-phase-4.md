@@ -12,6 +12,8 @@
 
 **Estimated Complexity:** Low-Medium (CLI output formatting with backward compatibility)
 
+**Total Steps:** 6 cycles
+
 ---
 
 ## Cycle 4.1: Add --porcelain flag to ls command
@@ -106,16 +108,20 @@
 
 ## Cycle 4.3: Rich mode header format (slug/branch, dirty indicator, commits)
 
+**Prerequisite:** Verify `src/claudeutils/planstate/aggregation.py` exists with `aggregate_trees()` function (Phase 1-3 dependency). If missing, STOP — Phase 4 requires completed planstate module.
+
 **RED Phase:**
 
 **Test:** `test_rich_mode_header_format`
 **Assertions:**
-- First line contains: `<slug|"main"> (<branch>)  <●|○>  <N commits since handoff | "clean">`
-- `●` appears when is_dirty=True
-- `○` appears when is_dirty=False
-- Commits count appears when >0, "clean" appears when 0
+- For worktree with slug="test-wt", branch="feature", is_dirty=True, commits_since_handoff=3:
+  - Output contains: `test-wt (feature)  ●  3 commits since handoff`
+- For main tree with is_dirty=False, commits_since_handoff=0:
+  - Output contains: `main (main)  ○  clean`
+- Dirty indicator: `●` when is_dirty=True, `○` when is_dirty=False
+- Commit status: "N commits since handoff" when >0, "clean" when 0
 
-**Expected failure:** Rich output not formatted or missing elements
+**Expected failure:** Rich output not formatted or missing elements (AttributeError accessing TreeStatus fields)
 
 **Why it fails:** Rich output formatting not implemented
 
@@ -126,15 +132,14 @@
 **Implementation:** Format header line from TreeStatus fields
 
 **Behavior:**
-- Call aggregate_trees() from planstate.aggregation
-- For each tree in trees list:
-  - Format slug (or "main" if is_main=True)
-  - Format branch in parentheses
-  - Format dirty indicator (● or ○)
-  - Format commits/clean status
-- Click.echo() each formatted line
+- Call aggregate_trees() from planstate.aggregation to get list of TreeStatus objects
+- For each tree: format and output header line with slug/branch, dirty indicator, commit status
+- Slug display: show tree.slug, or "main" when tree.is_main=True
+- Dirty indicator: "●" when tree.is_dirty=True, "○" when False
+- Commit status: "N commits since handoff" when tree.commits_since_handoff > 0, "clean" when 0
+- Output each formatted header line via click.echo()
 
-**Approach:** String formatting with f-strings, conditional ●/○ selection
+**Hint:** Use f-string formatting with conditional expressions for dirty indicator and commit status
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
@@ -160,12 +165,13 @@
 
 **Test:** `test_rich_mode_task_line`
 **Assertions:**
-- Task line appears when task_summary is not None: `  Task: <task_name>`
-- Task line omitted when task_summary is None (no pending tasks)
-- Indentation is 2 spaces
-- Only first pending task shown
+- For tree with task_summary="Implement foo feature":
+  - Output contains exactly: `  Task: Implement foo feature` (2-space indent)
+- For tree with task_summary=None:
+  - Output does NOT contain any line starting with "  Task:"
+- Task line appears directly after header line for same tree
 
-**Expected failure:** Task line not displayed or wrong format
+**Expected failure:** Task line not displayed (no conditional task_summary output in rich mode)
 
 **Why it fails:** Task line formatting not added to rich output
 
@@ -176,11 +182,12 @@
 **Implementation:** Add task line when task_summary exists
 
 **Behavior:**
-- Check if tree.task_summary is not None
-- If exists: click.echo(f"  Task: {tree.task_summary}")
-- If None: skip line (no output)
+- After header line, check if current tree has task_summary
+- When task_summary is not None: output task line with 2-space indent showing task name
+- When task_summary is None: skip task line (no output for that tree)
+- Task line format: "  Task: " followed by task_summary content
 
-**Approach:** Conditional output based on task_summary field
+**Hint:** Use conditional to check task_summary is not None before outputting line
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
@@ -202,12 +209,15 @@
 
 **Test:** `test_rich_mode_plan_line`
 **Assertions:**
-- Plan line format: `  Plan: <plan-name> [<status>] → <next-action>`
-- One plan line per plan in that tree
-- Plans from AggregatedStatus.plans filtered to current tree
-- Indentation is 2 spaces
+- For tree containing plan "foo" with status="designed", next_action="/runbook plans/foo/design.md":
+  - Output contains exactly: `  Plan: foo [designed] → /runbook plans/foo/design.md` (2-space indent)
+- For tree with multiple plans (foo, bar):
+  - Output contains both plan lines in same tree section
+- For tree with no plans:
+  - Output does NOT contain any line starting with "  Plan:"
+- Plans filtered by tree: only plans in current tree's plans/ directory shown
 
-**Expected failure:** Plan line not displayed or plans not filtered by tree
+**Expected failure:** Plan line not displayed (AttributeError accessing PlanState fields or plan filtering not implemented)
 
 **Why it fails:** Plan line formatting not implemented or plan→tree association missing
 
@@ -218,18 +228,18 @@
 **Implementation:** Display plan lines for plans in current tree
 
 **Behavior:**
-- For each plan in aggregated_status.plans:
-  - Check if plan's directory is in current tree (match tree path)
-  - Format: f"  Plan: {plan.name} [{plan.status}] → {plan.next_action}"
-  - Click.echo() the line
-- Multiple plans per tree supported
+- After task line (or header if no task), iterate through aggregated_status.plans
+- Filter to plans belonging to current tree (plan directory under tree path)
+- For each matching plan: output plan line with 2-space indent
+- Plan line format: "  Plan: " + plan name + " [" + status + "] → " + next_action
+- Support multiple plans per tree (output one line per plan)
 
-**Approach:** Filter plans by checking if plan directory is under tree path
+**Hint:** Compare plan directory path against current tree path to filter; output each plan line with click.echo()
 
 **Changes:**
-- File: `src/claudeutils/planstate/aggregation.py`
-  Action: Add tree_path field to PlanState or store tree association in AggregatedStatus
-  Location hint: Modify list_plans() to track source tree
+- File: `src/claudeutils/planstate/aggregation.py` (Phase 1-3 artifact)
+  Action: Verify PlanState includes tree association for filtering (may need tree_path field or path-based filtering)
+  Location hint: Check AggregatedStatus.plans structure; if tree association missing, add in aggregation logic
 
 - File: `src/claudeutils/worktree/cli.py`
   Action: Add plan line output after task line in rich formatting loop
@@ -250,12 +260,14 @@
 
 **Test:** `test_rich_mode_gate_line`
 **Assertions:**
-- Gate line appears when plan.gate is not None: `  Gate: <gate_message>`
-- Gate line omitted when plan.gate is None
-- Indentation is 2 spaces
-- Only shown for plans with stale vet status
+- For plan with gate="vet stale — re-vet first":
+  - Output contains exactly: `  Gate: vet stale — re-vet first` (2-space indent)
+  - Gate line appears directly after plan line for same plan
+- For plan with gate=None:
+  - Output does NOT contain any line starting with "  Gate:" for that plan
+- Gate line only shown when plan.gate is not None
 
-**Expected failure:** Gate line not displayed
+**Expected failure:** Gate line not displayed (no conditional gate output in rich mode)
 
 **Why it fails:** Gate line formatting not added to rich output
 
@@ -266,11 +278,12 @@
 **Implementation:** Add gate line when plan has gate condition
 
 **Behavior:**
-- After plan line, check if plan.gate is not None
-- If gate exists: click.echo(f"  Gate: {plan.gate}")
-- If None: skip line
+- After each plan line, check if that plan has a gate condition
+- When plan.gate is not None: output gate line with 2-space indent showing gate message
+- When plan.gate is None: skip gate line for that plan
+- Gate line format: "  Gate: " followed by gate message content
 
-**Approach:** Conditional output based on gate field
+**Hint:** Check plan.gate immediately after outputting each plan line; use conditional to skip when None
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
