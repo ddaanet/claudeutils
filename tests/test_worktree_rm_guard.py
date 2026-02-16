@@ -424,3 +424,87 @@ def test_rm_refuses_unmerged_real_history(
         capture_output=True,
     )
     assert branch_check_orphan.returncode == 0, "Orphan branch was removed but should exist"
+
+
+def test_rm_allows_merged_branch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """Verify rm allows merged branch removal with safe delete.
+
+    Tests that worktree rm allows removal of merged branches using git branch -d
+    (safe delete) and outputs appropriate success message.
+    """
+    from click.testing import CliRunner
+
+    from claudeutils.worktree.cli import worktree
+
+    repo_path = tmp_path / "test-repo"
+    repo_path.mkdir()
+    init_repo(repo_path)
+    monkeypatch.chdir(repo_path)
+
+    runner = CliRunner()
+
+    # Create branch with commit
+    subprocess.run(
+        ["git", "checkout", "-b", "merged-branch"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    (repo_path / "merged-file.txt").write_text("merged content")
+    subprocess.run(
+        ["git", "add", "merged-file.txt"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Commit on merged branch"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Switch back to main and merge the branch
+    subprocess.run(
+        ["git", "checkout", "main"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "merge", "merged-branch", "--no-edit"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create worktree for merged branch
+    worktree_path = repo_path / "wt" / "merged-branch"
+    worktree_path.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["git", "worktree", "add", str(worktree_path), "merged-branch"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Call worktree rm merged-branch
+    result = runner.invoke(worktree, ["rm", "merged-branch"])
+
+    # Verify exit code is 0 (success)
+    assert result.exit_code == 0, f"Expected exit code 0 but got {result.exit_code}"
+
+    # Verify branch was deleted
+    branch_check = subprocess.run(
+        ["git", "rev-parse", "--verify", "merged-branch"],
+        cwd=repo_path,
+        capture_output=True,
+    )
+    assert branch_check.returncode != 0, "Branch should be deleted"
+
+    # Verify output contains expected message (without "worktree" qualifier)
+    assert (
+        "Removed merged-branch" in result.output
+    ), f"Expected 'Removed merged-branch' in output but got: {result.output}"

@@ -307,6 +307,23 @@ def add_commit(files: tuple[str, ...]) -> None:
         click.echo(_git("commit", "-m", click.get_text_stream("stdin").read()))
 
 
+def _get_worktree_path_for_branch(slug: str) -> Path | None:
+    """Get the actual worktree path for a branch from git."""
+    list_output = _git("worktree", "list", "--porcelain", check=False)
+    lines = list_output.split("\n")
+
+    worktree_path = None
+    for i, line in enumerate(lines):
+        if line.startswith("worktree "):
+            worktree_path = Path(line[len("worktree ") :])
+        elif line.startswith("branch ") and worktree_path:
+            branch_ref = line[len("branch ") :]
+            if branch_ref == f"refs/heads/{slug}":
+                return worktree_path
+            worktree_path = None
+    return None
+
+
 def _probe_registrations(worktree_path: Path) -> tuple[bool, bool]:
     """Check parent and submodule worktree registration."""
     parent_list = _git("worktree", "list", "--porcelain", check=False)
@@ -374,6 +391,8 @@ def merge(slug: str) -> None:
 def rm(slug: str) -> None:
     """Remove worktree and its branch."""
     # Guard: refuse removal of unmerged real history
+    branch_exists = False
+    is_merged = False
     branch_check = subprocess.run(
         ["git", "rev-parse", "--verify", slug],
         capture_output=True,
@@ -381,8 +400,10 @@ def rm(slug: str) -> None:
         check=False,
     )
     if branch_check.returncode == 0:
+        branch_exists = True
         # Branch exists - check if merged
-        if not _is_branch_merged(slug):
+        is_merged = _is_branch_merged(slug)
+        if not is_merged:
             # Not merged - check if it's just the focused-session marker
             count, is_focused = _classify_branch(slug)
             if count != 1 or not is_focused:
@@ -399,7 +420,11 @@ def rm(slug: str) -> None:
                     )
                 raise click.Abort()
 
-    worktree_path = wt_path(slug)
+    # Get actual worktree path from git, fall back to wt_path() if not found
+    worktree_path = _get_worktree_path_for_branch(slug)
+    if worktree_path is None:
+        worktree_path = wt_path(slug)
+
     parent_reg, submodule_reg = _probe_registrations(worktree_path)
 
     if worktree_path.exists():
@@ -414,20 +439,24 @@ def rm(slug: str) -> None:
 
     if parent_reg or submodule_reg:
         _remove_worktrees(worktree_path, parent_reg, submodule_reg)
-    else:
-        _git("worktree", "prune")
-
-    r = subprocess.run(
-        ["git", "branch", "-d", slug], capture_output=True, text=True, check=False
-    )
-    if r.returncode != 0 and "not found" not in r.stderr.lower():
-        click.echo(f"Branch {slug} has unmerged changes — use: git branch -D {slug}")
 
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
+
+    _git("worktree", "prune")
 
     container = worktree_path.parent
     if container.exists() and not list(container.iterdir()):
         container.rmdir()
 
-    click.echo(f"Removed worktree {slug}")
+    if branch_exists:
+        r = subprocess.run(
+            ["git", "branch", "-d", slug], capture_output=True, text=True, check=False
+        )
+        if r.returncode != 0 and "not found" not in r.stderr.lower():
+            click.echo(f"Branch {slug} has unmerged changes — use: git branch -D {slug}")
+
+    if is_merged:
+        click.echo(f"Removed {slug}")
+    else:
+        click.echo(f"Removed worktree {slug}")
