@@ -1,35 +1,34 @@
 # Session Handoff: 2026-02-16
 
-**Status:** Vet proportionality merged. Commit skill allowlist fix applied. worktree-merge-data-loss blocked on lint debt. 4 worktrees active.
+**Status:** 2 worktrees merged (merge-data-loss, rm-amend). Deliverable review complete. 3 worktrees active. Backlog re-scored (27 tasks).
 
 ## Completed This Session
 
-**Worktree skill fixes:**
-- Sandbox bypass annotations on all mutation commands (`new`, `merge`, `rm`) in SKILL.md and sandbox-exemptions.md
-- Mode C step 3: `_worktree rm` session.md cleanup now amends merge commit (not separate commit)
+**worktree-merge-data-loss merged:**
+- Lint debt fixed in worktree (70 ruff violations, 3 files over 400-line limit)
+- Conflict resolved: `agent-core/skills/commit/SKILL.md` — main's separate-Bash-calls + branch's Gate bullet
+- 13 TDD cycles (Track 1 removal guard + Track 2 merge correctness) + 1 general step (SKILL.md Mode C)
+- Deliverable review (3 opus agents parallel): 0 critical, 3 major, 6 minor
+  - Root: incomplete exit 2 handling in `_delete_branch` (cli.py:351)
+  - Report: `plans/worktree-merge-data-loss/reports/deliverable-review.md`
 
-**Vet proportionality (merged from worktree):**
-- Proportionality threshold in `vet-requirement.md` — self-review for ≤5 lines, ≤2 files, additive/corrective
-- Commit skill Gate B updated with trivial-edit path
+**worktree-rm-amend merged:**
+- Auto-amend merge commit when `rm` modifies session.md on merge commit HEAD
+- Conflicts: `cli.py` (guard logic + amend feature combined), `scrape-validation.py` (lint reformatting)
+- `_is_merge_commit` moved to utils.py, `_update_session_and_amend` extracted as helper
+- Test assertions adapted for guard-aware output format
 
-**Commit skill allowlist fix:**
-- Removed batched `exec/set-xeuo` patterns — individual Bash calls for permission allowlist compatibility
-- Added "one command per Bash call" constraint to Critical Constraints
-
-**worktree-merge-data-loss merge attempted, reverted:**
-- Merge succeeded but precommit failed: 70 ruff violations, 3 files over 400-line limit
-- `git reset --hard` to pre-merge state, worktree still active with branch intact
-- Lint debt must be fixed in worktree before next merge attempt
-
-**Parallel worktree setup:**
-- Created worktrees for error-handling-design, design-workwoods, worktree-rm-amend
-- Cleaned stale debris from prior failed attempts (orphaned branches in parent + submodule)
-- Model tier corrections: fragment authoring and design recovery are opus, not sonnet
+**Backlog re-scored:** 27 tasks, rev 2. Expand runbook topped at 2.6 (now complete). Report: `plans/reports/prioritization-2026-02-16.md`
 
 ## Pending Tasks
 
-<!-- Priority order per plans/reports/prioritization-2026-02-16.md -->
+<!-- Priority order per plans/reports/prioritization-2026-02-16.md (rev 2) -->
 
+- [ ] **Address merge data loss review** — Fix 3 major findings from deliverable review | sonnet
+  - Major 1: `_delete_branch` exit 2 on unexpected failure (cli.py:351)
+  - Major 2: `sys.stderr.write` → `click.echo(..., err=True)` in merge.py + test capfd migration
+  - Major 3: SKILL.md Mode C rm exit 2 handling
+  - Report: `plans/worktree-merge-data-loss/reports/deliverable-review.md`
 
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | opus
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
@@ -80,6 +79,10 @@
   - Two-tier context augmentation: always-inject vs index-and-recall
   - Methodology as skill referenced in design-vet-agent + outline-review-agent `skills:` frontmatter
 
+- [ ] **Handoff insertion policy** — Change "append" to "insert at estimated priority position" in handoff skill | sonnet
+  - Evidence: `p:` tasks distribute evenly (n=29), not append-biased. Agents correctly judge position.
+  - Scripts: `plans/prototypes/correlate-pending-v2.py`
+
 - [ ] **Pretool hook cd pattern** — Allow `cd <path> &&` pattern, check security implications | sonnet | restart
   - Load plugin-dev:hook-development skill for hook modification guidance
   - Current hook blocks ALL bash when cwd wrong, including `cd` to restore — creates catch-22
@@ -100,10 +103,6 @@
 
 - [ ] **Upstream skills field** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` frontmatter | sonnet
 
-- [ ] **Handoff insertion policy** — Change "append" to "insert at estimated priority position" in handoff skill | sonnet
-  - Evidence: `p:` tasks distribute evenly (n=29), not append-biased. Agents correctly judge position.
-  - Scripts: `plans/prototypes/correlate-pending-v2.py`
-
 - [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet
   - Existing: `bin/last-output`, `scripts/scrape-validation.py`, `plans/prototypes/*.py`
   - Requirements: `plans/prototypes/requirements.md` (multi-project scanning, directive extraction, git correlation)
@@ -114,29 +113,24 @@
   - Candidates: TLA+ (temporal), Alloy (structural), Petri nets (visual flow)
 
 - [ ] **Rename vet agents** — `vet-fix-agent` → `correct-agent`, `vet-agent` → `review-agent` | sonnet | restart
-  - Pattern: outline must be corrected by one stronger than the generator (pipeline-contracts.md T2 table)
   - Mechanical rename across agent definitions, fragments, skills, memory-index
-  - Conflict risk nullified: plugin-dev plugin provides skill-reviewer and agent-creator, no namespace collision
 
 - [ ] **Design-to-deliverable** — Design session for tmux-like session clear/model switch/restart automation | opus | restart
-- [ ] **Expand runbook** — `/runbook plans/worktree-merge-data-loss/design.md` | sonnet
-  - Outline reviewed and fixed, ready for full phase expansion
-  - Phase 1: 13 TDD cycles (Track 1 removal guard + Track 2 merge correctness), haiku execution
-  - Phase 2: 1 general step (SKILL.md Mode C), haiku execution
-  - Opus review findings to incorporate during expansion: `plans/worktree-merge-data-loss/reports/runbook-outline-review-opus.md`
+
 - [ ] **Worktree skill adhoc mode** — Add mode for creating worktree from specific commit without task tracking | sonnet
 
-- [ ] **Explore Anthropic plugins** — Install all 28 official plugins, explore code-review/security-guidance/feature-dev/superpowers for safety+security relevance, map against custom pipeline | sonnet | restart
+- [ ] **Explore Anthropic plugins** — Install all 28 official plugins, explore for safety+security relevance | sonnet | restart
   - Repo: `github.com/anthropics/claude-plugins-official`
-  - Focus: what's directly relevant to safety and security review
-  - Overlap analysis started in prior session — see git history
-- [ ] **Ground state-machine review criteria** — Research how to validate state coverage in plan review (model checking, state transition coverage) | opus
-- [ ] **Pre-merge untracked file fix** — `new --session` leaves session.md untracked on main, causing merge failure when branch tracks it. Either commit session.md during `new`, or handle in merge flow | sonnet
+
+- [ ] **Ground state-machine review criteria** — Research state coverage validation in plan review | opus
+
+- [ ] **Pre-merge untracked file fix** — `new --session` leaves session.md untracked on main | sonnet
+
 - [ ] **Safety review expansion** — Implement pipeline changes from grounding research | opus
   - Input: `plans/reports/safety-review-grounding.md`
-  - Scope: delegation.md model floor for Tier 1/2 steps, vet safety criteria S-1–S-6, vet security criteria Sec-1–Sec-4, deliverable review chain analysis C-1–C-3
-  - Depends on: Explore Anthropic plugins (don't build what Anthropic ships)
-- [ ] **Test diagnostic helper** — Replace `subprocess.run(..., check=True)` in test setup with helper that surfaces stderr on failure | sonnet
+  - Depends on: Explore Anthropic plugins
+
+- [ ] **Test diagnostic helper** — Replace `subprocess.run(..., check=True)` in test setup with stderr surfacing | sonnet
 
 ## Worktree Tasks
 
@@ -146,7 +140,6 @@
 
 - [ ] **Design workwoods** → `design-workwoods` — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
-
 
 - [ ] **Remaining workflow items** → `remaining-workflow-items` — Sub-items not captured in workflow-rca-fixes | sonnet
   - Orchestrate evolution — designed, ready for `/runbook` (design refreshed Feb 13)
@@ -158,11 +151,6 @@
 
 ## Blockers / Gotchas
 
-**worktree-merge-data-loss blocked on lint debt:**
-- 70 ruff violations across 5 files, 3 files over 400-line limit
-- Merge reverted — branch intact at `worktree-merge-data-loss` worktree
-- Must fix in worktree, re-commit, then re-attempt merge
-
 **Diagnostic review methodology converging:**
 - Taxonomy, iteration protocol, priming template designed in conversation
 - Opus critique validated approach, identified haiku paradox (resolved: discovery at capable tier, pre-assembled context for haiku)
@@ -171,30 +159,22 @@
 **Validator orphan entries not autofixable:**
 - Marking headings structural (`.` prefix) causes `check_orphan_entries` non-autofixable error
 - Must manually remove entries from memory-index.md before running precommit
-- Autofix only handles placement, ordering, and structural entry removal — not orphans
 
 **Memory index `/how` operator mapping:**
 - `/how X` in index → internally becomes `"how to X"` for heading matching
 - Headings must include "To" (e.g., "How To Augment Agent Context")
 - Index keys must NOT include "to" — validator adds it automatically
-- Including "to" in key causes double-to: `"how to to X"`
-
-**Deliverable review delegation loses context — partially addressed:**
-- Two-layer model adds mandatory interactive review (Layer 2) that catches cross-project issues
-- Layer 1 delegation still available for volume; Layer 2 compensates for context gap
 
 ## Next Steps
 
-4 worktrees active. In main: Remaining workflow items (sonnet). worktree-merge-data-loss needs lint fixes before merge.
+Next: Address merge data loss review (sonnet). 3 worktrees active (error-handling-design, design-workwoods, remaining-workflow-items). Learnings at 92/80 lines — run `/remember` soon.
 
 ## Reference Files
 
-- `plans/reports/ground-skill-research-synthesis.md` — Grounding skill research synthesis
-- `plans/reports/deliverable-review-prioritize.md` — Prioritize skill deliverable review
+- `plans/reports/prioritization-2026-02-16.md` — WSJF task prioritization (rev 2, 27 tasks)
+- `plans/worktree-merge-data-loss/reports/deliverable-review.md` — Consolidated review (3 major findings)
 - `plans/reports/task-prioritization-methodology.md` — WSJF-adapted prioritization methodology
 - `plans/remember-skill-update/requirements.md` — 7 FRs (When/How prefix, validation, migration)
-- `plans/remember-skill-update/outline.md` — Design outline (reviewed, Phase B ready)
 - `plans/error-handling/outline.md` — Error handling design outline (Phase A complete)
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
-- `plans/reports/prioritization-2026-02-16.md` — WSJF task prioritization (26 tasks scored)
-- `plans/prototypes/requirements.md` — Session extraction feature gap requirements
+- `plans/reports/safety-review-grounding.md` — Safety review grounding research

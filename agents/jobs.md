@@ -19,7 +19,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | when-recall | complete | `/when` memory recall system — 12 phases, merged to main, 2 deliverable reviews |
 | worktree-skill | complete | Design.md retained on disk for reference |
 | worktree-update | complete | 40 TDD cycles, recovery (C2-C5), merged to main |
-| worktree-merge-data-loss | planned | Design + outline synced to main, runbook expansion next (worktree active) |
+| worktree-merge-data-loss | complete | 13 TDD cycles + 1 general step, merged to main, deliverable review done |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
 | prototypes | requirements | Session extraction feature gap, multi-project scanning |
 | remember-skill-update | requirements | Outline + requirements.md complete, Phase B discussion next |
@@ -31,6 +31,7 @@ Plan lifecycle tracking. Updated when plans change status.
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
+- `worktree-merge-data-loss` — Removal guard + merge correctness (13 TDD cycles, deliverable review)
 - `grounding-skill` — Ground skill with diverge-converge research procedure
 - `pushback` — Two-layer anti-sycophancy: fragment + hook, S1/S2/S4 validated
 - `pushback-improvement` — Implemented Tier 1 direct from pushback worktree
