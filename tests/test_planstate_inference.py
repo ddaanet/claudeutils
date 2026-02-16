@@ -129,6 +129,38 @@ def test_next_action_derivation(
     assert result.next_action == expected_next_action
 
 
+def test_list_plans_directory_scanning(tmp_path: Path) -> None:
+    """Test list_plans scans directory and returns valid plans, excluding reports and empty dirs."""
+    plans_dir = tmp_path / "plans"
+    plans_dir.mkdir()
+
+    plan_a = plans_dir / "plan-a"
+    plan_a.mkdir()
+    (plan_a / "requirements.md").write_text("")
+
+    plan_b = plans_dir / "plan-b"
+    plan_b.mkdir()
+    (plan_b / "design.md").write_text("")
+
+    reports_dir = plans_dir / "reports"
+    reports_dir.mkdir()
+
+    empty_dir = plans_dir / "empty-dir"
+    empty_dir.mkdir()
+
+    result = list_plans(plans_dir)
+
+    assert len(result) == 2
+    assert [ps.name for ps in result] == ["plan-a", "plan-b"]
+
+    result_names = {ps.name for ps in result}
+    assert "reports" not in result_names
+    assert "empty-dir" not in result_names
+
+    empty_result = list_plans(tmp_path / "nonexistent")
+    assert empty_result == []
+
+
 def test_gate_attachment_with_mock(tmp_path: Path) -> None:
     """Test gate field attachment from mock VetStatus."""
     plan_dir = tmp_path / "test-plan"
