@@ -1,34 +1,17 @@
 # Session Handoff: 2026-02-16
 
-**Status:** Established grounded task prioritization methodology (WSJF-adapted) and grounding skill research synthesis. Two new skills pending creation.
+**Status:** Prioritization skill created and reviewed. Vet delegation routing identified as design task.
 
 ## Completed This Session
 
-**Task prioritization research & methodology:**
-- Researched prioritization frameworks: WSJF, RICE, ICE, CD3, Lean Value/Effort, MoSCoW, Eisenhower (6 web searches, 2 web fetches)
-- Opus brainstorm produced 13 project-specific evaluation axes (defect compounding, artifact readiness, downstream unblock, knowledge decay, model tier cost, workflow friction, parallelizability, bootstrap risk, decision reversibility, restart amortization, agent reliability, context locality, consolidation pressure)
-- Selected WSJF as base framework — CoD decomposed into Workflow Friction + Decay Pressure + Compound Risk Reduction, with project-specific Fibonacci scoring tables
-- Scored all 27 pending tasks; top 5: precommit improvements (4.5), vet proportionality (3.8), remember skill update (3.2), RED pass protocol (3.2), review runbook delegation (3.0)
-- Report: `plans/reports/task-prioritization-methodology.md`
-
-**Grounding skill research & design:**
-- Researched: Double Diamond (Design Council 2005), Rapid Review (evidence synthesis), RAG-as-grounding (LLM hallucination mitigation)
-- Synthesized 4-phase procedure: Scope → Diverge (parallel internal + external) → Converge → Output
-- Grounding quality labels (Strong/Moderate/Thin/None) from Rapid Review's rigor/speed tradeoff acknowledgment
-- Report: `plans/reports/ground-skill-research-synthesis.md`
-
-**Design discussions:**
-- Both methodologies should be skills (not decision documents) for plugin portability
-- Grounding skill should itself be grounded (meta-recursive — applied its own methodology)
-- Research deliverables belong in plans/reports/, not tmp/
+**Prioritization skill:**
+- Created `agent-core/skills/prioritize/SKILL.md` (~700 words) + `references/scoring-tables.md` (~950 words)
+- WSJF-adapted methodology: CoD (Workflow Friction + Decay Pressure + Compound Risk Reduction) / Job Size (Marginal Effort + Context Recovery Cost)
+- Output: priority-ordered table + parallel batches with scheduling modifiers
+- Skill-reviewer passed — 3 fixes applied: criteria duplication eliminated, trigger phrases expanded, CRC cap documented
+- Synced via `just sync-to-parent`
 
 ## Pending Tasks
-
-- [ ] **Prioritization skill** — Create plugin skill for WSJF-adapted backlog scoring | sonnet
-  - Research: `plans/reports/task-prioritization-methodology.md` (WSJF adapted with project-specific CoD decomposition)
-  - Methodology: Workflow Friction + Decay Pressure + Compound Risk Reduction / Job Size
-  - Scheduling modifiers: model tier cohort, restart batching, self-referential flag, parallelizability
-  - Skill output: priority-ordered table + parallel batches
 
 - [ ] **Grounding skill** — Create plugin skill for research-anchored methodology synthesis | sonnet
   - Research: `plans/reports/ground-skill-research-synthesis.md` (Double Diamond + Rapid Review + RAG grounding)
@@ -63,7 +46,7 @@
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | sonnet
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
   - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite against post-worktree-update justfile, expanded phases need regeneration
-  - Drift: 18 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
+  - Drift: 19 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
 
 - [ ] **Upstream skills field** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` frontmatter | sonnet
 
@@ -136,6 +119,17 @@
   - Outline: `plans/error-handling/outline.md`
   - Key decisions: D-1 CPS abort-and-record, D-2 task `[!]`/`[✗]` states, D-3 escalation acceptance criteria, D-5 rollback = revert to step start
 
+- [ ] **Vet delegation routing** — Route review to artifact-appropriate agent (vet-fix for code, skill-reviewer for skills, agent-creator for agents) | sonnet
+  - General rule affecting vet-requirement.md and /runbook review delegation
+  - agent-creator: Write+Read, confirmed cooperative in review mode (decisions/project-config.md:266)
+  - skill-reviewer: Read/Grep/Glob only — cannot autofix, would need tool additions
+  - No hook reviewer exists; no doc reviewer exists (readme skill is creation, not review)
+  - Precedent: agent-creator repurposed for review via prompting (`/when agent-creator reviews agents`)
+
+- [ ] **How-resolve section lookup failure** — Debug when-resolve.py section not found after index match | haiku
+  - `/how agent-creator` — index entry exists but section lookup fails: "Section not found in project-config.md: When Agent-creator Reviews Agents"
+  - Root cause unknown — needs investigation
+
 ## Blockers / Gotchas
 
 **Diagnostic review methodology converging:**
@@ -156,7 +150,7 @@
 
 ## Next Steps
 
-Prioritization skill: Create skill using `plans/reports/task-prioritization-methodology.md` as reference, following plugin-dev:skill-development process.
+Grounding skill: Create skill using `plans/reports/ground-skill-research-synthesis.md` as reference, following same pattern as prioritize skill.
 
 ## Reference Files
 

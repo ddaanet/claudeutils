@@ -78,7 +78,7 @@
   },
   "enabledPlugins": {
     "hookify@claude-plugins-official": false,
-    "feature-dev@claude-plugins-official": true
+    "feature-dev@claude-plugins-official": false
   },
   "sandbox": {
     "enabled": true,
