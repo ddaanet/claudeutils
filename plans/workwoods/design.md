@@ -13,7 +13,7 @@ Plan status tracking is manual (jobs.md) and drifts from reality. Cross-tree awa
 - FR-2: Vet artifact staleness — addressed by Phase 2 (mtime-based detection)
 - FR-3: Plan state inference from filesystem — addressed by Phase 1 (planstate module)
 - FR-4: Bidirectional worktree merge — addressed by Phase 5 (skill update)
-- FR-5: Per-section session.md merge strategies — addressed by Phase 5 (merge code)
+- FR-5: Per-section session.md merge strategies — addressed by Phase 5 (merge code). Note: requirements.md titles this "Additive task merge" but design broadens to per-section strategies as resolved in discussion round D-5.
 - FR-6: Eliminate jobs.md — addressed by Phase 6 (planstate adoption, archive)
 
 **Non-functional:**
@@ -133,11 +133,13 @@ Source → Report mapping uses naming conventions derived from codebase observat
 | `runbook-outline.md` | `reports/runbook-outline-review.md` | |
 | `runbook-phase-N.md` | `reports/phase-N-review.md` | Per-phase vet |
 
+**Naming variance:** Some older plans use `checkpoint-N-vet.md` instead of `phase-N-review.md` for phase-level reports (e.g., when-recall). Similarly, escalation reviews may use `-opus` suffix (e.g., `runbook-outline-review-opus.md`). Implementation should try the primary pattern first, then fall back to glob `reports/*N*{review,vet}*` for the matching phase number. Only the most recent match counts per source artifact.
+
 **Staleness rule:** `stale = source_mtime > report_mtime` (C-1: filesystem mtime for uncommitted visibility).
 
 **Missing report:** Treated as stale (report_mtime = None → stale = True).
 
-**Iterative reviews:** Only the highest-numbered review file counts. `outline-review-3.md` supersedes `outline-review.md`.
+**Iterative reviews:** Only the highest-numbered review file counts. `outline-review-3.md` supersedes `outline-review.md`. Escalation variants (`*-opus.md`) are treated as additional reviews — highest mtime among all matching reports wins.
 
 ### Workflow Gates (D-7)
 
@@ -387,7 +389,7 @@ Refactor `_resolve_session_md_conflict()` to:
 
 **General portion (non-TDD):**
 - Worktree skill SKILL.md: Mode C step 3 update (no auto-rm)
-- execute-rule.md STATUS: replace jobs.md reads with planstate calls. STATUS display reads `list_plans()` instead of `parse_jobs_md()`. Unscheduled Plans becomes: plans with no associated pending task (same logic, different data source).
+- execute-rule.md STATUS: replace jobs.md reads with planstate calls. STATUS display reads `list_plans()` instead of `parse_jobs_md()`. Unscheduled Plans becomes: plans with no associated pending task (same logic, different data source). Note: Unscheduled Plans section also references jobs.md for status values — this fully transitions to planstate in Phase 5, with the jobs.md @-reference removal deferred to Phase 6.
 
 **Dependency:** worktree-merge-data-loss Track 1 + Track 2 must be deployed first (D-6).
 
@@ -400,7 +402,7 @@ Refactor `_resolve_session_md_conflict()` to:
 - Update handoff skill: plan completion writes to plan-archive.md
 - Remove from CLAUDE.md: `@agents/jobs.md` reference
 - Remove `validation/jobs.py` and CLI integration
-- Remove `_resolve_jobs_md_conflict()` from `merge.py`
+- Remove `_resolve_jobs_md_conflict()` from `merge.py` (note: `_resolve_session_md_conflict` and `_resolve_learnings_md_conflict` remain; remove only the jobs call from `_phase3_merge_parent`)
 - Remove jobs.md from `_check_clean_for_merge()` exempt_paths
 - Remove jobs.md from session file exemptions in clean-tree check
 - Update `focus_session()` if it references jobs.md
@@ -493,7 +495,7 @@ Refactor `_resolve_session_md_conflict()` to:
 ## Documentation Perimeter
 
 **Required reading (planner must load before starting):**
-- `agents/decisions/architecture.md` — module patterns (if it exists; not found in worktree)
+- `agents/decisions/architecture.md` — module patterns (skip if not found in worktree)
 - `plans/workwoods/reports/explore-worktree-cli.md` — current CLI implementation
 - `plans/workwoods/reports/explore-plan-dirs.md` — artifact progression patterns
 - `src/claudeutils/worktree/merge.py` — current merge implementation
