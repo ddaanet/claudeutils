@@ -11,33 +11,32 @@ Plan lifecycle tracking. Updated when plans change status.
 | continuation-prepend | requirements | Problem statement only |
 | error-handling | requirements | Outline complete, Phase B blocked on workflow improvements |
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
-| grounding-skill | complete | Ground skill with diverge-converge research procedure |
 | orchestrate-evolution | designed | Design.md complete, vet in progress, planning next |
 | parallel-orchestration | requirements | Deferred from orchestrate-evolution (worktree isolation needed) |
 | plugin-migration | planned | Runbook assembled: 15 steps, haiku execution ready |
 | reports | — | Shared reports directory (not a plan) |
 | tweakcc | requirements | Local instances research |
-| when-recall | designed | `/when` memory recall system — design.md vetted, TDD runbook next |
-| workflow-rca-fixes | complete | 20 FRs: skill composition, type-agnostic review, vet taxonomy, outline enhancements, content edits |
-| worktree-fixes | complete | All 4 phases done, 5 FRs satisfied, 25 TDD cycles + 4 prose edits |
-| workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
-| pushback | complete | Two-layer anti-sycophancy: fragment + hook, S1/S2/S4 validated |
-| pushback-improvement | designed | Design complete (from pushback worktree) |
-| remember-skill-update | requirements | Outline + requirements.md complete, Phase B discussion next |
-| process-review | complete | RCA recovered to disk for workflow-improvements reference |
-| workflow-fixes | complete | Unified /runbook skill, plan-reviewer agent, review-plan skill, pipeline-contracts |
+| when-recall | complete | `/when` memory recall system — 12 phases, merged to main, 2 deliverable reviews |
 | worktree-skill | complete | Design.md retained on disk for reference |
 | worktree-update | complete | 40 TDD cycles, recovery (C2-C5), merged to main |
+| workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
+| remember-skill-update | requirements | Outline + requirements.md complete, Phase B discussion next |
 
 ## Complete (Archived)
 
-*41 plans completed and deleted. Git history preserves all designs/reports.*
+*48 plans completed and deleted. Git history preserves all designs/reports.*
 
 Use `git log --all --online -- plans/<name>/` to find commits, `git show <hash>:<path>` to retrieve files.
 
 **Recent:**
-- `memory-index-recall` — Bug fixes + reanalysis (M-1, M-2 fixed, 0.2% recall confirmed)
+- `grounding-skill` — Ground skill with diverge-converge research procedure
+- `pushback` — Two-layer anti-sycophancy: fragment + hook, S1/S2/S4 validated
+- `pushback-improvement` — Implemented Tier 1 direct from pushback worktree
+- `workflow-rca-fixes` — 20 FRs: skill composition, type-agnostic review, vet taxonomy, outline enhancements
+- `worktree-fixes` — All 4 phases done, 5 FRs satisfied, 25 TDD cycles + 4 prose edits
+- `workflow-fixes` — Unified /runbook skill, plan-reviewer agent, review-plan skill, pipeline-contracts
 - `process-review` — RCA: 5 plans examined, root cause in planning skill, 5 recommendations
+- `memory-index-recall` — Bug fixes + reanalysis (M-1, M-2 fixed, 0.2% recall confirmed)
 - `workflow-skills-audit` — Superseded by runbook unification (all 12 items landed)
 - `reflect-rca-sequential-task-launch` — Subsumed into process-review worktree
 - `requirements-skill` — Dual-mode extract/elicit requirements skill, empirical grounding

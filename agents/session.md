@@ -1,19 +1,22 @@
 # Session Handoff: 2026-02-16
 
-**Status:** Ground skill deliverable review completed, all fixes applied, brainstorming decision documented.
+**Status:** Pruned completed plan directories, corrected stale jobs.md statuses.
 
 ## Completed This Session
 
-**Ground skill deliverable review:**
-- Interactive review with full context (not delegated — catches cross-project structural issues)
-- Report: `plans/grounding-skill/reports/deliverable-review.md`
-- 1 major, 6 minor findings; all fixes applied:
-  - F-1: Added `Write` to allowed-tools (was missing despite file-writing phases)
-  - Brainstorm parameterization: always opus in SKILL.md and grounding-criteria.md
-  - M-2: Added output format expectations for explore mode delegation
-  - M-6: Specified subagent_type (general-purpose) for brainstorm delegation
-- Added `/when brainstorming` to workflow-optimization.md and memory index
-- Discussion: evaluated "new brainstorm skill" — `/when` entry more proportionate
+**Plan pruning:**
+- Assessed all plan statuses by examining git history and plan artifacts
+- Corrected 2 stale statuses in jobs.md: when-recall (designed → complete), pushback-improvement (designed → complete)
+- Cross-referenced completed plans against current plans to identify safe deletions
+- Deleted 7 completed plan directories: grounding-skill, workflow-rca-fixes, worktree-fixes, pushback, pushback-improvement, process-review, workflow-fixes
+- Deleted orphan `plans/claude/` (Claude Code default plan dir, not a project plan)
+- Removed stale "Pushback design" pending task (plan already complete)
+- Updated jobs.md: moved 7 plans to archived (41→48), added to Recent list
+
+**Retained completed plans (still referenced by current plans):**
+- when-recall → orchestrate-evolution (report citation), session.md RED pass protocol
+- worktree-skill → orchestrate-evolution (regression test examples)
+- worktree-update → workwoods (integration dependency for FR-4, FR-5, R1)
 
 ## Pending Tasks
 
@@ -42,8 +45,6 @@
   - **New scope:** `/remember` consolidation should validate trigger names before graduating to `/when` entries
 
 - [ ] **Rename remember skill** — Test brainstorm-name agent, pick new name, update all references | sonnet | restart
-
-- [ ] **Pushback design** — `/design plans/pushback/requirements.md` | opus
 
 - [ ] **RED pass protocol** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
@@ -164,13 +165,11 @@
 
 ## Next Steps
 
-Remember skill update: Resume `/design` Phase B with outline discussion. Two new pending tasks for skills referencing grounding research and deliverable-review interactive pattern.
+Remember skill update: Resume `/design` Phase B with outline discussion.
 
 ## Reference Files
 
-- `plans/grounding-skill/reports/deliverable-review.md` — Ground skill review (1 major, 6 minor, all fixed)
 - `plans/reports/ground-skill-research-synthesis.md` — Grounding skill research synthesis
-- `plans/grounding-skill/outline.md` — Ground skill design outline (8 decisions)
 - `plans/reports/deliverable-review-prioritize.md` — Prioritize skill deliverable review
 - `plans/reports/task-prioritization-methodology.md` — WSJF-adapted prioritization methodology
 - `plans/remember-skill-update/requirements.md` — 7 FRs (When/How prefix, validation, migration)
