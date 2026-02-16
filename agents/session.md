@@ -44,6 +44,11 @@
 <!-- Priority order per plans/reports/prioritization-2026-02-16.md (rev 2) -->
 
 
+- [ ] **RED pass protocol** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
+  - Blocked on: Error handling design (needs D-3 escalation criteria, D-5 rollback semantics)
+  - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
+  - Reports: `plans/when-recall/reports/tdd-process-review.md`, `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`
+
 
 - [ ] **Address merge data loss review** — Fix 3 major findings from deliverable review | sonnet
   - Major 1: `_delete_branch` exit 2 on unexpected failure (cli.py:351)
@@ -84,10 +89,6 @@
 
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
   - Plan: continuation-prepend | Status: requirements
-
-- [ ] **RED pass protocol** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
-  - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
-  - Reports: `plans/when-recall/reports/tdd-process-review.md`, `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`
 
 - [ ] **Memory-index auto-sync** — Sync memory-index/SKILL.md from canonical agents/memory-index.md on consolidation | sonnet
   - Deliverable review found skill drifted (3 entries missing, ordering wrong)
@@ -153,28 +154,9 @@
 
 - [ ] **Test diagnostic helper** — Replace `subprocess.run(..., check=True)` in test setup with stderr surfacing | sonnet
 
-- [ ] **Runbook model assignment** — runbook skill assigns sonnet/haiku to prose edits on architectural artifacts; should apply design-decisions.md directive (opus for skill/fragment/agent edits) | opus
-
 - [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
   - Design.md complete, vet in progress, planning next (design refreshed Feb 13)
 
-- [ ] **Design quality gates** — `/design plans/runbook-quality-gates/` | opus | restart
-  - Requirements at `plans/runbook-quality-gates/requirements.md`
-  - 3 open questions: script vs agent (Q-1), insertion point (Q-2), mandatory vs opt-in (Q-3)
-  - Moderate complexity — may route to Tier 2 planning
-- [ ] **Execute workwoods** — `/orchestrate workwoods` | sonnet | restart
-  - Restart required: prepare-runbook.py creates new agent definition
-  - Execution dependency: Verify worktree-merge-data-loss Track 1+2 deployed before Phase 5
-  - 33 TDD cycles + 10 general steps across 6 phases
-  - Checkpoints: Light after Phases 1-4, full after Phases 5-6
-- [ ] **Pre-exec workwoods checks** — File lifecycle + RED plausibility + test count reconciliation | sonnet
-  - Highest value: RED plausibility (silent failures from batching)
-  - FR-3/4/5 from runbook-quality-gates requirements describe these checks
-  - Run before prepare-runbook.py
-- [ ] **Prepare workwoods** — Run prepare-runbook.py to create execution files | sonnet
-  - Command: `agent-core/bin/prepare-runbook.py plans/workwoods/` (requires `dangerouslyDisableSandbox: true`)
-  - Generates: `.claude/agents/workwoods-task.md`, `plans/workwoods/steps/*.md`, `orchestrator-plan.md`
-  - Copy to clipboard: `echo -n "/orchestrate workwoods" | pbcopy`
 
 ## Worktree Tasks
 
@@ -193,6 +175,12 @@
   - Stack traces on merge errors are user-hostile; report cause and recovery steps instead
   - `_git()` CalledProcessError swallows stderr — surface the actual git error message (thought this was already done in merge-data-loss work)
   - Reproduce: `git add agents/session.md` returned exit 128 during `_resolve_session_md_conflict` in `_phase3_merge_parent`. Merge of `remaining-workflow-items` worktree, 2026-02-16. Branch had 1 post-merge commit (683fc7d). Conflict on both `agent-core` (submodule) and `agents/session.md`. Main at 9bb45d0, merge result at 5e024c2.
+
+- [ ] **Runbook skill fixes** → `runbook-skill-fixes` — Batch: model assignment (opus for architectural artifacts), design quality gates | opus
+  - Runbook model assignment: apply design-decisions.md directive (opus for skill/fragment/agent edits) — partially landed via remaining-workflow-items merge
+  - Design quality gates: `/design plans/runbook-quality-gates/` | restart
+    - Requirements at `plans/runbook-quality-gates/requirements.md`
+    - 3 open questions: script vs agent (Q-1), insertion point (Q-2), mandatory vs opt-in (Q-3)
 
 ## Blockers / Gotchas
 
