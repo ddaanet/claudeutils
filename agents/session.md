@@ -174,9 +174,6 @@
 - [ ] **Design workwoods** → `design-workwoods` — `/design plans/workwoods/requirements.md` | opus
   - Plan: workwoods | Status: requirements
 
-- [ ] **Pretool hook cd pattern** → `pretool-hook-cd-pattern` — Allow `cd <path> &&` pattern, check security implications | sonnet | restart
-  - Load plugin-dev:hook-development skill for hook modification guidance
-  - Current hook blocks ALL bash when cwd wrong, including `cd` to restore — creates catch-22
 
 - [ ] **Worktree merge errors** → `worktree-merge-errors` — Catch exceptions in merge CLI, report errors without stack traces; surface failed command output | sonnet
   - Stack traces on merge errors are user-hostile; report cause and recovery steps instead
