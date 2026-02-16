@@ -6,8 +6,6 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 ### When Seeding Indexes Before Generation
 
-**Seeding before auto-generation:**
-
 **Decision Date:** 2026-02-04
 
 **Decision:** Seed indexes with entries pointing to existing permanent docs before expecting auto-generation to fill them.
@@ -20,8 +18,6 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 ### When Adding Entries Without Documentation
 
-**Index entries require backing documentation:**
-
 **Decision Date:** 2026-02-04
 
 **Decision:** Learnings → learnings.md → /remember → permanent doc → index entry.
@@ -33,8 +29,6 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 **Impact:** Index serves as reliable discovery mechanism, not aspirational wishlist.
 
 ### How to Merge Templates Safely
-
-**Template merge semantics:**
 
 **Decision Date:** 2026-02-04
 
@@ -50,8 +44,6 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 ### When Requirements Change During Execution
 
-**Requirements immutable during execution:**
-
 **Decision Date:** 2026-02-04
 
 **Decision:** Requirements MUST NOT be updated if task execution made them outdated; updating requires explicit user confirmation.
@@ -66,8 +58,6 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 ### When Embedding Knowledge In Context
 
-**Ambient awareness beats invocation:**
-
 **Decision Date:** 2026-02-04
 
 **Research:** From Vercel study: Ambient context (100%) outperformed skill invocation (79%).
@@ -81,8 +71,6 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 **Impact:** Always-available context beats sometimes-invoked skills.
 
 ### How to Name Session Tasks
-
-**Task prose keys pattern:**
 
 **Decision Date:** 2026-02-04
 
@@ -106,8 +94,6 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 1. **Submodule awareness:** Commit submodule first, then stage pointer in parent
 2. **Artifact staging:** prepare-runbook.py stages its own artifacts via `git add`
 3. **Orchestrator stop rule:** Absolute "no exceptions" language, deleted contradictory scenarios
-
-**Status:** All fixes implemented and committed, active in current workflow.
 
 **Impact:** Prevents submodule sync drift, missing artifacts in commits, and dirty-state rationalization.
 
@@ -161,11 +147,7 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Rationale:** Assembly logic (metadata calc, cycle numbering validation) belongs in prepare-runbook.py, not manual process. Manual assembly error-prone: wrong cycle count, missing metadata, inconsistent formatting.
 
-**Key insight:** Review agent can read multiple phase files — doesn't need pre-assembled input.
-
-**Fix:** Updated plan-tdd Phase 4/5 to clarify prepare-runbook.py handles assembly, planner provides phase files.
-
-**Impact:** Consolidates assembly logic in one authoritative location, reduces manual errors.
+**Key insight:** Review agent can read multiple phase files — doesn't need pre-assembled input. Updated plan-tdd Phase 4/5 accordingly.
 
 ### How to Use Review Agent Fix All Pattern
 
@@ -333,6 +315,26 @@ This is not full test code — it is precise prose that preserves the specificat
 **Anti-pattern:** Treat checkpoint as part of step execution, skip vet-fix-agent delegation, proceed to next phase.
 
 **Rationale:** Checkpoints catch bugs (e.g., logic error in format_context() found at Phase 2→3 boundary). D+B hybrid merged phase boundary into 3.3 with Read anchor for phase detection.
+
+### When Bootstrapping Self-Referential Improvements
+
+**Decision Date:** 2026-02-15
+
+**Decision:** When improving tools/agents, apply each improvement before using that tool in subsequent steps.
+
+**Pattern:** Phase ordering follows tool-usage dependency graph, not logical grouping. Collapses design→plan→execute into design→apply for prose-edit work.
+
+**Rationale:** Unimproved agents reviewing their own improvements creates a bootstrapping problem.
+
+### When Requirements Added After Review
+
+**Decision Date:** 2026-02-15
+
+**Decision:** Requirements added after outline review must trigger re-check for traceability and mechanism specification.
+
+**Anti-pattern:** Adding FRs after outline review without re-validating completeness.
+
+**Evidence:** FR-18 added during design session bypassed outline-level validation, resulting in mechanism-free specification.
 
 ## .TDD Workflow Patterns
 

@@ -15,6 +15,9 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 **Append-only.** Do not index content already loaded via CLAUDE.md fragments.
 
 
+
+
+
 ## agents/decisions/cli.md
 
 /when getting current working directory
@@ -42,26 +45,14 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when handling malformed session data
 /how handle optional field defaults
 
-## agents/decisions/pipeline-contracts.md
-
-/when choosing review gate | transformation table artifact type T1-T6 pipeline stages
-/how review delegation scope template | scope IN OUT changed files requirements
-/when UNFIXABLE escalation | fix-all pattern grep UNFIXABLE stop escalate
-/when declaring phase type | tdd or general per-phase typing model expansion review
-/when vet escalation calibration | over-escalation pattern-matching not design
-/when vet flags out-of-scope items | DEFERRED vs UNFIXABLE distinction
-/when vet receives execution context | filesystem vs execution-time state
-/when vet-fix-agent rejects planning artifacts | plan-reviewer routing
-/when reviewing expanded phases | expansion reintroduces defects regression LLM failure modes
-
-## agents/decisions/deliverable-review.md
-
-/when identifying deliverable artifacts | classify artifact types review axes agentic prose code test
-
 ## agents/decisions/defense-in-depth.md
 
 /when designing quality gates | layered defense multiple independent checks
 /when reviewing quality gate coverage | defense layer checklist
+
+## agents/decisions/deliverable-review.md
+
+/when identifying deliverable artifacts | classify artifact types review axes agentic prose code test
 
 ## agents/decisions/implementation-notes.md
 
@@ -72,8 +63,12 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when using hooks in subagents
 /when needing mcp tools in subagents
 /when skill is already loaded
+/when hook fragment alignment needed | recency primacy contradict reinforce
+/when prompt caching differs from file caching | read appends API prefix
+/when sub-agent rules not injected | rules fire main only domain context
 /when treating commits as sync points
 /when deciding to commit interactively
+/when git branch rename writes config | sandbox config write failure
 /when choosing naming convention format
 /when reading design classification tables
 /how format runbook phase headers
@@ -111,6 +106,9 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when temporal validation required for analysis | git history correlation
 /when no-op merge orphans branch | always create merge commit
 /when naming tasks for worktrees | branch-suitable alphanumeric constraint
+/when requiring clean git tree | no stash fragile merge rebase
+/when failed merge leaves debris | abort untracked files clean
+/when git lock error occurs | never delete lock report wait
 /when classifyHandoffIfNeeded bug occurs | foreground Task calls fail background works
 /when sub-agents cannot spawn sub-agents | Task MCP hooks unavailable
 /when extracting git helper functions | _git pattern subprocess reduction
@@ -128,6 +126,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when deduplicating delegation prompts | shared file reference
 /when managing orchestration context | handoff not delegatable
 /when partitioning work for parallel agents | no post-dispatch communication fire-and-forget
+/when task agents skip submodule pointer | parent repo status check
+/when commit precedes review delegation | uncommitted dirty tree agents
 /when running post-step verification | git status UNFIXABLE grep
 /when planning is parallelizable | phase expansion concurrent agents
 /when item-level escalation blocks execution | UNFIXABLE grep mechanical stop
@@ -145,6 +145,18 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when agent context has conflicting signals | common context competes phase-neutral
 /when capturing requirements from conversation | capture over interview
 
+## agents/decisions/pipeline-contracts.md
+
+/when choosing review gate | transformation table artifact type T1-T6 pipeline stages
+/how review delegation scope template | scope IN OUT changed files requirements
+/when UNFIXABLE escalation | fix-all pattern grep UNFIXABLE stop escalate
+/when declaring phase type | tdd or general per-phase typing model expansion review
+/when vet escalation calibration | over-escalation pattern-matching not design
+/when vet flags out-of-scope items | DEFERRED vs UNFIXABLE distinction
+/when vet receives execution context | filesystem vs execution-time state
+/when vet-fix-agent rejects planning artifacts | plan-reviewer routing
+/when reviewing expanded phases | expansion reintroduces defects regression LLM failure modes
+
 ## agents/decisions/project-config.md
 
 /how inject context with rule files
@@ -155,6 +167,10 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when using heredocs in sandbox
 /when parsing cli flags as tokens
 /when finding project root in scripts
+/how compose agents via skills | frontmatter inject prompt
+/how recall sub-agent memory | bash transport when-resolve
+/how augment agent context | always-inject on-demand two-tier
+/when agent-creator reviews agents | plugin-dev write read fix
 
 ## agents/decisions/prompt-structure-research.md
 
@@ -221,6 +237,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when merging trivial cycles with adjacent work | consolidation gates
 /when requirements mention agent or skill creation | scanning requirements
 /when crossing phase boundaries
+/when bootstrapping self-referential improvements | dependency graph ordering
+/when requirements added after review | re-check traceability FRs
 /how write green phase descriptions
 /when verifying model analysis results
 /how implement domain validation
@@ -250,6 +268,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how design with outline first approach
 /when selecting model for design guidance
 /when choosing model for design review
+/when research required before outline | external prior art ground
+/when design references need verification | glob disk verify names
 /when vet catches structural issues
 /when reviewing agent definitions
 /when agent ignores injected directive | template context contradicts rules

@@ -228,3 +228,47 @@ description: |
 **Rationale:** Subdirectories may contain their own `agents/` folders (e.g., `agent-core/agents/`), causing scripts to stop at wrong level.
 
 **Impact:** Scripts correctly identify project root regardless of subdirectory structure.
+
+## .Agent Architecture
+
+### How To Compose Agents Via Skills
+
+**Decision Date:** 2026-02-15
+
+**Decision:** Use `skills:` YAML frontmatter in agent definitions to inject skill content as prompt.
+
+**Pattern:** Wrap fragments as lightweight skills, reference via `skills:` — no build step, stays current automatically.
+
+**Usage:** vet-fix-agent, design-vet-agent, outline-review-agent, plan-reviewer, refactor, runbook-outline-review-agent.
+
+### How To Recall Sub-Agent Memory
+
+**Decision Date:** 2026-02-15
+
+**Decision:** Inject memory index via `skills:` (discovery), recall via Bash transport (`when-resolve.py when "<trigger>"`).
+
+**Anti-pattern:** Expecting sub-agents to use Skill tool for `/when` or `/how`.
+
+**Rationale:** Sub-agents lack Skill tool. Bash transport provides same recall capability with different invocation.
+
+### How To Augment Agent Context
+
+**Decision Date:** 2026-02-15
+
+**Decision:** Two-tier context augmentation:
+- Always-inject (skills prolog): universal conventions, ~400 tokens, cached in system prompt
+- Index-and-recall (on-demand): domain-specific, recalled via bash transport
+
+**Key insight:** Discovery burden stays with capable agents (design/planning). Haiku gets pre-assembled context in runbook steps and agent system prompts.
+
+**Sub-agent gap:** CC sub-agent system prompt provides only identity and file search guidance — no prose quality, token economy, or error handling rules. Skills injection via `skills:` frontmatter is high value.
+
+### When Agent-Creator Reviews Agents
+
+**Decision Date:** 2026-02-15
+
+**Decision:** plugin-dev agent-creator has Write+Read tools — can review and fix agent definitions, not just create.
+
+**Pattern:** "Review and fix this agent definition at [path]" works for validation + autofix.
+
+**Note:** No dedicated agent-reviewer exists in plugin-dev (only skill-reviewer, plugin-validator, agent-creator).

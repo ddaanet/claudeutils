@@ -1,14 +1,18 @@
-# Session Handoff: 2026-02-15
+# Session Handoff: 2026-02-16
 
-**Status:** Merged error-handling worktree. All worktrees cleared.
+**Status:** Consolidated learnings.md (491→32 lines). All worktrees cleared.
 
 ## Completed This Session
 
-**Worktree merge (error-handling):**
-- Merged via `claudeutils _worktree merge error-handling`
-- Fixed precommit: task name length (31→25 chars), duplicate task entries from worktree+main having same task with different metadata
-- Cleaned up with `claudeutils _worktree rm error-handling`
-- Artifacts landed: `plans/error-handling/outline.md`, 2 explore reports, outline-review
+**Learnings consolidation (`/remember`):**
+- Consolidated 69 entries from `agents/learnings.md` across 6 decision files
+- 17 new entries added: operational-practices (3), implementation-notes (4), orchestration-execution (2), project-config (4), workflow-optimization (2), workflow-advanced (2)
+- 17 memory index entries added, all validated by precommit
+- ~46 entries removed (already consolidated in prior sessions, verified by existing index mappings)
+- 6 entries dropped (incident-specific without generalizable principle)
+- 5 entries retained with When/How prefix format per remember-skill-update design
+- Fixed validator key-heading mismatches: `/how X` maps to `"how to X"` internally, headings must include "To", keys must NOT
+- Compressed workflow-advanced.md (418→400 lines) by removing redundant sub-headers
 
 ## Pending Tasks
 
@@ -18,7 +22,7 @@
   - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
   - Key decisions pending: hyphen handling, agent duplication, frozen-domain priority
   - Reports: `plans/remember-skill-update/reports/outline-review.md`, `plans/remember-skill-update/reports/explore-remember-skill.md`
-  - Immediate sub-task: Migrate 64 learning titles to When/How format (FR-7)
+  - Learnings consolidation done (491→32 lines) — FR-7 migration partially addressed via consolidation
 
 - [ ] **Rename remember skill** — Test brainstorm-name agent, pick new name, update all references | sonnet | restart
 
@@ -124,10 +128,11 @@
 - Must manually remove entries from memory-index.md before running precommit
 - Autofix only handles placement, ordering, and structural entry removal — not orphans
 
-**Learnings.md bloated (491 lines, ~69 entries):**
-- Cannot consolidate: entries show 0 days (pushback merge reset dates)
-- Many entries may already be consolidated in pushback's permanent docs — need manual review
-- Title migration to When/How format (FR-7) should happen before or alongside consolidation
+**Memory index `/how` operator mapping:**
+- `/how X` in index → internally becomes `"how to X"` for heading matching
+- Headings must include "To" (e.g., "How To Augment Agent Context")
+- Index keys must NOT include "to" — validator adds it automatically
+- Including "to" in key causes double-to: `"how to to X"`
 
 ## Next Steps
 

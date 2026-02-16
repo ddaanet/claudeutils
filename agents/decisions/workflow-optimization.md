@@ -138,6 +138,26 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Three-agent vet system: vet-agent (code, sonnet), vet-fix-agent (code + fixes, sonnet), design-vet-agent (architecture, opus).
 
+### When Research Required Before Outline
+
+**Decision Date:** 2026-02-15
+
+**Decision:** Ground in research/best practices BEFORE producing outline. Research findings inform approach selection.
+
+**Anti-pattern:** Skipping external research (Phase A.3-4) and proceeding to outline based on internal knowledge.
+
+**Rationale:** Internal reasoning + learnings are insufficient for behavioral/design problems with published prior art.
+
+### When Design References Need Verification
+
+**Decision Date:** 2026-02-15
+
+**Decision:** Glob agent directories to verify all agent/file references in design documents resolve to actual files.
+
+**Anti-pattern:** Reviewing design content without checking referenced names exist on disk.
+
+**Evidence:** Opus review missed outline-review-agent vs runbook-outline-review-agent — two distinct agents.
+
 ### When Vet Catches Structural Issues
 
 **Vet catches structure misalignments:**

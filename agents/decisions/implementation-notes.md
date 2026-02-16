@@ -85,6 +85,30 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Rationale:** `/clear` resets conversation history but skill invocation injects actionable instructions. The skill IS the task — "fresh session" is not a reason to pause.
 
+### When Hook Fragment Alignment Needed
+
+**Decision:** Hook output must reinforce fragment instructions, never contradict.
+
+**Anti-pattern:** Hook says "write now", fragment says "write on handoff" — agent follows hook (recency position).
+
+**Rationale:** Hook content sits in recency zone, fragment in primacy zone. Contradictions resolve to recency — agent follows stronger signal.
+
+### When Prompt Caching Differs From File Caching
+
+**Decision:** Each Read appends new content block to conversation. "Caching" = prompt prefix matching at API level (92% reuse, 10% cost).
+
+**Anti-pattern:** Assuming Claude Code deduplicates file reads or maintains a file cache.
+
+**Rationale:** No application-level dedup. @-references (system prompt) are more cache-efficient than Read (messages) for always-needed content.
+
+### When Sub-Agent Rules Not Injected
+
+**Decision:** Rules files (`.claude/rules/`) fire in main session only; sub-agents don't receive injection.
+
+**Anti-pattern:** Assuming sub-agents via Task tool receive rules file context.
+
+**Consequence:** Domain context must be carried explicitly — planner writes it into runbook, orchestrator passes through task prompt.
+
 ## .Version Control Patterns
 
 ### When Treating Commits As Sync Points
@@ -114,6 +138,14 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 **Rationale:** With `xc` (execute+commit) shortcuts, auto-commit provides no value — user controls commit timing explicitly.
 
 **Reinforcement:** "Fix X and do Y" means fix X, do Y, then STOP. Commit is never implicit in task completion.
+
+### When Git Branch Rename Writes Config
+
+**Decision:** `git branch -m` requires `dangerouslyDisableSandbox: true` — writes `[branch "X"]` tracking section to `.git/config`.
+
+**Failure mode:** Ref renamed successfully but config write fails. Retry sees "branch not found."
+
+**Scope:** Most git commands only read `.git/config`; `branch -m` is an exception.
 
 ## .Tokenization and Formatting
 

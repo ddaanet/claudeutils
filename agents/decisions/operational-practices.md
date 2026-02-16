@@ -102,6 +102,36 @@ Agent reliability patterns, artifact management, implementation practices, and k
 
 **Decision:** Constrain task names to `[a-zA-Z0-9 ]` — slug derivation is near-identity.
 
+### When Requiring Clean Git Tree
+
+**Decision Date:** 2026-02-12
+
+**Decision:** Require clean tree before merge/rebase operations. No `git stash` workarounds.
+
+**Exception:** Session context files (session.md, jobs.md, learnings.md) auto-committed as pre-step.
+
+**Rationale:** Stash is fragile (conflicts on pop, lost stashes). Clean tree forces explicit state management.
+
+### When Failed Merge Leaves Debris
+
+**Decision Date:** 2026-02-12
+
+**Decision:** After merge abort, check for untracked files materialized during the attempt.
+
+**Anti-pattern:** Assume aborted merge is clean — retry fails with "untracked files would be overwritten."
+
+**Fix:** `git clean -fd -- <affected-dirs>` to remove debris, then retry.
+
+### When Git Lock Error Occurs
+
+**Decision Date:** 2026-02-12
+
+**Decision:** Stop on unexpected git lock error, report to user, wait for guidance. Never delete lock files.
+
+**Anti-pattern:** Agent removes `.git/index.lock` after git error suggests manual removal.
+
+**Rationale:** Lock may indicate active process; removal bypasses "stop on unexpected results" rule.
+
 ## .Known Issues
 
 ### When ClassifyHandoffIfNeeded Bug Occurs

@@ -52,6 +52,26 @@ Patterns for delegation, orchestration protocol, model selection, and execution-
 
 **Consequence:** Over-scoped agents waste work, under-scoped agents miss context — partitioning is one-shot.
 
+### When Task Agents Skip Submodule Pointer
+
+**Decision Date:** 2026-02-15
+
+**Decision:** Orchestrator checks git status after every step, including parent repo submodule pointer updates.
+
+**Anti-pattern:** Trusting task agents to commit submodule pointer changes in parent repo.
+
+**Rationale:** Task agents focus on assigned work within submodule; parent repo pointer updates are outside their scope.
+
+### When Commit Precedes Review Delegation
+
+**Decision Date:** 2026-02-15
+
+**Decision:** Commit artifacts before delegating to review agents (outline-review, plan-reviewer, vet-fix-agent).
+
+**Anti-pattern:** Delegating to review agent while work is uncommitted.
+
+**Rationale:** Review agents operate on filesystem state; uncommitted work may be stale or inconsistent.
+
 ## .Orchestration Protocol
 
 ### When Running Post-Step Verification
