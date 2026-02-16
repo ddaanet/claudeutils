@@ -290,6 +290,16 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
             )
             raise SystemExit(2)
         _git("commit", "-m", f"🔀 Merge {slug}")
+    else:
+        # No MERGE_HEAD, no staged changes
+        if not _is_branch_merged(slug):
+            import sys
+
+            sys.stderr.write(
+                "Error: nothing to commit and branch not merged\n"
+            )
+            raise SystemExit(2)
+        # Branch is merged, nothing to commit — skip commit, continue to validation
 
     precommit_result = subprocess.run(
         ["just", "precommit"],

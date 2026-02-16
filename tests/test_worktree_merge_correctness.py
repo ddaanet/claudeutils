@@ -298,3 +298,248 @@ def test_phase4_allows_already_merged(tmp_path: Path) -> None:
     assert "Merge test-branch" in commit_after, (
         f"Commit message should contain merge reference, got: '{commit_after}'"
     )
+
+
+def test_phase4_handles_no_merge_head_no_staged(tmp_path: Path) -> None:
+    """Phase 4 handles no MERGE_HEAD + no staged changes: exit 2 if unmerged, skip if merged."""
+    from claudeutils.worktree.merge import _phase4_merge_commit_and_precommit
+    import os
+    from unittest.mock import patch, MagicMock
+    import subprocess as real_subprocess
+
+    # Scenario A: Branch exists, no MERGE_HEAD, no staged changes, branch NOT merged
+    repo_dir_a = tmp_path / "repo_a"
+    repo_dir_a.mkdir()
+    subprocess.run(["git", "init"], cwd=repo_dir_a, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Test"], cwd=repo_dir_a, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=repo_dir_a,
+        check=True,
+        capture_output=True,
+    )
+
+    # Initial commit
+    (repo_dir_a / "file.txt").write_text("initial")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_a, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "initial"],
+        cwd=repo_dir_a,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create branch
+    subprocess.run(
+        ["git", "branch", "test-branch"], cwd=repo_dir_a, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "checkout", "test-branch"], cwd=repo_dir_a, check=True, capture_output=True
+    )
+
+    # Make changes on branch
+    (repo_dir_a / "file.txt").write_text("branch content")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_a, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "branch commit"],
+        cwd=repo_dir_a,
+        check=True,
+        capture_output=True,
+    )
+
+    # Return to main
+    subprocess.run(
+        ["git", "checkout", "main"], cwd=repo_dir_a, check=True, capture_output=True
+    )
+
+    # Verify no MERGE_HEAD
+    merge_head_file_a = repo_dir_a / ".git" / "MERGE_HEAD"
+    assert not merge_head_file_a.exists(), "MERGE_HEAD should not exist"
+
+    # Verify no staged changes
+    staged_check_a = subprocess.run(
+        ["git", "diff", "--cached", "--quiet"],
+        cwd=repo_dir_a,
+        check=False,
+    )
+    assert staged_check_a.returncode == 0, "No staged changes should be present"
+
+    # Verify branch NOT merged
+    from claudeutils.worktree.utils import _is_branch_merged
+
+    merge_check_a = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", "test-branch", "HEAD"],
+        cwd=repo_dir_a,
+        check=False,
+    )
+    assert merge_check_a.returncode != 0, "Branch should not be merged"
+
+    # Get commit before Phase 4 call
+    commit_before_a = subprocess.run(
+        ["git", "log", "-1", "--format=%s"],
+        cwd=repo_dir_a,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    # Call Phase 4 - expecting exit code 2
+    original_cwd = os.getcwd()
+    exit_code_a = None
+    stderr_a = ""
+
+    # Save reference to real subprocess.run before patching
+    real_run = real_subprocess.run
+
+    # Create a mock for just precommit
+    mock_precommit = MagicMock()
+    mock_precommit.returncode = 0
+    mock_precommit.stderr = ""
+
+    def selective_mock(cmd, **kwargs):
+        if cmd[0] == "just" and "precommit" in cmd:
+            return mock_precommit
+        return real_run(cmd, **kwargs)
+
+    try:
+        os.chdir(repo_dir_a)
+        with patch("claudeutils.worktree.merge.subprocess.run", side_effect=selective_mock):
+            try:
+                _phase4_merge_commit_and_precommit("test-branch")
+                exit_code_a = 0
+            except SystemExit as e:
+                exit_code_a = e.code
+    finally:
+        os.chdir(original_cwd)
+
+    # Get commit after Phase 4 call
+    commit_after_a = subprocess.run(
+        ["git", "log", "-1", "--format=%s"],
+        cwd=repo_dir_a,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    # Assertions for Scenario A
+    assert exit_code_a == 2, (
+        f"Scenario A: Expected exit code 2, got {exit_code_a}"
+    )
+    assert commit_after_a == commit_before_a, (
+        f"Scenario A: No commit should be created, but commit changed from '{commit_before_a}' to '{commit_after_a}'"
+    )
+
+    # Scenario B: Branch exists, no MERGE_HEAD, no staged changes, branch IS merged
+    repo_dir_b = tmp_path / "repo_b"
+    repo_dir_b.mkdir()
+    subprocess.run(["git", "init"], cwd=repo_dir_b, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Test"], cwd=repo_dir_b, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=repo_dir_b,
+        check=True,
+        capture_output=True,
+    )
+
+    # Initial commit
+    (repo_dir_b / "file.txt").write_text("initial")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_b, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "initial"],
+        cwd=repo_dir_b,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create branch
+    subprocess.run(
+        ["git", "branch", "test-branch"], cwd=repo_dir_b, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "checkout", "test-branch"], cwd=repo_dir_b, check=True, capture_output=True
+    )
+
+    # Make changes on branch
+    (repo_dir_b / "file.txt").write_text("branch content")
+    subprocess.run(["git", "add", "."], cwd=repo_dir_b, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "branch commit"],
+        cwd=repo_dir_b,
+        check=True,
+        capture_output=True,
+    )
+
+    # Return to main and merge the branch
+    subprocess.run(
+        ["git", "checkout", "main"], cwd=repo_dir_b, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "merge", "test-branch"],
+        cwd=repo_dir_b,
+        check=True,
+        capture_output=True,
+    )
+
+    # Verify no MERGE_HEAD (already merged)
+    merge_head_file_b = repo_dir_b / ".git" / "MERGE_HEAD"
+    assert not merge_head_file_b.exists(), "MERGE_HEAD should not exist"
+
+    # Verify no staged changes
+    staged_check_b = subprocess.run(
+        ["git", "diff", "--cached", "--quiet"],
+        cwd=repo_dir_b,
+        check=False,
+    )
+    assert staged_check_b.returncode == 0, "No staged changes should be present"
+
+    # Verify branch IS merged
+    merge_check_b = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", "test-branch", "HEAD"],
+        cwd=repo_dir_b,
+        check=False,
+    )
+    assert merge_check_b.returncode == 0, "Branch should be merged"
+
+    # Get commit before Phase 4 call
+    commit_before_b = subprocess.run(
+        ["git", "log", "-1", "--format=%s"],
+        cwd=repo_dir_b,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    # Call Phase 4 - expecting exit code 0, no commit
+    exit_code_b = None
+
+    try:
+        os.chdir(repo_dir_b)
+        with patch("claudeutils.worktree.merge.subprocess.run", side_effect=selective_mock):
+            try:
+                _phase4_merge_commit_and_precommit("test-branch")
+                exit_code_b = 0
+            except SystemExit as e:
+                exit_code_b = e.code
+    finally:
+        os.chdir(original_cwd)
+
+    # Get commit after Phase 4 call
+    commit_after_b = subprocess.run(
+        ["git", "log", "-1", "--format=%s"],
+        cwd=repo_dir_b,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    # Assertions for Scenario B
+    assert exit_code_b == 0, (
+        f"Scenario B: Expected exit code 0, got {exit_code_b}"
+    )
+    assert commit_after_b == commit_before_b, (
+        f"Scenario B: No commit should be created (already merged), but commit changed from '{commit_before_b}' to '{commit_after_b}'"
+    )
