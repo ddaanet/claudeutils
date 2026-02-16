@@ -10,6 +10,7 @@ from claudeutils.planstate.aggregation import (
     _is_dirty,
     _latest_commit,
     _parse_worktree_list,
+    _task_summary,
 )
 
 
@@ -241,3 +242,70 @@ def test_git_metadata_helpers(tmp_path: Path) -> None:
     assert isinstance(latest[1], int)
     assert latest[0] == "Test commit 2"
     assert 10 <= len(str(latest[1])) <= 10  # Unix epoch is roughly 10 digits
+
+
+def test_task_summary_extraction(tmp_path: Path) -> None:
+    """Extract first pending task name from session.md."""
+    # Setup: Create git repo with agents/session.md containing pending task
+    repo_path = tmp_path / "test_repo"
+    repo_path.mkdir()
+    repo_str = str(repo_path)
+
+    subprocess.run(
+        ["git", "init"],
+        cwd=repo_str,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo_str,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=repo_str,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create session.md with Pending Tasks section
+    session_dir = repo_path / "agents"
+    session_dir.mkdir(parents=True, exist_ok=True)
+    session_file = session_dir / "session.md"
+    session_content = "# Session\n\n## Pending Tasks\n- [ ] **Fix bug** — description\n"
+    session_file.write_text(session_content)
+    subprocess.run(
+        ["git", "add", "agents/session.md"],
+        cwd=repo_str,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Initial session"],
+        cwd=repo_str,
+        check=True,
+        capture_output=True,
+    )
+
+    # Call _task_summary → returns string "Fix bug" (task name only)
+    result = _task_summary(repo_path)
+    assert result == "Fix bug"
+
+    # Edge case: session.md exists but no Pending Tasks → returns None
+    no_pending_content = "# Session\n\n## Other Section\n"
+    session_file.write_text(no_pending_content)
+    result = _task_summary(repo_path)
+    assert result is None
+
+    # Edge case: Pending Tasks section empty (no task lines) → returns None
+    empty_pending_content = "# Session\n\n## Pending Tasks\n"
+    session_file.write_text(empty_pending_content)
+    result = _task_summary(repo_path)
+    assert result is None
+
+    # Edge case: session.md file doesn't exist → returns None (not error)
+    session_file.unlink()
+    result = _task_summary(repo_path)
+    assert result is None

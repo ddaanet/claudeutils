@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 from typing import NamedTuple
 
+from claudeutils.worktree.session import extract_task_blocks
+
 
 class TreeInfo(NamedTuple):
     """Information about a git worktree."""
@@ -173,3 +175,27 @@ def _is_dirty(tree_path: Path) -> bool:
         return False
 
     return bool(result.stdout.strip())
+
+
+def _task_summary(tree_path: Path) -> str | None:
+    """Extract first pending task name from session.md.
+
+    Args:
+        tree_path: Path to git repository
+
+    Returns:
+        Task name (string) if pending task exists, None otherwise.
+        Returns None if session.md doesn't exist or has no Pending Tasks.
+    """
+    session_path = tree_path / "agents" / "session.md"
+
+    if not session_path.exists():
+        return None
+
+    content = session_path.read_text()
+    blocks = extract_task_blocks(content, section="Pending Tasks")
+
+    if not blocks:
+        return None
+
+    return blocks[0].name
