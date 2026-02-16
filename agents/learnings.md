@@ -59,3 +59,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Segment by origin. `p:` directives (n=29) distribute evenly (34.5% prepend). Workflow continuations dominate the prepend signal. Different insertion policies needed per origin type.
 - Evidence: Session scraping + git correlation across 337 sessions, 506 commits. Handoff skill says "append" but agents correctly override for both populations.
 - Implication: Handoff skill should say "insert at estimated priority position" not "append" — agents already exercise good judgment.
+## When choosing model for edits
+- Anti-pattern: Assigning sonnet/haiku to prose edits on skills, fragments, and agent definitions based on "edit complexity" rather than artifact type
+- Correct pattern: Apply design-decisions.md directive: "Workflow/skill/agent edits: opus required." Prose instructions consumed by LLMs require nuanced understanding — wording directly determines downstream agent behavior
+- Evidence: Tier 2 plan assigned sonnet to skill/fragment edits, haiku to agent audit. User corrected: all were prose edits to architectural artifacts requiring opus

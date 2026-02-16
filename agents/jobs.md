@@ -22,6 +22,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | worktree-merge-data-loss | planned | Design + outline synced to main, runbook expansion next (worktree active) |
 | workwoods | requirements | Cross-tree worktree awareness, vet tracking, plan state inference, bidirectional merge |
 | prototypes | requirements | Session extraction feature gap, multi-project scanning |
+| remaining-workflow-items | complete | 5 FRs: reflect task output, tool-batching, delegate resume, agent output, commit simplification |
 | remember-skill-update | requirements | Outline + requirements.md complete, Phase B discussion next |
 
 ## Complete (Archived)
