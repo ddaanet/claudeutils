@@ -1,37 +1,30 @@
 # Session Handoff: 2026-02-16
 
-**Status:** Added provenance tracking to requirements and design skills.
+**Status:** Updated deliverable-review and design skills.
 
 ## Completed This Session
 
-**Plan pruning:**
-- Assessed all plan statuses by examining git history and plan artifacts
-- Corrected 2 stale statuses in jobs.md: when-recall (designed → complete), pushback-improvement (designed → complete)
-- Cross-referenced completed plans against current plans to identify safe deletions
-- Deleted 7 completed plan directories: grounding-skill, workflow-rca-fixes, worktree-fixes, pushback, pushback-improvement, process-review, workflow-fixes
-- Deleted orphan `plans/claude/` (Claude Code default plan dir, not a project plan)
-- Removed stale "Pushback design" pending task (plan already complete)
-- Updated jobs.md: moved 7 plans to archived (41→48), added to Recent list
+**Deliverable-review skill — two-layer review model:**
+- Layer 1 (optional): Delegated per-file review gated on deliverable volume (< 500 lines skips, 500-2000 two agents, > 2000 three agents)
+- Layer 2 (mandatory): Interactive full-artifact review in main session with cross-project context
+- Layers are independent — Layer 2 reads deliverables directly, not delegation reports
+- Added `user-invocable: true`, timing clarification in "Not for" section
+- Parallel skill-reviewer agents confirmed structure; applied all fixes (1 critical, 3 major, 6 minor from design skill review)
 
-**Retained completed plans (still referenced by current plans):**
-- when-recall → orchestrate-evolution (report citation), session.md RED pass protocol
-- worktree-skill → orchestrate-evolution (regression test examples)
-- worktree-update → workwoods (integration dependency for FR-4, FR-5, R1)
+**Design skill — outline sufficiency gate:**
+- Gate between Phase B and Phase C: when outline has sufficient specificity, skip design generation
+- Five criteria (all must hold): concrete approach, resolved decisions, explicit scope, identified files, no uncertainty
+- User confirmation required before skipping Phase C
+- Terminal action: `/handoff [CONTINUATION: /commit]` (continuation passing, not obsolete `--commit`)
+- Added `name: design` field, third-person description with trigger phrases, passive voice fix
 
-**Grounding refs in skills:**
-- Design skill: Added `/ground` integration point in Phase A.3-4, References section to output format (backward-looking provenance, distinct from Documentation Perimeter)
-- Requirements skill: Added References section to standard format template (3 typed examples), provenance guidance in section rules
-- Parallel skill-reviewer agents: both passed, 3 minor fixes applied (placeholder standardization, expanded template, grammar)
+**Discussion outcome:** Evaluated routing gate to direct execution vs `/runbook` — concluded `/runbook` is correct. Sufficiency gate answers "is the design complete?" (skip Phase C), not "is the work small enough?" (`/runbook` tier assessment handles that). Two bypass layers is defense-in-depth.
 
 ## Pending Tasks
 
-- [x] **Grounding refs in skills** — Track research artifacts and external references that informed requirements and design (not limited to grounding) | sonnet
+- [x] **Interactive review skill** — Two-layer review model (optional delegation + mandatory interactive) | sonnet
 
-- [ ] **Interactive review skill** — Update deliverable-review skill so review runs interactively, not delegated (benefits from full context) | sonnet
-
-- [ ] **Design skill outline gate** — Update /design skill to add direct execution gate after outline validated | sonnet
-  - When outline has sufficient specificity, skip Phase C (design generation) and implement directly
-  - Discovered during ground skill: outline was the design
+- [x] **Design skill outline gate** — Sufficiency gate between Phase B and C, continuation passing terminal | sonnet
 
 - [ ] **Outline agent Write perm** — Add Write permission to outline-review-agent, update design skill to specify report path | sonnet | restart
   - Prototype use case for third-party agents is separate (plans/reports/prototype-review-capture-script.md)
@@ -164,13 +157,13 @@
 - Index keys must NOT include "to" — validator adds it automatically
 - Including "to" in key causes double-to: `"how to to X"`
 
-**Deliverable review delegation loses context:**
-- Task agent missed major finding (Write missing from allowed-tools) — lacked cross-project context
-- Interactive review with full fragment/learnings context catches structural issues delegation misses
+**Deliverable review delegation loses context — partially addressed:**
+- Two-layer model adds mandatory interactive review (Layer 2) that catches cross-project issues
+- Layer 1 delegation still available for volume; Layer 2 compensates for context gap
 
 ## Next Steps
 
-Interactive review skill or design skill outline gate — both small skill edits.
+Outline agent Write perm or handoff memory naming — both small edits.
 
 ## Reference Files
 
