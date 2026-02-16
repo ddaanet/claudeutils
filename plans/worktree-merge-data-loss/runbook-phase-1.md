@@ -207,9 +207,9 @@
 - Stdout contains: `"Removed {slug}"` (no qualifier like "focused session only")
 - Verify `git branch -d` was used (safe delete, not force)
 
-**Expected failure:** Wrong success message format or branch deletion method
+**Expected failure:** Output contains `"Removed worktree {slug}"` instead of expected `"Removed {slug}"` (current code at line 382 includes "worktree" in message)
 
-**Why it fails:** Current rm uses `-d` always and has generic message (line 382: `"Removed worktree {slug}"`)
+**Why it fails:** Current rm outputs `"Removed worktree {slug}"` (line 382) — test asserts `"Removed {slug}"` without "worktree" qualifier. Also, current code has no per-branch-type message differentiation.
 
 **Verify RED:** `pytest tests/test_worktree_rm_guard.py::test_rm_allows_merged_branch -v`
 
@@ -303,9 +303,9 @@
   - Session.md task NOT removed
   - `_probe_registrations` NOT called (verify via mock or side effect absence)
 
-**Expected failure:** Some operations execute before guard (current behavior: probe runs first at line 352)
+**Expected failure:** Side effects occur despite guard refusal — session.md task removed, worktree directory deleted, or `_probe_registrations` called. This tests the integration ordering, not the guard logic itself (which was added in Cycles 1.4-1.6).
 
-**Why it fails:** Guard logic not integrated into correct position in rm() flow
+**Why it fails:** Even with guard logic from Cycles 1.4-1.6, the rm() function structure may allow downstream operations to execute before the guard's early return. This cycle verifies the complete ordering: guard refusal prevents ALL downstream side effects (the original incident's root cause).
 
 **Verify RED:** `pytest tests/test_worktree_rm_guard.py::test_rm_guard_prevents_destruction -v`
 
@@ -339,7 +339,7 @@
 
 **Type:** Transformation (Regression guard)
 
-**Note:** This cycle tests presentation (no destructive suggestions in CLI output). Current code at line 373 emits: `"use: git branch -D {slug}"`. This violates FR-5 (design.md line 24).
+**Note:** This is a regression guard for FR-5 (design.md line 24). Current code emits `"use: git branch -D {slug}"` in the branch delete fallback. After Cycles 1.4-1.7 restructure rm(), this old fallback code is obsolete — the guard handles all branch deletion paths with appropriate flags. This cycle removes the obsolete code and tests that no destructive suggestions remain.
 
 **RED Phase:**
 
@@ -352,9 +352,9 @@
 - Assert `"git branch -D"` NOT in stderr
 - Run against CURRENT code to verify RED failure
 
-**Expected failure:** Current code (line 373) outputs `"use: git branch -D {slug}"` for unmerged branches
+**Expected failure:** Output contains `"git branch -D"` string from old branch delete fallback code (the `subprocess.run(["git", "branch", "-d", slug])` block with its error message)
 
-**Why it fails:** Lines 369-373 contain fallback logic that suggests force deletion
+**Why it fails:** Old branch delete fallback code still present — emits destructive suggestion when `-d` fails
 
 **Verify RED:** `pytest tests/test_worktree_rm_guard.py::test_rm_no_destructive_suggestions -v`
 
@@ -363,16 +363,16 @@
 **Implementation:** Remove destructive suggestion from rm() output
 
 **Behavior:**
-- Remove lines 369-373 (branch delete with `-D` suggestion fallback)
-- Guard (Cycles 1.4-1.6) now handles all branch deletion scenarios with appropriate flags
+- Remove the old branch delete fallback block (`subprocess.run(["git", "branch", "-d", slug])` + error message suggesting `-D`)
+- Guard (Cycles 1.4-1.6) now handles all branch deletion scenarios with appropriate flags (`-d` for merged, `-D` for focused-session-only)
 - No CLI output should suggest manual git commands
 
 **Approach:** Delete obsolete branch deletion code — guard replacement makes it redundant
 
 **Changes:**
 - File: `src/claudeutils/worktree/cli.py`
-  Action: Remove lines 369-373 (subprocess.run with `-d` fallback + error message)
-  Location hint: Branch deletion section
+  Action: Remove old branch delete fallback block (the `subprocess.run` with `-d` and its error message)
+  Location hint: Branch deletion section (may have shifted from original line 369 due to Cycles 1.4-1.7 edits)
 
 **Verify GREEN:** `pytest tests/test_worktree_rm_guard.py::test_rm_no_destructive_suggestions -v`
 **Verify no regression:** `pytest tests/test_worktree_rm_guard.py -v` (full Track 1 suite)
@@ -431,9 +431,11 @@
 
 ---
 
-## Cycle 1.10: Already-merged idempotency — Phase 4 allows commit when branch already merged (exit 0)
+## Cycle 1.10: [REGRESSION] Already-merged idempotency — Phase 4 allows commit when branch already merged (exit 0)
 
-**Type:** Transformation
+**Type:** Transformation (regression guard for Cycle 1.9)
+
+**Note:** Cycle 1.9's implementation (`if not _is_branch_merged(slug): exit 2`) already handles the already-merged case correctly — merged branches pass the check and proceed to commit. This cycle verifies that behavior explicitly as a regression guard. The RED phase test should PASS against Cycle 1.9's implementation.
 
 **RED Phase:**
 
@@ -441,34 +443,30 @@
 
 **Assertions:**
 - Set up: Create branch, merge to main (branch becomes merged)
-- Re-run merge operation (simulate merge command on already-merged branch)
+- Stage changes (simulate re-merge with staged content)
 - No MERGE_HEAD (already merged)
-- Staged changes may or may not be present (depends on re-merge handling)
 - Call `_phase4_merge_commit_and_precommit(slug)`
 - Exit code is 0 (success)
-- If staged changes present: commit created
-- If no staged changes: no commit (skip silently)
+- Commit created with staged changes
 
-**Expected failure:** Exit code 2 from Cycle 1.9 checkpoint (incorrectly blocking already-merged)
+**Expected result:** Test PASSES against Cycle 1.9 implementation (regression guard — verifies `_is_branch_merged` correctly allows merged branches through the `elif` path)
 
-**Why it fails:** Cycle 1.9 checkpoint blocks ALL unmerged when no MERGE_HEAD; need to allow already-merged case
+**Why this test exists:** Documents and locks the idempotent behavior. If a future change to the `elif` branch breaks the merge check, this test catches it.
 
-**Verify RED:** `pytest tests/test_worktree_merge_correctness.py::test_phase4_allows_already_merged -v`
+**Verify RED:** `pytest tests/test_worktree_merge_correctness.py::test_phase4_allows_already_merged -v` (expected: PASS)
 
 **GREEN Phase:**
 
-**Implementation:** Cycle 1.9 already implements this via merge check — test verifies it works
+**Implementation:** No additional code needed — Cycle 1.9's `if not _is_branch_merged(slug)` handles this
 
 **Behavior:**
 - `elif staged_check.returncode != 0:` → checks `_is_branch_merged(slug)`
 - If merged: creates commit (idempotent — re-merging already-merged branch)
 - If not merged: exits 2 (Cycle 1.9 behavior)
 
-**Approach:** No additional code needed — Cycle 1.9's `if _is_branch_merged(slug)` handles this
-
 **Changes:**
 - File: `tests/test_worktree_merge_correctness.py`
-  Action: Test verifies Cycle 1.9 implementation allows merged branches
+  Action: Regression test verifies Cycle 1.9 implementation allows merged branches
   Location hint: N/A (test-only cycle)
 
 **Verify GREEN:** `pytest tests/test_worktree_merge_correctness.py::test_phase4_allows_already_merged -v`
@@ -542,6 +540,8 @@
   - Call `_validate_merge_result(slug)`
   - Exit code is 2 (error)
   - Stderr contains: `"Error: branch {slug} not fully merged"`
+- Scenario C (diagnostic): After single-parent commit, call `_validate_merge_result(slug)` where ancestry passes
+  - Stderr contains: `"Warning: merge commit has 1 parent(s)"` (parent count < 2 diagnostic)
 
 **Expected failure:** `AttributeError` or `ImportError` — function doesn't exist
 
@@ -551,7 +551,7 @@
 
 **GREEN Phase:**
 
-**Implementation:** Add `_validate_merge_result(slug: str) -> None` to merge.py
+**Implementation:** Add `_validate_merge_result(slug: str) -> None` to merge.py AND wire it into `_phase4_merge_commit_and_precommit`
 
 **Behavior:**
 - Execute `git merge-base --is-ancestor <slug> HEAD` (same check as `_is_branch_merged`)
@@ -561,15 +561,18 @@
   - `git cat-file -p HEAD` → count lines starting with "parent "
   - If parent_count < 2: stderr `"Warning: merge commit has {parent_count} parent(s)"`
 
+**Integration wiring:** Call `_validate_merge_result(slug)` in `_phase4_merge_commit_and_precommit` after the commit block (after `if merge_in_progress` / `elif staged` / `else`) but before `just precommit`. Design specifies this placement (design.md line 155: "validate ancestry after any successful commit or skip, then precommit").
+
 **Approach:** Defensive check using merge-base. Design specifies exact command (design.md lines 125-132, 137-143).
 
 **Changes:**
 - File: `src/claudeutils/worktree/merge.py`
-  Action: Add function after existing helper functions, before `_phase4_merge_commit_and_precommit`
-  Location hint: Near other Phase 4 functions
+  Action: Add function after existing helper functions, before `_phase4_merge_commit_and_precommit`; add call to `_validate_merge_result(slug)` in `_phase4_merge_commit_and_precommit` after commit block, before precommit
+  Location hint: Function near other Phase 4 helpers; call site between commit block and `just precommit` (line 287)
 
 **Verify GREEN:** `pytest tests/test_worktree_merge_correctness.py::test_validate_merge_result -v`
 **Verify no regression:** `pytest tests/test_worktree_merge_*.py -v`
+**Verify existing tests:** `pytest tests/test_worktree_merge_merge_head.py -v` (existing Phase 4 tests must still pass after wiring)
 
 ---
 
