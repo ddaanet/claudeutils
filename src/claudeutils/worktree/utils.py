@@ -83,13 +83,26 @@ def _classify_branch(slug: str) -> tuple[int, bool]:
     return (count, is_focused)
 
 
-def _is_parent_dirty() -> bool:
+def _is_parent_dirty(exclude_path: str | None = None) -> bool:
     """Check if parent repo has uncommitted changes.
 
-    Returns True if working tree has any staged or unstaged changes.
+    Returns True if working tree has staged/unstaged/untracked changes. If
+    exclude_path is provided, ignores files in that directory (used to exclude
+    worktree container).
     """
     output = _git("status", "--porcelain", check=False)
-    return bool(output)
+    if not output:
+        return False
+
+    exclude_prefix = (Path(exclude_path).name + "/") if exclude_path else None
+    for line in output.strip().split("\n"):
+        if not line:
+            continue
+        path = line[3:]
+        if exclude_prefix and path.startswith(exclude_prefix):
+            continue
+        return True
+    return False
 
 
 def _is_submodule_dirty() -> bool:

@@ -24,6 +24,8 @@ from claudeutils.worktree.utils import (
     _git,
     _is_branch_merged,
     _is_merge_commit,
+    _is_parent_dirty,
+    _is_submodule_dirty,
     _parse_worktree_list,
     _probe_registrations,
     _remove_worktrees,
@@ -344,6 +346,22 @@ def _update_session_and_amend(slug: str) -> bool:
 def rm(slug: str, confirm: bool) -> None:  # noqa: FBT001
     """Remove worktree and its branch."""
     _check_confirm(slug, confirm)
+
+    worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)
+    if _is_parent_dirty(exclude_path=str(worktree_path.parent)):
+        click.echo(
+            "Parent repo has uncommitted changes. "
+            "Commit or stash before removing worktree.",
+            err=True,
+        )
+        raise SystemExit(2)
+    if _is_submodule_dirty():
+        click.echo(
+            "Submodule (agent-core) has uncommitted changes. "
+            "Commit or stash before removing worktree.",
+            err=True,
+        )
+        raise SystemExit(2)
 
     branch_exists, removal_type = _guard_branch_removal(slug)
     worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)

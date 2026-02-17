@@ -390,3 +390,5 @@ def test_is_submodule_dirty(
 
     monkeypatch.setattr(subprocess, "run", mock_run_dirty)
     assert _is_submodule_dirty() is True
+
+
