@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from claudeutils.worktree.cli import worktree
+from claudeutils.worktree.cli import _delete_branch, worktree
 from claudeutils.worktree.utils import _classify_branch, _is_branch_merged
 from tests.fixtures_worktree import _run_git, add_worktree, make_repo_with_branch
 
@@ -274,3 +274,24 @@ def test_rm_no_destructive_suggestions(
     add_worktree(repo, "unmerged-test")
     result = runner.invoke(worktree, ["rm", "unmerged-test"])
     assert "git branch -D" not in result.output
+
+
+def test_delete_branch_exits_2_on_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    init_repo: Callable[[Path], None],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """_delete_branch raises SystemExit(2) when git branch -d fails."""
+    repo = tmp_path / "repo"
+    make_repo_with_branch(
+        repo, init_repo, branch="unmerged-br", files={"f.txt": "content"}
+    )
+    monkeypatch.chdir(repo)
+
+    # git branch -d fails on unmerged branch (removal_type=None → uses -d)
+    with pytest.raises(SystemExit) as exc_info:
+        _delete_branch("unmerged-br", None)
+
+    assert exc_info.value.code == 2
+    assert "deletion failed" in capsys.readouterr().err

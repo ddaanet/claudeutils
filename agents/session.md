@@ -1,44 +1,15 @@
 # Session Handoff: 2026-02-17
 
-**Status:** 4 worktrees merged, 3 active. Task reorganization: RED pass blocked on error-handling, runbook tasks batched.
+**Status:** Merge data loss review complete (3 major findings fixed). 3 worktrees active.
 
 ## Completed This Session
 
-**remaining-workflow-items merged (model assignment):**
-- Post-merge commit (683fc7d) brought runbook model assignment: opus for skills/fragments/agents
-- Merge CLI failed with exit 128 during `_resolve_session_md_conflict` — manual conflict resolution
-- Vet report: `plans/remaining-workflow-items/reports/model-assignment-vet.md`
-
-**design-workwoods merged:**
-- 15 commits: design complete (6 phases, 8 decisions), runbook planned (33 TDD + 10 general steps)
-- jobs.md conflict auto-resolved (kept ours)
-
-**pretool-hook-cd-pattern merged + removed:**
-- Submodule-safety hook now allows `cd <project-root> && <cmd>` pattern
-- Fixes catch-22 where hook blocked all Bash including `cd` to restore cwd
-- Tests: `tests/test_submodule_safety.py`
-- Reports: `plans/pretool-hook-cd-pattern/reports/`
-
-**worktree-merge-errors merged + removed:**
-- Merge CLI now reports errors with context instead of stack traces
-- `_git()` CalledProcessError now surfaces stderr in user-facing message
-- Session resolution fallback preserves branch data
-- Tests: `tests/test_worktree_merge_errors.py`, `tests/test_worktree_merge_session_resolution.py`
-
-**runbook-skill-fixes merged (worktree kept):**
-- Design quality gates design complete, simplification agent created
-- Pipeline-contracts updated, memory-index updated
-- Runbook quality gates Phase A prose edits landed
-- Reports: `plans/runbook-quality-gates/reports/`
-
-**Task reorganization:**
-- RED pass protocol separated from runbook batch, blocked on error-handling design (D-3, D-5)
-- Runbook tasks batched into "Runbook skill fixes" (model assignment + design quality gates)
-- Pretool hook and worktree merge errors completed and removed from pending
-
-**Session data loss caught and fixed:**
-- `git checkout main -- agents/session.md` during conflict resolution dropped "Simplify when-resolve CLI" task — restored manually
-- Lesson: always verify session.md content after merge, not just diff
+**Address merge data loss review (all 3 major findings):**
+- Major 1: `_delete_branch` now raises `SystemExit(2)` on unexpected failure (cli.py)
+- Major 2: `sys.stderr.write` → `click.echo(..., err=True)` across merge.py (4 calls), removed `sys` import. Tests migrated from fragile StringIO stderr-swap to `capsys`
+- Major 3: SKILL.md Mode C now dispatches on rm exit 2 (escalate to user)
+- Test fix: amend tests used unrealistic workflow — branch created at merge commit instead of as merged parent. After amend, orphaned branch caused `-d` to fail. Fixed tests to merge the worktree branch (realistic flow preserves parent reachability through amend)
+- Minor: `initialize_environment` → `_initialize_environment` (private), rm output condensed
 
 ## Pending Tasks
 
@@ -48,12 +19,6 @@
   - Blocked on: Error handling design (needs D-3 escalation criteria, D-5 rollback semantics)
   - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
   - Reports: `plans/when-recall/reports/tdd-process-review.md`, `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`
-
-- [ ] **Address merge data loss review** — Fix 3 major findings from deliverable review | sonnet
-  - Major 1: `_delete_branch` exit 2 on unexpected failure (cli.py:351)
-  - Major 2: `sys.stderr.write` → `click.echo(..., err=True)` in merge.py + test capfd migration
-  - Major 3: SKILL.md Mode C rm exit 2 handling
-  - Report: `plans/worktree-merge-data-loss/reports/deliverable-review.md`
 
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | opus
   - Plan: plugin-migration | Status: planned (stale — Feb 9)
@@ -167,7 +132,6 @@
 
 - [ ] **Runbook model assignment** — apply design-decisions.md directive (opus for skill/fragment/agent edits)
   - Partially landed via remaining-workflow-items merge
-- [x] **Runbook quality gates Phase A** — completed (Tier 1 direct, all 6 deliverables + reviews)
 - [ ] **Runbook quality gates Phase B** — TDD for validate-runbook.py (4 subcommands) | sonnet
   - Depends on Phase A merge (SKILL.md references script)
   - Graceful degradation bridges gap (NFR-2)
@@ -211,16 +175,15 @@
 
 ## Next Steps
 
-Next: Address merge data loss review (sonnet). 3 worktrees active (error-handling-design, design-workwoods, runbook-skill-fixes). Learnings at 117/80 lines — run `/remember` soon.
+Next: Execute plugin migration (opus) or Script commit vet gate (sonnet). 3 worktrees active (error-handling-design, design-workwoods, runbook-skill-fixes). Learnings at 122/80 lines — run `/remember` soon.
 
 ## Reference Files
 
 - `plans/reports/prioritization-2026-02-16.md` — WSJF task prioritization (rev 2, 27 tasks)
-- `plans/worktree-merge-data-loss/reports/deliverable-review.md` — Consolidated review (3 major findings)
+- `plans/worktree-merge-data-loss/reports/deliverable-review.md` — Consolidated review (all 3 major findings resolved)
 - `plans/reports/task-prioritization-methodology.md` — WSJF-adapted prioritization methodology
 - `plans/remember-skill-update/requirements.md` — 7 FRs (When/How prefix, validation, migration)
 - `plans/error-handling/outline.md` — Error handling design outline (Phase A complete)
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
 - `plans/reports/safety-review-grounding.md` — Safety review grounding research
-- `plans/remaining-workflow-items/requirements.md` — 6 FRs (reflect, batching, delegation, agents, commit)
 - `plans/runbook-quality-gates/design.md` — Quality gates design (6 FRs, simplification agent)

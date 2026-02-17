@@ -119,3 +119,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Using `git checkout main -- agents/session.md` to resolve conflicts — discards all branch-side session data (new tasks, metadata) without verification
 - Correct pattern: After any session.md conflict resolution, read the full file and compare against known task list. Verify no tasks were dropped. Branch session.md may contain tasks added during worktree work that don't exist on main.
 - Evidence: "Simplify when-resolve CLI" task existed only in worktree-merge-errors branch session.md. `checkout main --` silently dropped it. Caught only because user requested explicit content verification.
+## When tests simulate merge workflows
+- Anti-pattern: Creating worktree branch at the merge commit (same SHA as HEAD) instead of as a merged parent. After `git commit --amend`, the branch points to the old (orphaned) commit — `git branch -d` correctly refuses.
+- Correct pattern: Test should make the worktree branch the one that gets merged. Its tip becomes a parent of the merge commit, preserved through amend (amend keeps parents, only rewrites tree content).
+- Evidence: `test_rm_amends_merge_commit_when_session_modified` created "test-feature" at HEAD, not as the merged branch. `-d` failed post-amend. Real workflow: branch is merged parent, always reachable.
+## When safety checks fail in tests
+- Anti-pattern: Weakening a safety check (`-d` to `-D`) to make tests pass. If `git branch -d` correctly identifies unreachable commits, the problem is upstream (test scenario or code ordering), not in the check itself.
+- Correct pattern: Understand why the safety check fires. If the test scenario is unrealistic, fix the test. If code creates the problem (e.g., amend before delete), fix the ordering. Safety checks that detect merge parent loss are critical — suppressing them masks data loss.

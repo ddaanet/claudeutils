@@ -105,8 +105,7 @@ def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
     path.write_text(json.dumps(settings, indent=2, ensure_ascii=False))
 
 
-def initialize_environment(worktree_path: Path) -> None:
-    """Run just setup if just is available."""
+def _initialize_environment(worktree_path: Path) -> None:
     try:
         subprocess.run(["just", "--version"], capture_output=True, check=True)
     except (FileNotFoundError, subprocess.CalledProcessError):
@@ -221,7 +220,7 @@ def _setup_worktree(
     add_sandbox_dir(
         str(worktree_path.parent), f"{worktree_path}/.claude/settings.local.json"
     )
-    initialize_environment(worktree_path)
+    _initialize_environment(worktree_path)
     click.echo(f"{slug}\t{worktree_path}" if task else str(worktree_path))
 
 
@@ -344,6 +343,7 @@ def _delete_branch(slug: str, removal_type: str | None) -> None:
     )
     if r.returncode != 0 and "not found" not in r.stderr.lower():
         click.echo(f"Branch {slug} deletion failed: {r.stderr.strip()}", err=True)
+        raise SystemExit(2)
 
 
 def _update_session_and_amend(slug: str) -> bool:
@@ -391,10 +391,7 @@ def rm(slug: str) -> None:
 
     if branch_exists:
         _delete_branch(slug, removal_type)
-    suffix = " Merge commit amended." if amended else ""
-    if removal_type == "merged":
-        click.echo(f"Removed {slug}{suffix}")
-    elif removal_type == "focused":
-        click.echo(f"Removed {slug} (focused session only){suffix}")
-    else:
-        click.echo(f"Removed worktree {slug}{suffix}")
+    amend_note = " Merge commit amended." if amended else ""
+    detail = " (focused session only)" if removal_type == "focused" else ""
+    prefix = "Removed worktree" if removal_type is None else "Removed"
+    click.echo(f"{prefix} {slug}{detail}{amend_note}")

@@ -162,9 +162,10 @@ def test_rm_amends_merge_commit_when_session_modified(
         ["git", "commit", "-m", "Add session"], check=True, capture_output=True
     )
 
-    # Create merge commit by branching, making a change, and merging
+    # Create test-feature branch with a commit, then merge it into main.
+    # This makes test-feature a parent of the merge commit — realistic workflow.
     subprocess.run(
-        ["git", "checkout", "-b", "feature"], check=True, capture_output=True
+        ["git", "checkout", "-b", "test-feature"], check=True, capture_output=True
     )
     (repo_path / "feature.txt").write_text("feature content")
     subprocess.run(["git", "add", "feature.txt"], check=True, capture_output=True)
@@ -173,10 +174,9 @@ def test_rm_amends_merge_commit_when_session_modified(
     )
     subprocess.run(["git", "checkout", "main"], check=True, capture_output=True)
     subprocess.run(
-        ["git", "merge", "--no-ff", "feature"], check=True, capture_output=True
+        ["git", "merge", "--no-ff", "test-feature"], check=True, capture_output=True
     )
 
-    # Verify we're on a merge commit
     assert _is_merge_commit()
     merge_msg = subprocess.run(
         ["git", "log", "-1", "--format=%B"],
@@ -185,11 +185,10 @@ def test_rm_amends_merge_commit_when_session_modified(
         check=True,
     ).stdout.strip()
 
-    # Create and setup worktree
+    # Create worktree (branch already exists, worktree add attaches to it)
     worktree_path = _create_worktree(repo_path, "test-feature", init_repo)
     assert worktree_path.exists()
 
-    # Run rm command
     runner = CliRunner()
     result = runner.invoke(worktree, ["rm", "test-feature"])
 
@@ -214,7 +213,6 @@ def test_rm_amends_merge_commit_when_session_modified(
         text=True,
         check=True,
     ).stdout
-    # Task should be removed from Worktree Tasks
     assert "test-feature" not in session_content
 
 
@@ -284,9 +282,9 @@ def test_rm_output_indicates_amend(
         ["git", "commit", "-m", "Add session"], check=True, capture_output=True
     )
 
-    # Create merge commit
+    # Create test-feature as the merged branch (parent of merge commit)
     subprocess.run(
-        ["git", "checkout", "-b", "feature"], check=True, capture_output=True
+        ["git", "checkout", "-b", "test-feature"], check=True, capture_output=True
     )
     (repo_path / "feature.txt").write_text("feature content")
     subprocess.run(["git", "add", "feature.txt"], check=True, capture_output=True)
@@ -295,22 +293,18 @@ def test_rm_output_indicates_amend(
     )
     subprocess.run(["git", "checkout", "main"], check=True, capture_output=True)
     subprocess.run(
-        ["git", "merge", "--no-ff", "feature"], check=True, capture_output=True
+        ["git", "merge", "--no-ff", "test-feature"], check=True, capture_output=True
     )
 
-    # Verify merge commit
     assert _is_merge_commit()
 
-    # Create and setup worktree
     worktree_path = _create_worktree(repo_path, "test-feature", init_repo)
     assert worktree_path.exists()
 
-    # Run rm on merge commit with modified session.md
     runner = CliRunner()
     result = runner.invoke(worktree, ["rm", "test-feature"])
 
     assert result.exit_code == 0
-    # Output should indicate amend was performed
     assert "merge commit amended" in result.output.lower()
     assert "removed" in result.output.lower()
     assert "test-feature" in result.output.lower()
@@ -324,7 +318,6 @@ def test_rm_output_indicates_amend(
         ["git", "commit", "-m", "Add another task"], check=True, capture_output=True
     )
 
-    # Now HEAD is a normal commit (1 parent)
     assert not _is_merge_commit()
 
     worktree_path2 = _create_worktree(repo_path, "another-feature", init_repo)
@@ -332,7 +325,6 @@ def test_rm_output_indicates_amend(
 
     result2 = runner.invoke(worktree, ["rm", "another-feature"])
     assert result2.exit_code == 0
-    # Output should NOT mention amend
     assert "amend" not in result2.output.lower()
     assert "removed" in result2.output.lower()
     assert "another-feature" in result2.output.lower()

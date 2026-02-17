@@ -1,9 +1,8 @@
 """Tests for Track 2: Merge correctness (MERGE_HEAD checkpoint)."""
 
+import contextlib
 import subprocess
-import sys
 from collections.abc import Callable
-from io import StringIO
 from pathlib import Path
 
 import pytest
@@ -168,6 +167,7 @@ def test_validate_merge_valid(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     init_repo: Callable[[Path], None],
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Validation passes when slug is ancestor of HEAD."""
     repo = tmp_path / "repo"
@@ -175,24 +175,20 @@ def test_validate_merge_valid(
     monkeypatch.chdir(repo)
 
     exit_code = 0
-    stderr_buf = StringIO()
-    old_stderr = sys.stderr
-    sys.stderr = stderr_buf
     try:
         _validate_merge_result("test-branch")
     except SystemExit as e:
         exit_code = e.code
-    finally:
-        sys.stderr = old_stderr
 
     assert exit_code == 0
-    assert "Error" not in stderr_buf.getvalue()
+    assert "Error" not in capsys.readouterr().err
 
 
 def test_validate_merge_invalid(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     init_repo: Callable[[Path], None],
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Validation fails when slug is NOT ancestor of HEAD."""
     repo = tmp_path / "repo"
@@ -200,24 +196,20 @@ def test_validate_merge_invalid(
     monkeypatch.chdir(repo)
 
     exit_code = 0
-    stderr_buf = StringIO()
-    old_stderr = sys.stderr
-    sys.stderr = stderr_buf
     try:
         _validate_merge_result("test-branch")
     except SystemExit as e:
         exit_code = e.code
-    finally:
-        sys.stderr = old_stderr
 
     assert exit_code == 2
-    assert "Error: branch test-branch not fully merged" in stderr_buf.getvalue()
+    assert "Error: branch test-branch not fully merged" in capsys.readouterr().err
 
 
 def test_validate_merge_single_parent_warning(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     init_repo: Callable[[Path], None],
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Validation warns when HEAD has single parent (fast-forward)."""
     repo = tmp_path / "repo"
@@ -241,17 +233,10 @@ def test_validate_merge_single_parent_warning(
     )
     monkeypatch.chdir(repo)
 
-    stderr_buf = StringIO()
-    old_stderr = sys.stderr
-    sys.stderr = stderr_buf
-    try:
+    with contextlib.suppress(SystemExit):
         _validate_merge_result("test-branch")
-    except SystemExit:
-        pass
-    finally:
-        sys.stderr = old_stderr
 
-    assert "Warning: merge commit has 1 parent(s)" in stderr_buf.getvalue()
+    assert "Warning: merge commit has 1 parent(s)" in capsys.readouterr().err
 
 
 def test_merge_preserves_parent_repo_files(

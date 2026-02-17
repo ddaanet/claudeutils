@@ -1,7 +1,6 @@
 """Worktree merge operations."""
 
 import subprocess
-import sys
 from pathlib import Path
 
 import click
@@ -312,7 +311,7 @@ def _validate_merge_result(slug: str) -> None:
     )
 
     if result.returncode != 0:
-        sys.stderr.write(f"Error: branch {slug} not fully merged\n")
+        click.echo(f"Error: branch {slug} not fully merged", err=True)
         raise SystemExit(2)
 
     # Diagnostic: Check parent count
@@ -327,7 +326,7 @@ def _validate_merge_result(slug: str) -> None:
         [line for line in parent_output.split("\n") if line.startswith("parent ")]
     )
     if parent_count < 2:
-        sys.stderr.write(f"Warning: merge commit has {parent_count} parent(s)\n")
+        click.echo(f"Warning: merge commit has {parent_count} parent(s)", err=True)
 
 
 def _phase4_merge_commit_and_precommit(slug: str) -> None:
@@ -355,14 +354,15 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
         _git("commit", "--allow-empty", "-m", f"🔀 Merge {slug}")
     elif staged_check.returncode != 0:
         if not _is_branch_merged(slug):
-            sys.stderr.write(
-                "Error: merge state lost — MERGE_HEAD absent, branch not merged\n"
+            click.echo(
+                "Error: merge state lost — MERGE_HEAD absent, branch not merged",
+                err=True,
             )
             raise SystemExit(2)
         _git("commit", "-m", f"🔀 Merge {slug}")
     # No MERGE_HEAD, no staged changes
     elif not _is_branch_merged(slug):
-        sys.stderr.write("Error: nothing to commit and branch not merged\n")
+        click.echo("Error: nothing to commit and branch not merged", err=True)
         raise SystemExit(2)
         # Branch is merged, nothing to commit — skip commit, continue to validation
 
