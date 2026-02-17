@@ -14,7 +14,15 @@ from claudeutils.worktree.session import extract_task_blocks
 
 
 class TreeInfo(NamedTuple):
-    """Information about a git worktree."""
+    """Information about a git worktree.
+
+    Attributes:
+        path: Absolute path to worktree directory
+        branch: Git branch name (refs/heads/ prefix stripped)
+        is_main: True if this is the main repository (not a worktree)
+        slug: Worktree slug (basename of path), None for main tree
+        latest_commit_timestamp: Unix epoch timestamp (seconds) of latest commit
+    """
 
     path: str
     branch: str
@@ -262,15 +270,29 @@ def aggregate_trees(repo_root: Path) -> AggregatedStatus:
     sorted_trees = sorted(trees, key=lambda t: t.latest_commit_timestamp, reverse=True)
 
     # Discover plans from each tree, deduplicated by plan name
+    # Main tree plans override worktree plans on conflict
     plans_dict = {}
+
+    # Collect worktree plans first
     for tree in trees:
+        if tree.is_main:
+            continue
         tree_path = Path(tree.path)
         plans_dir = tree_path / "plans"
         tree_plans = list_plans(plans_dir)
-
         for plan in tree_plans:
             if plan.name not in plans_dict:
                 plans_dict[plan.name] = plan
+
+    # Override with main tree plans (priority)
+    for tree in trees:
+        if not tree.is_main:
+            continue
+        tree_path = Path(tree.path)
+        plans_dir = tree_path / "plans"
+        tree_plans = list_plans(plans_dir)
+        for plan in tree_plans:
+            plans_dict[plan.name] = plan
 
     # Convert dict to sorted list
     plans = sorted(plans_dict.values(), key=lambda p: p.name)

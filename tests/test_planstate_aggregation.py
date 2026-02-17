@@ -175,9 +175,7 @@ def test_git_metadata_helpers(tmp_path: Path) -> None:
     # No session.md in history → 0
     repo2 = str(tmp_path / "repo2")
     Path(repo2).mkdir()
-    subprocess.run(
-        ["git", "init"], cwd=repo2, check=True, capture_output=True
-    )
+    subprocess.run(["git", "init"], cwd=repo2, check=True, capture_output=True)
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
         cwd=repo2,

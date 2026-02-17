@@ -45,11 +45,7 @@ def test_task_summary_extraction(tmp_path: Path) -> None:
     session_dir = repo_path / "agents"
     session_dir.mkdir(parents=True, exist_ok=True)
     session_file = session_dir / "session.md"
-    session_content = (
-        "# Session\n\n"
-        "## Pending Tasks\n"
-        "- [ ] **Fix bug** — description\n"
-    )
+    session_content = "# Session\n\n## Pending Tasks\n- [ ] **Fix bug** — description\n"
     session_file.write_text(session_content)
     subprocess.run(
         ["git", "add", "agents/session.md"],
@@ -287,4 +283,7 @@ def test_per_tree_plan_discovery(tmp_path: Path) -> None:
     result = aggregate_trees(main_repo)
     plan_c_results = [p for p in result.plans if p.name == "plan-c"]
     assert len(plan_c_results) == 1
+
+    # Verify main tree won (has outline.md, not requirements.md)
     assert "outline.md" in plan_c_results[0].artifacts
+    assert "requirements.md" not in plan_c_results[0].artifacts
