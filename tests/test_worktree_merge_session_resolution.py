@@ -5,9 +5,9 @@ from pathlib import Path
 
 from _pytest.monkeypatch import MonkeyPatch
 
-from claudeutils.worktree.merge import (
+from claudeutils.worktree.resolve import (
     _merge_session_contents,
-    _resolve_session_md_conflict,
+    resolve_session_md,
 )
 
 
@@ -205,7 +205,7 @@ def test_merge_conflict_preserves_branch_session_tasks(
 
     monkeypatch.chdir(repo)
     conflicts = ["agents/session.md"]
-    remaining = _resolve_session_md_conflict(conflicts)
+    remaining = resolve_session_md(conflicts)
 
     assert remaining == []
     resolved = (repo / "agents" / "session.md").read_text()

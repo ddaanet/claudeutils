@@ -1,4 +1,4 @@
-"""Test find_section_bounds() for session.md section identification."""
+"""Tests for find_section_bounds() section identification."""
 
 from claudeutils.worktree.session import find_section_bounds
 
