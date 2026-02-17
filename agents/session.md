@@ -1,21 +1,16 @@
 # Session Handoff: 2026-02-17
 
-**Status:** Deliverable prose findings fixed. Code findings remain.
+**Status:** Runbook evolution outline started prematurely. Deliverable code findings still pending.
 
 ## Completed This Session
 
-**Deliverable prose fixes (C-1 + M-1/M-2/M-3 + minor):**
-- C-1: Added `plan-archive.md` to design SKILL.md A.1 Level 1 (conditional read for prior art)
-- M-1: Worktree SKILL.md Usage Notes — removed contradictory auto-cleanup claim
-- M-2: Handoff SKILL.md Principles — acknowledges plan-archive.md
-- M-3: Prioritize SKILL.md — `list_plans()` replaces deleted `agents/jobs.md`
-- Minor: Deduplicated worktree-skill in plan-archive.md, removed stale "cleanup" from Mode C header
-- Self-review: all edits ≤5 lines/file, additive/corrective prose only
-- Report: `plans/workwoods/reports/deliverable-review-prose.md`
+**Runbook evolution outline (partial — premature start):**
+- Created outline at `plans/runbook-evolution/outline.md` (commit: d76a36a4)
+- Exploration report at `plans/runbook-evolution/reports/explore-skill-structure.md`
+- Outline covers FR-1 (prose atomicity), FR-2 (self-modification), FR-3 (testing diamond)
+- Not yet reviewed (outline-review-agent not yet run) — resume from Phase A.6
 
 ## Pending Tasks
-
-- [x] **Fix deliverable prose findings** — C-1 + M-1/M-2/M-3 prose edits | sonnet
 
 - [ ] **Fix deliverable code findings** — M-4/M-5/M-6/M-7 code + test gaps | sonnet
   - M-4: Implement full gate priority chain in inference.py (4 gate types per D-7)
@@ -27,7 +22,7 @@
 
 - [ ] **Design runbook evolution** — `/design plans/runbook-evolution/` | opus | restart
   - Requirements at `plans/runbook-evolution/requirements.md`
-  - Prose atomicity, self-modification discipline, testing diamond
+  - Outline exists at `plans/runbook-evolution/outline.md` — resume from Phase A.6 (outline review)
   - Scope: runbook SKILL.md generation directives only
 
 - [ ] **Migrate test suite to diamond** — needs scoping | depends on runbook evolution design
@@ -45,7 +40,7 @@
 - From merged main content, not workwoods changes
 - Precommit passes (1026/1027, 1 xfail)
 
-**learnings.md at 130 lines (soft limit 80):**
+**learnings.md at 133 lines (soft limit 80):**
 - No entries at ≥7 active days — consolidation trigger not met
 
 **Gate wiring incomplete in display path:**
@@ -58,7 +53,7 @@
 
 ## Next Steps
 
-Fix deliverable code findings (M-4/M-5/M-6/M-7). Apply testing diamond: integration tests for wiring paths, unit tests for combinatorial gate types.
+Fix deliverable code findings (M-4/M-5/M-6/M-7). Deliverable fixes before pipeline improvements.
 
 ---
-*Handoff by Sonnet. Prose findings resolved.*
+*Handoff by Opus. Outline started, deliverable code fixes next.*

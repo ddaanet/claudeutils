@@ -128,3 +128,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Including "don't do X" alongside "do Y and Z" in delegation prompts. Agent read the vet report (which recommended X), saw it in changed files, and followed the report's recommendation despite the prompt saying otherwise.
 - Correct pattern: Exclude the wrong item entirely from delegation scope. Don't delegate "3 fixes but actually only do 2" — delegate 2 fixes. Remove conflicting signals by not mentioning the excluded item.
 - Rationale: Delegated agents receive context from both the prompt AND the files they read. When prompt contradicts file content, file content often wins because the agent encounters it during execution with recency bias.
+## When ordering post-orchestration tasks
+- Anti-pattern: Jumping to pipeline improvements (design runbook evolution) before fixing deliverable findings from the current orchestration
+- Correct pattern: Diagnostic/process review first, deliverable fixes second, pipeline improvements last. Current deliverable must be whole before improving the process that produced it.
+- Rationale: Unfixed deliverable findings accumulate as tech debt. Pipeline improvements don't retroactively fix the current deliverable. Fixing deliverables also validates the diagnostic — the fix confirms the finding was real.
