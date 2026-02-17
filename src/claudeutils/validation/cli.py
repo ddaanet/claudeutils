@@ -10,6 +10,7 @@ from claudeutils.validation.decision_files import validate as validate_decision_
 from claudeutils.validation.jobs import validate as validate_jobs
 from claudeutils.validation.learnings import validate as validate_learnings
 from claudeutils.validation.memory_index import validate as validate_memory_index
+from claudeutils.validation.planstate import validate as validate_planstate
 from claudeutils.validation.session_refs import validate as validate_session_refs
 from claudeutils.validation.session_structure import (
     validate as validate_session_structure,
@@ -68,6 +69,7 @@ def _run_all_validators(root: Path) -> dict[str, list[str]]:
     )
     _run_validator("decisions", validate_decision_files, all_errors, root)
     _run_validator("jobs", validate_jobs, all_errors, root)
+    _run_validator("planstate", validate_planstate, all_errors, root)
     _run_validator("session-refs", validate_session_refs, all_errors, root)
     _run_validator(
         "session-structure",
@@ -150,6 +152,17 @@ def jobs() -> None:
     """Validate jobs.md."""
     root = find_project_root(Path.cwd())
     errors = validate_jobs(root)
+    if errors:
+        for error in errors:
+            click.echo(error, err=True)
+        sys.exit(1)
+
+
+@validate.command()
+def planstate() -> None:
+    """Validate plan state consistency."""
+    root = find_project_root(Path.cwd())
+    errors = validate_planstate(root)
     if errors:
         for error in errors:
             click.echo(error, err=True)
