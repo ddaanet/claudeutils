@@ -120,3 +120,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Resume from last runbook checkpoint. Run checkpoint verification commands (designed as diagnostic inventory). Systematically fix remaining items. Verify with project recipes.
 - Root cause chain: No ceiling recovery protocol → debugging-as-assessment → reactive fix mode → recipe bypass under urgency
 - Fix: Added ceiling recovery scenario to orchestrate skill (chokepoint enforcement, not ambient rule)
+## When vet flags unused code
+- Anti-pattern: Flagging code as "dead" based on production callers only. `_task_summary` had 4 test callers and was designed infrastructure for future wiring — vet recommended deletion.
+- Correct pattern: Check both production AND test callers before recommending removal. If tested, it's likely infrastructure awaiting integration. Verify the design intent (was it planned for future wiring?) before classifying as dead code.
+- Evidence: Delegated agent followed vet recommendation and deleted the function + tests. Required manual revert.
+## When delegating with corrections to prior analysis
+- Anti-pattern: Including "don't do X" alongside "do Y and Z" in delegation prompts. Agent read the vet report (which recommended X), saw it in changed files, and followed the report's recommendation despite the prompt saying otherwise.
+- Correct pattern: Exclude the wrong item entirely from delegation scope. Don't delegate "3 fixes but actually only do 2" — delegate 2 fixes. Remove conflicting signals by not mentioning the excluded item.
+- Rationale: Delegated agents receive context from both the prompt AND the files they read. When prompt contradicts file content, file content often wins because the agent encounters it during execution with recency bias.

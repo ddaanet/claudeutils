@@ -165,7 +165,7 @@ def _phase3_merge_parent(slug: str) -> None:
         _git("add", "agent-core")
         conflicts = [c for c in conflicts if c != "agent-core"]
 
-    conflicts = resolve_session_md(conflicts)
+    conflicts = resolve_session_md(conflicts, slug=slug)
     conflicts = resolve_learnings_md(conflicts)
 
     if conflicts:

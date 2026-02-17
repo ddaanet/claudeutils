@@ -58,10 +58,7 @@ def _find_best_report(candidates: list[Path]) -> Path | None:
         return highest[1]
 
     # No numbered reports; use highest mtime among all candidates
-    if candidates:
-        return max(candidates, key=lambda p: p.stat().st_mtime)
-
-    return None
+    return max(candidates, key=lambda p: p.stat().st_mtime)
 
 
 def _find_iterative_report_for_source(
@@ -80,12 +77,19 @@ def _find_iterative_report_for_source(
         match = re.search(r"runbook-phase-(\d+)", source_file)
         if match:
             phase_num = int(match.group(1))
-            pattern = f"*{phase_num}*"
+            pattern = f"*-{phase_num}-*"
             candidates = [
                 f
                 for f in reports_dir.glob(pattern)
                 if "review" in f.name or "vet" in f.name
             ]
+            if not candidates:
+                # Fallback: phase number at end before extension (e.g., phase-1.md)
+                candidates = [
+                    f
+                    for f in reports_dir.glob(f"*-{phase_num}.*")
+                    if "review" in f.name or "vet" in f.name
+                ]
             if candidates:
                 best = _find_best_report(candidates)
                 if best:

@@ -75,14 +75,14 @@ def _merge_session_contents(ours: str, theirs: str, slug: str | None = None) -> 
     return "\n".join(result_lines)
 
 
-def resolve_session_md(conflicts: list[str]) -> list[str]:
+def resolve_session_md(conflicts: list[str], slug: str | None = None) -> list[str]:
     """Resolve session.md conflict: keep ours, merge new content from theirs."""
     if "agents/session.md" not in conflicts:
         return conflicts
 
     ours_content = _git("show", ":2:agents/session.md", check=False)
     theirs_content = _git("show", ":3:agents/session.md", check=False)
-    merged = _merge_session_contents(ours_content, theirs_content)
+    merged = _merge_session_contents(ours_content, theirs_content, slug=slug)
 
     try:
         Path("agents/session.md").write_text(merged)
