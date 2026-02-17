@@ -1,45 +1,44 @@
-# Worktree RM Safety Gate
+# Worktree RM Safety Gate — Requirements
 
-## Requirements
+## Context
 
-### Functional Requirements
+`claudeutils _worktree rm <slug>` removes worktrees after merge. Current guard checks unmerged commits but lacks dirty-tree checks, force bypass, and proper exit codes. The worktree skill (Mode C) calls rm after merge but can't distinguish guard refusal from other errors.
 
-**FR-1: Detect uncommitted changes in parent worktree**
-`rm` checks parent worktree `git status --porcelain` before any destructive operations. If dirty files exist, exit non-zero with status output listing dirty files. Currently warns and proceeds (cli.py:373-376).
+**Source:** Session task notes, exploration report (`plans/worktree-rm-safety/reports/explore-current-impl.md`).
 
-**FR-2: Detect uncommitted changes in submodule**
-`rm` checks agent-core submodule `git status --porcelain` before any destructive operations. If dirty files exist, exit non-zero with status output. Currently no submodule check exists in `rm`.
+## Functional Requirements
 
-**FR-3: Exit code convention**
-Exit 2 on dirty tree detection (consistent with `_delete_branch` precedent). Status output describes what's dirty (parent, submodule, or both) with file list.
+### FR-1: Dirty tree check (parent + submodule)
+Before removal, verify both parent repo and agent-core submodule have clean working trees. Block removal if either is dirty. Currently only warns (non-blocking).
 
-**FR-4: `--force` flag bypasses safety gate**
-`rm --force <slug>` skips dirty tree check and proceeds with current warn-and-remove behavior. Required for automation, intentional abandonment of worktrees, and non-interactive callers.
+**Acceptance:** `_worktree rm` exits non-zero if parent or submodule has uncommitted changes. Error message identifies which tree is dirty.
 
-**FR-5: Skill layer surfaces status and confirms**
-Worktree skill Mode C (`wt-rm`) catches exit 2, surfaces dirty file list to user, asks for confirmation, retries with `--force` if confirmed.
+### FR-2: Exit code 2 for guard refusal
+Guard refusal currently uses `click.Abort` (exit 1). Change to exit 2 so the skill can distinguish guard refusal from merge conflicts (exit 1).
 
-### Constraints
+**Acceptance:** Guard refusal exits 2. Skill Mode C handles exit 2 as "guard refused" distinct from exit 1.
 
-**C-1: Layered design — CLI refuses, caller decides**
-Established pattern from `_delete_branch` (exit 2). CLI detects problem and reports; skill/agent layer handles user interaction. CLI never prompts interactively.
+### FR-3: `--force` bypass
+Add `--force` flag to bypass safety checks (dirty tree, guard). For emergency situations where user needs to force-remove.
 
-**C-2: Reuse existing `clean-tree` patterns**
-`clean-tree` command and `verify_clean_tree` (merge.py) already check parent + submodule with correct porcelain parsing. Extract shared logic or follow same pattern.
+**Acceptance:** `claudeutils _worktree rm --force <slug>` bypasses dirty check and guard. Skill passes `--force` when appropriate.
 
-**C-3: Session context files exempt from dirty check**
-`clean-tree` exempts `session.md`, `jobs.md`, `learnings.md` in `agents/`. Same exemption applies here — these are expected to change during worktree lifecycle.
+### FR-4: Skill confirmation
+Prevent direct CLI removal without skill workflow. The skill should pass a confirmation mechanism (flag or env var) that direct CLI invocation lacks.
 
-### Out of Scope
+**Acceptance:** Direct `claudeutils _worktree rm <slug>` without confirmation prompts or refuses. Skill-invoked rm proceeds without prompt.
 
-- Changes to `merge` command dirty checks (already gates correctly via `verify_clean_tree`)
-- Changes to `new` command
-- Untracked file detection in submodule (current `--porcelain` covers tracked modifications only; match existing convention)
+### FR-5: No destructive suggestions ✅
+CLI output never suggests destructive commands (e.g., `git branch -D`). Already implemented and tested.
 
-### References
+## Non-Functional
 
-- `src/claudeutils/worktree/cli.py:366-397` — current `rm` implementation
-- `src/claudeutils/worktree/cli.py:227-245` — `clean-tree` command (parent + submodule pattern)
-- `src/claudeutils/worktree/merge.py:23-61` — `verify_clean_tree` (merge dirty check with exemptions)
-- `src/claudeutils/worktree/cli.py:336-346` — `_delete_branch` exit 2 precedent
-- Session evidence: `wt rm` warned about 1 uncommitted file, proceeded, lost changes; agent-core had 3-file divergent branch silently dropped
+- Exit code semantics must be consistent: 0 = success, 1 = operational error, 2 = guard/safety refusal
+- All new checks need tests (TDD)
+- Skill SKILL.md must be updated to pass new flags
+
+## Out of Scope
+
+- Merge command changes
+- Worktree creation changes
+- Session.md format changes
