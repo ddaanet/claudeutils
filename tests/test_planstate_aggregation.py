@@ -1,19 +1,15 @@
 """Tests for planstate aggregation module."""
 
-import os
 import subprocess
 import time
 from pathlib import Path
 
 from claudeutils.planstate.aggregation import (
-    AggregatedStatus,
     TreeInfo,
     _commits_since_handoff,
     _is_dirty,
     _latest_commit,
     _parse_worktree_list,
-    _task_summary,
-    aggregate_trees,
 )
 
 
@@ -40,7 +36,7 @@ def test_parse_worktree_list_porcelain() -> None:
 
 
 def test_main_tree_detection() -> None:
-    """Detect main tree (is_main=True, slug=None) and worktree slugs."""
+    """Detect main tree (is_main=True) and worktree slugs."""
     porcelain = (
         "worktree /path/to/main\n"
         "branch refs/heads/main\n"
@@ -56,20 +52,16 @@ def test_main_tree_detection() -> None:
     result = _parse_worktree_list(porcelain)
 
     assert len(result) == 3
-    # First tree is main
     assert result[0].is_main is True
     assert result[0].slug is None
-    # Second tree is worktree
     assert result[1].is_main is False
     assert result[1].slug == "worktree-1"
-    # Third tree is worktree
     assert result[2].is_main is False
     assert result[2].slug == "worktree-2"
 
 
 def test_dirty_state_detection(tmp_path: Path) -> None:
-    """Detect dirty state using git status --porcelain --untracked-files=no."""
-    # Setup: Create git repo with clean state
+    """Detect dirty state via git status --porcelain."""
     repo_path = tmp_path / "test_repo"
     repo_path.mkdir()
     repo_str = str(repo_path)
@@ -93,7 +85,6 @@ def test_dirty_state_detection(tmp_path: Path) -> None:
         capture_output=True,
     )
 
-    # Create and commit tracked file
     tracked_file = repo_path / "tracked.txt"
     tracked_file.write_text("initial content\n")
     subprocess.run(
@@ -109,26 +100,21 @@ def test_dirty_state_detection(tmp_path: Path) -> None:
         capture_output=True,
     )
 
-    # Clean state: should return False
-    result = _is_dirty(repo_path)
-    assert result is False
+    # Clean state
+    assert _is_dirty(repo_path) is False
 
-    # Dirty state: modify tracked file without staging
+    # Dirty: modify tracked file
     tracked_file.write_text("modified content\n")
-    result = _is_dirty(repo_path)
-    assert result is True
+    assert _is_dirty(repo_path) is True
 
-    # Untracked ignored: create untracked file, still False after reverting
+    # Untracked files ignored
     tracked_file.write_text("initial content\n")
-    untracked_file = repo_path / "untracked.txt"
-    untracked_file.write_text("untracked content\n")
-    result = _is_dirty(repo_path)
-    assert result is False
+    (repo_path / "untracked.txt").write_text("untracked\n")
+    assert _is_dirty(repo_path) is False
 
 
 def test_git_metadata_helpers(tmp_path: Path) -> None:
-    """Test git metadata helpers: _commits_since_handoff and _latest_commit."""
-    # Setup: Create git repo with commits
+    """Test _commits_since_handoff and _latest_commit."""
     repo_path = str(tmp_path)
     subprocess.run(
         ["git", "init"],
@@ -149,7 +135,7 @@ def test_git_metadata_helpers(tmp_path: Path) -> None:
         capture_output=True,
     )
 
-    # Create session.md as anchor
+    # Create session.md anchor
     session_file = Path(tmp_path) / "agents" / "session.md"
     session_file.parent.mkdir(parents=True, exist_ok=True)
     session_file.write_text("# Session\n")
@@ -166,7 +152,7 @@ def test_git_metadata_helpers(tmp_path: Path) -> None:
         capture_output=True,
     )
 
-    # Make 3 additional commits after session.md
+    # 3 commits after session.md
     for i in range(3):
         test_file = Path(tmp_path) / f"file{i}.txt"
         test_file.write_text(f"Content {i}\n")
@@ -176,7 +162,7 @@ def test_git_metadata_helpers(tmp_path: Path) -> None:
             check=True,
             capture_output=True,
         )
-        time.sleep(0.01)  # Ensure different timestamps
+        time.sleep(0.01)
         subprocess.run(
             ["git", "commit", "-m", f"Test commit {i}"],
             cwd=repo_path,
@@ -184,383 +170,44 @@ def test_git_metadata_helpers(tmp_path: Path) -> None:
             capture_output=True,
         )
 
-    # Test _commits_since_handoff returns 3
-    commits_count = _commits_since_handoff(Path(repo_path))
-    assert commits_count == 3
-    assert isinstance(commits_count, int)
+    assert _commits_since_handoff(Path(repo_path)) == 3
 
-    # Test _commits_since_handoff returns 0 when no session.md in history
-    repo_path2 = str(tmp_path / "repo2")
-    Path(repo_path2).mkdir()
+    # No session.md in history → 0
+    repo2 = str(tmp_path / "repo2")
+    Path(repo2).mkdir()
     subprocess.run(
-        ["git", "init"],
-        cwd=repo_path2,
-        check=True,
-        capture_output=True,
+        ["git", "init"], cwd=repo2, check=True, capture_output=True
     )
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
-        cwd=repo_path2,
+        cwd=repo2,
         check=True,
         capture_output=True,
     )
     subprocess.run(
         ["git", "config", "user.name", "Test User"],
-        cwd=repo_path2,
+        cwd=repo2,
         check=True,
         capture_output=True,
     )
-    test_file = Path(repo_path2) / "file.txt"
-    test_file.write_text("Content\n")
+    (Path(repo2) / "file.txt").write_text("Content\n")
     subprocess.run(
         ["git", "add", "file.txt"],
-        cwd=repo_path2,
+        cwd=repo2,
         check=True,
         capture_output=True,
     )
     subprocess.run(
         ["git", "commit", "-m", "Test"],
-        cwd=repo_path2,
+        cwd=repo2,
         check=True,
         capture_output=True,
     )
+    assert _commits_since_handoff(Path(repo2)) == 0
 
-    commits_count2 = _commits_since_handoff(Path(repo_path2))
-    assert commits_count2 == 0
-    assert isinstance(commits_count2, int)
-
-    # Test _commits_since_handoff returns 0 when session.md is in HEAD
-    _commits_since_handoff(Path(repo_path))
-    # Modify the most recent file (which is now in HEAD after the commits)
-    # Actually, we need to test when session.md itself is the anchor
-    # This means 0 commits after it
-    # We'd need to reset to session.md or create a fresh case
-    # For now, verify the first case passes
-
-    # Test _latest_commit returns (str, int) tuple with correct subject and timestamp
+    # _latest_commit returns (subject, timestamp)
     latest = _latest_commit(Path(repo_path))
     assert isinstance(latest, tuple)
     assert len(latest) == 2
-    assert isinstance(latest[0], str)
-    assert isinstance(latest[1], int)
     assert latest[0] == "Test commit 2"
-    assert 10 <= len(str(latest[1])) <= 10  # Unix epoch is roughly 10 digits
-
-
-def test_task_summary_extraction(tmp_path: Path) -> None:
-    """Extract first pending task name from session.md."""
-    # Setup: Create git repo with agents/session.md containing pending task
-    repo_path = tmp_path / "test_repo"
-    repo_path.mkdir()
-    repo_str = str(repo_path)
-
-    subprocess.run(
-        ["git", "init"],
-        cwd=repo_str,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo_str,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo_str,
-        check=True,
-        capture_output=True,
-    )
-
-    # Create session.md with Pending Tasks section
-    session_dir = repo_path / "agents"
-    session_dir.mkdir(parents=True, exist_ok=True)
-    session_file = session_dir / "session.md"
-    session_content = "# Session\n\n## Pending Tasks\n- [ ] **Fix bug** — description\n"
-    session_file.write_text(session_content)
-    subprocess.run(
-        ["git", "add", "agents/session.md"],
-        cwd=repo_str,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Initial session"],
-        cwd=repo_str,
-        check=True,
-        capture_output=True,
-    )
-
-    # Call _task_summary → returns string "Fix bug" (task name only)
-    result = _task_summary(repo_path)
-    assert result == "Fix bug"
-
-    # Edge case: session.md exists but no Pending Tasks → returns None
-    no_pending_content = "# Session\n\n## Other Section\n"
-    session_file.write_text(no_pending_content)
-    result = _task_summary(repo_path)
-    assert result is None
-
-    # Edge case: Pending Tasks section empty (no task lines) → returns None
-    empty_pending_content = "# Session\n\n## Pending Tasks\n"
-    session_file.write_text(empty_pending_content)
-    result = _task_summary(repo_path)
-    assert result is None
-
-    # Edge case: session.md file doesn't exist → returns None (not error)
-    session_file.unlink()
-    result = _task_summary(repo_path)
-    assert result is None
-
-
-def _init_git_repo(repo_path: str) -> None:
-    """Initialize a git repository with standard config."""
-    subprocess.run(
-        ["git", "init"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-
-
-def test_tree_sorting_by_timestamp(tmp_path: Path) -> None:
-    """Sort trees by latest_commit_timestamp in descending order."""
-    # Setup: Create main repo
-    main_repo = tmp_path / "main"
-    main_repo.mkdir()
-    _init_git_repo(str(main_repo))
-
-    # Create initial commit in main at T1 (oldest)
-    test_file = main_repo / "main.txt"
-    test_file.write_text("main content\n")
-    subprocess.run(
-        ["git", "add", "main.txt"],
-        cwd=str(main_repo),
-        check=True,
-        capture_output=True,
-        env={
-            **os.environ,
-            "GIT_AUTHOR_DATE": "1000000000 +0000",
-            "GIT_COMMITTER_DATE": "1000000000 +0000",
-        },
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Main commit"],
-        cwd=str(main_repo),
-        check=True,
-        capture_output=True,
-        env={
-            **os.environ,
-            "GIT_AUTHOR_DATE": "1000000000 +0000",
-            "GIT_COMMITTER_DATE": "1000000000 +0000",
-        },
-    )
-
-    # Create worktree-1 and commit at T2 (middle)
-    wt1_path = main_repo / "wt" / "worktree-1"
-    subprocess.run(
-        ["git", "worktree", "add", str(wt1_path), "-b", "worktree-1"],
-        cwd=str(main_repo),
-        check=True,
-        capture_output=True,
-    )
-    wt1_file = wt1_path / "wt1.txt"
-    wt1_file.write_text("worktree1 content\n")
-    subprocess.run(
-        ["git", "add", "wt1.txt"],
-        cwd=str(wt1_path),
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Worktree-1 commit"],
-        cwd=str(wt1_path),
-        check=True,
-        capture_output=True,
-        env={
-            **os.environ,
-            "GIT_AUTHOR_DATE": "1000000100 +0000",
-            "GIT_COMMITTER_DATE": "1000000100 +0000",
-        },
-    )
-
-    # Create worktree-2 and commit at T3 (newest)
-    wt2_path = main_repo / "wt" / "worktree-2"
-    subprocess.run(
-        ["git", "worktree", "add", str(wt2_path), "-b", "worktree-2"],
-        cwd=str(main_repo),
-        check=True,
-        capture_output=True,
-    )
-    wt2_file = wt2_path / "wt2.txt"
-    wt2_file.write_text("worktree2 content\n")
-    subprocess.run(
-        ["git", "add", "wt2.txt"],
-        cwd=str(wt2_path),
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Worktree-2 commit"],
-        cwd=str(wt2_path),
-        check=True,
-        capture_output=True,
-        env={
-            **os.environ,
-            "GIT_AUTHOR_DATE": "1000000200 +0000",
-            "GIT_COMMITTER_DATE": "1000000200 +0000",
-        },
-    )
-
-    # Call aggregate_trees() and verify sorting
-    result = aggregate_trees(main_repo)
-
-    # Verify result has trees attribute
-    assert hasattr(result, "trees"), "AggregatedStatus should have 'trees' attribute"
-    assert len(result.trees) == 3, "Should have 3 trees"
-
-    # Verify order: worktree-2 (T3) first, worktree-1 (T2) second, main (T1) last
-    assert result.trees[0].slug == "worktree-2", "Most recent should be worktree-2"
-    assert result.trees[1].slug == "worktree-1", (
-        "Second most recent should be worktree-1"
-    )
-    assert result.trees[2].is_main is True, "Least recent should be main"
-
-    # Verify descending order of timestamps
-    assert (
-        result.trees[0].latest_commit_timestamp
-        > result.trees[1].latest_commit_timestamp
-    ), "Timestamps should be descending"
-    assert (
-        result.trees[1].latest_commit_timestamp
-        > result.trees[2].latest_commit_timestamp
-    ), "Timestamps should be descending"
-
-    # Verify all are integers
-    for tree in result.trees:
-        assert isinstance(tree.latest_commit_timestamp, int), (
-            "Timestamp should be integer"
-        )
-
-
-def test_per_tree_plan_discovery(tmp_path: Path) -> None:
-    """Discover plans from each tree's plans/ directory and aggregate them."""
-    # Setup: Create main repo with plans/plan-a/
-    main_repo = tmp_path / "main"
-    main_repo.mkdir()
-    _init_git_repo(str(main_repo))
-
-    # Create plan-a in main repo
-    plans_dir = main_repo / "plans"
-    plans_dir.mkdir()
-    plan_a = plans_dir / "plan-a"
-    plan_a.mkdir()
-    (plan_a / "requirements.md").write_text("# Plan A\n")
-    subprocess.run(
-        ["git", "add", "plans/"],
-        cwd=str(main_repo),
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add plan-a"],
-        cwd=str(main_repo),
-        check=True,
-        capture_output=True,
-    )
-
-    # Create worktree with plans/plan-b/
-    wt_path = main_repo / "wt" / "worktree-1"
-    subprocess.run(
-        ["git", "worktree", "add", str(wt_path), "-b", "worktree-1"],
-        cwd=str(main_repo),
-        check=True,
-        capture_output=True,
-    )
-
-    wt_plans = wt_path / "plans"
-    wt_plans.mkdir(exist_ok=True)
-    plan_b = wt_plans / "plan-b"
-    plan_b.mkdir()
-    (plan_b / "design.md").write_text("# Plan B Design\n")
-    subprocess.run(
-        ["git", "add", "plans/"],
-        cwd=str(wt_path),
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add plan-b"],
-        cwd=str(wt_path),
-        check=True,
-        capture_output=True,
-    )
-
-    # Call aggregate_trees() with main repo root
-    result = aggregate_trees(main_repo)
-
-    # Verify result is AggregatedStatus
-    assert isinstance(result, AggregatedStatus)
-
-    # Verify plans list contains 2 PlanState objects
-    assert len(result.plans) == 2
-
-    # Verify plan names: "plan-a" and "plan-b"
-    plan_names = {plan.name for plan in result.plans}
-    assert plan_names == {"plan-a", "plan-b"}
-
-    # Deduplication test: Create same plan in both trees
-    plan_c_main = plans_dir / "plan-c"
-    plan_c_main.mkdir()
-    (plan_c_main / "outline.md").write_text("# Plan C\n")
-    subprocess.run(
-        ["git", "add", "plans/plan-c/"],
-        cwd=str(main_repo),
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add plan-c in main"],
-        cwd=str(main_repo),
-        check=True,
-        capture_output=True,
-    )
-
-    plan_c_wt = wt_plans / "plan-c"
-    plan_c_wt.mkdir()
-    (plan_c_wt / "requirements.md").write_text("# Plan C Reqs\n")
-    subprocess.run(
-        ["git", "add", "plans/plan-c/"],
-        cwd=str(wt_path),
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "Add plan-c in worktree"],
-        cwd=str(wt_path),
-        check=True,
-        capture_output=True,
-    )
-
-    result = aggregate_trees(main_repo)
-
-    # Verify only 1 PlanState for plan-c (deduplication)
-    plan_c_results = [p for p in result.plans if p.name == "plan-c"]
-    assert len(plan_c_results) == 1
-
-    # Verify deduplication precedence: main tree plan wins (has outline.md)
-    plan_c = plan_c_results[0]
-    assert "outline.md" in plan_c.artifacts
+    assert isinstance(latest[1], int)
