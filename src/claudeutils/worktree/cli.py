@@ -18,7 +18,17 @@ from claudeutils.worktree.session import (
     move_task_to_worktree,
     remove_worktree_task,
 )
-from claudeutils.worktree.utils import _git, wt_path
+from claudeutils.worktree.utils import (
+    _classify_branch,
+    _get_worktree_path_for_branch,
+    _git,
+    _is_branch_merged,
+    _is_merge_commit,
+    _parse_worktree_list,
+    _probe_registrations,
+    _remove_worktrees,
+    wt_path,
+)
 
 
 def derive_slug(task_name: str) -> str:
@@ -26,13 +36,9 @@ def derive_slug(task_name: str) -> str:
     if not task_name or not task_name.strip():
         msg = "task_name must not be empty"
         raise ValueError(msg)
-
-    # Validate task name format
     format_errors = validate_task_name_format(task_name)
     if format_errors:
-        msg = format_errors[0]
-        raise ValueError(msg)
-
+        raise ValueError(format_errors[0])
     return re.sub(r"[^a-z0-9]+", "-", task_name.lower()).strip("-")
 
 
@@ -63,13 +69,11 @@ def _filter_section(
 def focus_session(task_name: str, session_md_path: str | Path) -> str:
     """Filter session.md to task_name with relevant context sections."""
     content = Path(session_md_path).read_text()
-
     blocks = extract_task_blocks(content, section="Pending Tasks")
     task_block = next((b for b in blocks if b.name == task_name), None)
     if not task_block:
         msg = f"Task '{task_name}' not found in session.md"
         raise ValueError(msg)
-
     task_lines_str = "\n".join(task_block.lines)
     plan_dir = (
         m.group(1) if (m := re.search(r"[Pp]lan:\s*(\S+)", task_lines_str)) else None
@@ -121,26 +125,6 @@ def initialize_environment(worktree_path: Path) -> None:
 @click.group(name="_worktree")
 def worktree() -> None:
     """Worktree commands."""
-
-
-def _parse_worktree_list(porcelain: str, main_path: str) -> list[tuple[str, str, str]]:
-    """Parse git worktree list --porcelain, exclude main."""
-    if not porcelain:
-        return []
-    lines, entries, i = porcelain.split("\n"), [], 0
-    while i < len(lines):
-        if not lines[i].startswith("worktree "):
-            i += 1
-            continue
-        path, branch, i = lines[i].split(maxsplit=1)[1], "", i + 1
-        while i < len(lines) and lines[i]:
-            if lines[i].startswith("branch "):
-                branch = lines[i].split(maxsplit=1)[1]
-            i += 1
-        i += 1
-        if path != main_path:
-            entries.append((Path(path).name, branch, path))
-    return entries
 
 
 @worktree.command()
@@ -313,76 +297,104 @@ def add_commit(files: tuple[str, ...]) -> None:
         click.echo(_git("commit", "-m", click.get_text_stream("stdin").read()))
 
 
-def _probe_registrations(worktree_path: Path) -> tuple[bool, bool]:
-    """Check parent and submodule worktree registration."""
-    parent_list = _git("worktree", "list", "--porcelain", check=False)
-    submodule_list = _git(
-        "-C", "agent-core", "worktree", "list", "--porcelain", check=False
-    )
-    parent_reg = str(worktree_path) in parent_list
-    submodule_reg = str(worktree_path / "agent-core") in submodule_list
-    return parent_reg, submodule_reg
-
-
-def _remove_worktrees(
-    worktree_path: Path,
-    parent_registered: bool,  # noqa: FBT001
-    submodule_registered: bool,  # noqa: FBT001
-) -> None:
-    """Remove worktrees (submodule first, force flag)."""
-    if submodule_registered:
-        _git(
-            "-C",
-            "agent-core",
-            "worktree",
-            "remove",
-            "--force",
-            str(worktree_path / "agent-core"),
-        )
-    if parent_registered:
-        _git("worktree", "remove", "--force", str(worktree_path))
-
-
 @worktree.command()
 @click.argument("slug")
 def merge(slug: str) -> None:
-    """Merge worktree branch: validate, resolve submodule, merge parent."""
-    merge_impl(slug)
+    """Merge worktree branch back to main."""
+    try:
+        merge_impl(slug)
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr.strip() if isinstance(e.stderr, str) else ""
+        click.echo(f"git error: {stderr or e}", err=True)
+        raise SystemExit(1) from None
+
+
+def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:
+    """Check if branch can be removed safely."""
+    branch_check = subprocess.run(
+        ["git", "rev-parse", "--verify", slug],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if branch_check.returncode != 0:
+        return False, None
+
+    if _is_branch_merged(slug):
+        return True, "merged"
+
+    count, is_focused = _classify_branch(slug)
+    if count == 1 and is_focused:
+        return True, "focused"
+
+    msg = (
+        f"Branch {slug} is orphaned (no common ancestor). Merge first."
+        if count == 0
+        else f"Branch {slug} has {count} unmerged commit(s). Merge first."
+    )
+    click.echo(msg, err=True)
+    raise click.Abort
+
+
+def _delete_branch(slug: str, removal_type: str | None) -> None:
+    flag = "-D" if removal_type == "focused" else "-d"
+    r = subprocess.run(
+        ["git", "branch", flag, slug],
+        capture_output=True, text=True, check=False,
+    )
+    if r.returncode != 0 and "not found" not in r.stderr.lower():
+        click.echo(f"Branch {slug} deletion failed: {r.stderr.strip()}", err=True)
+
+
+def _update_session_and_amend(slug: str) -> bool:
+    session_md_path = Path("agents/session.md")
+    if not session_md_path.exists():
+        return False
+    remove_worktree_task(session_md_path, slug, slug)
+    if not _is_merge_commit():
+        return False
+    status_output = _git("status", "--porcelain", "agents/session.md", check=False)
+    if not status_output.strip():
+        return False
+    _git("add", "agents/session.md")
+    _git("commit", "--amend", "--no-edit")
+    return True
 
 
 @worktree.command()
 @click.argument("slug")
 def rm(slug: str) -> None:
     """Remove worktree and its branch."""
-    worktree_path = wt_path(slug)
+    branch_exists, removal_type = _guard_branch_removal(slug)
+    worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)
     parent_reg, submodule_reg = _probe_registrations(worktree_path)
 
     if worktree_path.exists():
         status = _git("-C", str(worktree_path), "status", "--porcelain", check=False)
         if status:
-            count = len(status.strip().split("\n"))
-            click.echo(f"Warning: worktree has {count} uncommitted files")
+            n = len(status.strip().split("\n"))
+            click.echo(f"Warning: worktree has {n} uncommitted files")
 
-    session_md_path = Path("agents/session.md")
-    if session_md_path.exists():
-        remove_worktree_task(session_md_path, slug, slug)
+    amended = _update_session_and_amend(slug)
 
     if parent_reg or submodule_reg:
         _remove_worktrees(worktree_path, parent_reg, submodule_reg)
-    else:
-        _git("worktree", "prune")
-
-    r = subprocess.run(
-        ["git", "branch", "-d", slug], capture_output=True, text=True, check=False
-    )
-    if r.returncode != 0 and "not found" not in r.stderr.lower():
-        click.echo(f"Branch {slug} has unmerged changes — use: git branch -D {slug}")
 
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
+
+    _git("worktree", "prune")
 
     container = worktree_path.parent
     if container.exists() and not list(container.iterdir()):
         container.rmdir()
 
-    click.echo(f"Removed worktree {slug}")
+    if branch_exists:
+        _delete_branch(slug, removal_type)
+    suffix = " Merge commit amended." if amended else ""
+    if removal_type == "merged":
+        click.echo(f"Removed {slug}{suffix}")
+    elif removal_type == "focused":
+        click.echo(f"Removed {slug} (focused session only){suffix}")
+    else:
+        click.echo(f"Removed worktree {slug}{suffix}")
