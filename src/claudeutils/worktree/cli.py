@@ -375,7 +375,6 @@ def rm(slug: str, confirm: bool, force: bool) -> None:  # noqa: FBT001
     else:
         branch_exists = True
         removal_type = "focused"
-    worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)
     parent_reg, submodule_reg = _probe_registrations(worktree_path)
 
     _warn_if_dirty(worktree_path)

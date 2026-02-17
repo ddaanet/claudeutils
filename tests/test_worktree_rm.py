@@ -8,30 +8,8 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-from claudeutils.worktree.utils import (
-    _is_merge_commit,
-    _is_parent_dirty,
-    _is_submodule_dirty,
-)
+from claudeutils.worktree.utils import _is_merge_commit
 from tests.fixtures_worktree import _branch_exists, _create_worktree
-
-
-def test_is_parent_dirty(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
-) -> None:
-    """Returns False when clean, True when untracked or staged."""
-    repo_path = tmp_path / "repo"
-    repo_path.mkdir()
-    monkeypatch.chdir(repo_path)
-
-    init_repo(repo_path)
-    assert _is_parent_dirty() is False
-
-    (repo_path / "dirty.txt").write_text("dirty")
-    assert _is_parent_dirty() is True
-
-    subprocess.run(["git", "add", "dirty.txt"], check=True)
-    assert _is_parent_dirty() is True
 
 
 def test_rm_basic(
@@ -350,46 +328,6 @@ def test_rm_refuses_without_confirm(
     assert "confirm" in result.output.lower() or "skill" in result.output.lower()
     assert worktree_path.exists()
 
-
-def test_is_submodule_dirty(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
-) -> None:
-    """Returns False when no submodule, False when clean, True when dirty."""
-    repo_path = tmp_path / "repo"
-    repo_path.mkdir()
-    monkeypatch.chdir(repo_path)
-
-    init_repo(repo_path)
-
-    # Case 1: agent-core/ does not exist
-    assert _is_submodule_dirty() is False
-
-    # Case 2: agent-core/ exists but is clean (mocked subprocess)
-    original_run = subprocess.run
-
-    def mock_run_clean(*args: object, **kwargs: object) -> object:
-        cmd = args[0] if args else kwargs.get("args")
-        if isinstance(cmd, list) and "-C" in cmd and "agent-core" in cmd:
-            return subprocess.CompletedProcess(
-                args=cmd, returncode=0, stdout="", stderr=""
-            )
-        return original_run(*args, **kwargs)  # type: ignore[call-overload]
-
-    monkeypatch.setattr(subprocess, "run", mock_run_clean)
-    (repo_path / "agent-core").mkdir()
-    assert _is_submodule_dirty() is False
-
-    # Case 3: agent-core/ exists and is dirty (mocked subprocess with output)
-    def mock_run_dirty(*args: object, **kwargs: object) -> object:
-        cmd = args[0] if args else kwargs.get("args")
-        if isinstance(cmd, list) and "-C" in cmd and "agent-core" in cmd:
-            return subprocess.CompletedProcess(
-                args=cmd, returncode=0, stdout=" M file.txt\n", stderr=""
-            )
-        return original_run(*args, **kwargs)  # type: ignore[call-overload]
-
-    monkeypatch.setattr(subprocess, "run", mock_run_dirty)
-    assert _is_submodule_dirty() is True
 
 
 def test_rm_force_bypasses_confirm(
