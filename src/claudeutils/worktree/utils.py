@@ -83,6 +83,15 @@ def _classify_branch(slug: str) -> tuple[int, bool]:
     return (count, is_focused)
 
 
+def _is_parent_dirty() -> bool:
+    """Check if parent repo has uncommitted changes.
+
+    Returns True if working tree has any staged or unstaged changes.
+    """
+    output = _git("status", "--porcelain", check=False)
+    return bool(output)
+
+
 def _parse_worktree_list(porcelain: str, main_path: str) -> list[tuple[str, str, str]]:
     """Parse git worktree list --porcelain, exclude main."""
     if not porcelain:

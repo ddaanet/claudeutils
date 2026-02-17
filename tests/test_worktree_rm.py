@@ -8,7 +8,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-from claudeutils.worktree.utils import _is_merge_commit
+from claudeutils.worktree.utils import _is_merge_commit, _is_parent_dirty
 
 
 def _create_worktree(
@@ -31,6 +31,24 @@ def _branch_exists(name: str) -> bool:
         check=True,
     )
     return name in result.stdout
+
+
+def test_is_parent_dirty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """Returns False when clean, True when untracked or staged."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    init_repo(repo_path)
+    assert _is_parent_dirty() is False
+
+    (repo_path / "dirty.txt").write_text("dirty")
+    assert _is_parent_dirty() is True
+
+    subprocess.run(["git", "add", "dirty.txt"], check=True)
+    assert _is_parent_dirty() is True
 
 
 def test_rm_basic(
