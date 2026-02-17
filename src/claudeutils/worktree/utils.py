@@ -92,6 +92,25 @@ def _is_parent_dirty() -> bool:
     return bool(output)
 
 
+def _is_submodule_dirty() -> bool:
+    """Check if agent-core submodule has uncommitted changes.
+
+    Returns False if agent-core/ does not exist or if status is clean. Returns
+    True if submodule has uncommitted changes.
+    """
+    submodule_path = Path("agent-core")
+    if not submodule_path.exists():
+        return False
+
+    result = subprocess.run(
+        ["git", "-C", "agent-core", "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return bool(result.stdout.strip())
+
+
 def _parse_worktree_list(porcelain: str, main_path: str) -> list[tuple[str, str, str]]:
     """Parse git worktree list --porcelain, exclude main."""
     if not porcelain:
