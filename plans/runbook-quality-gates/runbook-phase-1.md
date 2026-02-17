@@ -44,7 +44,7 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 **`VALID_TDD` cross-phase specification (must satisfy all four subcommand checks):**
 - `**Execution Model**: Sonnet` and file references to non-architectural paths only (passes `model-tags`)
 - `src/module.py` first appears with `Action: Create` in fixture-internal Cycle 1.1, then `Action: Modify` in fixture-internal Cycle 1.2 (passes `lifecycle`)
-- Contains a RED phase with `**Test:** \`test_foo\`` and a checkpoint "All 1 tests pass" (passes `test-counts`)
+- Contains RED phases with `**Test:** \`test_foo\`` and `**Test:** \`test_bar\`` and a checkpoint "All 2 tests pass" (passes `test-counts`)
 - Fixture-internal Cycle 1.1 RED expects `ImportError` on `src.module`; no prior fixture-internal GREEN creates `src/module.py` before that RED runs (passes `red-plausibility`)
 
 Note: `VALID_TDD` serves as the happy-path fixture for all four subcommands. No separate `VALID_GENERAL` fixture is needed — executor should build `VALID_TDD` to satisfy all constraints above from the start.
