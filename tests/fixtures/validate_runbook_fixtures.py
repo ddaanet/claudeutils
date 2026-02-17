@@ -237,6 +237,62 @@ title: Red Implausible Runbook
 ---
 """
 
+AMBIGUOUS_RED_PLAUSIBILITY = """\
+---
+title: Ambiguous Red Plausibility Runbook
+---
+
+# Phase 1: Core module (type: tdd)
+
+---
+
+## Cycle 1.1: create widget
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_create_widget`
+
+**Verify RED:** `pytest tests/test_example.py::test_create_widget -v`
+
+---
+
+**GREEN Phase:**
+
+**Changes:**
+- File: `src/widget.py`
+  Action: Create
+
+**Verify GREEN:** `pytest tests/test_example.py::test_create_widget -v`
+
+---
+
+## Cycle 1.2: widget validates input
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_widget_validates_input`
+
+**Expected failure:** `ValueError` — widget raises on invalid input
+
+**Verify RED:** `pytest tests/test_example.py::test_widget_validates_input -v`
+
+---
+
+**GREEN Phase:**
+
+**Changes:**
+- File: `src/widget.py`
+  Action: Modify
+
+**Verify GREEN:** `pytest tests/test_example.py::test_widget_validates_input -v`
+
+---
+"""
+
 VIOLATION_TEST_COUNTS = """\
 ---
 title: Test Counts Violation Runbook

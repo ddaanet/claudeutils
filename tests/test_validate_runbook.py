@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from tests.fixtures.validate_runbook_fixtures import (
+    AMBIGUOUS_RED_PLAUSIBILITY,
     VALID_TDD,
     VIOLATION_LIFECYCLE_DUPLICATE_CREATE,
     VIOLATION_LIFECYCLE_MODIFY_BEFORE_CREATE,
@@ -318,6 +319,41 @@ def test_red_plausibility_violation(
     assert "1.2" in content
     assert "Failed: 1" in content
     assert "Ambiguous: 0" in content
+
+
+def test_red_plausibility_ambiguous(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Red-plausibility: function exists but RED tests different behavior → exit 2."""
+    monkeypatch.chdir(tmp_path)
+    runbook = tmp_path / "ambiguous-runbook.md"
+    runbook.write_text(AMBIGUOUS_RED_PLAUSIBILITY)
+
+    monkeypatch.setattr(
+        sys, "argv", ["validate-runbook", "red-plausibility", str(runbook)]
+    )
+    try:
+        main()
+        exit_code = 0
+    except SystemExit as exc:
+        exit_code = exc.code if isinstance(exc.code, int) else 1
+
+    assert exit_code == 2
+
+    report_path = (
+        tmp_path
+        / "plans"
+        / "ambiguous-runbook"
+        / "reports"
+        / "validation-red-plausibility.md"
+    )
+    assert report_path.exists(), f"Report not found at {report_path}"
+    content = report_path.read_text()
+    assert "**Result:** AMBIGUOUS" in content
+    assert "## Ambiguous" in content
+    assert "widget" in content
+    assert "Failed: 0" in content
+    assert "Ambiguous: 1" in content
 
 
 def test_scaffold_cli() -> None:

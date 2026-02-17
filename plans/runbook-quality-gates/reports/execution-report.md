@@ -118,6 +118,17 @@
 - Stop condition: none
 - Decision made: none
 
+### Cycle 4.3: red-plausibility ambiguous case 2026-02-18
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_validate_runbook.py::test_red_plausibility_ambiguous -v`
+- RED result: FAIL as expected (AssertionError — exit_code 0 != 2; `ValueError` cases passed through as plausible with no ambiguous classification)
+- GREEN result: PASS
+- Regression check: 12/12 passed
+- Refactoring: none needed; precommit passes, no new warnings
+- Files modified: `agent-core/bin/validate-runbook.py` (added `non_import_err_pattern`; added ambiguous branch in RED check loop; updated `write_report` result logic to render AMBIGUOUS when violations empty and ambiguous non-empty), `tests/test_validate_runbook.py` (added `AMBIGUOUS_RED_PLAUSIBILITY` import, `test_red_plausibility_ambiguous`), `tests/fixtures/validate_runbook_fixtures.py` (added `AMBIGUOUS_RED_PLAUSIBILITY` fixture)
+- Stop condition: none
+- Decision made: none
+
 ### Cycle 4.2: red-plausibility violation 2026-02-18
 - Status: GREEN_VERIFIED
 - Test command: `pytest tests/test_validate_runbook.py::test_red_plausibility_violation -v`
