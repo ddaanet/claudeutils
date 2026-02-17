@@ -93,3 +93,14 @@
 - Files modified: `agent-core/bin/validate-runbook.py` (added `names_list` to violation message), `tests/test_validate_runbook.py` (added `VIOLATION_TEST_COUNTS` fixture and `test_test_counts_mismatch`)
 - Stop condition: `tests/test_validate_runbook.py: 432 lines (exceeds 400 line limit)` — quality warning requires escalation
 - Decision made: none
+
+### Cycle 3.3: test-counts parametrized 2026-02-18
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_validate_runbook.py::test_test_counts_parametrized -v`
+- RED result: FAIL as expected (AssertionError — exit_code 1 != 0; raw names `test_foo[param1]` and `test_foo[param2]` yield count 2, mismatching checkpoint claim of 1)
+- GREEN result: PASS (added `re.sub(r'\[.*?\]$', '', name)` normalization before set insertion in `check_test_counts`)
+- Regression check: 9/9 passed
+- Refactoring: lint reformatted docstring (shortened to fit single line); precommit passes, no warnings
+- Files modified: `agent-core/bin/validate-runbook.py` (strip parametrize bracket suffix in name-collection loop), `tests/test_validate_runbook.py` (added `test_test_counts_parametrized`; imported `VIOLATION_TEST_COUNTS_PARAMETRIZED`), `tests/fixtures/validate_runbook_fixtures.py` (added `VIOLATION_TEST_COUNTS_PARAMETRIZED` fixture)
+- Stop condition: none
+- Decision made: none

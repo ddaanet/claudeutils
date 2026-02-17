@@ -13,6 +13,7 @@ from tests.fixtures.validate_runbook_fixtures import (
     VIOLATION_LIFECYCLE_MODIFY_BEFORE_CREATE,
     VIOLATION_MODEL_TAGS,
     VIOLATION_TEST_COUNTS,
+    VIOLATION_TEST_COUNTS_PARAMETRIZED,
 )
 
 SCRIPT = Path(__file__).parent.parent / "agent-core" / "bin" / "validate-runbook.py"
@@ -221,6 +222,36 @@ def test_test_counts_mismatch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     assert "test_beta" in content
     assert "test_gamma" in content
     assert "Failed: 1" in content
+
+
+def test_test_counts_parametrized(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Parametrized test names test_foo[p1]/[p2] count as 1 unique test."""
+    monkeypatch.chdir(tmp_path)
+    runbook = tmp_path / "parametrized-runbook.md"
+    runbook.write_text(VIOLATION_TEST_COUNTS_PARAMETRIZED)
+
+    monkeypatch.setattr(sys, "argv", ["validate-runbook", "test-counts", str(runbook)])
+    try:
+        main()
+        exit_code = 0
+    except SystemExit as exc:
+        exit_code = exc.code if isinstance(exc.code, int) else 1
+
+    assert exit_code == 0
+
+    report_path = (
+        tmp_path
+        / "plans"
+        / "parametrized-runbook"
+        / "reports"
+        / "validation-test-counts.md"
+    )
+    assert report_path.exists(), f"Report not found at {report_path}"
+    content = report_path.read_text()
+    assert "**Result:** PASS" in content
+    assert "Failed: 0" in content
 
 
 def test_scaffold_cli() -> None:

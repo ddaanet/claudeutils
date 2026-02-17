@@ -145,6 +145,42 @@ title: Duplicate Create Runbook
 ---
 """
 
+VIOLATION_TEST_COUNTS_PARAMETRIZED = """\
+---
+title: Parametrized Test Counts Runbook
+---
+
+# Phase 1: Core module (type: tdd)
+
+---
+
+## Cycle 1.1: parametrized test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_foo[param1]`
+
+**Verify RED:** `pytest tests/test_example.py::test_foo -v`
+
+---
+
+## Cycle 1.2: second param
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_foo[param2]`
+
+**Verify RED:** `pytest tests/test_example.py::test_foo -v`
+
+**Checkpoint:** All 1 tests pass.
+
+---
+"""
+
 VIOLATION_TEST_COUNTS = """\
 ---
 title: Test Counts Violation Runbook
