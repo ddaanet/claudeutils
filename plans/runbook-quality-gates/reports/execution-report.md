@@ -82,3 +82,14 @@
 - Files modified: `agent-core/bin/validate-runbook.py` (added `check_test_counts`, updated `cmd_test_counts` to call it), `tests/test_validate_runbook.py` (added `test_test_counts_happy_path`; updated `VALID_TDD` checkpoint from "All 1 tests pass" to "All 2 tests pass" to match actual test count)
 - Stop condition: none
 - Decision made: `VALID_TDD` checkpoint updated from claimed count 1 to 2 to match the 2 test functions (`test_foo`, `test_bar`) already present in the fixture; consistent with Common Context requirement that the fixture passes `test-counts`
+
+### Cycle 3.2: test-counts-mismatch 2026-02-18
+- Status: STOP_CONDITION
+- Test command: `pytest tests/test_validate_runbook.py::test_test_counts_mismatch -v`
+- RED result: FAIL as expected (AssertionError — `test_alpha` not in report; violation message lacked function names even though mismatch detection was already present from 3.1 over-implementation)
+- GREEN result: PASS (added function name list to violation message in `check_test_counts`)
+- Regression check: 8/8 passed
+- Refactoring: lint reformatted test file (argument alignment); precommit shows line limit warning
+- Files modified: `agent-core/bin/validate-runbook.py` (added `names_list` to violation message), `tests/test_validate_runbook.py` (added `VIOLATION_TEST_COUNTS` fixture and `test_test_counts_mismatch`)
+- Stop condition: `tests/test_validate_runbook.py: 432 lines (exceeds 400 line limit)` — quality warning requires escalation
+- Decision made: none

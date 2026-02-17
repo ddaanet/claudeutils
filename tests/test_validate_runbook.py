@@ -329,6 +329,88 @@ def test_test_counts_happy_path(
     assert "Failed: 0" in content
 
 
+VIOLATION_TEST_COUNTS = """\
+---
+title: Test Counts Violation Runbook
+---
+
+# Phase 1: Core module (type: tdd)
+
+---
+
+## Cycle 1.1: first test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_alpha`
+
+**Verify RED:** `pytest tests/test_example.py::test_alpha -v`
+
+---
+
+## Cycle 1.2: second test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_beta`
+
+**Verify RED:** `pytest tests/test_example.py::test_beta -v`
+
+---
+
+## Cycle 1.3: third test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_gamma`
+
+**Verify RED:** `pytest tests/test_example.py::test_gamma -v`
+
+**Checkpoint:** All 5 tests pass.
+
+---
+"""
+
+
+def test_test_counts_mismatch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test-counts on VIOLATION_TEST_COUNTS exits 1 with FAIL report."""
+    monkeypatch.chdir(tmp_path)
+    runbook = tmp_path / "test-counts-violation.md"
+    runbook.write_text(VIOLATION_TEST_COUNTS)
+
+    monkeypatch.setattr(sys, "argv", ["validate-runbook", "test-counts", str(runbook)])
+    try:
+        main()
+        exit_code = 0
+    except SystemExit as exc:
+        exit_code = exc.code if isinstance(exc.code, int) else 1
+
+    assert exit_code == 1
+
+    report_path = (
+        tmp_path
+        / "plans"
+        / "test-counts-violation"
+        / "reports"
+        / "validation-test-counts.md"
+    )
+    assert report_path.exists(), f"Report not found at {report_path}"
+    content = report_path.read_text()
+    assert "**Result:** FAIL" in content
+    assert "5" in content
+    assert "3" in content
+    assert "test_alpha" in content
+    assert "test_beta" in content
+    assert "test_gamma" in content
+    assert "Failed: 1" in content
+
+
 def test_scaffold_cli() -> None:
     """Script exposes four subcommands and exits 1 when invoked without one."""
     result = subprocess.run(
