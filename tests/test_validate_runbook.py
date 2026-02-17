@@ -235,6 +235,74 @@ def test_lifecycle_happy_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     assert "Failed: 0" in content
 
 
+VIOLATION_LIFECYCLE_DUPLICATE_CREATE = """\
+---
+title: Duplicate Create Runbook
+---
+
+# Phase 1: Core module (type: tdd)
+
+---
+
+## Cycle 1.1: scaffold
+
+**Execution Model**: Sonnet
+
+**GREEN Phase:**
+
+**Changes:**
+- File: `src/module.py`
+  Action: Create
+
+---
+
+# Phase 2: Extension (type: tdd)
+
+---
+
+## Cycle 2.1: duplicate create
+
+**Execution Model**: Sonnet
+
+**GREEN Phase:**
+
+**Changes:**
+- File: `src/module.py`
+  Action: Create
+
+---
+"""
+
+
+def test_lifecycle_duplicate_creation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Lifecycle: duplicate creation exits 1 with FAIL report."""
+    monkeypatch.chdir(tmp_path)
+    runbook = tmp_path / "dup-create.md"
+    runbook.write_text(VIOLATION_LIFECYCLE_DUPLICATE_CREATE)
+
+    monkeypatch.setattr(sys, "argv", ["validate-runbook", "lifecycle", str(runbook)])
+    try:
+        main()
+        exit_code = 0
+    except SystemExit as exc:
+        exit_code = exc.code if isinstance(exc.code, int) else 1
+
+    assert exit_code == 1
+
+    report_path = (
+        tmp_path / "plans" / "dup-create" / "reports" / "validation-lifecycle.md"
+    )
+    assert report_path.exists(), f"Report not found at {report_path}"
+    content = report_path.read_text()
+    assert "**Result:** FAIL" in content
+    assert "src/module.py" in content
+    assert "Cycle 1.1" in content
+    assert "Cycle 2.1" in content
+    assert "Failed: 1" in content
+
+
 def test_scaffold_cli() -> None:
     """Script exposes four subcommands and exits 1 when invoked without one."""
     result = subprocess.run(
