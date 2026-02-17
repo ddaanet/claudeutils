@@ -37,7 +37,15 @@ Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test pass
 **Fixture Plan:**
 - Inline string constants in test file (not separate .md files)
 - Exception: directory-input test (Cycle 5.1) uses `tmp_path` with real files
-- Fixture constant names: `VALID_TDD`, `VALID_GENERAL`, `VIOLATION_MODEL_TAGS`, `VIOLATION_LIFECYCLE_MODIFY_BEFORE_CREATE`, `VIOLATION_LIFECYCLE_DUPLICATE_CREATE`, `VIOLATION_TEST_COUNTS`, `VIOLATION_TEST_COUNTS_PARAMETRIZED`, `VIOLATION_RED_IMPLAUSIBLE`, `AMBIGUOUS_RED_PLAUSIBILITY`
+- Fixture constant names: `VALID_TDD`, `VIOLATION_MODEL_TAGS`, `VIOLATION_LIFECYCLE_MODIFY_BEFORE_CREATE`, `VIOLATION_LIFECYCLE_DUPLICATE_CREATE`, `VIOLATION_TEST_COUNTS`, `VIOLATION_TEST_COUNTS_PARAMETRIZED`, `VIOLATION_RED_IMPLAUSIBLE`, `AMBIGUOUS_RED_PLAUSIBILITY`
+
+**`VALID_TDD` cross-phase specification (must satisfy all four subcommand checks):**
+- `**Execution Model**: Sonnet` and file references to non-architectural paths only (passes `model-tags`)
+- `src/module.py` first appears with `Action: Create` in fixture-internal Cycle 1.1, then `Action: Modify` in fixture-internal Cycle 1.2 (passes `lifecycle`)
+- Contains a RED phase with `**Test:** \`test_foo\`` and a checkpoint "All 1 tests pass" (passes `test-counts`)
+- Fixture-internal Cycle 1.1 RED expects `ImportError` on `src.module`; no prior fixture-internal GREEN creates `src/module.py` before that RED runs (passes `red-plausibility`)
+
+Note: `VALID_TDD` serves as the happy-path fixture for all four subcommands. No separate `VALID_GENERAL` fixture is needed — executor should build `VALID_TDD` to satisfy all constraints above from the start.
 
 ---
 

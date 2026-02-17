@@ -31,9 +31,12 @@
 
 *Skip flags (test_integration_skip_flag[skip_model_tags], etc. — 4 parametrized cases):*
 - Create fixture directory with valid phase files
-- Running `model-tags --skip-model-tags <path>` exits with code 0 without running the check
+- Each parametrized case invokes its own subcommand with its own skip flag:
+  - `model-tags --skip-model-tags <path>` → exits 0 without running the check
+  - `lifecycle --skip-lifecycle <path>` → exits 0 without running the check
+  - `test-counts --skip-test-counts <path>` → exits 0 without running the check
+  - `red-plausibility --skip-red-plausibility <path>` → exits 0 without running the check
 - Report written to `<directory>/reports/validation-<subcommand>.md` containing `**Result:** SKIPPED`
-- Parametrized over: `--skip-model-tags`, `--skip-lifecycle`, `--skip-test-counts`, `--skip-red-plausibility`
 
 **Expected failure:** `AssertionError` — `assemble_phase_files` not yet wired for directory input in current handlers (each handler takes a path but may not handle directory case), and `--skip-*` flags not yet added to argparse.
 
