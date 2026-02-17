@@ -37,6 +37,7 @@ def test_new_sandbox_registration(
     with wt_settings.open() as f:
         wt_dirs = json.load(f).get("permissions", {}).get("additionalDirectories", [])
     assert str(container_path) in wt_dirs
+    assert str(repo_path) in wt_dirs
 
     runner.invoke(worktree, ["new", "test-feature-2"])
     with main_settings.open() as f:

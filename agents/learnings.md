@@ -126,3 +126,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 ## When safety checks fail in tests
 - Anti-pattern: Weakening a safety check (`-d` to `-D`) to make tests pass. If `git branch -d` correctly identifies unreachable commits, the problem is upstream (test scenario or code ordering), not in the check itself.
 - Correct pattern: Understand why the safety check fires. If the test scenario is unrealistic, fix the test. If code creates the problem (e.g., amend before delete), fix the ordering. Safety checks that detect merge parent loss are critical — suppressing them masks data loss.
+## When removing worktrees with submodules
+- Anti-pattern: `wt rm` removes worktree directory but leaves `.git/modules/agent-core/config` `core.worktree` pointing to the deleted directory. Also doesn't check if submodule branch has unmerged commits (parent repo branch merged but submodule branch diverged).
+- Correct pattern: `wt rm` must (1) restore submodule's `core.worktree` to main checkout path, (2) check submodule branch merge status before deletion. Both are data-loss vectors — stale config breaks all submodule operations, unmerged submodule branch loses commits.
+- Evidence: `git -C agent-core` failed with "cannot chdir to removed directory" after `wt rm runbook-skill-fixes`. Agent-core branch had 3 files of real diffs silently orphaned.
+## When worktree agents need cross-tree access
+- Anti-pattern: Assuming worktree sandbox allows writing to main's tree. `settings.local.json` `permissions.additionalDirectories` only includes the worktree container, not the main repo.
+- Correct pattern: `_worktree new` must add main repo path to worktree's `additionalDirectories`. Enables requirements transport, cross-tree plan creation, and future workwoods operations.
+- Implication: Any cross-tree write feature (requirements transport, blocker surfacing) requires this sandbox entry as prerequisite.

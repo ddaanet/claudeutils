@@ -216,10 +216,12 @@ def _setup_worktree(
     _create_submodule_worktree(
         _git("rev-parse", "--show-toplevel"), worktree_path, slug
     )
+    main_repo = _git("rev-parse", "--show-toplevel").strip()
     add_sandbox_dir(str(worktree_path.parent), ".claude/settings.local.json")
     add_sandbox_dir(
         str(worktree_path.parent), f"{worktree_path}/.claude/settings.local.json"
     )
+    add_sandbox_dir(main_repo, f"{worktree_path}/.claude/settings.local.json")
     _initialize_environment(worktree_path)
     click.echo(f"{slug}\t{worktree_path}" if task else str(worktree_path))
 

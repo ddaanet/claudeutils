@@ -99,8 +99,10 @@ wt-new name base="HEAD" session="":
     fi
     # Register container directory in sandbox permissions
     wt_container="$(dirname "$wt_dir")"
+    main_repo="$(git rev-parse --show-toplevel)"
     add-sandbox-dir "$wt_container" .claude/settings.local.json
     add-sandbox-dir "$wt_container" "$wt_dir/.claude/settings.local.json"
+    add-sandbox-dir "$main_repo" "$wt_dir/.claude/settings.local.json"
     # Set up development environment in worktree
     if (cd "$wt_dir" && just --summary 2>/dev/null | tr ' ' '\n' | grep -qx setup); then
         (cd "$wt_dir" && just setup)
