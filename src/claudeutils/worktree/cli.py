@@ -343,27 +343,38 @@ def _update_session_and_amend(slug: str) -> bool:
     default=False,
     help="Confirm direct invocation (bypass skill requirement)",
 )
-def rm(slug: str, confirm: bool) -> None:  # noqa: FBT001
+@click.option(
+    "--force",
+    is_flag=True,
+    default=False,
+    help="Force removal bypassing all safety checks",
+)
+def rm(slug: str, confirm: bool, force: bool) -> None:  # noqa: FBT001
     """Remove worktree and its branch."""
-    _check_confirm(slug, confirm)
+    if not force:
+        _check_confirm(slug, confirm)
 
     worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)
-    if _is_parent_dirty(exclude_path=str(worktree_path.parent)):
-        click.echo(
-            "Parent repo has uncommitted changes. "
-            "Commit or stash before removing worktree.",
-            err=True,
-        )
-        raise SystemExit(2)
-    if _is_submodule_dirty():
-        click.echo(
-            "Submodule (agent-core) has uncommitted changes. "
-            "Commit or stash before removing worktree.",
-            err=True,
-        )
-        raise SystemExit(2)
+    if not force:
+        if _is_parent_dirty(exclude_path=str(worktree_path.parent)):
+            click.echo(
+                "Parent repo has uncommitted changes. "
+                "Commit or stash before removing worktree.",
+                err=True,
+            )
+            raise SystemExit(2)
+        if _is_submodule_dirty():
+            click.echo(
+                "Submodule (agent-core) has uncommitted changes. "
+                "Commit or stash before removing worktree.",
+                err=True,
+            )
+            raise SystemExit(2)
 
-    branch_exists, removal_type = _guard_branch_removal(slug)
+        branch_exists, removal_type = _guard_branch_removal(slug)
+    else:
+        branch_exists = True
+        removal_type = "focused"
     worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)
     parent_reg, submodule_reg = _probe_registrations(worktree_path)
 

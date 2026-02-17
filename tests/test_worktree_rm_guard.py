@@ -312,3 +312,21 @@ def test_delete_branch_exits_1_on_failure(
 
     assert exc_info.value.code == 1
     assert "deletion failed" in capsys.readouterr().err
+
+
+def test_rm_force_bypasses_guard(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    init_repo: Callable[[Path], None],
+) -> None:
+    """Force flag bypasses guard check."""
+    repo = tmp_path / "repo"
+    make_repo_with_branch(repo, init_repo, branch="unmerged-force", n_commits=2)
+    monkeypatch.chdir(repo)
+
+    wt_path = add_worktree(repo, "unmerged-force")
+    result = CliRunner().invoke(worktree, ["rm", "--force", "unmerged-force"])
+
+    assert result.exit_code == 0
+    assert not wt_path.exists()
+    assert not _branch_exists(repo, "unmerged-force")

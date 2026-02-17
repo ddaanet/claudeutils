@@ -392,3 +392,24 @@ def test_is_submodule_dirty(
     assert _is_submodule_dirty() is True
 
 
+def test_rm_force_bypasses_confirm(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
+) -> None:
+    """Force flag bypasses confirm check."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    monkeypatch.chdir(repo_path)
+
+    init_repo(repo_path)
+    worktree_path = _create_worktree(repo_path, "test-feature", init_repo)
+    assert worktree_path.exists()
+
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["rm", "--force", "test-feature"])
+
+    assert result.exit_code == 0
+    assert not worktree_path.exists()
+    assert not _branch_exists("test-feature")
+    assert "removed" in result.output.lower()
+
+
