@@ -134,7 +134,9 @@ def test_rich_mode_header_and_task(tmp_path: Path) -> None:
     )
 
     # Create session.md in worktree to track commits since handoff
-    session_file = worktree_path / "session.md"
+    agents_dir = worktree_path / "agents"
+    agents_dir.mkdir()
+    session_file = agents_dir / "session.md"
     session_file.write_text("# Session\nTest session")
 
     # Make 3 commits in worktree after creating session.md
@@ -226,7 +228,9 @@ def test_rich_mode_plan_and_gate(tmp_path: Path) -> None:
     )
 
     # Create session.md in worktree to track commits since handoff
-    session_file = worktree_path / "session.md"
+    agents_dir = worktree_path / "agents"
+    agents_dir.mkdir()
+    session_file = agents_dir / "session.md"
     session_file.write_text("# Session\nTest session")
 
     # Create plans directory structure in worktree

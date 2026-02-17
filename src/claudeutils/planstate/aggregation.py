@@ -32,19 +32,7 @@ class TreeInfo(NamedTuple):
 
 
 def _parse_worktree_list(output: str) -> list[TreeInfo]:
-    """Parse git worktree list --porcelain output into TreeInfo objects.
-
-    Args:
-        output: git worktree list --porcelain format output
-
-    Returns:
-        List of TreeInfo objects with path, branch, is_main, slug, and
-        latest_commit_timestamp fields. Branch ref is stripped of
-        "refs/heads/" prefix.
-        First tree is marked as main (is_main=True, slug=None).
-        Other trees have is_main=False and slug extracted from path basename.
-        Latest commit timestamp is fetched for each tree.
-    """
+    """Parse git worktree list --porcelain output into TreeInfo objects."""
     trees = []
     lines = output.split("\n")
 
@@ -56,7 +44,6 @@ def _parse_worktree_list(output: str) -> list[TreeInfo]:
             current_path = line[len("worktree ") :]
         elif line.startswith("branch "):
             ref = line[len("branch ") :]
-            # Strip "refs/heads/" prefix
             if ref.startswith("refs/heads/"):
                 current_branch = ref[len("refs/heads/") :]
             else:
@@ -68,11 +55,9 @@ def _parse_worktree_list(output: str) -> list[TreeInfo]:
 
     result = []
     for idx, (path, branch) in enumerate(trees):
-        # Fetch latest commit timestamp for this tree
         _, timestamp = _latest_commit(Path(path))
 
         if idx == 0:
-            # First tree is main
             result.append(
                 TreeInfo(
                     path=path,
@@ -83,7 +68,6 @@ def _parse_worktree_list(output: str) -> list[TreeInfo]:
                 )
             )
         else:
-            # Other trees have slug extracted from path basename
             slug = Path(path).name
             result.append(
                 TreeInfo(
@@ -99,15 +83,7 @@ def _parse_worktree_list(output: str) -> list[TreeInfo]:
 
 
 def _commits_since_handoff(tree_path: Path) -> int:
-    """Count commits since session.md was last committed.
-
-    Args:
-        tree_path: Path to git repository
-
-    Returns:
-        Number of commits after session.md anchor, or 0 if not found or on HEAD
-    """
-    # Find the latest commit that touched agents/session.md
+    """Count commits since the last agents/session.md commit; 0 if no anchor."""
     result = subprocess.run(
         [
             "git",
@@ -125,12 +101,10 @@ def _commits_since_handoff(tree_path: Path) -> int:
     )
 
     if result.returncode != 0 or not result.stdout.strip():
-        # No session.md in history
         return 0
 
     anchor = result.stdout.strip()
 
-    # Count commits from anchor to HEAD
     result = subprocess.run(
         ["git", "-C", str(tree_path), "rev-list", f"{anchor}..HEAD", "--count"],
         check=False,
@@ -148,15 +122,7 @@ def _commits_since_handoff(tree_path: Path) -> int:
 
 
 def _latest_commit(tree_path: Path) -> tuple[str, int]:
-    """Get the latest commit subject and timestamp.
-
-    Args:
-        tree_path: Path to git repository
-
-    Returns:
-        Tuple of (commit subject, Unix timestamp as int)
-    """
-    # Get latest commit subject and timestamp
+    """Return (subject, unix_timestamp) of HEAD commit."""
     result = subprocess.run(
         ["git", "-C", str(tree_path), "log", "-1", "--format=%s%n%ct"],
         check=False,
@@ -181,15 +147,7 @@ def _latest_commit(tree_path: Path) -> tuple[str, int]:
 
 
 def _is_dirty(tree_path: Path) -> bool:
-    """Check if git worktree has uncommitted changes.
-
-    Args:
-        tree_path: Path to git repository
-
-    Returns:
-        True if there are uncommitted changes (modified tracked files), False otherwise.
-        Untracked files are ignored.
-    """
+    """Check for uncommitted tracked changes; untracked files ignored."""
     result = subprocess.run(
         [
             "git",
@@ -211,15 +169,7 @@ def _is_dirty(tree_path: Path) -> bool:
 
 
 def _task_summary(tree_path: Path) -> str | None:
-    """Extract first pending task name from session.md.
-
-    Args:
-        tree_path: Path to git repository
-
-    Returns:
-        Task name (string) if pending task exists, None otherwise.
-        Returns None if session.md doesn't exist or has no Pending Tasks.
-    """
+    """Return the first pending task name from agents/session.md, or None."""
     session_path = tree_path / "agents" / "session.md"
 
     if not session_path.exists():
@@ -243,17 +193,7 @@ class AggregatedStatus:
 
 
 def aggregate_trees(repo_root: Path) -> AggregatedStatus:
-    """Discover plans across all worktrees and aggregate into a single result.
-
-    Args:
-        repo_root: Path to the main repository root
-
-    Returns:
-        AggregatedStatus with aggregated plans list (deduplicated by plan name,
-        main tree plans override worktree plans on conflict) and trees list
-        sorted by latest_commit_timestamp in descending order.
-    """
-    # Get list of all worktrees
+    """Aggregate plans across all worktrees; main tree wins on name conflict."""
     result = subprocess.run(
         ["git", "-C", str(repo_root), "worktree", "list", "--porcelain"],
         check=False,
@@ -265,37 +205,26 @@ def aggregate_trees(repo_root: Path) -> AggregatedStatus:
         return AggregatedStatus(plans=[], trees=[])
 
     trees = _parse_worktree_list(result.stdout)
-
-    # Sort trees by latest_commit_timestamp in descending order
     sorted_trees = sorted(trees, key=lambda t: t.latest_commit_timestamp, reverse=True)
 
-    # Discover plans from each tree, deduplicated by plan name
-    # Main tree plans override worktree plans on conflict
-    plans_dict = {}
+    plans_dict: dict[str, PlanState] = {}
 
-    # Collect worktree plans first
     for tree in trees:
         if tree.is_main:
             continue
-        tree_path = Path(tree.path)
-        plans_dir = tree_path / "plans"
-        tree_plans = list_plans(plans_dir)
+        tree_plans = list_plans(Path(tree.path) / "plans")
         for plan in tree_plans:
             plan.tree_path = tree.path
             if plan.name not in plans_dict:
                 plans_dict[plan.name] = plan
 
-    # Override with main tree plans (priority)
     for tree in trees:
         if not tree.is_main:
             continue
-        tree_path = Path(tree.path)
-        plans_dir = tree_path / "plans"
-        tree_plans = list_plans(plans_dir)
+        tree_plans = list_plans(Path(tree.path) / "plans")
         for plan in tree_plans:
             plan.tree_path = tree.path
             plans_dict[plan.name] = plan
 
-    # Convert dict to sorted list
     plans = sorted(plans_dict.values(), key=lambda p: p.name)
     return AggregatedStatus(plans=plans, trees=sorted_trees)

@@ -12,7 +12,6 @@ def format_tree_header(
     """Format tree header with slug/branch, dirty indicator, commit status."""
     clean_branch = branch.replace("refs/heads/", "") if branch else "main"
 
-    # Dirty detection
     result = subprocess.run(
         ["git", "-C", path, "status", "--porcelain"],
         capture_output=True,
@@ -22,8 +21,7 @@ def format_tree_header(
     is_dirty = bool(result.stdout.strip())
     dirty_indicator = "●" if is_dirty else "○"
 
-    # Commits since handoff
-    session_path = Path(path) / "session.md"
+    session_path = Path(path) / "agents" / "session.md"
     commits_count = 0
     if session_path.exists():
         result = subprocess.run(
@@ -34,7 +32,7 @@ def format_tree_header(
                 "log",
                 "--oneline",
                 "--follow",
-                "session.md",
+                "agents/session.md",
             ],
             capture_output=True,
             text=True,
@@ -97,12 +95,10 @@ def format_rich_ls(main_path: str, porcelain_output: str) -> str:
     )
     main_branch = result.stdout.strip() if result.returncode == 0 else "main"
 
-    # Aggregate plans across all trees
     aggregated = aggregate_trees(Path(main_path))
 
     lines = [format_tree_header("main", main_branch, main_path, main_path)]
 
-    # Add plans and gates for main tree
     for plan in aggregated.plans:
         if plan.tree_path == main_path:
             lines.append(f"  Plan: {plan.name} [{plan.status}] → {plan.next_action}")
@@ -112,7 +108,6 @@ def format_rich_ls(main_path: str, porcelain_output: str) -> str:
     for slug, branch, path in _parse_worktree_entries(porcelain_output, main_path):
         lines.append(format_tree_header(slug, branch, path, main_path))
 
-        # Add plans and gates for this worktree
         for plan in aggregated.plans:
             if plan.tree_path == path:
                 lines.append(
