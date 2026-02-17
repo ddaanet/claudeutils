@@ -340,7 +340,9 @@ def _delete_branch(slug: str, removal_type: str | None) -> None:
     flag = "-D" if removal_type == "focused" else "-d"
     r = subprocess.run(
         ["git", "branch", flag, slug],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if r.returncode != 0 and "not found" not in r.stderr.lower():
         click.echo(f"Branch {slug} deletion failed: {r.stderr.strip()}", err=True)
