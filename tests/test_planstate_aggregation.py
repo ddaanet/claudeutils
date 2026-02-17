@@ -5,12 +5,14 @@ import time
 from pathlib import Path
 
 from claudeutils.planstate.aggregation import (
+    AggregatedStatus,
     TreeInfo,
     _commits_since_handoff,
     _is_dirty,
     _latest_commit,
     _parse_worktree_list,
     _task_summary,
+    aggregate_trees,
 )
 
 
@@ -309,3 +311,135 @@ def test_task_summary_extraction(tmp_path: Path) -> None:
     session_file.unlink()
     result = _task_summary(repo_path)
     assert result is None
+
+
+def _init_git_repo(repo_path: str) -> None:
+    """Initialize a git repository with standard config."""
+    subprocess.run(
+        ["git", "init"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+
+def test_per_tree_plan_discovery(tmp_path: Path) -> None:
+    """Discover plans from each tree's plans/ directory and aggregate them."""
+    # Setup: Create main repo with plans/plan-a/
+    main_repo = tmp_path / "main"
+    main_repo.mkdir()
+    _init_git_repo(str(main_repo))
+
+    # Create plan-a in main repo
+    plans_dir = main_repo / "plans"
+    plans_dir.mkdir()
+    plan_a = plans_dir / "plan-a"
+    plan_a.mkdir()
+    (plan_a / "requirements.md").write_text("# Plan A\n")
+    subprocess.run(
+        ["git", "add", "plans/"],
+        cwd=str(main_repo),
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add plan-a"],
+        cwd=str(main_repo),
+        check=True,
+        capture_output=True,
+    )
+
+    # Create worktree with plans/plan-b/
+    wt_path = main_repo / "wt" / "worktree-1"
+    subprocess.run(
+        ["git", "worktree", "add", str(wt_path), "-b", "worktree-1"],
+        cwd=str(main_repo),
+        check=True,
+        capture_output=True,
+    )
+
+    wt_plans = wt_path / "plans"
+    wt_plans.mkdir(exist_ok=True)
+    plan_b = wt_plans / "plan-b"
+    plan_b.mkdir()
+    (plan_b / "design.md").write_text("# Plan B Design\n")
+    subprocess.run(
+        ["git", "add", "plans/"],
+        cwd=str(wt_path),
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add plan-b"],
+        cwd=str(wt_path),
+        check=True,
+        capture_output=True,
+    )
+
+    # Call aggregate_trees() with main repo root
+    result = aggregate_trees(main_repo)
+
+    # Verify result is AggregatedStatus
+    assert isinstance(result, AggregatedStatus)
+
+    # Verify plans list contains 2 PlanState objects
+    assert len(result.plans) == 2
+
+    # Verify plan names: "plan-a" and "plan-b"
+    plan_names = {plan.name for plan in result.plans}
+    assert plan_names == {"plan-a", "plan-b"}
+
+    # Deduplication test: Create same plan in both trees
+    plan_c_main = plans_dir / "plan-c"
+    plan_c_main.mkdir()
+    (plan_c_main / "outline.md").write_text("# Plan C\n")
+    subprocess.run(
+        ["git", "add", "plans/plan-c/"],
+        cwd=str(main_repo),
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add plan-c in main"],
+        cwd=str(main_repo),
+        check=True,
+        capture_output=True,
+    )
+
+    plan_c_wt = wt_plans / "plan-c"
+    plan_c_wt.mkdir()
+    (plan_c_wt / "requirements.md").write_text("# Plan C Reqs\n")
+    subprocess.run(
+        ["git", "add", "plans/plan-c/"],
+        cwd=str(wt_path),
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Add plan-c in worktree"],
+        cwd=str(wt_path),
+        check=True,
+        capture_output=True,
+    )
+
+    result = aggregate_trees(main_repo)
+
+    # Verify only 1 PlanState for plan-c (deduplication)
+    plan_c_results = [p for p in result.plans if p.name == "plan-c"]
+    assert len(plan_c_results) == 1
+
+    # Verify deduplication precedence: main tree plan wins (has outline.md)
+    plan_c = plan_c_results[0]
+    assert "outline.md" in plan_c.artifacts

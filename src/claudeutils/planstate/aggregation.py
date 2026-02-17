@@ -4,9 +4,12 @@ Parsing and combining planning artifacts.
 """
 
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
 
+from claudeutils.planstate.inference import list_plans
+from claudeutils.planstate.models import PlanState
 from claudeutils.worktree.session import extract_task_blocks
 
 
@@ -199,3 +202,49 @@ def _task_summary(tree_path: Path) -> str | None:
         return None
 
     return blocks[0].name
+
+
+@dataclass
+class AggregatedStatus:
+    """Aggregated status from multiple worktrees."""
+
+    plans: list[PlanState]
+
+
+def aggregate_trees(repo_root: Path) -> AggregatedStatus:
+    """Discover plans across all worktrees and aggregate into a single result.
+
+    Args:
+        repo_root: Path to the main repository root
+
+    Returns:
+        AggregatedStatus with aggregated plans list, deduplicated by plan name
+        (main tree plans override worktree plans on conflict)
+    """
+    # Get list of all worktrees
+    result = subprocess.run(
+        ["git", "-C", str(repo_root), "worktree", "list", "--porcelain"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        return AggregatedStatus(plans=[])
+
+    trees = _parse_worktree_list(result.stdout)
+
+    # Discover plans from each tree, deduplicated by plan name
+    plans_dict = {}
+    for tree in trees:
+        tree_path = Path(tree.path)
+        plans_dir = tree_path / "plans"
+        tree_plans = list_plans(plans_dir)
+
+        for plan in tree_plans:
+            if plan.name not in plans_dict:
+                plans_dict[plan.name] = plan
+
+    # Convert dict to sorted list
+    plans = sorted(plans_dict.values(), key=lambda p: p.name)
+    return AggregatedStatus(plans=plans)
