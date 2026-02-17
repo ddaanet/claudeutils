@@ -329,7 +329,6 @@ def test_rm_refuses_without_confirm(
     assert worktree_path.exists()
 
 
-
 def test_rm_force_bypasses_confirm(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
 ) -> None:
@@ -349,5 +348,3 @@ def test_rm_force_bypasses_confirm(
     assert not worktree_path.exists()
     assert not _branch_exists("test-feature")
     assert "removed" in result.output.lower()
-
-

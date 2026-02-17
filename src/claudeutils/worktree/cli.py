@@ -44,7 +44,6 @@ def derive_slug(task_name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", task_name.lower()).strip("-")
 
 
-
 def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
     """Add container to sandbox additionalDirectories."""
     path = Path(settings_path)

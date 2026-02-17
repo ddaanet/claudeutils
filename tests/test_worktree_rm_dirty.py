@@ -111,8 +111,7 @@ def test_rm_blocks_on_dirty_submodule(
 
     assert result.exit_code == 2
     assert (
-        "uncommitted" in result.output.lower()
-        or "submodule" in result.output.lower()
+        "uncommitted" in result.output.lower() or "submodule" in result.output.lower()
     )
 
 

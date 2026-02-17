@@ -39,17 +39,7 @@ def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,
 
 
 def _is_branch_merged(slug: str) -> bool:
-    """Check if a branch is merged into current HEAD.
-
-    Uses git merge-base --is-ancestor to determine if the branch is an ancestor
-    of the current HEAD (indicating it has been merged).
-
-    Args:
-        slug: Branch name to check
-
-    Returns:
-        True if the branch is an ancestor of HEAD (merged), False otherwise
-    """
+    """Return True if slug is an ancestor of HEAD (merge-base --is-ancestor)."""
     result = subprocess.run(
         ["git", "merge-base", "--is-ancestor", slug, "HEAD"],
         check=False,
@@ -84,11 +74,11 @@ def _classify_branch(slug: str) -> tuple[int, bool]:
 
 
 def _is_parent_dirty(exclude_path: str | None = None) -> bool:
-    """Check if parent repo has uncommitted changes.
+    """Return True if parent repo has staged/unstaged/untracked changes.
 
-    Returns True if working tree has staged/unstaged/untracked changes. If
-    exclude_path is provided, ignores files in that directory (used to exclude
-    worktree container).
+    exclude_path: if given, skip status lines whose path starts with
+    Path(exclude_path).name + "/" (used to ignore the worktree container dir
+    when it appears as an untracked entry inside the repo).
     """
     output = _git("status", "--porcelain", check=False)
     if not output:
@@ -106,11 +96,7 @@ def _is_parent_dirty(exclude_path: str | None = None) -> bool:
 
 
 def _is_submodule_dirty() -> bool:
-    """Check if agent-core submodule has uncommitted changes.
-
-    Returns False if agent-core/ does not exist or if status is clean. Returns
-    True if submodule has uncommitted changes.
-    """
+    """Return True if agent-core is dirty; False if absent or clean."""
     submodule_path = Path("agent-core")
     if not submodule_path.exists():
         return False
