@@ -21,11 +21,11 @@
 **Test:** `test_lifecycle_happy_path`
 **Assertions:**
 - Running `lifecycle` on `VALID_TDD` fixture exits with code 0
-- Report file written to expected path
+- Report file exists at `plans/valid-tdd/reports/validation-lifecycle.md` (or path derived from fixture job name)
 - Report contains `**Result:** PASS`
 - Report `Summary` shows `Failed: 0`
 
-**Fixture:** `VALID_TDD` — file `src/module.py` is created in Cycle 1.1 and modified in Cycle 1.2 (correct ordering).
+**Fixture:** `VALID_TDD` — file `src/module.py` is created in fixture-internal Cycle 1.1 and modified in fixture-internal Cycle 1.2 (correct ordering; these are cycle IDs within the fixture content, not Phase 1 of this runbook).
 
 **Expected failure:** `AssertionError` — `lifecycle` handler is still a stub; no report written.
 
@@ -72,8 +72,8 @@
 **Assertions:**
 - Running `lifecycle` on `VIOLATION_LIFECYCLE_MODIFY_BEFORE_CREATE` fixture exits with code 1
 - Report contains `**Result:** FAIL`
-- Report `Violations` section names the file that was modified before creation
-- Report shows the modify cycle ID and states no prior creation found
+- Report `Violations` section contains `src/widget.py`
+- Report `Violations` section contains `Cycle 1.1` (the modify location) and `no prior creation found`
 - Report `Summary` shows `Failed: 1`
 
 **Fixture:** `VIOLATION_LIFECYCLE_MODIFY_BEFORE_CREATE` — Cycle 1.1 has `File: src/widget.py, Action: Modify`; no earlier cycle creates `src/widget.py`.
@@ -119,7 +119,8 @@
 **Assertions:**
 - Running `lifecycle` on `VIOLATION_LIFECYCLE_DUPLICATE_CREATE` fixture exits with code 1
 - Report contains `**Result:** FAIL`
-- Report `Violations` section names the duplicated file and both creation cycle IDs
+- Report `Violations` section contains `src/module.py`
+- Report `Violations` section contains `Cycle 1.1` (first creation) and `Cycle 2.1` (duplicate creation)
 - Report `Summary` shows `Failed: 1`
 
 **Fixture:** `VIOLATION_LIFECYCLE_DUPLICATE_CREATE` — Cycle 1.1 creates `src/module.py`; Cycle 2.1 also creates `src/module.py`.

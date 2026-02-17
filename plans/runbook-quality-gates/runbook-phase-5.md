@@ -32,7 +32,7 @@
 *Skip flags (test_integration_skip_flag[skip_model_tags], etc. — 4 parametrized cases):*
 - Create fixture directory with valid phase files
 - Running `model-tags --skip-model-tags <path>` exits with code 0 without running the check
-- Report not written (or written with skipped status)
+- Report written to `<directory>/reports/validation-<subcommand>.md` containing `**Result:** SKIPPED`
 - Parametrized over: `--skip-model-tags`, `--skip-lifecycle`, `--skip-test-counts`, `--skip-red-plausibility`
 
 **Expected failure:** `AssertionError` — `assemble_phase_files` not yet wired for directory input in current handlers (each handler takes a path but may not handle directory case), and `--skip-*` flags not yet added to argparse.
@@ -59,7 +59,7 @@
 - When skip flag is set: write SKIP report (`**Result:** SKIPPED`), exit 0
 - Skip is per-subcommand: `model-tags --skip-model-tags` skips the model-tags check; other subcommands unaffected
 
-**Approach:** Add `parser_model_tags.add_argument('--skip-model-tags', action='store_true')` etc. In each handler: `if args.skip_model_tags: write_report(..., skipped=True); sys.exit(0)`. Extend `write_report` to accept `skipped=True` keyword that writes `**Result:** SKIPPED` with empty violations.
+**Hint:** Add a boolean flag argument to each subcommand's parser. In each handler, check the flag before invoking any parsing logic — if set, write a SKIPPED report and exit 0. Extend `write_report` to accept a skipped parameter that substitutes `**Result:** SKIPPED` with an empty violations list.
 
 **Changes:**
 - File: `agent-core/bin/validate-runbook.py`

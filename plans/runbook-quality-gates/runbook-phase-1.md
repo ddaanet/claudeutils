@@ -119,9 +119,9 @@
 
 **Fixture:** `VIOLATION_MODEL_TAGS` — cycle with `File: agent-core/skills/myskill/SKILL.md` in Changes and `**Execution Model**: Haiku`.
 
-**Expected failure:** `AssertionError` — current implementation from 1.2 detects no violations (logic present but violation branch not triggered, or returns exit 0 for all inputs).
+**Expected failure:** `AssertionError` — `check_model_tags` from Cycle 1.2 only implements the no-violation path: it writes a PASS report and exits 0 for all inputs; no violation branch exists yet.
 
-**Why it fails:** The 1.2 GREEN may check artifact paths but not correctly flag non-opus models, or ARTIFACT_PREFIXES not matching correctly.
+**Why it fails:** Cycle 1.2 GREEN implements only the happy path (`No violations → write PASS report, exit 0`). `VIOLATION_MODEL_TAGS` fixture triggers the violation branch, which doesn't exist — `model-tags` exits 0 and writes PASS, causing the exit-code and Result assertions to fail.
 
 **Verify RED:** `pytest tests/test_validate_runbook.py::test_model_tags_violation -v`
 

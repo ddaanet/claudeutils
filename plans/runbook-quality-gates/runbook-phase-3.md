@@ -25,7 +25,7 @@
 - Report contains `**Result:** PASS`
 - Report `Summary` shows `Failed: 0`
 
-**Fixture:** `VALID_TDD` — has one RED phase with `**Test:** \`test_foo\`` and checkpoint "All 1 tests pass".
+**Fixture:** `VALID_TDD` — reuse from Phase 1/2; must include a RED phase with `**Test:** \`test_foo\`` and checkpoint "All 1 tests pass". If the fixture defined in earlier tests lacks these test-counts fields, augment it or create a separate `VALID_TDD_WITH_TEST_COUNTS` fixture for Phase 3 tests.
 
 **Expected failure:** `AssertionError` — `test-counts` handler is still a stub; no report written.
 
@@ -41,12 +41,12 @@
 
 **Behavior:**
 - Extract all `**Test:**` field values from RED phases using regex `r'\*\*Test:\*\*\s*`?([^`\n]+)`?'`
-- Collect unique test function names (strip `[...]` parametrize suffixes to get base name)
+- Collect unique test function names (raw names, no suffix stripping yet)
 - Extract checkpoint claims using regex `r'All\s+(\d+)\s+tests?\s+pass'` from the full content
 - For each checkpoint claim: compare claimed count to unique function count accumulated to that point
 - No mismatches → write PASS report, exit 0
 
-**Approach:** Process document in order. Collect test names in a set (base name only — strip `[param]` suffix). After all cycles, find all checkpoint claims. For single checkpoint at end: compare count. If no checkpoints, no violations. Write PASS report.
+**Approach:** Process document in order. Collect test names in a set (raw names). After all cycles, find all checkpoint claims. For single checkpoint at end: compare count. If no checkpoints, no violations. Write PASS report.
 
 **Changes:**
 - File: `agent-core/bin/validate-runbook.py`
@@ -76,9 +76,9 @@
 
 **Fixture:** `VIOLATION_TEST_COUNTS` — three `**Test:**` fields (`test_alpha`, `test_beta`, `test_gamma`) and checkpoint "All 5 tests pass".
 
-**Expected failure:** `AssertionError` — current `check_test_counts` from 3.1 may return PASS for all inputs if violation comparison not yet wired up.
+**Expected failure:** `AssertionError` — current `check_test_counts` from 3.1 returns PASS for all inputs; violation comparison is not yet implemented.
 
-**Why it fails:** 3.1 happy-path implementation may not compare claimed vs actual; just returns PASS.
+**Why it fails:** 3.1 GREEN only implements the happy path (no violations). The mismatch detection branch (claimed != actual) is not added until this cycle's GREEN phase.
 
 **Verify RED:** `pytest tests/test_validate_runbook.py::test_test_counts_mismatch -v`
 
@@ -121,9 +121,9 @@
 
 **Fixture:** `VIOLATION_TEST_COUNTS_PARAMETRIZED` — two `**Test:**` fields: `` `test_foo[param1]` `` and `` `test_foo[param2]` ``; checkpoint "All 1 tests pass".
 
-**Expected failure:** `AssertionError` — current implementation counts raw names without stripping `[...]` suffix, yielding count 2 (not 1) → mismatch with checkpoint claim of 1 → exits 1 instead of 0.
+**Expected failure:** `AssertionError` — current implementation stores raw names (no stripping), yielding count 2 for `test_foo[param1]` and `test_foo[param2]` → mismatch with checkpoint claim of 1 → exits 1 instead of 0.
 
-**Why it fails:** Base-name deduplication in 3.1 may use naive set membership without stripping parametrize brackets.
+**Why it fails:** 3.1 GREEN collects raw names into the set. Parametrize-bracket stripping is not introduced until this cycle's GREEN phase.
 
 **Verify RED:** `pytest tests/test_validate_runbook.py::test_test_counts_parametrized -v`
 
@@ -134,15 +134,15 @@
 **Implementation:** Ensure parametrized test names are normalized to base function name before deduplication.
 
 **Behavior:**
-- Strip `[...]` suffix before adding to unique-names set: `re.sub(r'\[.*\]$', '', name)`
+- Before adding each name to the unique-names set, strip any `[...]` parametrize suffix from the end
 - `test_foo[param1]` and `test_foo[param2]` both normalize to `test_foo` → set size 1
 - Checkpoint "All 1 tests pass" matches → PASS, exit 0
 
-**Approach:** Apply normalization in the name-collection step. Affects all test counts — verify existing tests still pass with normalization applied.
+**Hint:** Use a regex or string operation to strip the bracket suffix from each extracted name before insertion. Apply normalization in the name-collection step. Affects all test counts — verify existing tests still pass with normalization applied.
 
 **Changes:**
 - File: `agent-core/bin/validate-runbook.py`
-  Action: Add `re.sub(r'\[.*\]$', '', name)` normalization when collecting unique function names in `check_test_counts`
+  Action: Add parametrize-suffix stripping when collecting unique function names in `check_test_counts`
   Location hint: Inside the test-name collection loop in `check_test_counts`
 
 **Verify GREEN:** `pytest tests/test_validate_runbook.py::test_test_counts_parametrized -v`
