@@ -4,7 +4,7 @@ Parsing and combining planning artifacts.
 """
 
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import NamedTuple
 
@@ -20,6 +20,7 @@ class TreeInfo(NamedTuple):
     branch: str
     is_main: bool
     slug: str | None
+    latest_commit_timestamp: int = 0
 
 
 def _parse_worktree_list(output: str) -> list[TreeInfo]:
@@ -29,10 +30,12 @@ def _parse_worktree_list(output: str) -> list[TreeInfo]:
         output: git worktree list --porcelain format output
 
     Returns:
-        List of TreeInfo objects with path, branch, is_main, and slug fields.
-        Branch ref is stripped of "refs/heads/" prefix.
+        List of TreeInfo objects with path, branch, is_main, slug, and
+        latest_commit_timestamp fields. Branch ref is stripped of
+        "refs/heads/" prefix.
         First tree is marked as main (is_main=True, slug=None).
         Other trees have is_main=False and slug extracted from path basename.
+        Latest commit timestamp is fetched for each tree.
     """
     trees = []
     lines = output.split("\n")
@@ -57,13 +60,32 @@ def _parse_worktree_list(output: str) -> list[TreeInfo]:
 
     result = []
     for idx, (path, branch) in enumerate(trees):
+        # Fetch latest commit timestamp for this tree
+        _, timestamp = _latest_commit(Path(path))
+
         if idx == 0:
             # First tree is main
-            result.append(TreeInfo(path=path, branch=branch, is_main=True, slug=None))
+            result.append(
+                TreeInfo(
+                    path=path,
+                    branch=branch,
+                    is_main=True,
+                    slug=None,
+                    latest_commit_timestamp=timestamp,
+                )
+            )
         else:
             # Other trees have slug extracted from path basename
             slug = Path(path).name
-            result.append(TreeInfo(path=path, branch=branch, is_main=False, slug=slug))
+            result.append(
+                TreeInfo(
+                    path=path,
+                    branch=branch,
+                    is_main=False,
+                    slug=slug,
+                    latest_commit_timestamp=timestamp,
+                )
+            )
 
     return result
 
@@ -209,6 +231,7 @@ class AggregatedStatus:
     """Aggregated status from multiple worktrees."""
 
     plans: list[PlanState]
+    trees: list[TreeInfo] = field(default_factory=list)
 
 
 def aggregate_trees(repo_root: Path) -> AggregatedStatus:
@@ -218,8 +241,9 @@ def aggregate_trees(repo_root: Path) -> AggregatedStatus:
         repo_root: Path to the main repository root
 
     Returns:
-        AggregatedStatus with aggregated plans list, deduplicated by plan name
-        (main tree plans override worktree plans on conflict)
+        AggregatedStatus with aggregated plans list (deduplicated by plan name,
+        main tree plans override worktree plans on conflict) and trees list
+        sorted by latest_commit_timestamp in descending order.
     """
     # Get list of all worktrees
     result = subprocess.run(
@@ -230,9 +254,12 @@ def aggregate_trees(repo_root: Path) -> AggregatedStatus:
     )
 
     if result.returncode != 0:
-        return AggregatedStatus(plans=[])
+        return AggregatedStatus(plans=[], trees=[])
 
     trees = _parse_worktree_list(result.stdout)
+
+    # Sort trees by latest_commit_timestamp in descending order
+    sorted_trees = sorted(trees, key=lambda t: t.latest_commit_timestamp, reverse=True)
 
     # Discover plans from each tree, deduplicated by plan name
     plans_dict = {}
@@ -247,4 +274,4 @@ def aggregate_trees(repo_root: Path) -> AggregatedStatus:
 
     # Convert dict to sorted list
     plans = sorted(plans_dict.values(), key=lambda p: p.name)
-    return AggregatedStatus(plans=plans)
+    return AggregatedStatus(plans=plans, trees=sorted_trees)

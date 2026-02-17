@@ -1,5 +1,6 @@
 """Tests for planstate aggregation module."""
 
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -333,6 +334,126 @@ def _init_git_repo(repo_path: str) -> None:
         check=True,
         capture_output=True,
     )
+
+
+def test_tree_sorting_by_timestamp(tmp_path: Path) -> None:
+    """Sort trees by latest_commit_timestamp in descending order."""
+    # Setup: Create main repo
+    main_repo = tmp_path / "main"
+    main_repo.mkdir()
+    _init_git_repo(str(main_repo))
+
+    # Create initial commit in main at T1 (oldest)
+    test_file = main_repo / "main.txt"
+    test_file.write_text("main content\n")
+    subprocess.run(
+        ["git", "add", "main.txt"],
+        cwd=str(main_repo),
+        check=True,
+        capture_output=True,
+        env={
+            **os.environ,
+            "GIT_AUTHOR_DATE": "1000000000 +0000",
+            "GIT_COMMITTER_DATE": "1000000000 +0000",
+        },
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Main commit"],
+        cwd=str(main_repo),
+        check=True,
+        capture_output=True,
+        env={
+            **os.environ,
+            "GIT_AUTHOR_DATE": "1000000000 +0000",
+            "GIT_COMMITTER_DATE": "1000000000 +0000",
+        },
+    )
+
+    # Create worktree-1 and commit at T2 (middle)
+    wt1_path = main_repo / "wt" / "worktree-1"
+    subprocess.run(
+        ["git", "worktree", "add", str(wt1_path), "-b", "worktree-1"],
+        cwd=str(main_repo),
+        check=True,
+        capture_output=True,
+    )
+    wt1_file = wt1_path / "wt1.txt"
+    wt1_file.write_text("worktree1 content\n")
+    subprocess.run(
+        ["git", "add", "wt1.txt"],
+        cwd=str(wt1_path),
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Worktree-1 commit"],
+        cwd=str(wt1_path),
+        check=True,
+        capture_output=True,
+        env={
+            **os.environ,
+            "GIT_AUTHOR_DATE": "1000000100 +0000",
+            "GIT_COMMITTER_DATE": "1000000100 +0000",
+        },
+    )
+
+    # Create worktree-2 and commit at T3 (newest)
+    wt2_path = main_repo / "wt" / "worktree-2"
+    subprocess.run(
+        ["git", "worktree", "add", str(wt2_path), "-b", "worktree-2"],
+        cwd=str(main_repo),
+        check=True,
+        capture_output=True,
+    )
+    wt2_file = wt2_path / "wt2.txt"
+    wt2_file.write_text("worktree2 content\n")
+    subprocess.run(
+        ["git", "add", "wt2.txt"],
+        cwd=str(wt2_path),
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Worktree-2 commit"],
+        cwd=str(wt2_path),
+        check=True,
+        capture_output=True,
+        env={
+            **os.environ,
+            "GIT_AUTHOR_DATE": "1000000200 +0000",
+            "GIT_COMMITTER_DATE": "1000000200 +0000",
+        },
+    )
+
+    # Call aggregate_trees() and verify sorting
+    result = aggregate_trees(main_repo)
+
+    # Verify result has trees attribute
+    assert hasattr(result, "trees"), "AggregatedStatus should have 'trees' attribute"
+    assert len(result.trees) == 3, "Should have 3 trees"
+
+    # Verify order: worktree-2 (T3) first, worktree-1 (T2) second, main (T1) last
+    assert result.trees[0].slug == "worktree-2", "Most recent should be worktree-2"
+    assert result.trees[1].slug == "worktree-1", (
+        "Second most recent should be worktree-1"
+    )
+    assert result.trees[2].is_main is True, "Least recent should be main"
+
+    # Verify descending order of timestamps
+    assert (
+        result.trees[0].latest_commit_timestamp
+        > result.trees[1].latest_commit_timestamp
+    ), "Timestamps should be descending"
+    assert (
+        result.trees[1].latest_commit_timestamp
+        > result.trees[2].latest_commit_timestamp
+    ), "Timestamps should be descending"
+
+    # Verify all are integers
+    for tree in result.trees:
+        assert isinstance(tree.latest_commit_timestamp, int), (
+            "Timestamp should be integer"
+        )
 
 
 def test_per_tree_plan_discovery(tmp_path: Path) -> None:
