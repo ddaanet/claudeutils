@@ -134,7 +134,7 @@ def test_rm_refuses_unmerged_real_history(
     wt_path = add_worktree(repo, "real-unmerged")
     result = runner.invoke(worktree, ["rm", "real-unmerged"])
 
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert "has 2 unmerged commit(s). Merge first." in result.output
     assert wt_path.exists(), "Worktree directory should still exist"
     assert _branch_exists(repo, "real-unmerged"), "Branch should still exist"
@@ -148,7 +148,7 @@ def test_rm_refuses_unmerged_real_history(
     add_worktree(repo, "orphan-branch")
 
     result = runner.invoke(worktree, ["rm", "orphan-branch"])
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert "is orphaned (no common ancestor). Merge first." in result.output
 
 
@@ -198,7 +198,7 @@ def test_rm_guard_prevents_destruction(
     monkeypatch: pytest.MonkeyPatch,
     init_repo: Callable[[Path], None],
 ) -> None:
-    """Guard refusal (exit 1) prevents all destructive operations.
+    """Guard refusal (exit 2) prevents all destructive operations.
 
     Regression: session.md task removal, worktree deletion,
     _probe_registrations, branch deletion must not execute.
@@ -216,7 +216,7 @@ def test_rm_guard_prevents_destruction(
     )
 
     result = CliRunner().invoke(worktree, ["rm", "guard-test"])
-    assert result.exit_code == 1
+    assert result.exit_code == 2
 
     assert wt_path.exists(), "Worktree directory should survive guard refusal"
     assert _branch_exists(repo, "guard-test"), "Branch should survive"
@@ -276,13 +276,30 @@ def test_rm_no_destructive_suggestions(
     assert "git branch -D" not in result.output
 
 
-def test_delete_branch_exits_2_on_failure(
+def test_rm_guard_exits_2(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    init_repo: Callable[[Path], None],
+) -> None:
+    """Rm exits 2 when guard refuses removal (safety gate)."""
+    repo = tmp_path / "repo"
+    make_repo_with_branch(repo, init_repo, branch="guard-test-br", n_commits=2)
+    monkeypatch.chdir(repo)
+
+    add_worktree(repo, "guard-test-br")
+    result = CliRunner().invoke(worktree, ["rm", "guard-test-br"])
+
+    assert result.exit_code == 2
+    assert "has 2 unmerged commit(s). Merge first." in result.output
+
+
+def test_delete_branch_exits_1_on_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     init_repo: Callable[[Path], None],
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """_delete_branch raises SystemExit(2) when git branch -d fails."""
+    """_delete_branch raises SystemExit(1) when git branch -d fails."""
     repo = tmp_path / "repo"
     make_repo_with_branch(
         repo, init_repo, branch="unmerged-br", files={"f.txt": "content"}
@@ -293,5 +310,5 @@ def test_delete_branch_exits_2_on_failure(
     with pytest.raises(SystemExit) as exc_info:
         _delete_branch("unmerged-br", None)
 
-    assert exc_info.value.code == 2
+    assert exc_info.value.code == 1
     assert "deletion failed" in capsys.readouterr().err

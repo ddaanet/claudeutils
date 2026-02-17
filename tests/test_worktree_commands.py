@@ -394,7 +394,7 @@ def test_rm_safe_branch_deletion(
     )
 
     result = CliRunner().invoke(worktree, ["rm", "unmerged-slug"])
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert "unmerged commit(s). Merge first." in result.output
     # FR-5: no destructive suggestions
     assert "git branch -D" not in result.output

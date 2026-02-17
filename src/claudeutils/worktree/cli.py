@@ -330,7 +330,7 @@ def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:
             f"Branch {slug} has {count} unmerged commit(s). Merge first.",
             err=True,
         )
-    raise click.Abort
+    raise SystemExit(2)
 
 
 def _delete_branch(slug: str, removal_type: str | None) -> None:
@@ -343,7 +343,7 @@ def _delete_branch(slug: str, removal_type: str | None) -> None:
     )
     if r.returncode != 0 and "not found" not in r.stderr.lower():
         click.echo(f"Branch {slug} deletion failed: {r.stderr.strip()}", err=True)
-        raise SystemExit(2)
+        raise SystemExit(1)
 
 
 def _update_session_and_amend(slug: str) -> bool:

@@ -21,7 +21,7 @@ def _run_git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def make_repo_with_branch(  # noqa: PLR0913
+def make_repo_with_branch(
     repo_dir: Path,
     init_fn: Callable[[Path], None],
     branch: str = "test-branch",
