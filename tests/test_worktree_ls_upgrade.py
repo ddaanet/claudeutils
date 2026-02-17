@@ -1,5 +1,6 @@
 """Test upgrade of worktree ls command with --porcelain flag."""
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -91,3 +92,95 @@ def test_porcelain_mode_backward_compatible(tmp_path: Path) -> None:
         assert str(worktree_path) in path, (
             f"Expected path to contain {worktree_path}, got {path}"
         )
+
+
+def test_rich_mode_header_and_task(tmp_path: Path) -> None:
+    """Test rich mode header and task line formatting in ls output."""
+    # Create a temporary git repo with main worktree
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create initial commit with .gitignore for worktrees
+    (repo_path / "file.txt").write_text("content")
+    (repo_path / ".gitignore").write_text("wt/\n")
+    subprocess.run(["git", "add", "."], cwd=repo_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "initial"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create a worktree with branch "feature"
+    worktree_path = repo_path / "wt" / "test-wt"
+    subprocess.run(
+        ["git", "worktree", "add", "-b", "feature", str(worktree_path)],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
+    # Create session.md in worktree to track commits since handoff
+    session_file = worktree_path / "session.md"
+    session_file.write_text("# Session\nTest session")
+
+    # Make 3 commits in worktree after creating session.md
+    for i in range(3):
+        (worktree_path / f"file{i}.txt").write_text(f"content{i}")
+        subprocess.run(
+            ["git", "add", "."],
+            cwd=worktree_path,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", f"commit{i}"],
+            cwd=worktree_path,
+            check=True,
+            capture_output=True,
+        )
+
+    # Make working directory dirty
+    (worktree_path / "dirty.txt").write_text("dirty content")
+
+    # Test rich mode output (without --porcelain) by invoking the CLI
+    runner = CliRunner()
+    # Save current cwd and change to repo for the command
+    old_cwd = Path.cwd()
+    try:
+        os.chdir(repo_path)
+        result = runner.invoke(worktree, ["ls"])
+    finally:
+        os.chdir(old_cwd)
+
+    assert result.exit_code == 0, f"Command failed: {result.output}"
+
+    # Verify header format for worktree with slug="test-wt", branch="feature"
+    assert "test-wt (feature)" in result.output, (
+        f"Expected header with slug and branch, got: {result.output}"
+    )
+    assert "●" in result.output, f"Expected dirty indicator ●, got: {result.output}"
+    assert "3 commits since handoff" in result.output, (
+        f"Expected commit count, got: {result.output}"
+    )
+
+    # Verify header format for main tree (clean, no commits since handoff)
+    assert "main (main)" in result.output, (
+        f"Expected main tree header, got: {result.output}"
+    )
+    assert "○  clean" in result.output, (
+        f"Expected clean indicator with ○, got: {result.output}"
+    )

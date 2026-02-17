@@ -11,6 +11,7 @@ from pathlib import Path
 import click
 
 from claudeutils.validation.tasks import validate_task_name_format
+from claudeutils.worktree.display import format_rich_ls
 from claudeutils.worktree.merge import merge as merge_impl
 from claudeutils.worktree.session import (
     extract_task_blocks,
@@ -145,14 +146,15 @@ def _parse_worktree_list(porcelain: str, main_path: str) -> list[tuple[str, str,
 @worktree.command()
 @click.option("--porcelain", is_flag=True, help="Machine-readable output")
 def ls(*, porcelain: bool) -> None:
-    """List worktrees excluding main."""
+    """List worktrees and main tree."""
     main_path = _git("rev-parse", "--show-toplevel")
     porcelain_output = _git("worktree", "list", "--porcelain")
-    for slug, branch, path in _parse_worktree_list(porcelain_output, main_path):
-        if porcelain:
+
+    if porcelain:
+        for slug, branch, path in _parse_worktree_list(porcelain_output, main_path):
             click.echo(f"{slug}\t{branch}\t{path}")
-        else:
-            click.echo(f"{slug}\t{branch}\t{path}")
+    else:
+        click.echo(format_rich_ls(main_path, porcelain_output))
 
 
 def _create_session_commit(slug: str, base: str, session: str) -> str:
