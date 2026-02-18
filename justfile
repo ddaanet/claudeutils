@@ -187,10 +187,13 @@ wt-rm name:
     if [ -d "$wt_parent" ] && [ -z "$(ls -A "$wt_parent")" ]; then
         rmdir "$wt_parent"
     fi
-    # Remove branch if exists
+    # Remove branch if fully merged
     if git rev-parse --verify "$branch" >/dev/null 2>&1; then
-        visible git branch -d "$branch" || \
-            echo "${RED}Branch $branch has unmerged changes. Use: git branch -D $branch${NORMAL}" >&2
+        if git merge-base --is-ancestor "$branch" HEAD 2>/dev/null; then
+            visible git branch -d "$branch"
+        else
+            echo "${RED}Branch $branch has unmerged commits. Merge first.${NORMAL}" >&2
+        fi
     fi
     echo "${GREEN}✓${NORMAL} Worktree removed: $wt_dir"
 

@@ -1,36 +1,26 @@
 # Session Handoff: 2026-02-18
 
-**Status:** Re-prioritized backlog (42 tasks, rev 3). Merged runbook-skill-fixes (7ff7c081). 2 worktrees active.
+**Status:** Worktree skill hardening + RCA on bare-slug deviation. 3 worktrees active.
 
 ## Completed This Session
 
-**Backlog prioritization (rev 3):**
-- Scored 42 tasks using WSJF methodology — `plans/reports/prioritization-2026-02-18.md`
-- Key dependency: orchestrate evolution (3.8) blocked on design runbook evolution (2.5) — can't `/runbook` before runbook skill fixed
-- Top actionable: design runbook evolution (2.5), worktree merge resilience (2.6), quality infrastructure reform (2.6)
-- 4 parallel batches identified, 6 blocked tasks mapped
+**Justfile worktree fixes:**
+- `wt-rm`: Fixed branch removal to check `merge-base --is-ancestor` explicitly instead of `git branch -d || suggest -D`. No longer suggests destructive commands per "When writing CLI output" learning.
+- `wt-merge`: Confirmed already correct — no worktree deletion, prints cleanup suggestion only.
 
-**Merged runbook-skill-fixes worktree (7ff7c081):**
-- validate-runbook.py: 4 subcommands (model-tags, lifecycle, test-counts, red-plausibility)
-- 20 tests, 5-phase TDD orchestration, deliverable review findings fixed
-- Conflicts resolved: jobs.md deleted (planstate replaces it), session/learnings via ours + manual extraction
-- Extracted: "Pipeline skill updates" task, 4 learnings (CLI testing, runbook editing, review conclusions, finding routing)
-- 1068 tests pass (up from 1048)
+**Worktree skill primitive visibility fix (RCA-driven):**
+- RCA: Used `_worktree new <slug>` instead of `--task` form → manual session.md edit → missed focused session
+- Root cause: familiarity with primitive suppresses discovery of full-featured form (same class as 3 prior learnings)
+- Fix: Created `agent-core/skills/worktree/references/branch-mode.md` — documents bare slug form as auxiliary
+- Added steering note in SKILL.md Usage Notes: always use `--task` for tracked tasks
+- Added pending task: "Worktree CLI default to --task" for CLI restructuring
 
-**Worktree operations:**
-- Created worktree for worktree-merge-resilience (opus design session)
-- Cleaned up design-workwoods and runbook-skill-fixes worktrees
+**Worktree creation:**
+- Created `runbook-evolution` worktree for design runbook evolution task
 
 ## Pending Tasks
 
 <!-- Priority order per plans/reports/prioritization-2026-02-18.md (rev 3) -->
-
-- [ ] **Design runbook evolution** — `/design plans/runbook-evolution/` | opus | restart
-  - Requirements at `plans/runbook-evolution/requirements.md`
-  - Outline exists at `plans/runbook-evolution/outline.md` — resume from Phase A.6 (outline review)
-  - Scope: runbook SKILL.md generation directives only
-  - 5 FRs: prose atomicity, self-modification discipline, testing diamond, deferred enforcement, test migration
-
 
 - [ ] **Fix worktree rm dirty check** — Must not fail if parent repo is dirty, only if target worktree is dirty | sonnet
 
@@ -128,6 +118,10 @@
 
 - [ ] **Worktree skill adhoc mode** — Add mode for creating worktree from specific commit without task tracking | sonnet
 
+- [ ] **Worktree CLI default to --task** — Make positional arg accept task name (default), add `--branch` for bare slug | sonnet
+  - Current: `_worktree new <slug>` or `--task "name"`. Target: positional = task name, `--branch` = bare slug
+  - RCA: bare slug form causes manual session.md reimplementation (learning: "When invoking CLI tools directly")
+
 - [ ] **Explore Anthropic plugins** — Install all 28 official plugins, explore for safety+security relevance | sonnet | restart
   - Repo: `github.com/anthropics/claude-plugins-official`
 
@@ -198,6 +192,12 @@
 <!-- design-runbook-evolution removed: wt deleted, task back in Pending -->
 <!-- worktree-merge-resilience removed: wt deleted, task back in Pending -->
 
+- [ ] **Design runbook evolution** → `runbook-evolution` — `/design plans/runbook-evolution/` | opus | restart
+  - Requirements at `plans/runbook-evolution/requirements.md`
+  - Outline exists at `plans/runbook-evolution/outline.md` — resume from Phase A.6 (outline review)
+  - Scope: runbook SKILL.md generation directives only
+  - 5 FRs: prose atomicity, self-modification discipline, testing diamond, deferred enforcement, test migration
+
 - [ ] **Worktree merge resilience** → `worktree-merge-resilience` — `/design plans/worktree-merge-resilience/requirements.md` | opus
   - Plan: worktree-merge-resilience | Status: requirements
   - 5 FRs: submodule conflict pass-through, leave merge in progress, untracked file handling, conflict context output, idempotent resume
@@ -243,7 +243,7 @@
 
 ## Next Steps
 
-2 worktrees active: error-handling-design, worktree-merge-resilience. Learnings at 195/80 lines — run `/remember` when entries reach 7 days (0 entries ≥7 days currently).
+3 worktrees active: error-handling-design, worktree-merge-resilience, runbook-evolution. Learnings at 196/80 lines — 0 entries ≥7 days, consolidation not yet triggerable.
 
 ## Reference Files
 

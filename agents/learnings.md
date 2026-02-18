@@ -190,3 +190,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Conditional dispatch based on fix size or "architectural" judgment (e.g., "small fix → direct, design gap → /requirements"). Reintroduces judgment at a stage that should be mechanical.
 - Correct pattern: Unconditional `/design` for all findings. `/design` triage handles proportionality — simple fixes execute directly, complex ones get full treatment. No routing judgment at review time.
 - Related: `/design` should include Phase 0 requirements-clarity gate (well-specified → triage, underspecified → `/requirements` first). Eliminates recurring "requirements or design?" routing question.
+## When invoking CLI tools directly
+- Anti-pattern: Using the bare/simple invocation form of a CLI when a richer form exists that automates side effects. Example: `_worktree new <slug>` instead of `_worktree new --task "Task Name"` — then manually editing session.md to compensate.
+- Correct pattern: Before invoking a CLI command, check its `--help` or known options. Use the form that includes automation (session.md updates, focused sessions, validation). Manual side effects are worse, error-prone, and miss features (focused session wasn't created).
+- Same class as: "When visible primitives enable decomposition", "When querying project state". Root: familiarity with the primitive suppresses discovery of the full-featured form. The simple form's visible output (worktree created) masks the missing side effects.
