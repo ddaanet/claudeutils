@@ -301,12 +301,10 @@ wt-merge name:
         # Check for any remaining conflicts
         remaining=$(git diff --name-only --diff-filter=U)
         if [ -n "$remaining" ]; then
-            echo "${RED}Unresolved conflicts after auto-resolution:${NORMAL}" >&2
+            echo "${RED}Conflicts need resolution:${NORMAL}" >&2
             echo "$remaining" >&2
-            git merge --abort
-            # Clean up merge debris
-            git clean -fd -- agents/ src/ tests/ || true
-            fail "Manual conflict resolution required"
+            echo "Resolve conflicts, git add, then: git commit -m '🔀 Merge $slug'" >&2
+            exit 3
         fi
     fi
 

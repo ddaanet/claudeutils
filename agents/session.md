@@ -1,23 +1,23 @@
 # Session Handoff: 2026-02-18
 
-**Status:** Attempted design-workwoods merge — tool can't handle source conflicts, wrote merge resilience requirements, RCA on escalation pattern. 3 worktrees active.
+**Status:** Fixed justfile merge abort-on-conflict (FR-2), scoped design skill exploration directive. Ready to merge design-workwoods with fixed tooling. 3 worktrees active.
 
 ## Completed This Session
 
-**Worktree merge resilience requirements:**
-- Wrote `plans/worktree-merge-resilience/requirements.md` — 5 FRs for improving `_worktree merge` conflict handling
-- FR-1: proceed through submodule conflicts, FR-2: leave parent merge in progress (don't abort), FR-3: handle untracked file collisions, FR-4: conflict context in output, FR-5: idempotent resume across all phases
+**Fixed justfile `wt-merge` abort-on-conflict:**
+- Removed `git merge --abort` + `git clean -fd` from remaining-conflicts block (justfile:303-309)
+- Now reports conflicts to stderr and exits code 3, leaves merge in progress
+- Implements FR-2 of worktree-merge-resilience for justfile (Python merge.py fix deferred to post-workwoods merge — workwoods refactored merge.py, would conflict)
 
-**RCA on merge workaround escalation:**
-- Identified "tool fails → I become the tool" pattern: manually reimplementing merge phases, losing atomicity/safety invariants
-- Root cause of 82 orphaned files: `git merge` without `dangerouslyDisableSandbox: true` partially checks out files, hits sandbox restriction, leaves debris
-- Bounded workaround rule: pre-resolution means editing conflicting regions of EXISTING files, not creating new modules
-- 2 learnings added to `agents/learnings.md`
+**Fixed design skill A.2 exploration directive:**
+- Scoped from absolute ("Opus must not grep/glob/browse directly") to conditional
+- Delegate when open-ended or spanning unknown files; read directly when ≤3 known files
+- Resolves conflict with execution-routing.md ("do it directly if feasible")
 
-**Agent-core submodule conflict resolved:**
-- SKILL.md conflict in agent-core between runbook-skill-fixes (auto-rm with --confirm) and workwoods (no auto-rm, preserve worktree)
-- Took workwoods version (newer design intent)
-- agent-core HEAD at b3b6f5b (merge commit) — parent pointer not yet updated
+**Prior session (carried forward):**
+- Worktree merge resilience requirements: `plans/worktree-merge-resilience/requirements.md` (5 FRs)
+- RCA on merge workaround escalation: "tool fails → I become the tool" pattern, 82 orphaned files root cause
+- Agent-core submodule conflict resolved: b3b6f5b (workwoods version), parent pointer not yet updated
 
 ## Pending Tasks
 
@@ -27,7 +27,7 @@
   - Agent-core submodule: already resolved (b3b6f5b), parent pointer needs updating (`git add agent-core && git commit`)
   - Parent repo: cli.py has 3 conflict regions (imports, `_guard_branch_removal`, `_delete_branch`)
   - `just wt-merge` recipe (line 199) also aborts on source conflicts — same limitation as Python tool
-  - **Procedure:** Run `git merge --no-commit --no-ff design-workwoods` with `dangerouslyDisableSandbox: true`, resolve cli.py, complete merge
+  - **Procedure:** Run `just wt-merge design-workwoods` with `dangerouslyDisableSandbox: true` — justfile now leaves merge in progress on conflicts (exit 3). Resolve cli.py, `git add`, `git commit`
   - **CRITICAL:** Never run `git merge` without `dangerouslyDisableSandbox: true` — partial checkout + sandbox failure deposits orphaned files
   - **cli.py conflict resolution (3 regions):**
     - Imports: remove `_format_git_error` and `extract_task_blocks`, add `format_rich_ls` (from display), keep `focus_session` re-export, keep `_is_parent_dirty`/`_is_submodule_dirty`
@@ -210,11 +210,11 @@
 
 ## Blockers / Gotchas
 
-**Merge tool aborts on conflict (both Python and justfile):**
-- `_worktree merge` AND `just wt-merge` abort and return clean tree on source conflicts
-- Skill Mode C step 4 documents resolution assuming in-progress merge state — mismatch
-- `just wt-merge` recipe at justfile:199, same abort behavior at line 306
-- Requirements for fix: `plans/worktree-merge-resilience/requirements.md`
+**Merge tool aborts on conflict (Python only — justfile fixed):**
+- `_worktree merge` still aborts and returns clean tree on source conflicts (fix deferred to post-workwoods merge)
+- `just wt-merge` now leaves merge in progress, exits code 3 (FR-2 implemented)
+- Python merge.py fix blocked by workwoods refactoring (extracted resolve.py) — would create merge conflict
+- Requirements for remaining FRs: `plans/worktree-merge-resilience/requirements.md`
 
 **Never run `git merge` without sandbox bypass:**
 - `git merge` without `dangerouslyDisableSandbox: true` partially checks out files, hits sandbox, leaves 80+ orphaned untracked files
@@ -250,7 +250,7 @@
 
 ## Next Steps
 
-Next: Merge design-workwoods (sonnet, manual merge with sandbox bypass). Learnings at 152/80 lines — run `/remember` urgently. 3 worktrees active (error-handling-design, design-workwoods, runbook-skill-fixes).
+Next: Merge design-workwoods (sonnet). Justfile fixed — use `just wt-merge design-workwoods` with `dangerouslyDisableSandbox: true`. Will exit 3 on cli.py conflicts; resolve, `git add`, `git commit`. Post-merge: apply same fix to refactored merge.py. Learnings at 152/80 lines — run `/remember` urgently. 3 worktrees active.
 
 ## Reference Files
 
