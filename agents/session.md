@@ -1,177 +1,59 @@
 # Session Handoff: 2026-02-18
 
-**Status:** Worktree skill hardening + RCA on bare-slug deviation. 3 worktrees active.
+**Status:** design-runbook-evolution merged (5 FRs complete, vet routing fixed); re-prioritization rev 4. 2 worktrees active.
 
 ## Completed This Session
 
-**Justfile worktree fixes:**
-- `wt-rm`: Fixed branch removal to check `merge-base --is-ancestor` explicitly instead of `git branch -d || suggest -D`. No longer suggests destructive commands per "When writing CLI output" learning.
-- `wt-merge`: Confirmed already correct — no worktree deletion, prints cleanup suggestion only.
+**design-runbook-evolution merge (SKILL.md + anti-patterns.md edits):**
+- SKILL.md: Testing Strategy section (integration-first diamond), TDD Cycle Planning integration-first guidance, Phase 0.75 prose atomicity + self-modification ordering bullets
+- Anti-patterns.md: rewritten "Missing integration cycles" entry, 3 new TDD entries (split prose, unit-only coverage, mocked subprocess), 1 new General entry (self-modification without expand/contract)
+- All 5 FRs (FR-1–FR-3d) traced; skill-reviewer: 0 critical, 0 major, 2 minor (1 fixed)
 
-**Worktree skill primitive visibility fix (RCA-driven):**
-- RCA: Used `_worktree new <slug>` instead of `--task` form → manual session.md edit → missed focused session
-- Root cause: familiarity with primitive suppresses discovery of full-featured form (same class as 3 prior learnings)
-- Fix: Created `agent-core/skills/worktree/references/branch-mode.md` — documents bare slug form as auxiliary
-- Added steering note in SKILL.md Usage Notes: always use `--task` for tracked tasks
-- Added pending task: "Worktree CLI default to --task" for CLI restructuring
+**Vet delegation routing (complete via design-runbook-evolution worktree):**
+- Routing table added to `agent-core/fragments/vet-requirement.md` (always-loaded, canonical)
+- Step 2 added to vet process: "Select reviewer from routing table" (mechanical gate)
+- pipeline-contracts.md deduplicated; fragments → default vet-fix-agent row separated
 
-**Worktree creation:**
-- Created `runbook-evolution` worktree for design runbook evolution task
+**Re-prioritization (rev 4, 43 tasks):**
+- `plans/reports/prioritization-2026-02-18.md` — 38 ranked + 5 blocked
+- Top: Runbook quality gates Phase B (4.3), Runbook model assignment + Script commit vet gate (2.7)
+- Parallel Batch A (3 worktrees): Quality gates Phase B + Script commit vet gate + Worktree CLI
 
 ## Pending Tasks
 
-<!-- Priority order per plans/reports/prioritization-2026-02-18.md (rev 3) -->
+<!-- Priority order per plans/reports/prioritization-2026-02-18.md (rev 4) -->
 
-- [ ] **Fix worktree rm dirty check** — Must not fail if parent repo is dirty, only if target worktree is dirty | sonnet
+- [ ] **Runbook quality gates Phase B** — TDD for validate-runbook.py (4 subcommands) | sonnet
+  - Plan: runbook-quality-gates | Status: ready
+  - model-tags, lifecycle, test-counts, red-plausibility
+  - Graceful degradation bridges gap (NFR-2)
 
-- [ ] **Quality infrastructure reform** — `/design plans/quality-infrastructure/requirements.md` | opus
-  - Plan: quality-infrastructure | Status: requirements
-  - 4 FRs: deslop restructuring, code density decisions, vet rename, code refactoring
-  - Grounding: `plans/reports/code-density-grounding.md`
-  - Subsumes: Rename vet agents task (FR-3), augments Codebase quality sweep (FR-4)
-
-- [ ] **RED pass protocol** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
-  - Blocked on: Error handling design (needs D-3 escalation criteria, D-5 rollback semantics)
-  - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
-  - Reports: `plans/when-recall/reports/tdd-process-review.md`, `plans/orchestrate-evolution/reports/red-pass-blast-radius.md`
-
-- [ ] **Execute plugin migration** — Refresh outline then orchestrate | opus
-  - Plan: plugin-migration | Status: planned (stale — Feb 9)
-  - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite against post-worktree-update justfile, expanded phases need regeneration
-  - Drift: 19 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
+- [ ] **Runbook model assignment** — apply design-decisions.md directive (opus for skill/fragment/agent edits)
+  - Partially landed via remaining-workflow-items merge
 
 - [ ] **Script commit vet gate** — Replace prose Gate B with scripted check (file classification + vet report existence) | sonnet
   - Part of commit skill optimization (FR-5 partially landed — Gate A removed, Gate B still prose)
   - Also: remove `vet-requirement.md` from CLAUDE.md `@`-references, move execution context template to memory index
 
-- [ ] **Commit CLI tool** — CLI for precommit/stage/commit across both modules | `/design` | sonnet
-  - Modeled on worktree CLI pattern (mechanical ops in CLI, judgment in skill)
-  - Single command: precommit → stage → commit in main + agent-core submodule
-
-- [ ] **Vet delegation routing** — Route review to artifact-appropriate agent (correct for code, skill-reviewer for skills, agent-creator for agents) | sonnet
-  - General rule affecting vet-requirement.md and /runbook review delegation
-  - agent-creator: Write+Read, confirmed cooperative in review mode (decisions/project-config.md:266)
-  - skill-reviewer: Read/Grep/Glob only — cannot autofix, would need tool additions
-  - No hook reviewer exists; no doc reviewer exists (readme skill is creation, not review)
-  - Precedent: agent-creator repurposed for review via prompting (`/when agent-creator reviews agents`)
-
-- [ ] **Model tier awareness hook** — Hook injecting "Response by Opus/Sonnet/Haiku" into context | sonnet | restart
-
-- [ ] **Remember skill update** — Resume `/design` Phase B | opus
-  - Requirements: `plans/remember-skill-update/requirements.md` (7 FRs, When/How prefix mandate)
-  - Outline: `plans/remember-skill-update/outline.md` (reviewed, Phase B discussion next)
-  - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
-  - Key decisions pending: hyphen handling, agent duplication, frozen-domain priority
-  - Reports: `plans/remember-skill-update/reports/outline-review.md`, `plans/remember-skill-update/reports/explore-remember-skill.md`
-  - Learnings consolidation done (491→32 lines) — FR-7 migration partially addressed via consolidation
-  - **New scope:** `/remember` consolidation should validate trigger names before graduating to `/when` entries
-
-- [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
-  - Plan: continuation-prepend | Status: requirements
-
-- [ ] **Memory-index auto-sync** — Sync memory-index/SKILL.md from canonical agents/memory-index.md on consolidation | sonnet
-  - Deliverable review found skill drifted (3 entries missing, ordering wrong)
-  - Hook into /remember consolidation flow or add precommit check
-
-- [ ] **Agent rule injection** — process improvements batch | sonnet
-  - Distill sub-agent-relevant rules (layered context model, no volatile references, no execution mechanics in steps) into agent templates
-  - Source: tool prompts, review guide, memory system learnings
-
-- [ ] **Diagnostic opus review** — Interactive post-vet RCA methodology | `/requirements` | opus
-  - Extends /reflect skill with proactive invocation, two-model separation, feedback loops
-  - Research: MAR, Flow-of-Action, Reflexion, Five Whys, TAMO, AgentErrorTaxonomy
-  - Taxonomy (6 categories): completeness, consistency, feasibility, clarity, traceability, coupling
-  - Two-tier context augmentation: always-inject vs index-and-recall
-  - Methodology as skill referenced in design-vet-agent + outline-review-agent `skills:` frontmatter
-
-- [ ] **Handoff insertion policy** — Change "append" to "insert at estimated priority position" in handoff skill | sonnet
-  - Evidence: `p:` tasks distribute evenly (n=29), not append-biased. Agents correctly judge position.
-  - Scripts: `plans/prototypes/correlate-pending-v2.py`
-
-- [ ] **Handoff wt awareness** — Only consolidate memory in main repo or dedicated worktree | sonnet
-
-- [ ] **Learning ages consol** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
-
-- [ ] **Codebase quality sweep** — Tests, deslop, factorization, dead code | sonnet
-  - Specific targets from quality-infrastructure FR-4: `_git_ok`, `_fail` helpers, 13 raw subprocess replacements, 18 SystemExit replacements, custom exception classes
-
-- [ ] **Remember agent routing** — blocked on memory redesign | sonnet
-  - When consolidating learnings actionable for sub-agents, route to agent templates (quiet-task.md, tdd-task.md) as additional target
-
-- [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
-
-- [ ] **Behavioral design** — `/design` nuanced conversational pattern intervention | opus
-  - Requires synthesis from research on conversational patterns
-
-- [ ] **Upstream skills field** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` frontmatter | sonnet
-
-- [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet
-  - Existing: `bin/last-output`, `scripts/scrape-validation.py`, `plans/prototypes/*.py`
-  - Requirements: `plans/prototypes/requirements.md` (multi-project scanning, directive extraction, git correlation)
-
-- [ ] **Rename remember skill** — Test brainstorm-name agent, pick new name, update all references | sonnet | restart
-
-- [ ] **Workflow formal analysis** — Formal verification of agent workflow | `/requirements` then `/design` | opus
-  - Candidates: TLA+ (temporal), Alloy (structural), Petri nets (visual flow)
-
-- [ ] **Design-to-deliverable** — Design session for tmux-like session clear/model switch/restart automation | opus | restart
-
-- [ ] **Worktree skill adhoc mode** — Add mode for creating worktree from specific commit without task tracking | sonnet
-
 - [ ] **Worktree CLI default to --task** — Make positional arg accept task name (default), add `--branch` for bare slug | sonnet
   - Current: `_worktree new <slug>` or `--task "name"`. Target: positional = task name, `--branch` = bare slug
   - RCA: bare slug form causes manual session.md reimplementation (learning: "When invoking CLI tools directly")
 
-- [ ] **Explore Anthropic plugins** — Install all 28 official plugins, explore for safety+security relevance | sonnet | restart
-  - Repo: `github.com/anthropics/claude-plugins-official`
-
-- [ ] **Ground state-machine review criteria** — Research state coverage validation in plan review | opus
-
-- [ ] **Pre-merge untracked file fix** — `new --session` leaves session.md untracked on main | sonnet
-
-- [ ] **Safety review expansion** — Implement pipeline changes from grounding research | opus
-  - Input: `plans/reports/safety-review-grounding.md`
-  - Depends on: Explore Anthropic plugins
-
-- [ ] **Test diagnostic helper** — Replace `subprocess.run(..., check=True)` in test setup with stderr surfacing | sonnet
-
-- [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
-  - Design.md complete, vet in progress, planning next (design refreshed Feb 13)
-  - **Blocked on:** Design runbook evolution — can't generate runbook with broken tool
-
-- [ ] **Simplify when-resolve CLI** — Accept single argument with when/how prefix instead of two args, update skill prose | sonnet
-
-- [ ] **Debug failed merge** — Investigate the original merge failure (exit 128 during session.md conflict resolution) | sonnet
-  - Context: Merge of `remaining-workflow-items` worktree on 2026-02-16
-  - Branch had 1 post-merge commit (683fc7d), conflicts on `agent-core` submodule + `agents/session.md`
-  - Main at 9bb45d0, merge result at 5e024c2
-  - `git add agents/session.md` returned exit 128 during `_resolve_session_md_conflict` in `_phase3_merge_parent`
-  - Now that error handling is fixed, we can reproduce and see the actual git error message
-
-- [ ] **Runbook model assignment** — apply design-decisions.md directive (opus for skill/fragment/agent edits)
-  - Partially landed via remaining-workflow-items merge
-- [ ] **Runbook quality gates Phase B** — TDD for validate-runbook.py (4 subcommands) | sonnet
-  - Depends on Phase A merge (SKILL.md references script)
-  - Graceful degradation bridges gap (NFR-2)
-  - model-tags, lifecycle, test-counts, red-plausibility
-
-- [ ] **Cross-tree requirements transport** — `/requirements` skill writes to main tree from worktree | sonnet
-  - Transport solved: `git show <branch>:<path>` from main (no sandbox needed)
-  - Remaining: requirements skill path flag/auto-detection, optional CLI subcommand (`_worktree import`)
-  - Planstate `infer_state()` now auto-discovers plans (workwoods merged) — no jobs.md write needed
-
-
-- [ ] **Revert cross-tree sandbox access** — Remove `additionalDirectories` code from `_worktree new` | sonnet
-  - Superseded by git show transport — sandbox access unnecessary for cross-tree operations
-  - Affects: cli.py `_setup_worktree()`, justfile, `test_new_sandbox_registration`
+- [ ] **Commit CLI tool** — CLI for precommit/stage/commit across both modules | `/design` | sonnet
+  - Modeled on worktree CLI pattern (mechanical ops in CLI, judgment in skill)
+  - Single command: precommit → stage → commit in main + agent-core submodule
 
 - [ ] **Design quality gates** — `/design plans/runbook-quality-gates/` | opus | restart
   - Requirements at `plans/runbook-quality-gates/requirements.md`
   - 3 open questions: script vs agent (Q-1), insertion point (Q-2), mandatory vs opt-in (Q-3)
+  - Not blocked on error-handling design (quality gates are pre-execution validation, not execution-time)
 
-- [ ] **Migrate test suite to diamond** — needs scoping | depends on runbook evolution design
-  - Existing 1027 tests, separate design from runbook evolution
-  - Different scope and execution profile
+- [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
+  - Plan: continuation-prepend | Status: requirements
+
+- [ ] **Fix worktree rm dirty check** — Must not fail if parent repo is dirty, only if target worktree is dirty | sonnet
+
+- [ ] **Pre-merge untracked file fix** — `new --session` leaves session.md untracked on main | sonnet
 
 - [ ] **Pipeline skill updates** — `/design` | opus | restart
   - Orchestrate skill: create `/deliverable-review` pending task at exit (opus, restart)
@@ -179,6 +61,110 @@
   - Design skill: add Phase 0 requirements-clarity gate (well-specified → triage, underspecified → `/requirements`)
   - Discussion context in runbook-skill-fixes worktree session
 
+- [ ] **Execute plugin migration** — Refresh outline then orchestrate | opus
+  - Plan: plugin-migration | Status: planned (stale — Feb 9)
+  - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite against post-worktree-update justfile, expanded phases need regeneration
+  - Drift: 19 skills (was 16), 14 agents (was 12), justfile +250 lines rewritten
+
+- [ ] **Quality infrastructure reform** — `/design plans/quality-infrastructure/requirements.md` | opus
+  - Plan: quality-infrastructure | Status: requirements
+  - 4 FRs: deslop restructuring, code density decisions, vet rename, code refactoring
+  - Grounding: `plans/reports/code-density-grounding.md`
+  - Subsumes: Rename vet agents task (FR-3), augments Codebase quality sweep (FR-4)
+
+- [ ] **Cross-tree requirements transport** — `/requirements` skill writes to main tree from worktree | sonnet
+  - Transport solved: `git show <branch>:<path>` from main (no sandbox needed)
+  - Remaining: requirements skill path flag/auto-detection, optional CLI subcommand (`_worktree import`)
+  - Planstate `infer_state()` now auto-discovers plans (workwoods merged) — no jobs.md write needed
+
+- [ ] **Test diagnostic helper** — Replace `subprocess.run(..., check=True)` in test setup with stderr surfacing | sonnet
+
+- [ ] **Memory-index auto-sync** — Sync memory-index/SKILL.md from canonical agents/memory-index.md on consolidation | sonnet
+  - Deliverable review found skill drifted (3 entries missing, ordering wrong)
+  - Hook into /remember consolidation flow or add precommit check
+
+- [ ] **Codebase quality sweep** — Tests, deslop, factorization, dead code | sonnet
+  - Specific targets from quality-infrastructure FR-4: `_git_ok`, `_fail` helpers, 13 raw subprocess replacements, 18 SystemExit replacements, custom exception classes
+
+- [ ] **Remember skill update** — Resume `/design` Phase B | opus
+  - Requirements: `plans/remember-skill-update/requirements.md` (7 FRs, When/How prefix mandate)
+  - Outline: `plans/remember-skill-update/outline.md` (reviewed, Phase B discussion next)
+  - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
+  - Key decisions pending: hyphen handling, agent duplication, frozen-domain priority
+  - Reports: `plans/remember-skill-update/reports/outline-review.md`, `plans/remember-skill-update/reports/explore-remember-skill.md`
+  - **New scope:** `/remember` consolidation should validate trigger names before graduating to `/when` entries
+
+- [ ] **Handoff wt awareness** — Only consolidate memory in main repo or dedicated worktree | sonnet
+
+- [ ] **Agent rule injection** — process improvements batch | sonnet
+  - Distill sub-agent-relevant rules (layered context model, no volatile references, no execution mechanics in steps) into agent templates
+  - Source: tool prompts, review guide, memory system learnings
+
+- [ ] **Handoff insertion policy** — Change "append" to "insert at estimated priority position" in handoff skill | sonnet
+  - Evidence: `p:` tasks distribute evenly (n=29), not append-biased. Agents correctly judge position.
+  - Scripts: `plans/prototypes/correlate-pending-v2.py`
+
+- [ ] **Learning ages consol** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
+
+- [ ] **Revert cross-tree sandbox access** — Remove `additionalDirectories` code from `_worktree new` | sonnet
+  - Superseded by git show transport — sandbox access unnecessary for cross-tree operations
+  - Affects: cli.py `_setup_worktree()`, justfile, `test_new_sandbox_registration`
+
+- [ ] **Model tier awareness hook** — Hook injecting "Response by Opus/Sonnet/Haiku" into context | sonnet | restart
+
+- [ ] **Simplify when-resolve CLI** — Accept single argument with when/how prefix instead of two args, update skill prose | sonnet
+
+- [ ] **Explore Anthropic plugins** — Install all 28 official plugins, explore for safety+security relevance | sonnet | restart
+  - Repo: `github.com/anthropics/claude-plugins-official`
+
+- [ ] **Behavioral design** — `/design` nuanced conversational pattern intervention | opus
+  - Requires synthesis from research on conversational patterns
+
+- [ ] **Rename remember skill** — Test brainstorm-name agent, pick new name, update all references | sonnet | restart
+
+- [ ] **Debug failed merge** — Investigate the original merge failure (exit 128 during session.md conflict resolution) | sonnet
+  - Context: Merge of `remaining-workflow-items` worktree on 2026-02-16
+  - Branch had 1 post-merge commit (683fc7d), conflicts on `agent-core` submodule + `agents/session.md`
+  - `git add agents/session.md` returned exit 128 during `_resolve_session_md_conflict` in `_phase3_merge_parent`
+
+- [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet
+  - Existing: `bin/last-output`, `scripts/scrape-validation.py`, `plans/prototypes/*.py`
+  - Requirements: `plans/prototypes/requirements.md` (multi-project scanning, directive extraction, git correlation)
+
+- [ ] **Design-to-deliverable** — Design session for tmux-like session clear/model switch/restart automation | opus | restart
+
+- [ ] **Worktree skill adhoc mode** — Add mode for creating worktree from specific commit without task tracking | sonnet
+
+- [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
+
+- [ ] **Diagnostic opus review** — Interactive post-vet RCA methodology | `/requirements` | opus
+  - Taxonomy (6 categories): completeness, consistency, feasibility, clarity, traceability, coupling
+  - Two-tier context augmentation: always-inject vs index-and-recall
+
+- [ ] **Ground state-machine review criteria** — Research state coverage validation in plan review | opus
+
+- [ ] **Upstream skills field** — PR/issue to official Claude Code plugin-dev plugin for missing `skills` frontmatter | sonnet
+
+- [ ] **Workflow formal analysis** — Formal verification of agent workflow | `/requirements` then `/design` | opus
+  - Candidates: TLA+ (temporal), Alloy (structural), Petri nets (visual flow)
+
+- [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
+  - Design.md complete, vet in progress, planning next (design refreshed Feb 13)
+  - Design runbook evolution now complete — blocker lifted
+
+- [ ] **RED pass protocol** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
+  - Blocked on: Error handling design (needs D-3 escalation criteria, D-5 rollback semantics)
+  - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
+
+- [ ] **Safety review expansion** — Implement pipeline changes from grounding research | opus
+  - Input: `plans/reports/safety-review-grounding.md`
+  - Depends on: Explore Anthropic plugins
+
+- [ ] **Remember agent routing** — blocked on memory redesign | sonnet
+  - When consolidating learnings actionable for sub-agents, route to agent templates (quiet-task.md, tdd-task.md) as additional target
+
+- [ ] **Migrate test suite to diamond** — needs scoping | depends on runbook evolution design
+  - Existing 1027 tests, separate design from runbook evolution
 
 ## Worktree Tasks
 
@@ -186,18 +172,11 @@
   - Outline: `plans/error-handling/outline.md`
   - Key decisions: D-1 CPS abort-and-record, D-2 task `[!]`/`[✗]` states, D-3 escalation acceptance criteria, D-5 rollback = revert to step start
 
-<!-- runbook-skill-fixes merged: orchestration + deliverable review complete, findings fixed -->
-
-<!-- design-workwoods removed: merged (84c3029d), wt-rm clean -->
-
-<!-- design-runbook-evolution removed: wt deleted, task back in Pending -->
-<!-- worktree-merge-resilience removed: wt deleted, task back in Pending -->
-
 - [ ] **Worktree merge resilience** → `worktree-merge-resilience` — `/design plans/worktree-merge-resilience/requirements.md` | opus
   - Plan: worktree-merge-resilience | Status: requirements
   - 5 FRs: submodule conflict pass-through, leave merge in progress, untracked file handling, conflict context output, idempotent resume
-  - Addresses root cause of merge difficulties observed this session
 
+<!-- design-runbook-evolution merged: all 5 FRs complete (SKILL.md testing diamond, anti-patterns, vet routing table) -->
 
 ## Blockers / Gotchas
 
@@ -219,6 +198,10 @@
 - Marking headings structural (`.` prefix) causes `check_orphan_entries` non-autofixable error
 - Must manually remove entries from memory-index.md before running precommit
 
+**`wt rm` blocks on dirty parent repo:**
+- `claudeutils _worktree rm` exits 2 if parent has uncommitted changes
+- Workaround: `git stash && wt rm && git stash pop`
+
 **`wt rm` leaves stale submodule config:**
 - Removing a worktree can leave `.git/modules/agent-core/config` `core.worktree` pointing to the deleted directory
 - Breaks all `git -C agent-core` operations on main until manually fixed
@@ -234,22 +217,18 @@
 
 **Merge ours resolution loses worktree content:**
 - `just wt-merge` uses `checkout --ours` for session.md, learnings.md, jobs.md
-- Drops worktree-side changes silently (learnings, completed work, design intent like deletions)
-- Must verify post-merge: compare `git show <branch>:<file>` against merged result
+- Drops worktree-side changes silently — must verify post-merge: compare `git show <branch>:<file>` against merged result
 
-- Prior session noted no entries ≥7 active days — consolidation batch insufficient [from: design-runbook-evolution]
-- Size trigger fires but nothing eligible for `/remember` [from: design-runbook-evolution]
 ## Next Steps
 
-3 worktrees active: error-handling-design, worktree-merge-resilience, runbook-evolution. Learnings at 196/80 lines — 0 entries ≥7 days, consolidation not yet triggerable.
+2 worktrees active: error-handling-design, worktree-merge-resilience. Learnings at 215/80 lines — 0 entries ≥7 days, consolidation not yet triggerable. Parallel Batch A ready: Quality gates Phase B + Script commit vet gate + Worktree CLI.
 
 ## Reference Files
 
-- `plans/reports/prioritization-2026-02-18.md` — WSJF task prioritization (rev 3, 42 tasks)
+- `plans/reports/prioritization-2026-02-18.md` — WSJF task prioritization (rev 4, 43 tasks)
 - `plans/worktree-merge-resilience/requirements.md` — 5 FRs for merge conflict handling
 - `plans/quality-infrastructure/requirements.md` — 4 FRs: deslop restructuring, code density decisions, vet rename, code refactoring
 - `plans/reports/code-density-grounding.md` — Grounded research on exception handling + Black formatter interaction
 - `plans/error-handling/outline.md` — Error handling design outline (Phase A complete)
 - `plans/runbook-quality-gates/design.md` — Quality gates design (6 FRs, simplification agent)
-- `plans/runbook-evolution/requirements.md` — Runbook evolution (5 FRs, testing diamond, prose atomicity)
 - `plans/remember-skill-update/requirements.md` — 7 FRs (When/How prefix, validation, migration)
