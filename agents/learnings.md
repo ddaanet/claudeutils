@@ -194,3 +194,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Using the bare/simple invocation form of a CLI when a richer form exists that automates side effects. Example: `_worktree new <slug>` instead of `_worktree new --task "Task Name"` — then manually editing session.md to compensate.
 - Correct pattern: Before invoking a CLI command, check its `--help` or known options. Use the form that includes automation (session.md updates, focused sessions, validation). Manual side effects are worse, error-prone, and miss features (focused session wasn't created).
 - Same class as: "When visible primitives enable decomposition", "When querying project state". Root: familiarity with the primitive suppresses discovery of the full-featured form. The simple form's visible output (worktree created) masks the missing side effects.
+## When design ceremony continues after uncertainty resolves
+- Anti-pattern: One-shot complexity triage at `/design` entry, no re-assessment when outline resolves architectural uncertainty. Process continues at "complex" even when outline reveals 2-file prose edits.
+- Correct pattern: Two gates. Entry gate reads plan directory artifacts (existing outline can skip ceremony). Mid-stream gate re-checks complexity after outline production. Both internal to `/design` — preserves single entry point.
+- Evidence: Outline-review-agent + design.md + design-vet-agent cost ~112K tokens for work that could have been done inline. Findings would have surfaced during editing.
+## When deleting agent artifacts
+- Anti-pattern: Treating all ceremony artifacts as equally disposable. Outline review found real issues (FR-2a gap, FR-3c contradiction); design.md restated the reviewed outline.
+- Correct pattern: Distinguish audit trails with real findings from redundant restates. Review reports that improved artifacts have value; documents that reformat existing artifacts don't.
+## When recovering agent outputs
+- Anti-pattern: Manually reading agent session log and retyping content.
+- Correct pattern: Script extraction from task output files. Agent Write calls are JSON-structured in `tmp/claude/.../tasks/<agent-id>.output`. Parse with jq or Python, recover deterministically.
+- Prototype: `plans/prototypes/recover-agent-writes.py`

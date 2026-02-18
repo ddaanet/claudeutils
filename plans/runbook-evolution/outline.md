@@ -10,6 +10,7 @@ All changes are additive prose edits to SKILL.md and its reference files. No cod
 
 - **Placement:** FR-3 (testing diamond) gets a new top-level section in SKILL.md because it's fundamental strategy, not a phase-specific concern. FR-1 and FR-2 are constraints on outline/expansion generation — they slot into Phase 0.75 and Phase 1.
 - **Testing diamond replaces implicit pyramid.** Current SKILL.md has integration tests only in Checkpoints (xfail pattern for composition tasks). Diamond makes integration the default layer, unit the exception. The xfail checkpoint pattern stays but integration becomes the primary test layer during cycle planning.
+- **Existing anti-pattern entry needs update.** "Missing integration cycles" (anti-patterns.md line 18) recommends "with mocked I/O" — contradicts FR-3c (real subprocesses). The edit updates the recommendation to prefer real subprocesses, mocks only for error injection.
 - **FR-3c/FR-3d generalize existing decisions.** `testing.md` "When Preferring E2E Over Mocked Subprocess" covers git specifically. FR-3c generalizes to all subprocess domains. FR-3d adds local-substitute pattern (SQLite, local services). Both are generation directives in SKILL.md, not changes to testing.md.
 - **FR-1 exception mechanism.** FR-2a (migration consistency) is the only exception to prose atomicity. The directive references FR-2a explicitly rather than creating a generic escape hatch.
 - **FR-2b codifies existing decision.** `workflow-advanced.md` already has "When Bootstrapping Self-Referential Improvements." The SKILL.md directive references it and adds concrete guidance for outline ordering.
@@ -44,16 +45,31 @@ Two new verification bullets:
 - Prose atomicity: all edits to a prose artifact land in a single item (FR-1)
 - Self-modification ordering: tool improvements precede tool usage (FR-2b), with expand/contract exception for migration (FR-2a)
 
-### Addition to TDD Cycle Planning Guidance (after line 535, after GREEN specification)
+### Addition to TDD Cycle Planning Guidance (after line 535, before "Classify and add investigation prerequisites")
 
-- Integration-first cycle ordering: plan integration test cycles before/alongside unit cycles
-- Wire-then-isolate: default to testing through production call paths, add unit cycles only for combinatorial or edge-case coverage
+- Integration-first cycle ordering: plan integration test cycles before/alongside unit cycles (FR-3a)
+- Wire-then-isolate: default to testing through production call paths, add unit cycles only for combinatorial or edge-case coverage (FR-3b)
 
 ### Anti-patterns.md additions
 
 - "Split prose edits across steps" (FR-1)
-- "Unit-test-only coverage" / "Missing integration wiring tests" (FR-3a — strengthens existing "Missing integration cycles" entry)
+- "Unit-test-only coverage" / "Missing integration wiring tests" (FR-3a — strengthens existing "Missing integration cycles" entry; also updates "with mocked I/O" recommendation to align with FR-3c real-subprocess preference)
 - "Mocked subprocess when real is fast" (FR-3c)
+- "Self-modification without expand/contract" (FR-2a — anti-pattern: modifying pipeline artifact in-place without forward/backward compatibility)
+
+## Requirements Traceability
+
+| Requirement | Outline Section | Coverage |
+|-------------|-----------------|---------|
+| FR-1 (Prose Atomicity) | Phase 0.75 addition, Anti-patterns | Complete |
+| FR-2a (Migration Consistency) | Phase 0.75 addition, Anti-patterns | Complete |
+| FR-2b (Bootstrapping Ordering) | Phase 0.75 addition | Complete |
+| FR-3a (Integration-First) | Testing Strategy section, TDD Cycle Planning, Anti-patterns | Complete |
+| FR-3b (Unit as Supplement) | Testing Strategy section, TDD Cycle Planning | Complete |
+| FR-3c (Real Subprocesses) | Testing Strategy section, Anti-patterns | Complete |
+| FR-3d (Local Substitutes) | Testing Strategy section | Complete |
+| FR-4 (Deferred Enforcement) | Scope OUT | Deferred per requirements |
+| FR-5 (Test Migration) | Scope OUT | Deferred per requirements |
 
 ## Open Questions
 
