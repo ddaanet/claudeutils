@@ -292,6 +292,26 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Impact:** Validator enforcement of index-to-header correspondence.
 
+### When Hitting File Line Limits
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Compressing user-facing output strings or splitting to new files to pass line-count checks. Both responses degrade quality (output clarity, module cohesion) without addressing the underlying problem.
+
+**Correct pattern:** Look for code quality improvements first — redundant calls, dead code, extraction candidates, helper functions that encode repeated kwargs. Black expansion of 5+ line call sites signals too many parameters for inline use — extract a helper.
+
+**Evidence:** worktree/cli.py 401→400 via output compression (reverted). Actual fix: dedup redundant `rev-parse --show-toplevel` call (401→399).
+
+### When Lint Rule Requires Code Change
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Circumventing lint with mechanical transformations that satisfy the checker without improving the code. Example: `msg = "..."; raise ValueError(msg)` to dodge "no hardcoded exception messages" — the real problem is using `ValueError` for domain errors.
+
+**Correct pattern:** Fix the underlying design problem the lint rule is pointing at. "No hardcoded exception messages" → create a custom exception class. "Function too long" → extract helpers, not compress strings.
+
+**Rationale:** Lint rules surface design problems. Mechanical circumvention preserves the design problem while removing the signal.
+
 ## .Script Optimization
 
 ### How to Format Batch Edits Efficiently
@@ -310,6 +330,26 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 **Impact:** Token efficiency for automated edit operations.
 
 ## .Workflow Integrity
+
+### When Precommit Fails
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Rationalizing past precommit failure ("lint issues are pre-existing", "my changes are clean"). Deeper: `just precommit` was broken for 9 days (~845 commits) due to non-existent `claudeutils validate` command. No agent noticed because failure was rationalized or bypassed each time.
+
+**Correct pattern:** Precommit is a gate. If it fails, fix before committing. A broken gate is worse than no gate — creates false confidence across all subsequent commits.
+
+**Systemic:** No health check verifies gates themselves are functional. Pipeline assumes `just precommit` works.
+
+### When Editing Runbook Step Or Agent Files
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Editing `.claude/agents/<plan>-task.md` directly — it's a generated file assembled by prepare-runbook.py from tdd-task.md baseline + Common Context from phase-1 + phase content.
+
+**Correct pattern:** Edit the source (phase files in `plans/<job>/`), then re-run `prepare-runbook.py` to regenerate the agent file and step files. Common Context lives in `runbook-phase-1.md` only — phases 2–5 don't have their own copy.
+
+**Evidence:** Edit rejected 3 times because target was the generated output, not the source.
 
 ### When Removing Stale Learnings On Commit
 

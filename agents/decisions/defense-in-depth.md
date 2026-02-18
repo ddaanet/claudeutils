@@ -83,6 +83,26 @@ This pattern applies beyond parity tests—use for any quality gate design:
 - **Fix (Phase 1 Step 1): Commit skill WIP-only restriction** — Implements inner defense scoping
 - **Fix (Phase 1 Step 2): D+B hybrid validation** — Implements outer defense execution flow
 
+## When Placing Quality Gates
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Ambient rules in always-loaded fragments telling agents to review artifacts. Unenforceable — agents rationalize skipping under momentum. Sub-agents don't see CLAUDE.md fragments at all.
+
+**Correct pattern:** Gate at the chokepoint (commit). Scripted check (file classification + report existence) blocks mechanically. No judgment needed at the gate. Orchestrator handles mid-pipeline vet delegation separately.
+
+**Rationale:** Ambient rules without enforcement are aspirational. Gating at commit captures all work. ~100 lines of always-loaded context eliminated for no behavioral loss.
+
+## When Splitting Validation Into Mechanical And Semantic
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Bundling deterministic checks (file path → model mapping) with judgment-based checks (task complexity assessment) in a single agent pass.
+
+**Correct pattern:** Script handles deterministic checks (blocking, zero false positives). Agent enriches existing review for semantic checks (advisory). Different enforcement layers for different failure modes — defense-in-depth.
+
+**Evidence:** FR-2 model review split. File path matching (agent-core/skills/ → opus) is scriptable with zero false positives. Semantic complexity ("is this synthesis?") requires plan-reviewer judgment during existing Phase 1 per-phase review.
+
 ## When Reviewing Quality Gate Coverage
 
 When designing a new quality gate or quality process:

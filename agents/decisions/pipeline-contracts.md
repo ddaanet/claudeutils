@@ -146,3 +146,73 @@ Type does NOT affect: tier assessment, outline generation, consolidation gates, 
 **Fix:** (1) Model tier: opus for outline review — once per plan, errors propagate to all execution steps. (2) Grounding constraint: expansion guidance must reference design sections, not reproduce implementation detail.
 
 **Experimental branches:** `runbook-opus-test` (opus generation + opus review), `runbook-sonnet-test` (opus generation + sonnet review). Session transcript: `6f7636e0-2455-406b-bc2b-49bd74b98db1`.
+
+## When Simplifying Runbook Outlines
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Planning 4 identical-pattern cycles separately (e.g., 4 status levels each adding one artifact check to the same function), then optimizing post-hoc.
+
+**Correct pattern:** Detect identical patterns during Phase 1 expansion and consolidate upfront. Indicators: same function modified, same test structure, only fixture data differs. Parametrized cycle with table of inputs replaces N separate RED/GREEN rounds.
+
+**Consolidation timing:** Consolidate at the earliest pipeline point where patterns are detectable. Identical patterns (same function, varying fixture data) are visible from outline titles — expanded RED/GREEN detail not needed for detection. Moving consolidation from Phase 1.5 to outline level (after Phase 0.85) saves expansion cost for ~12 items.
+
+**Evidence:** Workwoods P1 cycles 1.2-1.5, P5 cycles 5.5-5.7, P4 cycles 4.3-4.6 all exhibited this pattern. Post-hoc optimization saved 12 items but required 5 parallel agents + holistic re-review.
+
+## When Selecting Model For Prose Artifact Edits
+
+**Decision Date:** 2026-02-18
+
+**Rule:** Prose edits to skills, fragments, agent definitions, and architectural documents require opus. These artifacts are LLM-consumed instructions — wording directly determines downstream agent behavior.
+
+**Anti-pattern:** Assigning sonnet/haiku to prose edits based on "edit complexity" rather than artifact type.
+
+**Evidence:** Tier 2 plan assigned sonnet to skill/fragment edits, haiku to agent audit. User corrected: all were prose edits to architectural artifacts requiring opus.
+
+**Classification:**
+- Skills, fragments, agent definitions, design documents → opus
+- Code implementation, test writing, script edits → model by complexity (haiku/sonnet)
+- Mechanical execution (copy-paste, config changes) → haiku
+
+## When Selecting Model For TDD Execution
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Assigning model by task type (execution = haiku) without considering reasoning complexity. Haiku over-implemented steps 1-2, building guard logic meant for 6 subsequent steps.
+
+**Correct pattern:** Assign model by complexity type:
+- Pattern complexity (regexp, wiring, flags) → haiku
+- State machine complexity (git ancestry, merge state) → sonnet minimum
+- Synthesis complexity (trade-offs, architecture) → opus
+
+**Classification point:** During `/runbook` expansion, not at orchestration time.
+
+**Related:** TDD granularity doesn't help haiku — each step is "simple" but haiku can't stay within scope. Batching code+tests per phase at sonnet produces fewer, better tests with opus review.
+
+## When Reviewing Skill Deliverable
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Delegating skill deliverable review to Task agent — agent lacks cross-project context (other skills' allowed-tools, fragment conventions, memory index patterns).
+
+**Correct pattern:** Route to skill-reviewer agent (has cross-skill context) or review interactively in main session. The reviewer needs to compare against project-wide patterns, not just the artifact's internal consistency.
+
+**Evidence:** Task agent found 5 minor issues but missed the major finding (Write missing from allowed-tools). Only detectable by comparing against 18 other skills' allowed-tools fields.
+
+## When Concluding Reviews
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Review classifies findings as Major, then adds "doesn't block merge, follow-up work" — reviewer making merge-readiness judgment and converting findings into aspirational prose nobody tracks.
+
+**Correct pattern:** Review reports severity counts. Creates one pending task referencing the report → `/design`. No merge-readiness language. User reads severity counts, user decides.
+
+**Root cause:** Sycophancy in artifact form — reviewer softens its own classification to avoid blocking the pipeline.
+
+## When Routing Implementation Findings
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Conditional dispatch based on fix size or "architectural" judgment (e.g., "small fix → direct, design gap → /requirements"). Reintroduces judgment at a stage that should be mechanical.
+
+**Correct pattern:** Unconditional `/design` for all findings. `/design` triage handles proportionality — simple fixes execute directly, complex ones get full treatment. No routing judgment at review time.

@@ -205,6 +205,50 @@ FR-17 documents the three-tier escalation requirement. Concrete detection mechan
 
 **Key insight:** The design document IS the execution plan when work is well-specified.
 
+## .Orchestration Recovery Patterns
+
+### When Resuming Interrupted Orchestration
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Using `just precommit` as state assessment after context ceiling crash → chasing cascading failures reactively → bypassing project recipes under accumulated momentum.
+
+**Correct pattern:** Resume from last runbook checkpoint. Run the checkpoint verification commands (designed as diagnostic inventory). Systematically fix remaining items. Verify with project recipes.
+
+**Root cause chain:** No ceiling recovery protocol → debugging-as-assessment → reactive fix mode → recipe bypass under urgency.
+
+**Enforcement:** Ceiling recovery scenario added to orchestrate skill (chokepoint enforcement, not ambient rule).
+
+### When Vet Flags Unused Code
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Flagging code as "dead" based on production callers only. Vet recommended deleting `_task_summary` which had 4 test callers and was designed infrastructure for future wiring.
+
+**Correct pattern:** Check both production AND test callers before recommending removal. If tested, it's likely infrastructure awaiting integration. Verify design intent (was it planned for future wiring?) before classifying as dead code.
+
+**Evidence:** Delegated agent followed vet recommendation and deleted the function + tests. Required manual revert.
+
+### When Delegating With Corrections To Prior Analysis
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Including "don't do X" alongside "do Y and Z" in delegation prompts. Agent read the vet report (which recommended X), saw it in changed files, and followed the report's recommendation despite the prompt saying otherwise.
+
+**Correct pattern:** Exclude the wrong item entirely from delegation scope. Don't delegate "3 fixes but actually only do 2" — delegate 2 fixes. Remove conflicting signals by not mentioning the excluded item.
+
+**Rationale:** Delegated agents receive context from both the prompt AND the files they read. When prompt contradicts file content, file content often wins because the agent encounters it during execution with recency bias.
+
+### When Ordering Post-Orchestration Tasks
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Jumping to pipeline improvements before fixing deliverable findings from the current orchestration.
+
+**Correct pattern:** Diagnostic/process review first, deliverable fixes second, pipeline improvements last. Current deliverable must be whole before improving the process that produced it.
+
+**Rationale:** Unfixed deliverable findings accumulate as tech debt. Pipeline improvements don't retroactively fix the current deliverable. Fixing deliverables also validates the diagnostic — the fix confirms the finding was real.
+
 ## .TDD Quality Patterns
 
 ### When Assessing RED Pass Blast Radius

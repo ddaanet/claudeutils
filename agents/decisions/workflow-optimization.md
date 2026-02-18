@@ -88,6 +88,40 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Impact:** Faster fix cycles without redundant context loading.
 
+## .Design Process Gates
+
+### When Design Ceremony Continues After Uncertainty Resolves
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** One-shot complexity triage at `/design` entry, no re-assessment when outline resolves architectural uncertainty. Process continues at "complex" even when outline reveals 2-file prose edits.
+
+**Correct pattern:** Two gates. Entry gate reads plan directory artifacts (existing outline can skip ceremony). Mid-stream gate re-checks complexity after outline production. Both internal to `/design` — preserves single entry point.
+
+**Evidence:** Outline-review-agent + design.md + design-vet-agent cost ~112K tokens for work that could have been done inline. Findings would have surfaced during editing.
+
+### When Design Resolves To Simple Execution
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Always routing from `/design` to `/runbook` after sufficiency gate, regardless of execution complexity. Complex design classification persists through the pipeline even when design resolves the uncertainty.
+
+**Correct pattern:** Execution readiness gate inline at sufficiency gate. When design output is ≤3 files, prose/additive, insertion points identified, no cross-file coordination → direct execution with vet, skip `/runbook`.
+
+**Rationale:** Design can resolve complexity. A job correctly classified as Complex for design may produce Simple execution. The gate is subtractive (creates exit ramp), not additive (more ceremony).
+
+## .Research and Methodology
+
+### When Writing Methodology
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Producing scoring frameworks, evaluation axes, or "best practice" documents from internal reasoning alone — yields confabulated methodologies with subjective weights and ungrounded criteria.
+
+**Correct pattern:** Invoke `/ground` skill. Diverge-converge with parallel branches: internal (brainstorm for project-specific dimensions) + external (web search for established frameworks). Synthesize by mapping internal dimensions onto external skeleton.
+
+**Evidence:** First prioritization attempt produced subjective weights ("Highest/High/Medium") and 0-3 scores without defined criteria. After grounding in WSJF research, methodology used Fibonacci scoring with observable evidence sources.
+
 ## .Design and Planning Patterns
 
 ### How to Design With Outline First Approach

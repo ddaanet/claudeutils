@@ -92,6 +92,32 @@ Each deliverable is classified into exactly one type. The type determines which 
 Per-deliverable finding list with: file:line, axis violated, severity, description.
 Summary: counts by severity and axis, gap analysis results.
 
+## .Review Delegation
+
+### When Orchestrator Handles Review Delegation
+
+**Decision Date:** 2026-02-18
+
+**Rule:** Orchestrator delegates ALL reviews after execution agents commit. Execution agents never delegate reviews.
+
+**Why execution agents can't delegate:**
+1. Sub-agents lack Task and Skill tools — cannot delegate to any reviewer.
+2. All reviews must be delegated to prevent implementer bias — implementer never reviews own work.
+
+**Domain-specific routing:** vet-fix-agent (code), skill-reviewer (skills), agent-creator (agents), plan-reviewer (planning), vet-fix-agent + doc-writing skill (human docs). See artifact review routing table in `agent-core/fragments/vet-requirement.md`.
+
+### When Deliverable Review Catches Drift
+
+**Decision Date:** 2026-02-18
+
+**Rule:** Post-orchestration deliverable review catches inter-file consistency gaps that per-step vet misses.
+
+**Gap:** Per-step vet validates each step's artifacts against that step's scope. It cannot catch gaps between files that weren't both in scope at the same time.
+
+**What deliverable review catches:** Stale copies, broken references, missing cross-references, naming inconsistencies across the deliverable set.
+
+**Evidence:** memory-index skill drifted during execution (3 entries missing); workflows-terminology.md referenced non-existent agent; runbook skill missing general-patterns.md reference. Each step's artifacts were internally consistent — gaps only visible holistically.
+
 ## .Sources
 
 - [ISO/IEC 25010:2023](https://iso25000.com/index.php/en/iso-25000-standards/iso-25010) — Product quality model (functional suitability, reliability, maintainability)
