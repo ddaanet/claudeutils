@@ -1,30 +1,28 @@
 # Session Handoff: 2026-02-18
 
-**Status:** Merged design-workwoods (0d8ff779). Planstate, rich ls, section-based merge, vet tracking landed. Post-merge fix: deleted jobs.md (workwoods intent), recovered 5 worktree learnings. 2 worktrees active.
+**Status:** Re-prioritized backlog (42 tasks, rev 3). Orchestrate evolution blocked on runbook evolution. Worktree-merge-resilience created. Merging runbook-skill-fixes.
 
 ## Completed This Session
 
-**Merged design-workwoods worktree (0d8ff779):**
-- `just wt-merge design-workwoods` with sandbox bypass — justfile left merge in progress (exit 3)
-- Single conflict: cli.py `_guard_branch_removal` — workwoods ternary style + main's `SystemExit(2)`
-- Agent-core submodule fast-forwarded to e20a4a5
-- 1048/1049 tests pass (1 xfail)
+**Backlog prioritization (rev 3):**
+- Scored 42 tasks using WSJF methodology — `plans/reports/prioritization-2026-02-18.md`
+- Key dependency: orchestrate evolution (3.8) blocked on design runbook evolution (2.5) — can't `/runbook` before runbook skill fixed
+- Top actionable: design runbook evolution (2.5), worktree merge resilience (2.6), quality infrastructure reform (2.6)
+- 4 parallel batches identified, 6 blocked tasks mapped
 
-**Post-merge context verification:**
-- Caught jobs.md kept by `checkout --ours` — workwoods designed planstate to replace it, deleted
-- Recovered 5 worktree learnings dropped by ours resolution (orchestration, vet, delegation, ordering, CLI queries)
-- All 4 worktree tasks confirmed present on main (no task loss)
-
-**Prior session (carried forward):**
-- Fixed justfile `wt-merge` abort-on-conflict (FR-2)
-- Scoped design skill A.2 exploration directive
-- Worktree merge resilience requirements: `plans/worktree-merge-resilience/requirements.md`
+**Worktree operations:**
+- Created worktree for worktree-merge-resilience (opus design session)
+- Cleaned up design-workwoods worktree (merged prior session)
 
 ## Pending Tasks
 
-<!-- Priority order per plans/reports/prioritization-2026-02-16.md (rev 2) -->
+<!-- Priority order per plans/reports/prioritization-2026-02-18.md (rev 3) -->
 
-- [x] **Merge design-workwoods** — 0d8ff779, cli.py conflict resolved
+- [ ] **Design runbook evolution** — `/design plans/runbook-evolution/` | opus | restart
+  - Requirements at `plans/runbook-evolution/requirements.md`
+  - Outline exists at `plans/runbook-evolution/outline.md` — resume from Phase A.6 (outline review)
+  - Scope: runbook SKILL.md generation directives only
+  - 5 FRs: prose atomicity, self-modification discipline, testing diamond, deferred enforcement, test migration
 
 
 - [ ] **Fix worktree rm dirty check** — Must not fail if parent repo is dirty, only if target worktree is dirty | sonnet
@@ -138,6 +136,7 @@
 
 - [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
   - Design.md complete, vet in progress, planning next (design refreshed Feb 13)
+  - **Blocked on:** Design runbook evolution — can't generate runbook with broken tool
 
 - [ ] **Simplify when-resolve CLI** — Accept single argument with when/how prefix instead of two args, update skill prose | sonnet
 
@@ -186,11 +185,8 @@
 
 <!-- design-workwoods removed: merged (84c3029d), wt-rm clean -->
 
-- [ ] **Design runbook evolution** → `design-runbook-evolution` — `/design plans/runbook-evolution/` | opus | restart
-  - Requirements at `plans/runbook-evolution/requirements.md`
-  - Outline exists at `plans/runbook-evolution/outline.md` — resume from Phase A.6 (outline review)
-  - Scope: runbook SKILL.md generation directives only
-  - 5 FRs: prose atomicity, self-modification discipline, testing diamond, deferred enforcement, test migration
+<!-- design-runbook-evolution removed: wt deleted, task back in Pending -->
+<!-- worktree-merge-resilience removed: wt deleted, task back in Pending -->
 
 - [ ] **Worktree merge resilience** → `worktree-merge-resilience` — `/design plans/worktree-merge-resilience/requirements.md` | opus
   - Plan: worktree-merge-resilience | Status: requirements
@@ -237,12 +233,12 @@
 
 ## Next Steps
 
-Next: `wt-rm design-workwoods` to clean up merged worktree. Learnings at 175/80 lines — run `/remember` when entries reach 7 days. 2 worktrees active (error-handling-design, runbook-skill-fixes).
+Merge runbook-skill-fixes worktree in progress. 3 worktrees active: error-handling-design, runbook-skill-fixes (merging), worktree-merge-resilience. Learnings at 175/80 lines — run `/remember` when entries reach 7 days.
 
 ## Reference Files
 
+- `plans/reports/prioritization-2026-02-18.md` — WSJF task prioritization (rev 3, 42 tasks)
 - `plans/worktree-merge-resilience/requirements.md` — 5 FRs for merge conflict handling
-- `plans/reports/prioritization-2026-02-16.md` — WSJF task prioritization (rev 2, 27 tasks)
 - `plans/quality-infrastructure/requirements.md` — 4 FRs: deslop restructuring, code density decisions, vet rename, code refactoring
 - `plans/reports/code-density-grounding.md` — Grounded research on exception handling + Black formatter interaction
 - `plans/error-handling/outline.md` — Error handling design outline (Phase A complete)
