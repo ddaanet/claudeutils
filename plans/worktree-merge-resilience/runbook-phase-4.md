@@ -32,12 +32,12 @@
   - Conflicted filename (e.g., `src/feature.py`)
   - Conflict type label — at minimum one of: `UU` (both modified), `AU` (added by us), `DU` (deleted by us)
   - A line containing `|` indicating diff stat format (e.g., `src/feature.py | 3 +++`)
-  - A line with commit count pattern — e.g., `"commits on branch"` or digit followed by `" commit"` indicating divergence
+  - A line matching the divergence format: starts with `"Branch: "` followed by a digit (e.g., `"Branch: 1 commits ahead, Main: 0 commits ahead since merge-base"`)
   - Hint line containing: `"Resolve conflicts"` AND `"claudeutils _worktree merge"` AND the slug value
 
 **Expected failure:** Current Phase 3 Cycle 3.1 implementation outputs a basic conflict list without any diff stats, divergence info, or hint → assertions for diff stat, divergence, and hint fields fail.
 
-**Why it fails:** `_format_conflict_report` does not yet exist; call sites use simple `click.echo` of file names only.
+**Why it fails:** `_format_conflict_report` does not yet exist. After Phase 3 is implemented, the conflict exit path emits conflict file names and exits 3 — but no diff stats, divergence section, or hint. The test for those fields does not exist yet (collection error), then fails on missing fields once written.
 
 **Verify RED:** `pytest tests/test_worktree_merge_conflicts.py::test_conflict_output_contains_all_fields -v`
 
