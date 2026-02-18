@@ -174,3 +174,19 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Use the project's CLI commands (`claudeutils _worktree ls` for plan/tree status). The CLI wraps library functions with formatting. Check existing CLI commands before writing ad-hoc Python.
 - Deeper pattern: Procedural instructions in fragments suppress cross-cutting operational rules. When a procedure says "call X()" the agent follows it literally, skipping the project-tooling check ("does a CLI/recipe already exist?"). Specific instructions must not suppress general operational rules — the check-for-existing-tools rule applies even when a procedure names a specific function.
 - Evidence: execute-rule.md said "Call `list_plans()`" → agent wrote ad-hoc Python → 3 failed attempts guessing attributes → 6-turn guided diagnostic from user. CLI existed the whole time.
+## When testing CLI tools
+- Anti-pattern: Testing CLI via subprocess invocation or calling `main()` with SystemExit catching. Fragile, slow, conflates process-level concerns with behavior testing.
+- Correct pattern: Use Click test harness (`click.testing.CliRunner`). Invokes CLI in-process, captures output and exit code, supports isolated filesystem. Tests run faster and assertions are cleaner.
+- Applies to: Any CLI built with Click (or adaptable for argparse via similar test runner patterns).
+## When editing runbook step or agent files
+- Anti-pattern: Editing `.claude/agents/<plan>-task.md` directly — it's a generated file assembled by prepare-runbook.py from tdd-task.md baseline + Common Context from phase-1 + phase content
+- Correct pattern: Edit the source (phase files in `plans/<job>/`), then re-run prepare-runbook.py to regenerate the agent file and step files. Common Context lives in runbook-phase-1.md only — phases 2–5 don't have their own copy.
+- Evidence: Edit rejected 3 times because target was the generated output, not the source.
+## When concluding reviews
+- Anti-pattern: Review classifies findings as Major, then adds "doesn't block merge, follow-up work" — reviewer making merge-readiness judgment and converting findings into aspirational prose nobody tracks
+- Correct pattern: Review reports severity counts. Creates one pending task referencing the report → `/design`. No merge-readiness language. User reads severity counts, user decides.
+- Root cause: Sycophancy in artifact form — reviewer softens its own classification to avoid blocking the pipeline. "Documented, non-blocking" is the pipeline equivalent of "great question!"
+## When routing implementation findings
+- Anti-pattern: Conditional dispatch based on fix size or "architectural" judgment (e.g., "small fix → direct, design gap → /requirements"). Reintroduces judgment at a stage that should be mechanical.
+- Correct pattern: Unconditional `/design` for all findings. `/design` triage handles proportionality — simple fixes execute directly, complex ones get full treatment. No routing judgment at review time.
+- Related: `/design` should include Phase 0 requirements-clarity gate (well-specified → triage, underspecified → `/requirements` first). Eliminates recurring "requirements or design?" routing question.

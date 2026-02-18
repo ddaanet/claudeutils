@@ -172,16 +172,19 @@
   - Existing 1027 tests, separate design from runbook evolution
   - Different scope and execution profile
 
+- [ ] **Pipeline skill updates** — `/design` | opus | restart
+  - Orchestrate skill: create `/deliverable-review` pending task at exit (opus, restart)
+  - Deliverable-review skill Phase 4: create one pending task for all findings → `/design`; no merge-readiness language
+  - Design skill: add Phase 0 requirements-clarity gate (well-specified → triage, underspecified → `/requirements`)
+  - Discussion context in runbook-skill-fixes worktree session
+
 ## Worktree Tasks
 
 - [ ] **Error handling design** → `error-handling-design` — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
   - Outline: `plans/error-handling/outline.md`
   - Key decisions: D-1 CPS abort-and-record, D-2 task `[!]`/`[✗]` states, D-3 escalation acceptance criteria, D-5 rollback = revert to step start
 
-- [ ] **Runbook skill fixes** → `runbook-skill-fixes` — Batch: model assignment, design quality gates | opus
-  - Runbook model assignment: apply design-decisions.md directive (opus for skill/fragment/agent edits) — partially landed
-  - Design quality gates: `/design plans/runbook-quality-gates/` | restart
-    - Requirements at `plans/runbook-quality-gates/requirements.md`
+<!-- runbook-skill-fixes merged: orchestration + deliverable review complete, findings fixed -->
 
 <!-- design-workwoods removed: merged (84c3029d), wt-rm clean -->
 
