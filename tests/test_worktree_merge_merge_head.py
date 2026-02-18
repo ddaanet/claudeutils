@@ -15,7 +15,7 @@ def test_detect_state_merged(
     repo_with_submodule: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Verify _detect_merge_state returns 'merged' when branch is ancestor of HEAD."""
+    """Detect 'merged' when branch is ancestor of HEAD."""
     monkeypatch.chdir(repo_with_submodule)
 
     # Set up repo: create initial commit
@@ -169,5 +169,3 @@ def test_phase4_merge_head_empty_diff(
     assert branch_delete.returncode == 0, (
         f"git branch -d should succeed after merge commit: {branch_delete.stderr}"
     )
-
-
