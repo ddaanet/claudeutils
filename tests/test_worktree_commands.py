@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from claudeutils.worktree.cli import _remove_worktrees, worktree
-from claudeutils.worktree.utils import wt_path
+from claudeutils.worktree.cli import worktree
+from claudeutils.worktree.utils import _remove_worktrees, wt_path
 
 
 def test_package_import() -> None:
@@ -27,7 +27,7 @@ def test_worktree_command_group() -> None:
 def test_ls_empty(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
 ) -> None:
-    """Empty when no worktrees."""
+    """Shows main tree when no worktrees."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -35,13 +35,14 @@ def test_ls_empty(
 
     result = CliRunner().invoke(worktree, ["ls"])
     assert result.exit_code == 0
-    assert result.output == ""
+    assert "main (main)" in result.output
+    assert "○  clean" in result.output
 
 
 def test_ls_multiple_worktrees(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
 ) -> None:
-    """Parses porcelain, extracts slug and branch."""
+    """Rich mode outputs main tree and worktree headers."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -66,14 +67,11 @@ def test_ls_multiple_worktrees(
     result = CliRunner().invoke(worktree, ["ls"])
     assert result.exit_code == 0
 
-    lines = result.output.strip().split("\n")
-    line_a = lines[0].split("\t")
-    line_b = lines[1].split("\t")
-
-    assert line_a[0] == "task-a"
-    assert line_a[1] == "refs/heads/task-a"
-    assert line_b[0] == "task-b"
-    assert line_b[1] == "refs/heads/task-b"
+    # Rich mode outputs headers: main tree first, then worktrees
+    assert "main (main)" in result.output
+    assert "task-a (task-a)" in result.output
+    assert "task-b (task-b)" in result.output
+    assert "○  clean" in result.output or "●" in result.output
 
 
 def test_session_precommit(
@@ -166,7 +164,7 @@ def test_rm_command_path_resolution(
     worktree_path = wt_path("test-slug")
     assert worktree_path.exists()
 
-    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    result = CliRunner().invoke(worktree, ["rm", "--confirm", "test-slug"])
     assert result.exit_code == 0
     assert not worktree_path.exists()
 
@@ -187,7 +185,7 @@ def test_rm_command_dirty_tree_warning(
     test_file = worktree_path / "test.txt"
     test_file.write_text("uncommitted content")
 
-    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    result = CliRunner().invoke(worktree, ["rm", "--confirm", "test-slug"])
     assert result.exit_code == 0
     assert "Warning: worktree has" in result.output
     assert "uncommitted files" in result.output
@@ -222,7 +220,7 @@ def test_rm_worktree_registration_probing(
     ).stdout
     assert str(worktree_path / "agent-core") in submodule_list
 
-    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    result = CliRunner().invoke(worktree, ["rm", "--confirm", "test-slug"])
     assert result.exit_code == 0
     assert not worktree_path.exists()
 
@@ -298,7 +296,7 @@ def test_rm_post_removal_cleanup(
     container_path = worktree_path.parent
     assert container_path.exists()
 
-    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    result = CliRunner().invoke(worktree, ["rm", "--confirm", "test-slug"])
     assert result.exit_code == 0
 
     assert not worktree_path.exists(), "Orphaned directory removed via shutil.rmtree"
@@ -328,7 +326,7 @@ def test_rm_post_removal_cleanup_non_empty_container(
     assert worktree_path_2.exists()
     assert container_path.exists()
 
-    result = CliRunner().invoke(worktree, ["rm", "test-slug-1"])
+    result = CliRunner().invoke(worktree, ["rm", "--confirm", "test-slug-1"])
     assert result.exit_code == 0
 
     assert not worktree_path_1.exists(), "First worktree removed"
@@ -351,12 +349,12 @@ def test_rm_post_removal_cleanup_idempotent(
     worktree_path = wt_path("test-slug")
     container_path = worktree_path.parent
 
-    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    result = CliRunner().invoke(worktree, ["rm", "--confirm", "test-slug"])
     assert result.exit_code == 0
     assert not worktree_path.exists()
     assert not container_path.exists()
 
-    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    result = CliRunner().invoke(worktree, ["rm", "--confirm", "test-slug"])
     assert result.exit_code == 0
 
 
@@ -372,7 +370,7 @@ def test_rm_safe_branch_deletion(
     result = CliRunner().invoke(worktree, ["new", "test-slug"])
     assert result.exit_code == 0
 
-    result = CliRunner().invoke(worktree, ["rm", "test-slug"])
+    result = CliRunner().invoke(worktree, ["rm", "--confirm", "test-slug"])
     assert result.exit_code == 0
     assert "Branch test-slug" not in result.output
 
@@ -393,7 +391,8 @@ def test_rm_safe_branch_deletion(
         capture_output=True,
     )
 
-    result = CliRunner().invoke(worktree, ["rm", "unmerged-slug"])
-    assert result.exit_code == 0
-    assert "Branch unmerged-slug has unmerged changes" in result.output
-    assert "git branch -D unmerged-slug" in result.output
+    result = CliRunner().invoke(worktree, ["rm", "--confirm", "unmerged-slug"])
+    assert result.exit_code == 2
+    assert "unmerged commit(s). Merge first." in result.output
+    # FR-5: no destructive suggestions
+    assert "git branch -D" not in result.output

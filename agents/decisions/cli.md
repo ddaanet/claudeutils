@@ -30,6 +30,18 @@ CLI-specific patterns and conventions for claudeutils command-line interface.
 
 **Impact:** Direct command usage after install
 
+## .Safety Patterns
+
+### When Writing CLI Output
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** CLI suggesting destructive commands in output (e.g., `"use: git branch -D <slug>"`). LLM agents treat CLI output as instructions and execute the suggested command.
+
+**Correct pattern:** Report the problem without prescribing destructive workarounds. Let the calling agent or user decide the action. CLI should refuse destructive operations, not suggest them.
+
+**Evidence:** `_worktree rm` suggested `git branch -D` for unmerged branch. Agent followed the instruction, permanently deleting the only copy of unmerged parent repo changes.
+
 ## .Output Formats
 
 ### When Choosing Feedback Output Format

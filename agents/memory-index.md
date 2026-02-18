@@ -26,6 +26,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how configure script entry points
 /when choosing feedback output format
 /how format token count output
+/when writing CLI output | no destructive suggestions agents follow instructions
 
 ## agents/decisions/data-processing.md
 
@@ -50,10 +51,14 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 /when designing quality gates | layered defense multiple independent checks
 /when reviewing quality gate coverage | defense layer checklist
+/when placing quality gates | commit chokepoint scripted mechanical enforcement
+/when splitting validation into mechanical and semantic | script deterministic agent judgment advisory
 
 ## agents/decisions/deliverable-review.md
 
 /when identifying deliverable artifacts | classify artifact types review axes agentic prose code test
+/when orchestrator handles review delegation | sub-agents lack Task all reviews post-commit
+/when deliverable review catches drift | inter-file consistency holistic not per-step
 
 ## agents/decisions/implementation-notes.md
 
@@ -76,6 +81,10 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when choosing hard or soft limits
 /how format batch edits efficiently
 /when removing stale learnings on commit
+/when precommit fails | fix before committing broken gate worse than none
+/when editing runbook step or agent files | edit source phase files not generated
+/when hitting file line limits | code quality first not compression
+/when lint rule requires code change | fix design problem not mechanical circumvention
 
 ## agents/decisions/markdown-tooling.md
 
@@ -120,6 +129,16 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when checking self-referential modification | exclude plan own directory
 /when avoiding CLI skill name collision | check built-ins before naming
 /when choosing name | public handles discovery recall over cleverness
+/when relaunching similar task | resume prior agent id preserve context
+/when running multi-reviewer diagnostics | parallel independent cross-reference false positive
+/when performing root cause analysis | multi-layer stop between layers
+/when searching adjacent domains | correction not exclusion adjacent research
+/when git operation fails | read actual error confabulation license stop
+/when resolving session.md conflicts | verify tasks not dropped branch data
+/when removing worktrees with submodules | core.worktree restore submodule merge check
+/when importing artifacts from worktrees | git show branch transport scope ownership
+/when workaround requires creating dependencies | two-step limit stop report
+/when recovering agent outputs | task output files json extraction
 
 ## agents/decisions/orchestration-execution.md
 
@@ -146,6 +165,10 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when shared code is bifurcated | unifying over patching root cause
 /when agent context has conflicting signals | common context competes phase-neutral
 /when capturing requirements from conversation | capture over interview
+/when resuming interrupted orchestration | checkpoint recovery recipe enforcement
+/when vet flags unused code | check test callers design intent before deleting
+/when delegating with corrections | exclude wrong item dont mention
+/when ordering post-orchestration tasks | diagnostic fixes improvements sequence
 
 ## agents/decisions/pipeline-contracts.md
 
@@ -160,6 +183,13 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when vet-fix-agent rejects planning artifacts | plan-reviewer routing
 /when reviewing expanded phases | expansion reintroduces defects regression LLM failure modes
 /when outline review produces ungrounded corrections | confabulated operation sequence fabricated fix-all sonnet opus
+/when simplifying runbook outlines | pattern consolidation identical-pattern batching
+/when validating runbook pre-execution | model-tags lifecycle test-counts red-plausibility structural
+/when selecting model for prose artifact edits | opus skills fragments agents design
+/when selecting model for TDD execution | complexity type pattern state-machine synthesis
+/when reviewing skill deliverable | cross-project context skill-reviewer interactive
+/when concluding reviews | severity counts pending task no merge-readiness
+/when routing implementation findings | unconditional design triage proportionality
 
 ## agents/decisions/project-config.md
 
@@ -205,6 +235,10 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when preferring e2e over mocked subprocess | real git repos tmp_path
 /when asserting pipeline idempotency | preprocessor remark roundtrip
 /when detecting vacuous assertions from skipped RED | assertion strength
+/when test setup steps fail | subprocess stderr swallowed self-diagnosing
+/when testing CLI tools | click CliRunner in-process isolated filesystem
+/when tests simulate merge workflows | branch as merged parent amend preserves
+/when safety checks fail in tests | understand why fix scenario not suppress
 
 ## agents/decisions/validation-quality.md
 
@@ -227,10 +261,15 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when adding entries without documentation
 /how merge templates safely
 /when requirements change during execution
+/when naming memory index triggers | activity at decision point not outcome
 /when embedding knowledge in context
+/when analyzing task insertion patterns | origin segment priority position
 /how name session tasks | prose keys task naming
 /when committing rca fixes
 /when running precommit validation
+
+## agents/decisions/workflow-planning.md
+
 /how expand outlines into phases | review phases iteratively expansion
 /when assembling runbooks manually
 /how use review agent fix all pattern
@@ -243,6 +282,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when crossing phase boundaries
 /when bootstrapping self-referential improvements | dependency graph ordering
 /when requirements added after review | re-check traceability FRs
+/when deleting agent artifacts | audit trail value vs redundant restate
 /how write green phase descriptions
 /when verifying model analysis results
 /how implement domain validation
@@ -283,3 +323,6 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how format runbook outlines
 /how chain multiple skills together | continuation passing tail calls
 /when using hook based parsing
+/when writing methodology | ground skill diverge converge external research
+/when design ceremony continues after uncertainty | two gates entry mid-stream
+/when design resolves to simple execution | execution readiness gate exit ramp

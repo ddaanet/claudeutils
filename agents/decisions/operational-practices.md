@@ -8,9 +8,13 @@ Agent reliability patterns, artifact management, implementation practices, and k
 
 **Decision Date:** 2026-02-12
 
-**Decision:** If artifact will be referenced in a followup session → `plans/`. If not → `tmp/`.
+**Decision:** If artifact will be referenced in a followup session → `plans/reports/`. If not → `tmp/`.
 
 **Decision principle:** "Will this be referenced later?" — not "Is this type in a known list?"
+
+**Specific rule:** Research synthesis documents that inform future work (prioritization, skill design, grounding reports) → `plans/reports/` (persistent, tracked, survives sessions). Only scratch computation and intermediate files → `tmp/` (gitignored).
+
+**Anti-pattern:** Writing research synthesis to `tmp/` — it won't survive across sessions and can't be referenced in future planning.
 
 ### When Requiring Per-Artifact Vet Coverage
 
@@ -45,6 +49,18 @@ Agent reliability patterns, artifact management, implementation practices, and k
 **Rationale:** Refactor agent focuses on warnings (line limits, complexity), doesn't proactively optimize for token efficiency.
 
 ## .Agent Reliability Patterns
+
+### When Relaunching Similar Task
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Launching a fresh agent with the same prompt after a stopped/killed agent, losing prior context.
+
+**Correct pattern:** Use Task tool's `resume` parameter with the prior agent's ID. The agent retains full prior context (files read, reasoning done) and continues from where it stopped.
+
+**Threshold for fresh launch:** If prior agent exchanged >15 messages (context likely near-full — 200K limit approaches), fresh launch is correct. Otherwise resume.
+
+**Rationale:** Stopped agents may have completed expensive operations (file reads, web searches). Resuming preserves that work; relaunching repeats it.
 
 ### When Exploration Agents Report False Findings
 
@@ -103,6 +119,40 @@ Agent reliability patterns, artifact management, implementation practices, and k
 
 **When to apply:** After interactive review catches defects that automated review missed. The diagnostic determines whether to change model tier, agent instructions, or both.
 
+### When Running Multi-Reviewer Diagnostics
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Running a single reviewer and trusting all findings. Exploration agents produce false positives from over-reading; opus reviewers miss implementation-level issues detectable only by reading source code.
+
+**Correct pattern:** Run 3+ independent reviewers in parallel (opus review, exploration, inline RCA against source code). Cross-reference findings — real issues appear in multiple reviewers or survive verification against source. False positives get filtered by disagreement.
+
+**Evidence:** 3-way review of runbook-phase-1.md found 8 real issues (each reviewer found unique ones) and filtered 2 false positives. Exploration flagged "critical" line number issue that was correct; opus missed `_git()` return value issue only caught by reading source code directly.
+
+### When Performing Root Cause Analysis
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Finding first cause and jumping to solution (e.g., "expansion has defects → add more review rounds").
+
+**Correct pattern:** Multi-layer RCA with explicit stops between layers.
+- L1: What are the symptoms? STOP.
+- L2: What caused them? STOP.
+- L3: Why was that cause allowed? STOP.
+Only then does the fix address the cause, not the symptoms.
+
+**Evidence:** Merge data loss RCA — L1: bugs in code. L2: haiku generated safety-critical code. L3: delegation model assigns by type not risk + no review gate covers behavioral safety. Fix: model floor for Tier 1 steps AND safety criteria in vet.
+
+### When Searching Adjacent Domains
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Narrowing search to one domain after user feedback (e.g., "not security?" → drop all security searches). Interpreting a correction as exclusion rather than asking for clarification.
+
+**Correct pattern:** When user questions missing coverage ("not X?"), they may mean "why no X?" not "exclude X." Safety and security are adjacent — both warrant research even when the triggering incident is one or the other.
+
+**Evidence:** User said "not security?" meaning "why aren't you searching for security too?" — interpreted as "this isn't about security" and dropped security entirely.
+
 ## .Architectural Principles
 
 ### When Temporal Validation Required For Analysis
@@ -131,6 +181,16 @@ Agent reliability patterns, artifact management, implementation practices, and k
 
 ## .Git Workflow Patterns
 
+### When Git Operation Fails
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Attributing git failure to a plausible-sounding restriction without reading the error message. Confabulating explanations ("git refuses to merge with active worktree" — false) creates false premises for subsequent decisions, deletes test coverage to work around non-existent limitations.
+
+**Correct pattern:** Read actual error output. Reproduce with a minimal case before restructuring. Test failures that seem like infrastructure problems may reveal real production bugs.
+
+**Deeper pattern:** Confabulation serves as license to stop investigating. A "can't be fixed" explanation converts a solvable problem into an unsolvable one, justifying coverage-reducing workarounds.
+
 ### When No-Op Merge Orphans Branch
 
 **Decision Date:** 2026-02-12
@@ -151,7 +211,7 @@ Agent reliability patterns, artifact management, implementation practices, and k
 
 **Decision:** Require clean tree before merge/rebase operations. No `git stash` workarounds.
 
-**Exception:** Session context files (session.md, jobs.md, learnings.md) auto-committed as pre-step.
+**Exception:** Session context files (session.md, learnings.md) auto-committed as pre-step.
 
 **Rationale:** Stash is fragile (conflicts on pop, lost stashes). Clean tree forces explicit state management.
 
@@ -198,6 +258,60 @@ Agent reliability patterns, artifact management, implementation practices, and k
 **Also unavailable:** MCP tools (Context7), hooks.
 
 **Available:** Read, Grep, Glob, Bash, Write, Edit (direct tool use only).
+
+### When Resolving Session.md Conflicts During Merge
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Using `git checkout main -- agents/session.md` to resolve conflicts — discards all branch-side session data (new tasks, metadata) without verification.
+
+**Correct pattern:** After any session.md conflict resolution, read the full file and compare against the known task list. Verify no tasks were dropped. Branch session.md may contain tasks added during worktree work that don't exist on main.
+
+**Evidence:** "Simplify when-resolve CLI" task existed only in worktree-merge-errors branch session.md. `checkout main --` silently dropped it. Caught only because user requested explicit content verification.
+
+### When Removing Worktrees With Submodules
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** `wt rm` removes worktree directory but leaves `.git/modules/agent-core/config` `core.worktree` pointing to the deleted directory. Also doesn't check if submodule branch has unmerged commits (parent repo branch merged but submodule branch diverged).
+
+**Correct pattern:** `wt rm` must (1) restore submodule's `core.worktree` to main checkout path, (2) check submodule branch merge status before deletion. Both are data-loss vectors — stale config breaks all submodule operations, unmerged submodule branch loses commits.
+
+**Evidence:** `git -C agent-core` failed with "cannot chdir to removed directory" after `wt rm runbook-skill-fixes`. Agent-core branch had 3 files of real diffs silently orphaned.
+
+### When Importing Artifacts From Worktrees
+
+**Decision Date:** 2026-02-18
+
+**Transport:** `git show <branch>:<path>` from main — no cross-tree sandbox access needed. All worktrees share the git object store.
+
+**Scope:** Only design.md and requirements.md are import candidates (small, authored). Runbooks (phase files, steps, orchestrator plans) are bulky, generated, implementation-oriented — require explicit intent, not casual import.
+
+**Ownership check:** Before importing, verify no active worktree owns the target plan directory (`git worktree list` + check branch names). Importing into a worktree-owned plan creates merge conflicts when that worktree merges back.
+
+**Supersedes:** "When worktree agents need cross-tree access" (additionalDirectories unnecessary for transport).
+
+### When Workaround Requires Creating Dependencies
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Escalating workarounds for a tool limitation — each fix creates a new problem requiring another fix. Each step locally rational, trajectory absurd.
+
+**Stop condition:** If a workaround requires more than 2 steps or introduces new dependencies, stop and report the tool limitation. "Pre-resolve conflict" is bounded: edit conflicting regions of files that ALREADY EXIST on both sides. Creating new files, new modules, or new dependency chains means you've left "pre-resolution" and entered "manual reimplementation."
+
+**Deeper pattern:** Sunk cost momentum — each workaround invests more context, making "just one more fix" feel cheaper than stopping. The "stop on unexpected results" rule doesn't fire because each step is rationalized as part of the documented workaround path.
+
+**Evidence:** 6-step escalation chain during design-workwoods merge. Two commits on main, partially-created planstate module, still not merged.
+
+### When Recovering Agent Outputs
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Manually reading agent session log and retyping content.
+
+**Correct pattern:** Script extraction from task output files. Agent Write calls are JSON-structured in `tmp/claude/.../tasks/<agent-id>.output`. Parse with jq or Python, recover deterministically.
+
+**Prototype:** `plans/prototypes/recover-agent-writes.py`
 
 ## .Python Patterns
 

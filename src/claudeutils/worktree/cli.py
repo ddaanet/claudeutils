@@ -11,13 +11,26 @@ from pathlib import Path
 import click
 
 from claudeutils.validation.tasks import validate_task_name_format
+from claudeutils.worktree.display import format_rich_ls
 from claudeutils.worktree.merge import merge as merge_impl
+from claudeutils.worktree.session import focus_session as focus_session  # noqa: PLC0414
 from claudeutils.worktree.session import (
-    extract_task_blocks,
     move_task_to_worktree,
     remove_worktree_task,
 )
-from claudeutils.worktree.utils import _git, wt_path
+from claudeutils.worktree.utils import (
+    _classify_branch,
+    _get_worktree_path_for_branch,
+    _git,
+    _is_branch_merged,
+    _is_merge_commit,
+    _is_parent_dirty,
+    _is_submodule_dirty,
+    _parse_worktree_list,
+    _probe_registrations,
+    _remove_worktrees,
+    wt_path,
+)
 
 
 def derive_slug(task_name: str) -> str:
@@ -25,63 +38,10 @@ def derive_slug(task_name: str) -> str:
     if not task_name or not task_name.strip():
         msg = "task_name must not be empty"
         raise ValueError(msg)
-
-    # Validate task name format
     format_errors = validate_task_name_format(task_name)
     if format_errors:
-        msg = format_errors[0]
-        raise ValueError(msg)
-
+        raise ValueError(format_errors[0])
     return re.sub(r"[^a-z0-9]+", "-", task_name.lower()).strip("-")
-
-
-def _filter_section(
-    content: str, section_name: str, task_name: str, plan_dir: str | None
-) -> str:
-    """Filter section entries by task_name or plan_dir match."""
-    pattern = rf"## {re.escape(section_name)}\n\n(.*?)(?=\n## |\Z)"
-    if not (match := re.search(pattern, content, re.DOTALL)):
-        return ""
-
-    def is_relevant(entry: str) -> bool:
-        lo = entry.lower()
-        return task_name.lower() in lo or bool(plan_dir and plan_dir.lower() in lo)
-
-    lines = []
-    include = False
-    for line in match.group(1).split("\n"):
-        if line.startswith("- "):
-            include = is_relevant(line[2:].strip())
-            if include:
-                lines.append(line)
-        elif include and line.strip():
-            lines.append(line)
-    return f"## {section_name}\n\n" + "\n".join(lines) + "\n" if lines else ""
-
-
-def focus_session(task_name: str, session_md_path: str | Path) -> str:
-    """Filter session.md to task_name with relevant context sections."""
-    content = Path(session_md_path).read_text()
-
-    blocks = extract_task_blocks(content, section="Pending Tasks")
-    task_block = next((b for b in blocks if b.name == task_name), None)
-    if not task_block:
-        msg = f"Task '{task_name}' not found in session.md"
-        raise ValueError(msg)
-
-    task_lines_str = "\n".join(task_block.lines)
-    plan_dir = (
-        m.group(1) if (m := re.search(r"[Pp]lan:\s*(\S+)", task_lines_str)) else None
-    )
-    result = (
-        f"# Session: Worktree — {task_name}\n\n"
-        f"**Status:** Focused worktree for parallel execution.\n\n"
-        f"## Pending Tasks\n\n{task_lines_str}\n"
-    )
-    for section in ["Blockers / Gotchas", "Reference Files"]:
-        if filtered := _filter_section(content, section, task_name, plan_dir):
-            result += f"\n{filtered}"
-    return result
 
 
 def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
@@ -100,8 +60,7 @@ def add_sandbox_dir(container: str, settings_path: str | Path) -> None:
     path.write_text(json.dumps(settings, indent=2, ensure_ascii=False))
 
 
-def initialize_environment(worktree_path: Path) -> None:
-    """Run just setup if just is available."""
+def _initialize_environment(worktree_path: Path) -> None:
     try:
         subprocess.run(["just", "--version"], capture_output=True, check=True)
     except (FileNotFoundError, subprocess.CalledProcessError):
@@ -122,33 +81,18 @@ def worktree() -> None:
     """Worktree commands."""
 
 
-def _parse_worktree_list(porcelain: str, main_path: str) -> list[tuple[str, str, str]]:
-    """Parse git worktree list --porcelain, exclude main."""
-    if not porcelain:
-        return []
-    lines, entries, i = porcelain.split("\n"), [], 0
-    while i < len(lines):
-        if not lines[i].startswith("worktree "):
-            i += 1
-            continue
-        path, branch, i = lines[i].split(maxsplit=1)[1], "", i + 1
-        while i < len(lines) and lines[i]:
-            if lines[i].startswith("branch "):
-                branch = lines[i].split(maxsplit=1)[1]
-            i += 1
-        i += 1
-        if path != main_path:
-            entries.append((Path(path).name, branch, path))
-    return entries
-
-
 @worktree.command()
-def ls() -> None:
-    """List worktrees excluding main."""
+@click.option("--porcelain", is_flag=True, help="Machine-readable output")
+def ls(*, porcelain: bool) -> None:
+    """List worktrees and main tree."""
     main_path = _git("rev-parse", "--show-toplevel")
-    porcelain = _git("worktree", "list", "--porcelain")
-    for slug, branch, path in _parse_worktree_list(porcelain, main_path):
-        click.echo(f"{slug}\t{branch}\t{path}")
+    porcelain_output = _git("worktree", "list", "--porcelain")
+
+    if porcelain:
+        for slug, branch, path in _parse_worktree_list(porcelain_output, main_path):
+            click.echo(f"{slug}\t{branch}\t{path}")
+    else:
+        click.echo(format_rich_ls(main_path, porcelain_output))
 
 
 def _create_session_commit(slug: str, base: str, session: str) -> str:
@@ -229,14 +173,14 @@ def _setup_worktree(
 ) -> None:
     """Create worktrees, register sandbox, init environment."""
     _create_parent_worktree(worktree_path, slug, base, session)
-    _create_submodule_worktree(
-        _git("rev-parse", "--show-toplevel"), worktree_path, slug
-    )
+    main_repo = _git("rev-parse", "--show-toplevel").strip()
+    _create_submodule_worktree(main_repo, worktree_path, slug)
     add_sandbox_dir(str(worktree_path.parent), ".claude/settings.local.json")
     add_sandbox_dir(
         str(worktree_path.parent), f"{worktree_path}/.claude/settings.local.json"
     )
-    initialize_environment(worktree_path)
+    add_sandbox_dir(main_repo, f"{worktree_path}/.claude/settings.local.json")
+    _initialize_environment(worktree_path)
     click.echo(f"{slug}\t{worktree_path}" if task else str(worktree_path))
 
 
@@ -245,7 +189,7 @@ def clean_tree() -> None:
     """Verify clean tree except session context."""
     parent = _git("status", "--porcelain")
     submodule = _git("-C", "agent-core", "status", "--porcelain", check=False)
-    exempt = {"session.md", "jobs.md", "learnings.md"}
+    exempt = {"session.md", "learnings.md"}
     dirty = [
         line
         for line in (parent + submodule).rstrip().split("\n")
@@ -307,76 +251,148 @@ def add_commit(files: tuple[str, ...]) -> None:
         click.echo(_git("commit", "-m", click.get_text_stream("stdin").read()))
 
 
-def _probe_registrations(worktree_path: Path) -> tuple[bool, bool]:
-    """Check parent and submodule worktree registration."""
-    parent_list = _git("worktree", "list", "--porcelain", check=False)
-    submodule_list = _git(
-        "-C", "agent-core", "worktree", "list", "--porcelain", check=False
-    )
-    parent_reg = str(worktree_path) in parent_list
-    submodule_reg = str(worktree_path / "agent-core") in submodule_list
-    return parent_reg, submodule_reg
-
-
-def _remove_worktrees(
-    worktree_path: Path,
-    parent_registered: bool,  # noqa: FBT001
-    submodule_registered: bool,  # noqa: FBT001
-) -> None:
-    """Remove worktrees (submodule first, force flag)."""
-    if submodule_registered:
-        _git(
-            "-C",
-            "agent-core",
-            "worktree",
-            "remove",
-            "--force",
-            str(worktree_path / "agent-core"),
-        )
-    if parent_registered:
-        _git("worktree", "remove", "--force", str(worktree_path))
-
-
 @worktree.command()
 @click.argument("slug")
 def merge(slug: str) -> None:
-    """Merge worktree branch: validate, resolve submodule, merge parent."""
-    merge_impl(slug)
+    """Merge worktree branch back to main."""
+    try:
+        merge_impl(slug)
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr.strip() if isinstance(e.stderr, str) else ""
+        click.echo(f"git error: {stderr or e}", err=True)
+        raise SystemExit(1) from None
+
+
+def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:
+    """Check if branch can be removed safely."""
+    branch_check = subprocess.run(
+        ["git", "rev-parse", "--verify", slug],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if branch_check.returncode != 0:
+        return False, None
+
+    if _is_branch_merged(slug):
+        return True, "merged"
+
+    count, is_focused = _classify_branch(slug)
+    if count == 1 and is_focused:
+        return True, "focused"
+
+    msg = (
+        f"Branch {slug} is orphaned (no common ancestor). Merge first."
+        if count == 0
+        else f"Branch {slug} has {count} unmerged commit(s). Merge first."
+    )
+    click.echo(msg, err=True)
+    raise SystemExit(2)
+
+
+def _delete_branch(slug: str, removal_type: str | None) -> None:
+    flag = "-D" if removal_type == "focused" else "-d"
+    r = subprocess.run(
+        ["git", "branch", flag, slug], capture_output=True, text=True, check=False
+    )
+    if r.returncode != 0 and "not found" not in r.stderr.lower():
+        click.echo(f"Branch {slug} deletion failed: {r.stderr.strip()}", err=True)
+        raise SystemExit(1)
+
+
+def _check_confirm(slug: str, confirm: bool) -> None:  # noqa: FBT001
+    if not confirm:
+        click.echo(
+            f"Use the worktree skill (wt merge {slug}) to remove worktrees safely. "
+            "Pass --confirm to invoke directly.",
+            err=True,
+        )
+        raise SystemExit(2)
+
+
+def _warn_if_dirty(worktree_path: Path) -> None:
+    if worktree_path.exists():
+        status = _git("-C", str(worktree_path), "status", "--porcelain", check=False)
+        if status:
+            n = len(status.strip().split("\n"))
+            click.echo(f"Warning: worktree has {n} uncommitted files")
+
+
+def _update_session_and_amend(slug: str) -> bool:
+    session_md_path = Path("agents/session.md")
+    if not session_md_path.exists():
+        return False
+    remove_worktree_task(session_md_path, slug, slug)
+    if not _is_merge_commit():
+        return False
+    status_output = _git("status", "--porcelain", "agents/session.md", check=False)
+    if not status_output.strip():
+        return False
+    _git("add", "agents/session.md")
+    _git("commit", "--amend", "--no-edit")
+    return True
 
 
 @worktree.command()
 @click.argument("slug")
-def rm(slug: str) -> None:
+@click.option(
+    "--confirm",
+    is_flag=True,
+    default=False,
+    help="Confirm direct invocation (bypass skill requirement)",
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    default=False,
+    help="Force removal bypassing all safety checks",
+)
+def rm(slug: str, confirm: bool, force: bool) -> None:  # noqa: FBT001
     """Remove worktree and its branch."""
-    worktree_path = wt_path(slug)
+    if not force:
+        _check_confirm(slug, confirm)
+
+    worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)
+    if not force:
+        if _is_parent_dirty(exclude_path=str(worktree_path.parent)):
+            click.echo(
+                "Parent repo has uncommitted changes. "
+                "Commit or stash before removing worktree.",
+                err=True,
+            )
+            raise SystemExit(2)
+        if _is_submodule_dirty():
+            click.echo(
+                "Submodule (agent-core) has uncommitted changes. "
+                "Commit or stash before removing worktree.",
+                err=True,
+            )
+            raise SystemExit(2)
+
+        branch_exists, removal_type = _guard_branch_removal(slug)
+    else:
+        branch_exists = True
+        removal_type = "focused"
     parent_reg, submodule_reg = _probe_registrations(worktree_path)
 
-    if worktree_path.exists():
-        status = _git("-C", str(worktree_path), "status", "--porcelain", check=False)
-        if status:
-            count = len(status.strip().split("\n"))
-            click.echo(f"Warning: worktree has {count} uncommitted files")
-
-    session_md_path = Path("agents/session.md")
-    if session_md_path.exists():
-        remove_worktree_task(session_md_path, slug, slug)
+    _warn_if_dirty(worktree_path)
+    amended = _update_session_and_amend(slug)
 
     if parent_reg or submodule_reg:
         _remove_worktrees(worktree_path, parent_reg, submodule_reg)
-    else:
-        _git("worktree", "prune")
-
-    r = subprocess.run(
-        ["git", "branch", "-d", slug], capture_output=True, text=True, check=False
-    )
-    if r.returncode != 0 and "not found" not in r.stderr.lower():
-        click.echo(f"Branch {slug} has unmerged changes — use: git branch -D {slug}")
 
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
+
+    _git("worktree", "prune")
 
     container = worktree_path.parent
     if container.exists() and not list(container.iterdir()):
         container.rmdir()
 
-    click.echo(f"Removed worktree {slug}")
+    if branch_exists:
+        _delete_branch(slug, removal_type)
+    amend_note = " Merge commit amended." if amended else ""
+    detail = " (focused session only)" if removal_type == "focused" else ""
+    prefix = "Removed worktree" if removal_type is None else "Removed"
+    click.echo(f"{prefix} {slug}{detail}{amend_note}")

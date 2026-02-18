@@ -19,7 +19,6 @@ dev: format precommit
 precommit:
     #!{{ bash_prolog }}
     sync
-    claudeutils validate
     run-checks
     pytest_output=$(safe pytest 2>&1)
     echo "$pytest_output"
@@ -100,8 +99,10 @@ wt-new name base="HEAD" session="":
     fi
     # Register container directory in sandbox permissions
     wt_container="$(dirname "$wt_dir")"
+    main_repo="$(git rev-parse --show-toplevel)"
     add-sandbox-dir "$wt_container" .claude/settings.local.json
     add-sandbox-dir "$wt_container" "$wt_dir/.claude/settings.local.json"
+    add-sandbox-dir "$main_repo" "$wt_dir/.claude/settings.local.json"
     # Set up development environment in worktree
     if (cd "$wt_dir" && just --summary 2>/dev/null | tr ' ' '\n' | grep -qx setup); then
         (cd "$wt_dir" && just setup)
@@ -186,10 +187,13 @@ wt-rm name:
     if [ -d "$wt_parent" ] && [ -z "$(ls -A "$wt_parent")" ]; then
         rmdir "$wt_parent"
     fi
-    # Remove branch if exists
+    # Remove branch if fully merged
     if git rev-parse --verify "$branch" >/dev/null 2>&1; then
-        visible git branch -d "$branch" || \
-            echo "${RED}Branch $branch has unmerged changes. Use: git branch -D $branch${NORMAL}" >&2
+        if git merge-base --is-ancestor "$branch" HEAD 2>/dev/null; then
+            visible git branch -d "$branch"
+        else
+            echo "${RED}Branch $branch has unmerged commits. Merge first.${NORMAL}" >&2
+        fi
     fi
     echo "${GREEN}✓${NORMAL} Worktree removed: $wt_dir"
 
@@ -202,7 +206,7 @@ wt-merge name:
     wt_dir=$(wt-path "$slug")
 
     # Pre-checks: Clean tree (exempt session files)
-    session_exempt="agents/session.md agents/jobs.md agents/learnings.md"
+    session_exempt="agents/session.md agents/learnings.md"
     dirty=$(git status --porcelain | grep -vE "^.. ($(echo "$session_exempt" | tr ' ' '|'))$" || true)
     if [ -n "$dirty" ]; then
         echo "${RED}Dirty tree (non-session files):${NORMAL}" >&2
@@ -289,23 +293,13 @@ wt-merge name:
             visible git add agents/learnings.md
         fi
 
-        # jobs.md: keep ours with status advancement
-        if echo "$conflicts" | grep -q "^agents/jobs.md$"; then
-            # Simplified: just keep ours for now (full logic needs parsing)
-            echo "${RED}Warning: Manual jobs.md merge needed${NORMAL}" >&2
-            visible git checkout --ours agents/jobs.md
-            visible git add agents/jobs.md
-        fi
-
         # Check for any remaining conflicts
         remaining=$(git diff --name-only --diff-filter=U)
         if [ -n "$remaining" ]; then
-            echo "${RED}Unresolved conflicts after auto-resolution:${NORMAL}" >&2
+            echo "${RED}Conflicts need resolution:${NORMAL}" >&2
             echo "$remaining" >&2
-            git merge --abort
-            # Clean up merge debris
-            git clean -fd -- agents/ src/ tests/ || true
-            fail "Manual conflict resolution required"
+            echo "Resolve conflicts, git add, then: git commit -m '🔀 Merge $slug'" >&2
+            exit 3
         fi
     fi
 
@@ -561,7 +555,7 @@ report () {
     # Usage: report "header" command args
     header=$1; shift
     set-tmpfile
-    safe "$@" > "$tmpfile"
+    safe "$@" &> "$tmpfile"
     if [ -s "$tmpfile" ]; then
         echo "${HEADER_STYLE}# $header${NORMAL}"
         cat "$tmpfile"

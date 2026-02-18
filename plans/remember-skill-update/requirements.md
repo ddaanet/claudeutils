@@ -61,6 +61,24 @@ The learning title must be directly usable as a memory-index trigger without age
 **C-3: Migration preserves body content**
 Title migration changes only `## ` lines. Body text (anti-pattern, correct pattern, rationale, evidence) remains unchanged.
 
+**FR-8: Inline execution in clean session — remove remember-task delegation**
+The `/remember` skill executes consolidation inline in the calling session rather than delegating to `remember-task` agent. Requires a clean session (fresh start) to keep context manageable — CLAUDE.md + files being edited, not accumulated conversation history. Delegation throws away loaded context and adds agent startup overhead; inline execution in a bloated session is equally wrong.
+
+Acceptance criteria:
+- `/remember` skill steps 1-5 execute in the calling session without Task tool delegation
+- Invocation requires clean session (skill documents this as a prerequisite)
+- `remember-task` agent is deleted
+- Handoff skill consolidation step invokes `/remember` skill inline (no agent)
+
+**FR-9: Inline file splitting — remove memory-refactor delegation**
+When a target documentation file exceeds 400 lines during consolidation, the skill splits it inline before proceeding. No delegation to `memory-refactor` agent.
+
+Acceptance criteria:
+- After each Write/Edit to a decision file, check line count
+- If >400 lines: split by H2/H3 boundaries into 100-300 line sections inline
+- Run `validate-memory-index.py --fix` after split
+- `memory-refactor` agent is deleted
+
 ### Out of Scope
 
 - `/when` runtime resolution changes

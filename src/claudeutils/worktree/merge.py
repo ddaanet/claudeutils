@@ -5,8 +5,23 @@ from pathlib import Path
 
 import click
 
-from claudeutils.worktree.session import extract_task_blocks, find_section_bounds
-from claudeutils.worktree.utils import _git, wt_path
+from claudeutils.worktree.resolve import (
+    resolve_learnings_md,
+    resolve_session_md,
+)
+from claudeutils.worktree.utils import _git, _is_branch_merged, wt_path
+
+
+def _format_git_error(e: subprocess.CalledProcessError) -> str:
+    """Format git error with command, exit code, and stderr."""
+    cmd_str = " ".join(str(arg) for arg in e.cmd)
+    stderr = e.stderr.rstrip("\n") if e.stderr else "(no error output)"
+    return (
+        f"Git command failed: {cmd_str}\n"
+        f"Exit code: {e.returncode}\n"
+        f"{stderr}\n\n"
+        f"Resolve the issue and retry the merge."
+    )
 
 
 def _check_clean_for_merge(
@@ -14,13 +29,7 @@ def _check_clean_for_merge(
     exempt_paths: set[str] | None = None,
     label: str = "main",
 ) -> None:
-    """Verify clean tree for merge.
-
-    Args:
-        path: Directory to check (None = current directory)
-        exempt_paths: Paths to exempt from dirty check (None = strict mode)
-        label: Location label for error messages
-    """
+    """Verify clean tree for merge."""
     parent_cmd = ["-C", str(path)] if path else []
     parent_cmd.extend(["status", "--porcelain", "--untracked-files=no"])
     parent = _git(*parent_cmd, check=False)
@@ -55,107 +64,6 @@ def _check_clean_for_merge(
         raise SystemExit(1)
 
 
-def _resolve_session_md_conflict(conflicts: list[str]) -> list[str]:
-    """Resolve agents/session.md conflict.
-
-    Keep ours and extract new tasks from theirs. Returns updated conflict list
-    with session.md removed if present.
-    """
-    if "agents/session.md" not in conflicts:
-        return conflicts
-
-    ours_content = _git("show", ":2:agents/session.md", check=False)
-    theirs_content = _git("show", ":3:agents/session.md", check=False)
-
-    # Extract task blocks from both sides (all pending tasks)
-    # Handles both modern (with "## Pending Tasks") and legacy (tasks at root)
-    ours_blocks = extract_task_blocks(ours_content)
-    theirs_blocks = extract_task_blocks(theirs_content)
-
-    # Compare by task name to find new tasks
-    ours_names = {b.name for b in ours_blocks}
-    new_blocks = [b for b in theirs_blocks if b.name not in ours_names]
-
-    if new_blocks:
-        bounds = find_section_bounds(ours_content, "Pending Tasks")
-        ours_lines = ours_content.split("\n")
-
-        if bounds is not None:
-            # Insert full task blocks (all lines) before next section
-            insertion_point = bounds[1]
-            new_task_lines = []
-            for block in sorted(new_blocks, key=lambda b: b.name):
-                new_task_lines.extend(block.lines)
-
-            # Ensure blank line separation before next section header.
-            # Add blank line after new tasks if:
-            # - next line exists and is not already blank, AND
-            # - new tasks don't already end with blank line
-            if (
-                insertion_point < len(ours_lines)
-                and ours_lines[insertion_point] != ""
-                and (not new_task_lines or new_task_lines[-1] != "")
-            ):
-                new_task_lines.append("")
-
-            ours_lines[insertion_point:insertion_point] = new_task_lines
-        else:
-            # Create Pending Tasks section if missing
-            new_task_lines = []
-            for block in sorted(new_blocks, key=lambda b: b.name):
-                new_task_lines.extend(block.lines)
-            ours_lines.extend(["", "## Pending Tasks", "", *new_task_lines])
-        ours_content = "\n".join(ours_lines)
-
-    Path("agents/session.md").write_text(ours_content)
-    _git("add", "agents/session.md")
-
-    return [c for c in conflicts if c != "agents/session.md"]
-
-
-def _resolve_learnings_md_conflict(conflicts: list[str]) -> list[str]:
-    """Resolve agents/learnings.md conflict.
-
-    Keep ours and append theirs-only content. Returns updated conflict list with
-    learnings.md removed if present.
-    """
-    if "agents/learnings.md" not in conflicts:
-        return conflicts
-
-    ours_content = _git("show", ":2:agents/learnings.md", check=False)
-    theirs_content = _git("show", ":3:agents/learnings.md", check=False)
-
-    ours_lines = set(ours_content.split("\n"))
-    theirs_lines = theirs_content.split("\n")
-
-    theirs_only = [line for line in theirs_lines if line not in ours_lines]
-
-    merged = ours_content
-    if theirs_only:
-        merged += "\n" + "\n".join(theirs_only)
-
-    Path("agents/learnings.md").write_text(merged)
-    _git("add", "agents/learnings.md")
-
-    return [c for c in conflicts if c != "agents/learnings.md"]
-
-
-def _resolve_jobs_md_conflict(conflicts: list[str]) -> list[str]:
-    """Resolve agents/jobs.md conflict.
-
-    Keep ours (local plan status is authoritative). Returns updated conflict
-    list with jobs.md removed if present.
-    """
-    if "agents/jobs.md" not in conflicts:
-        return conflicts
-
-    _git("checkout", "--ours", "agents/jobs.md")
-    _git("add", "agents/jobs.md")
-    click.echo("jobs.md conflict: kept ours (local plan status)")
-
-    return [c for c in conflicts if c != "agents/jobs.md"]
-
-
 def _phase1_validate_clean_trees(slug: str) -> None:
     """Phase 1: Verify branch exists and clean trees (OURS and THEIRS)."""
     r = subprocess.run(
@@ -175,7 +83,6 @@ def _phase1_validate_clean_trees(slug: str) -> None:
     _check_clean_for_merge(
         exempt_paths={
             "agents/session.md",
-            "agents/jobs.md",
             "agents/learnings.md",
             "agent-core",
         }
@@ -238,6 +145,17 @@ def _phase3_merge_parent(slug: str) -> None:
     if result.returncode == 0:
         return
 
+    # Distinguish merge conflict (MERGE_HEAD exists) from merge abort
+    merge_head = subprocess.run(
+        ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+        capture_output=True,
+        check=False,
+    )
+    if merge_head.returncode != 0:
+        stderr = result.stderr.strip() if result.stderr else "unknown error"
+        click.echo(f"Merge failed: {stderr}", err=True)
+        raise SystemExit(1)
+
     conflicts = _git("diff", "--name-only", "--diff-filter=U", check=False).split("\n")
     conflicts = [c for c in conflicts if c.strip()]
 
@@ -246,9 +164,8 @@ def _phase3_merge_parent(slug: str) -> None:
         _git("add", "agent-core")
         conflicts = [c for c in conflicts if c != "agent-core"]
 
-    conflicts = _resolve_session_md_conflict(conflicts)
-    conflicts = _resolve_learnings_md_conflict(conflicts)
-    conflicts = _resolve_jobs_md_conflict(conflicts)
+    conflicts = resolve_session_md(conflicts, slug=slug)
+    conflicts = resolve_learnings_md(conflicts)
 
     if conflicts:
         _git("merge", "--abort")
@@ -258,12 +175,39 @@ def _phase3_merge_parent(slug: str) -> None:
         raise SystemExit(1)
 
 
+def _validate_merge_result(slug: str) -> None:
+    """Validate merge result: verify slug is ancestor of HEAD.
+
+    Also emits diagnostic warning if HEAD has fewer than 2 parents.
+    """
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", slug, "HEAD"],
+        check=False,
+    )
+
+    if result.returncode != 0:
+        click.echo(f"Error: branch {slug} not fully merged", err=True)
+        raise SystemExit(2)
+
+    parent_output = subprocess.run(
+        ["git", "cat-file", "-p", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+
+    parent_count = len(
+        [line for line in parent_output.split("\n") if line.startswith("parent ")]
+    )
+    if parent_count < 2:
+        click.echo(f"Warning: merge commit has {parent_count} parent(s)", err=True)
+
+
 def _phase4_merge_commit_and_precommit(slug: str) -> None:
     """Phase 4: Commit merge and run precommit validation.
 
     If MERGE_HEAD exists (merge in progress), always commit even if no staged
     changes (use --allow-empty). Otherwise, only commit if staged changes exist.
-    Then run `just precommit` and handle exit code appropriately.
     """
     merge_in_progress = (
         subprocess.run(
@@ -282,7 +226,18 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
     if merge_in_progress:
         _git("commit", "--allow-empty", "-m", f"🔀 Merge {slug}")
     elif staged_check.returncode != 0:
+        if not _is_branch_merged(slug):
+            click.echo(
+                "Error: merge state lost — MERGE_HEAD absent, branch not merged",
+                err=True,
+            )
+            raise SystemExit(2)
         _git("commit", "-m", f"🔀 Merge {slug}")
+    elif not _is_branch_merged(slug):
+        click.echo("Error: nothing to commit and branch not merged", err=True)
+        raise SystemExit(2)
+
+    _validate_merge_result(slug)
 
     precommit_result = subprocess.run(
         ["just", "precommit"],

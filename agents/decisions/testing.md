@@ -196,3 +196,41 @@ Standard TDD uses prose descriptions instead of full test code (per workflow-adv
 **Example:** `assert isinstance(relevant, list)` passes on empty list — pipeline silently returns no matches.
 
 **Detection:** Check if key assertions distinguish "correct output" from "empty/default output".
+
+## When Test Setup Steps Fail
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Using `subprocess.run(..., check=True, capture_output=True)` in test setup — CalledProcessError shows command and exit code but stderr is swallowed. Opaque failures invite confabulation.
+
+**Correct pattern:** Test setup should produce self-diagnosing failures. Either use `check=False` + explicit assertion with stderr, or use a helper that surfaces stderr on failure.
+
+**Evidence:** `git merge` failed with "untracked working tree files would be overwritten" but test only showed `CalledProcessError: exit status 1`.
+
+## When Testing CLI Tools
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Testing CLI via subprocess invocation or calling `main()` with SystemExit catching. Fragile, slow, conflates process-level concerns with behavior testing.
+
+**Correct pattern:** Use Click test harness (`click.testing.CliRunner`). Invokes CLI in-process, captures output and exit code, supports isolated filesystem. Tests run faster and assertions are cleaner.
+
+**Applies to:** Any CLI built with Click.
+
+## When Tests Simulate Merge Workflows
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Creating worktree branch at the merge commit (same SHA as HEAD) instead of as a merged parent. After `git commit --amend`, the branch points to the old (orphaned) commit — `git branch -d` correctly refuses.
+
+**Correct pattern:** Test should make the worktree branch the one that gets merged. Its tip becomes a parent of the merge commit, preserved through amend (amend keeps parents, only rewrites tree content).
+
+**Evidence:** `test_rm_amends_merge_commit_when_session_modified` created "test-feature" at HEAD, not as the merged branch. `-d` failed post-amend.
+
+## When Safety Checks Fail In Tests
+
+**Decision Date:** 2026-02-18
+
+**Anti-pattern:** Weakening a safety check (`-d` to `-D`) to make tests pass. If `git branch -d` correctly identifies unreachable commits, the problem is upstream (test scenario or code ordering).
+
+**Correct pattern:** Understand why the safety check fires. If the test scenario is unrealistic, fix the test. If code creates the problem (e.g., amend before delete), fix the ordering. Safety checks that detect merge parent loss are critical — suppressing them masks data loss.
