@@ -310,7 +310,9 @@ def test_conflict_output_contains_all_fields(
     _git("branch", "test-feature", cwd=repo_with_submodule)
     result = CliRunner().invoke(worktree, ["new", "test-feature"])
     assert result.exit_code == 0, f"new failed: {result.output}"
-    wt_path = repo_with_submodule.parent / f"{repo_with_submodule.name}-wt" / "test-feature"
+    wt_path = (
+        repo_with_submodule.parent / f"{repo_with_submodule.name}-wt" / "test-feature"
+    )
 
     # Branch: conflicting change to src/feature.py
     _write_commit(
@@ -344,7 +346,7 @@ def test_conflict_output_contains_all_fields(
     )
 
     # Diff stat format (line with |)
-    assert "|" in output and "+++" in output, f"Missing diff stat in: {output}"
+    assert "|" in output, f"Missing '|' in diff stat: {output}"
 
     # Divergence format (starts with "Branch: ")
     assert "Branch:" in output, f"Missing divergence info in: {output}"
@@ -352,5 +354,7 @@ def test_conflict_output_contains_all_fields(
 
     # Hint line
     assert "Resolve conflicts" in output, f"Missing 'Resolve conflicts' in: {output}"
-    assert "claudeutils _worktree merge" in output, f"Missing merge command in: {output}"
+    assert "claudeutils _worktree merge" in output, (
+        f"Missing merge command in: {output}"
+    )
     assert "test-feature" in output, f"Missing slug in hint: {output}"

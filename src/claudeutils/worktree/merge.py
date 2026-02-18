@@ -29,15 +29,7 @@ def _format_git_error(e: subprocess.CalledProcessError) -> str:
 
 
 def _format_conflict_report(conflicts: list[str], slug: str) -> str:
-    """Format detailed conflict report with stats, divergence, and hint.
-
-    Args:
-        conflicts: List of conflicted file paths
-        slug: Worktree branch slug
-
-    Returns:
-        Formatted conflict report string
-    """
+    """Format conflict report: status codes, diff stats, divergence, hint."""
     lines = [f"Conflicts in merge of `{slug}`:"]
 
     for conflict_file in conflicts:
@@ -48,11 +40,11 @@ def _format_conflict_report(conflicts: list[str], slug: str) -> str:
     lines.append("")
 
     for conflict_file in conflicts:
-        stat = _git("diff", "--stat", "MERGE_HEAD", "--", conflict_file, check=False)
+        stat = _git(
+            "diff", "--stat", "HEAD", "MERGE_HEAD", "--", conflict_file, check=False
+        )
         if stat:
-            for stat_line in stat.split("\n"):
-                if stat_line:
-                    lines.append(f"  {stat_line}")
+            lines.extend(f"  {sl}" for sl in stat.split("\n") if sl)
 
     lines.append("")
 
