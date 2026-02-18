@@ -166,7 +166,15 @@ def _phase2_resolve_submodule(slug: str) -> None:
             wt_agent_core = wt_path(slug) / "agent-core"
             _git("-C", "agent-core", "fetch", str(wt_agent_core), "HEAD")
 
-        _git("-C", "agent-core", "merge", "--no-edit", wt_commit)
+        # Try submodule merge; if it conflicts, leave MERGE_HEAD in place and return
+        merge_result = subprocess.run(
+            ["git", "-C", "agent-core", "merge", "--no-edit", wt_commit],
+            capture_output=True,
+            check=False,
+        )
+        if merge_result.returncode != 0:
+            return
+
         _git("add", "agent-core")
 
         result = subprocess.run(

@@ -291,3 +291,88 @@ def test_merge_submodule_merge_commit(
     assert recent_commits[1] == "🔀 Merge agent-core from merge-test", (
         f"Previous commit should be submodule merge, got: {recent_commits[1]}"
     )
+
+
+def test_submodule_conflict_does_not_abort_pipeline(
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_precommit: None,
+    commit_file: Callable[[Path, str, str, str], None],
+) -> None:
+    """Verify merge handles submodule conflicts without aborting pipeline.
+
+    When submodule merge produces conflicts:
+    - merge(slug) does NOT exit with CalledProcessError traceback
+    - Agent-core MERGE_HEAD exists after call (submodule conflict preserved)
+    - Exit code is 0 or 3
+    - Output does not contain "Traceback"
+    """
+    monkeypatch.chdir(repo_with_submodule)
+
+    agent_core_path = repo_with_submodule / "agent-core"
+
+    # Create a base commit on main in a file in agent-core
+    commit_file(agent_core_path, "conflict.txt", "base content", "Base change")
+    base_commit = subprocess.run(
+        ["git", "-C", str(agent_core_path), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    _update_submodule_pointer(repo_with_submodule, "Update to base commit")
+
+    # Create branch and worktree
+    subprocess.run(
+        ["git", "branch", "conflict-test"],
+        cwd=repo_with_submodule,
+        check=True,
+        capture_output=True,
+    )
+    result = CliRunner().invoke(worktree, ["new", "conflict-test"])
+    assert result.exit_code == 0
+
+    # In worktree's agent-core, create conflicting change to same file
+    wt_agent_core = (
+        repo_with_submodule.parent
+        / f"{repo_with_submodule.name}-wt"
+        / "conflict-test"
+        / "agent-core"
+    )
+    commit_file(wt_agent_core, "conflict.txt", "wt change", "Worktree conflict change")
+    wt_commit = subprocess.run(
+        ["git", "-C", str(wt_agent_core), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+    # Update worktree's submodule pointer
+    wt_branch = repo_with_submodule.parent / f"{repo_with_submodule.name}-wt" / "conflict-test"
+    _update_submodule_pointer(wt_branch, "Update wt pointer to conflict commit")
+
+    # Back on main, create a different change to the same file (real conflict)
+    commit_file(agent_core_path, "conflict.txt", "main change", "Main conflict change")
+    _update_submodule_pointer(repo_with_submodule, "Update to main commit")
+
+    # Invoke merge
+    result = CliRunner().invoke(worktree, ["merge", "conflict-test"])
+
+    # Verify no traceback in output
+    assert "Traceback" not in result.output, (
+        f"merge should not raise uncaught exception, got: {result.output}"
+    )
+
+    # Verify exit code is 0 or 3 (not uncaught exception)
+    assert result.exit_code in (0, 3), (
+        f"merge should exit with 0 or 3, got {result.exit_code}: {result.output}"
+    )
+
+    # Verify agent-core MERGE_HEAD exists (conflict preserved)
+    merge_head_check = subprocess.run(
+        ["git", "-C", str(agent_core_path), "rev-parse", "--verify", "MERGE_HEAD"],
+        capture_output=True,
+        check=False,
+    )
+    assert merge_head_check.returncode == 0, (
+        "agent-core MERGE_HEAD should exist after submodule conflict"
+    )
