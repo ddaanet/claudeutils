@@ -1,91 +1,47 @@
 """Tests for worktree display formatting (rich ls output)."""
 
-import subprocess
-from pathlib import Path
 from unittest import mock
 
-from claudeutils.planstate.aggregation import AggregatedStatus
+from claudeutils.planstate.aggregation import AggregatedStatus, TreeInfo
 from claudeutils.planstate.models import PlanState
 from claudeutils.worktree.display import format_rich_ls
 
 
-def test_format_rich_ls_renders_gate_lines(tmp_path: Path) -> None:
-    """Test that format_rich_ls correctly renders Gate lines when present.
+def test_format_rich_ls_renders_gate_lines() -> None:
+    """Test that format_rich_ls renders Gate lines from aggregated data."""
+    repo_path = "/fake/repo"
+    wt_path = "/fake/repo/wt/test-wt"
 
-    Verifies the gate display path works correctly when PlanState objects have
-    gate set. Uses mock to inject pre-built PlanState with gate value.
-    """
-    # Create a temporary git repo with main tree
-    repo_path = tmp_path / "repo"
-    repo_path.mkdir()
-    subprocess.run(["git", "init"], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
+    main_tree = TreeInfo(
+        path=repo_path,
+        branch="main",
+        is_main=True,
+        slug=None,
+        latest_commit_timestamp=100,
+        latest_commit_subject="initial",
+        commits_since_handoff=0,
+        is_dirty=False,
+        task_summary=None,
     )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Create initial commit (needed for git status and git log in format_tree_header)
-    (repo_path / "file.txt").write_text("content")
-    (repo_path / ".gitignore").write_text("wt/\n")
-    subprocess.run(["git", "add", "."], cwd=repo_path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "initial"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
+    wt_tree = TreeInfo(
+        path=wt_path,
+        branch="feature",
+        is_main=False,
+        slug="test-wt",
+        latest_commit_timestamp=200,
+        latest_commit_subject="add session",
+        commits_since_handoff=5,
+        is_dirty=True,
+        task_summary="Fix bugs",
     )
 
-    # Create a worktree with branch "feature"
-    worktree_path = repo_path / "wt" / "test-wt"
-    subprocess.run(
-        ["git", "worktree", "add", "-b", "feature", str(worktree_path)],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Create session.md in worktree
-    agents_dir = worktree_path / "agents"
-    agents_dir.mkdir()
-    (agents_dir / "session.md").write_text("# Session\nTest session")
-    subprocess.run(
-        ["git", "add", "."],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "add session"],
-        cwd=worktree_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Get porcelain output
-    result = subprocess.run(
-        ["git", "-C", str(repo_path), "worktree", "list", "--porcelain"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    porcelain_output = result.stdout
-
-    # Create PlanState objects: one with gate, one without
     plan_with_gate = PlanState(
         name="gated-plan",
         status="designed",
         next_action="/runbook plans/gated-plan/design.md",
         gate="design vet stale — re-vet before planning",
         artifacts={"design.md"},
-        tree_path=str(repo_path),
+        tree_path=repo_path,
     )
     plan_without_gate = PlanState(
         name="normal-plan",
@@ -93,31 +49,27 @@ def test_format_rich_ls_renders_gate_lines(tmp_path: Path) -> None:
         next_action="agent-core/bin/prepare-runbook.py plans/normal-plan",
         gate=None,
         artifacts={"design.md", "runbook-phase-1.md"},
-        tree_path=str(worktree_path),
+        tree_path=wt_path,
     )
 
-    # Mock aggregate_trees to return our test plans
-    mock_aggregated = AggregatedStatus(plans=[plan_with_gate, plan_without_gate])
+    mock_aggregated = AggregatedStatus(
+        plans=[plan_with_gate, plan_without_gate],
+        trees=[wt_tree, main_tree],
+    )
     with mock.patch(
         "claudeutils.worktree.display.aggregate_trees",
         return_value=mock_aggregated,
     ):
-        output = format_rich_ls(str(repo_path), porcelain_output)
+        output = format_rich_ls(repo_path, "")
 
-    # Verify gate line appears for plan_with_gate
-    assert "  Gate: design vet stale — re-vet before planning" in output, (
-        f"Expected gate line in output, got: {output}"
-    )
+    assert "  Gate: design vet stale — re-vet before planning" in output
+    assert output.count("  Gate:") == 1
+    assert "  Plan: gated-plan [designed]" in output
+    assert "  Plan: normal-plan [planned]" in output
 
-    # Verify no gate line for plan_without_gate (gate is None)
-    assert output.count("  Gate:") == 1, (
-        f"Expected exactly 1 gate line, got: {output}"
-    )
-
-    # Verify plan lines are present
-    assert "  Plan: gated-plan [designed]" in output, (
-        f"Expected gated-plan line in output, got: {output}"
-    )
-    assert "  Plan: normal-plan [planned]" in output, (
-        f"Expected normal-plan line in output, got: {output}"
-    )
+    # Verify tree headers use aggregated data
+    assert "main (main)" in output
+    assert "○  clean" in output
+    assert "test-wt (feature)" in output
+    assert "●" in output
+    assert "5 commits since handoff" in output

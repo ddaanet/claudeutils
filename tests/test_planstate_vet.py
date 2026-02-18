@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from claudeutils.planstate.models import VetChain, VetStatus
 from claudeutils.planstate.vet import get_vet_status
 
 
@@ -182,3 +183,71 @@ def test_iterative_review_highest_wins(tmp_path: Path) -> None:
     chain = vet_status.chains[0]
     assert chain.source == "outline.md"
     assert chain.report == "reports/outline-review-3.md"
+
+
+def test_any_stale_property() -> None:
+    """Test VetStatus.any_stale computed property."""
+    # All fresh → not stale
+    fresh_status = VetStatus(
+        chains=[
+            VetChain(
+                source="design.md", report="reports/design-review.md", stale=False
+            ),
+            VetChain(
+                source="outline.md", report="reports/outline-review.md", stale=False
+            ),
+        ]
+    )
+    assert fresh_status.any_stale is False
+
+    # One stale → stale
+    mixed_status = VetStatus(
+        chains=[
+            VetChain(
+                source="design.md", report="reports/design-review.md", stale=False
+            ),
+            VetChain(source="outline.md", report=None, stale=True),
+        ]
+    )
+    assert mixed_status.any_stale is True
+
+    # All stale → stale
+    all_stale = VetStatus(
+        chains=[
+            VetChain(source="design.md", report=None, stale=True),
+        ]
+    )
+    assert all_stale.any_stale is True
+
+    # Empty chains → not stale
+    empty_status = VetStatus(chains=[])
+    assert empty_status.any_stale is False
+
+
+def test_dynamic_phase_discovery(tmp_path: Path) -> None:
+    """Test vet discovers phases beyond 6 dynamically."""
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+    reports_dir = plan_dir / "reports"
+    reports_dir.mkdir()
+
+    # Create phases 1, 7, 12
+    for n in [1, 7, 12]:
+        (plan_dir / f"runbook-phase-{n}.md").write_text("")
+        report = reports_dir / f"phase-{n}-review.md"
+        report.write_text("")
+        os.utime(report, (2000, 2000))
+        os.utime(plan_dir / f"runbook-phase-{n}.md", (1000, 1000))
+
+    vet_status = get_vet_status(plan_dir)
+    assert vet_status is not None
+    assert len(vet_status.chains) == 3
+
+    sources = {c.source for c in vet_status.chains}
+    expected = {
+        "runbook-phase-1.md",
+        "runbook-phase-7.md",
+        "runbook-phase-12.md",
+    }
+    assert sources == expected
+    assert all(not c.stale for c in vet_status.chains)

@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-17
 
-**Status:** RCA completed on CLI tool usage deviation. Deliverable code findings still pending.
+**Status:** Deliverable code findings (M-4/M-5/M-6/M-7) complete. All workwoods deliverable fixes done.
 
 ## Completed This Session
 
@@ -11,15 +11,18 @@
 - Fix: execute-rule.md updated to reference CLI command, prohibit ad-hoc Python (uncommitted)
 - Learning added to `agents/learnings.md`: "When querying project state"
 
+**Deliverable code fixes (M-4/M-5/M-6/M-7):**
+- M-4: Full gate priority chain in `inference.py` — 4 gate types per D-7 (design > runbook outline > phase > outline)
+- M-5: Dynamic phase discovery in `vet.py` — glob-based, replaces hardcoded 6-phase map
+- M-6: TreeInfo enriched with all design fields (commits_since_handoff, latest_commit_subject, is_dirty, task_summary). display.py rewritten — zero subprocess calls, uses aggregated data
+- M-7: 12 new tests — outline-only/problem-only status, VetStatus.any_stale, 8 gate priority parametrized cases, dynamic phase discovery
+- Vet: 4 minor deslop fixes applied, report at `plans/workwoods/reports/deliverable-code-fixes-vet.md`
+- Precommit: 1038/1039 passed (up from 1026/1027, +12 new tests)
+- Behavioral change: display.py commit counting now uses aggregation.py algorithm (last session.md commit as anchor per design C-2), not old display.py algorithm (oldest session.md commit)
+
 ## Pending Tasks
 
-- [ ] **Fix deliverable code findings** — M-4/M-5/M-6/M-7 code + test gaps | sonnet
-  - M-4: Implement full gate priority chain in inference.py (4 gate types per D-7)
-  - M-5: Dynamic phase discovery in vet.py (replace hardcoded map)
-  - M-6: Populate TreeInfo with design-specified fields, remove display.py duplication
-  - M-7: Add tests for outline-only, problem-only, VetStatus.any_stale
-  - Note: apply testing diamond — integration tests for wiring (M-4 gate wiring, M-6 display path), unit for combinatorial (M-4 gate types)
-  - Reports: `deliverable-review-code.md`, `deliverable-review-test.md`
+- [x] **Fix deliverable code findings** — M-4/M-5/M-6/M-7 code + test gaps
 
 - [ ] **Design runbook evolution** — `/design plans/runbook-evolution/` | opus | restart
   - Requirements at `plans/runbook-evolution/requirements.md`
@@ -39,22 +42,19 @@
 **test_submodule_safety failures from main:**
 - 4 tests failing: cd-and-single, cd-and-chain, cd-and-pytest, dquote-and
 - From merged main content, not workwoods changes
-- Precommit passes (1026/1027, 1 xfail)
+- Precommit passes (1038/1039, 1 xfail)
 
-**learnings.md at 139 lines (soft limit 80):**
+**learnings.md at ~139 lines (soft limit 80):**
 - No entries at ≥7 active days — consolidation trigger not met
 
-**Gate wiring incomplete in display path:**
+**Gate wiring incomplete in production path:**
 - `list_plans()` → `infer_state()` never passes `vet_status_func`, so `PlanState.gate` is always None in production
-- Addressed by M-4 but wiring through aggregate_trees → list_plans → infer_state is separate
-
-**`_task_summary` not wired to display:**
-- Function exists and is tested (4 tests) but not called from `format_rich_ls`
-- Addressed by M-6 (TreeInfo enrichment)
+- M-4 implemented all 4 gate types, but wiring `get_vet_status` through `aggregate_trees` → `list_plans` → `infer_state` is separate work
+- `_task_summary` now populates TreeInfo but is not yet rendered in CLI output
 
 ## Next Steps
 
-Fix deliverable code findings (M-4/M-5/M-6/M-7). Deliverable fixes before pipeline improvements.
+Design runbook evolution (opus, restart). All deliverable fixes complete.
 
 ---
-*Handoff by Sonnet. RCA on CLI usage, deliverable code fixes next.*
+*Handoff by Sonnet. Deliverable code fixes complete, pipeline improvements next.*

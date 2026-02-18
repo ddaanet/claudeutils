@@ -32,6 +32,18 @@ def test_empty_directory_not_a_plan(tmp_path: Path) -> None:
             {"requirements.md"},
         ),
         (
+            "requirements_outline_only",
+            ["outline.md"],
+            "requirements",
+            {"outline.md"},
+        ),
+        (
+            "requirements_problem_only",
+            ["problem.md"],
+            "requirements",
+            {"problem.md"},
+        ),
+        (
             "designed",
             ["requirements.md", "design.md"],
             "designed",
@@ -159,6 +171,70 @@ def test_list_plans_directory_scanning(tmp_path: Path) -> None:
 
     empty_result = list_plans(tmp_path / "nonexistent")
     assert empty_result == []
+
+
+@pytest.mark.parametrize(
+    ("stale_sources", "expected_gate"),
+    [
+        (
+            ["design.md"],
+            "design vet stale — re-vet before planning",
+        ),
+        (
+            ["runbook-outline.md"],
+            "runbook outline vet stale — re-review before expansion",
+        ),
+        (
+            ["runbook-phase-2.md"],
+            "phase 2 vet stale — re-review",
+        ),
+        (
+            ["outline.md"],
+            "outline vet stale — re-review before design",
+        ),
+        # Priority: design wins over all others
+        (
+            ["outline.md", "design.md", "runbook-phase-1.md"],
+            "design vet stale — re-vet before planning",
+        ),
+        # Priority: runbook-outline wins over phase and outline
+        (
+            ["outline.md", "runbook-outline.md", "runbook-phase-3.md"],
+            "runbook outline vet stale — re-review before expansion",
+        ),
+        # Priority: phase wins over outline
+        (
+            ["outline.md", "runbook-phase-1.md"],
+            "phase 1 vet stale — re-review",
+        ),
+        # No stale sources → no gate
+        (
+            [],
+            None,
+        ),
+    ],
+)
+def test_gate_priority_chain(
+    tmp_path: Path,
+    stale_sources: list[str],
+    expected_gate: str | None,
+) -> None:
+    """Test gate priority: design > runbook outline > phase-level > outline."""
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+    (plan_dir / "design.md").write_text("")
+
+    mock_chains = [Mock(source=src, stale=True) for src in stale_sources]
+    # Add a non-stale chain to verify it's ignored
+    mock_chains.append(Mock(source="requirements.md", stale=False))
+
+    mock_vet_status = Mock()
+    mock_vet_status.chains = mock_chains
+
+    result = infer_state(plan_dir, vet_status_func=lambda _: mock_vet_status)
+
+    assert result is not None
+    assert result.gate == expected_gate
 
 
 def test_gate_attachment_with_mock(tmp_path: Path) -> None:

@@ -14,21 +14,17 @@ from claudeutils.worktree.session import extract_task_blocks
 
 
 class TreeInfo(NamedTuple):
-    """Information about a git worktree.
-
-    Attributes:
-        path: Absolute path to worktree directory
-        branch: Git branch name (refs/heads/ prefix stripped)
-        is_main: True if this is the main repository (not a worktree)
-        slug: Worktree slug (basename of path), None for main tree
-        latest_commit_timestamp: Unix epoch timestamp (seconds) of latest commit
-    """
+    """Information about a git worktree."""
 
     path: str
     branch: str
     is_main: bool
     slug: str | None
     latest_commit_timestamp: int = 0
+    latest_commit_subject: str = ""
+    commits_since_handoff: int = 0
+    is_dirty: bool = False
+    task_summary: str | None = None
 
 
 def _parse_worktree_list(output: str) -> list[TreeInfo]:
@@ -55,29 +51,25 @@ def _parse_worktree_list(output: str) -> list[TreeInfo]:
 
     result = []
     for idx, (path, branch) in enumerate(trees):
-        _, timestamp = _latest_commit(Path(path))
+        tree_path = Path(path)
+        subject, timestamp = _latest_commit(tree_path)
+        commits = _commits_since_handoff(tree_path)
+        dirty = _is_dirty(tree_path)
+        task = _task_summary(tree_path)
 
-        if idx == 0:
-            result.append(
-                TreeInfo(
-                    path=path,
-                    branch=branch,
-                    is_main=True,
-                    slug=None,
-                    latest_commit_timestamp=timestamp,
-                )
+        result.append(
+            TreeInfo(
+                path=path,
+                branch=branch,
+                is_main=(idx == 0),
+                slug=None if idx == 0 else tree_path.name,
+                latest_commit_timestamp=timestamp,
+                latest_commit_subject=subject,
+                commits_since_handoff=commits,
+                is_dirty=dirty,
+                task_summary=task,
             )
-        else:
-            slug = Path(path).name
-            result.append(
-                TreeInfo(
-                    path=path,
-                    branch=branch,
-                    is_main=False,
-                    slug=slug,
-                    latest_commit_timestamp=timestamp,
-                )
-            )
+        )
 
     return result
 

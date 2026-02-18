@@ -5,17 +5,22 @@ from pathlib import Path
 
 from .models import VetChain, VetStatus
 
-SOURCE_TO_REPORT_MAP = {
+_STATIC_SOURCE_TO_REPORT: dict[str, str] = {
     "outline.md": "reports/outline-review.md",
     "design.md": "reports/design-review.md",
     "runbook-outline.md": "reports/runbook-outline-review.md",
-    "runbook-phase-1.md": "reports/phase-1-review.md",
-    "runbook-phase-2.md": "reports/phase-2-review.md",
-    "runbook-phase-3.md": "reports/phase-3-review.md",
-    "runbook-phase-4.md": "reports/phase-4-review.md",
-    "runbook-phase-5.md": "reports/phase-5-review.md",
-    "runbook-phase-6.md": "reports/phase-6-review.md",
 }
+
+
+def _build_source_report_map(plan_dir: Path) -> dict[str, str]:
+    """Build source→report map with dynamic phase discovery."""
+    mapping = dict(_STATIC_SOURCE_TO_REPORT)
+    for phase_file in sorted(plan_dir.glob("runbook-phase-*.md")):
+        match = re.search(r"runbook-phase-(\d+)", phase_file.name)
+        if match:
+            n = match.group(1)
+            mapping[phase_file.name] = f"reports/phase-{n}-review.md"
+    return mapping
 
 
 def _extract_iteration_number(filename: str) -> int | None:
@@ -116,7 +121,8 @@ def get_vet_status(plan_dir: Path) -> VetStatus | None:
     chains = []
     reports_dir = plan_dir / "reports"
 
-    for source_file, report_file in SOURCE_TO_REPORT_MAP.items():
+    source_report_map = _build_source_report_map(plan_dir)
+    for source_file, report_file in source_report_map.items():
         source_path = plan_dir / source_file
 
         if not source_path.exists():

@@ -156,8 +156,8 @@ def test_rich_mode_header_and_task(tmp_path: Path) -> None:
             capture_output=True,
         )
 
-    # Make working directory dirty
-    (worktree_path / "dirty.txt").write_text("dirty content")
+    # Make working directory dirty (modify tracked file)
+    (worktree_path / "file0.txt").write_text("modified content")
 
     # Test rich mode output (without --porcelain) by invoking the CLI
     runner = CliRunner()
@@ -176,7 +176,7 @@ def test_rich_mode_header_and_task(tmp_path: Path) -> None:
         f"Expected header with slug and branch, got: {result.output}"
     )
     assert "●" in result.output, f"Expected dirty indicator ●, got: {result.output}"
-    assert "3 commits since handoff" in result.output, (
+    assert "2 commits since handoff" in result.output, (
         f"Expected commit count, got: {result.output}"
     )
 

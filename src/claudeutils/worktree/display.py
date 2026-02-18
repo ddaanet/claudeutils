@@ -1,115 +1,31 @@
 """Worktree display formatting for rich ls output."""
 
-import subprocess
 from pathlib import Path
 
-from claudeutils.planstate.aggregation import aggregate_trees
+from claudeutils.planstate.aggregation import TreeInfo, aggregate_trees
 
 
-def format_tree_header(
-    display_name: str, branch: str, path: str, _main_path: str
-) -> str:
-    """Format tree header with slug/branch, dirty indicator, commit status."""
-    clean_branch = branch.replace("refs/heads/", "") if branch else "main"
-
-    result = subprocess.run(
-        ["git", "-C", path, "status", "--porcelain"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    is_dirty = bool(result.stdout.strip())
-    dirty_indicator = "●" if is_dirty else "○"
-
-    session_path = Path(path) / "agents" / "session.md"
-    commits_count = 0
-    if session_path.exists():
-        result = subprocess.run(
-            [
-                "git",
-                "-C",
-                path,
-                "log",
-                "--oneline",
-                "--follow",
-                "agents/session.md",
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        lines = result.stdout.strip().split("\n") if result.stdout.strip() else []
-        if lines:
-            oldest_commit = lines[-1].split()[0]
-            count_result = subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    path,
-                    "rev-list",
-                    "--count",
-                    f"{oldest_commit}~1..HEAD",
-                ],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            if count_result.returncode == 0 and count_result.stdout.strip():
-                commits_count = int(count_result.stdout.strip())
-
-    commit_status = (
-        f"{commits_count} commits since handoff" if commits_count > 0 else "clean"
-    )
-    return f"{display_name} ({clean_branch})  {dirty_indicator}  {commit_status}"
+def _format_tree_line(tree: TreeInfo, display_name: str) -> str:
+    """Format a single tree header line."""
+    branch = tree.branch
+    dirty_indicator = "●" if tree.is_dirty else "○"
+    commits = tree.commits_since_handoff
+    commit_status = f"{commits} commits since handoff" if commits > 0 else "clean"
+    return f"{display_name} ({branch})  {dirty_indicator}  {commit_status}"
 
 
-def _parse_worktree_entries(
-    porcelain: str, main_path: str
-) -> list[tuple[str, str, str]]:
-    """Parse worktree list, return (slug, branch, path) excluding main."""
-    if not porcelain:
-        return []
-    lines, entries, i = porcelain.split("\n"), [], 0
-    while i < len(lines):
-        if not lines[i].startswith("worktree "):
-            i += 1
-            continue
-        path, branch, i = lines[i].split(maxsplit=1)[1], "", i + 1
-        while i < len(lines) and lines[i]:
-            if lines[i].startswith("branch "):
-                branch = lines[i].split(maxsplit=1)[1]
-            i += 1
-        i += 1
-        if path != main_path:
-            entries.append((Path(path).name, branch, path))
-    return entries
-
-
-def format_rich_ls(main_path: str, porcelain_output: str) -> str:
+def format_rich_ls(main_path: str, _porcelain_output: str) -> str:
     """Format rich ls output with headers for all trees and their plans."""
-    result = subprocess.run(
-        ["git", "-C", main_path, "rev-parse", "--abbrev-ref", "HEAD"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    main_branch = result.stdout.strip() if result.returncode == 0 else "main"
-
     aggregated = aggregate_trees(Path(main_path))
 
-    lines = [format_tree_header("main", main_branch, main_path, main_path)]
+    lines: list[str] = []
 
-    for plan in aggregated.plans:
-        if plan.tree_path == main_path:
-            lines.append(f"  Plan: {plan.name} [{plan.status}] → {plan.next_action}")
-            if plan.gate:
-                lines.append(f"  Gate: {plan.gate}")
-
-    for slug, branch, path in _parse_worktree_entries(porcelain_output, main_path):
-        lines.append(format_tree_header(slug, branch, path, main_path))
+    for tree in aggregated.trees:
+        display_name = "main" if tree.is_main else (tree.slug or Path(tree.path).name)
+        lines.append(_format_tree_line(tree, display_name))
 
         for plan in aggregated.plans:
-            if plan.tree_path == path:
+            if plan.tree_path == tree.path:
                 lines.append(
                     f"  Plan: {plan.name} [{plan.status}] → {plan.next_action}"
                 )

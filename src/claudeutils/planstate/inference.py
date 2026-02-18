@@ -1,13 +1,13 @@
 """Plan state inference from directory artifacts."""
 
+import re
 from collections.abc import Callable
 from pathlib import Path
 
-from .models import PlanState
+from .models import PlanState, VetChain
 
 
 def _collect_artifacts(plan_dir: Path) -> set[str]:
-    """Collect all recognized artifacts in the plan directory."""
     artifacts = set()
 
     # Baseline artifacts
@@ -29,7 +29,7 @@ def _collect_artifacts(plan_dir: Path) -> set[str]:
 
 
 def _determine_status(plan_dir: Path) -> str:
-    """Determine status by priority: ready > planned > designed > requirements."""
+    """Status priority: ready > planned > designed > requirements."""
     if (plan_dir / "steps").is_dir() and (plan_dir / "orchestrator-plan.md").exists():
         return "ready"
     if list(plan_dir.glob("runbook-phase-*.md")):
@@ -40,7 +40,6 @@ def _determine_status(plan_dir: Path) -> str:
 
 
 def _derive_next_action(status: str, plan_name: str) -> str:
-    """Map status to next action command."""
     match status:
         case "requirements":
             return f"/design plans/{plan_name}/requirements.md"
@@ -52,6 +51,41 @@ def _derive_next_action(status: str, plan_name: str) -> str:
             return f"/orchestrate {plan_name}"
         case _:
             return ""
+
+
+_GATE_PRIORITY: list[tuple[str, str]] = [
+    ("design.md", "design vet stale — re-vet before planning"),
+    ("runbook-outline.md", "runbook outline vet stale — re-review before expansion"),
+]
+
+
+def _first_stale_gate(chains: list[VetChain]) -> str | None:
+    """Return highest-priority gate message for stale chains.
+
+    Priority: design > runbook outline > phase-level > outline.
+    """
+    stale_sources = {c.source for c in chains if c.stale}
+    if not stale_sources:
+        return None
+
+    # Check design and runbook-outline (highest priority)
+    for source, message in _GATE_PRIORITY:
+        if source in stale_sources:
+            return message
+
+    # Check phase-level (any runbook-phase-N.md)
+    phase_sources = sorted(s for s in stale_sources if s.startswith("runbook-phase-"))
+    if phase_sources:
+        # Report first stale phase
+        match = re.search(r"runbook-phase-(\d+)", phase_sources[0])
+        phase_num = match.group(1) if match else "?"
+        return f"phase {phase_num} vet stale — re-review"
+
+    # Check outline (lowest priority)
+    if "outline.md" in stale_sources:
+        return "outline vet stale — re-review before design"
+
+    return None
 
 
 def infer_state(
@@ -84,11 +118,7 @@ def infer_state(
     if vet_status_func is not None:
         vet_status = vet_status_func(plan_dir)
         if vet_status is not None and hasattr(vet_status, "chains"):
-            for chain in vet_status.chains:
-                if chain.stale:
-                    if chain.source == "design.md":
-                        gate = "design vet stale — re-vet before planning"
-                    break
+            gate = _first_stale_gate(vet_status.chains)
 
     return PlanState(
         name=name,
