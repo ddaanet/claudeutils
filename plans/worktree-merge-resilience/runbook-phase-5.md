@@ -27,7 +27,6 @@
    - `SystemExit(1)`: precommit failure, git command error, unrecognized merge failure (non-conflict)
    - `SystemExit(2)`: branch not found, merge state corrupt (`slug not fully merged`, `nothing to commit and branch not merged`)
 4. Update any misclassified exits (Phases 1-4 may have used `SystemExit(1)` for conflict-pause paths)
-5. Verify: `grep -n "SystemExit" src/claudeutils/worktree/merge.py` — review each occurrence for correctness
 
 **Expected Outcome:** All conflict-pause exits use `SystemExit(3)`. No exit 1 on paths where MERGE_HEAD is preserved. No exit 3 on precommit failure or git error paths.
 
@@ -49,12 +48,13 @@
 
 **Execution Model:** Haiku (mechanical substitution, enumerate call sites with grep).
 
+**Scope boundary:** Only `merge.py` and the `merge` command function in `cli.py` (the `@worktree.command() def merge(slug)` function and its exception handler). Do NOT modify other CLI commands (`new`, `rm`, `ls`, etc.) or their error output.
+
 **Implementation:**
 1. Run: `grep -n "err=True" src/claudeutils/worktree/merge.py src/claudeutils/worktree/cli.py`
-2. For each match: remove the `err=True` keyword argument (leave all other arguments intact)
-3. Verify no `err=True` remains: `grep -n "err=True" src/claudeutils/worktree/merge.py src/claudeutils/worktree/cli.py` returns no matches
-
-**Scope boundary:** Only `merge.py` and `cli.py` merge handler. Do NOT modify other CLI commands or non-merge output.
+2. For `merge.py` matches: remove `err=True` from every match
+3. For `cli.py` matches: remove `err=True` only from the `merge` command function (the `except subprocess.CalledProcessError` handler in `def merge(slug)`); skip all other functions
+4. Verify no `err=True` remains in scope: `grep -n "err=True" src/claudeutils/worktree/merge.py` returns no matches; `grep -n "err=True" src/claudeutils/worktree/cli.py` returns only lines in non-merge functions (new, rm, etc.)
 
 **Expected Outcome:** Zero `err=True` occurrences in merge.py and cli.py merge handler. All output visible via stdout only.
 
@@ -63,7 +63,8 @@
 - Multiple `err=True` on same line → remove argument, preserve other arguments
 
 **Validation:**
-- `grep -n "err=True" src/claudeutils/worktree/merge.py src/claudeutils/worktree/cli.py` — zero matches
+- `grep -n "err=True" src/claudeutils/worktree/merge.py` — zero matches
+- `grep -n "err=True" src/claudeutils/worktree/cli.py` — only lines in non-merge functions (verify no match is inside `def merge(slug)`)
 - `just precommit` passes
 
 ---
@@ -80,16 +81,15 @@
 Read `agent-core/skills/worktree/SKILL.md` Mode C (lines ~84-114) fully before editing.
 
 Changes needed:
-1. **Add step for exit code 3** — insert after the current step 3 (exit 0 success) and before step 4 (exit code 1). New step:
+1. **Add step for exit code 3** — insert as new step 4, after the current step 3 (exit 0 success) and before the current step 4 (exit code 1). Move and adapt the conflict-handling content currently in the exit 1 section:
    - "**Parse merge exit code 3** (conflicts, merge paused). Read stdout for conflict report. The report contains: conflicted file list with conflict type, per-file diff stats, branch divergence summary, and a hint command. For each conflicted file: `Edit` to resolve conflict markers, `git add <file>`. When all conflicts resolved, re-run `claudeutils _worktree merge <slug>` (idempotent — resumes from current state, skips already-completed phases)."
+   - This moves the "If conflicts detected" workflow from the current exit 1 section into the new exit 3 step. Preserve the existing 4-substep conflict workflow (Edit → git add → Re-run) — adapt, don't rewrite from scratch.
 
-2. **Update step 4 (currently exit 1 handling)** — rename to step 5; clarify that exit 1 now means only errors (precommit failure, git command error), NOT conflict-pause (which is now exit 3):
-   - Update step 4 → step 5: "**Parse merge exit code 1** (error: precommit failure or git error). Read stdout for error message. ..."
-   - Remove the "If conflicts detected" sub-bullet from the old exit 1 section — conflicts are now exit 3 only.
+2. **Update step 4 (currently exit 1 handling)** — rename to step 5; remove the "If conflicts detected" sub-bullet (now in exit 3). What remains: precommit failure handling only.
+   - Update heading: "**Parse merge exit code 1** (error: precommit failure or git error). Read stdout for error message."
+   - Retain the precommit failure substeps (review failed checks, fix issues, git add, git commit --amend, just precommit, re-run merge). Remove the conflict sub-bullet entirely.
 
 3. **Update step 5 (currently exit 2 handling)** — rename to step 6; no content change needed.
-
-4. **Update Usage Notes** — the "Merge is idempotent" note (line ~122) is already accurate; verify it references the updated state machine.
 
 **Scope:** Mode C section only (`## Mode C:` heading through end of section or next `##` heading). Do NOT modify Mode A, Mode B, or Usage Notes beyond exit-code-related content.
 
