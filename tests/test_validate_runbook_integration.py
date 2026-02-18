@@ -1,4 +1,4 @@
-"""Integration tests for validate-runbook.py: directory input and skip flags."""
+"""Integration tests for validate-runbook.py."""
 
 import importlib.util
 import sys
@@ -75,6 +75,150 @@ _PHASE_2_CONTENT = """\
 ---
 """
 
+# Edge case fixtures: interim checkpoints and workflow decision files.
+
+_VALID_INTERIM_CHECKPOINTS = """\
+---
+title: Multi-Phase Runbook with Interim Checkpoints
+---
+
+# Phase 1: Core module (type: tdd)
+
+---
+
+## Cycle 1.1: first test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_alpha`
+
+**Verify RED:** `pytest tests/test_example.py::test_alpha -v`
+
+---
+
+## Cycle 1.2: second test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_beta`
+
+**Verify RED:** `pytest tests/test_example.py::test_beta -v`
+
+**Checkpoint:** All 2 tests pass.
+
+---
+
+# Phase 2: Extension (type: tdd)
+
+---
+
+## Cycle 2.1: third test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_gamma`
+
+**Verify RED:** `pytest tests/test_example.py::test_gamma -v`
+
+---
+
+## Cycle 2.2: fourth test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_delta`
+
+**Verify RED:** `pytest tests/test_example.py::test_delta -v`
+
+**Checkpoint:** All 4 tests pass.
+
+---
+"""
+
+_VIOLATION_INTERIM_CHECKPOINT = """\
+---
+title: Wrong Interim Checkpoint Count
+---
+
+# Phase 1: Core module (type: tdd)
+
+---
+
+## Cycle 1.1: first test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_alpha`
+
+**Verify RED:** `pytest tests/test_example.py::test_alpha -v`
+
+---
+
+## Cycle 1.2: second test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_beta`
+
+**Verify RED:** `pytest tests/test_example.py::test_beta -v`
+
+**Checkpoint:** All 3 tests pass.
+
+---
+
+# Phase 2: Extension (type: tdd)
+
+---
+
+## Cycle 2.1: third test
+
+**Execution Model**: Sonnet
+
+**RED Phase:**
+
+**Test:** `test_gamma`
+
+**Verify RED:** `pytest tests/test_example.py::test_gamma -v`
+
+**Checkpoint:** All 3 tests pass.
+
+---
+"""
+
+_VIOLATION_MODEL_TAGS_WORKFLOW = """\
+---
+title: Workflow Decision Violation Runbook
+---
+
+# Phase 1: Workflow updates (type: general)
+
+---
+
+## Cycle 1.1: update workflow decisions
+
+**Execution Model**: Sonnet
+
+**GREEN Phase:**
+
+**Changes:**
+- File: `agents/decisions/workflow-core.md`
+  Action: Modify
+
+---
+"""
+
 
 def test_integration_directory_input(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -143,3 +287,102 @@ def test_integration_skip_flag(
     assert report_path.exists(), f"Report not found at {report_path}"
     content = report_path.read_text()
     assert "**Result:** SKIPPED" in content
+
+
+def test_test_counts_interim_checkpoints_valid(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Interim checkpoints with correct cumulative counts exit 0."""
+    monkeypatch.chdir(tmp_path)
+    runbook = tmp_path / "interim-valid.md"
+    runbook.write_text(_VALID_INTERIM_CHECKPOINTS)
+
+    monkeypatch.setattr(
+        sys, "argv", ["validate-runbook", "test-counts", str(runbook)]
+    )
+    try:
+        main()
+        exit_code = 0
+    except SystemExit as exc:
+        exit_code = exc.code if isinstance(exc.code, int) else 1
+
+    assert exit_code == 0
+
+    report_path = (
+        tmp_path
+        / "plans"
+        / "interim-valid"
+        / "reports"
+        / "validation-test-counts.md"
+    )
+    assert report_path.exists(), f"Report not found at {report_path}"
+    content = report_path.read_text()
+    assert "**Result:** PASS" in content
+    assert "Failed: 0" in content
+
+
+def test_test_counts_interim_checkpoint_wrong(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Interim checkpoint claiming wrong count exits 1."""
+    monkeypatch.chdir(tmp_path)
+    runbook = tmp_path / "interim-wrong.md"
+    runbook.write_text(_VIOLATION_INTERIM_CHECKPOINT)
+
+    monkeypatch.setattr(
+        sys, "argv", ["validate-runbook", "test-counts", str(runbook)]
+    )
+    try:
+        main()
+        exit_code = 0
+    except SystemExit as exc:
+        exit_code = exc.code if isinstance(exc.code, int) else 1
+
+    assert exit_code == 1
+
+    report_path = (
+        tmp_path
+        / "plans"
+        / "interim-wrong"
+        / "reports"
+        / "validation-test-counts.md"
+    )
+    assert report_path.exists(), f"Report not found at {report_path}"
+    content = report_path.read_text()
+    assert "**Result:** FAIL" in content
+    # Phase 1 checkpoint claims 3 but only 2 tests seen so far
+    assert "3" in content
+    assert "2" in content
+
+
+def test_model_tags_workflow_decision_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Workflow decision file with non-opus model triggers violation."""
+    monkeypatch.chdir(tmp_path)
+    runbook = tmp_path / "workflow-violation.md"
+    runbook.write_text(_VIOLATION_MODEL_TAGS_WORKFLOW)
+
+    monkeypatch.setattr(
+        sys, "argv", ["validate-runbook", "model-tags", str(runbook)]
+    )
+    try:
+        main()
+        exit_code = 0
+    except SystemExit as exc:
+        exit_code = exc.code if isinstance(exc.code, int) else 1
+
+    assert exit_code == 1
+
+    report_path = (
+        tmp_path
+        / "plans"
+        / "workflow-violation"
+        / "reports"
+        / "validation-model-tags.md"
+    )
+    assert report_path.exists(), f"Report not found at {report_path}"
+    content = report_path.read_text()
+    assert "**Result:** FAIL" in content
+    assert "agents/decisions/workflow-core.md" in content
+    assert "**Expected:** opus" in content
