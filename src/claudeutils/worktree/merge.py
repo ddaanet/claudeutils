@@ -299,7 +299,12 @@ def merge(slug: str) -> None:
     elif state == "parent_resolved":
         _phase4_merge_commit_and_precommit(slug)
     elif state == "parent_conflicts":
-        click.echo("Merge aborted: unresolved conflicts in parent merge")
+        conflicts = _git("diff", "--name-only", "--diff-filter=U", check=False).split(
+            "\n"
+        )
+        conflicts = [c for c in conflicts if c.strip()]
+        for conflict in conflicts:
+            click.echo(conflict)
         raise SystemExit(3)
     elif state == "submodule_conflicts":
         _phase3_merge_parent(slug)

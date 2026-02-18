@@ -4,7 +4,9 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from click.testing import CliRunner
 
+from claudeutils.worktree.cli import worktree
 from claudeutils.worktree.merge import _detect_merge_state, _phase4_merge_commit_and_precommit
 
 
@@ -274,4 +276,112 @@ def test_merge_resumes_from_parent_resolved(
     )
     assert parent_count >= 2, (
         f"Expected merge commit with 2+ parents, got {parent_count}"
+    )
+
+
+def test_merge_reports_and_exits_3_when_parent_conflicts(
+    repo_with_submodule: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test merge exits with code 3 when parent merge has unresolved conflicts.
+
+    Repo has MERGE_HEAD with unresolved conflicts. merge(slug) should:
+    - Exit with code 3
+    - Not run --abort or clean
+    - MERGE_HEAD still exists after call
+    - Output contains name of conflicted file
+    - No traceback in output
+    """
+    monkeypatch.chdir(repo_with_submodule)
+
+    # Set up initial commit on main
+    (repo_with_submodule / "main.txt").write_text("main content\n")
+    subprocess.run(["git", "add", "main.txt"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Initial commit"],
+        check=True,
+        capture_output=True,
+    )
+
+    # Create branch with conflicting content in same file
+    subprocess.run(
+        ["git", "checkout", "-b", "conflict-branch"],
+        check=True,
+        capture_output=True,
+    )
+    (repo_with_submodule / "src").mkdir(parents=True, exist_ok=True)
+    (repo_with_submodule / "src" / "feature.py").write_text("branch version\n")
+    subprocess.run(["git", "add", "src/feature.py"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Add feature on branch"],
+        check=True,
+        capture_output=True,
+    )
+
+    # Switch back to main and create different content in same file
+    subprocess.run(
+        ["git", "checkout", "main"],
+        check=True,
+        capture_output=True,
+    )
+    (repo_with_submodule / "src").mkdir(parents=True, exist_ok=True)
+    (repo_with_submodule / "src" / "feature.py").write_text("main version\n")
+    subprocess.run(["git", "add", "src/feature.py"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Add feature on main"],
+        check=True,
+        capture_output=True,
+    )
+
+    # Start merge manually (not committed, will have conflicts)
+    merge_result = subprocess.run(
+        ["git", "merge", "--no-commit", "--no-ff", "conflict-branch"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    # Verify MERGE_HEAD exists
+    merge_head_check = subprocess.run(
+        ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+        check=False,
+        capture_output=True,
+    )
+    assert merge_head_check.returncode == 0, "MERGE_HEAD should exist"
+
+    # Verify unresolved conflicts
+    conflicts = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=U"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert conflicts.stdout.strip(), "Expected unresolved conflicts"
+
+    # Invoke merge() via CLI - should exit with code 3
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["merge", "conflict-branch"])
+
+    assert result.exit_code == 3, (
+        f"Expected exit code 3, got {result.exit_code}. Output: {result.output}"
+    )
+
+    # Verify MERGE_HEAD still exists (no --abort was run)
+    merge_head_after = subprocess.run(
+        ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+        check=False,
+        capture_output=True,
+    )
+    assert merge_head_after.returncode == 0, (
+        "MERGE_HEAD should still exist after merge()"
+    )
+
+    # Verify output contains conflicted filename
+    assert "feature.py" in result.output, (
+        f"Expected 'feature.py' in output, got: {result.output}"
+    )
+
+    # Verify no traceback
+    assert "Traceback" not in result.output, (
+        f"Expected no traceback, got: {result.output}"
     )
