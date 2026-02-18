@@ -168,10 +168,8 @@ def _setup_worktree(
 ) -> None:
     """Create worktrees, register sandbox, init environment."""
     _create_parent_worktree(worktree_path, slug, base, session)
-    _create_submodule_worktree(
-        _git("rev-parse", "--show-toplevel"), worktree_path, slug
-    )
     main_repo = _git("rev-parse", "--show-toplevel").strip()
+    _create_submodule_worktree(main_repo, worktree_path, slug)
     add_sandbox_dir(str(worktree_path.parent), ".claude/settings.local.json")
     add_sandbox_dir(
         str(worktree_path.parent), f"{worktree_path}/.claude/settings.local.json"
@@ -395,6 +393,7 @@ def rm(slug: str, confirm: bool, force: bool) -> None:  # noqa: FBT001
 
     if branch_exists:
         _delete_branch(slug, removal_type)
-    detail = " (focused)" if removal_type == "focused" else ""
-    amend = " Amended merge." if amended else ""
-    click.echo(f"Removed {slug}{detail}{amend}")
+    amend_note = " Merge commit amended." if amended else ""
+    detail = " (focused session only)" if removal_type == "focused" else ""
+    prefix = "Removed worktree" if removal_type is None else "Removed"
+    click.echo(f"{prefix} {slug}{detail}{amend_note}")

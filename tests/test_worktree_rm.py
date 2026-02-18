@@ -284,7 +284,7 @@ def test_rm_output_indicates_amend(
     result = runner.invoke(worktree, ["rm", "--confirm", "test-feature"])
 
     assert result.exit_code == 0
-    assert "amended merge" in result.output.lower()
+    assert "merge commit amended" in result.output.lower()
     assert "removed" in result.output.lower()
     assert "test-feature" in result.output.lower()
 

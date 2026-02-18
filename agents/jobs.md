@@ -26,6 +26,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | prototypes | requirements | Session extraction feature gap, multi-project scanning |
 | runbook-evolution | requirements | Prose atomicity, testing diamond, self-modification discipline (5 FRs) |
 | remaining-workflow-items | complete | 5 FRs: reflect task output, tool-batching, delegate resume, agent output, commit simplification |
+| quality-infrastructure | requirements | Deslop restructuring, code density decisions, vet rename (review/correct/correction), code refactoring |
 | remember-skill-update | requirements | Outline + requirements.md complete, Phase B discussion next |
 
 ## Complete (Archived)

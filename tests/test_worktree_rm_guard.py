@@ -190,7 +190,7 @@ def test_rm_allows_focused_session_only(
 
     assert result.exit_code == 0
     assert not _branch_exists(repo, "test-branch"), "Branch should be deleted"
-    assert "Removed test-branch (focused)" in result.output
+    assert "Removed test-branch (focused session only)" in result.output
 
 
 def test_rm_guard_prevents_destruction(

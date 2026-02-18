@@ -1,32 +1,42 @@
-# Session Handoff: 2026-02-17
+# Session Handoff: 2026-02-18
 
-**Status:** Merged worktree-rm-safety-gate, imported runbook-evolution requirements, added Tier 2 directives. 3 worktrees active.
+**Status:** Reverted merge UI condensation, grounded code density research, wrote quality infrastructure requirements. 3 worktrees active.
 
 ## Completed This Session
 
-**Worktree-rm-safety-gate merge:**
-- Merged branch with 5 FRs (dirty check, exit 2, --force bypass, skill confirmation)
-- Conflict on `plans/worktree-rm-safety/requirements.md` — pre-resolved (workwoods import collided with branch version)
-- Precommit fix: condensed cli.py rm output (401→400 lines), updated 2 test assertions
-- Worktree removed, branch deleted
+**Revert merge UI condensation:**
+- Restored worktree/cli.py rm output: "Removed worktree", "(focused session only)", "Merge commit amended."
+- Fixed redundant `rev-parse --show-toplevel` call in `_setup_worktree` (dedup, 401→399 lines)
+- Updated 2 test assertions to match original output strings
+- Precommit passes at 399 lines
 
-**Git show transport pattern:**
-- Discovered `git show <branch>:<path>` as cross-tree transport — eliminates need for sandbox `additionalDirectories`
-- Imported `plans/runbook-evolution/requirements.md` from design-workwoods worktree
-- Discussed: not a skill, should be CLI subcommand (`_worktree import`) if formalized
+**Code density grounding:**
+- Grounded research on exception handling (EAFP/LBYL boundaries) and Black formatter interaction
+- Internal branch (opus): applicability audit — 13/15 raw subprocess calls → `_git_ok`, 18 `SystemExit` sites → `_fail`
+- External branch (sonnet): Real Python, Click docs, Black docs, subprocess best practices
+- Convergence report: `plans/reports/code-density-grounding.md`
 
-**Tier 2 directives:**
-- Added `learn: <text>` — append to agents/learnings.md
-- Added `q: <text>` — quick question, terse response
-- Both in `agent-core/fragments/execute-rule.md`
+**Quality infrastructure requirements:**
+- Wrote `plans/quality-infrastructure/requirements.md` — 4 FRs: deslop restructuring, code density decisions, vet rename, code refactoring
+- FR-3 rename brainstorm: 34 files across agent-core, decisions, .claude
+- User decisions: vet→review, vet-fix→correct, vet-fix-report→correction, deslop removed from ambient
 
-**Reflect RCA — merge conflict prediction:**
-- Imported file into plan dir owned by active worktree → predictable conflict on merge
-- Learning added: ownership check before `git show` import
+**Discussion outcomes:**
+- Deslop split: prose rules → communication.md (ambient), code rules → correct agent pipeline only
+- Line-limit response: extract helpers (not compress output, not split files)
+- User annotated `src/claudeutils/cli.py` with 12 anti-pattern markers (in working tree, `git checkout -- src/claudeutils/cli.py` to discard)
 
 ## Pending Tasks
 
 <!-- Priority order per plans/reports/prioritization-2026-02-16.md (rev 2) -->
+
+- [ ] **Fix worktree rm dirty check** — Must not fail if parent repo is dirty, only if target worktree is dirty | sonnet
+
+- [ ] **Quality infrastructure reform** — `/design plans/quality-infrastructure/requirements.md` | opus
+  - Plan: quality-infrastructure | Status: requirements
+  - 4 FRs: deslop restructuring, code density decisions, vet rename, code refactoring
+  - Grounding: `plans/reports/code-density-grounding.md`
+  - Subsumes: Rename vet agents task (FR-3), augments Codebase quality sweep (FR-4)
 
 - [ ] **RED pass protocol** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
   - Blocked on: Error handling design (needs D-3 escalation criteria, D-5 rollback semantics)
@@ -46,7 +56,7 @@
   - Modeled on worktree CLI pattern (mechanical ops in CLI, judgment in skill)
   - Single command: precommit → stage → commit in main + agent-core submodule
 
-- [ ] **Vet delegation routing** — Route review to artifact-appropriate agent (vet-fix for code, skill-reviewer for skills, agent-creator for agents) | sonnet
+- [ ] **Vet delegation routing** — Route review to artifact-appropriate agent (correct for code, skill-reviewer for skills, agent-creator for agents) | sonnet
   - General rule affecting vet-requirement.md and /runbook review delegation
   - agent-creator: Write+Read, confirmed cooperative in review mode (decisions/project-config.md:266)
   - skill-reviewer: Read/Grep/Glob only — cannot autofix, would need tool additions
@@ -91,6 +101,7 @@
 - [ ] **Learning ages consol** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
 
 - [ ] **Codebase quality sweep** — Tests, deslop, factorization, dead code | sonnet
+  - Specific targets from quality-infrastructure FR-4: `_git_ok`, `_fail` helpers, 13 raw subprocess replacements, 18 SystemExit replacements, custom exception classes
 
 - [ ] **Remember agent routing** — blocked on memory redesign | sonnet
   - When consolidating learnings actionable for sub-agents, route to agent templates (quiet-task.md, tdd-task.md) as additional target
@@ -110,9 +121,6 @@
 
 - [ ] **Workflow formal analysis** — Formal verification of agent workflow | `/requirements` then `/design` | opus
   - Candidates: TLA+ (temporal), Alloy (structural), Petri nets (visual flow)
-
-- [ ] **Rename vet agents** — `vet-fix-agent` → `correct-agent`, `vet-agent` → `review-agent` | sonnet | restart
-  - Mechanical rename across agent definitions, fragments, skills, memory-index
 
 - [ ] **Design-to-deliverable** — Design session for tmux-like session clear/model switch/restart automation | opus | restart
 
@@ -202,18 +210,22 @@
 - Headings must include "To" (e.g., "How To Augment Agent Context")
 - Index keys must NOT include "to" — validator adds it automatically
 
+**User feedback annotations in working tree:**
+- `src/claudeutils/cli.py` has 12 FIXME/TODO/antipattern comments from user code review
+- `git checkout -- src/claudeutils/cli.py` to discard, or preserve as reference for quality-infrastructure design
+
 ## Next Steps
 
-Next: Execute plugin migration (opus) or Script commit vet gate (sonnet). 3 worktrees active (error-handling-design, design-workwoods, runbook-skill-fixes). Learnings at 137/80 lines — run `/remember` soon.
+Next: Fix worktree rm dirty check (sonnet) or Quality infrastructure reform design (opus). 3 worktrees active (error-handling-design, design-workwoods, runbook-skill-fixes). Learnings at 137/80 lines — run `/remember` soon.
 
 ## Reference Files
 
 - `plans/reports/prioritization-2026-02-16.md` — WSJF task prioritization (rev 2, 27 tasks)
-- `plans/worktree-merge-data-loss/reports/deliverable-review.md` — Consolidated review (all 3 major findings resolved)
-- `plans/reports/task-prioritization-methodology.md` — WSJF-adapted prioritization methodology
-- `plans/remember-skill-update/requirements.md` — 7 FRs (When/How prefix, validation, migration)
+- `plans/quality-infrastructure/requirements.md` — 4 FRs: deslop restructuring, code density decisions, vet rename, code refactoring
+- `plans/reports/code-density-grounding.md` — Grounded research on exception handling + Black formatter interaction
 - `plans/error-handling/outline.md` — Error handling design outline (Phase A complete)
 - `agents/decisions/deliverable-review.md` — Post-execution review methodology
 - `plans/reports/safety-review-grounding.md` — Safety review grounding research
 - `plans/runbook-quality-gates/design.md` — Quality gates design (6 FRs, simplification agent)
 - `plans/runbook-evolution/requirements.md` — Runbook evolution (5 FRs, testing diamond, prose atomicity)
+- `plans/remember-skill-update/requirements.md` — 7 FRs (When/How prefix, validation, migration)

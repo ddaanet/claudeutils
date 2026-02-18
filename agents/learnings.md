@@ -135,3 +135,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Scope: Only design.md and requirements.md are import candidates (small, authored). Runbooks (phase files, steps, orchestrator plans) are bulky, generated, implementation-oriented — require explicit intent, not casual import.
 - Ownership check: Before importing, verify no active worktree owns the target plan directory (`git worktree list` + check branch names). Importing into a worktree-owned plan creates merge conflicts when that worktree merges back.
 - Supersedes: "When worktree agents need cross-tree access" learning (additionalDirectories unnecessary for transport).
+## When hitting file line limits
+- Anti-pattern: Compressing user-facing output strings or splitting to new files to pass line-count checks. Both responses degrade quality (output clarity, module cohesion) without addressing the underlying problem.
+- Correct pattern: Look for code quality improvements first — redundant calls, dead code, extraction candidates, helper functions that encode repeated kwargs. Black expansion of 5+ line call sites signals too many parameters for inline use — extract a helper.
+- Evidence: worktree/cli.py 401→400 via output compression (reverted). Actual fix: dedup redundant `rev-parse --show-toplevel` call (401→399). Grounding: `plans/reports/code-density-grounding.md`.
+## When lint rule requires code change
+- Anti-pattern: Circumventing lint with mechanical transformations that satisfy the checker without improving the code. Example: `msg = "..."; raise ValueError(msg)` to dodge "no hardcoded exception messages" — the real problem is using `ValueError` for domain errors.
+- Correct pattern: Fix the underlying design problem the lint rule is pointing at. "No hardcoded exception messages" → create a custom exception class. "Function too long" → extract helpers, not compress strings.
+- Rationale: Lint rules surface design problems. Mechanical circumvention preserves the design problem while removing the signal.
