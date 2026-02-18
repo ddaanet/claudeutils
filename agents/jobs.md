@@ -9,7 +9,7 @@ Plan lifecycle tracking. Updated when plans change status.
 | Plan | Status | Notes |
 |------|--------|-------|
 | continuation-prepend | requirements | Problem statement only |
-| error-handling | requirements | Outline complete, Phase B blocked on workflow improvements |
+| error-handling | requirements | Outline grounded + reviewed ×2, ready for Phase B → design |
 | feature-requests | requirements | GH issue research (sandbox, tool overrides) |
 | orchestrate-evolution | designed | Design.md complete, vet in progress, planning next |
 | parallel-orchestration | requirements | Deferred from orchestrate-evolution (worktree isolation needed) |

@@ -46,9 +46,6 @@ Layers are ordered by implementation dependency: prevention and taxonomy provide
 
 - **Failed/canceled task cleanup:** Persist until user explicitly resolves. Failed/canceled tasks are blockers — trimming them on handoff would lose the signal that something needs attention. Different from completed tasks.
 - **CPS retry count:** 0 retries (abort-and-record). User resumes with `r`. Add targeted retry for specific cases only if they prove common in practice. Consistent with "build for current requirements, extend when needed."
-
-## Resolved Questions (continued)
-
 - **Timeout calibration (Q1):** Empirical analysis of 938 clean Task calls across 967 sessions (sleep-inflated outliers filtered via seconds-per-tool-use heuristic). Two independent failure modes require independent guards:
   - **Spinning (high activity, no convergence):** `max_turns` parameter on Task tool. Clean data: p90=40, p95=52, p99=73, max=129. Threshold: ~150 max_turns. Actionable now — parameter already exists.
   - **Hanging (no activity, wall-clock grows):** Duration timeout. Clean data: p90=225s, p95=301s, p99=485s, max=855s. Requires Claude Code infrastructure support (not currently controllable by project).
@@ -59,10 +56,12 @@ Layers are ordered by implementation dependency: prevention and taxonomy provide
 ## Scope Boundaries
 
 **In scope:**
-- CPS chain error recovery protocol (continuation-passing.md update)
+- Fault prevention documentation (Layer 0, prerequisite-validation.md reference)
+- Error taxonomy extension (error-classification.md update, 5 categories + retryable/non-retryable)
+- Orchestration escalation hardening (orchestrate skill update, acceptance criteria, rollback, `max_turns` timeout)
 - Task lifecycle error states (session.md notation, handoff skill update)
-- Orchestration escalation hardening (orchestrate skill update, acceptance criteria)
-- Error taxonomy extension (error-classification.md update)
+- CPS chain error recovery protocol (continuation-passing.md update)
+- Hook error protocol (D-6: stderr visibility, degraded mode documentation)
 - error-handling.md consolidation (cross-system patterns)
 
 **Out of scope:**
@@ -72,6 +71,15 @@ Layers are ordered by implementation dependency: prevention and taxonomy provide
 - Prerequisite validation enforcement in tooling (script change to plan-reviewer, separate task)
 
 ## Architecture
+
+### Fault Prevention (Layer 0)
+
+Prerequisite validation before execution — the most cost-effective error handling strategy (Avižienis: prevention is cheapest). Existing `prerequisite-validation.md` patterns catch ~80% of errors before they propagate. Layer 0 is the foundation: all subsystems benefit from validated preconditions.
+
+- Plan-reviewer validates prerequisites during runbook review
+- Orchestrator verifies clean tree before each step (existing pattern)
+- Commit skill checks session freshness (Gate A) before committing
+- CPS hook validates skill availability before chain injection
 
 ### Three Subsystems
 
@@ -111,30 +119,34 @@ Existing 4-category classification extended with grounding from established fram
 
 **Retryable vs non-retryable (Temporal):**
 - Each failure classified as retryable (transient: env issue, timeout, write conflict) or non-retryable (deterministic: missing file, design flaw, spec ambiguity)
-- Retryable → retry with backoff before escalating. Non-retryable → escalate immediately.
+- Response varies by subsystem: orchestration (Layer 2) retries retryable failures via Sonnet diagnostic before escalating; CPS chains (Layer 4) record the classification but abort regardless (D-1: 0 retries). Non-retryable failures escalate immediately in all subsystems.
 
 **Category 5: Inter-agent misalignment (MASFT FC2)** — Agent deviates from specification, ignores provided context, reasoning-action mismatch, premature termination, incomplete verification. Empirically the dominant failure category in multi-agent LLM systems. Already observed in this project: vet confabulation, over-escalation, agent skipping steps. Detection: existing review pipeline (outline review in /design, plan-reviewer in /runbook, vet-fix-agent in /orchestrate). No new detection mechanism needed — category names what reviews already catch.
 
 ### Error Flow
 
 ```
+Layer 0: Prerequisite validation (before execution)
+  ↓ passes
 Agent executes → Error occurs
   ↓
-Sonnet/Opus agent: self-classify (5 categories) and report
+Sonnet/Opus agent: self-classify (5 categories, including misalignment) and report
 Haiku agent: report raw error → Orchestrator classifies
   ↓
-Retryable? → Yes: Retry with backoff → No: Escalate
+Classify: retryable or non-retryable
   ↓
-Orchestrator checks acceptance criteria
+Orchestration path (Layer 2):
+  Retryable → Sonnet diagnostic → Apply fix → Verify acceptance (D-3) → Retry step
+  Non-retryable → Record in session.md → Escalate to user
   ↓
-If fixable: Sonnet diagnostic → Apply fix → Verify acceptance → Retry step
-If not fixable: Record in session.md → Escalate to user
-  ↓
-User resolves → Manual resume from recorded context
+CPS path (Layer 4):
+  Both → Abort chain, record classification + context in session.md Blockers (D-1)
+  User resumes via `r` from recorded context
 ```
 
 ### Integration Points
 
+- **Prevention (Layer 0)** validates preconditions before all subsystems execute
 - **Taxonomy (Layer 1)** provides error categories for all three subsystems
 - **Task states (Layer 3)** used by CPS chains to record blocked/failed continuations
 - **Orchestration acceptance (Layer 2)** defines verification protocol reused in CPS skill error handling
@@ -154,9 +166,9 @@ User resolves → Manual resume from recorded context
 - Update agent-level classification decision tree for all 5 categories
 
 ### Phase 2: Orchestration (Layer 2)
-- Create `escalation-acceptance.md` fragment defining success criteria
-- Update `orchestrate/SKILL.md` with rollback protocol and timeout handling
-- Document recovery paths for dirty tree violations
+- Create `escalation-acceptance.md` fragment defining success criteria (D-3)
+- Update `orchestrate/SKILL.md` with rollback protocol (D-5: revert to step start) and timeout handling (`max_turns` ~150)
+- Document dirty tree recovery: revert to last clean commit, re-execute step
 
 ### Phase 3: Task Lifecycle (Layer 3)
 - Create `task-failure-lifecycle.md` fragment with state notation and transitions
@@ -172,6 +184,7 @@ User resolves → Manual resume from recorded context
 - Review all error-related fragments for consistency
 - Add cross-references between subsystems
 - Document common patterns (mechanical detection, clean tree requirements, prevention over recovery)
+- Formalize hook error protocol (D-6: crash → stderr visible, session continues; timeout → degraded mode; invalid output → fallback to no-hook behavior)
 
 ## Success Metrics
 
@@ -192,6 +205,7 @@ User resolves → Manual resume from recorded context
 
 **Validation:**
 - Test each error category with real scenarios from exploration report
-- Verify acceptance criteria are measurable (dev output, git status, validation checks)
-- Confirm CPS error recovery works for multi-skill chains (`/design, /runbook, /orchestrate`)
+- Verify acceptance criteria are measurable (precommit output, git status, validation checks)
+- Confirm CPS error recovery works for multi-skill chains (`/design`, `/runbook`, `/orchestrate`)
 - Validate hook error protocol with intentional hook failures
+- Verify `max_turns` ~150 catches spinning agents without false positives against calibration data (p99=73, max=129)
