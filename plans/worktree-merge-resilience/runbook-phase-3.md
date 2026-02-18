@@ -77,7 +77,7 @@ Expected: no matches. If any `--abort` or `clean -fd` remain in merge.py, STOP a
 Both in `tests/test_worktree_merge_errors.py`.
 
 **Test A — updated `test_merge_aborts_cleanly_when_untracked_file_blocks`:**
-Change the test setup so the untracked file on main has DIFFERENT content from the branch version (different-content case). This way, after `git add` + retry, the merge produces conflict markers (exit 3). The test becomes a conflict-path test rather than an error test.
+The existing test setup already has different content on main ("# Untracked\n") vs branch ("# Branch\n"). No setup change needed. After `git add` + retry, the merge produces conflict markers (exit 3). Update assertions only — the test becomes a conflict-path test rather than an error test.
 
 Updated assertions for `test_merge_aborts_cleanly_when_untracked_file_blocks`:
 - `result.exit_code == 3` (was `!= 0`)
@@ -86,6 +86,8 @@ Updated assertions for `test_merge_aborts_cleanly_when_untracked_file_blocks`:
 - `"Traceback"` not in output
 
 **Test B — new `test_merge_untracked_file_same_content_auto_resolved`:**
+This is a success-path test: same-content auto-merge → Phase 4 runs → `just precommit` is called. Use `mock_precommit` fixture.
+
 Assertions:
 - When untracked file on main has SAME content as branch, `merge(slug)` exits 0
 - File is tracked after merge (no longer untracked)
