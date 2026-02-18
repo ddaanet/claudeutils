@@ -307,8 +307,9 @@ def test_submodule_conflict_does_not_abort_pipeline(
     assert "Traceback" not in result.output, (
         f"merge should not raise uncaught exception, got: {result.output}"
     )
-    assert result.exit_code in (0, 3), (
-        f"merge should exit with 0 or 3, got {result.exit_code}: {result.output}"
+    assert result.exit_code == 3, (
+        f"merge should exit 3 (MERGE_HEAD persists),"
+        f" got {result.exit_code}: {result.output}"
     )
 
     merge_head_check = subprocess.run(
@@ -343,11 +344,11 @@ def test_merge_resume_after_submodule_resolution(
     )
 
     # First merge: submodule conflict leaves MERGE_HEAD in agent-core.
-    # Phase 3 auto-resolves agent-core pointer with --ours and Phase 4 commits,
-    # so exit 0 is valid. Exit 3 occurs if parent conflicts remain.
+    # Phase 4 detects MERGE_HEAD and exits 3 (Fix #3).
     result = CliRunner().invoke(worktree, ["merge", "resume-test"])
-    assert result.exit_code in (0, 3), (
-        f"First merge should exit 0 or 3, got {result.exit_code}: {result.output}"
+    assert result.exit_code == 3, (
+        f"First merge should exit 3 (MERGE_HEAD detected),"
+        f" got {result.exit_code}: {result.output}"
     )
 
     # Manually resolve submodule conflict
@@ -382,7 +383,8 @@ def test_merge_resume_after_submodule_resolution(
         "wt_commit should be ancestor of agent-core HEAD after resolution"
     )
 
-    # Verify git log shows merge commits
+    # Both merge commits share the same message: first run commits parent merge
+    # (exit 3), second run commits submodule pointer update.
     log = _git("log", "-2", "--format=%s", cwd=repo_with_submodule)
     recent_commits = log.split("\n")
 

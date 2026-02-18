@@ -187,8 +187,9 @@ def test_merge_continues_to_phase3_when_submodule_conflicts(
     runner = CliRunner()
     result = runner.invoke(worktree, ["merge", "test-branch"])
 
-    assert result.exit_code in (0, 3), (
-        f"Expected exit code 0 or 3, got {result.exit_code}. Output: {result.output}"
+    assert result.exit_code == 3, (
+        f"Expected 3 (submodule MERGE_HEAD persists), got"
+        f" {result.exit_code}. Output: {result.output}"
     )
 
 

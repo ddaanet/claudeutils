@@ -180,6 +180,16 @@ def _phase2_resolve_submodule(slug: str) -> None:
             _git("commit", "-m", f"🔀 Merge agent-core from {slug}")
 
 
+def _auto_resolve_known_conflicts(conflicts: list[str], slug: str) -> list[str]:
+    """Auto-resolve known conflicts: agent-core (ours), session.md, learnings.md."""
+    if "agent-core" in conflicts:
+        _git("checkout", "--ours", "agent-core")
+        _git("add", "agent-core")
+        conflicts = [c for c in conflicts if c != "agent-core"]
+    conflicts = resolve_session_md(conflicts, slug=slug)
+    return resolve_learnings_md(conflicts)
+
+
 def _phase3_merge_parent(slug: str) -> None:
     """Phase 3: Initiate parent merge and auto-resolve known conflicts."""
     result = subprocess.run(
@@ -224,14 +234,7 @@ def _phase3_merge_parent(slug: str) -> None:
 
     conflicts = _git("diff", "--name-only", "--diff-filter=U", check=False).split("\n")
     conflicts = [c for c in conflicts if c.strip()]
-
-    if "agent-core" in conflicts:
-        _git("checkout", "--ours", "agent-core")
-        _git("add", "agent-core")
-        conflicts = [c for c in conflicts if c != "agent-core"]
-
-    conflicts = resolve_session_md(conflicts, slug=slug)
-    conflicts = resolve_learnings_md(conflicts)
+    conflicts = _auto_resolve_known_conflicts(conflicts, slug)
 
     if conflicts:
         click.echo(_format_conflict_report(conflicts, slug))
@@ -310,8 +313,21 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
         click.echo("Precommit passed")
     else:
         click.echo("Precommit failed after merge")
+        click.echo(precommit_result.stdout)
         click.echo(precommit_result.stderr)
         raise SystemExit(1)
+
+    submodule_path = Path("agent-core")
+    if submodule_path.exists() and (submodule_path / ".git").exists():
+        sub_merge_head = subprocess.run(
+            ["git", "-C", "agent-core", "rev-parse", "--verify", "MERGE_HEAD"],
+            capture_output=True,
+            check=False,
+        )
+        if sub_merge_head.returncode == 0:
+            click.echo("Submodule agent-core has unresolved merge conflict")
+            click.echo("Resolve in agent-core/, then re-run merge")
+            raise SystemExit(3)
 
 
 def merge(slug: str) -> None:
@@ -329,8 +345,11 @@ def merge(slug: str) -> None:
             "\n"
         )
         conflicts = [c for c in conflicts if c.strip()]
-        click.echo(_format_conflict_report(conflicts, slug))
-        raise SystemExit(3)
+        conflicts = _auto_resolve_known_conflicts(conflicts, slug)
+        if conflicts:
+            click.echo(_format_conflict_report(conflicts, slug))
+            raise SystemExit(3)
+        _phase4_merge_commit_and_precommit(slug)
     elif state == "submodule_conflicts":
         _phase3_merge_parent(slug)
         _phase4_merge_commit_and_precommit(slug)

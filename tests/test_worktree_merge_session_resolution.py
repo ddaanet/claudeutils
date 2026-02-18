@@ -3,6 +3,7 @@
 import subprocess
 from pathlib import Path
 
+import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
 from claudeutils.worktree.resolve import (
@@ -348,3 +349,44 @@ def test_resolve_session_md_with_slug_tags_blockers(
     assert "- WT blocker 2 [from: test-wt]" in resolved
     assert "  WT detail 1" in resolved
     assert "  WT detail 2" in resolved
+
+
+def test_resolve_session_md_fallback_outputs_to_stdout(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """resolve_session_md fallback diagnostic goes to stdout, not stderr.
+
+    Bug: resolve.py uses click.echo(..., err=True) in the fallback path when
+    git add fails. This sends the message to stderr, which merge.py never echoes.
+    Fix: remove err=True so the message goes to stdout.
+    """
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    (agents_dir / "session.md").write_text("# Session\n")
+    monkeypatch.chdir(tmp_path)
+
+    def mock_git(*args: str, **kwargs: object) -> str:
+        if args[0] == "show" and len(args) > 1 and ":2:" in args[1]:
+            return "# Session: Ours\n\n## Pending Tasks\n\n- [ ] **Task A**\n"
+        if args[0] == "show" and len(args) > 1 and ":3:" in args[1]:
+            return "# Session: Theirs\n\n## Pending Tasks\n\n- [ ] **Task B**\n"
+        if args[0] == "add":
+            raise subprocess.CalledProcessError(1, ["git", "add", args[1]])
+        if args[0] == "hash-object":
+            return "abc123def456abc123def456abc123def456abc1"
+        if args[0] == "update-index":
+            return ""
+        return ""
+
+    monkeypatch.setattr("claudeutils.worktree.resolve._git", mock_git)
+    resolve_session_md(["agents/session.md"], slug="test")
+
+    captured = capsys.readouterr()
+    # BUG: message goes to stderr due to err=True in click.echo
+    assert "hash-object" in captured.out, (
+        f"Fallback message should go to stdout."
+        f" out={captured.out!r} err={captured.err!r}"
+    )
+    assert "hash-object" not in captured.err

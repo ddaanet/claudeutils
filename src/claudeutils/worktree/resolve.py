@@ -97,12 +97,10 @@ def resolve_session_md(conflicts: list[str], slug: str | None = None) -> list[st
             )
             click.echo(
                 "session.md: staged via hash-object (git add failed)",
-                err=True,
             )
         except subprocess.CalledProcessError:
             click.echo(
                 "session.md: resolution failed, falling back to ours",
-                err=True,
             )
             _git("checkout", "--ours", "agents/session.md")
             _git("add", "agents/session.md")
