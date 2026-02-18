@@ -162,3 +162,7 @@ Removal guard + merge correctness. 13 TDD cycles, deliverable review. Prevented 
 ## workwoods
 
 Cross-tree worktree awareness with planstate inference, aggregation, rich ls display, section-based merge strategies, and vet tracking. 33 TDD + 10 general steps. Eliminated jobs.md in favor of filesystem-based plan state inference. Affected: src/claudeutils/planstate/, src/claudeutils/worktree/display.py, src/claudeutils/worktree/resolve.py.
+
+## runbook-evolution
+
+5 FRs: prose atomicity (FR-1), self-modification discipline (FR-2a/2b), testing diamond (FR-3a-d). Additive prose edits to runbook SKILL.md (Testing Strategy section, Phase 0.75 verification, TDD Cycle Planning) and anti-patterns.md (4 new entries, 1 rewritten). Side fix: vet-requirement.md reviewer routing table. Affected: agent-core/skills/runbook/, agent-core/fragments/vet-requirement.md.

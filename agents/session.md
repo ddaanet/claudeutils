@@ -198,11 +198,6 @@
   - 5 FRs: submodule conflict pass-through, leave merge in progress, untracked file handling, conflict context output, idempotent resume
   - Addresses root cause of merge difficulties observed this session
 
-- [ ] **Design runbook evolution** → `design-runbook-evolution` — `/design plans/runbook-evolution/` | opus | restart
-  - Requirements at `plans/runbook-evolution/requirements.md`
-  - Outline exists at `plans/runbook-evolution/outline.md` — resume from Phase A.6 (outline review)
-  - Scope: runbook SKILL.md generation directives only
-  - 5 FRs: prose atomicity, self-modification discipline, testing diamond, deferred enforcement, test migration
 
 ## Blockers / Gotchas
 
@@ -242,6 +237,8 @@
 - Drops worktree-side changes silently (learnings, completed work, design intent like deletions)
 - Must verify post-merge: compare `git show <branch>:<file>` against merged result
 
+- Prior session noted no entries ≥7 active days — consolidation batch insufficient [from: design-runbook-evolution]
+- Size trigger fires but nothing eligible for `/remember` [from: design-runbook-evolution]
 ## Next Steps
 
 3 worktrees active: error-handling-design, worktree-merge-resilience, runbook-evolution. Learnings at 196/80 lines — 0 entries ≥7 days, consolidation not yet triggerable.
