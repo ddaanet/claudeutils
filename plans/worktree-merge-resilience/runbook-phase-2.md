@@ -27,7 +27,7 @@
 **Assertions:**
 - When submodule merge produces conflicts, `merge(slug)` does NOT exit with `CalledProcessError` traceback
 - Agent-core MERGE_HEAD exists after call (submodule conflict preserved)
-- Exit code is 3 (conflicts need resolution — D-1, established in Phase 1 Cycle 1.3)
+- Exit code is 0 or 3 (not 1) — Phase 2 no longer raises; parent merge auto-resolves the submodule pointer (Phase 3 `checkout --ours agent-core`), so exit 0 is the most likely outcome for a submodule-only conflict
 - Output does not contain "Traceback"
 
 **Expected failure:** `SystemExit(1)` from uncaught `CalledProcessError` — current `_git("-C", "agent-core", "merge", ...)` with `check=True` raises when submodule merge conflicts.
