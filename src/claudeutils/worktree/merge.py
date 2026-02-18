@@ -185,6 +185,90 @@ def _phase2_resolve_submodule(slug: str) -> None:
             _git("commit", "-m", f"🔀 Merge agent-core from {slug}")
 
 
+def _recover_untracked_file_collision(slug: str, result: subprocess.CompletedProcess[str]) -> bool:
+    """Recover from untracked file collision by adding files and retrying merge.
+
+    When git merge fails because untracked files would be overwritten, we parse
+    the file paths from stderr, add them to the index, and retry the merge.
+
+    Returns True if recovery was successful and merge started, False if recovery failed.
+    """
+    stderr = result.stderr.strip() if result.stderr else ""
+
+    # Parse file paths from error message
+    # Files are listed one per line after the error marker, indented with tab or spaces
+    files_to_add = []
+    lines = stderr.split("\n")
+    in_file_list = False
+    for line in lines:
+        lower_line = line.lower()
+        if "untracked working tree file" in lower_line or "your local changes to the following files would be overwritten by merge" in lower_line:
+            in_file_list = True
+            continue
+        if in_file_list:
+            # Files are indented; stop at first non-indented line or blank line
+            if not line or (line and not line[0].isspace()):
+                break
+            files_to_add.append(line.strip())
+
+    # If no files found, recovery not applicable
+    if not files_to_add:
+        return False
+
+
+    # Add each file to the index
+    for file_path in files_to_add:
+        try:
+            subprocess.run(
+                ["git", "add", file_path],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError:
+            # If add fails, fall through to error handling
+            click.echo(f"Merge failed: {stderr}", err=True)
+            raise SystemExit(1)
+
+    # Commit the staged files to track them properly for the merge
+    try:
+        subprocess.run(
+            ["git", "commit", "-m", f"Track files to resolve {slug} merge"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        # If commit fails, abort recovery
+        click.echo(f"Merge failed: {e.stderr}", err=True)
+        raise SystemExit(1)
+
+    # Retry the merge
+    retry_result = subprocess.run(
+        ["git", "merge", "--no-commit", "--no-ff", slug],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    if retry_result.returncode == 0:
+        return True
+
+    # Check if merge started this time
+    merge_head = subprocess.run(
+        ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+        capture_output=True,
+        check=False,
+    )
+    if merge_head.returncode != 0:
+        # Merge still failed for some other reason
+        click.echo(f"Merge failed: {retry_result.stderr.strip()}", err=True)
+        raise SystemExit(1)
+
+    # Merge started (MERGE_HEAD exists), return True to continue to conflict handling
+    return True
+
+
 def _phase3_merge_parent(slug: str) -> None:
     """Phase 3: Initiate parent merge and auto-resolve known conflicts."""
     result = subprocess.run(
@@ -204,8 +288,25 @@ def _phase3_merge_parent(slug: str) -> None:
     )
     if merge_head.returncode != 0:
         stderr = result.stderr.strip() if result.stderr else "unknown error"
-        click.echo(f"Merge failed: {stderr}", err=True)
-        raise SystemExit(1)
+        # Detect untracked file collision and attempt recovery
+        is_untracked_error = "untracked working tree file" in stderr.lower()
+        is_local_changes_error = "your local changes to the following files would be overwritten by merge" in stderr.lower()
+        if is_untracked_error or is_local_changes_error:
+            if not _recover_untracked_file_collision(slug, result):
+                raise SystemExit(1)
+            # After recovery, check if merge started
+            merge_head = subprocess.run(
+                ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+                capture_output=True,
+                check=False,
+            )
+            if merge_head.returncode != 0:
+                # Merge still failed
+                click.echo(f"Merge failed: {stderr}", err=True)
+                raise SystemExit(1)
+        else:
+            click.echo(f"Merge failed: {stderr}", err=True)
+            raise SystemExit(1)
 
     conflicts = _git("diff", "--name-only", "--diff-filter=U", check=False).split("\n")
     conflicts = [c for c in conflicts if c.strip()]
