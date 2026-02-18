@@ -2,17 +2,17 @@
 
 ## Requirements Mapping
 
-| Requirement | Phase | Key Decision |
-|---|---|---|
-| FR-1: Submodule conflict pass-through | Phase 2 | D-6 |
-| FR-2: Parent merge preservation | Phase 3 | D-3 |
-| FR-3: Untracked file collision | Phase 3 | D-4 |
-| FR-4: Conflict context output | Phase 4 | D-8 |
-| FR-5: Idempotent resume | Phase 1 | D-5 |
-| NFR-1: Backward-compatible exit codes | Phase 5 | D-1 |
-| NFR-2: No data loss | Phase 3 | D-7 |
-| C-1: Skill contract | Phase 5 | — |
-| C-2: Non-interactive compatibility | Phase 5 | — |
+| Requirement | Phase | Cycles/Steps | Key Decision | Notes |
+|---|---|---|---|---|
+| FR-1: Submodule conflict pass-through | 2 | 2.1, 2.2 | D-6 | — |
+| FR-2: Parent merge preservation | 3 | 3.1 | D-3 | — |
+| FR-3: Untracked file collision | 3 | 3.2, 3.3 | D-4 | — |
+| FR-4: Conflict context output | 4 | 4.1, 4.2 | D-8 | — |
+| FR-5: Idempotent resume | 1 | 1.1–1.5 | D-5 | — |
+| NFR-1: Backward-compatible exit codes | 5 | 5.1 | D-1 | — |
+| NFR-2: No data loss | 3, 5 | 3.1, 5.1 | D-7 | Cross-cutting: Phase 3 removes abort, Step 5.1 audits all paths |
+| C-1: Skill contract | 5 | 5.3 | — | — |
+| C-2: Non-interactive compatibility | 5 | 5.2 | — | D-8 stdout unification |
 
 ## Phase Structure
 
@@ -24,21 +24,21 @@
 - Cycle 1.2: `_detect_merge_state` + routing — `parent_resolved` state: MERGE_HEAD exists, no unresolved conflicts → Phase 4 (integration: manually put repo in mid-merge-resolved state, verify re-run completes)
 - Cycle 1.3: `_detect_merge_state` + routing — `parent_conflicts` state: MERGE_HEAD exists with unresolved conflicts → exit 3, no destructive ops (integration: put repo in mid-merge-conflicted state, verify exit 3 + MERGE_HEAD preserved)
 - Cycle 1.4: `_detect_merge_state` + routing — `submodule_conflicts` state: agent-core MERGE_HEAD exists → check conflict status, continue to Phase 3 (integration: manually put agent-core in mid-merge state, verify Phase 3 entry)
+- Cycle 1.5: `_detect_merge_state` + routing — `clean` state: no merge in progress → full pipeline Phase 1→2→3→4 (integration: normal diverged branch, verify all phases execute in sequence, verify merge completes)
 
 **Dependencies:** None (foundation phase).
 **Affected files:** `src/claudeutils/worktree/merge.py`, `tests/test_worktree_merge_merge_head.py` (new or existing)
 **Complexity:** High — state machine with 5 branches, each requires distinct git state setup.
+**Checkpoint:** After Cycle 1.3 — verify state machine correctly routes all three in-progress states (merged, parent_resolved, parent_conflicts) before testing submodule and clean paths.
 
 ### Phase 2: Submodule conflict pass-through (type: tdd)
 
 **Scope:** Change `_phase2_resolve_submodule` to use `check=False` on `_git("-C", "agent-core", "merge", ...)`. On non-zero return: leave agent-core MERGE_HEAD, continue to Phase 3 (do not raise). Re-running Phase 2 when submodule already merged is a no-op (existing skip logic).
 
-Depends on: Phase 1 (state machine must handle `submodule_conflicts` before Phase 2 can be tested via re-run).
-
 - Cycle 2.1: Submodule merge conflict — agent-core MERGE_HEAD preserved, pipeline continues to Phase 3 (integration: set up diverged submodule on both sides, verify `_phase2` doesn't abort, verify agent-core MERGE_HEAD exists)
 - Cycle 2.2: Resume after manual submodule resolution — Phase 2 skip (already merged), pipeline proceeds to Phase 3 (integration: resolve agent-core conflict manually + stage, re-run `_worktree merge`, verify Phase 2 skipped via commit history)
 
-**Depends on:** Cycle 1.4.
+**Depends on:** Cycle 1.4 (state machine must handle `submodule_conflicts` before Phase 2 re-run path is exercised).
 **Affected files:** `src/claudeutils/worktree/merge.py`, `tests/test_worktree_merge_submodule.py`
 **Complexity:** Medium — behavioral change to submodule merge path, error handling.
 
@@ -54,13 +54,14 @@ Updates existing tests:
 - `test_merge_conflict_surfaces_git_error`: source file conflict → exit 3, MERGE_HEAD preserved, no "aborted" message
 
 - Cycle 3.1: Source conflict → MERGE_HEAD preserved, no abort, exit 3 (FR-2, NFR-2) — updates `test_merge_conflict_surfaces_git_error` (integration: real conflict in non-session file, assert exit 3, assert MERGE_HEAD still present, assert no --abort)
-  - Depends on: Cycle 1.3 (state machine must handle parent_conflicts before this path is exercised via re-run)
+  - Depends on: Cycles 1.3, 2.1 (state machine must handle parent_conflicts for re-run; Phase 2 pass-through must be stable)
 - Cycle 3.2: Untracked file same-content as incoming → `git add` + retry → merge proceeds to Phase 4 (FR-3, D-4) — updates `test_merge_aborts_cleanly_when_untracked_file_blocks` to cover same-content case (integration: untracked file on main with identical content to branch, assert exit 0, assert file tracked post-merge)
 - Cycle 3.3: Untracked file different-content → conflict markers in file + exit 3 (FR-3, D-4) — new test (integration: untracked file on main with different content from branch, assert exit 3, assert conflict markers in file, assert MERGE_HEAD present)
 
 **Depends on:** Cycles 1.3, 2.1 (Phase 3 behavior tested after Phase 1 routing is correct).
 **Affected files:** `src/claudeutils/worktree/merge.py`, `tests/test_worktree_merge_errors.py`
 **Complexity:** High — core behavioral change, untracked file detection, stderr parsing.
+**Checkpoint:** After Cycle 3.1 — verify NFR-2 invariant holds: no code path calls `--abort` or `clean -fd` (grep merge.py).
 
 ### Phase 4: Conflict context output (type: tdd)
 
@@ -80,15 +81,15 @@ Updates existing tests:
 - Step 5.1: Audit all `raise SystemExit(1)` in `merge.py` — update conflict-pause paths (unresolved conflicts, MERGE_HEAD present) to `raise SystemExit(3)`. Keep `SystemExit(1)` for error paths (precommit failure, git command failure). Verify no paths remain that abort merge state silently. (NFR-1)
   - Affected: `src/claudeutils/worktree/merge.py`
   - Execution model: Sonnet (code audit + judgment on error vs conflict classification)
-- Step 5.2: Migrate all `click.echo(..., err=True)` → `click.echo()` in `merge.py` (D-8, C-2). All output to stdout. Exit code is the semantic signal. (Single step covers all occurrences — prose atomicity)
-  - Affected: `src/claudeutils/worktree/merge.py`
-  - Execution model: Haiku (mechanical substitution, ~8 call sites)
+- Step 5.2: Migrate all `click.echo(..., err=True)` → `click.echo()` in `merge.py` and in `cli.py` merge handler (D-8, C-2). All merge-related output to stdout. Exit code is the semantic signal. (Single step covers all occurrences — prose atomicity)
+  - Affected: `src/claudeutils/worktree/merge.py`, `src/claudeutils/worktree/cli.py` (merge handler only, lines 258-263)
+  - Execution model: Haiku (mechanical substitution, grep `err=True` to enumerate call sites)
 - Step 5.3: Update `agent-core/skills/worktree/SKILL.md` Mode C — add exit code 3 handling: "Parse merge exit code 3 (conflicts, merge paused). Read stdout for conflict report. For each conflicted file listed: edit to resolve conflicts, `git add <file>`. Re-run `claudeutils _worktree merge <slug>` to resume." Update existing exit-1 handling to distinguish precommit failure (still exit 1) from conflict-pause (now exit 3). All SKILL.md changes in this step. (C-1, prose atomicity)
   - Affected: `agent-core/skills/worktree/SKILL.md`
   - Execution model: Opus (prose artifact, LLM-consumed)
 
 **Depends on:** Phases 1–4 (all exit code semantics must be stable before documenting).
-**Affected files:** `src/claudeutils/worktree/merge.py`, `agent-core/skills/worktree/SKILL.md`
+**Affected files:** `src/claudeutils/worktree/merge.py`, `src/claudeutils/worktree/cli.py` (merge handler), `agent-core/skills/worktree/SKILL.md`
 **Complexity:** Low — mechanical audit + mechanical substitution + prose update.
 
 ## Key Decisions Reference
@@ -103,11 +104,39 @@ Updates existing tests:
 
 ## Expansion Guidance
 
-- Testing diamond: integration tests (real git repos, tmp_path) are primary for all TDD phases. No subprocess mocks for git operations. Unit tests only if combinatorial coverage needed.
-- Prose atomicity: all SKILL.md edits in Step 5.3 only. Do not split across steps.
+The following recommendations should be incorporated during full runbook expansion:
+
+**Testing approach:**
+- Integration tests (real git repos, tmp_path) are primary for all TDD phases. No subprocess mocks for git operations. Unit tests only if combinatorial coverage needed.
+- Existing test updates: Cycles 3.1 and 3.2 each update one existing test in `test_worktree_merge_errors.py`. These updates are RED-phase changes (update test to assert new behavior; implementation still old → test fails). GREEN implements fix.
+
+**Prose atomicity:**
+- All SKILL.md edits in Step 5.3 only. Do not split across steps.
 - Self-modification ordering: Phase 5 (SKILL.md + exit code threading) is last — implementation complete before documentation.
+
+**Growth projection — merge.py:**
+- Current: 262 lines. Phases 1-4 each add net new code.
+- Phase 1 (state machine + routing): ~40 lines. Phase 2 (check=False + handler): ~15 lines. Phase 3 (untracked detection + report): ~30 lines. Phase 4 (conflict report function): ~40 lines. Phase 5: ~0 net (substitutions).
+- Projected cumulative: ~387 lines (exceeds 350-line threshold).
+- **Recommendation:** Monitor after Phase 3 GREEN. If merge.py exceeds 350 lines at Phase 3 checkpoint, extract `_format_conflict_report` and state detection into a separate `merge_state.py` module before Phase 4 expansion. Phase 4's `_format_conflict_report` is a natural extraction boundary (self-contained, no mutation).
+
+**Consolidation candidates:**
+- Cycles 1.1 and 1.2 are structurally similar (both route to Phase 4). Distinct git state setups justify separate cycles, but they can share fixture infrastructure during expansion (common `_setup_repo` helper).
+
+**Checkpoint guidance:**
+- Phase 1 checkpoint after Cycle 1.3: verify all in-progress states route correctly before testing submodule and clean paths.
+- Phase 3 checkpoint after Cycle 3.1: verify NFR-2 invariant — grep merge.py for `--abort` and `clean -fd`.
+
+**Cycle-specific prerequisites:**
 - D-7 audit: Step 5.1 must enumerate every `raise SystemExit` in merge.py and classify each as error (1) / fatal (2) / conflict-pause (3). Do not update D-3 paths until Phase 3 GREEN is complete.
-- Phase 3 note: `_git("merge", "--abort")` removal is the primary data-loss fix. Verify no other code path calls `--abort` or `clean -fd` (grep merge.py).
 - Cycle 3.1 prerequisite: Read `merge.py:137-175` before implementing to understand exact abort location and what follows it.
 - Cycle 4.1 prerequisite: Read `merge.py` Phase 3 and state-machine entry after Phase 1 implementation to understand call sites for `_format_conflict_report`.
-- Existing test updates: Cycles 3.1 and 3.2 each update one existing test in `test_worktree_merge_errors.py`. These updates are RED-phase changes (update test to assert new behavior; implementation still old → test fails). GREEN implements fix.
+- Phase 3 note: `_git("merge", "--abort")` removal is the primary data-loss fix. Verify no other code path calls `--abort` or `clean -fd` (grep merge.py).
+
+**Semantic propagation — exit code 3:**
+- Producer: merge.py (raises SystemExit(3))
+- Consumer: cli.py merge handler (lines 258-263) — currently catches CalledProcessError and re-raises as SystemExit(1). SystemExit(3) propagates past this handler, but the `err=True` in the handler's error output needs D-8 migration. Covered by Step 5.2.
+- Consumer: SKILL.md Mode C — covered by Step 5.3.
+
+**Scope boundary — justfile:**
+- The justfile `wt-merge` recipe has parallel abort-on-conflict logic (exploration report sections 2, 6). This runbook does NOT modify the justfile. The SKILL.md currently invokes `just wt-merge` not `claudeutils _worktree merge` — Step 5.3 must update Mode C to invoke the Python CLI directly, or note that justfile changes are deferred.
