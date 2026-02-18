@@ -54,6 +54,14 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: CLI suggesting destructive commands in output (e.g., `"use: git branch -D <slug>"`). LLM agents treat CLI output as instructions and execute the suggested command.
 - Correct pattern: Report the problem without prescribing destructive workarounds. Let the calling agent or user decide the action. CLI should refuse destructive operations, not suggest them.
 - Evidence: `_worktree rm` suggested `git branch -D` for unmerged branch. Agent followed the instruction, permanently deleting the only copy of unmerged parent repo changes.
+## When assuming interactive context
+- Anti-pattern: Assuming orchestration is interactive (user watching, can ctrl+c hung agents). Designing timeout as low-priority because "human-in-the-loop provides timeout for free."
+- Correct pattern: Orchestration is unattended — user focuses on design/workflow work elsewhere. Timeout is a real operational requirement, not a nice-to-have. Calibrate from historical data.
+- Rationale: The operational model determines which error handling mechanisms are needed. Wrong assumption about attended vs unattended cascades into under-specifying timeout, recovery, and notification.
+## When classifying errors by tier
+- Anti-pattern: Moving ALL error classification to orchestrator because haiku can't classify. Sweeping change that ignores capable agents.
+- Correct pattern: Tier-aware classification — sonnet/opus execution agents self-classify and report classified error; haiku agents report raw errors for orchestrator to classify. Preserves context locality for capable agents.
+- Rationale: Execution agent has full error context (stack trace, file state). Transmitting to orchestrator for classification loses fidelity or costs tokens. Orchestrator already knows agent model tier.
 ## When analyzing task insertion patterns
 - Anti-pattern: Assuming all single-task insertions share the same urgency profile. Overall data (n=65) showed 61.5% prepend, suggesting "always prepend" is natural behavior.
 - Correct pattern: Segment by origin. `p:` directives (n=29) distribute evenly (34.5% prepend). Workflow continuations dominate the prepend signal. Different insertion policies needed per origin type.

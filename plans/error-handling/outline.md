@@ -30,11 +30,11 @@ Layers are ordered by implementation dependency: prevention and taxonomy provide
 
 ## Key Decisions
 
-**D-1: CPS error propagation model** — When a skill fails mid-chain, classify as retryable (transient: hook timeout, write conflict) or non-retryable (deterministic: missing file, design flaw). Non-retryable: abort remaining continuation and record in session.md Blockers section for manual resume. Retryable: retry the failed skill once before aborting. The orphaned continuation is recorded with error context so `r` (resume) can pick up from the failed skill. Identify pivot transactions in the chain — after `/orchestrate` completes, compensation is impractical (Saga pattern concept).
+**D-1: CPS error propagation model** — When a skill fails mid-chain, abort remaining continuation and record in session.md Blockers section for manual resume via `r`. No automatic retry — 0 retries by default, add targeted retry for specific cases only if they prove common. The classification (retryable vs non-retryable) informs the recorded error context, not the immediate response. Identify pivot transactions in the chain — after `/orchestrate` completes, compensation is impractical (Saga pattern concept).
 
 **D-2: Task failure notation** — Add `- [!]` (blocked), `- [✗]` (failed), and `- [–]` (canceled) states to session.md. All include reason text. Blocked transitions back to pending when unblocked; failed is terminal (requires user decision to retry or abandon); canceled is user-initiated abort (distinct from system-detected failure). State model grounded in Temporal's WorkflowExecutionStatus (Running, Completed, Failed, Canceled, TimedOut).
 
-**D-3: Escalation acceptance criteria** — Define per-error-type what "fixed" means: (a) `just dev` passes, (b) git tree clean, (c) output validates against step acceptance criteria. All three criteria are required for successful escalation resolution.
+**D-3: Escalation acceptance criteria** — Define per-error-type what "fixed" means: (a) `just precommit` passes, (b) git tree clean, (c) output validates against step acceptance criteria. All three criteria are required for successful escalation resolution.
 
 **D-4: Fragment allocation strategy** — Create targeted fragments for new subsystems (task failure lifecycle, escalation acceptance). Extend existing fragments only where natural fit (CPS error recovery → `continuation-passing.md`). Don't force extensions into minimalist fragments (`error-handling.md` is 12 lines by design).
 
@@ -42,11 +42,14 @@ Layers are ordered by implementation dependency: prevention and taxonomy provide
 
 **D-6: Hook error protocol** — Hook failures should be visible (stderr output) but non-fatal for the session. CPS hook already silently catches errors; formalize this as intentional degraded mode. Document expected behavior for hook crash, timeout, and invalid output.
 
+## Resolved Questions
+
+- **Failed/canceled task cleanup:** Persist until user explicitly resolves. Failed/canceled tasks are blockers — trimming them on handoff would lose the signal that something needs attention. Different from completed tasks.
+- **CPS retry count:** 0 retries (abort-and-record). User resumes with `r`. Add targeted retry for specific cases only if they prove common in practice. Consistent with "build for current requirements, extend when needed."
+
 ## Open Questions
 
-- Should orchestrator timeout be configurable per-step or per-runbook? (Per-step is more flexible but adds complexity to orchestrator plan format. No grounded recommendation found — Temporal uses per-activity timeouts.)
-- Should `- [✗]` (failed) and `- [–]` (canceled) tasks be auto-cleaned on handoff, or persist until user explicitly removes them? (Persistence maintains audit trail but clutters session.md over time.)
-- How many retries for retryable CPS failures before escalating? (Temporal defaults to unlimited with exponential backoff; our interactive context suggests 1 retry max.)
+- **Timeout calibration:** Blanket timeout value TBD — requires historical session exploration to calibrate from actual step durations. Determines whether a single threshold suffices or per-step-type variance requires differentiated timeouts. Orchestration is unattended (user focuses on other work), so human timeout is not a substitute. Temporal uses per-activity timeouts as prior art.
 
 ## Scope Boundaries
 
@@ -68,11 +71,11 @@ Layers are ordered by implementation dependency: prevention and taxonomy provide
 ### Three Subsystems
 
 **1. Runbook Orchestration (Layer 2)**
-- Escalation flow: Agent → Haiku orchestrator → Sonnet diagnostic → User
-- Error classification at agent level using 4-category taxonomy
-- Acceptance criteria for escalation resolution (dev passes, tree clean, output validates)
+- Escalation flow: Agent → Sonnet/Opus orchestrator → Sonnet diagnostic → User (Haiku did not reliably escalate)
+- Error classification is tier-aware: sonnet/opus execution agents self-classify and report classified error; haiku execution agents report raw errors, orchestrator classifies
+- Acceptance criteria for escalation resolution (precommit passes, tree clean, output validates)
 - Rollback strategy: revert to last clean commit before failed step
-- Timeout handling with configurable limits per step or runbook
+- Timeout handling required — orchestration is unattended (user focuses on design/workflow work elsewhere). Human-in-the-loop timeout is not a substitute. Blanket threshold TBD pending historical calibration.
 
 **2. Task Lifecycle (Layer 3)**
 - Extended state notation: `[ ]` pending, `[>]` in-progress, `[x]` complete, `[!]` blocked, `[✗]` failed, `[–]` canceled
@@ -85,9 +88,9 @@ Layers are ordered by implementation dependency: prevention and taxonomy provide
 
 **3. CPS Skill Chains (Layer 4)**
 - Continuation passing via hook injection + skill tail-calls
-- Error classification: retryable (hook timeout, write conflict) vs non-retryable (missing file, design flaw)
-- Retryable: retry failed skill once before aborting
-- Non-retryable: abort remaining continuation, record in session.md Blockers section
+- Error classification: retryable (hook timeout, write conflict) vs non-retryable (missing file, design flaw) — informs recorded context, not immediate response
+- Default: 0 retries, abort and record in session.md Blockers section
+- Add targeted retry for specific failure types only if they prove common in practice
 - Pivot transactions: after `/orchestrate` completes execution, compensation is impractical (Saga pattern). Record these points-of-no-return in the chain.
 - Manual resume via `r` command from recorded error context
 - Recovery operations must be idempotent (Saga/Temporal requirement)
@@ -105,17 +108,19 @@ Existing 4-category classification extended with grounding from established fram
 - Each failure classified as retryable (transient: env issue, timeout, write conflict) or non-retryable (deterministic: missing file, design flaw, spec ambiguity)
 - Retryable → retry with backoff before escalating. Non-retryable → escalate immediately.
 
-**Category 5: Inter-agent misalignment (MASFT FC2)** — Agent deviates from specification, ignores provided context, reasoning-action mismatch, premature termination, incomplete verification. Empirically the dominant failure category in multi-agent LLM systems. Already observed in this project: vet confabulation, over-escalation, agent skipping steps.
+**Category 5: Inter-agent misalignment (MASFT FC2)** — Agent deviates from specification, ignores provided context, reasoning-action mismatch, premature termination, incomplete verification. Empirically the dominant failure category in multi-agent LLM systems. Already observed in this project: vet confabulation, over-escalation, agent skipping steps. Detection: existing review pipeline (outline review in /design, plan-reviewer in /runbook, vet-fix-agent in /orchestrate). No new detection mechanism needed — category names what reviews already catch.
 
 ### Error Flow
 
 ```
-Agent executes → Error occurs → Classify (5 categories) → Retryable?
-  ↓                                                          ↓
-  ↓                                              Yes: Retry with backoff
-  ↓                                              No: Escalate
+Agent executes → Error occurs
   ↓
-Orchestrator receives error → Check acceptance criteria
+Sonnet/Opus agent: self-classify (5 categories) and report
+Haiku agent: report raw error → Orchestrator classifies
+  ↓
+Retryable? → Yes: Retry with backoff → No: Escalate
+  ↓
+Orchestrator checks acceptance criteria
   ↓
 If fixable: Sonnet diagnostic → Apply fix → Verify acceptance → Retry step
 If not fixable: Record in session.md → Escalate to user
@@ -171,7 +176,7 @@ User resolves → Manual resume from recorded context
 - Every error category has defined escalation path and acceptance criteria
 
 **Clarity:**
-- Agent-level classification decision tree is actionable (agents can self-classify)
+- Classification decision tree is actionable (sonnet/opus agents self-classify; haiku agents report raw errors for orchestrator classification)
 - Rollback procedures are unambiguous (no "it depends" guidance)
 - Task state transitions are explicit with documented triggers
 
