@@ -276,7 +276,7 @@ title: Ambiguous Red Plausibility Runbook
 
 **Test:** `test_widget_validates_input`
 
-**Expected failure:** `ValueError` — widget raises on invalid input
+**Expected failure:** ValueError — widget raises on invalid input
 
 **Verify RED:** `pytest tests/test_example.py::test_widget_validates_input -v`
 
