@@ -82,7 +82,7 @@ def _add_and_commit_files(files: list[str], slug: str, stderr: str) -> None:
                 check=True,
             )
         except subprocess.CalledProcessError as err:
-            click.echo(f"Merge failed: {stderr}", err=True)
+            click.echo(f"Merge failed: {stderr}")
             raise SystemExit(1) from err
 
     try:
@@ -93,7 +93,7 @@ def _add_and_commit_files(files: list[str], slug: str, stderr: str) -> None:
             check=True,
         )
     except subprocess.CalledProcessError as err:
-        click.echo(f"Merge failed: {err.stderr}", err=True)
+        click.echo(f"Merge failed: {err.stderr}")
         raise SystemExit(1) from err
 
 
@@ -132,7 +132,7 @@ def _recover_untracked_file_collision(
         check=False,
     )
     if merge_head.returncode != 0:
-        click.echo(f"Merge failed: {retry_result.stderr.strip()}", err=True)
+        click.echo(f"Merge failed: {retry_result.stderr.strip()}")
         raise SystemExit(1)
 
     return True

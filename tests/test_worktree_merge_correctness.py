@@ -181,7 +181,7 @@ def test_validate_merge_valid(
         exit_code = e.code
 
     assert exit_code == 0
-    assert "Error" not in capsys.readouterr().err
+    assert "Error" not in capsys.readouterr().out
 
 
 def test_validate_merge_invalid(

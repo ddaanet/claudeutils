@@ -290,9 +290,7 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
         _git("commit", "--allow-empty", "-m", f"🔀 Merge {slug}")
     elif staged_check.returncode != 0:
         if not _is_branch_merged(slug):
-            click.echo(
-                "Error: merge state lost — MERGE_HEAD absent, branch not merged"
-            )
+            click.echo("Error: merge state lost — MERGE_HEAD absent, branch not merged")
             raise SystemExit(2)
         _git("commit", "-m", f"🔀 Merge {slug}")
     elif not _is_branch_merged(slug):
