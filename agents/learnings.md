@@ -209,3 +209,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Always routing from `/design` to `/runbook` after sufficiency gate, regardless of execution complexity. Complex design classification persists through the pipeline even when design resolves the uncertainty.
 - Correct pattern: Execution readiness gate inline at sufficiency gate. When design output is ≤3 files, prose/additive, insertion points identified, no cross-file coordination → direct execution with vet, skip `/runbook`.
 - Rationale: Design can resolve complexity. A job correctly classified as Complex for design may produce Simple execution. The gate is subtractive (creates exit ramp), not additive (more ceremony).
+## When selecting reviewer for artifact vet
+- Anti-pattern: Defaulting to vet-fix-agent for all artifacts because the vet-requirement fragment names it as the universal reviewer. Fragments are LLM-consumed behavioral instructions, not human documentation — doc-writing skill is wrong reviewer for them.
+- Correct pattern: Check artifact-type routing table in vet-requirement.md before selecting reviewer. Skills → skill-reviewer, agents → agent-creator, design → design-vet-agent, fragments → vet-fix-agent (default, not doc-writing). The routing table is always-loaded; the process step is the enforcement gate.
+- Evidence: Selected vet-fix-agent for skill edits. User corrected to skill-reviewer. Root cause: generic rule without routing lookup.

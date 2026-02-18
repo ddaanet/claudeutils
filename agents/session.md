@@ -1,47 +1,33 @@
-# Session: Worktree — Design runbook evolution
+# Session Handoff: 2026-02-18
 
-**Status:** Design complete, ready for direct execution of prose edits.
+**Status:** Runbook evolution complete. No pending tasks on this worktree.
 
 ## Completed This Session
 
-**Design skill complexity gates:**
-- Entry gate: artifact-aware triage reads plan directory before classification — existing outline can skip ceremony
-- Mid-stream gate: post-outline re-check downgrades complexity when outline reveals simpler work
-- File: `agent-core/skills/design/SKILL.md` (+21 lines)
+**Runbook evolution edits (plans/runbook-evolution/):**
+- 3 insertions to `agent-core/skills/runbook/SKILL.md`: Testing Strategy section (integration-first diamond), TDD Cycle Planning integration-first guidance, Phase 0.75 prose atomicity + self-modification ordering bullets
+- Anti-patterns.md: rewritten "Missing integration cycles" entry (real subprocesses, not mocked I/O), 3 new TDD entries (split prose, unit-only coverage, mocked subprocess), 1 new General entry (self-modification without expand/contract)
+- All 5 FRs (FR-1 through FR-3d) traced and covered per outline.md traceability table
+- Skill-reviewer: 0 critical, 0 major, 2 minor (1 fixed: phrasing differentiation; 1 pre-existing)
 
-**Outline review (A.6) + user discussion (B):**
-- Outline-review-agent found FR-2a anti-pattern gap, FR-3c "mocked I/O" contradiction — fixes applied to outline
-- User decisions: rewrite existing anti-pattern entry (not append), leave xfail checkpoint unchanged
-- Report: `plans/runbook-evolution/reports/outline-review.md`
+**Vet-requirement.md reviewer routing fix:**
+- Added artifact-type routing table to `agent-core/fragments/vet-requirement.md` (always-loaded, canonical)
+- Added step 2 to vet process: "Select reviewer from routing table" (mechanical gate)
+- Deduplicated: pipeline-contracts.md references fragment table, keeps orchestration-specific extensions only
+- Separated fragments from doc-writing row in pipeline-contracts.md (fragments → default vet-fix-agent)
 
-**Design skill execution readiness gate:**
-- Missing gate: `/design` always routed to `/runbook` after sufficiency gate, even when execution was simple
-- Fix: execution readiness criteria inline in Outline Sufficiency Gate section — ≤3 files, prose/additive, insertion points identified, no cross-file coordination
-- C.5 references gate by heading name (not positional)
-- File: `agent-core/skills/design/SKILL.md`
-
-**Prototype:** `plans/prototypes/recover-agent-writes.py` — extracts Write calls from agent session logs
-
-**Design runbook evolution — design phase complete:**
-- `/design plans/runbook-evolution/` invoked → entry gate → sufficiency gate passed → execution readiness passed
-- Outline IS the design (no design.md needed)
+**Process gap identified:** Selected vet-fix-agent instead of skill-reviewer for skill artifacts. Root cause: generic rule named one reviewer without artifact-type routing lookup.
 
 ## Pending Tasks
 
-- [ ] **Execute runbook evolution edits** — direct execution of outline.md prose edits | opus
-  - Design: `plans/runbook-evolution/outline.md` (outline = design, sufficiency gate passed)
-  - Requirements: `plans/runbook-evolution/requirements.md` (5 FRs)
-  - Scope: `agent-core/skills/runbook/SKILL.md` + `agent-core/skills/runbook/references/anti-patterns.md`
-  - Insertion points: lines 253 (Phase 0.75), 535 (TDD Cycle Planning), 791 (Testing Strategy section)
-  - User decisions: rewrite existing anti-pattern entry (not append), leave xfail checkpoint unchanged
-  - Execute edits → vet-fix-agent → `/handoff --commit`
+(none on this worktree)
 
 ## Blockers / Gotchas
 
-**learnings.md at 207 lines (soft limit 80):**
-- No entries ≥7 active days — consolidation batch insufficient
+**learnings.md at 207+ lines (soft limit 80):**
+- Prior session noted no entries ≥7 active days — consolidation batch insufficient
 - Size trigger fires but nothing eligible for `/remember`
 
 ## Next Steps
 
-Execute prose edits per outline.md in opus session. Read SKILL.md, make 3 insertions + anti-patterns.md edits, then vet.
+Merge worktree back to main. All planned work for design-runbook-evolution is complete.

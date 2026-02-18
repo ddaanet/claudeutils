@@ -17,16 +17,14 @@ Centralized I/O contracts for the design-to-deliverable pipeline. Authoritative 
 
 ## When Routing Artifact Review
 
-Per-step validation routes to domain-specific reviewers based on artifact type.
+**Core routing table:** `agent-core/fragments/vet-requirement.md` "Reviewer routing by artifact type" (always-loaded, canonical).
+
+**Orchestration-specific extensions:**
 
 | Artifact Type | Reviewer |
 |--------------|----------|
-| Code, tests | vet-fix-agent |
-| Skills (SKILL.md, references/) | skill-reviewer |
-| Agent definitions | agent-creator (review+autofix prompt) |
-| Design documents | design-vet-agent (opus) |
 | Planning artifacts (runbooks, phases) | plan-reviewer |
-| Human documentation (README, fragments) | vet-fix-agent + doc-writing skill (writing style guidance) |
+| Human documentation (README, guides) | vet-fix-agent + doc-writing skill (writing style guidance) |
 
 **Orchestrator handles all review delegation.** Sub-agents lack Task and Skill tools — they cannot delegate to any reviewer. All reviews must be delegated to prevent implementer bias (implementer never reviews own work). The execution agent commits; the orchestrator reads the validation section and delegates the review.
 
