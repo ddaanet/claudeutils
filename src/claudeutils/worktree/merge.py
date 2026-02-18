@@ -293,6 +293,8 @@ def merge(slug: str) -> None:
     state = _detect_merge_state(slug)
 
     if state == "merged":
+        _phase1_validate_clean_trees(slug)
+        _phase2_resolve_submodule(slug)
         _phase4_merge_commit_and_precommit(slug)
     elif state == "parent_resolved":
         _phase4_merge_commit_and_precommit(slug)
