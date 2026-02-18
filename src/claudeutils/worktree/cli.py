@@ -259,7 +259,7 @@ def merge(slug: str) -> None:
         merge_impl(slug)
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.strip() if isinstance(e.stderr, str) else ""
-        click.echo(f"git error: {stderr or e}", err=True)
+        click.echo(f"git error: {stderr or e}")
         raise SystemExit(1) from None
 
 

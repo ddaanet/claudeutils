@@ -216,10 +216,10 @@ def _phase3_merge_parent(slug: str) -> None:
             )
             if merge_head.returncode != 0:
                 # Merge still failed
-                click.echo(f"Merge failed: {stderr}", err=True)
+                click.echo(f"Merge failed: {stderr}")
                 raise SystemExit(1)
         else:
-            click.echo(f"Merge failed: {stderr}", err=True)
+            click.echo(f"Merge failed: {stderr}")
             raise SystemExit(1)
 
     conflicts = _git("diff", "--name-only", "--diff-filter=U", check=False).split("\n")
@@ -249,7 +249,7 @@ def _validate_merge_result(slug: str) -> None:
     )
 
     if result.returncode != 0:
-        click.echo(f"Error: branch {slug} not fully merged", err=True)
+        click.echo(f"Error: branch {slug} not fully merged")
         raise SystemExit(2)
 
     parent_output = subprocess.run(
@@ -263,7 +263,7 @@ def _validate_merge_result(slug: str) -> None:
         [line for line in parent_output.split("\n") if line.startswith("parent ")]
     )
     if parent_count < 2:
-        click.echo(f"Warning: merge commit has {parent_count} parent(s)", err=True)
+        click.echo(f"Warning: merge commit has {parent_count} parent(s)")
 
 
 def _phase4_merge_commit_and_precommit(slug: str) -> None:
@@ -291,13 +291,12 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
     elif staged_check.returncode != 0:
         if not _is_branch_merged(slug):
             click.echo(
-                "Error: merge state lost — MERGE_HEAD absent, branch not merged",
-                err=True,
+                "Error: merge state lost — MERGE_HEAD absent, branch not merged"
             )
             raise SystemExit(2)
         _git("commit", "-m", f"🔀 Merge {slug}")
     elif not _is_branch_merged(slug):
-        click.echo("Error: nothing to commit and branch not merged", err=True)
+        click.echo("Error: nothing to commit and branch not merged")
         raise SystemExit(2)
 
     _validate_merge_result(slug)
