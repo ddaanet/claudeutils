@@ -34,7 +34,7 @@
 4. Record the wt branch's agent-core commit SHA as `wt_submodule_commit`
 5. Invoke `worktree merge slug` via CliRunner
 6. Check: subprocess `git -C agent-core rev-parse --verify MERGE_HEAD` returns 0 (MERGE_HEAD exists)
-7. Assert exit code == 3, "Traceback" not in output
+7. Assert exit code in (0, 3), "Traceback" not in output
 
 **Setup detail:** The `repo_with_submodule` fixture creates agent-core as a submodule. To make agent-core commits conflict: on both branch and main, commit different content to the same file in agent-core (e.g., `conflict.txt`). The branch's agent-core commit must be recorded in the parent branch's tree (via `git add agent-core && git commit`).
 

@@ -1,7 +1,7 @@
 # Step 5.3
 
 **Plan**: `plans/worktree-merge-resilience/runbook.md`
-**Execution Model**: haiku
+**Execution Model**: opus
 **Phase**: 5
 
 ---

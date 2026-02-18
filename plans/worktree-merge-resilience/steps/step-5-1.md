@@ -1,7 +1,7 @@
 # Step 5.1
 
 **Plan**: `plans/worktree-merge-resilience/runbook.md`
-**Execution Model**: haiku
+**Execution Model**: sonnet
 **Phase**: 5
 
 ---

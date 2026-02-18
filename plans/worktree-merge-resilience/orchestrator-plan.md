@@ -4,6 +4,17 @@ Execute steps sequentially using worktree-merge-resilience-task agent.
 
 Stop on error and escalate to sonnet for diagnostic/fix.
 
+## Model Directives
+
+Step execution: per step metadata.
+Vet-fix:
+  Opus for Phase 1 (state machine routing, D-5 compliance).
+  Opus for Step 5.3 (prose artifact, LLM-consumed).
+  Sonnet for Phases 2–4 and Steps 5.1, 5.2.
+Refactor: sonnet.
+
+Principle: match review model to the correctness property, not the author's model.
+
 ## Step Execution Order
 
 ## step-1-1 (Cycle 1.1)
