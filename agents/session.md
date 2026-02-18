@@ -1,34 +1,45 @@
 # Session Handoff: 2026-02-18
 
-**Status:** Reverted merge UI condensation, grounded code density research, wrote quality infrastructure requirements. 3 worktrees active.
+**Status:** Attempted design-workwoods merge — tool can't handle source conflicts, wrote merge resilience requirements, RCA on escalation pattern. 3 worktrees active.
 
 ## Completed This Session
 
-**Revert merge UI condensation:**
-- Restored worktree/cli.py rm output: "Removed worktree", "(focused session only)", "Merge commit amended."
-- Fixed redundant `rev-parse --show-toplevel` call in `_setup_worktree` (dedup, 401→399 lines)
-- Updated 2 test assertions to match original output strings
-- Precommit passes at 399 lines
+**Worktree merge resilience requirements:**
+- Wrote `plans/worktree-merge-resilience/requirements.md` — 5 FRs for improving `_worktree merge` conflict handling
+- FR-1: proceed through submodule conflicts, FR-2: leave parent merge in progress (don't abort), FR-3: handle untracked file collisions, FR-4: conflict context in output, FR-5: idempotent resume across all phases
 
-**Code density grounding:**
-- Grounded research on exception handling (EAFP/LBYL boundaries) and Black formatter interaction
-- Internal branch (opus): applicability audit — 13/15 raw subprocess calls → `_git_ok`, 18 `SystemExit` sites → `_fail`
-- External branch (sonnet): Real Python, Click docs, Black docs, subprocess best practices
-- Convergence report: `plans/reports/code-density-grounding.md`
+**RCA on merge workaround escalation:**
+- Identified "tool fails → I become the tool" pattern: manually reimplementing merge phases, losing atomicity/safety invariants
+- Root cause of 82 orphaned files: `git merge` without `dangerouslyDisableSandbox: true` partially checks out files, hits sandbox restriction, leaves debris
+- Bounded workaround rule: pre-resolution means editing conflicting regions of EXISTING files, not creating new modules
+- 2 learnings added to `agents/learnings.md`
 
-**Quality infrastructure requirements:**
-- Wrote `plans/quality-infrastructure/requirements.md` — 4 FRs: deslop restructuring, code density decisions, vet rename, code refactoring
-- FR-3 rename brainstorm: 34 files across agent-core, decisions, .claude
-- User decisions: vet→review, vet-fix→correct, vet-fix-report→correction, deslop removed from ambient
-
-**Discussion outcomes:**
-- Deslop split: prose rules → communication.md (ambient), code rules → correct agent pipeline only
-- Line-limit response: extract helpers (not compress output, not split files)
-- User annotated `src/claudeutils/cli.py` with 12 anti-pattern markers (in working tree, `git checkout -- src/claudeutils/cli.py` to discard)
+**Agent-core submodule conflict resolved:**
+- SKILL.md conflict in agent-core between runbook-skill-fixes (auto-rm with --confirm) and workwoods (no auto-rm, preserve worktree)
+- Took workwoods version (newer design intent)
+- agent-core HEAD at b3b6f5b (merge commit) — parent pointer not yet updated
 
 ## Pending Tasks
 
 <!-- Priority order per plans/reports/prioritization-2026-02-16.md (rev 2) -->
+
+- [ ] **Merge design-workwoods** — Manual merge with conflict resolution | sonnet
+  - Agent-core submodule: already resolved (b3b6f5b), parent pointer needs updating (`git add agent-core && git commit`)
+  - Parent repo: cli.py has 3 conflict regions (imports, `_guard_branch_removal`, `_delete_branch`)
+  - `just wt-merge` recipe (line 199) also aborts on source conflicts — same limitation as Python tool
+  - **Procedure:** Run `git merge --no-commit --no-ff design-workwoods` with `dangerouslyDisableSandbox: true`, resolve cli.py, complete merge
+  - **CRITICAL:** Never run `git merge` without `dangerouslyDisableSandbox: true` — partial checkout + sandbox failure deposits orphaned files
+  - **cli.py conflict resolution (3 regions):**
+    - Imports: remove `_format_git_error` and `extract_task_blocks`, add `format_rich_ls` (from display), keep `focus_session` re-export, keep `_is_parent_dirty`/`_is_submodule_dirty`
+    - `_guard_branch_removal`: take workwoods ternary style + main's `SystemExit(2)`
+    - `_delete_branch`: take workwoods compact formatting + main's `SystemExit(1)`
+  - **Context loss risk:** This session analyzed both versions in full. Next session must re-read both sides (`git show design-workwoods:src/claudeutils/worktree/cli.py` vs main) if conflict details unclear
+  - After merge: `just precommit`, then `wt-rm design-workwoods` when ready
+
+- [ ] **Worktree merge resilience** — `/design plans/worktree-merge-resilience/requirements.md` | opus
+  - Plan: worktree-merge-resilience | Status: requirements
+  - 5 FRs: submodule conflict pass-through, leave merge in progress, untracked file handling, conflict context output, idempotent resume
+  - Addresses root cause of merge difficulties observed this session
 
 - [ ] **Fix worktree rm dirty check** — Must not fail if parent repo is dirty, only if target worktree is dirty | sonnet
 
@@ -171,13 +182,25 @@
   - Superseded by git show transport — sandbox access unnecessary for cross-tree operations
   - Affects: cli.py `_setup_worktree()`, justfile, `test_new_sandbox_registration`
 
+- [ ] **Design quality gates** — `/design plans/runbook-quality-gates/` | opus | restart
+  - Requirements at `plans/runbook-quality-gates/requirements.md`
+  - 3 open questions: script vs agent (Q-1), insertion point (Q-2), mandatory vs opt-in (Q-3)
+- [ ] **Design runbook evolution** — `/design plans/runbook-evolution/` | opus | restart
+  - Requirements at `plans/runbook-evolution/requirements.md`
+  - Outline exists at `plans/runbook-evolution/outline.md` — resume from Phase A.6 (outline review)
+  - Scope: runbook SKILL.md generation directives only
+- [x] **Fix deliverable code findings** — M-4/M-5/M-6/M-7 code + test gaps
+- [ ] **Migrate test suite to diamond** — needs scoping | depends on runbook evolution design
+  - Existing 1027 tests, separate design from runbook evolution
+  - Different scope and execution profile
+
 ## Worktree Tasks
 
 - [ ] **Error handling design** → `error-handling-design` — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
   - Outline: `plans/error-handling/outline.md`
   - Key decisions: D-1 CPS abort-and-record, D-2 task `[!]`/`[✗]` states, D-3 escalation acceptance criteria, D-5 rollback = revert to step start
 
-- [ ] **Design workwoods** → `design-workwoods` — `/design plans/workwoods/requirements.md` | opus
+- [ ] **Design workwoods** → `design-workwoods` — Merge pending (see "Merge design-workwoods" task above) | opus
   - Plan: workwoods | Status: designed (runbook planned, 33 TDD + 10 general steps)
 
 - [ ] **Runbook skill fixes** → `runbook-skill-fixes` — Batch: model assignment, design quality gates | opus
@@ -187,10 +210,16 @@
 
 ## Blockers / Gotchas
 
-**Merge tool aborts on conflict (skill mismatch):**
-- `_worktree merge` aborts and returns clean tree on conflict
-- Worktree skill Mode C step 4 documents resolution assuming in-progress merge state
-- Workaround: pre-resolve conflict (commit resolution separately), then re-run merge
+**Merge tool aborts on conflict (both Python and justfile):**
+- `_worktree merge` AND `just wt-merge` abort and return clean tree on source conflicts
+- Skill Mode C step 4 documents resolution assuming in-progress merge state — mismatch
+- `just wt-merge` recipe at justfile:199, same abort behavior at line 306
+- Requirements for fix: `plans/worktree-merge-resilience/requirements.md`
+
+**Never run `git merge` without sandbox bypass:**
+- `git merge` without `dangerouslyDisableSandbox: true` partially checks out files, hits sandbox, leaves 80+ orphaned untracked files
+- These orphaned files block subsequent merge attempts
+- Always use `dangerouslyDisableSandbox: true` for any merge operation
 
 **Transient git index.lock during merge:**
 - `claudeutils _worktree merge` hits `index.lock` race condition during multi-step git operations
@@ -214,12 +243,18 @@
 - `src/claudeutils/cli.py` has 12 FIXME/TODO/antipattern comments from user code review
 - `git checkout -- src/claudeutils/cli.py` to discard, or preserve as reference for quality-infrastructure design
 
+**Agent-core submodule pointer mismatch:**
+- agent-core HEAD at b3b6f5b (merge commit with SKILL.md resolution)
+- Parent repo pointer still at pre-merge commit (reset reverted the pointer update)
+- Next merge Phase 2 will detect this as already-resolved and skip
+
 ## Next Steps
 
-Next: Fix worktree rm dirty check (sonnet) or Quality infrastructure reform design (opus). 3 worktrees active (error-handling-design, design-workwoods, runbook-skill-fixes). Learnings at 137/80 lines — run `/remember` soon.
+Next: Merge design-workwoods (sonnet, manual merge with sandbox bypass). Learnings at 152/80 lines — run `/remember` urgently. 3 worktrees active (error-handling-design, design-workwoods, runbook-skill-fixes).
 
 ## Reference Files
 
+- `plans/worktree-merge-resilience/requirements.md` — 5 FRs for merge conflict handling
 - `plans/reports/prioritization-2026-02-16.md` — WSJF task prioritization (rev 2, 27 tasks)
 - `plans/quality-infrastructure/requirements.md` — 4 FRs: deslop restructuring, code density decisions, vet rename, code refactoring
 - `plans/reports/code-density-grounding.md` — Grounded research on exception handling + Black formatter interaction
