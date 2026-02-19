@@ -56,14 +56,24 @@ Reviewers at every gate follow fix-all pattern:
 
 ## When Declaring Phase Type
 
-Runbook phases declare type: `tdd` or `general` (default: general).
+Runbook phases declare type: `tdd`, `general` (default), or `inline`.
 
 Type determines:
-- **Expansion format:** TDD cycles (RED/GREEN) vs general steps (script evaluation)
-- **Review criteria:** TDD discipline for TDD phases, step quality for general phases
-- **LLM failure modes:** Apply universally regardless of type
+- **Expansion format:** TDD → RED/GREEN cycles. General → task steps with script evaluation. Inline → pass-through (no decomposition).
+- **Review criteria:** TDD → TDD discipline. General → step quality. Inline → vacuity, density, dependency ordering (lighter — no step/script/TDD checks).
+- **LLM failure modes:** Apply universally regardless of type.
+- **Orchestration delegation model:** TDD/general → per-step agent delegation. Inline → orchestrator-direct (reads phase content from runbook, executes edits without Task dispatch). Batching consecutive inline phases deferred pending empirical data.
 
-Type does NOT affect: tier assessment, outline generation, consolidation gates, assembly, orchestration, checkpoints.
+Type does NOT affect: tier assessment, outline generation, consolidation gates, assembly, checkpoints.
+
+### Inline Eligibility Criteria
+
+A phase qualifies as `inline` when outcome is fully determined by instruction + target file state:
+- No runtime feedback loop (tests, scripts, external state)
+- Prose edits, config additions, cross-reference insertions, mechanical content application
+- All decisions pre-resolved in design
+
+Inline phases in orchestrator-plan.md use `Execution: inline` (vs `Execution: steps/step-N-M.md` for general/TDD phases). prepare-runbook.py skips step-file generation for inline phases.
 
 ## When Vet Escalation Calibration
 

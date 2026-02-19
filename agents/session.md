@@ -183,6 +183,14 @@
   - Touches: design skill, outline format, runbook skill, prepare-runbook.py, orchestrate skill, plan-reviewer
   - Absorbs: Runbook model assignment, Fix prepare-runbook.py model override, Fix plan-reviewer model adequacy gap
 
+- [x] **Execute error-handling inline** — Validate inline workflow via error-handling outline | opus
+  - Phase 4: execute `plans/error-handling/outline.md` directly (orchestrator-direct)
+  - 7 files, ~250 lines additive prose, decisions pre-resolved (D-1–D-6, Q1)
+  - Supersedes "Orchestrate error handling" (prepared runbook artifacts unused)
+- [ ] **Worktree merge from main** — `/design plans/worktree-merge-from-main/` | sonnet
+  - Requirements complete, 5 FRs, Q-1 resolved (`--from-main` flag)
+  - Heavy unification with existing merge.py/resolve.py
+
 ## Worktree Tasks
 
 - [ ] **Error handling design** → `error-handling-design` — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
@@ -224,6 +232,9 @@
 **Memory index `/how` operator mapping:**
 - `/how X` in index → internally becomes `"how to X"` for heading matching
 - Index keys must NOT include "to" — validator adds it automatically
+- `git merge` without `dangerouslyDisableSandbox: true` leaves 80+ orphaned untracked files [from: error-handling-design]
+- `.claude/agents/error-handling-task.md`, `plans/error-handling/steps/`, `plans/error-handling/orchestrator-plan.md`, `plans/error-handling/runbook.md`, `plans/error-handling/runbook-outline.md` [from: error-handling-design]
+- Inline execution validated the approach — these are dead artifacts [from: error-handling-design]
 ## Next Steps
 
 Handoff CLI tool is next high-priority task. Error-handling worktree still ready to merge.

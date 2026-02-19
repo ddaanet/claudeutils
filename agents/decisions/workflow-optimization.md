@@ -102,11 +102,13 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 ### When Design Resolves To Simple Execution
 
-**Decision Date:** 2026-02-18
+**Decision Date:** 2026-02-18 (updated 2026-02-19: replaced ≤3 files heuristic with coordination complexity discriminator)
 
 **Anti-pattern:** Always routing from `/design` to `/runbook` after sufficiency gate, regardless of execution complexity. Complex design classification persists through the pipeline even when design resolves the uncertainty.
 
-**Correct pattern:** Execution readiness gate inline at sufficiency gate. When design output is ≤3 files, prose/additive, insertion points identified, no cross-file coordination → direct execution with vet, skip `/runbook`.
+**Correct pattern:** Execution readiness gate at sufficiency gate using coordination complexity discriminator. All of: decisions pre-resolved, changes additive, cross-file deps phase-ordered, content derivable from architecture section → design is execution-ready, skip `/runbook`.
+
+File count is a proxy — 7 files with independent additive changes can be simpler than 2 files with interleaving structural changes. The underlying property is "no implementation loops across any phase."
 
 **Rationale:** Design can resolve complexity. A job correctly classified as Complex for design may produce Simple execution. The gate is subtractive (creates exit ramp), not additive (more ceremony).
 

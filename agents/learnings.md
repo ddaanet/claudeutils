@@ -74,3 +74,39 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Treating diagnostic report output (e.g., /insights) as a backlog intake pipeline — every suggestion becomes a pending task. Inflates the task list just after compression.
 - Correct pattern: Triage by routing. Superseded → discard. Skill-specific → annotate existing skill task. Simple → inline immediately (write the fragment, don't defer it). Only genuinely new substantial work becomes standalone tasks.
 - Evidence: 15 suggestions triaged to 3 inlined fragments + 5 tasks + 4 annotations. Initial draft had 8 standalone tasks before user caught that fragments were single edits.
+## When assuming interactive context
+- Anti-pattern: Assuming orchestration is interactive (user watching, can ctrl+c hung agents). Designing timeout as low-priority because "human-in-the-loop provides timeout for free."
+- Correct pattern: Orchestration is unattended — user focuses on design/workflow work elsewhere. Timeout is a real operational requirement, not a nice-to-have. Calibrate from historical data.
+- Rationale: The operational model determines which error handling mechanisms are needed. Wrong assumption about attended vs unattended cascades into under-specifying timeout, recovery, and notification.
+## When classifying errors by tier
+- Anti-pattern: Moving ALL error classification to orchestrator because haiku can't classify. Sweeping change that ignores capable agents.
+- Correct pattern: Tier-aware classification — sonnet/opus execution agents self-classify and report classified error; haiku agents report raw errors for orchestrator to classify. Preserves context locality for capable agents.
+- Rationale: Execution agent has full error context (stack trace, file state). Transmitting to orchestrator for classification loses fidelity or costs tokens. Orchestrator already knows agent model tier.
+## When measuring agent durations
+- Anti-pattern: Computing duration as timestamp delta between tool_use and tool_result — includes laptop sleep time, producing 10-hour "outliers" that are artifacts
+- Correct pattern: Use `duration_ms` from Task result metadata when available (post-W06 2026, ~42% coverage). For all entries with both duration and tool_uses, validate via seconds-per-tool-use rate (normal p50=6.6s/tool). Flag entries >30s/tool as sleep-inflated.
+- Rationale: `duration_ms` is wall-clock computed by CLI process — suspended process = inflated time. Cross-referencing with tool_uses exposes the inflation. 13/951 entries flagged, all confirmed artifacts.
+## When designing timeout mechanisms
+- Anti-pattern: Treating "dual signal" (time OR tool count) as reducing false positives. OR-logic is the union of both kill zones — it increases false positives vs either threshold alone.
+- Correct pattern: Time and tool count address independent failure modes. Spinning (high activity, no convergence) → `max_turns`. Hanging (no activity, high wall-clock) → duration timeout. Independent guards, not a combined signal.
+- Evidence: OR(600s, 90 turns) would false-positive on the 855s/75-tool legitimate agent AND the 495s/129-tool agent. AND logic misses fast spinners.
+## When all work is prose edits with pre-resolved decisions
+- Anti-pattern: Routing through full runbook pipeline (outline → runbook expansion → plan-reviewer → prepare-runbook.py → step files → orchestrate → per-step agents) when all phases are additive prose with no feedback loop.
+- Correct pattern: Recognize prose edits have no implementation loop — outcome determined by instruction + target file state. Execute inline from design outline. The delegation ceremony (agent startup, file re-reads, report write/read) costs more tokens than the edits.
+- Evidence: Error-handling runbook used 11 opus agents for ~250 lines of prose. Plan-reviewer caught a regression *introduced* by the runbook generation process (Step 4.2 dropped 2 of 4 skills the outline correctly listed).
+## When proposing thresholds without data
+- Anti-pattern: Deriving thresholds from reasoning (">2 inline phases → batch") or replacing one confabulated metric with a cleaner confabulated metric ("coordination complexity" replacing "≤3 files"). Cleaner confabulation is still confabulation.
+- Correct pattern: Ground thresholds in empirical data. If data doesn't exist, state the decision as ungrounded and defer until measurement. The No Estimates rule applies to operational thresholds, not just time/cost predictions.
+- Evidence: Proposed >2 threshold for inline batching, then replaced with "all-inline vs mixed" property check — both ungrounded. User corrected: measure Task delegation token overhead before committing to a threshold.
+## When execution readiness gate uses file count
+- Anti-pattern: Using ≤3 files as the discriminator for "design resolves to simple execution." File count is a proxy — 7 files with independent additive changes can be simpler than 2 files with interleaving structural changes.
+- Correct pattern: The underlying property is coordination complexity: all decisions pre-resolved + changes additive + cross-file deps phase-ordered + no implementation loops. File count correlates but doesn't determine.
+- Rationale: Supersedes the ≤3 files heuristic in the existing "When design resolves to simple execution" learning. The inline-phase-type design formalizes this as D-5.
+## When analyzing sub-agent token costs
+- Anti-pattern: Treating `total_tokens` from CLI `<usage>` as fresh input cost. The field sums all token types (cache reads + writes + fresh) without decomposition. Sub-agent per-turn cache breakdown isn't in session JSONL — only main session assistant messages carry `cache_read_input_tokens`/`cache_creation_input_tokens`.
+- Correct pattern: Use main session first-turn `cache_creation_input_tokens` to measure system prompt size (~43K tokens p50). Use minimal-work agents (≤3 tool uses) for fixed overhead proxy. For actual $ cost with cache breakdown, use litellm proxy with SQLite spend logging.
+- Evidence: 709 Task calls analyzed. Minimal-work agents: 35.7K total_tokens p50. Main session cache hit rate: 94-100% after warmup. No cross-agent caching signal in token-per-tool-use ratios (median 1.09).
+## When adding a new variant to an enumerated system
+- Anti-pattern: Updating only the authoritative definition section (type table, contract) but not downstream sections that enumerate existing variants. Leaves binary tdd/general language in 8+ locations across 3 skills.
+- Correct pattern: After updating the authoritative definition, grep all affected files for existing variant names (e.g., "tdd.*general", "both TDD and general") and update every enumeration site. Skill-reviewer catches these as propagation gaps.
+- Evidence: Skill-reviewer found 1 critical (Phase 0.75 outline generation wouldn't produce inline phases), 3 major (description triggering, When to Use, Phase 1 expansion branch missing), 4 minor enumeration sites — all in runbook/SKILL.md alone.
