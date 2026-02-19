@@ -5,6 +5,10 @@ from pathlib import Path
 
 import click
 
+from claudeutils.worktree.merge_state import (
+    _detect_merge_state,
+    _recover_untracked_file_collision,
+)
 from claudeutils.worktree.resolve import (
     resolve_learnings_md,
     resolve_session_md,
@@ -22,6 +26,40 @@ def _format_git_error(e: subprocess.CalledProcessError) -> str:
         f"{stderr}\n\n"
         f"Resolve the issue and retry the merge."
     )
+
+
+def _format_conflict_report(conflicts: list[str], slug: str) -> str:
+    """Format conflict report: status codes, diff stats, divergence, hint."""
+    lines = [f"Conflicts in merge of `{slug}`:"]
+
+    for conflict_file in conflicts:
+        status = _git("status", "--short", "--", conflict_file, check=False)
+        status_code = status[:2] if status else "??"
+        lines.append(f"  {status_code} {conflict_file}")
+
+    lines.append("")
+
+    for conflict_file in conflicts:
+        stat = _git(
+            "diff", "--stat", "HEAD", "MERGE_HEAD", "--", conflict_file, check=False
+        )
+        if stat:
+            lines.extend(f"  {sl}" for sl in stat.split("\n") if sl)
+
+    lines.append("")
+
+    ahead = _git("rev-list", "--count", f"HEAD..{slug}", check=False)
+    behind = _git("rev-list", "--count", f"{slug}..HEAD", check=False)
+    lines.append(
+        f"Branch: {ahead} commits ahead, Main: {behind} commits ahead since merge-base"
+    )
+
+    lines.append("")
+    lines.append(
+        f"Resolve conflicts, git add, then re-run: claudeutils _worktree merge {slug}"
+    )
+
+    return "\n".join(lines)
 
 
 def _check_clean_for_merge(
@@ -123,7 +161,15 @@ def _phase2_resolve_submodule(slug: str) -> None:
             wt_agent_core = wt_path(slug) / "agent-core"
             _git("-C", "agent-core", "fetch", str(wt_agent_core), "HEAD")
 
-        _git("-C", "agent-core", "merge", "--no-edit", wt_commit)
+        # Try submodule merge; if it conflicts, leave MERGE_HEAD in place and return
+        merge_result = subprocess.run(
+            ["git", "-C", "agent-core", "merge", "--no-edit", wt_commit],
+            capture_output=True,
+            check=False,
+        )
+        if merge_result.returncode != 0:
+            return
+
         _git("add", "agent-core")
 
         result = subprocess.run(
@@ -132,6 +178,16 @@ def _phase2_resolve_submodule(slug: str) -> None:
         )
         if result.returncode != 0:
             _git("commit", "-m", f"🔀 Merge agent-core from {slug}")
+
+
+def _auto_resolve_known_conflicts(conflicts: list[str], slug: str) -> list[str]:
+    """Auto-resolve known conflicts: agent-core (ours), session.md, learnings.md."""
+    if "agent-core" in conflicts:
+        _git("checkout", "--ours", "agent-core")
+        _git("add", "agent-core")
+        conflicts = [c for c in conflicts if c != "agent-core"]
+    conflicts = resolve_session_md(conflicts, slug=slug)
+    return resolve_learnings_md(conflicts)
 
 
 def _phase3_merge_parent(slug: str) -> None:
@@ -153,26 +209,36 @@ def _phase3_merge_parent(slug: str) -> None:
     )
     if merge_head.returncode != 0:
         stderr = result.stderr.strip() if result.stderr else "unknown error"
-        click.echo(f"Merge failed: {stderr}", err=True)
-        raise SystemExit(1)
+        # Detect untracked file collision and attempt recovery
+        is_untracked_error = "untracked working tree file" in stderr.lower()
+        is_local_changes_error = (
+            "your local changes to the following files would be overwritten by merge"
+            in stderr.lower()
+        )
+        if is_untracked_error or is_local_changes_error:
+            if not _recover_untracked_file_collision(slug, result):
+                raise SystemExit(1)
+            # After recovery, check if merge started
+            merge_head = subprocess.run(
+                ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+                capture_output=True,
+                check=False,
+            )
+            if merge_head.returncode != 0:
+                # Merge still failed
+                click.echo(f"Merge failed: {stderr}")
+                raise SystemExit(1)
+        else:
+            click.echo(f"Merge failed: {stderr}")
+            raise SystemExit(1)
 
     conflicts = _git("diff", "--name-only", "--diff-filter=U", check=False).split("\n")
     conflicts = [c for c in conflicts if c.strip()]
-
-    if "agent-core" in conflicts:
-        _git("checkout", "--ours", "agent-core")
-        _git("add", "agent-core")
-        conflicts = [c for c in conflicts if c != "agent-core"]
-
-    conflicts = resolve_session_md(conflicts, slug=slug)
-    conflicts = resolve_learnings_md(conflicts)
+    conflicts = _auto_resolve_known_conflicts(conflicts, slug)
 
     if conflicts:
-        _git("merge", "--abort")
-        _git("clean", "-fd")
-        conflict_list = ", ".join(conflicts)
-        click.echo(f"Merge aborted: conflicts in {conflict_list}")
-        raise SystemExit(1)
+        click.echo(_format_conflict_report(conflicts, slug))
+        raise SystemExit(3)
 
 
 def _validate_merge_result(slug: str) -> None:
@@ -186,7 +252,7 @@ def _validate_merge_result(slug: str) -> None:
     )
 
     if result.returncode != 0:
-        click.echo(f"Error: branch {slug} not fully merged", err=True)
+        click.echo(f"Error: branch {slug} not fully merged")
         raise SystemExit(2)
 
     parent_output = subprocess.run(
@@ -200,7 +266,7 @@ def _validate_merge_result(slug: str) -> None:
         [line for line in parent_output.split("\n") if line.startswith("parent ")]
     )
     if parent_count < 2:
-        click.echo(f"Warning: merge commit has {parent_count} parent(s)", err=True)
+        click.echo(f"Warning: merge commit has {parent_count} parent(s)")
 
 
 def _phase4_merge_commit_and_precommit(slug: str) -> None:
@@ -227,14 +293,11 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
         _git("commit", "--allow-empty", "-m", f"🔀 Merge {slug}")
     elif staged_check.returncode != 0:
         if not _is_branch_merged(slug):
-            click.echo(
-                "Error: merge state lost — MERGE_HEAD absent, branch not merged",
-                err=True,
-            )
+            click.echo("Error: merge state lost — MERGE_HEAD absent, branch not merged")
             raise SystemExit(2)
         _git("commit", "-m", f"🔀 Merge {slug}")
     elif not _is_branch_merged(slug):
-        click.echo("Error: nothing to commit and branch not merged", err=True)
+        click.echo("Error: nothing to commit and branch not merged")
         raise SystemExit(2)
 
     _validate_merge_result(slug)
@@ -250,13 +313,48 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
         click.echo("Precommit passed")
     else:
         click.echo("Precommit failed after merge")
+        click.echo(precommit_result.stdout)
         click.echo(precommit_result.stderr)
         raise SystemExit(1)
+
+    submodule_path = Path("agent-core")
+    if submodule_path.exists() and (submodule_path / ".git").exists():
+        sub_merge_head = subprocess.run(
+            ["git", "-C", "agent-core", "rev-parse", "--verify", "MERGE_HEAD"],
+            capture_output=True,
+            check=False,
+        )
+        if sub_merge_head.returncode == 0:
+            click.echo("Submodule agent-core has unresolved merge conflict")
+            click.echo("Resolve in agent-core/, then re-run merge")
+            raise SystemExit(3)
 
 
 def merge(slug: str) -> None:
     """Merge worktree branch: validate, resolve submodule, merge parent."""
-    _phase1_validate_clean_trees(slug)
-    _phase2_resolve_submodule(slug)
-    _phase3_merge_parent(slug)
-    _phase4_merge_commit_and_precommit(slug)
+    state = _detect_merge_state(slug)
+
+    if state == "merged":
+        _phase1_validate_clean_trees(slug)
+        _phase2_resolve_submodule(slug)
+        _phase4_merge_commit_and_precommit(slug)
+    elif state == "parent_resolved":
+        _phase4_merge_commit_and_precommit(slug)
+    elif state == "parent_conflicts":
+        conflicts = _git("diff", "--name-only", "--diff-filter=U", check=False).split(
+            "\n"
+        )
+        conflicts = [c for c in conflicts if c.strip()]
+        conflicts = _auto_resolve_known_conflicts(conflicts, slug)
+        if conflicts:
+            click.echo(_format_conflict_report(conflicts, slug))
+            raise SystemExit(3)
+        _phase4_merge_commit_and_precommit(slug)
+    elif state == "submodule_conflicts":
+        _phase3_merge_parent(slug)
+        _phase4_merge_commit_and_precommit(slug)
+    else:  # clean
+        _phase1_validate_clean_trees(slug)
+        _phase2_resolve_submodule(slug)
+        _phase3_merge_parent(slug)
+        _phase4_merge_commit_and_precommit(slug)

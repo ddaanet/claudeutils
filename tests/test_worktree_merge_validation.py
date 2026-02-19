@@ -107,14 +107,10 @@ def test_merge_conflict_source_files(
         capture_output=True,
     )
 
-    # Merge should abort with conflict message
+    # Merge should detect conflict and report it
     result = CliRunner().invoke(worktree, ["merge", "merge-conflict"])
-    assert result.exit_code == 1
-    assert "Merge aborted:" in result.output or "conflicts" in result.output.lower()
-
-    # Verify merge was aborted (no merge in progress)
-    merge_head = repo_path / ".git" / "MERGE_HEAD"
-    assert not merge_head.exists(), "MERGE_HEAD should not exist after abort"
+    assert result.exit_code == 3
+    assert "conflict" in result.output.lower() or "src/module.py" in result.output
 
 
 def test_merge_idempotency(

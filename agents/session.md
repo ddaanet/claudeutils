@@ -173,15 +173,20 @@
 - [ ] **Migrate test suite to diamond** — needs scoping | depends on runbook evolution design
   - Existing 1027 tests, separate design from runbook evolution
 
+- [ ] **Design model directive pipeline** — Model guidance flows design → runbook → execution. Add review/refactor model fields to runbook format, design stage outputs model recommendations per phase, runbook refines. Directional constraint: runbook can upgrade but not downgrade design recommendations without justification. | opus
+  - Touches: design skill, outline format, runbook skill, prepare-runbook.py, orchestrate skill, plan-reviewer
+  - Prerequisite: fix prepare-runbook.py model override (execution model propagation is foundation)
+- [ ] **Fix plan-reviewer model adequacy gap** — Reviewer doesn't assess per-cycle model adequacy when no explicit model tagged. Add criterion: flag cycles where complexity exceeds default model capability. Currently only checks explicitly tagged steps. | opus
+- [ ] **Fix prepare-runbook.py model override** — Script defaults all step metadata to baseline `haiku`, ignoring per-step `**Execution Model:**` in phase file content. Parse and propagate.
+- [ ] **Merge worktree** — `wt merge` to merge worktree-merge-resilience back to main
+  - Also import `plans/vet-invariant-scope/design.md` to main after merge
+
 ## Worktree Tasks
 
 - [ ] **Error handling design** → `error-handling-design` — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
   - Outline: `plans/error-handling/outline.md`
   - Key decisions: D-1 CPS abort-and-record, D-2 task `[!]`/`[✗]` states, D-3 escalation acceptance criteria, D-5 rollback = revert to step start
 
-- [ ] **Worktree merge resilience** → `worktree-merge-resilience` — `/design plans/worktree-merge-resilience/requirements.md` | opus
-  - Plan: worktree-merge-resilience | Status: requirements
-  - 5 FRs: submodule conflict pass-through, leave merge in progress, untracked file handling, conflict context output, idempotent resume
 
 <!-- design-runbook-evolution merged: all 5 FRs complete (SKILL.md testing diamond, anti-patterns, vet routing table) -->
 
@@ -226,6 +231,8 @@
 - `just wt-merge` uses `checkout --ours` for session.md, learnings.md, jobs.md
 - Drops worktree-side changes silently — must verify post-merge: compare `git show <branch>:<file>` against merged result
 
+- **Never run `git merge` without sandbox bypass** — partial checkout + sandbox failure leaves orphaned files [from: worktree-merge-resilience]
+- **Learnings at 199 lines** — well over 80-line soft limit, but no entries old enough (≥7 active days) for consolidation batch. Will resolve as entries age. [from: worktree-merge-resilience]
 ## Next Steps
 
 2 worktrees active: error-handling-design, worktree-merge-resilience. Worktree CLI change designed — next: `/runbook plans/worktree-cli-default/outline.md`. Parallel Batch A blocked on slug limit until CLI fix lands; can proceed in sequence or use worktree with manual session.md. Integration-first-tests scoping outline at `plans/integration-first-tests/outline.md` (unscheduled).

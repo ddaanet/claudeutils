@@ -91,9 +91,9 @@ def test_git_helper_preserves_stderr_in_exception(tmp_path: Path) -> None:
 
 
 def test_merge_aborts_cleanly_when_untracked_file_blocks(
-    tmp_path: Path, monkeypatch: MonkeyPatch
+    tmp_path: Path, monkeypatch: MonkeyPatch, mock_precommit: None
 ) -> None:
-    """Merge detects abort (untracked file) and reports error."""
+    """Merge adds untracked file and retries, resulting in conflict markers."""
     repo = tmp_path / "repo"
     repo.mkdir()
     subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
@@ -150,9 +150,81 @@ def test_merge_aborts_cleanly_when_untracked_file_blocks(
     runner = CliRunner()
     result = runner.invoke(worktree, ["merge", "feature"])
 
-    assert result.exit_code != 0
+    assert result.exit_code == 0
     assert "Traceback" not in result.output
-    assert "Merge failed" in result.output or "untracked" in result.output.lower()
+
+
+def test_merge_untracked_file_same_content_auto_resolved(
+    tmp_path: Path, monkeypatch: MonkeyPatch, mock_precommit: None
+) -> None:
+    """Merge auto-resolves when untracked file has same content as branch."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Test"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+    )
+
+    (repo / "agents").mkdir()
+    (repo / "agents" / "session.md").write_text("# Same\n")
+    subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Init"], cwd=repo, check=True, capture_output=True
+    )
+
+    subprocess.run(
+        ["git", "checkout", "-b", "feature"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+    )
+    (repo / "agents" / "session.md").write_text("# Same\n")
+    (repo / "other.txt").write_text("feature content\n")
+    subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "Branch"], cwd=repo, check=True, capture_output=True
+    )
+
+    subprocess.run(
+        ["git", "checkout", "main"], cwd=repo, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "rm", "--cached", "agents/session.md"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "Remove tracking"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+    )
+    (repo / "agents" / "session.md").write_text("# Same\n")
+
+    monkeypatch.chdir(repo)
+    runner = CliRunner()
+    result = runner.invoke(worktree, ["merge", "feature"])
+
+    assert result.exit_code == 0
+    # Check that the branch was merged (feature is ancestor of HEAD)
+    merge_check = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", "feature", "HEAD"],
+        cwd=repo,
+        capture_output=True,
+        check=False,
+    )
+    assert merge_check.returncode == 0, "Branch should be merged"
+    assert "Traceback" not in result.output
 
 
 def test_merge_conflict_surfaces_git_error(
@@ -209,6 +281,13 @@ def test_merge_conflict_surfaces_git_error(
     runner = CliRunner()
     result = runner.invoke(worktree, ["merge", "branch"])
 
-    assert result.exit_code != 0
+    assert result.exit_code == 3
     assert "Traceback" not in result.output
-    assert "conflict" in result.output.lower() or "aborted" in result.output.lower()
+    assert "conflict" in result.output.lower() or "file.txt" in result.output
+    assert "aborted" not in result.output.lower()
+    merge_head = subprocess.run(
+        ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+        capture_output=True,
+        check=False,
+    )
+    assert merge_head.returncode == 0

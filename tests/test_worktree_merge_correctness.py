@@ -181,7 +181,7 @@ def test_validate_merge_valid(
         exit_code = e.code
 
     assert exit_code == 0
-    assert "Error" not in capsys.readouterr().err
+    assert "Error" not in capsys.readouterr().out
 
 
 def test_validate_merge_invalid(
@@ -202,7 +202,7 @@ def test_validate_merge_invalid(
         exit_code = e.code
 
     assert exit_code == 2
-    assert "Error: branch test-branch not fully merged" in capsys.readouterr().err
+    assert "Error: branch test-branch not fully merged" in capsys.readouterr().out
 
 
 def test_validate_merge_single_parent_warning(
@@ -236,7 +236,7 @@ def test_validate_merge_single_parent_warning(
     with contextlib.suppress(SystemExit):
         _validate_merge_result("test-branch")
 
-    assert "Warning: merge commit has 1 parent(s)" in capsys.readouterr().err
+    assert "Warning: merge commit has 1 parent(s)" in capsys.readouterr().out
 
 
 def test_merge_preserves_parent_repo_files(
