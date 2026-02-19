@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-18
 
-**Status:** design-runbook-evolution merged; worktree CLI change designed (outline complete, ready for /runbook). 2 worktrees active.
+**Status:** worktree-merge-resilience merged. Parallel Batch A launched: 3 worktrees active (runbook-quality-gates-b, script-commit-vet-gate, worktree-cli-default).
 
 ## Completed This Session
 
@@ -29,22 +29,9 @@
 
 <!-- Priority order per plans/reports/prioritization-2026-02-18.md (rev 4) -->
 
-- [ ] **Runbook quality gates Phase B** — TDD for validate-runbook.py (4 subcommands) | sonnet
-  - Plan: runbook-quality-gates | Status: ready
-  - model-tags, lifecycle, test-counts, red-plausibility
-  - Graceful degradation bridges gap (NFR-2)
-
 - [ ] **Runbook model assignment** — apply design-decisions.md directive (opus for skill/fragment/agent edits)
   - Partially landed via remaining-workflow-items merge
 
-- [ ] **Script commit vet gate** — Replace prose Gate B with scripted check (file classification + vet report existence) | sonnet
-  - Part of commit skill optimization (FR-5 partially landed — Gate A removed, Gate B still prose)
-  - Also: remove `vet-requirement.md` from CLAUDE.md `@`-references, move execution context template to memory index
-
-- [ ] **Worktree CLI default to --task** — `/runbook plans/worktree-cli-default/outline.md` | sonnet
-  - Plan: worktree-cli-default | Status: designed
-  - Positional = task name; `--branch` = bare slug or slug override; `--task` removed
-  - `new "Task Name" --branch <slug>` form solves 29-char slug limit
 
 - [ ] **Commit CLI tool** — CLI for precommit/stage/commit across both modules | `/design` | sonnet
   - Modeled on worktree CLI pattern (mechanical ops in CLI, judgment in skill)
@@ -178,17 +165,28 @@
   - Prerequisite: fix prepare-runbook.py model override (execution model propagation is foundation)
 - [ ] **Fix plan-reviewer model adequacy gap** — Reviewer doesn't assess per-cycle model adequacy when no explicit model tagged. Add criterion: flag cycles where complexity exceeds default model capability. Currently only checks explicitly tagged steps. | opus
 - [ ] **Fix prepare-runbook.py model override** — Script defaults all step metadata to baseline `haiku`, ignoring per-step `**Execution Model:**` in phase file content. Parse and propagate.
-- [ ] **Merge worktree** — `wt merge` to merge worktree-merge-resilience back to main
-  - Also import `plans/vet-invariant-scope/design.md` to main after merge
 
 ## Worktree Tasks
+
+- [ ] **Runbook quality gates Phase B** → `runbook-quality-gates-b` — TDD for validate-runbook.py (4 subcommands) | sonnet
+  - Plan: runbook-quality-gates | Status: ready
+  - model-tags, lifecycle, test-counts, red-plausibility
+  - Graceful degradation bridges gap (NFR-2)
+
+- [ ] **Worktree CLI default to --task** → `worktree-cli-default` — `/runbook plans/worktree-cli-default/outline.md` | sonnet
+  - Plan: worktree-cli-default | Status: designed
+  - Positional = task name; `--branch` = bare slug or slug override; `--task` removed
+  - `new "Task Name" --branch <slug>` form solves 29-char slug limit
 
 - [ ] **Error handling design** → `error-handling-design` — Resume `/design` Phase B (outline review) then Phase C (full design) | opus
   - Outline: `plans/error-handling/outline.md`
   - Key decisions: D-1 CPS abort-and-record, D-2 task `[!]`/`[✗]` states, D-3 escalation acceptance criteria, D-5 rollback = revert to step start
 
-
 <!-- design-runbook-evolution merged: all 5 FRs complete (SKILL.md testing diamond, anti-patterns, vet routing table) -->
+
+- [ ] **Script commit vet gate** → `script-commit-vet-gate` — Replace prose Gate B with scripted check (file classification + vet report existence) | sonnet
+  - Part of commit skill optimization (FR-5 partially landed — Gate A removed, Gate B still prose)
+  - Also: remove `vet-requirement.md` from CLAUDE.md `@`-references, move execution context template to memory index
 
 ## Blockers / Gotchas
 
