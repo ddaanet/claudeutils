@@ -52,3 +52,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Using ≤3 files as the discriminator for "design resolves to simple execution." File count is a proxy — 7 files with independent additive changes can be simpler than 2 files with interleaving structural changes.
 - Correct pattern: The underlying property is coordination complexity: all decisions pre-resolved + changes additive + cross-file deps phase-ordered + no implementation loops. File count correlates but doesn't determine.
 - Rationale: Supersedes the ≤3 files heuristic in the existing "When design resolves to simple execution" learning. The inline-phase-type design formalizes this as D-5.
+## When analyzing sub-agent token costs
+- Anti-pattern: Treating `total_tokens` from CLI `<usage>` as fresh input cost. The field sums all token types (cache reads + writes + fresh) without decomposition. Sub-agent per-turn cache breakdown isn't in session JSONL — only main session assistant messages carry `cache_read_input_tokens`/`cache_creation_input_tokens`.
+- Correct pattern: Use main session first-turn `cache_creation_input_tokens` to measure system prompt size (~43K tokens p50). Use minimal-work agents (≤3 tool uses) for fixed overhead proxy. For actual $ cost with cache breakdown, use litellm proxy with SQLite spend logging.
+- Evidence: 709 Task calls analyzed. Minimal-work agents: 35.7K total_tokens p50. Main session cache hit rate: 94-100% after warmup. No cross-agent caching signal in token-per-tool-use ratios (median 1.09).
