@@ -79,6 +79,23 @@ Acceptance criteria:
 - Run `validate-memory-index.py --fix` after split
 - `memory-refactor` agent is deleted
 
+**FR-10: Rename skill**
+Select new name for `/remember` skill (test brainstorm-name agent or manual selection). Update all references: skill directory, SKILL.md, agent definitions, handoff skill, session.md mentions, memory-index triggers. Requires restart after rename.
+
+Acceptance criteria:
+- New name selected and documented
+- All references updated (skill dir, agents, skills, fragments, session.md)
+- `just sync-to-parent` run, symlinks verified
+- Restart required flag noted
+
+**FR-11: Agent routing for learnings**
+When consolidating learnings actionable for sub-agents, route to agent templates (quiet-task.md, tdd-task.md) as additional consolidation target. Deferred until memory redesign (FR-1 through FR-9) completes — redesign may change the routing surface.
+
+Acceptance criteria:
+- Consolidation pipeline identifies agent-relevant learnings
+- Relevant entries propagated to agent template files
+- Does not execute until FR-1–FR-9 redesign is complete
+
 ### Out of Scope
 
 - `/when` runtime resolution changes

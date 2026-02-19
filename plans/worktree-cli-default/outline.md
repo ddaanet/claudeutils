@@ -61,7 +61,15 @@ Make positional arg accept task name (with session integration), add `--branch` 
 - `_worktree new --task "<task name>"` → `_worktree new "<task name>"`
 - `_worktree new <slug>` → `_worktree new --branch <slug>`
 
+### Phase 1 addendum: Absorbed scope
+
+**Cycle 1.6 — `new "Task Name"` commits session.md (not left untracked)**
+- RED: After `invoke(worktree, ["new", "My task"])`, `git status` in parent shows session.md tracked (not in untracked files list)
+- Verifies: `new` with session integration doesn't leave session.md untracked on main
+
+**Note:** Worktree skill adhoc mode (creating worktree without task tracking) is covered by `new --branch <slug>` (Cycle 1.1) — no additional work needed.
+
 ## Scope
 
-- IN: cli.py argument parsing, test updates, SKILL.md prose
+- IN: cli.py argument parsing, test updates, SKILL.md prose, session.md tracking fix
 - OUT: `rm`, `merge`, `ls` subcommands; `derive_slug` logic; `move_task_to_worktree` logic; `focus_session` logic
