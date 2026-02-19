@@ -1,26 +1,43 @@
 # Session Handoff: 2026-02-19
 
-**Status:** Task consolidation complete (43 → 35 pending). 3 untouched worktrees removed, 1 active (error-handling-design). Two new worktree rm bugs discovered.
+**Status:** Insights triage complete. 3 new fragments written, 5 new tasks added, 4 existing tasks annotated. Error-handling worktree ready to merge.
 
 ## Completed This Session
 
-**Task consolidation (43 → 35 pending tasks):**
-- Model directive pipeline: absorbed Runbook model assignment, Fix prepare-runbook.py model override, Fix plan-reviewer model adequacy gap (4 → 1)
-- Remember skill update: absorbed Rename remember skill, Remember agent routing (3 → 1). Added FR-10/FR-11 to `plans/remember-skill-update/requirements.md`
-- Cross-tree requirements transport: absorbed Revert cross-tree sandbox access (2 → 1)
-- Worktree CLI default: absorbed Pre-merge untracked file fix, Worktree skill adhoc mode. Added Cycle 1.6 to `plans/worktree-cli-default/outline.md`
-- Removed Debug failed merge (code path eliminated by worktree-cli-default)
-- Quality infrastructure reform and Codebase quality sweep kept separate (pipeline work vs backlog processing)
+**Insights report triage:**
+- Triaged 15 suggestions from `/insights` report
+- Discarded 4 superseded (merge instructions, CLI tools, inline execution, project tooling — all already have fragments)
+- Discarded 1 already-exists (upfront strategy confirmation = EnterPlanMode), 1 misunderstands methodology (parallel test tiers)
+- Routed 2 skill-specific: Diamond TDD definition → /design + /runbook + tdd-task; handoff substance preservation → Optimize handoff/commit prose
+- Inlined 3 as fragments (below)
+- Created 5 new tasks: PostToolUse auto-format hook, SessionStart status hook (absorbs Model tier awareness hook), Task agent guardrails, Cache expiration prototype
+- Annotated 4 existing tasks with insights input (Optimize handoff/commit prose, Pipeline skill updates, Orchestrate evolution, Design-to-deliverable)
 
-**Worktree cleanup:**
-- Removed 3 untouched worktrees: runbook-quality-gates-b (empty dir — partial creation), script-commit-vet-gate, worktree-cli-default
-- Tasks moved back to Pending
-- Discovered: `git worktree remove --force` returns 255 on empty dir from failed bare-slug `new`. `_git()` swallows stderr via `check=True`.
-- Discovered: `rm --confirm` deletes parent branch but not agent-core submodule branch
+**Fragments written:**
+- `agent-core/fragments/no-confabulation.md` — never assert invented heuristics/criteria as facts. Wired into CLAUDE.md
+- `agent-core/fragments/source-not-generated.md` — always edit source files, never generated output. Wired into CLAUDE.md
+- `agent-core/fragments/tool-batching.md` — added Read-before-Edit precondition. Parallel tool call cascade failure is all-or-nothing (known bug #22264)
+
+**Research:**
+- Prompt cache TTL: API default 5min, Claude Code observed ~3min (#14628). No user config (#16442 closed as dupe). Debug logs at `~/.claude/debug/` may contain cache metrics
 
 ## Pending Tasks
 
 <!-- Priority order per plans/reports/prioritization-2026-02-18.md (rev 4) -->
+
+- [ ] **Optimize handoff/commit prose** — Reduce token cost of handoff + commit skills | sonnet
+  - Immediate pain relief before CLI tools exist
+  - Target: fewer reads, less verbose protocol, streamlined steps
+  - Insights input: remove learnings line count gate (moves to SessionStart hook), add discussion substance preservation check
+
+- [ ] **Handoff CLI tool** — Mechanical handoff+commit pipeline in CLI | `/design` | sonnet
+  - Same pattern as worktree CLI: mechanical ops in CLI, judgment stays in agent
+  - **Inputs:** status line (overwrite), completed text (overwrite committed / append uncommitted), optional files to add/remove, optional commit message with gitmoji
+  - **Outputs (conditional):** learnings age status, precommit result, git status+diff (skip if precommit red), worktree ls. Suppress "nothing to report" outputs.
+  - **Cache on failure:** Inputs written to state file. On rerun, reads cached inputs — agent doesn't re-enter skill. Fix obstruction, rerun tool until green.
+  - **Domain boundaries:** Handoff CLI owns status line + completed section + git ops + checks. Worktree CLI owns `→ slug` markers. Agent Edit owns: pending task mutations (insertion point = judgment), learnings append + invalidation, blockers, reference files.
+  - **Learnings flow:** Agent writes learnings (Edit) → reviews combined file for invalidation (semantic anchoring) → then calls CLI. Manual append before invalidation improves conflict detection via spatial proximity.
+  - **Gitmoji:** Script using lightweight embeddings + cosine similarity over 78 pre-computed description vectors. Build initial script first (address pain), then validate against git log corpus (exact/acceptable/wrong match rates). Tune or reject based on empirical results.
 
 - [ ] **Commit CLI tool** — CLI for precommit/stage/commit across both modules | `/design` | sonnet
   - Modeled on worktree CLI pattern (mechanical ops in CLI, judgment in skill)
@@ -29,6 +46,8 @@
 - [ ] **Script commit vet gate** — Replace prose Gate B with scripted check (file classification + vet report existence) | sonnet
   - Part of commit skill optimization (FR-5 partially landed — Gate A removed, Gate B still prose)
   - Also: remove `vet-requirement.md` from CLAUDE.md `@`-references, move execution context template to memory index
+
+- [ ] **PostToolUse auto-format hook** — PostToolUse hook on Write/Edit running formatter on changed file. Catches lint/format drift before it compounds into multi-round fix cycles | sonnet | restart
 
 - [ ] **Design quality gates** — `/design plans/runbook-quality-gates/` | opus | restart
   - Requirements at `plans/runbook-quality-gates/requirements.md`
@@ -67,6 +86,7 @@
   - Orchestrate skill: create `/deliverable-review` pending task at exit (opus, restart)
   - Deliverable-review skill Phase 4: create one pending task for all findings → `/design`; no merge-readiness language
   - Design skill: add Phase 0 requirements-clarity gate (well-specified → triage, underspecified → `/requirements`)
+  - Insights input: Diamond TDD definition needed at `/design` (direct execution path), `/runbook` (step generation), `tdd-task` agent (cycle execution)
   - Discussion context in runbook-skill-fixes worktree session
 
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | opus
@@ -121,7 +141,11 @@
 
 - [ ] **Learning ages consol** — Verify age calculation correct when learnings consolidated/rewritten | sonnet
 
-- [ ] **Model tier awareness hook** — Hook injecting "Response by Opus/Sonnet/Haiku" into context | sonnet | restart
+- [ ] **SessionStart status hook** — Bundled SessionStart hook: (1) dirty tree warning via `git status --porcelain`, (2) learnings line count vs 80-line limit (gate moves from handoff skill), (3) stale worktree detection via last commit age, (4) model tier display via `additionalContext` (absorbs Model tier awareness hook), (5) user tip rotation from tips file. All checks <1s total. `systemMessage` for user-visible, `additionalContext` for model tier | sonnet | restart
+
+- [ ] **Task agent guardrails** — Mechanical bounds for Task agents: tool-call count limits (stop/report if exceeded), test regression detection between steps (GREEN baseline comparison), model escalation trigger on quality gate failure. Per-agent execution bounds, distinct from orchestrator-level error handling. Source: insights friction (haiku committed with 3 failing regressions, agent stuck at 300 tool uses) | sonnet
+
+- [ ] **Cache expiration prototype** — Scrape session debug log (`~/.claude/debug/`) for cache_read/cache_creation token metrics, measure actual TTL empirically. Prototype countdown display for Stop hook. API default 5min, observed ~3min in Claude Code (#14628) | sonnet
 
 - [ ] **Simplify when-resolve CLI** — Accept single argument with when/how prefix instead of two args, update skill prose | sonnet
 
@@ -136,6 +160,7 @@
   - Requirements: `plans/prototypes/requirements.md` (multi-project scanning, directive extraction, git correlation)
 
 - [ ] **Design-to-deliverable** — Design session for tmux-like session clear/model switch/restart automation | opus | restart
+  - Insights input: headless mode (`claude -p`) as sub-agent delegation path — sub-agents can't spawn Task agents but can invoke headless CLI via Bash, addressing "sub-agents cannot spawn sub-agents" constraint
 
 - [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
 
@@ -153,6 +178,7 @@
 - [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
   - Design.md complete, vet in progress, planning next (design refreshed Feb 13)
   - Design runbook evolution now complete — blocker lifted
+  - Insights input: ping-pong TDD agent pattern — alternating tester/implementer agents with mechanical RED/GREEN gates between handoffs. Tester holds spec context (can't mirror code structure), implementer holds codebase context (can't over-implement beyond test demands). Resume-based context preservation avoids startup cost per cycle
 
 - [ ] **RED pass protocol** — Formalize orchestrator RED pass handling into orchestrate skill | sonnet
   - Blocked on: Error handling design (needs D-3 escalation criteria, D-5 rollback semantics)
@@ -212,7 +238,7 @@
 - Index keys must NOT include "to" — validator adds it automatically
 ## Next Steps
 
-1 worktree active: error-handling-design. On main: Commit CLI tool is the top unbranched task.
+Error-handling worktree ready to merge. After merge: RED pass protocol unblocked, Task agent guardrails feeds into error-handling update.
 
 ## Reference Files
 

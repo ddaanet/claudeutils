@@ -65,3 +65,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Git merge brings in the branch's full learnings.md (pre-consolidation content) over main's consolidated version. Branch diverged before consolidation; merge favors longer file.
 - Correct pattern: After merging a branch that diverged before a learnings consolidation, verify learnings.md line count. Only the delta (new entries added on branch after branch point) should be appended to main's consolidated version. Pre-consolidation content is already in permanent docs.
 - Evidence: This session — merge brought 199 lines (branch) over 30 lines (main consolidated). 175 lines were pre-consolidation duplicates. Only 24 lines were genuine new content.
+## When triaging external diagnostic suggestions
+- Anti-pattern: Treating diagnostic report output (e.g., /insights) as a backlog intake pipeline — every suggestion becomes a pending task. Inflates the task list just after compression.
+- Correct pattern: Triage by routing. Superseded → discard. Skill-specific → annotate existing skill task. Simple → inline immediately (write the fragment, don't defer it). Only genuinely new substantial work becomes standalone tasks.
+- Evidence: 15 suggestions triaged to 3 inlined fragments + 5 tasks + 4 annotations. Initial draft had 8 standalone tasks before user caught that fragments were single edits.

@@ -64,6 +64,10 @@ When user says "pending: task description":
 
 @agent-core/fragments/no-estimates.md
 
+@agent-core/fragments/no-confabulation.md
+
+@agent-core/fragments/source-not-generated.md
+
 @agent-core/fragments/code-removal.md
 
 @agent-core/fragments/tmp-directory.md
