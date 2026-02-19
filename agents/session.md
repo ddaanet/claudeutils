@@ -1,22 +1,32 @@
-# Session Handoff: 2026-02-18
+# Session Handoff: 2026-02-19
 
-**Status:** Error handling design validated (outline sufficient, Phase C skipped). Ready for `/runbook`.
+**Status:** Error handling runbook complete. Ready for `/orchestrate error-handling` after restart.
 
 ## Completed This Session
 
-**Error handling design — Phase B validated:**
-- User approved outline at sufficiency gate
-- Outline (212 lines) covers: 6 decisions, empirical timeout calibration (938 observations), 5-layer architecture, 6-phase implementation plan
-- Phase C (full design.md) not needed — outline IS the design artifact
-- Design status: `designed` → ready for `/runbook`
+**Error handling runbook — planning complete:**
+- Tier assessment: Tier 3 (5 phases, phases 2+3 independent/parallel, opus for all steps)
+- Phase 0.95 path: outline promoted to runbook directly (sufficiency check passed)
+- Simplification: Steps 1.2+1.3 merged (same file, sequential additions)
+- Holistic review (plan-reviewer): fixed Step 4.2 coverage gap (expanded to all 4 cooperative skills)
+- Artifacts prepared via prepare-runbook.py: 11 step files, orchestrator-plan.md, error-handling-task agent
+- Orchestrate command copied to clipboard: `/orchestrate error-handling`
 
 ## Pending Tasks
 
-- [ ] **Error handling implementation** — `/runbook plans/error-handling/outline.md` | sonnet
+- [x] **Error handling implementation** — `/runbook plans/error-handling/outline.md` | sonnet
   - 6 phases: prevention (L0), taxonomy (L1), orchestration (L2), task lifecycle (L3), CPS chains (L4), consolidation (L5)
   - Creates: `escalation-acceptance.md`, `task-failure-lifecycle.md`
   - Extends: `error-classification.md`, `orchestrate/SKILL.md`, `handoff/SKILL.md`, `continuation-passing.md`, `error-handling.md`
   - Design: `plans/error-handling/outline.md`
+
+- [ ] **Orchestrate error handling** — `/orchestrate error-handling` | sonnet | restart
+  - 11 steps across 5 phases; phases 2+3 run in parallel
+  - All steps use opus (artifact-type override — all targets are skills/fragments)
+  - Parallelism: after Step 1.2 completes, Steps 2.1/2.2 and 3.1/3.2 can run concurrently
+  - Phase 4 depends on BOTH phases 2 and 3; Phase 5 depends on all prior
+  - Steps 2.1 and 3.1 CREATE new fragments (escalation-acceptance.md, task-failure-lifecycle.md) — subsequent steps depend on them
+  - prepare-runbook.py emitted expected warnings (files don't exist yet, created during execution)
 
 - [ ] **Worktree merge from main** — `/design plans/worktree-merge-from-main/` | sonnet
   - Requirements complete, 5 FRs, Q-1 resolved (`--from-main` flag)
@@ -30,15 +40,16 @@
 
 ## Reference Files
 
-- `plans/error-handling/outline.md` — Error handling design (validated, grounded, reviewed ×2)
-- `plans/reports/error-handling-grounding.md` — Grounding report (5 frameworks, Moderate quality)
-- `plans/error-handling/reports/outline-review-2.md` — Round 2 review (9 fixes, 0 UNFIXABLE)
+- `plans/error-handling/runbook.md` — 11-step runbook ready for orchestration
+- `plans/error-handling/runbook-outline.md` — Outline (10 items, 5 phases; simplification report at reports/)
+- `plans/error-handling/outline.md` — Design (validated, grounded, reviewed ×2)
+- `plans/error-handling/reports/runbook-review.md` — Holistic review (1 major fix: Step 4.2 expanded)
 - `plans/worktree-merge-from-main/requirements.md` — 5 FRs, Q-1 resolved
 - `plans/worktree-merge-resilience/requirements.md` — Related: worktree→main direction
 
 ## Next Steps
 
-Error handling implementation — `/runbook plans/error-handling/outline.md` to create execution runbook from validated design.
+Restart session, paste `/orchestrate error-handling` from clipboard (already copied).
 
 ---
-*Handoff by Sonnet. Design validated, implementation task queued.*
+*Handoff by Sonnet. Runbook planning complete, orchestration queued.*
