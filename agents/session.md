@@ -17,20 +17,9 @@
 
 ## Pending Tasks
 
-- [ ] **Precommit test sentinel** — Sentinel file caches passing test suite; rerun only when python version, pyproject.toml, conftest.py, or src/ change | sonnet
 
-- [ ] **Worktree rm fixes** — Batch: (1) dirty check fails on parent instead of target worktree, (2) broken worktree from failed `new` (empty dir, exit 255), (3) `rm --confirm` skips submodule branch cleanup | sonnet
 
-- [ ] **Handoff CLI tool** — Mechanical handoff+commit pipeline in CLI | `/design` | sonnet
-  - Same pattern as worktree CLI: mechanical ops in CLI, judgment stays in agent
-  - Inputs: status line, completed text, optional files, optional commit message with gitmoji
-  - Outputs (conditional): learnings age status, precommit result, git status+diff, worktree ls
-  - Cache on failure: inputs to state file, rerun without re-entering skill
-  - Gitmoji: embeddings + cosine similarity over 78 pre-computed vectors
 
-- [ ] **Commit CLI tool** — CLI for precommit/stage/commit across both modules | `/design` | sonnet
-  - Absorbs: Script commit vet gate (Gate B → scripted check)
-  - Single command: precommit → gate → stage → commit in main + agent-core submodule
 
 - [ ] **PostToolUse auto-format hook** — PostToolUse hook on Write/Edit running formatter on changed file | sonnet | restart
 
@@ -40,8 +29,6 @@
 
 - [ ] **SessionStart status hook** — Bundled hook: dirty tree warning, learnings limit, stale worktree detection, model tier display, tip rotation | sonnet | restart
 
-- [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
-  - Design complete, ready for runbook planning
 
 - [ ] **Pipeline skill updates** — `/design` | opus | restart
   - Orchestrate: `/deliverable-review` pending task at exit
@@ -52,6 +39,26 @@
   - Plan: quality-infrastructure | Status: requirements
   - 4 FRs: deslop restructuring, code density, vet rename, code refactoring
   - Absorbs: Codebase quality sweep, integration-first-tests
+
+## Worktree Tasks
+
+- [ ] **Precommit test sentinel** → `precommit-test-sentinel` — Sentinel file caches passing test suite; rerun only when python version, pyproject.toml, conftest.py, or src/ change | sonnet
+
+- [ ] **Worktree rm fixes** → `worktree-rm-fixes` — Batch: (1) dirty check fails on parent instead of target worktree, (2) broken worktree from failed `new` (empty dir, exit 255), (3) `rm --confirm` skips submodule branch cleanup | sonnet
+
+- [ ] **Handoff CLI tool** → `handoff-cli-tool` — Mechanical handoff+commit pipeline in CLI | `/design` | sonnet
+  - Same pattern as worktree CLI: mechanical ops in CLI, judgment stays in agent
+  - Inputs: status line, completed text, optional files, optional commit message with gitmoji
+  - Outputs (conditional): learnings age status, precommit result, git status+diff, worktree ls
+  - Cache on failure: inputs to state file, rerun without re-entering skill
+  - Gitmoji: embeddings + cosine similarity over 78 pre-computed vectors
+
+- [ ] **Commit CLI tool** → `commit-cli-tool` — CLI for precommit/stage/commit across both modules | `/design` | sonnet
+  - Absorbs: Script commit vet gate (Gate B → scripted check)
+  - Single command: precommit → gate → stage → commit in main + agent-core submodule
+
+- [ ] **Orchestrate evolution** → `orchestrate-evolution` — `/runbook plans/orchestrate-evolution/design.md` | sonnet
+  - Design complete, ready for runbook planning
 
 ## Blockers / Gotchas
 
