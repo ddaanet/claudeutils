@@ -176,7 +176,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when routing artifact review | reviewer per artifact type skill-reviewer agent-creator vet-fix orchestrator delegation
 /how review delegation scope template | scope IN OUT changed files requirements
 /when UNFIXABLE escalation | fix-all pattern grep UNFIXABLE stop escalate
-/when declaring phase type | tdd or general per-phase typing model expansion review
+/when declaring phase type | tdd general inline per-phase typing model expansion review orchestration
 /when vet escalation calibration | over-escalation pattern-matching not design
 /when vet flags out-of-scope items | DEFERRED vs UNFIXABLE distinction
 /when vet receives execution context | filesystem vs execution-time state

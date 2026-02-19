@@ -1,23 +1,19 @@
 # Session Handoff: 2026-02-19
 
-**Status:** Phase 0 data collection complete. Orchestrator-direct confirmed for D-3 — batching permanently deferred.
+**Status:** Inline phase type implemented (Phases 1-3). All 7 pipeline artifacts updated, 7 integration tests green, 3 skill reviews applied.
 
 ## Completed This Session
 
-**Delegation overhead data collection (Phase 0):**
-- Wrote 4 prototype scripts: `collect-delegation-overhead.py`, `collect-inline-edit-cost.py`, `analyze-delegation-overhead.py`, `analyze-cache-impact.py`
-- Scanned 758 sessions, extracted 709 Task calls with token/duration metadata
-- Fixed delegation cost: 35.7K total_tokens p50 (minimal-work agents ≤3 tool uses, n=52)
-- Marginal cost: 799 tokens/tool_use p50 (n=603)
-- Break-even: 22-99 edits (range covers unknown sub-agent caching behavior)
-- Typical inline phase (3-7 edits) well below either bound
-- Investigated prompt caching: main session 94-100% cache hit, sub-agent cache breakdown not available in JSONL
-- Repeated same-agent-type calls show no cross-call caching benefit in token volume (median ratio 1.09)
-- Report: `plans/inline-phase-type/reports/delegation-overhead-data.md`
+**Inline phase type implementation (Phases 1-3):**
+- Phase 1: `pipeline-contracts.md` — inline type row, eligibility criteria (D-6), type contract updated to include orchestration (D-2). `workflow-optimization.md` — coordination complexity discriminator replaces ≤3 files heuristic (D-5).
+- Phase 2: `runbook/SKILL.md` — inline expansion path (pass-through), Phase 0.75/0.95/Phase 1/Phase 3 updated. `plan-reviewer.md` — inline detection, review criteria. `review-plan/SKILL.md` — Section 10.5 inline review criteria, Section 11 relationship clarifier.
+- Phase 3a: `orchestrate/SKILL.md` — Section 3.0 inline execution path, precommit error handling, vet proportionality (D-7), artifact verification for all-inline runbooks, "No inline logic" → "No ad-hoc logic" terminology fix.
+- Phase 3b: `prepare-runbook.py` — `'inline'` in valid_types, inline phase detection from `(type: inline)` headings, skip step-file generation, `Execution: inline` in orchestrator-plan.md, auto-detection for all-inline and mixed-with-inline runbooks. 7 integration tests (`tests/test_prepare_runbook_inline.py`).
 
-**LiteLLM config update:**
-- Added SQLite spend logging: `~/.local/share/litellm/spend.db`
-- Future sessions will capture per-request $ cost with cache breakdown
+**Skill-reviewer validation (3 parallel agents):**
+- runbook/SKILL.md: 1 critical (Phase 0.75 missing inline in type enumeration), 3 major (description, When to Use, Phase 1 expansion branch), 4 minor — all fixed
+- review-plan/SKILL.md: 2 major ("(both)" ambiguity, Section 10.5↔11 relationship), 3 minor (report template) — all fixed
+- orchestrate/SKILL.md: 1 critical ("No inline logic" terminology collision), 3 major (precommit error handling, bash block, git diff target), 4 minor — all fixed
 
 ## Pending Tasks
 
@@ -27,7 +23,7 @@
   - Output: grounded batching threshold or confirm orchestrator-direct suffices
   - Design: `plans/inline-phase-type/outline.md`
 
-- [ ] **Implement inline phase type** — Update 7 pipeline artifacts | sonnet
+- [x] **Implement inline phase type** — Update 7 pipeline artifacts | sonnet
   - Phases 1-3: pipeline-contracts.md, workflow-optimization.md, runbook/SKILL.md, plan-reviewer.md, review-plan/SKILL.md, orchestrate/SKILL.md, prepare-runbook.py
   - All prose edits — inline-eligible by own discriminator
   - Design: `plans/inline-phase-type/outline.md`
@@ -62,7 +58,7 @@
 
 ## Next Steps
 
-Implement inline phase type (Phases 1-3). Then execute error-handling inline (Phase 4).
+Execute error-handling inline (Phase 4). Then design worktree merge from main.
 
 ---
-*Handoff by Sonnet. Phase 0 complete — orchestrator-direct confirmed, batching deferred permanently.*
+*Handoff by Sonnet. Phases 1-3 complete — inline phase type fully implemented across pipeline.*
