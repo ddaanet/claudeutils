@@ -1,29 +1,35 @@
-# Session Handoff: 2026-02-20
+# Session Handoff: 2026-02-21
 
-**Status:** Runbook skill improved with inline selection criteria. Context optimization task ready for runbook generation.
+**Status:** Context optimization executed — ~5.8k tokens removed from always-loaded CLAUDE.md context.
 
 ## Completed This Session
 
-**Triage:**
-- Context optimization dependency analysis: ~5.8k tokens unblocked (sandbox-exemptions, claude-config-layout, bash-strict-mode, vet-requirement, workflows-terminology partial, error-handling partial). Only project-tooling (836 tokens) blocked on hook-batch.
+**Context optimization — fragment demotion:**
+- Removed 4 @-refs from CLAUDE.md: vet-requirement (2,400), sandbox-exemptions (986), claude-config-layout (984), bash-strict-mode (365)
+- Trimmed workflows-terminology.md: removed pipeline description, kept entry points + terminology table (~588 tokens saved)
+- Trimmed error-handling.md: removed layer table + Hook Error Protocol (D-6), kept core rule (~491 tokens saved)
+- Relocated D-6 Hook Error Protocol to `.claude/rules/hook-development.md` (path-triggered on hook edits)
+- Added claude-config-layout reference to hook-development rule as injection point
+- Vet: 0 critical, 0 major, 1 minor (FIXED — style wording in stub). Report: `plans/context-optimization/reports/vet-context-optimization.md`
+- Invalidated learning updated: "When selecting reviewer for artifact vet" — removed false "always-loaded" claim about routing table
 
-**RCA — runbook batching failure:**
-- Agent decomposed 6 fragment demotions as 6 separate discovery chains instead of recognizing a single parametrized operation with a variation table
-- Root cause: brief's per-fragment table primed per-item thinking; Phase 0.75 lacked inline selection criteria
-- Learning: "When discovery decomposes by data point instead of operation pattern" (agents/learnings.md)
-
-**Runbook skill improvements** (agent-core/skills/runbook/SKILL.md):
-- Removed `model: sonnet` from frontmatter — skill now inherits session model
-- Added inline type selection criteria to Phase 0.75 (adapted from design skill's direct execution criteria)
-- Added pattern batching rule: N identical-structure items → single inline item with variation table
+**Prior session (carried forward):**
+- Context optimization dependency analysis and brief
+- RCA — runbook batching failure + learning
+- Runbook skill improvements (inline selection criteria, pattern batching rule)
 
 ## Pending Tasks
 
-- [ ] **Context optimization** — Fragment demotion from CLAUDE.md | opus
-  - Plan: context-optimization | Status: designed
-  - Depends on: Hook batch (denylist + PreToolUse hook replace project-tooling.md) — only for project-tooling.md (836 tokens). ~5.8k unblocked.
-  - Approach: single parametrized inline step with variation table for 6 demotions. `/runbook plans/context-optimization/brief.md`
+- [ ] **Hook batch** — Sandbox denylist + PreToolUse hook to replace project-tooling.md | opus | restart
+  - Unblocks project-tooling.md demotion (836 tokens, last blocked fragment)
+  - Denylist: `git merge`, `git worktree`, `ln` → force recipe usage
+  - PreToolUse hook: informative redirect when blocked command attempted
+
+## Blockers / Gotchas
+
+**Learnings.md at 162 lines (soft limit 80):**
+- 0 entries ≥7 active days — nothing consolidatable yet. All 38 entries added in last 2 days (post-consolidation burst from worktree merge + new work). Will age into consolidation naturally.
 
 ## Next Steps
 
-Resume `/runbook plans/context-optimization/brief.md` — Phase 0.5 discovery was partially done (CLAUDE.md @-refs mapped, skill directories located). Apply pattern batching: single inline step for all 6 demotions.
+Hook batch task requires opus + restart (new hook/denylist). After that, project-tooling.md demotion completes the unblocked optimization target (~30% total savings).
