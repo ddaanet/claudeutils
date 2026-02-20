@@ -1,31 +1,8 @@
 # Session Handoff: 2026-02-20
 
-**Status:** Merged worktree-rm-fixes, created merge-resolution worktree, fixed multiple information errors.
+**Status:** Merged worktree-rm-fixes, created merge-resolution worktree, defined "brief" pattern for cross-tree context transfer.
 
 ## Completed This Session
-
-**Parallel worktree setup:** Created 5 worktrees for independent sonnet tasks:
-- precommit-test-sentinel, worktree-rm-fixes, handoff-cli-tool, commit-cli-tool, orchestrate-evolution
-- Analysis: excluded restart tasks, opus tasks, and worktree-cli-default (code overlap with worktree-rm-fixes)
-
-**Stale worktree cleanup:** Removed `error-handling-design` worktree (`wt-rm`)
-
-**Compression detail recovery:** Session compression (commit `0418cedb`) lost contextual notes from 12 tasks. Recovered from `git show 0418cedb^:agents/session.md`:
-- Restored to session.md (5 tasks): Handoff CLI (domain boundaries, learnings flow, gitmoji validation), Worktree CLI default (scope expansion, ceremony removal), Pipeline skill updates (diamond TDD, discussion context), Quality infrastructure (grounding ref, subsumes detail), Orchestrate evolution (ping-pong TDD pattern)
-- Restored to backlog.md (7 tasks): Remember skill update, Cross-tree transport, Merge learnings delta, Execute plugin migration, Task agent guardrails, Design-to-deliverable, RED pass protocol, Session.md validator
-
-**Worktree outline updates:** Propagated recovered detail to worktree plan artifacts:
-- `handoff-cli-tool/outline.md`: D-4 domain boundary table, learnings flow, gitmoji validation approach
-- `orchestrate-evolution/design.md`: FR-8 ping-pong TDD agent pattern (deferred)
-- `orchestrate-evolution/outline.md`: FR-8 in out-of-scope section
-
-**Learnings consolidation:** `/remember` inline — 24 entries consolidated, 1 dropped (redundant), 5 retained:
-- 6 decision files updated: workflow-optimization, pipeline-contracts, orchestration-execution, operational-practices, workflow-planning, workflow-advanced
-- 1 fragment extended: no-confabulation.md (threshold-specific guidance)
-- 21 memory index entries added
-- learnings.md: 123→27 lines
-- operational-practices.md split → operational-practices.md (200 lines) + operational-tooling.md (258 lines) to resolve 400-line limit
-- "When All Work Is Prose Edits" merged into "When Design Resolves To Simple Execution" (subsumption, not independent gate)
 
 **Merged worktree-rm-fixes:**
 - Merge + rm worktree (3 bug fixes: dirty check, new cleanup, submodule branch)
@@ -42,6 +19,12 @@
 - Removed stale worktree-rm-safety absorbs (completed by worktree-rm-fixes)
 - Added `--slug` override and `--confirm` gate redesign to Worktree CLI default scope
 - Added merge resolution manual-check gotcha
+
+**"Brief" pattern:**
+- Named cross-tree async context transfer pattern (brainstormed with opus, chose "brief" for edify semantics)
+- Location: `plans/<plan>/brief.md` — alongside other plan artifacts
+- Wrote brief for handoff-cli-tool (status subcommand, `_` prefix convention, scope expansion)
+- Wrote self-brief for brief skill design (`plans/brief-skill/brief.md`)
 
 ## Pending Tasks
 
@@ -74,6 +57,11 @@
   - Grounding: `plans/reports/code-density-grounding.md`
   - Subsumes: Rename vet agents (FR-3), Codebase quality sweep (FR-4)
   - Absorbs: integration-first-tests
+
+- [ ] **Brief skill** — Lightweight skill for cross-tree context transfer | sonnet
+  - Plan: brief-skill | Status: briefed
+  - Producer: `/brief <slug>` writes to `plans/<plan>/brief.md`
+  - Consumer: task pickup checks plan dir for brief.md
 
 
 ## Worktree Tasks
@@ -127,7 +115,7 @@
 
 ## Next Steps
 
-5 worktrees active (handoff-cli-tool, commit-cli-tool, merge-resolution, orchestrate-evolution + precommit-test-sentinel if not yet merged). Work on whichever is ready.
+5 worktrees active. Brief skill is small standalone task.
 
 ## Reference Files
 
