@@ -1,30 +1,18 @@
 # Session Handoff: 2026-02-20
 
-**Status:** Merged worktree-rm-fixes, created merge-resolution worktree, defined "brief" pattern for cross-tree context transfer.
+**Status:** Implemented brief skill.
 
 ## Completed This Session
 
-**Merged worktree-rm-fixes:**
-- Merge + rm worktree (3 bug fixes: dirty check, new cleanup, submodule branch)
-- Post-merge learnings cleanup: trimmed pre-consolidation duplicates (127→31 lines), kept 5 consolidated + 1 delta
-- Removed 2 fixed blockers (dirty parent, stale submodule config)
-- Discovered merge resolution bugs in `resolve.py`: learnings uses line-set-difference (should be ancestor-based H2 diff), blockers not removed (focused sessions strip blockers section)
+**Brief skill:**
+- Created `agent-core/skills/brief/SKILL.md` — producer skill for cross-tree context transfer
+- Added consumer integration to `agent-core/fragments/execute-rule.md` (brief check in task pickup)
+- Skill-reviewer pass, self-reviewed execute-rule.md edit
+- Design decision: task pickup sufficient for consumer (resume-path gap is known limitation for v1)
 
-**Created merge-resolution worktree:**
-- New task absorbs copy-sentinel (both worktree creation fixes)
-- Bare slug due to 25-char limit (no `--slug` override exists)
-
-**Information corrections:**
-- `--branch` is for existing branches, not slug override — fixed in session.md + `operational-tooling.md` decision
-- Removed stale worktree-rm-safety absorbs (completed by worktree-rm-fixes)
-- Added `--slug` override and `--confirm` gate redesign to Worktree CLI default scope
-- Added merge resolution manual-check gotcha
-
-**"Brief" pattern:**
-- Named cross-tree async context transfer pattern (brainstormed with opus, chose "brief" for edify semantics)
-- Location: `plans/<plan>/brief.md` — alongside other plan artifacts
-- Wrote brief for handoff-cli-tool (status subcommand, `_` prefix convention, scope expansion)
-- Wrote self-brief for brief skill design (`plans/brief-skill/brief.md`)
+**Skill description format:**
+- Established action-first pattern for CLI display: `<functional purpose>. Triggers: "<phrase 1>", "<phrase 2>".`
+- Applied to brief skill; remaining skills need conversion
 
 ## Pending Tasks
 
@@ -58,10 +46,13 @@
   - Subsumes: Rename vet agents (FR-3), Codebase quality sweep (FR-4)
   - Absorbs: integration-first-tests
 
-- [ ] **Brief skill** — Lightweight skill for cross-tree context transfer | sonnet
-  - Plan: brief-skill | Status: briefed
-  - Producer: `/brief <slug>` writes to `plans/<plan>/brief.md`
-  - Consumer: task pickup checks plan dir for brief.md
+- [x] **Brief skill** — Lightweight skill for cross-tree context transfer | sonnet
+  - Plan: brief-skill | Status: complete
+
+- [ ] **Standardize skill descriptions** — Convert all skills from "This skill should be used when..." to action-first format with appended triggers | sonnet
+  - Pattern: `<functional purpose>. Triggers: "<phrase 1>", "<phrase 2>".`
+  - ~16 skills need conversion (design, next, error-handling, prioritize, how, when, ground, reflect, worktree, gitmoji, doc-writing, deliverable-review, remember, memory-index, token-efficient-bash, handoff)
+  - Already done: brief, shelve, commit, vet, orchestrate, release-prep, runbook, requirements, opus-design-question, handoff-haiku, plugin-dev-validation, project-conventions
 
 
 ## Worktree Tasks
@@ -115,7 +106,7 @@
 
 ## Next Steps
 
-5 worktrees active. Brief skill is small standalone task.
+4 worktrees active.
 
 ## Reference Files
 

@@ -167,6 +167,10 @@ Cross-tree worktree awareness with planstate inference, aggregation, rich ls dis
 
 Inline phase type across pipeline. 7 pipeline artifacts updated, 7 integration tests. Added inline as third phase type (alongside TDD and general) for prose edits without feedback loops. Key decisions: coordination complexity discriminator (D-5), vet proportionality (D-7). Affected: pipeline-contracts.md, workflow-optimization.md, runbook/SKILL.md, plan-reviewer.md, review-plan/SKILL.md, orchestrate/SKILL.md, prepare-runbook.py.
 
+## brief-skill
+
+Cross-tree context transfer skill. Producer (`/brief <slug>`) writes timestamped entries to `plans/<plan>/brief.md`. Consumer integration via execute-rule.md task pickup. Affected: agent-core/skills/brief/, agent-core/fragments/execute-rule.md.
+
 ## error-handling
 
 Error handling framework across 5 layers. 9 files (7 modified, 2 new), ~163 net lines. Unified error handling across orchestration, task lifecycle, and CPS chains. Key decisions: Avižienis fault/failure vocabulary, 5-category taxonomy (D-1), task error states blocked/failed/canceled (D-2), escalation acceptance criteria (D-3), revert-to-step-start rollback (D-5), hook degraded mode (D-6). Calibrated max_turns ~150 from 938 observations. Affected: agent-core/fragments/ (6 files), agent-core/skills/ (2 files), .claude/rules/.
