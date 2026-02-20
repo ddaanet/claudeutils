@@ -114,3 +114,15 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Using `wc -l` equality to conclude files are identical. Same line count does not mean same content — entries can be added/removed/replaced while maintaining count.
 - Correct pattern: Diff content, not counts. `git diff <base>..<branch> -- <file>` or compare actual text. Line count is a size metric, not an identity check.
 - Evidence: Learnings.md had 62 lines on both merge base and branch → concluded "no changes." Post-merge found 36 genuine new entries from the branch.
+## When designing CLI tools for LLM callers
+- Anti-pattern: Using traditional CLI conventions (flags, short options, --help, positional args) for tools whose sole caller is an LLM agent. Quoting/escaping in bash heredocs is error-prone, multiline arguments need gymnastics.
+- Correct pattern: Structured markdown on stdin, structured markdown on stdout. LLM-native format — no quoting issues, natural multiline, extensible without code changes. Section-based parsing with known section names as boundaries.
+- Rationale: CLI conventions exist for human ergonomics (tab completion, discoverability). LLMs don't need any of that. They need a format they produce and consume natively.
+## When reusable components reference project paths
+- Anti-pattern: Hardcoding project-specific paths (e.g., `agent-core/skills/**`, `scripts/**`) in reusable packages or submodule code. Breaks when the component is used in another project.
+- Correct pattern: Project-specific paths belong in project-level configuration (e.g., `pyproject.toml`). Reusable code reads config, doesn't hardcode paths. Agent-core's gate concerns belong to agent-core, not the parent CLI.
+- Evidence: Gate B initially hardcoded `agent-core/skills/**` etc. in the CLI — would break agent-core reuse in other projects.
+## When CLI outputs errors consumed by LLM agents
+- Anti-pattern: Including suggested causes or recovery actions in error messages ("may have been committed already", "remove and retry"). LLM agents treat suggestions as instructions, enabling rationalization past real problems.
+- Correct pattern: Facts only — state what IS, not what MIGHT BE. For unrecoverable errors (data loss risk), include STOP directive. For recoverable errors, CLI handles recovery itself and surfaces a warning. Error taxonomy: Stop (clean-files, missing input) vs Warning+proceed (orphaned optional section).
+- Evidence: Clean-files error without STOP → agent removes file from list and confabulates "already committed." With STOP directive, agent reports to user instead.
