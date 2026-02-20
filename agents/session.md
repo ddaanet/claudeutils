@@ -57,11 +57,6 @@
   - Absorbs: Script commit vet gate (Gate B → scripted check)
   - Single command: precommit → gate → stage → commit in main + agent-core submodule
 
-- [ ] **Merge resolution correctness** → `merge-resolution` — Fix learnings + blockers resolution in `resolve.py`, fix focused session creation | sonnet
-  - Learnings: use ancestor-based diff (not line-set-difference). Group by H2 entry. Append THEIRS additions (vs ancestor) to OURS. Fail if THEIRS removals don't apply cleanly to OURS
-  - Blockers: ancestor-based removal. Present in ancestor + absent in theirs → resolved, remove from ours
-  - Focused session creation: preserve blockers section (enables ancestor-based resolution), copy `tmp/.test-sentinel` (inherit cached test state)
-  - Target: `src/claudeutils/worktree/resolve.py`, focused session generator in worktree `new`
 
 - [ ] **Orchestrate evolution** → `orchestrate-evolution` — `/runbook plans/orchestrate-evolution/design.md` | sonnet
   - Design complete (refreshed Feb 13), ready for runbook planning
