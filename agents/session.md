@@ -1,19 +1,12 @@
 # Session Handoff: 2026-02-20
 
-**Status:** Standardized skill H1 headings across all 26 skills.
+**Status:** Documented git -C and subshell patterns for agent-core submodule ops in commit skill.
 
 ## Completed This Session
 
-**Brief skill:**
-- Created `agent-core/skills/brief/SKILL.md` — producer skill for cross-tree context transfer
-- Added consumer integration to `agent-core/fragments/execute-rule.md` (brief check in task pickup)
-- Skill-reviewer pass, self-reviewed execute-rule.md edit
-- Design decision: task pickup sufficient for consumer (resume-path gap is known limitation for v1)
-
-**Skill H1 headings:**
-- CLI displays H1 heading (not frontmatter `description`) in the skill picker
-- Replaced all generic `<Name> Skill` H1s with descriptive verb phrases across 26 skills
-- Frontmatter `description` format: `plugin-dev:skill-development` mandates "This skill should be used when..." — do not change
+**Commit skill CWD patterns:**
+- Updated `agent-core/skills/commit/SKILL.md` section 1b: `git -C agent-core` for git commands, `( cd agent-core && <cmd> )` subshell for non-git commands
+- Added `submodule-safety` hook explanation — bare `cd agent-core` persists cwd and blocks subsequent Bash calls
 
 ## Pending Tasks
 
@@ -46,12 +39,6 @@
   - Grounding: `plans/reports/code-density-grounding.md`
   - Subsumes: Rename vet agents (FR-3), Codebase quality sweep (FR-4)
   - Absorbs: integration-first-tests
-
-- [x] **Brief skill** — Lightweight skill for cross-tree context transfer | sonnet
-  - Plan: brief-skill | Status: complete
-
-- [x] **Standardize skill descriptions** — Fixed H1 headings on all 26 skills; kept "This skill should be used when..." descriptions per plugin-dev:skill-development mandate | sonnet
-
 
 ## Worktree Tasks
 
