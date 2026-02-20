@@ -31,3 +31,11 @@ Original scope: mechanical handoff+commit pipeline.
 Expanded scope: status output as a subcommand within the same CLI infrastructure. Shared session.md parsing layer serves both status display and handoff operations.
 
 Whether flat (`_status`, `_handoff`) or grouped (`_session status`, `_session handoff`) depends on shared infrastructure — design decision for outline.
+
+## 2026-02-20: Commit ID output requirement
+
+**Source:** Context optimization discussion about session log scraping.
+
+The `_session commit` subcommand MUST output shortened commit IDs in stdout. Enables session→commit correlation when scraping `~/.claude/projects/` logs. `git commit` already outputs the short hash; the wrapper must preserve it.
+
+**Evidence:** Traced commit `2bb41d96` through git history to recover the original SessionStart hook discussion. Required hash in searchable output.

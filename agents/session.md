@@ -1,33 +1,53 @@
 # Session Handoff: 2026-02-20
 
-**Status:** Merged all worktrees, wrote combined session CLI outline (handoff + commit + status).
+**Status:** Context optimization analysis complete, hook batch scoped, briefs written. Communication rule updated.
 
 ## Completed This Session
 
-**Worktree consolidation:**
-- Removed merge-resolution worktree (discarded, no merge)
-- Merged orchestrate-evolution (commits: focused session + D-5 ping-pong TDD design)
-- Merged commit-cli-tool (commits: focused session + commit CLI design)
-- Merged handoff-cli-tool (commits: focused session + outline + outline refinement)
-- Post-merge learnings verification: no pre-consolidation duplicates in any merge
+**Context optimization analysis:**
+- Analyzed 25.5k tokens of always-loaded fragments for demotion candidates
+- Identified ~6.6k demotable tokens (26%): sandbox-exemptions, claude-config-layout, project-tooling, bash-strict-mode, vet-requirement, workflows-terminology (partial), error-handling (partial)
+- Key finding: vet-requirement (2.4k) is passive — commit skill gate is the actual enforcement
+- Key finding: "frequently useful" ≠ "always needed" — behavioral rules vs procedural reference
+- Deferred: learnings consolidation (entries need aging), memory-index restructuring (needs usage data)
+- Brief: `plans/context-optimization/brief.md`
 
-**Session CLI outline:**
-- Combined handoff + commit outlines into unified `_session` group at `plans/handoff-cli-tool/outline.md` (355 lines)
-- Added status subcommand section, unified shared infrastructure (S-1 through S-4), harmonized exit codes
-- Resolved open question: completed section committed detection → auto-strip
-- Deleted `plans/commit-cli-tool/` (absorbed)
+**Hook batch scoping:**
+- Consolidated PostToolUse auto-format + SessionStart status hook + new patterns into single task
+- SessionStart scoped to 3 features (not 5): dirty tree, learning-ages --summary, stale worktrees. Model tier blocked (no API). Tip rotation deferred (no content source).
+- UserPromptSubmit improvements plan: line-based shortcuts, directive refinements (scope clarification, p: dual output, q:/learn: implementation), skill-editing guard, ccg integration
+- Skill activation research: 20% baseline (pure LLM reasoning), forced-eval hook reaches 84% (Scott Spence)
+- Brief: `plans/hook-batch/brief.md`, plan: `plans/hook-batch/userpromptsubmit-plan.md`
 
-**Discussion conclusions:**
-- Outline-level merge > requirements restart (outlines post-sufficiency-gate, decisions validated through 7 review rounds)
-- Single combined file > split files (LLM semantic integrity — cross-cutting consistency at write time)
-- Pipeline fixes before 7-phase runbook (don't compound pipeline leaks at scale)
+**RCA: Skill trigger failure:**
+- "drop a brief" should have triggered `/brief` skill, agent started manual execution
+- Root cause: execution routing preempts skill scanning (attention-dependent gate vs pattern-reinforced behavior)
+- Platform limitation: ~20% baseline skill activation, not project-specific
+- Fix direction: UserPromptSubmit hook with targeted patterns (skill-editing guard, ccg)
+
+**Communication rule change:**
+- Removed AskUserQuestion directive from `agent-core/fragments/communication.md` (rule 5)
+
+**Sandbox denylist specification:**
+- Block from bypass: `git merge`, `git worktree`, `ln`
+- NOT blocking `git commit` (commit skill uses it internally, deferred until Session CLI)
+- Manual user configuration, not automated
 
 ## Pending Tasks
 
 - [ ] **When recall evaluation** — sonnet
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 
-- [ ] **PostToolUse auto-format hook** — PostToolUse hook on Write/Edit running formatter on changed file | sonnet | restart
+- [ ] **Hook batch** — `/design plans/hook-batch/brief.md` | sonnet | restart
+  - Absorbs: PostToolUse auto-format hook, SessionStart status hook
+  - Scope: SessionStart health (3 features), PreToolUse recipe-redirect, UserPromptSubmit improvements (7 changes), PostToolUse auto-format
+  - Plan: hook-batch | Status: designed (UserPromptSubmit plan written, other hooks need design)
+  - b: directive semantics TBD (fourth member of b/d/p/q mirror-letter set)
+
+- [ ] **Context optimization** — Fragment demotion from CLAUDE.md | sonnet
+  - Plan: context-optimization | Status: designed
+  - Depends on: Hook batch (denylist + PreToolUse hook replace project-tooling.md)
+  - ~6.6k tokens demotable (26%), injection points in worktree/design/orchestrate/hook-dev/plugin-dev/token-efficient-bash skills
 
 - [ ] **Worktree CLI default** — Positional = task name, `--branch` = bare slug | `/runbook plans/worktree-cli-default/outline.md` | sonnet
   - Plan: worktree-cli-default | Status: designed
@@ -36,7 +56,8 @@
   - Absorbs: pre-merge untracked file fix (`new` leaves session.md untracked), worktree skill adhoc mode (covered by `--branch`), `--slug` override for `--task` mode (25-char slug limit vs prose task names)
   - `rm --confirm` gate: replace with merge-status check (is branch ancestor of HEAD?). Current gate provides no safety, gives wrong error message ("use wt merge" when user already merged), agent retries immediately with `--confirm`
 
-- [ ] **SessionStart status hook** — Bundled hook: dirty tree warning, learnings limit, stale worktree detection, model tier display, tip rotation | sonnet | restart
+- [ ] **SessionStart status hook** — Absorbed into Hook batch
+- [ ] **PostToolUse auto-format hook** — Absorbed into Hook batch
 
 - [ ] **Pipeline skill updates** — `/design` | opus | restart
   - Orchestrate: `/deliverable-review` pending task at exit
@@ -65,6 +86,7 @@
   - Combined outline at `plans/handoff-cli-tool/outline.md` (355 lines, 7 phases)
   - Blocked on: Pipeline skill updates (fix pipeline leaks before running 7-phase runbook)
   - After pipeline fixes: outline review → sufficiency gate → `/runbook`
+  - New requirement: commit subcommand must output shortened commit IDs (session scraping)
 
 ## Worktree Tasks
 
@@ -89,15 +111,22 @@
 **Memory index `/how` operator mapping:**
 - `/how X` → internally `"how to X"` — index keys must NOT include "to"
 
-**Learnings at 150 lines — consolidation overdue:**
-- 150 lines, 80-line soft limit. `/remember` needed urgently.
+**Learnings at 157 lines — consolidation deferred:**
+- Past 150-line trigger but 0 entries ≥7 active days. Aging required before graduation.
+
+**Skill activation ~20% baseline:**
+- Platform limitation — skill matching is pure LLM reasoning with no algorithmic routing. UserPromptSubmit hook with targeted patterns is the structural fix.
 
 ## Next Steps
 
-Pipeline skill updates is the critical path — opus, restart required. Session CLI tool blocked on it.
+Hook batch is the critical path — unblocks context optimization and provides mechanical enforcement for skill activation, recipe priority, and session health checks.
 
 ## Reference Files
 
+- `plans/context-optimization/brief.md` — Fragment demotion analysis (demotable/stays/blocked)
+- `plans/hook-batch/brief.md` — Consolidated hook task scope and research findings
+- `plans/hook-batch/userpromptsubmit-plan.md` — UserPromptSubmit improvements (7 changes)
+- `plans/handoff-cli-tool/brief.md` — Session CLI briefs (status subcommand + commit ID requirement)
 - `agents/backlog.md` — 30+ deferred tasks with plan associations and groupings
 - `plans/worktree-cli-default/outline.md` — CLI change design (positional=task, --branch=slug)
 - `plans/quality-infrastructure/requirements.md` — 4 FRs: deslop, code density, vet rename, refactoring
