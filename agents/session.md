@@ -40,6 +40,9 @@
   - Subsumes: Rename vet agents (FR-3), Codebase quality sweep (FR-4)
   - Absorbs: integration-first-tests
 
+- [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
+  - Design complete with Phase 1 (foundation) + Phase 2 (ping-pong TDD), ready for runbook planning
+
 ## Worktree Tasks
 
 
