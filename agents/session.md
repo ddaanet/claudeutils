@@ -1,24 +1,24 @@
 # Session Handoff: 2026-02-20
 
-**Status:** Design outline complete, reviewed, execution-ready. Next session executes directly from outline.
+**Status:** Pipeline skill updates complete. All 9 design decisions implemented, vetted, committed. Branch ready for merge.
 
 ## Completed This Session
 
-**Pipeline skill updates design outline:**
-- Recovered task context from runbook-skill-fixes worktree session (commit `a161d808`)
-- Read all 7 affected pipeline artifacts + 2 absorbed designs (vet-invariant-scope, inline-phase-type)
-- Confirmed inline-phase-type already fully implemented in codebase — no remaining work
-- Produced outline: `plans/pipeline-skill-updates/outline.md` (9 decisions, 7 files, ~96 net lines)
-- Outline reviewed by outline-review-agent: 4 minor issues FIXED (D-6 through D-9 added), 0 critical/major
-- Execution readiness assessment: all criteria hold (decisions pre-resolved, changes additive, no implementation loops)
+**Pipeline skill updates design outline (prior session):**
+- Recovered task context, read 7 affected artifacts + 2 absorbed designs
+- Produced and reviewed outline: 9 decisions, 7 files, execution-ready
+
+**Pipeline skill updates execution (this session):**
+- Resumed `/design` → sufficiency gate → execution readiness gate → direct execution from outline
+- 14 edits across 7 files, +70/-8 net lines, all additive prose
+- Submodule commit: c4802f2 (6 agent-core files)
+- Parent commit: b83c1917 (pipeline-contracts.md + submodule pointer)
+- Vet review: 0 critical, 0 major, 0 minor (report: plans/pipeline-skill-updates/reports/vet-review.md)
+- Vet report commit: 3a33774d
 
 ## Pending Tasks
 
-- [ ] **Pipeline skill updates** — resume `/design` (direct execution from outline) | opus
-  - Outline: `plans/pipeline-skill-updates/outline.md` — reviewed, execution-ready
-  - 7 files, all additive prose edits, ~96 net lines
-  - Design skill sufficiency gate → execution readiness gate → execute + vet
-  - No `/runbook` needed — coordination complexity criteria all satisfied
+(none)
 
 ## Blockers / Gotchas
 
@@ -28,11 +28,10 @@
 
 ## Next Steps
 
-Resume `/design` — sufficiency gate routes to direct execution from outline. Execute edits, vet, handoff+commit.
+No pending tasks. Branch ready for merge to main.
 
 ## Reference Files
 
-- `plans/pipeline-skill-updates/outline.md` — Design outline (9 decisions, 11 FRs, execution-ready)
-- `plans/pipeline-skill-updates/reports/outline-review.md` — Outline review (4 minor FIXED)
-- `plans/vet-invariant-scope/design.md` — Absorbed design (verification scope, lifecycle audit, resume completeness)
-- `plans/inline-phase-type/outline.md` — Absorbed outline (confirmed already implemented)
+- `plans/pipeline-skill-updates/outline.md` — Design outline (9 decisions, source of truth)
+- `plans/pipeline-skill-updates/reports/vet-review.md` — Vet review (clean, 0 issues)
+- `plans/pipeline-skill-updates/reports/outline-review.md` — Outline review (4 minor FIXED, prior session)
