@@ -2,7 +2,7 @@
 
 ## Approach
 
-Evolve the orchestrate skill into an enhanced execution orchestrator. Sonnet replaces haiku. Plan-specific agents cache all common context (design + runbook outline) so implementation agents receive only their step file as non-cached input. Parallel dispatch, post-step remediation, and agent caching model replace the current weak orchestration pattern.
+Evolve the orchestrate skill into an enhanced execution orchestrator. Sonnet replaces haiku. Plan-specific agents cache all common context (design + runbook outline) so implementation agents receive only their step file as non-cached input. Post-step remediation, agent caching model, and ping-pong TDD orchestration replace the current weak orchestration pattern.
 
 Planning orchestration is out of scope — plan-tdd and plan-adhoc remain independent skills. Sub-agent limitations (no MCP, no nested Task) make planning delegation impractical for exploration-heavy steps.
 
@@ -87,6 +87,31 @@ Review agents get the same cached context (design + outline) but receive additio
 - Sonnet orchestrator handles execution-level issues inline (missing files, failed commands, dirty tree)
 - Design-level issues escalate to user (wrong approach, scope change, blocking ambiguity)
 
+### D-5: Ping-pong TDD orchestration
+
+**Decision:** Alternating tester/implementer agents with mechanical RED/GREEN gates and role-specific correctors (vet pattern).
+
+**Agent roles (all plan-specific, cached context):**
+- `<plan>-tester.md` — test quality rules cached. Receives test spec file reference
+- `<plan>-implementer.md` — coding rules cached. Receives step implementation hints
+- `<plan>-test-vet.md` — reviews test quality and conformity after RED gate
+- `<plan>-impl-vet.md` — reviews implementation quality and conformity after GREEN gate
+
+**Orchestration loop per TDD cycle:**
+1. Dispatch tester with test spec reference
+2. RED gate: run new test, verify exit code ≠ 0 (test fails = correct RED state)
+3. Dispatch test-vet for quality/conformity review
+4. Dispatch implementer with step hints
+5. GREEN gate: run full test suite, verify exit code = 0
+6. Dispatch impl-vet for quality/conformity review
+7. Resume tester/implementer for next cycle (fresh if >15 messages)
+
+**RED gate mechanism:** Mechanical — run test file, check exit code ≠ 0. Distinguishing "fails for right reason" vs "fails due to import error" is the test-vet's job, not the gate's.
+
+**Step file separation:** prepare-runbook.py splits TDD cycles into `step-N-test.md` (test spec) and `step-N-impl.md` (implementation hints). Orchestrator dispatches to correct agent by role marker in plan — never reads step content.
+
+**Context specialization:** Tester never sees implementation hints; implementer never sees test specs. Prevents over-implementation beyond test demands and test-mirroring of code structure.
+
 ## Resolved Questions
 
 ### Q-1: Planning absorption → Dropped
@@ -102,9 +127,9 @@ Review agents get the same cached context (design + outline) but receive additio
 
 ### Q-2: Plan-specific agents → Keep with cleanup
 
-**Decision:** Keep plan-specific agents with enhanced caching model (D-2). Up to two agent types per plan: `<plan>-task.md` (implementation) and `<plan>-vet.md` (review, multi-phase only).
+**Decision:** Keep plan-specific agents with enhanced caching model (D-2). General plans: up to 2 agent types (`<plan>-task.md`, `<plan>-vet.md`). TDD plans: up to 6 agent types (task, vet, tester, implementer, test-vet, impl-vet).
 
-Cleanup step after orchestration completes (orchestrate skill final step): delete `.claude/agents/<plan>-task.md` and `<plan>-vet.md`.
+Cleanup step after orchestration completes (orchestrate skill final step): delete all `.claude/agents/<plan>-*.md` files.
 
 ### Q-3: Remediation authority → Resume step agent with fallback
 
@@ -126,8 +151,8 @@ Binding constraints for the design:
 - All common context required by implementation agents lives in the agent definition (cached)
 - The only non-cached context is the step file reference
 - If review agents need different shared context, they get a separate agent definition (`<plan>-vet.md`)
-- No phase-specific agent variants — up to two agent types per plan (task always, vet for multi-phase only)
-- Recovery reuses task agent (resumed) or sonnet default agent (not a third plan-specific type)
+- No phase-specific agent variants — agent count depends on plan type: general plans get up to 2 (task + vet), TDD plans get up to 6 (task + vet + tester + implementer + test-vet + impl-vet)
+- Recovery reuses task agent (resumed) or sonnet default agent (not an additional plan-specific type)
 
 **Orchestrator bloat prevention:**
 - Orchestrator provides step file references only — never reads step/design/outline content
@@ -140,6 +165,13 @@ Binding constraints for the design:
 - Complexity fixes (refactor agent) and vet-fix at end of each phase
 - Tree must be git-clean and precommit-clean at end of each phase
 
+**Ping-pong TDD orchestration:**
+- Alternating tester/implementer agents, not a single agent doing both
+- Mechanical RED/GREEN gates between agent handoffs — no agent judgment on pass/fail
+- Role-specific cached context: test agents get test quality rules, implementation agents get coding rules
+- Correctors (vet pattern) run after each gate — catch quality issues before they compound
+- Resume agents across test cycles within a phase; fresh agent on context overflow
+
 **Refactor agent behavior:**
 - Resume once if complexity errors not fully fixed and context < 100k (same pattern as D-3)
 - If resumed refactor agent fails or context > 100k: delegate recovery
@@ -148,7 +180,7 @@ Binding constraints for the design:
 
 ## Scope
 
-**In scope:**
+**In scope (Phase 1 — Foundation):**
 - Orchestrate skill (SKILL.md) — rewrite with enhanced execution, agent caching, cleanup
 - prepare-runbook.py — generate plan-specific agents with embedded design+outline, sequential execution order
 - Plan-specific agent templates — `<plan>-task.md` and `<plan>-vet.md` with cached content
@@ -156,6 +188,13 @@ Binding constraints for the design:
 - Orchestrator plan format — sequential execution order, file reference metadata
 - Orchestrate skill verification script — post-step check (git clean + precommit)
 - Refactor agent — add deslop directives, factorization-before-splitting rule, resume pattern
+
+**In scope (Phase 2 — Ping-pong TDD):**
+- Ping-pong TDD orchestration loop — alternating tester/implementer dispatch with mechanical RED/GREEN gates
+- Role-specific plan agents — `<plan>-tester.md`, `<plan>-implementer.md`, `<plan>-test-vet.md`, `<plan>-impl-vet.md`
+- RED verification script (verify-red.sh) — mechanical gate; GREEN gate composes existing `just test` + `verify-step.sh`
+- Agent resume across TDD cycles — context reuse within phase, fresh on overflow
+- prepare-runbook.py — generate TDD-specific agent types and split step files per role
 
 **Out of scope:**
 - Planning orchestration (plan-tdd / plan-adhoc stay as independent skills)

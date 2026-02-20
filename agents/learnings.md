@@ -114,3 +114,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Using `wc -l` equality to conclude files are identical. Same line count does not mean same content — entries can be added/removed/replaced while maintaining count.
 - Correct pattern: Diff content, not counts. `git diff <base>..<branch> -- <file>` or compare actual text. Line count is a size metric, not an identity check.
 - Evidence: Learnings.md had 62 lines on both merge base and branch → concluded "no changes." Post-merge found 36 genuine new entries from the branch.
+## When skill sections cross-reference context-dependent framing
+- Anti-pattern: Section C.5 said "Apply execution readiness criteria from Outline Sufficiency Gate." The sufficiency gate's framing ("The outline IS the design") only applies when design.md doesn't exist yet (deciding whether to skip Phase C). At C.5, design.md already exists — the back-reference imports wrong framing.
+- Correct pattern: Inline shared criteria at each usage site with context-appropriate framing. When two gates share criteria but have different preconditions, each site needs its own framing even if the criteria list is identical.
+- Evidence: Agent at C.5 produced "outline is sufficient, design.md IS the design" — nonsensical when design.md was the artifact just vetted.
