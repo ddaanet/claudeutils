@@ -114,3 +114,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Using `wc -l` equality to conclude files are identical. Same line count does not mean same content — entries can be added/removed/replaced while maintaining count.
 - Correct pattern: Diff content, not counts. `git diff <base>..<branch> -- <file>` or compare actual text. Line count is a size metric, not an identity check.
 - Evidence: Learnings.md had 62 lines on both merge base and branch → concluded "no changes." Post-merge found 36 genuine new entries from the branch.
+## When Edit tool reports success but changes don't persist
+- Anti-pattern: Trusting Edit tool "success" confirmation after Bash has modified the file. The tool reports success but the write doesn't persist — silently dropped.
+- Correct pattern: Use Write tool for files that need guaranteed writes, especially after Bash commands (sed, git mv) have touched the file in the same session. Also: git mv and sed on tracked files require `dangerouslyDisableSandbox: true`.
+- Evidence: Multiple Edit calls returned "success" on cli.py but cat confirmed no changes. Write tool succeeded on first attempt.

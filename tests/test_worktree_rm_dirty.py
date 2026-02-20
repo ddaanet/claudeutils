@@ -8,7 +8,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-from claudeutils.worktree.utils import _is_parent_dirty, _is_submodule_dirty
+from claudeutils.worktree.git_ops import _is_parent_dirty, _is_submodule_dirty
 from tests.fixtures_worktree import _branch_exists, _create_worktree
 
 

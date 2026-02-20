@@ -8,7 +8,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
-from claudeutils.worktree.utils import _remove_worktrees, wt_path
+from claudeutils.worktree.git_ops import _remove_worktrees, wt_path
 
 
 def test_package_import() -> None:

@@ -1,7 +1,6 @@
 """Worktree CLI."""
 
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -12,14 +11,11 @@ import click
 
 from claudeutils.validation.tasks import validate_task_name_format
 from claudeutils.worktree.display import format_rich_ls
-from claudeutils.worktree.merge import merge as merge_impl
-from claudeutils.worktree.session import focus_session as focus_session  # noqa: PLC0414
-from claudeutils.worktree.session import (
-    move_task_to_worktree,
-    remove_worktree_task,
-)
-from claudeutils.worktree.utils import (
+from claudeutils.worktree.git_ops import (
     _classify_branch,
+    _create_session_commit,
+    _create_submodule_worktree,
+    _delete_submodule_branch,
     _get_worktree_path_for_branch,
     _git,
     _is_branch_merged,
@@ -29,6 +25,12 @@ from claudeutils.worktree.utils import (
     _probe_registrations,
     _remove_worktrees,
     wt_path,
+)
+from claudeutils.worktree.merge import merge as merge_impl
+from claudeutils.worktree.session import focus_session as focus_session  # noqa: PLC0414
+from claudeutils.worktree.session import (
+    move_task_to_worktree,
+    remove_worktree_task,
 )
 
 
@@ -94,33 +96,6 @@ def ls(*, porcelain: bool) -> None:
         click.echo(format_rich_ls(main_path, porcelain_output))
 
 
-def _create_session_commit(slug: str, base: str, session: str) -> str:
-    """Create commit with session.md from file."""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".index") as tmp:
-        env = {**os.environ, "GIT_INDEX_FILE": tmp.name}
-    try:
-        _git("read-tree", _git("rev-parse", f"{base}^{{tree}}"), env=env)
-        content = Path(session).read_text()
-        blob = _git("hash-object", "-w", "--stdin", input_data=content)
-        _git(
-            "update-index",
-            "--add",
-            "--cacheinfo",
-            f"100644,{blob},agents/session.md",
-            env=env,
-        )
-        return _git(
-            "commit-tree",
-            _git("write-tree", env=env),
-            "-p",
-            base,
-            "-m",
-            f"Focused session for {slug}",
-        )
-    finally:
-        Path(tmp.name).unlink(missing_ok=True)
-
-
 def _create_parent_worktree(
     worktree_path: Path, slug: str, base: str, session: str
 ) -> None:
@@ -143,30 +118,6 @@ def _create_parent_worktree(
         _git("worktree", "add", str(worktree_path), "-b", slug, base)
 
 
-def _create_submodule_worktree(
-    project_root: str, worktree_path: Path, slug: str
-) -> None:
-    """Create agent-core submodule worktree if exists."""
-    agent_core = Path(project_root) / "agent-core"
-    if not agent_core.exists() or not (agent_core / ".git").exists():
-        return
-
-    try:
-        _git("-C", str(agent_core), "rev-parse", "--verify", slug)
-        flag = []
-    except subprocess.CalledProcessError:
-        flag = ["-b"]
-    _git(
-        "-C",
-        str(agent_core),
-        "worktree",
-        "add",
-        str(worktree_path / "agent-core"),
-        *flag,
-        slug,
-    )
-
-
 def _setup_worktree(
     worktree_path: Path, slug: str, base: str, session: str, task: str
 ) -> None:
@@ -181,6 +132,21 @@ def _setup_worktree(
     add_sandbox_dir(main_repo, f"{worktree_path}/.claude/settings.local.json")
     _initialize_environment(worktree_path)
     click.echo(f"{slug}\t{worktree_path}" if task else str(worktree_path))
+
+
+def _setup_worktree_safe(
+    path: Path, slug: str, base: str, session: str, task: str
+) -> None:
+    """Run _setup_worktree, cleaning up the directory on failure."""
+    try:
+        _setup_worktree(path, slug, base, session, task)
+    except (subprocess.CalledProcessError, OSError):
+        if path.exists():
+            shutil.rmtree(path)
+        container = path.parent
+        if container.exists() and not list(container.iterdir()):
+            container.rmdir()
+        raise
 
 
 @worktree.command(name="clean-tree")
@@ -227,15 +193,7 @@ def new(slug: str | None, base: str, session: str, task: str, session_md: str) -
         if (path := wt_path(slug, create_container=True)).exists():
             click.echo(f"Error: existing directory {path}", err=True)
             raise SystemExit(1)
-        try:
-            _setup_worktree(path, slug, base, session, task)
-        except (subprocess.CalledProcessError, OSError):
-            if path.exists():
-                shutil.rmtree(path)
-            container = path.parent
-            if container.exists() and not list(container.iterdir()):
-                container.rmdir()
-            raise
+        _setup_worktree_safe(path, slug, base, session, task)
         if task:
             session_md_path = Path(session_md)
             if not session_md_path.exists():
@@ -307,28 +265,32 @@ def _delete_branch(slug: str, removal_type: str | None) -> None:
         raise SystemExit(1)
 
 
-def _delete_submodule_branch(slug: str) -> None:
-    """Delete branch in agent-core submodule if it exists."""
-    agent_core = Path("agent-core")
-    if not agent_core.exists() or not (agent_core / ".git").exists():
-        return
-    r = subprocess.run(
-        ["git", "-C", "agent-core", "branch", "-D", slug],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if r.returncode != 0 and "not found" not in r.stderr.lower():
-        click.echo(
-            f"Submodule branch {slug} deletion failed: {r.stderr.strip()}", err=True
-        )
-
-
 def _check_confirm(slug: str, confirm: bool) -> None:  # noqa: FBT001
     if not confirm:
         click.echo(
             f"Use the worktree skill (wt merge {slug}) to remove worktrees safely. "
             "Pass --confirm to invoke directly.",
+            err=True,
+        )
+        raise SystemExit(2)
+
+
+def _check_not_dirty(slug: str, worktree_path: Path) -> None:  # noqa: ARG001
+    """Block removal if worktree or submodule has uncommitted changes."""
+    if worktree_path.exists():
+        status = _git("-C", str(worktree_path), "status", "--porcelain", check=False)
+        if status.strip():
+            n = len(status.strip().split("\n"))
+            click.echo(
+                f"Worktree has {n} uncommitted file(s). "
+                "Commit or stash before removing worktree.",
+                err=True,
+            )
+            raise SystemExit(2)
+    if _is_submodule_dirty():
+        click.echo(
+            "Submodule (agent-core) has uncommitted changes. "
+            "Commit or stash before removing worktree.",
             err=True,
         )
         raise SystemExit(2)
@@ -379,26 +341,7 @@ def rm(slug: str, confirm: bool, force: bool) -> None:  # noqa: FBT001
 
     worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)
     if not force:
-        if worktree_path.exists():
-            status = _git(
-                "-C", str(worktree_path), "status", "--porcelain", check=False
-            )
-            if status.strip():
-                n = len(status.strip().split("\n"))
-                click.echo(
-                    f"Worktree has {n} uncommitted file(s). "
-                    "Commit or stash before removing worktree.",
-                    err=True,
-                )
-                raise SystemExit(2)
-        if _is_submodule_dirty():
-            click.echo(
-                "Submodule (agent-core) has uncommitted changes. "
-                "Commit or stash before removing worktree.",
-                err=True,
-            )
-            raise SystemExit(2)
-
+        _check_not_dirty(slug, worktree_path)
         branch_exists, removal_type = _guard_branch_removal(slug)
     else:
         branch_exists = True
@@ -420,7 +363,8 @@ def rm(slug: str, confirm: bool, force: bool) -> None:  # noqa: FBT001
 
     if branch_exists:
         _delete_branch(slug, removal_type)
-        _delete_submodule_branch(slug)
+        if warning := _delete_submodule_branch(slug):
+            click.echo(warning, err=True)
     amend_note = " Merge commit amended." if amended else ""
     detail = " (focused session only)" if removal_type == "focused" else ""
     prefix = "Removed worktree" if removal_type is None else "Removed"
