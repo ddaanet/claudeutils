@@ -1,48 +1,34 @@
 # Session Handoff: 2026-02-20
 
-**Status:** Context optimization analysis complete, hook batch scoped, briefs written. Communication rule updated.
+**Status:** Hook batch design complete. Outline reviewed, all decisions resolved, ready for `/runbook`.
 
 ## Completed This Session
 
-**Context optimization analysis:**
-- Analyzed 25.5k tokens of always-loaded fragments for demotion candidates
-- Identified ~6.6k demotable tokens (26%): sandbox-exemptions, claude-config-layout, project-tooling, bash-strict-mode, vet-requirement, workflows-terminology (partial), error-handling (partial)
-- Key finding: vet-requirement (2.4k) is passive — commit skill gate is the actual enforcement
-- Key finding: "frequently useful" ≠ "always needed" — behavioral rules vs procedural reference
-- Deferred: learnings consolidation (entries need aging), memory-index restructuring (needs usage data)
-- Brief: `plans/context-optimization/brief.md`
-
-**Hook batch scoping:**
-- Consolidated PostToolUse auto-format + SessionStart status hook + new patterns into single task
-- SessionStart scoped to 3 features (not 5): dirty tree, learning-ages --summary, stale worktrees. Model tier blocked (no API). Tip rotation deferred (no content source).
-- UserPromptSubmit improvements plan: line-based shortcuts, directive refinements (scope clarification, p: dual output, q:/learn: implementation), skill-editing guard, ccg integration
-- Skill activation research: 20% baseline (pure LLM reasoning), forced-eval hook reaches 84% (Scott Spence)
-- Brief: `plans/hook-batch/brief.md`, plan: `plans/hook-batch/userpromptsubmit-plan.md`
-
-**RCA: Skill trigger failure:**
-- "drop a brief" should have triggered `/brief` skill, agent started manual execution
-- Root cause: execution routing preempts skill scanning (attention-dependent gate vs pattern-reinforced behavior)
-- Platform limitation: ~20% baseline skill activation, not project-specific
-- Fix direction: UserPromptSubmit hook with targeted patterns (skill-editing guard, ccg)
-
-**Communication rule change:**
-- Removed AskUserQuestion directive from `agent-core/fragments/communication.md` (rule 5)
-
-**Sandbox denylist specification:**
-- Block from bypass: `git merge`, `git worktree`, `ln`
-- NOT blocking `git commit` (commit skill uses it internally, deferred until Session CLI)
-- Manual user configuration, not automated
+**Hook batch design (full cycle):**
+- Outline produced (5 phases, 9 UserPromptSubmit changes, 9 files affected, 8 design decisions)
+- Iterative discussion (3 rounds): additive section-scoped directives (D-7), graduated r expansion, xc/hc continuation-chain messages, Stop hook fallback for #10373, hooks.json as config source of truth (D-8), remove python3/python from recipe-redirect
+- b: directive resolved as brainstorm via opus brainstorm agent (diverge/converge split with d:)
+- SessionStart #10373 confirmed still open — Stop hook fallback designed as bypass (dual delivery: SessionStart primary + Stop fallback with flag-file gating, systemMessage output)
+- Outline reviewed twice (outline-review-agent), all issues fixed (6 total across 2 passes)
+- Plan overrides documented: userpromptsubmit-plan.md execution order superseded by D-7, b: item resolved by D-5
 
 ## Pending Tasks
 
+- [ ] **Pipeline skill updates** — `/design` | opus | restart
+  - PRIORITY: Fix pipeline before running large runbooks
+  - Orchestrate: `/deliverable-review` pending task at exit
+  - Design skill: Phase 0 requirements-clarity gate
+  - Absorbs: vet-invariant-scope, inline-phase-type
+  - Insights input: Diamond TDD definition needed at `/design` (direct execution path), `/runbook` (step generation), `tdd-task` agent (cycle execution)
+  - Discussion context in runbook-skill-fixes worktree session
+
+- [ ] **Hook batch** — `/runbook plans/hook-batch/outline.md` | sonnet | restart
+  - Absorbs: PostToolUse auto-format hook, SessionStart status hook
+  - 5 phases: UserPromptSubmit (9 changes), PreToolUse recipe-redirect, PostToolUse auto-format, Session health (SessionStart + Stop fallback), Hook infrastructure (hooks.json + sync-to-parent merge)
+  - Plan: hook-batch | Status: designed (outline complete)
+
 - [ ] **When recall evaluation** — sonnet
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
-
-- [ ] **Hook batch** — `/design plans/hook-batch/brief.md` | sonnet | restart
-  - Absorbs: PostToolUse auto-format hook, SessionStart status hook
-  - Scope: SessionStart health (3 features), PreToolUse recipe-redirect, UserPromptSubmit improvements (7 changes), PostToolUse auto-format
-  - Plan: hook-batch | Status: designed (UserPromptSubmit plan written, other hooks need design)
-  - b: directive semantics TBD (fourth member of b/d/p/q mirror-letter set)
 
 - [ ] **Context optimization** — Fragment demotion from CLAUDE.md | sonnet
   - Plan: context-optimization | Status: designed
@@ -59,13 +45,6 @@
 - [ ] **SessionStart status hook** — Absorbed into Hook batch
 - [ ] **PostToolUse auto-format hook** — Absorbed into Hook batch
 
-- [ ] **Pipeline skill updates** — `/design` | opus | restart
-  - Orchestrate: `/deliverable-review` pending task at exit
-  - Design skill: Phase 0 requirements-clarity gate
-  - Absorbs: vet-invariant-scope, inline-phase-type
-  - Insights input: Diamond TDD definition needed at `/design` (direct execution path), `/runbook` (step generation), `tdd-task` agent (cycle execution)
-  - Discussion context in runbook-skill-fixes worktree session
-
 - [ ] **Quality infrastructure reform** — `/design plans/quality-infrastructure/requirements.md` | opus
   - Plan: quality-infrastructure | Status: requirements
   - 4 FRs: deslop restructuring, code density, vet rename, code refactoring
@@ -77,16 +56,17 @@
   - Design complete with Phase 1 (foundation) + Phase 2 (ping-pong TDD), ready for runbook planning
   - Insights input: ping-pong TDD agent pattern — alternating tester/implementer agents with mechanical RED/GREEN gates between handoffs. Tester holds spec context (can't mirror code structure), implementer holds codebase context (can't over-implement beyond test demands). Resume-based context preservation avoids startup cost per cycle
 
-- [ ] **Audit rules for design-history noise** — Scan fragments/skills for design history embedded in directives (rejected alternatives). Distinguish from functional motivation (why the rule exists) which stays. | opus
-- [ ] **Design skill review gate fix** — Apply transition-gated wording to Phase B step 4 in design/SKILL.md. Include motivation (review validates cross-cutting consistency that individual approvals don't check). | sonnet
-- [ ] **Deslop remaining skills** — Prose quality pass on skills not yet optimized (handoff and commit done) | sonnet
-- [ ] **Pending task capture wording** — Fix agent tendency to capture pending tasks verbatim instead of rewording with context from the discussion | opus
 - [ ] **Session CLI tool** — `_session` group (handoff, status, commit) | sonnet
   - Plan: handoff-cli-tool | Status: designed
   - Combined outline at `plans/handoff-cli-tool/outline.md` (355 lines, 7 phases)
   - Blocked on: Pipeline skill updates (fix pipeline leaks before running 7-phase runbook)
   - After pipeline fixes: outline review → sufficiency gate → `/runbook`
   - New requirement: commit subcommand must output shortened commit IDs (session scraping)
+
+- [ ] **Audit rules for design-history noise** — Scan fragments/skills for design history embedded in directives (rejected alternatives). Distinguish from functional motivation (why the rule exists) which stays. | opus
+- [ ] **Design skill review gate fix** — Apply transition-gated wording to Phase B step 4 in design/SKILL.md. Include motivation (review validates cross-cutting consistency that individual approvals don't check). | sonnet
+- [ ] **Deslop remaining skills** — Prose quality pass on skills not yet optimized (handoff and commit done) | sonnet
+- [ ] **Pending task capture wording** — Fix agent tendency to capture pending tasks verbatim instead of rewording with context from the discussion | opus
 
 ## Worktree Tasks
 
@@ -111,21 +91,27 @@
 **Memory index `/how` operator mapping:**
 - `/how X` → internally `"how to X"` — index keys must NOT include "to"
 
-**Learnings at 157 lines — consolidation deferred:**
+**Learnings at 158 lines — consolidation deferred:**
 - Past 150-line trigger but 0 entries ≥7 active days. Aging required before graduation.
 
 **Skill activation ~20% baseline:**
-- Platform limitation — skill matching is pure LLM reasoning with no algorithmic routing. UserPromptSubmit hook with targeted patterns is the structural fix.
+- Platform limitation — skill matching is pure LLM reasoning with no algorithmic routing. UserPromptSubmit hook with targeted patterns is the structural fix (hook batch Phase 1 items 8-9).
+
+**SessionStart hook #10373 still open:**
+- Output discarded for new interactive sessions. Stop hook fallback designed in hook batch Phase 4.
 
 ## Next Steps
 
-Hook batch is the critical path — unblocks context optimization and provides mechanical enforcement for skill activation, recipe priority, and session health checks.
+Pipeline skill updates is the user-flagged priority — fix pipeline before running large runbooks. Hook batch `/runbook` is next after pipeline fixes.
 
 ## Reference Files
 
+- `plans/hook-batch/outline.md` — Hook batch outline (5 phases, 9 files, 8 decisions)
+- `plans/hook-batch/userpromptsubmit-plan.md` — UserPromptSubmit details (partially superseded by outline D-5, D-7)
+- `plans/hook-batch/reports/outline-review-2.md` — Final outline review
+- `plans/hook-batch/reports/b-directive-brainstorm.md` — b: = brainstorm analysis
+- `plans/hook-batch/brief.md` — Original brief (pre-design)
 - `plans/context-optimization/brief.md` — Fragment demotion analysis (demotable/stays/blocked)
-- `plans/hook-batch/brief.md` — Consolidated hook task scope and research findings
-- `plans/hook-batch/userpromptsubmit-plan.md` — UserPromptSubmit improvements (7 changes)
 - `plans/handoff-cli-tool/brief.md` — Session CLI briefs (status subcommand + commit ID requirement)
 - `agents/backlog.md` — 30+ deferred tasks with plan associations and groupings
 - `plans/worktree-cli-default/outline.md` — CLI change design (positional=task, --branch=slug)
