@@ -47,18 +47,20 @@
   - Design complete. Outline serves as design (sufficiency gate passed — no full design.md needed)
   - 5 phases: extract _git (general), parser+validation (TDD), gate (TDD), pipeline (TDD), integration (TDD)
 
+- [ ] **Audit rules for design-history noise** — Scan fragments/skills for design history embedded in directives (rejected alternatives). Distinguish from functional motivation (why the rule exists) which stays. | opus
+- [ ] **Design skill review gate fix** — Apply transition-gated wording to Phase B step 4 in design/SKILL.md. Include motivation (review validates cross-cutting consistency that individual approvals don't check). | sonnet
+- [ ] **Deslop remaining skills** — Prose quality pass on skills not yet optimized (handoff and commit done) | sonnet
+- [ ] **Pending task capture wording** — Fix agent tendency to capture pending tasks verbatim instead of rewording with context from the discussion | opus
+- [>] **Session CLI tool** — Redraft outline with expanded scope: `_session` group (handoff, status, commit). Merge commit-cli worktree first to import its outline state. | sonnet
+  - Outline at `plans/handoff-cli-tool/outline.md` (current: handoff-only, needs expansion)
+  - Brief at `plans/handoff-cli-tool/brief.md` (status subcommand + scope expansion rationale)
+  - Open question remains: completed section committed detection edge case resolved (auto-strip)
+  - After redraft: outline review → sufficiency gate → `/runbook` or direct execution
+
 ## Worktree Tasks
 
 
 
-- [ ] **Handoff CLI tool** → `handoff-cli-tool` — Mechanical handoff+commit pipeline in CLI | `/design` | sonnet
-  - Same pattern as worktree CLI: mechanical ops in CLI, judgment stays in agent
-  - Inputs: status line (overwrite), completed text (overwrite committed / append uncommitted), optional files to add/remove, optional commit message with gitmoji
-  - Outputs (conditional): learnings age status, precommit result, git status+diff (skip if precommit red), worktree ls. Suppress "nothing to report" outputs
-  - Cache on failure: inputs to state file, rerun without re-entering skill
-  - Domain boundaries: Handoff CLI owns status line + completed section + git ops + checks. Worktree CLI owns `→ slug` markers. Agent Edit owns: pending task mutations (insertion point = judgment), learnings append + invalidation, blockers, reference files
-  - Learnings flow: Agent writes learnings (Edit) → reviews for invalidation (semantic anchoring) → then calls CLI
-  - Gitmoji: embeddings + cosine similarity over 78 pre-computed vectors. Build initial script first, then validate against git log corpus (exact/acceptable/wrong match rates). Tune or reject based on empirical results
 
 - [ ] **Commit CLI tool** → `commit-cli-tool` — CLI for precommit/stage/commit across both modules | `/design` | sonnet
   - Absorbs: Script commit vet gate (Gate B → scripted check)
@@ -91,6 +93,8 @@
 **Memory index `/how` operator mapping:**
 - `/how X` → internally `"how to X"` — index keys must NOT include "to"
 
+- No consolidation trigger yet (0 entries ≥7 days, last consolidation 2 days ago) [from: handoff-cli-tool]
+- Will trigger soon as entries age — `/remember` needed within a few sessions [from: handoff-cli-tool]
 ## Next Steps
 
 4 worktrees active.
