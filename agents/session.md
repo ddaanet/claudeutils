@@ -1,33 +1,20 @@
 # Session Handoff: 2026-02-20
 
-**Status:** Hook batch design complete. Outline reviewed, all decisions resolved, ready for `/runbook`.
+**Status:** Worktree setup for parallel tasks. Merging when-recall-evaluation.
 
 ## Completed This Session
 
-**Hook batch design (full cycle):**
-- Outline produced (5 phases, 9 UserPromptSubmit changes, 9 files affected, 8 design decisions)
-- Iterative discussion (3 rounds): additive section-scoped directives (D-7), graduated r expansion, xc/hc continuation-chain messages, Stop hook fallback for #10373, hooks.json as config source of truth (D-8), remove python3/python from recipe-redirect
-- b: directive resolved as brainstorm via opus brainstorm agent (diverge/converge split with d:)
-- SessionStart #10373 confirmed still open — Stop hook fallback designed as bypass (dual delivery: SessionStart primary + Stop fallback with flag-file gating, systemMessage output)
-- Outline reviewed twice (outline-review-agent), all issues fixed (6 total across 2 passes)
-- Plan overrides documented: userpromptsubmit-plan.md execution order superseded by D-7, b: item resolved by D-5
+**Worktree setup:**
+- Created focused worktrees: pipeline-skill-updates (opus), when-recall-evaluation (sonnet)
 
 ## Pending Tasks
 
-- [ ] **Pipeline skill updates** — `/design` | opus | restart
-  - PRIORITY: Fix pipeline before running large runbooks
-  - Orchestrate: `/deliverable-review` pending task at exit
-  - Design skill: Phase 0 requirements-clarity gate
-  - Absorbs: vet-invariant-scope, inline-phase-type
-  - Insights input: Diamond TDD definition needed at `/design` (direct execution path), `/runbook` (step generation), `tdd-task` agent (cycle execution)
-  - Discussion context in runbook-skill-fixes worktree session
 
 - [ ] **Hook batch** — `/runbook plans/hook-batch/outline.md` | sonnet | restart
   - Absorbs: PostToolUse auto-format hook, SessionStart status hook
   - 5 phases: UserPromptSubmit (9 changes), PreToolUse recipe-redirect, PostToolUse auto-format, Session health (SessionStart + Stop fallback), Hook infrastructure (hooks.json + sync-to-parent merge)
   - Plan: hook-batch | Status: designed (outline complete)
 
-- [ ] **When recall evaluation** — sonnet
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 
 - [ ] **Context optimization** — Fragment demotion from CLAUDE.md | sonnet
@@ -69,6 +56,16 @@
 - [ ] **Pending task capture wording** — Fix agent tendency to capture pending tasks verbatim instead of rewording with context from the discussion | opus
 
 ## Worktree Tasks
+
+- [ ] **Pipeline skill updates** → `pipeline-skill-updates` — `/design` | opus | restart
+  - PRIORITY: Fix pipeline before running large runbooks
+  - Orchestrate: `/deliverable-review` pending task at exit
+  - Design skill: Phase 0 requirements-clarity gate
+  - Absorbs: vet-invariant-scope, inline-phase-type
+  - Insights input: Diamond TDD definition needed at `/design` (direct execution path), `/runbook` (step generation), `tdd-task` agent (cycle execution)
+  - Discussion context in runbook-skill-fixes worktree session
+
+- [ ] **When recall evaluation** → `when-recall-evaluation` — sonnet
 
 ## Blockers / Gotchas
 
