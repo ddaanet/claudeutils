@@ -11,8 +11,8 @@ class ApiAuthenticationError(ClaudeUtilsError):
     def __init__(self) -> None:
         """Initialize with default authentication error message."""
         super().__init__(
-            "Authentication failed. Please set the "
-            "ANTHROPIC_API_KEY environment variable."
+            "Authentication failed. Set ANTHROPIC_API_KEY env var "
+            "or add [anthropic] api_key to ~/.config/claudeutils/config.toml"
         )
 
 

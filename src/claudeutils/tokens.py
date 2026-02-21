@@ -15,6 +15,7 @@ from claudeutils.exceptions import (
     FileReadError,
     ModelResolutionError,
 )
+from claudeutils.user_config import get_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,8 @@ def count_tokens_for_files(paths: list[Path], model: ModelId) -> list[TokenCount
     Returns:
         List of TokenCount objects with per-file counts
     """
-    client = Anthropic()
+    api_key = get_api_key()
+    client = Anthropic(api_key=api_key) if api_key else Anthropic()
     results = []
     for path in paths:
         count = count_tokens_for_file(path, model, client)

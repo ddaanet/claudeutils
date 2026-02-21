@@ -19,6 +19,20 @@ from claudeutils.tokens import (
     count_tokens_for_file,
     resolve_model_alias,
 )
+from claudeutils.user_config import get_api_key
+
+
+def _resolve_api_key() -> str:
+    """Resolve API key from env var or config file.
+
+    Raises ApiAuthenticationError if neither source has a key.
+    """
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key or api_key.strip() == "":
+        api_key = get_api_key()
+    if not api_key:
+        raise ApiAuthenticationError
+    return api_key
 
 
 def handle_tokens(model: str, files: list[str], *, json_output: bool = False) -> None:
@@ -30,10 +44,7 @@ def handle_tokens(model: str, files: list[str], *, json_output: bool = False) ->
         json_output: Whether to output JSON format
     """
     try:
-        # Check API key before SDK instantiation to avoid TypeError
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key or api_key.strip() == "":
-            raise ApiAuthenticationError  # noqa: TRY301 - intentional raise in try for consistent error handling
+        api_key = _resolve_api_key()
 
         if not files:
             print("Error: at least one file is required", file=sys.stderr)
@@ -41,7 +52,7 @@ def handle_tokens(model: str, files: list[str], *, json_output: bool = False) ->
 
         file_paths = files
 
-        client = Anthropic()
+        client = Anthropic(api_key=api_key)
         cache_dir = Path(platformdirs.user_cache_dir("claudeutils"))
         resolved_model = resolve_model_alias(model, client, cache_dir)
 
@@ -68,7 +79,11 @@ def handle_tokens(model: str, files: list[str], *, json_output: bool = False) ->
                 print(f"Total: {total} tokens")
     except (AuthenticationError, ApiAuthenticationError) as e:
         print(f"Error: Authentication failed. {e}", file=sys.stderr)
-        print("Please set ANTHROPIC_API_KEY environment variable.", file=sys.stderr)
+        print(
+            "Set ANTHROPIC_API_KEY or add [anthropic] api_key "
+            "to ~/.config/claudeutils/config.toml",
+            file=sys.stderr,
+        )
         sys.exit(1)
     except ApiRateLimitError as e:
         print(f"Error: Rate limit exceeded. {e}", file=sys.stderr)
