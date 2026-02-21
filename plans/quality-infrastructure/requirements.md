@@ -33,11 +33,11 @@ Remove `deslop.md` from CLAUDE.md `@`-references after migration. Inject code de
 
 ## FR-2: Code Density Decisions
 
-Add entries to `agents/decisions/cli.md` for 5 grounded principles:
+Add entries to `agents/decisions/cli.md` for 5 grounded principles. Each entry states the **general principle first**, then the project implementation as instance (per `/ground` framing rule):
 
-1. **Git state queries return booleans** — `_git_ok(*args) -> bool` for exit-code checks, `_git()` for stdout. No exceptions for expected conditions (branch existence, staged changes).
-2. **Error exits are single calls** — `_fail(msg, code=1) -> Never` replaces `click.echo(err=True) + raise SystemExit(N)`. Both in `utils.py`.
-3. **Black expansion signals abstraction need** — 5+ lines after formatting = too many parameters for inline use. Extract helper with default kwargs.
+1. **Expected state checks return booleans** — normal program states checked with boolean returns, not exceptions. Project: `_git_ok(*args) -> bool` for exit-code checks.
+2. **Consolidate display and exit** — error termination as single call, not display+exit sequence. Project: `_fail(msg, code=1) -> Never`.
+3. **Formatter expansion signals abstraction need** — 5+ lines after opinionated formatting = too many parameters for inline use. Extract helper with default kwargs.
 4. **Exceptions for exceptional events only** — custom exception classes, not `ValueError`. Lint rule satisfaction via proper design (custom class), not circumvention (intermediate `msg` variable).
 5. **Error handling layers don't overlap** — context collection at failure site, display at top level. Never both.
 
@@ -45,31 +45,43 @@ Add corresponding `/when` triggers to `agents/memory-index.md`.
 
 ## FR-3: Rename Review/Correct Infrastructure
 
+Noun-based agent names — drop `-agent` suffix. Domain prefix where disambiguation matters. All review agents that apply fixes are "correctors"; review-only and audit-only agents are "reviewers"/"auditors".
+
 Rename across the entire project:
 
-| Old | New | Scope |
-|-----|-----|-------|
-| `vet-fix-agent` | `correct-agent` | Agent definition, all references |
-| `vet-agent` | `review-agent` | Agent definition, all references |
+| Old | New | Rationale |
+|-----|-----|-----------|
+| `vet-fix-agent` | `corrector` | General-purpose corrector (review+fix) |
+| `vet-agent` | `reviewer` | General-purpose reviewer (review-only) |
+| `design-vet-agent` | `design-corrector` | Design doc corrector (opus) |
+| `outline-review-agent` | `outline-corrector` | Design outline corrector (Phase A.5) |
+| `runbook-outline-review-agent` | `runbook-outline-corrector` | Runbook outline corrector (Phase 1.5) |
+| `plan-reviewer` | `runbook-corrector` | Runbook phase file corrector |
+| `review-tdd-process` | `tdd-auditor` | TDD process audit (assessment-only) |
+| `vet-taxonomy.md` | *(embed in corrector)* | Not an agent — embed status table inline |
 | `vet-fix-report` | `correction` | Report naming convention |
-| `design-vet-agent` | `design-review-agent` | Agent definition, all references |
-| `vet-taxonomy.md` | `correction-taxonomy.md` | Taxonomy file |
 | `vet-requirement.md` | TBD (may be absorbed into pipeline) | Fragment |
 | `/vet` skill | `/review` skill | Skill directory |
 
+**Open question:** Is `reviewer` (review-only, no fixes) still used in practice? Pending empirical evaluation — audit call sites before design.
+
 ### Rename Brainstorm — Impact Inventory
 
-**Agent definitions (4 files):**
-- `agent-core/agents/vet-fix-agent.md` → `correct-agent.md`
-- `agent-core/agents/vet-agent.md` → `review-agent.md`
-- `agent-core/agents/design-vet-agent.md` → `design-review-agent.md`
-- `agent-core/agents/vet-taxonomy.md` → `correction-taxonomy.md`
+**Agent definitions (7 agents + 1 embed):**
+- `agent-core/agents/vet-fix-agent.md` → `corrector.md`
+- `agent-core/agents/vet-agent.md` → `reviewer.md`
+- `agent-core/agents/design-vet-agent.md` → `design-corrector.md`
+- `agent-core/agents/outline-review-agent.md` → `outline-corrector.md`
+- `agent-core/agents/runbook-outline-review-agent.md` → `runbook-outline-corrector.md`
+- `agent-core/agents/plan-reviewer.md` → `runbook-corrector.md`
+- `agent-core/agents/review-tdd-process.md` → `tdd-auditor.md`
+- `agent-core/agents/vet-taxonomy.md` → embed in `corrector.md`, delete file
 
 **Agent references in other agents (4 files):**
-- `review-tdd-process.md` — references vet-fix-agent
-- `plan-reviewer.md` — references vet-fix-agent
-- `runbook-outline-review-agent.md` — references vet-fix-agent
-- `outline-review-agent.md` — references vet-fix-agent
+- `tdd-auditor.md` (was review-tdd-process) — references corrector
+- `runbook-corrector.md` (was plan-reviewer) — references corrector
+- `runbook-outline-corrector.md` — references corrector
+- `outline-corrector.md` — references corrector
 
 **Skills (7 files):**
 - `commit/SKILL.md` — vet-requirement reference
@@ -114,7 +126,7 @@ Rename across the entire project:
 **Symlinks:**
 - `.claude/agents/` and `.claude/skills/` — regenerated via `just sync-to-parent`
 
-**Total: 34 files, ~23 in agent-core, ~10 in agents/decisions, ~1 in .claude**
+**Total: ~37 files, ~26 in agent-core, ~10 in agents/decisions, ~1 in .claude**
 
 ### Rename Constraints
 
@@ -128,12 +140,16 @@ Rename across the entire project:
 
 | Context | Old Term | New Term |
 |---------|----------|----------|
-| Review agent (read-only) | vet-agent | review-agent |
-| Fix agent (read+write) | vet-fix-agent | correct-agent |
-| Design reviewer | design-vet-agent | design-review-agent |
+| General corrector (review+fix) | vet-fix-agent | corrector |
+| General reviewer (read-only) | vet-agent | reviewer |
+| Design corrector | design-vet-agent | design-corrector |
+| Design outline corrector | outline-review-agent | outline-corrector |
+| Runbook outline corrector | runbook-outline-review-agent | runbook-outline-corrector |
+| Runbook phase corrector | plan-reviewer | runbook-corrector |
+| TDD process auditor | review-tdd-process | tdd-auditor |
+| Status taxonomy | vet-taxonomy | *(embedded in corrector)* |
 | Review report | vet report | review report |
 | Fix report | vet-fix report | correction |
-| Taxonomy | vet-taxonomy | correction-taxonomy |
 | Process | vetting | review/correction |
 | Fragment | vet-requirement | review-requirement or absorbed |
 | Skill | /vet | /review |
