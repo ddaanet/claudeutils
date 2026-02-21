@@ -215,27 +215,12 @@ FR-3c (deletions):
 | Hook tester | test-hooks | hooks-tester |
 | Plan-specific executor prefix | *-task | crew-* |
 
-## FR-4: Code Refactoring Scope
-
-Implementation targets for the codebase quality sweep task (already pending):
-
-- Add `_git_ok(*args) -> bool` to `src/claudeutils/worktree/utils.py`
-- Add `_fail(msg, code=1) -> Never` to `src/claudeutils/worktree/utils.py`
-- Replace 13 raw `subprocess.run(["git", ...])` calls with `_git_ok` across cli.py, merge.py, utils.py
-- Replace 18 `click.echo(err=True) + raise SystemExit` patterns with `_fail` across cli.py, merge.py
-- Replace exception-as-control-flow patterns (3 sites) with `_git_ok` boolean checks
-- Custom exception classes for domain errors in `src/claudeutils/cli.py` (SessionNotFoundError, etc.)
-
 ## Dependencies
 
 - FR-1 (deslop restructuring) and FR-3 (rename) interact at `vet-requirement.md` — fragment may be absorbed or renamed
 - FR-3 (rename) requires restart after completion
-- FR-4 (code refactoring) is independent — can execute in parallel with FR-1/FR-3
 - FR-2 (decisions) should follow FR-1 and FR-3 — entries should use new terminology
 
 ## Non-Requirements
 
-- No changes to exit code semantics (1=error, 2=safety gate)
-- No changes to `_git()` helper signature
 - No new agent definitions — renaming existing ones + deleting plan-specific detritus
-- Click exception hierarchy (`ClickException`, `UsageError`) evaluated and rejected — `_fail()` is simpler for this project's exit code semantics
