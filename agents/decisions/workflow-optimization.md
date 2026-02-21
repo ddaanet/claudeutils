@@ -118,13 +118,15 @@ File count is a proxy — 7 files with independent additive changes can be simpl
 
 ### When Writing Methodology
 
-**Decision Date:** 2026-02-18
+**Decision Date:** 2026-02-18 (updated 2026-02-21: added general-first framing rule)
 
-**Anti-pattern:** Producing scoring frameworks, evaluation axes, or "best practice" documents from internal reasoning alone — yields confabulated methodologies with subjective weights and ungrounded criteria.
+**Anti-pattern:** Producing scoring frameworks, evaluation axes, or "best practice" documents from internal reasoning alone — yields confabulated methodologies with subjective weights and ungrounded criteria. Also: framing grounded output as project-specific problems validated by external research (inverted framing).
 
 **Correct pattern:** Invoke `/ground` skill. Diverge-converge with parallel branches: internal (brainstorm for project-specific dimensions) + external (web search for established frameworks). Synthesize by mapping internal dimensions onto external skeleton.
 
-**Evidence:** First prioritization attempt produced subjective weights ("Highest/High/Medium") and 0-3 scores without defined criteria. After grounding in WSJF research, methodology used Fibonacci scoring with observable evidence sources.
+**Framing rule — general first:** State each principle as the general insight derived from external research. Project-specific implementation is an instance that validates the principle. The internal branch confirms applicability; it does not define the principle. Inverted framing (project-specific → external validation) produces entries that read as local fixes rather than transferable knowledge.
+
+**Evidence:** First prioritization attempt produced subjective weights ("Highest/High/Medium") and 0-3 scores without defined criteria. After grounding in WSJF research, methodology used Fibonacci scoring with observable evidence sources. Code-density grounding produced project-specific entries ("Git state queries return booleans — `_git_ok()`") that should have been general principles with project instances.
 
 ## .Design and Planning Patterns
 

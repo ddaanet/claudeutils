@@ -46,6 +46,10 @@ Two name changes from the brief's proposal, both supported by evidence.
 
 ### Change 1: "defective" → "rework"
 
+**General principle:** Post-review correction states in workflow systems should name the corrective action, not the deficiency. SmartBear Collaborator names this phase "Rework"; value stream mapping uses "rework" as the standard corrective action category. No established framework uses a deficiency label ("defective", "broken") for a re-workable state.
+
+**Project instance:** `rework` replaces `defective` in our lifecycle.
+
 | Dimension | Evidence |
 |-----------|----------|
 | External precedent | SmartBear Collaborator uses "Rework" phase. VSM uses "rework" as standard corrective action term. No external source uses "defective" for a re-workable state. |
@@ -55,20 +59,22 @@ Two name changes from the brief's proposal, both supported by evidence.
 
 ### Change 2: "completed" → "reviewed"
 
+**General principle:** Terminal-sounding state names should be reserved for actual terminal states. When a workflow has a post-"completed" step, using "completed" for a non-terminal state violates the widespread convention that "completed" means "done" (SmartBear, Kanban, task management all use it as terminal).
+
+**Project instance:** `reviewed` replaces `completed` because our lifecycle has a post-review delivery step (merge to main). "Reviewed" signals that something follows.
+
 | Dimension | Evidence |
 |-----------|----------|
-| External precedent | No direct support (SmartBear uses "Completed" as terminal). The change is driven by internal constraints. |
+| External precedent | No direct support (SmartBear uses "Completed" as terminal). The change is driven by the general principle above. |
 | LLM agent behavior | "Completed" sounds terminal — agent may not look for remaining action (merge). "Reviewed" implies something follows. |
 | Cross-domain collision | HIGH collision: task `[x]` = completed (terminal), plan `completed` = pre-terminal (one step from delivered). "Reviewed" has NONE. |
 | Grammatical consistency | Past participle matching `designed`, `planned`, `delivered`. |
 | Action suggestiveness | `[reviewed] → _worktree merge` reads as "review passed, now merge." `[completed] → _worktree merge` reads as contradiction. |
 
-**Tradeoff:** SmartBear uses "Completed" as terminal, which is conventional. Our "completed" is pre-terminal (delivered is terminal). Renaming avoids violating the widespread convention that "completed" means "done."
-
 ### Kept unchanged
 
-- **review-pending**: No conflicts. Matches adjectival pattern of `ready`. Action-suggestive ("run the review"). Both SmartBear's "Inspection" and our "review-pending" serve as the "awaiting review" state.
-- **delivered**: Validated by CI/CD terminology. Main branch IS production for this project — no staging/deployment infrastructure. "Deployed" would imply infrastructure we don't have.
+- **review-pending**: Workflow review gates use an "awaiting review" state distinct from both the pre-review and post-review states. SmartBear calls it "Inspection"; our "review-pending" serves the same role. No conflicts with task status vocabulary.
+- **delivered**: In CD pipelines, "delivered" means artifact is available in the target repository; "deployed" implies infrastructure beyond the repository. Our main branch is production — "delivered" (merged to main) matches the CD meaning without implying deployment infrastructure we don't have.
 
 ---
 
