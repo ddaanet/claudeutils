@@ -65,7 +65,7 @@ class TestScriptLoads:
     """Verify script file exists and loads without errors."""
 
     def test_script_loads(self) -> None:
-        """Script file exists and imports cleanly."""
+        """Hook path resolves and module imports without error."""
         assert HOOK_PATH.exists()
         _load_hook()
 
@@ -185,6 +185,15 @@ class TestRedirectPatterns:
         assert (
             call_hook(
                 {"tool_name": "Bash", "tool_input": {"command": "python3 script.py"}}
+            )
+            == {}
+        )
+        assert (
+            call_hook(
+                {
+                    "tool_name": "Bash",
+                    "tool_input": {"command": "git merge-base HEAD main"},
+                }
             )
             == {}
         )
