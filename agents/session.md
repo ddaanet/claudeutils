@@ -62,10 +62,6 @@
   - Remove sandbox configuration from `_worktree new` — no more `additionalDirectories` in settings.local.json. All inter-tree operations via git or user-validated sandbox override
 
 
-- [ ] **Wt rm amend safety** — `/design` | sonnet
-  - `_worktree rm` amends HEAD without verifying it's the merge commit for that worktree
-  - `--force` path (never merged) should never amend
-  - Absorbed by worktree-cli-default if that runs first
 
 ## Worktree Tasks
 
@@ -79,6 +75,11 @@
   - Orchestrator plan: unjustified interleaving
   - Runbook skill prose: generation errors from skill instructions (separate from prepare-runbook.py)
   - Evidence: `plans/hook-batch/reports/runbook-pre-execution-review.md` (3 critical, 4 major, 3 minor)
+
+- [ ] **Wt rm amend safety** → `wt-rm-amend-safety` — `/design` | sonnet
+  - `_worktree rm` amends HEAD without verifying it's the merge commit for that worktree
+  - `--force` path (never merged) should never amend
+  - Absorbed by worktree-cli-default if that runs first
 
 ## Backlog
 
