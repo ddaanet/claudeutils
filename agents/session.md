@@ -33,6 +33,13 @@
 - FR-3 expanded to FR-3a/3b/3c/3d subsections; FR-4 extracted to `plans/codebase-sweep/requirements.md`
 - Grounding document reframed general-first; FR-2/FR-3 requirements refined
 
+**Hook batch — runbook generation + pre-execution review:**
+- Runbook generated: 5 phases, 16 step files, agent definition, orchestrator plan
+- All phase-level reviews passed; holistic review passed
+- Pre-execution validation (model-tags/test-counts/red-plausibility) passed
+- Pre-execution review found 2 critical, 3 major, 3 minor issues in generated artifacts
+- Review: `plans/hook-batch/reports/runbook-pre-execution-review.md`
+
 ## Pending Tasks
 
 - [ ] **Quality infra reform** — `/design plans/quality-infrastructure/requirements.md` | opus
@@ -74,10 +81,10 @@
   - Pattern: in-place edits + tail divergence → git appends modified line as duplicate
   - Also: focused-session section stripping → content leaks into wrong section
 
-- [ ] **Hook batch** → `hook-batch` — `/runbook plans/hook-batch/outline.md` | sonnet | restart
-  - Absorbs: PostToolUse auto-format hook, SessionStart status hook
-  - 5 phases: UserPromptSubmit (9 changes), PreToolUse recipe-redirect, PostToolUse auto-format, Session health (SessionStart + Stop fallback), Hook infrastructure (hooks.json + sync-to-parent merge)
-  - Plan: hook-batch | Status: designed (outline complete)
+- [ ] **Hook batch** → `hook-batch` — `/orchestrate plans/hook-batch/orchestrator-plan.md` | sonnet | restart
+  - Plan: hook-batch | Status: ready (pre-execution review has 2 critical fixes needed)
+  - 5 phases, 16 steps, agent + orchestrator plan generated
+  - Pre-execution review: `plans/hook-batch/reports/runbook-pre-execution-review.md`
 
 - [ ] **Diagnose compression detail loss** → `compression-detail-loss` — RCA against commit `0418cedb` | sonnet
 
