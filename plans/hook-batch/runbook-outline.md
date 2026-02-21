@@ -12,13 +12,13 @@
 |----|-------------|-------|------|
 | FR-1 | Line-based shortcut matching | 1 | Cycle 1.1 |
 | FR-2 | r expansion — graduated lookup | 1 | Cycle 1.2 |
-| FR-3 | xc/hc message compression | 1 | Cycle 1.3 |
-| FR-4 | Additive directive scanning (D-7) | 1 | Cycle 1.4 |
-| FR-5 | p: dual output | 1 | Cycle 1.5 |
-| FR-6 | b: brainstorm + q: question + learn: directives | 1 | Cycle 1.6 |
-| FR-7 | Skill-editing guard pattern | 1 | Cycle 1.7 |
-| FR-8 | CCG integration pattern | 1 | Cycle 1.8 |
-| FR-9 | PreToolUse recipe-redirect hook | 2 | Cycles 2.1–2.3 |
+| FR-3 | xc/hc message compression | 1 | Cycle 1.2 |
+| FR-4 | Additive directive scanning (D-7) | 1 | Cycle 1.3 |
+| FR-5 | p: dual output | 1 | Cycle 1.4 |
+| FR-6 | b: brainstorm + q: question + learn: directives | 1 | Cycle 1.4 |
+| FR-7 | Skill-editing guard pattern | 1 | Cycle 1.5 |
+| FR-8 | CCG integration pattern | 1 | Cycle 1.5 |
+| FR-9 | PreToolUse recipe-redirect hook | 2 | Cycles 2.1–2.2 |
 | FR-10 | PostToolUse auto-format hook | 3 | Steps 3.1–3.2 |
 | FR-11 | learning-ages.py --summary flag | 4 | Step 4.1 |
 | FR-12 | SessionStart health script | 4 | Step 4.2 |
@@ -40,14 +40,11 @@
 **Complexity:** High — behavioral logic changes to existing 839-line script; 8 independent features with shared test infrastructure
 
 - **Cycle 1.1:** Line-based shortcut matching — scan prompt lines, trigger on own-line match
-- **Cycle 1.2:** r expansion — update COMMANDS['r'] to describe graduated lookup
-- **Cycle 1.3:** xc/hc compression — update COMMANDS['xc'] and COMMANDS['hc'] to compressed style
-- **Cycle 1.4:** Additive directive scanning — refactor `scan_for_directive` → collect all directives (D-7)
-- **Checkpoint:** After Cycle 1.4 — verify additive scanning works with existing d:/p: directives; regression-check Tier 1 shortcuts and Tier 3 continuation
-- **Cycle 1.5:** p: dual output — split p:/pending: to match d: dual-output pattern
-- **Cycle 1.6:** New directives — add b:/brainstorm:, q:/question:, learn: with dual output
-- **Cycle 1.7:** Skill-editing guard — EDIT_SKILL_PATTERN + EDIT_SLASH_PATTERN, additionalContext injection
-- **Cycle 1.8:** CCG integration — CCG_PATTERN, additionalContext injection
+- **Cycle 1.2:** COMMANDS dict string updates — r graduated lookup + xc/hc bracket compression (parametrized: 3 keys)
+- **Cycle 1.3:** Additive directive scanning — refactor `scan_for_directive` → `scan_for_directives`, collect-all with section scoping (D-7)
+- **Checkpoint:** After Cycle 1.3 — verify additive scanning works with existing d:/p: directives; regression-check Tier 1 shortcuts and Tier 3 continuation
+- **Cycle 1.4:** New directives with dual output — add p:/pending:, b:/brainstorm:, q:/question:, learn: (parametrized: 4 directives, 7 aliases)
+- **Cycle 1.5:** Pattern guards — skill-editing guard (EDIT_SKILL_PATTERN + EDIT_SLASH_PATTERN) + CCG integration (CCG_PATTERN), additionalContext injection (parametrized: 3 patterns)
 
 **Phase 1 state after completion:** `userpromptsubmit-shortcuts.py` ~980 lines; tests pass.
 
@@ -63,8 +60,7 @@
 **Prerequisite:** Read `agent-core/hooks/userpromptsubmit-shortcuts.py` main() for hook output format reference.
 
 - **Cycle 2.1:** Script structure — parse stdin JSON, extract command, silent exit 0 on no match
-- **Cycle 2.2:** ln redirect — match `ln` command, inject additionalContext redirecting to `just sync-to-parent`
-- **Cycle 2.3:** git worktree and git merge redirects — match both patterns, inject appropriate redirects
+- **Cycle 2.2:** All redirect patterns — ln, git worktree, git merge (parametrized: 3 patterns + pass-through regression)
 
 **Phase 2 state after completion:** New `pretooluse-recipe-redirect.py`; 3 redirects tested; all existing tests pass.
 
@@ -132,9 +128,9 @@
 | D-2: Python for UPS + recipe-redirect; Bash for others | Phase 1/2: Python. Phase 3/4: Bash |
 | D-3: File-specific ruff, not `just format` | Step 3.1: `ruff check --fix-only --quiet <file>` + `ruff format --quiet <file>` |
 | D-4: Dual delivery SessionStart + Stop fallback | Phase 4: flag file `$TMPDIR/health-{session_id}` coordinates the two |
-| D-5: b: = brainstorm (diverge without converging) | Cycle 1.6: BRAINSTORM_EXPANSION is diverge-only, no rankings |
+| D-5: b: = brainstorm (diverge without converging) | Cycle 1.4: BRAINSTORM_EXPANSION is diverge-only, no rankings |
 | D-6: PreToolUse is informative (exit 0, additionalContext only) | Phase 2: no blocking, no systemMessage |
-| D-7: Additive section-scoped directives | Cycle 1.4: refactor from first-match-return to collect-all |
+| D-7: Additive section-scoped directives | Cycle 1.3: refactor from first-match-return to collect-all |
 | D-8: hooks.json is config source of truth | Phase 5: sync-hooks-config.py merges, settings.json is output |
 
 ---
@@ -149,23 +145,22 @@
 - For multi-line prompt with embedded shortcut: output additionalContext (same expansion); systemMessage only when prompt is single-line shortcut
 - Verification: `call_hook("s")` unchanged. `call_hook("s\nsome text")` produces additionalContext with status expansion.
 
-**Cycle 1.2: r expansion**
-- Target: `COMMANDS` dict, `'r'` key (line ~52)
-- Change: Replace expansion string with graduated lookup description:
-  - Check conversation context for in-progress task → resume directly
-  - If not visible, read session.md
-  - If no in-progress in session.md, check git status for uncommitted work
-  - Report only if genuinely nothing to resume
-- Verification: `call_hook("r")` → additionalContext contains graduated lookup steps (not just "Error if no in-progress")
+**Cycle 1.2: COMMANDS dict string updates (r + xc + hc)**
+- Target: `COMMANDS` dict, keys `'r'`, `'xc'`, `'hc'` (line ~52)
+- Changes (parametrized — 3 keys, same edit pattern):
 
-**Cycle 1.3: xc/hc message compression**
-- Target: `COMMANDS` dict, `'xc'` and `'hc'` keys
-- Change: Compress to bracket-style with continuation chain note
-  - xc: `'[execute, commit] — execute task, then /handoff and /commit continuation chain'`
-  - hc: `'[handoff, commit] — /handoff then /commit continuation chain'`
-- Verification: `call_hook("xc")` → systemMessage is `'[execute, commit]...'`
+| Key | New value |
+|-----|-----------|
+| `r` | Graduated lookup: check conversation context → read session.md → check git status → report only if genuinely nothing |
+| `xc` | `'[execute, commit] — execute task, then /handoff and /commit continuation chain'` |
+| `hc` | `'[handoff, commit] — /handoff then /commit continuation chain'` |
 
-**Cycle 1.4: Additive directive scanning**
+- Verification (parametrized):
+  - `call_hook("r")` → additionalContext contains graduated lookup steps
+  - `call_hook("xc")` → systemMessage is `'[execute, commit]...'`
+  - `call_hook("hc")` → systemMessage is `'[handoff, commit]...'`
+
+**Cycle 1.3: Additive directive scanning**
 - Target: `scan_for_directive()` function + `main()` Tier 2 block
 - Change:
   - Rename `scan_for_directive` → `scan_for_directives` returning `List[Tuple[str, str]]`
@@ -177,53 +172,50 @@
 - Depends on: Cycle 1.1 (main() Tier 1 structure must be stable before refactoring Tier 2)
 - Verification: `call_hook("d: discuss this\np: new task")` → additionalContext contains both DISCUSS and PENDING expansions
 
-**Cycle 1.5: p: dual output**
-- Target: directive dispatch in `main()` (post-1.4 additive structure)
-- Change: Add `p`/`pending` to the dual-output directive set (currently only `d`/`discuss`)
-  - systemMessage: `'[PENDING] Capture task, do not execute.'`
-  - additionalContext: full `_PENDING_EXPANSION`
-- Depends on: Cycle 1.4 (additive directive structure in place)
-- Verification: `call_hook("p: some task")` → systemMessage is `'[PENDING] Capture task, do not execute.'`; additionalContext is full expansion
+**Cycle 1.4: New directives with dual output (p:, b:, q:, learn:)**
+- Target: constants section (add 4 expansion strings) + `DIRECTIVES` dict
+- Depends on: Cycle 1.3 (additive directive structure in place)
+- Changes (parametrized — 4 directives, 7 aliases, all dual output):
 
-**Cycle 1.6: New directives (b:, q:, learn:) with dual output**
-- Target: constants section (add 3 expansion strings) + `DIRECTIVES` dict
-- Change:
-  - `_BRAINSTORM_EXPANSION`: diverge without converging; no evaluation/ranking; dual output
-  - `_QUICK_EXPANSION`: terse response; no ceremony; dual output
-  - `_LEARN_EXPANSION`: append to learnings.md; format guide; dual output
-  - Add to DIRECTIVES: `'b': _BRAINSTORM_EXPANSION, 'brainstorm': _BRAINSTORM_EXPANSION, 'q': _QUICK_EXPANSION, 'question': _QUICK_EXPANSION, 'learn': _LEARN_EXPANSION`
-- Depends on: Cycle 1.4 (additive structure handles new directives automatically), Cycle 1.5 (dual output pattern already established)
-- Verification: `call_hook("b: ideas for this")` → systemMessage `'[BRAINSTORM]...'`; `call_hook("q: what is X")` → systemMessage `'[QUICK]...'`; `call_hook("learn: pattern about Y")` → systemMessage `'[LEARN]...'`
+| Directive | Aliases | systemMessage | Expansion constant |
+|-----------|---------|---------------|--------------------|
+| pending | `p`, `pending` | `[PENDING] Capture task, do not execute.` | `_PENDING_EXPANSION` |
+| brainstorm | `b`, `brainstorm` | `[BRAINSTORM]...` | `_BRAINSTORM_EXPANSION` (diverge, no ranking; D-5) |
+| quick | `q`, `question` | `[QUICK]...` | `_QUICK_EXPANSION` (terse, no ceremony) |
+| learn | `learn` | `[LEARN]...` | `_LEARN_EXPANSION` (append to learnings.md) |
 
-**Cycle 1.7: Skill-editing guard**
-- Target: new constants + new detection block in `main()` as Tier 2.5 (after Tier 2, which now collects directives without returning — per Cycle 1.4)
-- Change:
-  - Add `EDIT_SKILL_PATTERN` (editing verbs + skill/agent noun)
-  - Add `EDIT_SLASH_PATTERN` (editing verbs + /skill-name)
-  - Detection: check full prompt against both patterns; if match, add to additionalContext collector
-  - Injection: additionalContext only (no systemMessage — invisible to user)
-  - Content: "Load /plugin-dev:skill-development before editing skill files. Load /plugin-dev:agent-development before editing agent files. Skill descriptions require 'This skill should be used when...' format."
-  - Additive: collects alongside directive and continuation outputs
-- Verification: `call_hook("fix the commit skill")` → additionalContext contains 'plugin-dev:skill-development'
-- Verification: `call_hook("update /design description")` → additionalContext contains 'plugin-dev:skill-development'
-- Regression: `call_hook("the skill is working well")` → no injection (no editing verb)
+- All use dual output pattern: systemMessage (concise) + additionalContext (full expansion)
+- Verification (parametrized):
+  - `call_hook("p: some task")` → systemMessage contains `[PENDING]`; additionalContext is full expansion
+  - `call_hook("b: ideas for this")` → systemMessage contains `[BRAINSTORM]`
+  - `call_hook("q: what is X")` → systemMessage contains `[QUICK]`
+  - `call_hook("learn: pattern about Y")` → systemMessage contains `[LEARN]`
 
-**Cycle 1.8: CCG integration**
-- Target: new constant + new detection block in `main()` after Cycle 1.7 guard
-- Change:
-  - Add `CCG_PATTERN` matching platform keywords: hook, hooks, PreToolUse, PostToolUse, SessionStart, UserPromptSubmit, mcp server, slash command, settings.json, .claude/, plugin.json, keybinding, IDE integration, agent sdk
-  - Detection: check full prompt; if match, add to additionalContext collector
-  - Content: "Platform question detected. Use claude-code-guide agent (Task subagent_type='claude-code-guide') for authoritative Claude Code documentation."
-  - Additive: combines with other guards
-- Depends on: Cycle 1.7 (additionalContext collector pattern in place)
-- Verification: `call_hook("how do hooks work")` → additionalContext contains 'claude-code-guide'
-- Regression: `call_hook("fix the bug")` → no injection
+**Cycle 1.5: Pattern guards (skill-editing + CCG)**
+- Target: new constants + detection blocks in `main()` as Tier 2.5 (after Tier 2, which now collects directives without returning — per Cycle 1.3)
+- Depends on: Cycle 1.3 (additionalContext collector pattern in place)
+- Injection: additionalContext only (no systemMessage — invisible to user); additive with directive and continuation outputs
+- Changes (parametrized — 3 regex patterns, 2 detection blocks):
+
+| Pattern | Regex target | Injection content |
+|---------|-------------|-------------------|
+| `EDIT_SKILL_PATTERN` | editing verbs + skill/agent noun | "Load /plugin-dev:skill-development before editing skill files. Load /plugin-dev:agent-development before editing agent files." |
+| `EDIT_SLASH_PATTERN` | editing verbs + /skill-name | Same skill-development content |
+| `CCG_PATTERN` | Platform keywords (hook, PreToolUse, PostToolUse, SessionStart, UserPromptSubmit, mcp server, slash command, settings.json, .claude/, plugin.json, keybinding, IDE integration, agent sdk) | "Platform question detected. Use claude-code-guide agent for authoritative Claude Code documentation." |
+
+- Verification (parametrized):
+  - `call_hook("fix the commit skill")` → additionalContext contains 'plugin-dev:skill-development'
+  - `call_hook("update /design description")` → additionalContext contains 'plugin-dev:skill-development'
+  - `call_hook("how do hooks work")` → additionalContext contains 'claude-code-guide'
+- Regression:
+  - `call_hook("the skill is working well")` → no injection (no editing verb)
+  - `call_hook("fix the bug")` → no injection (no platform keyword)
 
 ---
 
 ### Phase 1 Checkpoint Detail
 
-**Checkpoint after Cycle 1.4:**
+**Checkpoint after Cycle 1.3:**
 - Run full test suite: all existing tests must pass
 - Verify: `call_hook("d: discuss this\np: new task")` returns both expansions in additionalContext
 - Verify: `call_hook("s")` still returns status expansion (Tier 1 regression)
@@ -239,17 +231,20 @@
 - Output format: `{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: "..."}}`
 - Verification: `echo '{"tool_name":"Bash","tool_input":{"command":"echo hello"}}' | python3 pretooluse-recipe-redirect.py` → no output, exit 0
 
-**Cycle 2.2: ln redirect**
-- Target: `pretooluse-recipe-redirect.py` — add redirect pattern
-- Change: If command starts with 'ln ' or equals 'ln', inject additionalContext: "`ln` is blocked. Use `just sync-to-parent` to create symlinks (encodes correct paths and ordering)."
-- Verification: input `{"tool_input": {"command": "ln -sf agent-core/skills .claude/skills"}}` → additionalContext contains 'just sync-to-parent'
+**Cycle 2.2: All redirect patterns (ln + git worktree + git merge)**
+- Target: `pretooluse-recipe-redirect.py` — add all redirect patterns
+- Changes (parametrized — 3 command prefixes, same injection mechanism):
 
-**Cycle 2.3: git worktree and git merge redirects**
-- Target: `pretooluse-recipe-redirect.py` — add remaining redirect patterns
-- Change:
-  - `git worktree` → "Use `claudeutils _worktree` instead of `git worktree` (handles session.md, submodules, and branch management)"
-  - `git merge` → "Use `claudeutils _worktree merge` instead of `git merge` (handles session resolution, submodule conflicts, and merge invariants)"
-- Verification: `git worktree add` → additionalContext contains 'claudeutils _worktree'; `git merge main` → additionalContext contains 'claudeutils _worktree merge'
+| Command prefix | additionalContext injection |
+|---------------|----------------------------|
+| `ln` (starts with `ln ` or equals `ln`) | "`ln` is blocked. Use `just sync-to-parent` to create symlinks (encodes correct paths and ordering)." |
+| `git worktree` | "Use `claudeutils _worktree` instead of `git worktree` (handles session.md, submodules, and branch management)" |
+| `git merge` | "Use `claudeutils _worktree merge` instead of `git merge` (handles session resolution, submodule conflicts, and merge invariants)" |
+
+- Verification (parametrized):
+  - `{"tool_input": {"command": "ln -sf agent-core/skills .claude/skills"}}` → additionalContext contains 'just sync-to-parent'
+  - `git worktree add` → additionalContext contains 'claudeutils _worktree'
+  - `git merge main` → additionalContext contains 'claudeutils _worktree merge'
 - Regression: `git status` → no output (not a redirect pattern)
 
 ---
@@ -364,7 +359,7 @@
 
 ## Scope Boundaries
 
-**IN:** 8 UPS cycles (covering 9 feature items — b:, q:, learn: combined in Cycle 1.6), PreToolUse recipe-redirect, PostToolUse auto-format, SessionStart+Stop health, learning-ages --summary, hooks.json, sync-hooks-config.py, justfile update, restart verification
+**IN:** 5 UPS cycles (covering 8 features via parametrized consolidation), PreToolUse recipe-redirect (2 cycles), PostToolUse auto-format, SessionStart+Stop health, learning-ages --summary, hooks.json, sync-hooks-config.py, justfile update, restart verification
 
 **OUT:** Sandbox denylist configuration (manual), upstream #10373 fix, AskUserQuestion removal (done)
 
@@ -374,17 +369,18 @@
 
 The following recommendations should be incorporated during full runbook expansion:
 
-**Consolidation candidates:**
-- Cycles 1.2 (r expansion) and 1.3 (xc/hc compression) both modify COMMANDS dict string values with no branching logic. Consider merging into a single cycle during expansion. If kept separate, they can be expanded minimally (string replacement + verification).
+**Consolidation applied:** Cycles 1.2+1.3, 1.5+1.6, 1.7+1.8, and 2.2+2.3 merged during simplification pass. See `plans/hook-batch/reports/simplification-report.md`.
+
+**Compact phases:**
 - Phase 3 has only 2 steps, both Low complexity. If expansion adds no substance beyond what Step Detail already specifies, keep the phase compact rather than inflating.
 
 **Cycle expansion:**
-- Cycle 1.4 is the most complex cycle — the scan_for_directive → scan_for_directives refactor changes return type, iteration behavior, and main() control flow. RED tests should cover: single directive, multiple directives, mixed directive+non-directive lines, section scoping (content between directives).
-- Cycle 1.6 adds 3 directives with 5 dict entries. RED should parametrize across all aliases rather than testing each individually.
-- Phase 2 cycles: verify that Cycle 2.1 tests pass-through for *all* non-redirect commands, not just `echo hello`. Include `git status`, `python3 script.py` as non-redirect verification.
+- Cycle 1.3 is the most complex cycle — the scan_for_directive → scan_for_directives refactor changes return type, iteration behavior, and main() control flow. RED tests should cover: single directive, multiple directives, mixed directive+non-directive lines, section scoping (content between directives).
+- Cycle 1.4 adds 4 directives with 7 dict entries. RED should parametrize across all aliases rather than testing each individually.
+- Phase 2 Cycle 2.2: parametrize redirect tests across all 3 command prefixes. Include pass-through regression for non-redirect commands (`git status`, `python3 script.py`).
 
 **Checkpoint guidance:**
-- Phase 1 checkpoint after Cycle 1.4 is mandatory — validates the additive scanning refactor before building on it.
+- Phase 1 checkpoint after Cycle 1.3 is mandatory — validates the additive scanning refactor before building on it.
 - Phase 5 Step 5.4 serves as integration checkpoint for the entire runbook.
 
 **Growth projection:**
@@ -392,7 +388,7 @@ The following recommendations should be incorporated during full runbook expansi
 - Test file: 282 lines + ~20 new test cases → ~400 lines projected. Monitor during expansion; if approaching 400 lines, split test classes into separate files by tier.
 
 **References to include:**
-- Cycle 1.4: see `scan_for_directive()` at line 156 of userpromptsubmit-shortcuts.py for current implementation
+- Cycle 1.3: see `scan_for_directive()` at line 156 of userpromptsubmit-shortcuts.py for current implementation
 - Cycle 1.1: see `main()` Tier 1 block at line 772 (`if prompt in COMMANDS`)
-- Cycle 1.7/1.8: see `userpromptsubmit-plan.md` items 6-7 for pattern specs
+- Cycle 1.5: see `userpromptsubmit-plan.md` items 6-7 for pattern specs
 - Phase 2: see `userpromptsubmit-plan.md` execution order for tier structure reference (note: D-7 supersedes its first-match-wins for Tier 2)
