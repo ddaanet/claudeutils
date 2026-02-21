@@ -346,6 +346,6 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how format runbook outlines
 /how chain multiple skills together | continuation passing tail calls
 /when using hook based parsing
-/when writing methodology | ground skill diverge converge external research
+/when writing methodology | ground skill diverge converge external research general-first framing
 /when design ceremony continues after uncertainty | two gates entry mid-stream
 /when design resolves to simple execution | execution readiness gate exit ramp prose inline

@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-21
 
-**Status:** Consolidated backlog/todo into session.md. Created 6 worktrees. Verified and removed 3 more delivered plan directories (brief-skill, vet-invariant-scope, worktree-rm-safety).
+**Status:** Consolidated backlog/todo into session.md. Created 6 worktrees. Verified and removed 3 more delivered plan directories (brief-skill, vet-invariant-scope, worktree-rm-safety). Planstate-delivered designed (outline = design, grounded terminology).
 
 ## Completed This Session
 
@@ -20,8 +20,20 @@
 
 **New task:** Tokens user config — user config for ANTHROPIC_API_KEY (`.envrc` interferes with `claude` CLI auth, API token counting is free)
 
+**Planstate delivered — grounding + design:**
+- Grounded lifecycle terminology: 5 web searches, 2 page fetches, opus internal brainstorm (`plans/reports/lifecycle-terminology-grounding.md`, `plans/reports/ground-internal-lifecycle.md`)
+- Two name changes: `defective` → `rework` (SmartBear/VSM precedent), `completed` → `reviewed` (cross-domain collision avoidance)
+- Outline produced, reviewed twice (R1 marker-file version, R2 lifecycle.md version)
+- Discussion: adopted single `lifecycle.md` (append-only) over 4 marker files — resolves review loop cycle without file deletion, provides audit trail
+- Outline at `plans/planstate-delivered/outline.md` serves as design (7 decisions, 3 phases, all affected files identified)
+
 ## Pending Tasks
 
+- [ ] **Planstate delivered status** — `/runbook plans/planstate-delivered/outline.md` | sonnet
+  - Plan: planstate-delivered | Status: designed
+  - Grounded lifecycle: `requirements → designed → planned → ready → review-pending → [rework ↔ review-pending] → reviewed → delivered`
+  - Single `lifecycle.md` per plan (append-only, last entry = status) replaces 4 marker files
+  - 3 phases: core inference (TDD), merge integration (TDD), skill/prose updates (general)
 
 - [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
   - Design complete with Phase 1 (foundation) + Phase 2 (ping-pong TDD), ready for runbook planning
@@ -37,11 +49,6 @@
 
 ## Worktree Tasks
 
-- [ ] **Planstate delivered status** → `planstate-delivered` — `/ground` then `/design plans/planstate-delivered/brief.md` | opus | restart
-  - Plan: planstate-delivered | Status: requirements
-  - Ground lifecycle terminology before design (kanban, DORA, CI/CD pipeline terms)
-  - Full lifecycle: requirements → designed → planned → ready → review-pending → completed → delivered
-  - Deliverable review as pre-merge gate (IN scope, with complexity shortcut)
 
 - [ ] **Merge artifact validation** → `merge-artifact-validation` — post-merge orphan detection in `_worktree merge` | sonnet
   - Plan: worktree-merge-resilience | Diagnostic: `plans/worktree-merge-resilience/diagnostic.md`
@@ -171,11 +178,13 @@
 
 ## Next Steps
 
-6 worktrees ready for dispatch. Priorities unchanged: planstate delivered, hook batch, session CLI tool. Plugin-migration at [ready] — needs execution.
+Planstate delivered `/runbook` (outline = design, ready for planning). Hook batch `/runbook`. Session CLI tool `/runbook`. 6 worktrees active.
 
 ## Reference Files
 
-- `plans/planstate-delivered/brief.md` — Plan lifecycle delivered status (7 decisions, grounding needed)
+- `plans/planstate-delivered/outline.md` — Plan lifecycle design (7 decisions, 3 phases, grounded terminology)
+- `plans/planstate-delivered/brief.md` — Original discussion decisions (pre-grounding)
+- `plans/reports/lifecycle-terminology-grounding.md` — Grounding research (SmartBear, CI/CD, VSM)
 - `plans/worktree-merge-resilience/diagnostic.md` — Merge artifact reproduction conditions
 - `plans/hook-batch/outline.md` — Hook batch outline (5 phases, 9 files, 8 decisions)
 - `plans/hook-batch/brief.md` — Original brief (pre-design)
