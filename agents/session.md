@@ -62,9 +62,6 @@
   - Absorbs: pre-merge untracked file fix (`new` leaves session.md untracked), worktree skill adhoc mode (covered by `--branch`), `--slug` override for `--task` mode (25-char slug limit vs prose task names)
   - `rm --confirm` gate: replace with merge-status check (is branch ancestor of HEAD?). Current gate provides no safety, gives wrong error message ("use wt merge" when user already merged), agent retries immediately with `--confirm`
 
-- [ ] **Tokens user config** → `tokens-user-config` — User config (`~/.config/claudeutils/`) for ANTHROPIC_API_KEY so `tokens` command works without env var | sonnet
-  - Problem: setting ANTHROPIC_API_KEY in .envrc interferes with `claude` CLI auth
-  - API token counting is free — only need key routing, not a local tokenizer
 
 - [ ] **Quality infra reform** → `quality-infra-reform` — `/design plans/quality-infrastructure/requirements.md` | opus
   - Plan: quality-infrastructure | Status: requirements
