@@ -269,7 +269,8 @@ def test_gate_attachment_with_mock(tmp_path: Path) -> None:
 
 
 def test_lifecycle_status_detection(tmp_path: Path) -> None:
-    """Test lifecycle.md status detection takes priority over pre-ready artifacts."""
+    """Test lifecycle.md status detection takes priority over pre-ready
+    artifacts."""
     plan_dir = tmp_path / "test-plan"
     plan_dir.mkdir()
 

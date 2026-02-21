@@ -262,9 +262,7 @@ def rules(input_path: str, min_length: int, output_format: str) -> None:
             print(f"{i}. {item.content}")
 
 
-@cli.command(
-    help="Count tokens in files using Anthropic API"
-)
+@cli.command(help="Count tokens in files using Anthropic API")
 @click.argument("model", metavar="{haiku,sonnet,opus}")
 @click.argument("files", nargs=-1, required=True, metavar="FILE")
 @click.option(
