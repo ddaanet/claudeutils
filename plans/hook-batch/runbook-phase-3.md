@@ -45,7 +45,7 @@ Script logic (ordered):
 5. Run: `ruff format --quiet "$file_path"` (format)
 6. If `command -v docformatter >/dev/null 2>&1`: run `docformatter --in-place "$file_path"` (optional)
 7. Silent on success — no stdout output
-8. Any errors go to stderr (non-fatal) — wrap ruff calls in `|| true` equivalent using `2>&1` redirect or explicit error capture
+8. Any errors go to stderr (non-fatal) — ruff calls run normally under `set -euo pipefail` (non-zero exit surfaces to stderr via shell exit); docformatter call uses `|| true` because it is optional and absence is non-fatal
 
 Script header:
 ```
@@ -84,7 +84,7 @@ echo '{"tool_name":"Write","tool_input":{}}' \
 # Expected: silent, exit 0
 
 # Test 4: Python file (use a real .py file to verify ruff runs)
-echo "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"agent-core/hooks/pretooluse-recipe-redirect.py\"}}" \
+echo "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"agent-core/hooks/userpromptsubmit-shortcuts.py\"}}" \
   | bash agent-core/hooks/posttooluse-autoformat.sh
 # Expected: silent (ruff runs, no output on already-formatted file)
 ```

@@ -198,7 +198,7 @@ model: sonnet
 - `main()` Tier 2 block: iterate over all returned directives; build combined additionalContext (all expansions joined with double newline); build combined systemMessage (all concise messages joined with `' | '`)
 - Tier 2 does NOT return early — falls through to Tier 2.5 and Tier 3 after collecting all directives
 - Existing `scan_for_directive` (singular) can be removed OR kept as alias returning first item (removing is cleaner)
-- Update `TestAnyLineMatching.test_any_line_matching` line 222-228: multi-directive prompt now returns BOTH expansions; assert `"[DISCUSS]"` AND `"[PENDING]"` in systemMessage (or change assertion to verify both directives fired)
+- Update `TestAnyLineMatching.test_any_line_matching` line 222-228: multi-directive prompt now returns BOTH expansions; assert both `"[DISCUSS]"` AND `"[PENDING]"` appear in `output_multi["systemMessage"]` (two separate `assert ... in output_multi["systemMessage"]` statements)
 
 **Approach:** New function iterates lines building sections; main() collects into lists and combines. The dual-output logic (d:/discuss: special-case) moves into per-directive output building.
 

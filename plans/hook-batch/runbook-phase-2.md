@@ -198,7 +198,7 @@ print(json.dumps(output))
 - Check order matters — check `git merge` BEFORE generic `git` patterns; check `git worktree` before other git subcommands
 - `ln` match: `command.startswith('ln ') or command == 'ln'`
 - `git worktree` match: `command.startswith('git worktree')`
-- `git merge` match: `command.startswith('git merge')`
+- `git merge` match: `command.startswith('git merge ')` or `command == 'git merge'`
 - On match: build output dict with hookEventName "PreToolUse" and additionalContext; print JSON; return (don't sys.exit)
 - No systemMessage (D-6)
 
