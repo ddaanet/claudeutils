@@ -386,3 +386,37 @@ def test_lifecycle_review_loop_last_entry_wins(tmp_path: Path) -> None:
     assert result.status == "reviewed"  # Last entry wins
     assert result.next_action == ""  # Reviewed → empty, per D-5
     assert "lifecycle.md" in result.artifacts
+
+
+@pytest.mark.parametrize(
+    ("lifecycle_content", "expected_status"),
+    [
+        ("", "designed"),  # empty_file: falls back to pre-ready
+        ("garbage not a valid line", "designed"),  # malformed_last_line: falls back
+        ("2026-02-20 unknown-state — source", "designed"),  # invalid_state: falls back
+        (
+            "2026-02-20 reviewed — /deliverable-review\n\n\n",
+            "reviewed",
+        ),  # trailing_newlines: stripped, last valid line wins
+    ],
+)
+def test_lifecycle_edge_cases(
+    tmp_path: Path, lifecycle_content: str, expected_status: str
+) -> None:
+    """Test edge case handling: empty, malformed, invalid state, trailing newlines.
+
+    All invalid cases fall back to pre-ready status (designed in this case).
+    """
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+
+    # Create design.md to establish pre-ready state for fallback
+    (plan_dir / "design.md").write_text("")
+
+    # Create lifecycle.md with specified content
+    (plan_dir / "lifecycle.md").write_text(lifecycle_content)
+
+    result = infer_state(plan_dir)
+
+    assert result is not None
+    assert result.status == expected_status
