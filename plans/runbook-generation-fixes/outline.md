@@ -4,6 +4,8 @@
 
 **Problem:** prepare-runbook.py generates artifacts with systematic defects. Three root causes produce 10 issues. Source phase files are correct — all defects are in generated output (T5 pipeline step).
 
+**Secondary problem:** Phase expansion (outline to runbook-phase-*.md) introduces defects on every phase (see brief.md). All 5 hook-batch phases required review+fix passes. This is an LLM behavioral issue (OUT of scope for code fixes) but Phase 5 prose updates address it preventively by enforcing header format requirements in the expansion prompt.
+
 ## Root Cause Analysis
 
 | Root Cause | Defects | Class |
@@ -18,9 +20,9 @@
 
 **D-2: Phase context injection into step files.** Extract phase preamble (content between `### Phase N:` header and first `## Step/Cycle`) → inject as `## Phase Context` section in each step file, before the step body. Step files become self-contained.
 
-**D-3: Phase numbering from file boundaries during assembly.** `assemble_phase_files()` knows each file's phase number from the filename (`runbook-phase-N.md`). Inject `### Phase N:` headers at file boundaries during assembly if absent. This makes `extract_sections()` phase detection reliable regardless of phase file content.
+**D-3: Phase numbering from file boundaries during assembly.** `assemble_phase_files()` knows each file's phase number from the filename (`runbook-phase-N.md`). Current implementation concatenates with `'\n'.join(assembled_parts)` without injecting headers. Fix: inject `### Phase N:` headers at file boundaries during assembly if absent. This makes `extract_sections()` phase detection reliable regardless of phase file content.
 
-**D-4: Keep single agent, not per-phase.** Per-phase agents aren't discoverable as Task subagent_types (documented learning). Orchestrator dispatches via built-in types. Phase context in step files (D-2) provides the same benefit without agent discovery issues.
+**D-4: Keep single agent, not per-phase.** Per-phase agents aren't discoverable as Task subagent_types (documented learning). Orchestrator dispatches via built-in types. Phase context in step files (D-2) provides the same benefit without agent discovery issues. No implementation phase — this is a "don't change" decision. The generated single agent remains; D-2 makes it viable.
 
 **D-5: Orchestrator plan references phase files.** PHASE_BOUNDARY entries reference the source phase file for checkpoint context. Orchestrator can read completion validation and phase-level constraints.
 
@@ -36,6 +38,9 @@
 - Per-phase agent generation (D-4: not viable, Task tool can't discover custom agents)
 - validate-runbook.py functional changes (validators independent; new test fixtures may update)
 - Orchestrate skill changes (consumes artifacts, no changes needed if artifacts are correct)
+- `assemble_phase_files()` type detection from first file only — existing behavior, mixed type detection already works via `type: mixed` in extracted sections
+
+**Test strategy:** All TDD cycles across Phases 1-4 contribute to a single new test module `tests/test_prepare_runbook_mixed.py`. Tests use fixture runbook content (multi-phase, mixed types) to exercise the full pipeline end-to-end.
 
 ## Phase Structure
 
@@ -57,7 +62,7 @@ RC-1 fix. Phase-level model parsed and used as default for steps without explici
 - Cycle 2.1: Extract phase model from phase header metadata — `### Phase 1: ... (model: sonnet)` → phase model = sonnet
 - Cycle 2.2: Phase model overrides frontmatter default — steps in phase with `model: sonnet` get sonnet, not frontmatter haiku
 - Cycle 2.3: Step-level model overrides phase model — step with explicit `**Execution Model**: opus` keeps opus despite phase model being sonnet
-- Cycle 2.4: Agent frontmatter uses first phase's model (not global) — generated agent model reflects the primary execution model
+- Cycle 2.4: Agent frontmatter uses first phase's model (not global) — generated agent model reflects the primary execution model. Also fix hardcoded `model: haiku` in `assemble_phase_files()` TDD frontmatter generation (line 498) to use detected phase model
 
 Depends on: Phase 1 (correct phase numbering needed for phase-model mapping). Complexity: Medium. Model: sonnet.
 
@@ -106,14 +111,16 @@ Update runbook skill to enforce phase header format in generated phase files.
 
 ## Evidence Mapping
 
-| Issue | Root Cause | Fix Phase |
-|-------|-----------|-----------|
-| C1: Wrong execution models | RC-1 | Phase 2 |
-| C2: Phase metadata off-by-one | RC-3 | Phase 1 |
-| C3: Phase 2 content loss | RC-2 | Phase 3 |
-| M1: PHASE_BOUNDARY misnumbered | RC-3 | Phase 1 |
-| M2: Unjustified interleaving | RC-3 | Phase 1 |
-| M3: Model header/body contradiction | RC-1 | Phase 2 |
-| M4: Agent embeds Phase 1 only | RC-2 | Phase 3 |
-| M5: Completion validation lost | RC-2 + D-5 | Phase 3, 4 |
-| m3: Agent model conflict | RC-1 | Phase 2 |
+| Issue | Root Cause | Fix Phase | Notes |
+|-------|-----------|-----------|-------|
+| C1: Wrong execution models | RC-1 | Phase 2 | Frontmatter `model: haiku` hardcoded in `assemble_phase_files()` line 498 |
+| C2: Phase metadata off-by-one | RC-3 | Phase 1 | 9 of 16 step files affected |
+| C3: Phase 2 content loss | RC-2 | Phase 3 | Phase preamble discarded during extraction |
+| M1: PHASE_BOUNDARY misnumbered | RC-3 | Phase 1 | Cascades from C2 |
+| M2: Unjustified interleaving | RC-3 | Phase 1 | Caused by sort-based ordering without phase headers |
+| M3: Model header/body contradiction | RC-1 | Phase 2 | Header says haiku, body says sonnet |
+| M4: Agent embeds Phase 1 only | RC-2 | Phase 3 | Single agent gets first phase context only |
+| M5: Completion validation lost | RC-2 + D-5 | Phase 3, 4 | Orchestrator plan needs phase file references |
+| m3: Agent model conflict | RC-1 | Phase 2 | Frontmatter vs embedded content |
+| m1: Growth projection understates risk | — | OUT | hook-batch content issue, not prepare-runbook.py |
+| m2: Validation-only step | — | OUT | hook-batch runbook structure, not tooling |
