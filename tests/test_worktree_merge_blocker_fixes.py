@@ -64,6 +64,41 @@ class TestBlockerSectionPositioning:
         next_pos = result.index("## Next Steps")
         assert blockers_pos < next_pos
 
+    def test_blockers_before_earliest_when_both_sections_present(self) -> None:
+        """Picks earliest of Reference Files and Next Steps for insertion."""
+        ours = (
+            "# Session: Main\n"
+            "\n"
+            "## Pending Tasks\n"
+            "\n"
+            "- [ ] **Task A** — cmd | sonnet\n"
+            "\n"
+            "## Reference Files\n"
+            "\n"
+            "- agents/session.md\n"
+            "\n"
+            "## Next Steps\n"
+            "\n"
+            "Continue work.\n"
+        )
+        theirs = (
+            "# Session: Branch\n"
+            "\n"
+            "## Pending Tasks\n"
+            "\n"
+            "- [ ] **Task A** — cmd | sonnet\n"
+            "\n"
+            "## Blockers / Gotchas\n"
+            "\n"
+            "- Branch blocker\n"
+        )
+        result = _merge_session_contents(ours, theirs, slug="wt-fix")
+        blockers_pos = result.index("## Blockers / Gotchas")
+        ref_pos = result.index("## Reference Files")
+        next_pos = result.index("## Next Steps")
+        assert blockers_pos < ref_pos
+        assert blockers_pos < next_pos
+
     def test_blockers_at_eof_when_no_later_sections(self) -> None:
         """Blockers appended at EOF when no later sections exist."""
         ours = (
@@ -116,6 +151,39 @@ class TestBlockerDeduplication:
         result = _merge_session_contents(ours, theirs, slug="wt-fix")
         assert result.count("Existing blocker") == 1
         assert "- New from branch [from: wt-fix]" in result
+
+    def test_dedup_matches_despite_different_continuation_lines(self) -> None:
+        """First-line match deduplicates even when continuation lines differ."""
+        ours = (
+            "# Session: Main\n"
+            "\n"
+            "## Blockers / Gotchas\n"
+            "\n"
+            "- Shared blocker\n"
+            "  Ours detail\n"
+        )
+        theirs = (
+            "# Session: Branch\n"
+            "\n"
+            "## Blockers / Gotchas\n"
+            "\n"
+            "- Shared blocker\n"
+            "  Theirs different detail\n"
+        )
+        result = _merge_session_contents(ours, theirs, slug="wt-fix")
+        assert result.count("Shared blocker") == 1
+        assert "Ours detail" in result
+        assert "Theirs different detail" not in result
+
+    def test_dedup_strips_prior_merge_tags(self) -> None:
+        """Blockers tagged by prior merge still match untagged theirs."""
+        ours = (
+            "# Session: Main\n\n## Blockers / Gotchas\n\n- Known issue [from: old-wt]\n"
+        )
+        theirs = "# Session: Branch\n\n## Blockers / Gotchas\n\n- Known issue\n"
+        result = _merge_session_contents(ours, theirs, slug="wt-fix")
+        assert result.count("Known issue") == 1
+        assert "[from: wt-fix]" not in result
 
     def test_all_duplicate_blockers_produces_no_section_creation(self) -> None:
         """When all theirs blockers match ours, no empty section added."""

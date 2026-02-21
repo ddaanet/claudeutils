@@ -1,5 +1,6 @@
 """Conflict resolution strategies for worktree merge."""
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -24,8 +25,12 @@ def _merge_blockers(
     if not theirs_blockers:
         return
 
-    ours_first_lines = {b[0] for b in extract_blockers(ours)}
-    new_blockers = [b for b in theirs_blockers if b[0] not in ours_first_lines]
+    # Strip [from: ...] tags so prior-merge tagged blockers still match
+    tag_re = re.compile(r"\s*\[from: [^\]]+\]")
+    ours_first_lines = {tag_re.sub("", b[0]) for b in extract_blockers(ours)}
+    new_blockers = [
+        b for b in theirs_blockers if tag_re.sub("", b[0]) not in ours_first_lines
+    ]
     if not new_blockers:
         return
 
