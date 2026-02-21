@@ -181,6 +181,19 @@ def _is_merge_commit() -> bool:
     return len(parts) >= 3
 
 
+def _is_merge_of(slug: str) -> bool:
+    """Return True if HEAD is a merge commit with slug's branch as a parent."""
+    parts = _git("rev-list", "--parents", "-n", "1", "HEAD").split()
+    if len(parts) < 3:
+        return False
+    branch_sha = _git(
+        "rev-parse", "--verify", f"refs/heads/{slug}", check=False
+    ).strip()
+    if not branch_sha:
+        return False
+    return branch_sha in parts[1:]
+
+
 def _create_session_commit(slug: str, base: str, session: str) -> str:
     """Create commit with session.md from file."""
     with tempfile.NamedTemporaryFile(delete=False, suffix=".index") as tmp:

@@ -19,7 +19,7 @@ from claudeutils.worktree.git_ops import (
     _get_worktree_path_for_branch,
     _git,
     _is_branch_merged,
-    _is_merge_commit,
+    _is_merge_of,
     _is_submodule_dirty,
     _parse_worktree_list,
     _probe_registrations,
@@ -301,7 +301,7 @@ def _update_session_and_amend(slug: str) -> bool:
     if not session_md_path.exists():
         return False
     remove_worktree_task(session_md_path, slug, slug)
-    if not _is_merge_commit():
+    if not _is_merge_of(slug):
         return False
     parent_status = _git("status", "--porcelain", check=False)
     other_dirty = [
