@@ -1,15 +1,36 @@
-# Session Handoff: 2026-02-20
+# Session Handoff: 2026-02-21
 
-**Status:** Worktree setup for parallel tasks. Merging when-recall-evaluation.
+**Status:** Merged 3 worktrees (pipeline-improvements, context-optimization, when-recall-evaluation). Designed plan lifecycle "delivered" status. Two new tasks created.
 
 ## Completed This Session
 
-- [x] **Pipeline skill updates** — design skill review gate fix, pending task capture wording, design-history noise audit, deslop 2 skills, batch decomposition in vet-requirement, verification scope in vet template
-- [x] **When recall evaluation**
-- Worktree setup: pipeline-skill-updates (opus), when-recall-evaluation (sonnet)
+**Worktree merges:**
+- Merged pipeline-improvements (8 commits): design skill review gate, pending task capture, design-history audit, deslop 2 skills, batch decomposition in vet-requirement, verification scope in vet template
+- Merged context-optimization (3 commits): ~5.8k tokens demoted from CLAUDE.md (4 @-refs removed, 2 fragments trimmed, D-6 relocated to rule file)
+- Post-merge fixes: learnings.md orphaned line (in-place edit + tail divergence), session.md leaked blocker note
+- Removed all 3 worktrees (pipeline-improvements, context-optimization, when-recall-evaluation)
+
+**Discussion — plan delivered status:**
+- Lifecycle states: ready → review-pending → defective/completed → delivered
+- Terminology needs `/ground` before design (validate against delivery frameworks)
+- Brief at `plans/planstate-delivered/brief.md`
+
+**Merge artifact diagnostic:**
+- Documented reproduction conditions: in-place edits + tail divergence in append-only files
+- Diagnostic at `plans/worktree-merge-resilience/diagnostic.md`
 
 ## Pending Tasks
 
+- [ ] **Planstate delivered status** — `/ground` then `/design plans/planstate-delivered/brief.md` | opus | restart
+  - Plan: planstate-delivered | Status: requirements
+  - Ground lifecycle terminology before design (kanban, DORA, CI/CD pipeline terms)
+  - Full lifecycle: requirements → designed → planned → ready → review-pending → completed → delivered
+  - Deliverable review as pre-merge gate (IN scope, with complexity shortcut)
+
+- [ ] **Merge artifact validation** — post-merge orphan detection in `_worktree merge` | sonnet
+  - Plan: worktree-merge-resilience | Diagnostic: `plans/worktree-merge-resilience/diagnostic.md`
+  - Pattern: in-place edits + tail divergence → git appends modified line as duplicate
+  - Also: focused-session section stripping → content leaks into wrong section
 
 - [ ] **Hook batch** — `/runbook plans/hook-batch/outline.md` | sonnet | restart
   - Absorbs: PostToolUse auto-format hook, SessionStart status hook
@@ -17,8 +38,6 @@
   - Plan: hook-batch | Status: designed (outline complete)
 
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
-
-- [x] **Context optimization** — ~5.8k tokens demoted from CLAUDE.md (vet-requirement, sandbox-exemptions, claude-config-layout, bash-strict-mode removed; error-handling + workflows-terminology trimmed)
 
 - [ ] **Worktree CLI default** — Positional = task name, `--branch` = bare slug | `/runbook plans/worktree-cli-default/outline.md` | sonnet
   - Plan: worktree-cli-default | Status: designed
@@ -47,16 +66,11 @@
   - After pipeline fixes (done): outline review → sufficiency gate → `/runbook`
   - New requirement: commit subcommand must output shortened commit IDs (session scraping)
 
-- [x] **Audit rules for design-history noise** — completed in pipeline-improvements
-- [x] **Design skill review gate fix** — completed in pipeline-improvements
-- [x] **Pending task capture wording** — completed in pipeline-improvements
 - [ ] **Deslop remaining skills** — Prose quality pass on skills not yet optimized (handoff, commit, opus-design-question, next done) | sonnet
-
-- [x] **When recall evaluation** — sonnet
 
 ## Worktree Tasks
 
-(none — both merged)
+(none)
 
 ## Blockers / Gotchas
 
@@ -69,9 +83,9 @@
 **`slug` and `--task` mutually exclusive in `_worktree new`:**
 - Fix: worktree-cli-default adds `--branch` flag
 
-**Merge resolution silently corrupts learnings and blockers:**
-- Learnings: line-set-difference reintroduces pre-consolidation entries when branch diverged before `/remember`. Blockers: focused sessions have no blockers section, so resolved blockers aren't detected
-- **Manual post-merge check required:** After `wt merge`, verify learnings.md for pre-consolidation duplicates (diff against ancestor) and blockers for items fixed by the branch's work
+**Merge resolution produces orphaned lines in append-only files:**
+- When branch modifies existing entry in-place AND both sides add at tail, git appends modified line as duplicate. Focused-session section stripping causes content to leak into wrong section positions.
+- Manual post-merge check required until worktree-merge-resilience automated
 
 **Validator orphan entries not autofixable:**
 - Marking headings structural (`.` prefix) causes non-autofixable error in `check_orphan_entries`
@@ -79,7 +93,7 @@
 **Memory index `/how` operator mapping:**
 - `/how X` → internally `"how to X"` — index keys must NOT include "to"
 
-**Learnings at 158 lines — consolidation deferred:**
+**Learnings at 170 lines — consolidation deferred:**
 - Past 150-line trigger but 0 entries ≥7 active days. Aging required before graduation.
 
 **Skill activation ~20% baseline:**
@@ -90,16 +104,15 @@
 
 ## Next Steps
 
-Pipeline skill updates merged. Hook batch `/runbook` is next. Session CLI tool unblocked.
+Planstate delivered status is new — `/ground` lifecycle terminology then `/design`. Hook batch `/runbook` and session CLI tool unblocked by pipeline fixes.
 
 ## Reference Files
 
+- `plans/planstate-delivered/brief.md` — Plan lifecycle delivered status (7 decisions, grounding needed)
+- `plans/worktree-merge-resilience/diagnostic.md` — Merge artifact reproduction conditions
 - `plans/hook-batch/outline.md` — Hook batch outline (5 phases, 9 files, 8 decisions)
-- `plans/hook-batch/userpromptsubmit-plan.md` — UserPromptSubmit details (partially superseded by outline D-5, D-7)
-- `plans/hook-batch/reports/outline-review-2.md` — Final outline review
-- `plans/hook-batch/reports/b-directive-brainstorm.md` — b: = brainstorm analysis
 - `plans/hook-batch/brief.md` — Original brief (pre-design)
-- `plans/context-optimization/brief.md` — Fragment demotion analysis (demotable/stays/blocked)
+- `plans/context-optimization/brief.md` — Fragment demotion analysis
 - `plans/handoff-cli-tool/brief.md` — Session CLI briefs (status subcommand + commit ID requirement)
 - `agents/backlog.md` — 30+ deferred tasks with plan associations and groupings
 - `plans/worktree-cli-default/outline.md` — CLI change design (positional=task, --branch=slug)
