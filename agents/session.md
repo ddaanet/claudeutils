@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-21
 
-**Status:** Hook batch execution complete. 16/16 steps across 5 phases. Deliverable review pending.
+**Status:** Hook batch plan complete. Deliverable review done, major finding TDD-fixed inline.
 
 ## Completed This Session
 
@@ -19,14 +19,18 @@
 
 **Per-phase agents not available as Task subagent_types:** `.claude/agents/hb-p{1..5}.md` were not recognized. Used built-in `tdd-task` (Phases 1-2) and `quiet-task` (Phases 3-5) with phase context injection.
 
+**Deliverable review (this session):**
+- Review: 14 files, 2582 lines, 34 tests. 0 critical, 1 major, 6 minor. Report: `plans/hook-batch/reports/deliverable-review.md`
+- Major finding: Tier 2.5 pattern guards blocked Tier 3 continuation parsing (`main()` line 917 returned early on any `context_parts`). Design says combine Tier 2.5 + Tier 3 (userpromptsubmit-plan.md steps 4-5).
+- TDD fix: Split gate — directives (Tier 2) return early (mode change); guards-only (Tier 2.5) fall through to Tier 3 and combine. 34/34 tests pass.
+
 **Prior sessions (preserved):**
 - Pre-execution review, runbook generation, phase/holistic reviews
 
 ## Pending Tasks
 
 - [x] **Hook batch execution** — `/orchestrate hook-batch` | sonnet | restart
-- [ ] **Deliverable review: hook-batch** — `/deliverable-review plans/hook-batch` | opus | restart
-  - Production artifacts: 4 hook scripts, sync-hooks-config.py, hooks.json, settings.json entries, 29+ tests
+- [x] **Deliverable review: hook-batch** — `/deliverable-review plans/hook-batch` | opus | restart
 - [ ] **Runbook generation process fixes** — `/design plans/runbook-process-fixes` | opus
   - prepare-runbook.py failures: wrong model tags (C1), off-by-one phase numbers (C2), phase content loss (C3), unjustified interleaving (M2)
   - Agent file embeds Phase 1 only (M4), completion validation lost from all phases (M5)
@@ -41,8 +45,7 @@
 
 ## Reference Files
 
-- `plans/hook-batch/reports/vet-review.md` — Final quality review
+- `plans/hook-batch/reports/deliverable-review.md` — Final deliverable review (0C/1M/6m → 0C/0M/6m after fix)
+- `plans/hook-batch/reports/vet-review.md` — Post-execution quality review
 - `plans/hook-batch/reports/tdd-process-review.md` — TDD compliance review
-- `plans/hook-batch/reports/checkpoint-{1,2,5}-vet.md` — Phase boundary checkpoints
-- `plans/hook-batch/orchestrator-plan.md` — Orchestrator plan
-- `plans/hook-batch/design.md` — Design document
+- `plans/hook-batch/outline.md` — Design document (no separate design.md)
