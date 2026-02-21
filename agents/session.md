@@ -1,23 +1,13 @@
 # Session Handoff: 2026-02-21
 
-**Status:** Merged 3 worktrees (pipeline-improvements, context-optimization, when-recall-evaluation). Designed plan lifecycle "delivered" status. Two new tasks created.
+**Status:** Cleaned up 10 delivered plan directories. Verified runbook-quality-gates deliverables by content inspection (4 subcommands, 17 tests). Restored plugin-migration (not yet executed).
 
 ## Completed This Session
 
-**Worktree merges:**
-- Merged pipeline-improvements (8 commits): design skill review gate, pending task capture, design-history audit, deslop 2 skills, batch decomposition in vet-requirement, verification scope in vet template
-- Merged context-optimization (3 commits): ~5.8k tokens demoted from CLAUDE.md (4 @-refs removed, 2 fragments trimmed, D-6 relocated to rule file)
-- Post-merge fixes: learnings.md orphaned line (in-place edit + tail divergence), session.md leaked blocker note
-- Removed all 3 worktrees (pipeline-improvements, context-optimization, when-recall-evaluation)
-
-**Discussion — plan delivered status:**
-- Lifecycle states: ready → review-pending → defective/completed → delivered
-- Terminology needs `/ground` before design (validate against delivery frameworks)
-- Brief at `plans/planstate-delivered/brief.md`
-
-**Merge artifact diagnostic:**
-- Documented reproduction conditions: in-place edits + tail divergence in append-only files
-- Diagnostic at `plans/worktree-merge-resilience/diagnostic.md`
+**Plan directory cleanup (10 removed):**
+- pipeline-skill-updates, context-optimization, worktree-rm-fixes, remaining-workflow-items, worktree-merge-data-loss, runbook-quality-gates, inline-phase-type, pretool-hook-cd-pattern, worktree-skill, integration-first-tests (absorbed into quality-infrastructure)
+- Verified runbook-quality-gates: `validate-runbook.py` (352 lines, 4 subcommands), 12 unit + 5 integration tests, `runbook-simplification-agent.md` — all substantive
+- User correction: plugin-migration not executed (restored), runbook-quality-gates required content verification before removal
 
 ## Pending Tasks
 
@@ -104,7 +94,7 @@
 
 ## Next Steps
 
-Planstate delivered status is new — `/ground` lifecycle terminology then `/design`. Hook batch `/runbook` and session CLI tool unblocked by pipeline fixes.
+Same priorities: planstate delivered `/ground` → `/design`, hook batch `/runbook`, session CLI tool `/runbook`. Plugin-migration at [ready] status — needs execution.
 
 ## Reference Files
 
@@ -112,7 +102,6 @@ Planstate delivered status is new — `/ground` lifecycle terminology then `/des
 - `plans/worktree-merge-resilience/diagnostic.md` — Merge artifact reproduction conditions
 - `plans/hook-batch/outline.md` — Hook batch outline (5 phases, 9 files, 8 decisions)
 - `plans/hook-batch/brief.md` — Original brief (pre-design)
-- `plans/context-optimization/brief.md` — Fragment demotion analysis
 - `plans/handoff-cli-tool/brief.md` — Session CLI briefs (status subcommand + commit ID requirement)
 - `agents/backlog.md` — 30+ deferred tasks with plan associations and groupings
 - `plans/worktree-cli-default/outline.md` — CLI change design (positional=task, --branch=slug)
