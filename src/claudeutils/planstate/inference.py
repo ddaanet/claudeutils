@@ -78,18 +78,25 @@ def _determine_status(plan_dir: Path) -> str:
     return "requirements"
 
 
+_NEXT_ACTION_TEMPLATES: dict[str, str | None] = {
+    "requirements": "/design plans/{plan_name}/requirements.md",
+    "designed": "/runbook plans/{plan_name}/design.md",
+    "planned": "agent-core/bin/prepare-runbook.py plans/{plan_name}",
+    "ready": "/orchestrate {plan_name}",
+    "review-pending": "/deliverable-review plans/{plan_name}",
+}
+
+
 def _derive_next_action(status: str, plan_name: str) -> str:
-    match status:
-        case "requirements":
-            return f"/design plans/{plan_name}/requirements.md"
-        case "designed":
-            return f"/runbook plans/{plan_name}/design.md"
-        case "planned":
-            return f"agent-core/bin/prepare-runbook.py plans/{plan_name}"
-        case "ready":
-            return f"/orchestrate {plan_name}"
-        case _:
-            return ""
+    """Derive next action from plan status.
+
+    Pre-ready states have defined actions. Post-ready states (rework, reviewed,
+    delivered) are terminal or require manual intervention.
+    """
+    template = _NEXT_ACTION_TEMPLATES.get(status)
+    if template is None:
+        return ""
+    return template.format(plan_name=plan_name)
 
 
 _GATE_PRIORITY: list[tuple[str, str]] = [

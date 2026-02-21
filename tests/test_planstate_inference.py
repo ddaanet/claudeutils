@@ -269,7 +269,8 @@ def test_gate_attachment_with_mock(tmp_path: Path) -> None:
 
 
 def test_lifecycle_status_detection(tmp_path: Path) -> None:
-    """Test lifecycle.md status detection takes priority over pre-ready artifacts."""
+    """Test lifecycle.md status detection takes priority over pre-ready
+    artifacts."""
     plan_dir = tmp_path / "test-plan"
     plan_dir.mkdir()
 
@@ -285,3 +286,51 @@ def test_lifecycle_status_detection(tmp_path: Path) -> None:
     assert result is not None
     assert result.status == "review-pending"
     assert "lifecycle.md" in result.artifacts
+
+
+@pytest.mark.parametrize(
+    ("state", "lifecycle_content", "expected_next_action"),
+    [
+        (
+            "review-pending",
+            "2026-02-20 review-pending — /orchestrate\n",
+            "/deliverable-review plans/test-plan",
+        ),
+        (
+            "rework",
+            "2026-02-20 rework — /deliverable-review\n",
+            "",
+        ),
+        (
+            "reviewed",
+            "2026-02-20 reviewed — /deliverable-review\n",
+            "",
+        ),
+        (
+            "delivered",
+            "2026-02-20 delivered — _worktree merge\n",
+            "",
+        ),
+    ],
+)
+def test_next_action_post_ready_states(
+    tmp_path: Path,
+    state: str,
+    lifecycle_content: str,
+    expected_next_action: str,
+) -> None:
+    """Test next_action derivation for post-ready states."""
+    plan_dir = tmp_path / "test-plan"
+    plan_dir.mkdir()
+
+    # Create design.md so plan directory is recognized as valid
+    (plan_dir / "design.md").write_text("")
+
+    # Create lifecycle.md with the post-ready state
+    (plan_dir / "lifecycle.md").write_text(lifecycle_content)
+
+    result = infer_state(plan_dir)
+
+    assert result is not None
+    assert result.status == state
+    assert result.next_action == expected_next_action
