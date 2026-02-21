@@ -1,23 +1,24 @@
 # Session Handoff: 2026-02-21
 
-**Status:** Merged 4 worktrees (tokens-user-config, planstate-delivered, quality-infra-reform, hook-batch). Created runbook generation fixes task.
+**Status:** Fixed broken agent-core submodule. Merged/removed 3 worktrees (compression-detail-loss, merge-artifact-validation, worktree-cli-default). 2 unmerged (session-cli-tool, hook-batch — large divergence).
 
 ## Completed This Session
 
-**Worktree merges (4):**
-- `tokens-user-config` — user_config.py module, tokens_cli.py config support, 2 test files. Worktree removed.
-- `planstate-delivered` — grounding reports, outline (serves as design), decision file updates. Worktree removed. Task back to Pending.
-- `quality-infra-reform` — naming brainstorm, FR-3 expansion, FR-4 extracted to codebase-sweep, grounding reframe. Worktree removed.
-- `hook-batch` — execution progress merge (per-phase agents, context files, Cycles 1.1-2.1, updated pre-execution review). Worktree kept (execution in progress).
+**Agent-core submodule recovery:**
+- `core.worktree` in `.git/modules/agent-core/config` pointed to stale `hook-batch/agent-core` path — reset to `../../../agent-core`
+- `git worktree repair` for parent repo links
+- `git -C agent-core worktree add --detach` to recreate 4 submodule worktrees (agent-core2–5)
+- Fixed agent-core HEAD per worktree via `git ls-tree HEAD agent-core` (4 were at wrong commit)
 
-**Quality infra reform — design (prior session, commit: 8e50563c):**
-- Outline produced with 7 design decisions (D-1 through D-7)
-- D-1: vet-agent deprecated (zero active call sites — `reports/explore-reviewer-usage.md`)
-- D-2: vet-taxonomy.md embed in corrector. D-3: code deslop via project-conventions skill
-- D-4: prose deslop → communication.md. D-5: phase ordering FR-3→FR-1→FR-2
-- D-6: vet-requirement→review-requirement. D-7: vet skill → review skill
-- Outline reviewed by outline-review-agent (3 major, 7 minor, all fixed)
-- Reviewer open question resolved: deprecate vet-agent, not rename
+**Worktree merges/removals (3):**
+- `compression-detail-loss` — 0 commits ahead, removed via `_worktree rm --force`
+- `merge-artifact-validation` — 1 focused-session commit, merged (session.md conflict → kept ours)
+- `worktree-cli-default` — 1 focused-session commit, merged (session.md conflict → kept ours)
+- Tasks returned to Pending (none were complete)
+
+**Unmerged worktrees (2):**
+- `session-cli-tool` — 235 files changed, 15K+ added, 9.5K removed. Diverged significantly from main.
+- `hook-batch` — 17 commits. Execution in progress.
 
 ## Pending Tasks
 
@@ -56,27 +57,26 @@
 
 - [ ] **Deslop remaining skills** — Prose quality pass on skills not yet optimized (handoff, commit, opus-design-question, next done) | sonnet
 
-## Worktree Tasks
-
-
-- [ ] **Merge artifact validation** → `merge-artifact-validation` — post-merge orphan detection in `_worktree merge` | sonnet
+- [ ] **Merge artifact validation** — post-merge orphan detection in `_worktree merge` | sonnet
   - Plan: worktree-merge-resilience | Diagnostic: `plans/worktree-merge-resilience/diagnostic.md`
   - Pattern: in-place edits + tail divergence → git appends modified line as duplicate
   - Also: focused-session section stripping → content leaks into wrong section
 
-- [>] **Hook batch** → `hook-batch` — `/orchestrate plans/hook-batch/orchestrator-plan.md` | sonnet | restart
-  - Plan: hook-batch | Status: executing (Phase 1 complete, Phase 2 Cycle 2.1 done)
-  - Pre-execution fixes applied: per-phase agents (hb-p1–hb-p5), context files, model/phase metadata fixed
-  - Pre-execution review: `plans/hook-batch/reports/runbook-pre-execution-review.md`
+- [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 
-- [ ] **Diagnose compression detail loss** → `compression-detail-loss` — RCA against commit `0418cedb` | sonnet
-
-- [ ] **Worktree CLI default** → `worktree-cli-default` — Positional = task name, `--branch` = bare slug | `/runbook plans/worktree-cli-default/outline.md` | sonnet
+- [ ] **Worktree CLI default** — `/runbook plans/worktree-cli-default/outline.md` | sonnet
   - Plan: worktree-cli-default | Status: designed
   - `--branch` creates worktree from existing branch (no session.md handling)
   - Scope expansion: Eliminate Worktree Tasks section, remove `_update_session_and_amend` ceremony, co-design with session.md validator
   - Absorbs: pre-merge untracked file fix (`new` leaves session.md untracked), worktree skill adhoc mode (covered by `--branch`), `--slug` override for `--task` mode (25-char slug limit vs prose task names)
   - `rm --confirm` gate: replace with merge-status check (is branch ancestor of HEAD?). Current gate provides no safety, gives wrong error message ("use wt merge" when user already merged), agent retries immediately with `--confirm`
+
+## Worktree Tasks
+
+- [>] **Hook batch** → `hook-batch` — `/orchestrate plans/hook-batch/orchestrator-plan.md` | sonnet | restart
+  - Plan: hook-batch | Status: executing (Phase 1 complete, Phase 2 Cycle 2.1 done)
+  - Pre-execution fixes applied: per-phase agents (hb-p1–hb-p5), context files, model/phase metadata fixed
+  - Pre-execution review: `plans/hook-batch/reports/runbook-pre-execution-review.md`
 
 
 
@@ -175,10 +175,11 @@
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback designed in hook batch Phase 4.
 
-**Submodule worktree refs block new worktree creation:**
-- `git -C agent-core worktree add` validates ALL existing worktree refs. Stale relative paths (`../../../../../../claudeutils-wt/...`) fail validation, blocking creation of any new submodule worktree.
-- Recovery from accidental admin dir deletion: recreate dir, write `gitdir`/`commondir`/`HEAD`, `git reset HEAD` to rebuild index.
-- Root cause: agent-core merge into main created merge commit but didn't update worktree refs. Hook-batch agent-core worktree admin dir was deleted by agent (wrong `test -d` for submodule `.git` file), then recovered.
+**Submodule worktree refs — RESOLVED this session:**
+- Root cause was `core.worktree` in `.git/modules/agent-core/config` overwritten by worktree submodule init. Fix: `git worktree repair` + `git -C agent-core worktree add --detach`. Use `git ls-tree HEAD agent-core` to get correct commit per worktree.
+
+**Unmerged worktrees with large divergence:**
+- session-cli-tool and hook-batch branches diverged significantly from main. session-cli-tool has 235 files changed (deletions of plans, tests, source that may have been re-added on main). Needs careful conflict resolution.
 
 **`_worktree new` requires sandbox bypass:**
 - Writes `.claude/settings.local.json` which is in sandbox deny list. Must use `dangerouslyDisableSandbox: true`.
@@ -186,7 +187,7 @@
 
 ## Next Steps
 
-Hook batch executing in worktree. Quality infra reform `/runbook` next. Planstate delivered `/runbook`. 5 worktrees active (hook-batch, merge-artifact-validation, compression-detail-loss, worktree-cli-default, session-cli-tool). Worktree creation blocked by stale submodule worktree refs — see Blockers.
+Hook batch executing in worktree. Quality infra reform `/runbook` next. Planstate delivered `/runbook`. 3 worktrees active (hook-batch, session-cli-tool, planstate-delivered). Submodule worktree refs fixed (core.worktree reset + `git worktree repair` + `git -C agent-core worktree add --detach`).
 
 ## Reference Files
 
