@@ -379,7 +379,7 @@ def test_cli_detects_missing_api_key_before_sdk(
     assert "Authentication failed" in captured.err
     assert "ANTHROPIC_API_KEY" in captured.err
 
-    # Verify SDK was never called
+    # Verify SDK was never called (missing key test)
     assert not mock_anthropic.called
     assert not mock_resolve.called
     assert not mock_count.called
