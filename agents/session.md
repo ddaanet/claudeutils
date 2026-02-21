@@ -1,43 +1,26 @@
 # Session Handoff: 2026-02-21
 
-**Status:** Cleaned up 10 delivered plan directories. Verified runbook-quality-gates deliverables by content inspection (4 subcommands, 17 tests). Restored plugin-migration (not yet executed).
+**Status:** Consolidated backlog/todo into session.md. Created 6 worktrees. Verified and removed 3 more delivered plan directories (brief-skill, vet-invariant-scope, worktree-rm-safety).
 
 ## Completed This Session
 
-**Plan directory cleanup (10 removed):**
-- pipeline-skill-updates, context-optimization, worktree-rm-fixes, remaining-workflow-items, worktree-merge-data-loss, runbook-quality-gates, inline-phase-type, pretool-hook-cd-pattern, worktree-skill, integration-first-tests (absorbed into quality-infrastructure)
-- Verified runbook-quality-gates: `validate-runbook.py` (352 lines, 4 subcommands), 12 unit + 5 integration tests, `runbook-simplification-agent.md` — all substantive
-- User correction: plugin-migration not executed (restored), runbook-quality-gates required content verification before removal
+**Task list consolidation:**
+- Deleted `agents/todo.md` — all items completed (unification ✅) or superseded (prompt-composer, handoff-discussion, task-agent-pattern)
+- Merged `agents/backlog.md` into session.md Backlog section, deleted source file
+- Removed 4 delivered items from backlog: worktree-skill, worktree-merge-data-loss, pretool-hook-cd-pattern, remaining-workflow-items
+- Removed absorbed task stubs from Pending (SessionStart status hook, PostToolUse auto-format hook)
+
+**Unscheduled plan assessment (3 delivered, removed):**
+- `brief-skill` — skill delivered at `agent-core/skills/brief/SKILL.md`
+- `vet-invariant-scope` — all 3 changes verified: Verification scope in vet-requirement.md + pipeline-contracts.md, lifecycle audit in orchestrate/SKILL.md, resume completeness in outline-review-agent.md
+- `worktree-rm-safety` — code delivered: `--force` flag, exit code 2, dirty tree checks, tests in worktree/cli.py
+
+**Worktree setup (6 created):**
+- planstate-delivered, merge-artifact-validation, hook-batch, compression-detail-loss, worktree-cli-default, tokens-user-config
+
+**New task:** Tokens user config — user config for ANTHROPIC_API_KEY (`.envrc` interferes with `claude` CLI auth, API token counting is free)
 
 ## Pending Tasks
-
-- [ ] **Planstate delivered status** — `/ground` then `/design plans/planstate-delivered/brief.md` | opus | restart
-  - Plan: planstate-delivered | Status: requirements
-  - Ground lifecycle terminology before design (kanban, DORA, CI/CD pipeline terms)
-  - Full lifecycle: requirements → designed → planned → ready → review-pending → completed → delivered
-  - Deliverable review as pre-merge gate (IN scope, with complexity shortcut)
-
-- [ ] **Merge artifact validation** — post-merge orphan detection in `_worktree merge` | sonnet
-  - Plan: worktree-merge-resilience | Diagnostic: `plans/worktree-merge-resilience/diagnostic.md`
-  - Pattern: in-place edits + tail divergence → git appends modified line as duplicate
-  - Also: focused-session section stripping → content leaks into wrong section
-
-- [ ] **Hook batch** — `/runbook plans/hook-batch/outline.md` | sonnet | restart
-  - Absorbs: PostToolUse auto-format hook, SessionStart status hook
-  - 5 phases: UserPromptSubmit (9 changes), PreToolUse recipe-redirect, PostToolUse auto-format, Session health (SessionStart + Stop fallback), Hook infrastructure (hooks.json + sync-to-parent merge)
-  - Plan: hook-batch | Status: designed (outline complete)
-
-- [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
-
-- [ ] **Worktree CLI default** — Positional = task name, `--branch` = bare slug | `/runbook plans/worktree-cli-default/outline.md` | sonnet
-  - Plan: worktree-cli-default | Status: designed
-  - `--branch` creates worktree from existing branch (no session.md handling)
-  - Scope expansion: Eliminate Worktree Tasks section, remove `_update_session_and_amend` ceremony, co-design with session.md validator
-  - Absorbs: pre-merge untracked file fix (`new` leaves session.md untracked), worktree skill adhoc mode (covered by `--branch`), `--slug` override for `--task` mode (25-char slug limit vs prose task names)
-  - `rm --confirm` gate: replace with merge-status check (is branch ancestor of HEAD?). Current gate provides no safety, gives wrong error message ("use wt merge" when user already merged), agent retries immediately with `--confirm`
-
-- [ ] **SessionStart status hook** — Absorbed into Hook batch
-- [ ] **PostToolUse auto-format hook** — Absorbed into Hook batch
 
 - [ ] **Quality infrastructure reform** — `/design plans/quality-infrastructure/requirements.md` | opus
   - Plan: quality-infrastructure | Status: requirements
@@ -60,7 +43,99 @@
 
 ## Worktree Tasks
 
-(none)
+- [ ] **Planstate delivered status** → `planstate-delivered` — `/ground` then `/design plans/planstate-delivered/brief.md` | opus | restart
+  - Plan: planstate-delivered | Status: requirements
+  - Ground lifecycle terminology before design (kanban, DORA, CI/CD pipeline terms)
+  - Full lifecycle: requirements → designed → planned → ready → review-pending → completed → delivered
+  - Deliverable review as pre-merge gate (IN scope, with complexity shortcut)
+
+- [ ] **Merge artifact validation** → `merge-artifact-validation` — post-merge orphan detection in `_worktree merge` | sonnet
+  - Plan: worktree-merge-resilience | Diagnostic: `plans/worktree-merge-resilience/diagnostic.md`
+  - Pattern: in-place edits + tail divergence → git appends modified line as duplicate
+  - Also: focused-session section stripping → content leaks into wrong section
+
+- [ ] **Hook batch** → `hook-batch` — `/runbook plans/hook-batch/outline.md` | sonnet | restart
+  - Absorbs: PostToolUse auto-format hook, SessionStart status hook
+  - 5 phases: UserPromptSubmit (9 changes), PreToolUse recipe-redirect, PostToolUse auto-format, Session health (SessionStart + Stop fallback), Hook infrastructure (hooks.json + sync-to-parent merge)
+  - Plan: hook-batch | Status: designed (outline complete)
+
+- [ ] **Diagnose compression detail loss** → `compression-detail-loss` — RCA against commit `0418cedb` | sonnet
+
+- [ ] **Worktree CLI default** → `worktree-cli-default` — Positional = task name, `--branch` = bare slug | `/runbook plans/worktree-cli-default/outline.md` | sonnet
+  - Plan: worktree-cli-default | Status: designed
+  - `--branch` creates worktree from existing branch (no session.md handling)
+  - Scope expansion: Eliminate Worktree Tasks section, remove `_update_session_and_amend` ceremony, co-design with session.md validator
+  - Absorbs: pre-merge untracked file fix (`new` leaves session.md untracked), worktree skill adhoc mode (covered by `--branch`), `--slug` override for `--task` mode (25-char slug limit vs prose task names)
+  - `rm --confirm` gate: replace with merge-status check (is branch ancestor of HEAD?). Current gate provides no safety, gives wrong error message ("use wt merge" when user already merged), agent retries immediately with `--confirm`
+
+- [ ] **Tokens user config** → `tokens-user-config` — User config (`~/.config/claudeutils/`) for ANTHROPIC_API_KEY so `tokens` command works without env var | sonnet
+  - Problem: setting ANTHROPIC_API_KEY in .envrc interferes with `claude` CLI auth
+  - API token counting is free — only need key routing, not a local tokenizer
+
+## Backlog
+
+### Worktree
+- [ ] **Worktree merge from main** — `/design plans/worktree-merge-from-main/` | sonnet
+- [ ] **Cross-tree requirements transport** — `/requirements` skill writes to main from worktree | sonnet
+  - Transport solved: `git show <branch>:<path>` from main (no sandbox needed)
+  - Remaining: requirements skill path flag/auto-detection, optional CLI subcommand (`_worktree import`)
+  - Absorbs: Revert cross-tree sandbox access (remove `additionalDirectories` from `_worktree new`)
+- [ ] **Handoff wt awareness** — Only consolidate memory in main repo | sonnet
+- [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
+  - Plan: parallel-orchestration | Blocked on: orchestrate-evolution
+- [x] **Worktree rm safety** — Exit code 2, dirty check, --force bypass (delivered, plan removed)
+
+### Pipeline & Orchestration
+- [ ] **Model directive pipeline** — Model guidance design → runbook → execution | opus
+- [ ] **RED pass protocol** — Formalize orchestrator RED pass handling | sonnet
+  - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
+- [ ] **Runbook evolution** — `/design plans/runbook-evolution/` | sonnet
+
+### Memory & Learning
+- [ ] **Remember skill update** — Resume `/design` Phase B | opus
+  - Plan: remember-skill-update | Outline reviewed, Phase B discussion next
+  - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
+  - Absorbs: memory-index auto-sync, learning ages consol, rename remember skill (FR-10), remember agent routing (FR-11)
+- [ ] **Merge learnings delta** — Reconcile learnings.md after diverged merge | sonnet
+  - Plan: merge-learnings-delta | Strategy: main base + branch delta
+- [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
+
+### Quality & Testing
+- [ ] **Execute plugin migration** — Refresh outline then orchestrate | opus
+  - Plan: plugin-migration | Status: ready (stale — Feb 9)
+  - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite
+- [ ] **Migrate test suite to diamond** — Needs scoping | depends on runbook evolution
+- [ ] **Test diagnostic helper** — Replace subprocess.run check=True with stderr surfacing | sonnet
+- [ ] **Session.md validator** — Scripted precommit check | sonnet
+  - Plan: session-validator | FR-2/FR-4 depend on worktree-cli-default; FR-1/FR-3/FR-5 can proceed now
+
+### Agents & Rules
+- [ ] **Agent rule injection** — Distill sub-agent rules into agent templates | sonnet
+- [ ] **Task agent guardrails** — Tool-call limits, regression detection, model escalation | sonnet
+- [ ] **Handoff insertion policy** — Insert at priority position instead of append | sonnet
+
+### Design (opus)
+- [ ] **Behavioral design** — Nuanced conversational pattern intervention | opus
+- [ ] **Diagnostic opus review** — Post-vet RCA methodology | opus
+- [ ] **Safety review expansion** — Pipeline changes from grounding research | opus
+  - Depends on: Explore Anthropic plugins
+- [ ] **Ground state-machine review criteria** — State coverage validation research | opus
+- [ ] **Workflow formal analysis** — Formal verification of agent workflow | opus
+- [ ] **Design-to-deliverable** — tmux-like session automation | opus | restart
+
+### Prototypes & Exploration
+- [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet
+- [ ] **Cache expiration prototype** — Debug log token metrics, measure TTL | sonnet
+- [ ] **Explore Anthropic plugins** — Install all 28 official plugins | sonnet | restart
+- [ ] **Tweakcc** — Remove redundant builtin prompts, inject custom | sonnet
+  - Plan: tweakcc
+- [ ] **TDD cycle test optimization** — Selective test rerun via dependency analysis | sonnet
+
+### Small Fixes
+- [ ] **Simplify when-resolve CLI** — Single argument with when/how prefix | sonnet
+- [ ] **Fix task-context.sh task list bloat** — Filter/trim output | sonnet
+- [ ] **Upstream skills field** — PR/issue for missing skills frontmatter | sonnet
+- [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
 
 ## Blockers / Gotchas
 
@@ -83,7 +158,7 @@
 **Memory index `/how` operator mapping:**
 - `/how X` → internally `"how to X"` — index keys must NOT include "to"
 
-**Learnings at 170 lines — consolidation deferred:**
+**Learnings at 174 lines — consolidation deferred:**
 - Past 150-line trigger but 0 entries ≥7 active days. Aging required before graduation.
 
 **Skill activation ~20% baseline:**
@@ -92,9 +167,13 @@
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback designed in hook batch Phase 4.
 
+**`_worktree new` requires sandbox bypass:**
+- Writes `.claude/settings.local.json` which is in sandbox deny list. Must use `dangerouslyDisableSandbox: true`.
+- Partial failure leaves orphaned branch with focused-session commit. Clean up with `_worktree rm --force <slug>`.
+
 ## Next Steps
 
-Same priorities: planstate delivered `/ground` → `/design`, hook batch `/runbook`, session CLI tool `/runbook`. Plugin-migration at [ready] status — needs execution.
+6 worktrees ready for dispatch. Priorities unchanged: planstate delivered, hook batch, session CLI tool. Plugin-migration at [ready] — needs execution.
 
 ## Reference Files
 
@@ -103,7 +182,6 @@ Same priorities: planstate delivered `/ground` → `/design`, hook batch `/runbo
 - `plans/hook-batch/outline.md` — Hook batch outline (5 phases, 9 files, 8 decisions)
 - `plans/hook-batch/brief.md` — Original brief (pre-design)
 - `plans/handoff-cli-tool/brief.md` — Session CLI briefs (status subcommand + commit ID requirement)
-- `agents/backlog.md` — 30+ deferred tasks with plan associations and groupings
 - `plans/worktree-cli-default/outline.md` — CLI change design (positional=task, --branch=slug)
 - `plans/quality-infrastructure/requirements.md` — 4 FRs: deslop, code density, vet rename, refactoring
 - `plans/orchestrate-evolution/design.md` — Orchestration evolution design (ready for runbook)
