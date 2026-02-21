@@ -219,13 +219,13 @@ p: outside fence"""
         assert "hookSpecificOutput" in output_fenced
         assert "[PENDING]" in output_fenced["systemMessage"]
 
-        # First non-fenced directive match is returned (not all matches)
+        # All non-fenced directives fire (additive, D-7)
         multi_prompt = """d: first directive
 p: second directive"""
         output_multi = call_hook(multi_prompt)
-        # Should return first match (d:), not second
         assert "hookSpecificOutput" in output_multi
         assert "[DISCUSS]" in output_multi["systemMessage"]
+        assert "[PENDING]" in output_multi["systemMessage"]
 
 
 class TestTier1Commands:
@@ -272,6 +272,45 @@ class TestTier1Commands:
         assert call_hook("this is about status") == {}
         assert call_hook("fix something") == {}
         assert call_hook("  s  trailing space") == {}
+
+
+class TestAdditiveDirectives:
+    """Test additive directive scanning: all directives fire (D-7)."""
+
+    def test_multiple_directives_both_fire(self) -> None:
+        """All directives in prompt fire, not just the first match."""
+        result = call_hook("d: discuss this\np: new task")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        # DISCUSS expansion must appear
+        assert (
+            "Evaluate critically" in additional_context
+            or "DISCUSS" in additional_context
+        )
+        # PENDING expansion must also appear
+        assert "Do NOT execute" in additional_context or "PENDING" in additional_context
+
+    def test_directive_section_scoping(self) -> None:
+        """Section spans from directive line to next directive or end."""
+        result = call_hook(
+            "d: discuss this topic\nsome discussion content\np: new task name"
+        )
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert (
+            "Evaluate critically" in additional_context
+            or "DISCUSS" in additional_context
+        )
+        assert "Do NOT execute" in additional_context or "PENDING" in additional_context
+
+    def test_single_directive_still_works(self) -> None:
+        """Single directive behavior is unchanged by additive refactor."""
+        result = call_hook("d: some topic")
+        assert result != {}
+        assert (
+            "Evaluate critically" in result["hookSpecificOutput"]["additionalContext"]
+        )
+        assert "[DISCUSS]" in result["systemMessage"]
 
 
 class TestIntegration:

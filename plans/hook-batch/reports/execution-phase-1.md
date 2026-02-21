@@ -14,6 +14,20 @@
 - Stop condition: none
 - Decision made: none
 
+## Cycle 1.3: Additive Directive Scanning (D-7) [2026-02-21]
+
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_userpromptsubmit_shortcuts.py::TestAdditiveDirectives -v`
+- RED result: FAIL as expected — `call_hook("d: discuss this\np: new task")` returned only DISCUSS expansion; PENDING expansion absent (first-match-return in `scan_for_directive`)
+- GREEN result: PASS — all 3 TestAdditiveDirectives tests pass; TestAnyLineMatching updated to assert both `[DISCUSS]` and `[PENDING]` in systemMessage
+- Regression check: 13/13 passed (test_userpromptsubmit_shortcuts.py); 1100/1101 full suite (1 pre-existing xfail)
+- Refactoring: Shortened docstrings to fit 88-char line limit (same D205 issue as Cycle 1.1)
+- Files modified:
+  - `agent-core/hooks/userpromptsubmit-shortcuts.py` — added `scan_for_directives()` returning list of (key, section_content); replaced Tier 2 block to iterate all matches and combine additionalContext with `\n\n`, systemMessage with ` | `
+  - `tests/test_userpromptsubmit_shortcuts.py` — added `TestAdditiveDirectives` class (3 tests); updated `TestAnyLineMatching.test_any_line_matching` multi-directive assertion to expect both expansions
+- Stop condition: none
+- Decision made: Tier 2 retains `return` after printing (not fall-through to Tier 3) to avoid double JSON output; "no early return" refers to completing all directive collection before printing, not eliminating the return before Tier 3
+
 ## Cycle 1.2: COMMANDS Dict String Updates (r, xc, hc) [2026-02-21]
 
 - Status: GREEN_VERIFIED
