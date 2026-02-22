@@ -87,8 +87,8 @@ Run full pipeline.
 
 **Assertions:**
 - Orchestrator plan contains a `## Phase Models` section
-- Table or list maps Phase 1 → sonnet, Phase 2 → opus, Phase 3 → haiku
-- All phases present in the table (not just those with explicit models)
+- Section contains `- Phase 1: sonnet`, `- Phase 2: opus`, `- Phase 3: haiku` (one per line)
+- All phases present (not just those with explicit models)
 
 **Expected failure:** AssertionError — current orchestrator plan has no `## Phase Models` section
 

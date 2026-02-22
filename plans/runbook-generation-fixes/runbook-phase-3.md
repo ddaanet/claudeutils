@@ -123,7 +123,7 @@ Run full pipeline through `validate_and_create()`.
 
 **Approach:**
 1. Add `phase_context=''` parameter to `generate_step_file()` and `generate_cycle_file()`
-2. In both functions, after `header_lines.extend(["", "---", ""])` and before appending step/cycle content: if `phase_context.strip()`, insert the `## Phase Context` section
+2. In both functions, before the final `header_lines.extend(["", "---", "", <content>, ""])` call: if `phase_context.strip()`, insert `## Phase Context\n\n{phase_context}\n\n---\n` between the divider and the step/cycle content (split the extend if needed)
 3. In `validate_and_create()`: call `phase_preambles = extract_phase_preambles(body)` (where `body` is the assembled content post-frontmatter). Pass `phase_preambles.get(cycle['major'], '')` to `generate_cycle_file()` and `phase_preambles.get(phase, '')` to `generate_step_file()`.
 
 Note: `validate_and_create()` needs `body` (assembled content without frontmatter). Currently `main()` calls `parse_frontmatter()` which returns `body`. Add `body` as parameter to `validate_and_create()` or pass it through. Alternatively, call `extract_phase_preambles()` in `main()` and pass result — consistent with Phase 2's `phase_models` pattern.
@@ -144,18 +144,20 @@ Note: `validate_and_create()` needs `body` (assembled content without frontmatte
 
 ---
 
-## Cycle 3.3: Phase context preserved when phase has no preamble
+## Cycle 3.3: Phase context omitted when preamble is blank or whitespace-only
 
 **RED Phase:**
 
 **Test:** `test_no_phase_context_when_preamble_empty`
 **Setup:** Create runbook with:
-- Phase 1 header immediately followed by cycle header (no preamble):
+- Phase 1 header followed by blank lines only before cycle header (whitespace-only preamble):
   ```
   ### Phase 1: Core (type: tdd, model: sonnet)
+
+
   ## Cycle 1.1: Direct start
   ```
-- Phase 2 header with preamble (control case):
+- Phase 2 header with substantive preamble (control case):
   ```
   ### Phase 2: Extra (type: general)
 
@@ -167,11 +169,11 @@ Note: `validate_and_create()` needs `body` (assembled content without frontmatte
 Run full pipeline.
 
 **Assertions:**
-- `extract_phase_preambles()` returns empty string for Phase 1
+- `extract_phase_preambles()` returns empty string (after strip) for Phase 1
 - Generated cycle file `steps/step-1-1.md` does NOT contain `## Phase Context`
 - Generated step file `steps/step-2-1.md` DOES contain `## Phase Context` with "Some preamble here." (control)
 
-**Expected failure:** Depends on 3.2 implementation — if it doesn't handle empty preamble gracefully, may produce empty `## Phase Context` section or crash.
+**Expected failure:** AssertionError — `extract_phase_preambles()` may return `"\n\n"` (raw blank lines) for Phase 1; if the generation guard uses `if phase_context:` instead of `if phase_context.strip():`, the whitespace-only preamble injects an empty `## Phase Context` section into the cycle file.
 
 **Verify RED:** `pytest tests/test_prepare_runbook_mixed.py::TestPhaseContext::test_no_phase_context_when_preamble_empty -v`
 
@@ -179,19 +181,17 @@ Run full pipeline.
 
 **GREEN Phase:**
 
-**Implementation:** Guard against empty preamble in generation functions.
+**Implementation:** Ensure whitespace-only preamble guard uses `.strip()` in both extraction and injection.
 
 **Behavior:**
-- `extract_phase_preambles()` returns empty string for phases with no content between header and first step/cycle
-- `generate_step_file()` and `generate_cycle_file()` check `phase_context.strip()` before injecting section
-- Empty or whitespace-only preamble → no `## Phase Context` section in output
-
-**Approach:** The guard should already be in place from Cycle 3.2's implementation (which specifies "when non-empty"). If the 3.2 implementation uses `if phase_context.strip():` before injection, this test passes immediately. If not, add the guard.
+- `extract_phase_preambles()` strips leading/trailing whitespace before returning each preamble; whitespace-only content returns empty string `""`
+- `generate_step_file()` and `generate_cycle_file()` guard with `if phase_context.strip():` before injecting section
+- Blank-line-only preamble → no `## Phase Context` section in output
 
 **Changes:**
 - File: `agent-core/bin/prepare-runbook.py`
-  Action: Ensure empty-preamble guard in `generate_step_file()` and `generate_cycle_file()`
-  Location hint: Phase context injection block in both functions
+  Action: Verify `extract_phase_preambles()` strips preamble before storing; verify generation guard uses `.strip()` not bare truthiness
+  Location hint: Return statement in `extract_phase_preambles()`, phase context injection block in both generation functions
 
 **Verify GREEN:** `pytest tests/test_prepare_runbook_mixed.py::TestPhaseContext -v`
 **Verify no regression:** `pytest tests/test_prepare_runbook_mixed.py tests/test_prepare_runbook_inline.py -v`

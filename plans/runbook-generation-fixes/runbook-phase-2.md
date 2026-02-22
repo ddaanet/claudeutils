@@ -134,7 +134,7 @@ Note: `validate_and_create()` needs access to the assembled content for `extract
 
 **Prerequisite:** Read `extract_step_metadata()` (line ~573-606) — understand how `**Execution Model**:` in step body is parsed and returned, falling back to `default_model` parameter.
 
-**RED Phase:**
+**[REGRESSION] Test Phase:**
 
 **Test:** `test_step_model_overrides_phase_model`
 **Setup:** Create mixed runbook in `tmp_path` with:
@@ -148,11 +148,11 @@ Run full pipeline.
 - Generated cycle file `steps/step-1-1.md` contains `**Execution Model**: opus` (not sonnet, not haiku)
 - Step-level model (opus) overrides phase model (sonnet) which overrides frontmatter (haiku)
 
-**Expected failure:** With current code (pre-2.2), step file has `**Execution Model**: opus` — this actually passes because `extract_step_metadata()` already finds the body-level model. However, after 2.2's changes, verify the priority chain still works correctly. If 2.2 inadvertently overwrites explicit step models, this test catches it.
+**Execution note:** Write this test before implementing Cycle 2.2. This is a regression guard: `extract_step_metadata()` already returns the body-level model correctly, but Cycle 2.2's phase-model threading could inadvertently overwrite it. This test catches that regression. It passes against pre-2.2 code; verify it still passes after 2.2 GREEN.
 
-Note: This test may pass immediately after 2.2 without additional changes — that confirms the existing `extract_step_metadata()` priority logic is correct. The RED failure depends on 2.2's implementation quality.
+**Expected failure (if 2.2 introduces regression):** `AssertionError: 'sonnet' != 'opus'` — step file contains phase model instead of step body model.
 
-**Verify RED:** `pytest tests/test_prepare_runbook_mixed.py::TestModelPropagation::test_step_model_overrides_phase_model -v`
+**Verify after 2.2 GREEN:** `pytest tests/test_prepare_runbook_mixed.py::TestModelPropagation::test_step_model_overrides_phase_model -v`
 
 ---
 
@@ -201,7 +201,7 @@ Call `assemble_phase_files(directory)`.
 
 **Behavior:**
 - After assembling content, call `extract_phase_models()` on the assembled body
-- Use first phase's model (or most common) for frontmatter `model:` field
+- Use first phase's model (lowest phase number) for frontmatter `model:` field
 - If no phase has an explicit model, use frontmatter model from first phase file (if any)
 
 **Approach:** In `assemble_phase_files()`, after `assembled_body = '\n'.join(assembled_parts)` (line ~505):
@@ -235,7 +235,8 @@ Run the pipeline through `validate_and_create()`.
 
 **Assertions:**
 - `validate_and_create()` returns `False` (error condition)
-- OR the pipeline produces a stderr error message containing "model" (indicating the missing model was detected)
+- Captured stderr contains a string with "model" (e.g., "ERROR: No model specified for step 1.1")
+- No step files are written to `steps/` (pipeline aborts before artifact generation)
 - The pipeline does NOT silently produce step files with `**Execution Model**: haiku`
 
 **Expected failure:** AssertionError — current code silently defaults to haiku everywhere. `validate_and_create()` returns `True` and step files have `**Execution Model**: haiku`.
