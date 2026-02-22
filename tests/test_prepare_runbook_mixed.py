@@ -79,6 +79,30 @@ Impl for cycle 4.1.
 """
 
 
+def _run_validate(tmp_path: Path, runbook_content: str, name: str) -> tuple[bool, Path]:
+    """Run validate_and_create for a TDD runbook; return (result, steps_dir)."""
+    rf = tmp_path / "runbook.md"
+    rf.write_text(runbook_content)
+    metadata, body = parse_frontmatter(runbook_content)
+    metadata["type"] = "tdd"
+    sections = extract_sections(body)
+    cycles = extract_cycles(body)
+    phase_models = extract_phase_models(body)
+    steps_dir = tmp_path / "plans" / name / "steps"
+    result = validate_and_create(
+        rf,
+        sections,
+        name,
+        tmp_path / ".claude" / "agents" / f"{name}-task.md",
+        steps_dir,
+        tmp_path / "plans" / name / "orchestrator-plan.md",
+        metadata,
+        cycles,
+        phase_models,
+    )
+    return result, steps_dir
+
+
 def _setup_git_repo(tmp_path: Path) -> None:
     """Initialize a git repo in tmp_path for git add in validate_and_create."""
     subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=False)
@@ -129,7 +153,9 @@ class TestModelPropagation:
         _setup_baseline_agents(tmp_path)
         monkeypatch.chdir(tmp_path)
 
-        runbook_content = """\
+        result, steps_dir = _run_validate(
+            tmp_path,
+            """\
 ---
 type: tdd
 model: haiku
@@ -145,32 +171,8 @@ Write a test.
 **GREEN Phase:**
 Implement it.
 **Stop/Error Conditions:** STOP if unexpected.
-"""
-        runbook_file = tmp_path / "runbook.md"
-        runbook_file.write_text(runbook_content)
-
-        metadata, body = parse_frontmatter(runbook_content)
-        sections = extract_sections(body)
-        cycles = extract_cycles(body)
-        phase_models = extract_phase_models(body)
-        metadata["type"] = "tdd"
-
-        agent_path = tmp_path / ".claude" / "agents" / "override-test-task.md"
-        steps_dir = tmp_path / "plans" / "override-test" / "steps"
-        orchestrator_path = (
-            tmp_path / "plans" / "override-test" / "orchestrator-plan.md"
-        )
-
-        result = validate_and_create(
-            runbook_file,
-            sections,
+""",
             "override-test",
-            agent_path,
-            steps_dir,
-            orchestrator_path,
-            metadata,
-            cycles,
-            phase_models,
         )
 
         assert result is True
@@ -189,7 +191,9 @@ Implement it.
         _setup_baseline_agents(tmp_path)
         monkeypatch.chdir(tmp_path)
 
-        runbook_content = """\
+        result, steps_dir = _run_validate(
+            tmp_path,
+            """\
 ---
 type: tdd
 model: haiku
@@ -206,32 +210,8 @@ Write a test.
 **GREEN Phase:**
 Implement it.
 **Stop/Error Conditions:** STOP if unexpected.
-"""
-        runbook_file = tmp_path / "runbook.md"
-        runbook_file.write_text(runbook_content)
-
-        metadata, body = parse_frontmatter(runbook_content)
-        sections = extract_sections(body)
-        cycles = extract_cycles(body)
-        phase_models = extract_phase_models(body)
-        metadata["type"] = "tdd"
-
-        agent_path = tmp_path / ".claude" / "agents" / "step-override-test-task.md"
-        steps_dir = tmp_path / "plans" / "step-override-test" / "steps"
-        orchestrator_path = (
-            tmp_path / "plans" / "step-override-test" / "orchestrator-plan.md"
-        )
-
-        result = validate_and_create(
-            runbook_file,
-            sections,
+""",
             "step-override-test",
-            agent_path,
-            steps_dir,
-            orchestrator_path,
-            metadata,
-            cycles,
-            phase_models,
         )
 
         assert result is True
@@ -242,6 +222,46 @@ Implement it.
             f"Expected step override 'opus', got phase/frontmatter model.\n"
             f"{content[:500]}"
         )
+
+    def test_missing_model_produces_error(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """Missing model at all levels causes error, no step files written."""
+        _setup_git_repo(tmp_path)
+        _setup_baseline_agents(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        result, steps_dir = _run_validate(
+            tmp_path,
+            """\
+---
+type: tdd
+name: no-model-test
+---
+
+### Phase 1: Core (type: tdd)
+
+## Cycle 1.1: Test without model
+
+**RED Phase:**
+Write a test.
+**GREEN Phase:**
+Implement it.
+**Stop/Error Conditions:** STOP if unexpected.
+""",
+            "no-model-test",
+        )
+
+        assert result is False, "Expected False when no model specified at any level"
+        captured = capsys.readouterr()
+        assert "model" in captured.err.lower(), (
+            f"Expected 'model' in stderr. Got: {captured.err!r}"
+        )
+        step_files = list(steps_dir.glob("*.md")) if steps_dir.exists() else []
+        assert step_files == [], f"Expected no step files written, found: {step_files}"
 
     def test_assembly_frontmatter_uses_detected_model(self, tmp_path: Path) -> None:
         """Frontmatter model comes from phase header, not hardcoded haiku."""
@@ -259,7 +279,7 @@ Implement it.
         assert content is not None
         metadata, _ = parse_frontmatter(content)
         got = metadata.get("model")
-        assert metadata["model"] == "sonnet", (
+        assert got == "sonnet", (
             f"Expected model 'sonnet' from phase header, got '{got}'. "
             f"Full frontmatter: {content[:200]}"
         )
@@ -287,14 +307,10 @@ class TestPhaseNumbering:
         content, _ = assemble_phase_files(tmp_path)
 
         assert content is not None
-        assert "### Phase 1:" in content
-        assert "### Phase 2:" in content
-        assert "### Phase 3:" in content
-
-        p1_pos = content.index("### Phase 1:")
-        p2_pos = content.index("### Phase 2:")
-        p3_pos = content.index("### Phase 3:")
-        assert p1_pos < p2_pos < p3_pos
+        p1 = content.index("### Phase 1:")
+        p2 = content.index("### Phase 2:")
+        p3 = content.index("### Phase 3:")
+        assert p1 < p2 < p3
 
     def test_assembly_preserves_existing_phase_headers(self, tmp_path: Path) -> None:
         """Existing phase headers not duplicated during assembly."""
@@ -320,12 +336,12 @@ class TestPhaseNumbering:
         content, _ = assemble_phase_files(tmp_path)
 
         assert content is not None
-        assert content.count("### Phase 1:") == 1
-        assert content.count("### Phase 2:") == 1
-        assert content.count("### Phase 3:") == 1
-        assert "### Phase 1: Core behavior (type: tdd, model: sonnet)" in content
-        assert "### Phase 2: Infrastructure (type: general)" in content
-        assert "### Phase 3: Cleanup (type: inline)" in content
+        for header in [
+            "### Phase 1: Core behavior (type: tdd, model: sonnet)",
+            "### Phase 2: Infrastructure (type: general)",
+            "### Phase 3: Cleanup (type: inline)",
+        ]:
+            assert content.count(header) == 1, f"Expected exactly one: {header}"
 
     def test_mixed_runbook_phase_metadata_and_orchestrator_correct(self) -> None:
         """Phase metadata and orchestrator correct with phase headers."""
@@ -333,7 +349,6 @@ class TestPhaseNumbering:
         sections = extract_sections(body)
         cycles = extract_cycles(body)
 
-        # Phase metadata assertions
         step_phases = sections["step_phases"]
         assert step_phases["1.1"] == 1
         assert step_phases["1.2"] == 1
@@ -347,7 +362,6 @@ class TestPhaseNumbering:
         inline_phases = sections["inline_phases"]
         assert 5 in inline_phases
 
-        # Orchestrator plan assertions
         orch = generate_default_orchestrator(
             "test-runbook",
             cycles=cycles,
@@ -356,7 +370,6 @@ class TestPhaseNumbering:
             inline_phases=inline_phases,
         )
 
-        # PHASE_BOUNDARY labels reference correct phase numbers
         pb_matches = re.findall(r"Last item of phase (\d+)", orch)
         assert pb_matches[0] == "1", (
             f"First PHASE_BOUNDARY should be phase 1, got {pb_matches}"
@@ -365,7 +378,6 @@ class TestPhaseNumbering:
             f"Second PHASE_BOUNDARY should be phase 2, got {pb_matches}"
         )
 
-        # Items appear in phase order (no interleaving)
         item_pattern = re.compile(r"^## step-(\d+)-(\d+)|^## phase-(\d+)", re.MULTILINE)
         items_found = []
         for m in item_pattern.finditer(orch):
@@ -379,7 +391,6 @@ class TestPhaseNumbering:
             f"Items not in phase order: {phases_seen}"
         )
 
-        # No interleaving: within each phase, minor numbers monotonically increase
         for i in range(len(items_found) - 1):
             p_curr, m_curr = items_found[i]
             p_next, m_next = items_found[i + 1]
