@@ -1,36 +1,25 @@
-# Session Handoff: 2026-02-22
+# Session Handoff: 2026-02-23
 
-**Status:** Runbook generation fixes executed — all 13 TDD cycles + Phase 5 inline complete. Deliverable review pending.
+**Status:** Deliverable review started, inventory tooling added. Review itself incomplete — resume next session.
 
 ## Completed This Session
 
-**Orchestration — Runbook generation fixes:**
-- 13 TDD cycles across 4 phases executed via `runbook-generation-fixes-task` agent (sonnet)
-- Phase 5 inline edits applied directly by orchestrator
-- Phase 1 (3 cycles): `assemble_phase_files()` header injection, guard against duplicates, verification
-- Phase 2 (5 cycles): `extract_phase_models()`, model threading to step/cycle/agent, no-haiku-default error
-- Phase 3 (3 cycles): `extract_phase_preambles()`, phase context injection into step/cycle files
-- Phase 4 (2 cycles): `generate_default_orchestrator()` phase model table + file paths
-- Phase 5 (inline): runbook SKILL.md prose + implementation-notes.md stale references
-- 4 phase checkpoint vets: regex fix (P1), test helper extraction (P2), tautological assertion fix (P3), redundant type override fix (P4)
-- 3 refactor escalations: test file splits when `test_prepare_runbook_mixed.py` exceeded 400-line limit
-- Final vet: agent frontmatter omits `model:` line when None (was emitting `model: None`)
-- TDD process review: 62% full-compliance (8/13), main issue was deferred precommit failures across Cycles 3.1-4.1
-- Cycle 1.1 RED anomaly: prior session left uncommitted implementation — test passed immediately
-- Reports: `plans/runbook-generation-fixes/reports/` (13 cycle + 4 checkpoint + vet-review + tdd-process-review)
+- Added `agent-core/bin/deliverable-inventory.py` — merge-base→HEAD diff with file classification, submodule handling, markdown table output
+- Updated `/deliverable-review` skill Phase 1 to reference the script
+- Deliverable review Phase 1 inventory complete: 8 files, +1334/-275, 1059 net lines
 
 **Prior sessions (carried forward):**
 - Design: 3 root causes → 5 design decisions (D-1 through D-5)
 - Runbook planning: 13 TDD cycles + Phase 5 inline, all phase files reviewed
-- Runbook review: 1 critical, 3 major, 1 minor — all fixed
+- Orchestration: 13 TDD cycles + Phase 5 inline complete, 4 checkpoint vets, final vet, TDD process review
 
 ## Pending Tasks
 
 - [x] **Runbook generation fixes** — `/runbook plans/runbook-generation-fixes/outline.md` | sonnet
 - [x] **Orchestrate runbook generation fixes** — `/orchestrate runbook-generation-fixes` | sonnet | restart
 - [ ] **Deliverable review: runbook-generation-fixes** — `/deliverable-review plans/runbook-generation-fixes` | opus | restart
-  - Production artifacts: prepare-runbook.py (behavioral code), runbook/SKILL.md (skill prose), implementation-notes.md (decisions)
-  - 4 new test modules, pytest_helpers.py shared helpers
+  - Phase 1 inventory done. Resume at Phase 2 (gap analysis)
+  - 8 deliverables: prepare-runbook.py, SKILL.md, implementation-notes.md, pytest_helpers.py, 4 test modules
 - [ ] **Precommit python3 redirect** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
   - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
 
