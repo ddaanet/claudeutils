@@ -132,13 +132,14 @@ Step 2.1 content.
         for filename, content in [("cycle", cycle_content), ("step", step_content)]:
             metadata_pos = content.find("**Plan**:")
             phase_ctx_pos = content.find("## Phase Context")
-            body_pos = content.find("---\n\n") + 5  # after the divider
+            # Use rfind to locate the last "---" divider, which precedes body content
+            body_pos = content.rfind("---\n\n") + 5
 
             assert metadata_pos < phase_ctx_pos, (
                 f"{filename}: metadata header must precede ## Phase Context"
             )
-            assert phase_ctx_pos < body_pos or phase_ctx_pos > metadata_pos, (
-                f"{filename}: ## Phase Context must appear after metadata header"
+            assert phase_ctx_pos < body_pos, (
+                f"{filename}: ## Phase Context must appear before body content"
             )
 
     def test_no_phase_context_when_preamble_empty(
