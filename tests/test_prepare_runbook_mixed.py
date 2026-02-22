@@ -181,6 +181,68 @@ Implement it.
             f"Expected 'sonnet' but got haiku in step file. Content:\n{content[:500]}"
         )
 
+    def test_step_model_overrides_phase_model(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Step body model overrides phase model and frontmatter model."""
+        _setup_git_repo(tmp_path)
+        _setup_baseline_agents(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        runbook_content = """\
+---
+type: tdd
+model: haiku
+name: step-override-test
+---
+
+### Phase 1: Core (type: tdd, model: sonnet)
+
+## Cycle 1.1: Test step override
+
+**Execution Model**: opus
+**RED Phase:**
+Write a test.
+**GREEN Phase:**
+Implement it.
+**Stop/Error Conditions:** STOP if unexpected.
+"""
+        runbook_file = tmp_path / "runbook.md"
+        runbook_file.write_text(runbook_content)
+
+        metadata, body = parse_frontmatter(runbook_content)
+        sections = extract_sections(body)
+        cycles = extract_cycles(body)
+        phase_models = extract_phase_models(body)
+        metadata["type"] = "tdd"
+
+        agent_path = tmp_path / ".claude" / "agents" / "step-override-test-task.md"
+        steps_dir = tmp_path / "plans" / "step-override-test" / "steps"
+        orchestrator_path = (
+            tmp_path / "plans" / "step-override-test" / "orchestrator-plan.md"
+        )
+
+        result = validate_and_create(
+            runbook_file,
+            sections,
+            "step-override-test",
+            agent_path,
+            steps_dir,
+            orchestrator_path,
+            metadata,
+            cycles,
+            phase_models,
+        )
+
+        assert result is True
+        step_file = steps_dir / "step-1-1.md"
+        assert step_file.exists()
+        content = step_file.read_text()
+        assert "**Execution Model**: opus" in content, (
+            f"Expected step override 'opus', got phase/frontmatter model.\n"
+            f"{content[:500]}"
+        )
+
 
 class TestPhaseNumbering:
     """Phase header injection in assemble_phase_files."""
