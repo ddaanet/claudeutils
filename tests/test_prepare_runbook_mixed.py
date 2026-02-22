@@ -175,18 +175,13 @@ class TestPhaseNumbering:
         )
 
         # Items appear in phase order (no interleaving)
-        item_pattern = re.compile(
-            r"^## step-(\d+)-(\d+)|^## step-(\d+\.\d+)|^## phase-(\d+)", re.MULTILINE
-        )
+        item_pattern = re.compile(r"^## step-(\d+)-(\d+)|^## phase-(\d+)", re.MULTILINE)
         items_found = []
         for m in item_pattern.finditer(orch):
             if m.group(1):
                 items_found.append((int(m.group(1)), int(m.group(2))))
-            elif m.group(3):
-                parts = m.group(3).split(".")
-                items_found.append((int(parts[0]), int(parts[1])))
             else:
-                items_found.append((int(m.group(4)), 0))
+                items_found.append((int(m.group(3)), 0))
 
         phases_seen = [phase for phase, _ in items_found]
         assert phases_seen == sorted(phases_seen), (
