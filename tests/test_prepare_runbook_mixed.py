@@ -243,6 +243,27 @@ Implement it.
             f"{content[:500]}"
         )
 
+    def test_assembly_frontmatter_uses_detected_model(self, tmp_path: Path) -> None:
+        """Frontmatter model comes from phase header, not hardcoded haiku."""
+        phase1 = tmp_path / "runbook-phase-1.md"
+        phase1.write_text(
+            "### Phase 1: Core (type: tdd, model: sonnet)\n\n"
+            "## Cycle 1.1: Test thing\n\n"
+            "**RED Phase:**\nTest.\n"
+            "**GREEN Phase:**\nImpl.\n"
+            "**Stop/Error Conditions:** STOP if unexpected."
+        )
+
+        content, _ = assemble_phase_files(tmp_path)
+
+        assert content is not None
+        metadata, _ = parse_frontmatter(content)
+        got = metadata.get("model")
+        assert metadata["model"] == "sonnet", (
+            f"Expected model 'sonnet' from phase header, got '{got}'. "
+            f"Full frontmatter: {content[:200]}"
+        )
+
 
 class TestPhaseNumbering:
     """Phase header injection in assemble_phase_files."""
