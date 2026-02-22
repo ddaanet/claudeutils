@@ -2,10 +2,11 @@
 
 import importlib.util
 import re
-import subprocess
 from pathlib import Path
 
 import pytest
+
+from tests.pytest_helpers import setup_baseline_agents, setup_git_repo
 
 SCRIPT = Path(__file__).parent.parent / "agent-core" / "bin" / "prepare-runbook.py"
 
@@ -21,6 +22,8 @@ extract_cycles = _mod.extract_cycles
 generate_default_orchestrator = _mod.generate_default_orchestrator
 validate_and_create = _mod.validate_and_create
 
+# Phase 3 has no model annotation — Step 3.1 resolves via frontmatter model: sonnet.
+# This exercises the frontmatter-fallback path in validate_and_create().
 MIXED_RUNBOOK_5PHASE = """\
 ---
 type: mixed
@@ -103,29 +106,6 @@ def _run_validate(tmp_path: Path, runbook_content: str, name: str) -> tuple[bool
     return result, steps_dir
 
 
-def _setup_git_repo(tmp_path: Path) -> None:
-    """Initialize a git repo in tmp_path for git add in validate_and_create."""
-    subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=False)
-    subprocess.run(
-        ["git", "commit", "--allow-empty", "-m", "init"],
-        cwd=tmp_path,
-        capture_output=True,
-        check=False,
-    )
-
-
-def _setup_baseline_agents(tmp_path: Path) -> None:
-    """Create minimal baseline agent files that prepare-runbook.py reads."""
-    agents_dir = tmp_path / "agent-core" / "agents"
-    agents_dir.mkdir(parents=True, exist_ok=True)
-
-    quiet_task = agents_dir / "quiet-task.md"
-    quiet_task.write_text("---\nname: quiet-task\n---\n# Quiet Task\nBaseline agent.")
-
-    tdd_task = agents_dir / "tdd-task.md"
-    tdd_task.write_text("---\nname: tdd-task\n---\n# TDD Task\nBaseline TDD agent.")
-
-
 class TestModelPropagation:
     """extract_phase_models extracts per-phase model overrides from headers."""
 
@@ -149,8 +129,8 @@ class TestModelPropagation:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Phase model overrides frontmatter default in generated step files."""
-        _setup_git_repo(tmp_path)
-        _setup_baseline_agents(tmp_path)
+        setup_git_repo(tmp_path)
+        setup_baseline_agents(tmp_path)
         monkeypatch.chdir(tmp_path)
 
         result, steps_dir = _run_validate(
@@ -187,8 +167,8 @@ Implement it.
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Step body model overrides phase model and frontmatter model."""
-        _setup_git_repo(tmp_path)
-        _setup_baseline_agents(tmp_path)
+        setup_git_repo(tmp_path)
+        setup_baseline_agents(tmp_path)
         monkeypatch.chdir(tmp_path)
 
         result, steps_dir = _run_validate(
@@ -230,8 +210,8 @@ Implement it.
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Missing model at all levels causes error, no step files written."""
-        _setup_git_repo(tmp_path)
-        _setup_baseline_agents(tmp_path)
+        setup_git_repo(tmp_path)
+        setup_baseline_agents(tmp_path)
         monkeypatch.chdir(tmp_path)
 
         result, steps_dir = _run_validate(
