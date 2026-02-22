@@ -41,11 +41,11 @@ RC-3 fix. `assemble_phase_files()` injects `### Phase N:` headers from filenames
 **Implementation:** Inject `### Phase N:` headers during phase file assembly.
 
 **Behavior:**
-- For each phase file, check if content already starts with `### Phase N:` pattern
-- If not present, prepend `### Phase N:` header (derive N from filename `runbook-phase-N.md`)
+- For each phase file, prepend `### Phase {phase_num}:` header (derive N from filename `runbook-phase-N.md`)
 - Preserve original content unchanged after the injected header
+- No guard yet — unconditional injection (guard added in Cycle 1.2)
 
-**Approach:** In `assemble_phase_files()`, before `assembled_parts.append(content)`, check content for existing phase header. If absent, prepend `\n### Phase {phase_num}:\n\n` to content.
+**Approach:** In `assemble_phase_files()`, before `assembled_parts.append(content)`, prepend `\n### Phase {phase_num}:\n\n` to content unconditionally.
 
 **Changes:**
 - File: `agent-core/bin/prepare-runbook.py`
