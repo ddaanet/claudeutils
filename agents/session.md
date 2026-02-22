@@ -1,27 +1,22 @@
-# Session Handoff: 2026-02-21
+# Session Handoff: 2026-02-22
 
-**Status:** All worktrees merged and removed. Hook batch delivered. Session CLI outline reviewed. Clean main branch.
+**Status:** 4 worktrees merged (3 removed, 1 preserved). Quality infra reform worktree active. Handoff skill updated.
 
 ## Completed This Session
 
-**Worktree merges (5 total, 3 prior + 2 this session):**
-- `compression-detail-loss`, `merge-artifact-validation`, `worktree-cli-default` — prior session
-- `session-cli-tool` — 2 commits: outline review round 5, cli.md LLM-native decision
-- `hook-batch` — 17 commits: full execution (5 phases, 16 steps, 34 tests), deliverable review, Tier 2.5/3 fix
+**Worktree merges (4):**
+- `wt-blocker-merge-fix` — merged + removed (section-aware blocker merge)
+- `wt-rm-amend-safety` — merged + removed (commit: be25582e, fix amend-wrong-commit bug)
+- `worktree-cli-default` — merged + removed. Positional task name, `--branch` for bare slug, sandbox removal
+- `runbook-generation-fixes` — merged, tree preserved. Design + runbook complete, execution pending
 
-**Hook batch delivered:** 5 hooks deployed (UserPromptSubmit shortcuts, PreToolUse recipe-redirect, PostToolUse auto-format, SessionStart health, Stop health fallback). settings.json updated. Plan archived.
+**New tasks surfaced from merges:**
+- Consolidate learnings, Worktree rm confirm gate fix, Orchestrate runbook generation fixes, Precommit python3 redirect
 
-**Session cleanup:**
-- Merged session-cli-tool (precommit fix: D205 + line limit in test_planstate_inference.py)
-- Merged hook-batch (learnings.md conflict: 8-line delta correctly appended)
-- Removed 3 worktrees (session-cli-tool, hook-batch, settings-json-diagnostic)
-- Session.md cleanup: removed stale blockers, orphaned `[from: ...]` merge artifacts, completed tasks, duplicate entries
-- Created 2 worktrees: wt-blocker-merge-fix, runbook-generation-fixes
-- New tasks: Wt rm amend safety, Wt blocker merge fix
-- Worktree CLI default: added sandbox removal scope (no more `additionalDirectories`)
+**Handoff skill update:**
+- Removed Step 4c (consolidation trigger check) and `learning-ages.py` from allowed-tools — obsoleted by SessionStart hook
 
 ## Pending Tasks
-
 
 - [ ] **Codebase sweep** — `/design plans/codebase-sweep/requirements.md` | sonnet
   - Plan: codebase-sweep | Status: requirements
@@ -50,13 +45,9 @@
 
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 
-
-
-
-- [x] **Wt blocker merge fix** — `/design` | sonnet
-
 - [ ] **Consolidate learnings** — `/remember` | sonnet
   - learnings.md at 197 lines (>150 trigger), 0 entries ≥7 active days
+
 - [ ] **Worktree rm confirm gate fix** — fix `rm --confirm` gate | sonnet
   - Separated from CLI default task as orthogonal
 
@@ -64,24 +55,14 @@
   - 13 TDD cycles: Phases 1-4 sequential, Phase 5 inline (orchestrator-direct, opus for skill prose)
   - Phase 1: numbering fix (3 cycles), Phase 2: model propagation (5 cycles), Phase 3: context extraction (3 cycles), Phase 4: orchestrator plan (2 cycles)
   - Affected files: prepare-runbook.py, tests/test_prepare_runbook_mixed.py (new), SKILL.md, implementation-notes.md
+
 - [ ] **Precommit python3 redirect** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
   - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
-- [x] **Runbook generation fixes** — `/runbook plans/runbook-generation-fixes/outline.md` | sonnet
+
+- [ ] **Runbook fenced code blocks** — update prepare-runbook.py to honor fenced code blocks | sonnet
+  - `extract_sections()`/`extract_cycles()` parse headers inside fenced code blocks, causing duplicate step errors
 
 ## Worktree Tasks
-
-- [ ] **Wt blocker merge fix** → `wt-blocker-merge-fix` — `/design` | sonnet
-  - `_worktree merge` appends branch blockers as raw bullets outside heading structure
-  - Needs section-aware merge or post-merge cleanup
-
-- [ ] **Runbook generation fixes** → `runbook-generation-fixes` — `/design` | sonnet
-  - prepare-runbook.py: model propagation, phase numbering, phase context loss, single agent instead of per-phase
-  - Phase expansion: introduces defects requiring review+fix on every phase
-  - Orchestrator plan: unjustified interleaving
-  - Runbook skill prose: generation errors from skill instructions (separate from prepare-runbook.py)
-  - Evidence: `plans/hook-batch/reports/runbook-pre-execution-review.md` (3 critical, 4 major, 3 minor)
-
-
 
 - [ ] **Quality infra reform** → `quality-infra-reform` — `/runbook plans/quality-infrastructure/outline.md` | sonnet
   - Plan: quality-infrastructure | Status: designed
@@ -159,12 +140,6 @@
 **Never run `git merge` without sandbox bypass:**
 - `git merge` without `dangerouslyDisableSandbox: true` partially checks out files, hits sandbox, leaves 80+ orphaned untracked files
 
-**`_update_session_and_amend` exit 128 during rm:**
-- `_worktree rm` calls `_update_session_and_amend` → exit 128. Workaround: manual amend before `rm --confirm`
-
-**`slug` and `--task` mutually exclusive in `_worktree new`:**
-- Fix: worktree-cli-default adds `--branch` flag
-
 **Merge resolution produces orphaned lines in append-only files:**
 - When branch modifies existing entry in-place AND both sides add at tail, git appends modified line as duplicate.
 - Manual post-merge check required until worktree-merge-resilience automated
@@ -190,11 +165,18 @@
 **Runbook skill blocks Session CLI tool:**
 - `/runbook` skill needs updates before processing handoff-cli-tool outline
 
-- `extract_sections()`/`extract_cycles()` parse `## Step`/`## Cycle` headers inside fenced code blocks. Phase files with example fixture content in code blocks trigger duplicate step errors. Workaround: describe fixtures inline instead of using code blocks with H2 headers. [from: runbook-generation-fixes]
-- Agent frontmatter and step files generated with `model: haiku` despite phases declaring `model: sonnet`. Manual correction applied. This is the bug being fixed by Phase 2. [from: runbook-generation-fixes]
+**prepare-runbook.py fenced code block parsing:**
+- `extract_sections()`/`extract_cycles()` parse headers inside fenced code blocks. Workaround: describe fixtures inline instead of code blocks with H2 headers.
+
+**Model propagation in prepare-runbook.py:**
+- Agent frontmatter and step files generated with `model: haiku` despite phases declaring `model: sonnet`. Manual correction required until Orchestrate runbook generation fixes completes.
+
+**`_worktree rm --force` doesn't restore task to Pending:**
+- `rm --force` removes worktree but leaves task in Worktree Tasks section. Manual session.md edit needed to move back to Pending.
+
 ## Next Steps
 
-Quality infra reform `/runbook` next. Planstate delivered `/runbook`. No active worktrees.
+Quality infra reform in worktree. Orchestrate runbook generation fixes next on main.
 
 ## Reference Files
 
@@ -203,7 +185,6 @@ Quality infra reform `/runbook` next. Planstate delivered `/runbook`. No active 
 - `plans/orchestrate-evolution/design.md` — Orchestration evolution design (ready for runbook)
 - `plans/handoff-cli-tool/outline.md` — Session CLI combined outline (reviewed 5 rounds)
 - `plans/handoff-cli-tool/reports/outline-review-round5.md` — Latest review report
-- `plans/worktree-cli-default/outline.md` — CLI change design (positional=task, --branch=slug)
 - `plans/hook-batch/reports/deliverable-review.md` — Hook batch final review (0C/0M/6m)
 - `plans/worktree-merge-resilience/diagnostic.md` — Merge artifact reproduction conditions
 - `plans/quality-infrastructure/requirements.md` — 3 FRs: deslop, code density decisions, agent rename

@@ -198,3 +198,7 @@ Cross-tree async context transfer skill. `/brief <slug>` writes timestamped entr
 ## worktree-rm-safety
 
 Safety gates for `_worktree rm`: dirty tree check (parent + submodule), exit code 2 for guard refusal, `--force` bypass flag, no destructive suggestions in CLI output. Affected: src/claudeutils/worktree/cli.py, tests/test_worktree_rm_dirty.py, tests/test_worktree_rm.py.
+
+## worktree-cli-default
+
+CLI interface redesign: task name as positional argument (was `--task` flag), `--branch` for bare slug override, sandbox removal from `_worktree new` (no more `additionalDirectories` in settings.local.json). Absorbed: pre-merge untracked file fix, worktree skill adhoc mode, `--slug` override, `rm --confirm` gate fix (separated as orthogonal). Affected: src/claudeutils/worktree/cli.py, agent-core/skills/worktree/SKILL.md.
