@@ -11,6 +11,7 @@ _mod = importlib.util.module_from_spec(_spec)  # type: ignore[arg-type]
 _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 
 assemble_phase_files = _mod.assemble_phase_files
+extract_phase_models = _mod.extract_phase_models
 parse_frontmatter = _mod.parse_frontmatter
 extract_sections = _mod.extract_sections
 extract_cycles = _mod.extract_cycles
@@ -72,6 +73,26 @@ Impl for cycle 4.1.
 - Update documentation
 - Write release notes
 """
+
+
+class TestModelPropagation:
+    """extract_phase_models extracts per-phase model overrides from headers."""
+
+    def test_extract_phase_models_from_headers(self) -> None:
+        """Returns {phase_num: model} for phases with model annotation only."""
+        content = (
+            "### Phase 1: Core behavior (type: tdd, model: sonnet)\n\n"
+            "Cycle 1.1: Test thing\n\n"
+            "### Phase 2: Infrastructure (type: general)\n\n"
+            "Step 2.1: Setup\n\n"
+            "### Phase 3: Refinement (type: tdd, model: opus)\n\n"
+            "Cycle 3.1: Refine\n"
+        )
+
+        result = extract_phase_models(content)
+
+        assert result == {1: "sonnet", 3: "opus"}
+        assert 2 not in result
 
 
 class TestPhaseNumbering:
