@@ -45,12 +45,13 @@
   - Model: haiku
 
 - Step 1.2: Embed vet-taxonomy and delete deprecated agents
-  - Read agent-core/agents/vet-taxonomy.md (63 lines: status table, subcategory codes, investigation format, deferred items template)
+  - Depends on: Step 1.1 (corrector.md must exist after rename)
+  - Read agent-core/agents/vet-taxonomy.md (62 lines: status table, subcategory codes, investigation format, deferred items template)
   - Insert full taxonomy content into corrector.md after the role description section, before any existing status taxonomy reference. Preserve all tables and examples.
   - Delete agent-core/agents/vet-taxonomy.md
   - Delete agent-core/agents/vet-agent.md (deprecated per D-1: zero active call sites, confirmed by reports/explore-reviewer-usage.md)
   - Commit changes
-  - Model: opus (agent definition prose editing)
+  - Model: sonnet (mechanical content insertion + file deletion)
 
 - Step 1.3: Delete plan-specific agent detritus
   - Delete 8 standalone files in .claude/agents/:
@@ -62,6 +63,7 @@
   - Model: haiku
 
 - Step 1.4: Update renamed agent internals
+  - Depends on: Step 1.1 (all 11 renamed files must exist at new paths)
   - Update `name:` YAML frontmatter in all 11 renamed agents to match new filename (without .md)
   - Update cross-references between agents per substitution table:
     - tdd-auditor.md: vet-fix-agent → corrector
@@ -71,9 +73,10 @@
   - Update `skills:` frontmatter lists if any reference old agent names
   - Grep each renamed file for any remaining old names from substitution table
   - Commit changes
-  - Model: opus (agent definition prose)
+  - Model: sonnet (mechanical YAML frontmatter + grep-and-replace substitutions)
 
 - Step 1.5: Rename skill directory and fragment file
+  - Depends on: Step 1.1 (new agent names in substitution table must exist)
   - git mv agent-core/skills/vet/ → agent-core/skills/review/
   - git mv agent-core/fragments/vet-requirement.md → agent-core/fragments/review-requirement.md
   - Update review/SKILL.md: all vet→review terminology, agent name references per substitution table
@@ -83,6 +86,7 @@
   - Model: opus (skill + fragment prose)
 
 - Step 1.6: Propagate name changes across codebase
+  - Depends on: Steps 1.1, 1.2, 1.4, 1.5 (all renames, embeds, and internal updates complete)
   - Apply full substitution table across all files below. For each file: Read, apply all applicable substitutions (agent names + terminology), Edit.
   - **Skills** (9 files):
     - agent-core/skills/commit/SKILL.md — vet-requirement → review-requirement
@@ -117,6 +121,7 @@
   - Model: opus (architectural artifact prose)
 
 - Step 1.7: Symlink sync, stale removal, and verification
+  - Depends on: Steps 1.1-1.6 (all renames and propagation complete before verification)
   - Find and remove dangling symlinks in .claude/agents/ and .claude/skills/ (old-name targets gone after git mv)
   - Run `just sync-to-parent` to regenerate correct symlinks
   - Grep entire codebase for all old names from substitution table to catch stragglers (check: vet-fix-agent, quiet-task, tdd-task, plan-reviewer, design-vet-agent, outline-review-agent, runbook-outline-review-agent, review-tdd-process, quiet-explore, runbook-simplification-agent, test-hooks, vet-agent, vet-taxonomy, vet-requirement, /vet)
@@ -131,7 +136,7 @@
 
 - Merge 5 prose deslop rules into agent-core/fragments/communication.md as new subsection after existing rules. Rules only — strip ❌/✅ examples to keep ambient context lean. Discard principle line ("Slop is the gap between what's expressed and what needed expressing. Deslopping is precision — cutting to the signal, not to the bone.").
 - Update agent-core/skills/project-conventions/SKILL.md: remove "Prose" subsection under Deslop section (now in communication.md, ambient for all sessions). Add missing code rule to Code subsection: "Expose fields directly until access control needed." Restructure Deslop heading to "Code Quality" or similar since it now contains only code rules.
-- Add `skills: ["project-conventions"]` to YAML frontmatter of agent-core/agents/artisan.md and agent-core/agents/test-driver.md (code-producing agents currently missing this injection per D-3).
+- Add `skills: ["project-conventions"]` to YAML frontmatter of agent-core/agents/artisan.md (renamed from quiet-task.md in Phase 1) and agent-core/agents/test-driver.md (renamed from tdd-task.md in Phase 1). Code-producing agents currently missing this injection per D-3.
 - Remove "Code Quality" section from agent-core/agents/artisan.md (8 bullets: docstrings, comments, banners, abstractions, guards, fields, requirements, deletion test) — now redundant with project-conventions skill injection via `skills:` frontmatter.
 - Remove `@agent-core/fragments/deslop.md` line from CLAUDE.md @-references. Delete agent-core/fragments/deslop.md. Update remaining "deslop" references — distinguish fragment references (remove/update) from descriptive uses (keep or update term):
   - agent-core/README.md — update inventory description
@@ -164,6 +169,8 @@
 - D-7: /vet skill → /review skill → Phase 1, Step 1.5 (directory rename)
 
 ## Substitution Table
+
+**Cross-cutting scope:** Agent name substitutions addressed by Steps 1.4 (internals), 1.5 (skill/fragment), 1.6 (codebase propagation), 1.7 (verification). Terminology substitutions addressed by Steps 1.5, 1.6. Deprecation deletions addressed by Steps 1.2, 1.3. Out of scope: prepare-runbook.py crew- prefix generation (future work).
 
 **Agent name renames** (Steps 1.4, 1.5, 1.6):
 
@@ -203,3 +210,29 @@
 
 - **Restart recommended** after all phases complete — agent definitions load at session start. New names won't be available as `subagent_type` values until restart.
 - Phases 2-3 (inline) execute in the same orchestration session as Phase 1 since they don't require loaded agent definitions.
+
+## Expansion Guidance
+
+The following recommendations should be incorporated during full runbook expansion:
+
+**Phase 1 step consolidation candidates:**
+- Steps 1.1 and 1.3 are both mechanical file operations (git mv and rm) at haiku tier. Could merge if atomicity isn't required, but separate commits for renames vs deletions is cleaner for git history. Keep separate.
+- Steps 1.2 and 1.4 are both post-rename internal updates. 1.2 is embed+delete (content manipulation), 1.4 is frontmatter+cross-refs (mechanical substitution). Different operations on different files -- keep separate.
+
+**Step expansion notes:**
+- Step 1.1: Include sandbox note in expansion -- `dangerouslyDisableSandbox: true` required for git mv. Single commit for all 11 renames.
+- Step 1.2: Expansion should specify exact insertion point in corrector.md (after role description, before tools/skills sections). Read vet-taxonomy.md content and verify section boundaries before insertion.
+- Step 1.5: Two git mv operations plus two file edits. Expansion should note that review/SKILL.md content references the old `/vet` command name -- update trigger phrase, description, and all internal references.
+- Step 1.6: Largest step (24 files). Expansion should batch Read calls (parallel reads, sequential edits per file). Note that some files may have multiple substitution targets (e.g., pipeline-contracts.md has both agent name references and terminology references).
+- Step 1.7: Grep validation pattern should match the full old-name list from the substitution table. Expansion should include the exact grep command.
+
+**Checkpoint guidance:**
+- Phase 1 checkpoint after Step 1.7: Verify zero grep hits for all old names. Verify `just sync-to-parent` succeeds. Verify `just precommit` passes.
+- No checkpoint needed between Phases 2-3 (both inline, low complexity, additive).
+
+**Model selection rationale:**
+- Steps 1.1, 1.3, 1.7: haiku -- mechanical file operations (git mv, rm, grep verification)
+- Steps 1.2, 1.4: sonnet -- content insertion and substitution requiring file comprehension but not architectural judgment
+- Step 1.5: opus -- skill SKILL.md and review-requirement.md contain nuanced workflow prose where terminology changes affect meaning
+- Step 1.6: opus -- 24 files across architectural artifacts where substitutions interact with contextual meaning (decision files, skill files with workflow descriptions)
+- Phases 2-3: inline execution, no separate agent dispatch
