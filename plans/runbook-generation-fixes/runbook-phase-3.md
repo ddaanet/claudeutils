@@ -22,32 +22,10 @@ RC-2 fix. D-2: phase preamble → `## Phase Context` section in step/cycle files
 **RED Phase:**
 
 **Test:** `test_extract_phase_preambles`
-**Setup:** Assembled content string with phase headers and preamble text:
-```
-### Phase 1: Core behavior (type: tdd, model: sonnet)
-
-RC-1 fix. Prerequisites: foo module exists.
-
-**Constraints:** No backward-incompatible changes.
-
-## Cycle 1.1: Test thing
-
-Cycle content.
-
-### Phase 2: Infrastructure (type: general)
-
-Setup database connections. Verify connectivity.
-
-## Step 2.1: Configure DB
-
-Step content.
-
-### Phase 3: Cleanup (type: tdd, model: sonnet)
-
-## Cycle 3.1: Clean state
-
-Cycle content with no preamble above.
-```
+**Setup:** Assembled content string with 3 phases, each with a phase header followed by preamble text and then a step/cycle header:
+- Phase 1: header `### Phase 1: Core behavior (type: tdd, model: sonnet)`, preamble "RC-1 fix. Prerequisites: foo module exists.\n\n**Constraints:** No backward-incompatible changes.", then `Cycle 1.1: Test thing`
+- Phase 2: header `### Phase 2: Infrastructure (type: general)`, preamble "Setup database connections. Verify connectivity.", then `Step 2.1: Configure DB`
+- Phase 3: header `### Phase 3: Cleanup (type: tdd, model: sonnet)`, NO preamble (header immediately followed by `Cycle 3.1: Clean state`)
 
 **Assertions:**
 - `extract_phase_preambles(content)` returns dict with 3 keys: `{1, 2, 3}`

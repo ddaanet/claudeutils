@@ -22,26 +22,10 @@ RC-1 fix. D-1 model priority chain: step body > phase-level > frontmatter > ERRO
 **RED Phase:**
 
 **Test:** `test_extract_phase_models_from_headers`
-**Setup:** Assembled content string:
-```
-### Phase 1: Core behavior (type: tdd, model: sonnet)
-
-## Cycle 1.1: Test thing
-
-Content.
-
-### Phase 2: Infrastructure (type: general)
-
-## Step 2.1: Setup
-
-Content.
-
-### Phase 3: Refinement (type: tdd, model: opus)
-
-## Cycle 3.1: Refine
-
-Content.
-```
+**Setup:** Assembled content string with 3 phases:
+- Phase 1 header: `### Phase 1: Core behavior (type: tdd, model: sonnet)` followed by `Cycle 1.1: Test thing`
+- Phase 2 header: `### Phase 2: Infrastructure (type: general)` followed by `Step 2.1: Setup`
+- Phase 3 header: `### Phase 3: Refinement (type: tdd, model: opus)` followed by `Cycle 3.1: Refine`
 
 **Assertions:**
 - `extract_phase_models(content)` returns `{1: 'sonnet', 3: 'opus'}`
@@ -130,7 +114,7 @@ Note: `validate_and_create()` needs access to the assembled content for `extract
 
 ---
 
-## Cycle 2.3: Step-level model overrides phase model (verification)
+## Cycle 2.3: Step-level model overrides phase model [REGRESSION]
 
 **Prerequisite:** Read `extract_step_metadata()` (line ~573-606) — understand how `**Execution Model**:` in step body is parsed and returned, falling back to `default_model` parameter.
 
