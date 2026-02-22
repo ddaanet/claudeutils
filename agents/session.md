@@ -22,12 +22,6 @@
 
 ## Pending Tasks
 
-- [ ] **Quality infra reform** — `/runbook plans/quality-infrastructure/outline.md` | sonnet
-  - Plan: quality-infrastructure | Status: designed
-  - 3 FRs: deslop restructuring (FR-1), code density decisions (FR-2), agent rename (FR-3)
-  - Phase 1: agent rename (general), Phase 2: deslop restructure (inline), Phase 3: code density (inline)
-  - Subsumes: Rename vet agents (FR-3a). Absorbs: integration-first-tests
-  - vet-agent deprecated (D-1), vet-taxonomy embedded (D-2), stale symlink cleanup in Phase 1f
 
 - [ ] **Codebase sweep** — `/design plans/codebase-sweep/requirements.md` | sonnet
   - Plan: codebase-sweep | Status: requirements
@@ -56,10 +50,6 @@
 
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 
-- [ ] **Worktree CLI default** — `/runbook plans/worktree-cli-default/outline.md` | sonnet
-  - Plan: worktree-cli-default | Status: designed
-  - Absorbs: pre-merge untracked file fix, worktree skill adhoc mode, `--slug` override, `rm --confirm` gate fix
-  - Remove sandbox configuration from `_worktree new` — no more `additionalDirectories` in settings.local.json. All inter-tree operations via git or user-validated sandbox override
 
 
 
@@ -78,6 +68,18 @@
   - Runbook skill prose: generation errors from skill instructions (separate from prepare-runbook.py)
   - Evidence: `plans/hook-batch/reports/runbook-pre-execution-review.md` (3 critical, 4 major, 3 minor)
 
+
+- [ ] **Worktree CLI default** → `worktree-cli-default` — `/runbook plans/worktree-cli-default/outline.md` | sonnet
+  - Plan: worktree-cli-default | Status: designed
+  - Absorbs: pre-merge untracked file fix, worktree skill adhoc mode, `--slug` override, `rm --confirm` gate fix
+  - Remove sandbox configuration from `_worktree new` — no more `additionalDirectories` in settings.local.json. All inter-tree operations via git or user-validated sandbox override
+
+- [ ] **Quality infra reform** → `quality-infra-reform` — `/runbook plans/quality-infrastructure/outline.md` | sonnet
+  - Plan: quality-infrastructure | Status: designed
+  - 3 FRs: deslop restructuring (FR-1), code density decisions (FR-2), agent rename (FR-3)
+  - Phase 1: agent rename (general), Phase 2: deslop restructure (inline), Phase 3: code density (inline)
+  - Subsumes: Rename vet agents (FR-3a). Absorbs: integration-first-tests
+  - vet-agent deprecated (D-1), vet-taxonomy embedded (D-2), stale symlink cleanup in Phase 1f
 
 ## Backlog
 
