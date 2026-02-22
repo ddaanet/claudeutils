@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-22
 
-**Status:** Runbook generation fixes planned, artifacts generated. Ready for `/orchestrate runbook-generation-fixes` (clipboard). Restart required — new agent created.
+**Status:** Runbook generation fixes: step files and phase files reviewed and fixed. Ready for `/orchestrate runbook-generation-fixes`. Restart required — new agent created.
 
 ## Completed This Session
 
@@ -21,6 +21,14 @@
 - prepare-runbook.py generated artifacts: 13 step files + agent + orchestrator plan
 - Manual model fix: agent and step files corrected from haiku → sonnet (RC-1 bug in action)
 - Example fixture content in phase files caused duplicate step parsing — reformatted to inline descriptions
+
+**Runbook review — Runbook generation fixes:**
+- Manual review against plan-reviewer criteria (SKILL.md): 1 critical, 3 major, 1 minor — all fixed
+- Critical: trailing next-phase preamble in PHASE_BOUNDARY step files (step-1-3, step-2-5, step-3-3)
+- Major: Cycle 1.3 expected failure contradicted fixture design (reframed as verification)
+- Major: Cycles 3.2, 3.3, 4.1 missing model specification after Cycle 2.5 haiku removal
+- Minor: Cycle 2.3 stale "write before 2.2" instruction (clarified post-2.2 execution context)
+- Report: `plans/runbook-generation-fixes/reports/runbook-review.md`
 
 **Prior session — Design:**
 - Root cause analysis: 3 root causes → 10 evidence issues (commit: f5fb3a00)
@@ -52,5 +60,5 @@
 - `plans/runbook-generation-fixes/outline.md` — design source
 - `plans/runbook-generation-fixes/runbook-outline.md` — reviewed runbook outline
 - `plans/runbook-generation-fixes/orchestrator-plan.md` — execution plan
-- `plans/runbook-generation-fixes/reports/` — all review reports (7 files)
+- `plans/runbook-generation-fixes/reports/` — all review reports (8 files)
 - `plans/precommit-python3-redirect/brief.md` — discussion context for hook design
