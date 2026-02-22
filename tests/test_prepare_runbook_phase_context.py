@@ -140,3 +140,83 @@ Step 2.1 content.
             assert phase_ctx_pos < body_pos or phase_ctx_pos > metadata_pos, (
                 f"{filename}: ## Phase Context must appear after metadata header"
             )
+
+    def test_no_phase_context_when_preamble_empty(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Whitespace-only preamble omits Phase Context section."""
+        setup_git_repo(tmp_path)
+        setup_baseline_agents(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        runbook_content = """\
+---
+type: mixed
+model: sonnet
+name: preamble-test
+---
+
+### Phase 1: Core (type: tdd, model: sonnet)
+
+
+## Cycle 1.1: Direct start
+
+**RED Phase:**
+Write a test.
+**GREEN Phase:**
+Implement it.
+**Stop/Error Conditions:** STOP if unexpected.
+
+### Phase 2: Extra (type: general, model: sonnet)
+
+Some preamble here.
+
+## Step 2.1: Thing
+
+Step content.
+"""
+
+        rf = tmp_path / "runbook.md"
+        rf.write_text(runbook_content)
+        metadata, body = parse_frontmatter(runbook_content)
+        sections = extract_sections(body)
+        cycles = extract_cycles(body)
+        phase_models = extract_phase_models(body)
+        preambles = extract_phase_preambles(body)
+        steps_dir = tmp_path / "plans" / "preamble-test" / "steps"
+
+        assert preambles.get(1, "").strip() == "", (
+            f"Phase 1 preamble should be empty after strip, got: {preambles.get(1)!r}"
+        )
+
+        result = validate_and_create(
+            rf,
+            sections,
+            "preamble-test",
+            tmp_path / ".claude" / "agents" / "preamble-test-task.md",
+            steps_dir,
+            tmp_path / "plans" / "preamble-test" / "orchestrator-plan.md",
+            metadata,
+            cycles,
+            phase_models,
+            preambles,
+        )
+        assert result is True
+
+        cycle_file = steps_dir / "step-1-1.md"
+        assert cycle_file.exists()
+        cycle_content = cycle_file.read_text()
+        assert "## Phase Context" not in cycle_content, (
+            "Whitespace-only preamble injected Phase Context section:\n"
+            f"{cycle_content[:500]}"
+        )
+
+        step_file = steps_dir / "step-2-1.md"
+        assert step_file.exists()
+        step_content = step_file.read_text()
+        assert "## Phase Context" in step_content, (
+            f"Expected Phase Context section in step-2-1.md:\n{step_content[:500]}"
+        )
+        assert "Some preamble here." in step_content, (
+            f"Expected preamble text in step-2-1.md:\n{step_content[:500]}"
+        )
