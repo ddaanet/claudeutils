@@ -15,6 +15,7 @@ _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 
 assemble_phase_files = _mod.assemble_phase_files
 extract_phase_models = _mod.extract_phase_models
+generate_default_orchestrator = _mod.generate_default_orchestrator
 parse_frontmatter = _mod.parse_frontmatter
 extract_sections = _mod.extract_sections
 extract_cycles = _mod.extract_cycles
@@ -26,7 +27,6 @@ def _run_validate(tmp_path: Path, runbook_content: str, name: str) -> tuple[bool
     rf = tmp_path / "runbook.md"
     rf.write_text(runbook_content)
     metadata, body = parse_frontmatter(runbook_content)
-    metadata["type"] = "tdd"
     sections = extract_sections(body)
     cycles = extract_cycles(body)
     phase_models = extract_phase_models(body)
@@ -177,4 +177,24 @@ Implement cleanup.
         )
         assert "- Phase 3: haiku" in orch_content, (
             f"Expected '- Phase 3: haiku' (frontmatter fallback).\n{orch_content}"
+        )
+
+    def test_orchestrator_plan_omits_phase_models_when_no_model_info(self) -> None:
+        """Phase Models omitted when no model info provided."""
+        content = generate_default_orchestrator(
+            "no-model-job",
+            cycles=[
+                {
+                    "major": 1,
+                    "minor": 1,
+                    "number": "1.1",
+                    "title": "Test",
+                    "content": "body",
+                }
+            ],
+            phase_models=None,
+            default_model=None,
+        )
+        assert "## Phase Models" not in content, (
+            f"Phase Models section should be absent without model info.\n{content}"
         )
