@@ -4,6 +4,8 @@ D-5: Phase file references in PHASE_BOUNDARY markers. Phase-agent model mapping.
 
 **Post-Phase-2 state:** `extract_phase_models()` exists and `validate_and_create()` threads per-phase models to step/cycle generation. Phase models dict is available for orchestrator plan generation.
 
+**Cumulative signature note (if Phases 3 and 4 run sequentially):** When implementing Phase 4, `validate_and_create()` already has `phase_models` (Phase 2) and `phase_preambles` (Phase 3) parameters. Add `phase_dir` as an additional parameter — do not replace the prior additions.
+
 **Prerequisites:**
 - Phase 2 complete (model propagation working)
 - `agent-core/bin/prepare-runbook.py` — target file
@@ -79,9 +81,10 @@ Assemble via `assemble_phase_files()`, run full pipeline through `validate_and_c
 
 **Test:** `test_orchestrator_plan_includes_phase_model_table`
 **Setup:** Create mixed runbook with phases having different models:
-- Phase 1: `model: sonnet`
-- Phase 2: `model: opus`
-- Phase 3: no explicit model (inherits frontmatter `model: haiku`)
+- Frontmatter: `model: haiku` (explicit — required; Cycle 2.5 removed the haiku fallback default)
+- Phase 1 header: `### Phase 1: ... (type: tdd, model: sonnet)` — explicit model in header
+- Phase 2 header: `### Phase 2: ... (type: tdd, model: opus)` — explicit model in header
+- Phase 3 header: `### Phase 3: ... (type: general)` — no model in header (inherits frontmatter `model: haiku`)
 
 Run full pipeline.
 
