@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-22
 
-**Status:** 4 worktrees merged (3 removed, 1 preserved). Quality infra reform worktree active. Handoff skill updated.
+**Status:** 4 worktrees merged (3 removed, 1 preserved). Two active worktrees: quality-infra-reform, runbook-generation-fixes. Handoff skill updated.
 
 ## Completed This Session
 
@@ -70,6 +70,9 @@
   - Phase 1: agent rename (general), Phase 2: deslop restructure (inline), Phase 3: code density (inline)
   - Subsumes: Rename vet agents (FR-3a). Absorbs: integration-first-tests
   - vet-agent deprecated (D-1), vet-taxonomy embedded (D-2), stale symlink cleanup in Phase 1f
+
+- [ ] **Runbook generation fixes** → `runbook-generation-fixes` — `/design` | sonnet
+  - Merged to main, tree preserved. Execution pending via Orchestrate runbook generation fixes task
 
 ## Backlog
 
