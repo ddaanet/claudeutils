@@ -55,6 +55,11 @@
 
 - [x] **Wt blocker merge fix** — `/design` | sonnet
 
+- [ ] **Consolidate learnings** — `/remember` | sonnet
+  - learnings.md at 197 lines (>150 trigger), 0 entries ≥7 active days
+- [ ] **Worktree rm confirm gate fix** — fix `rm --confirm` gate | sonnet
+  - Separated from CLI default task as orthogonal
+
 ## Worktree Tasks
 
 - [ ] **Wt blocker merge fix** → `wt-blocker-merge-fix` — `/design` | sonnet
@@ -69,10 +74,6 @@
   - Evidence: `plans/hook-batch/reports/runbook-pre-execution-review.md` (3 critical, 4 major, 3 minor)
 
 
-- [ ] **Worktree CLI default** → `worktree-cli-default` — `/runbook plans/worktree-cli-default/outline.md` | sonnet
-  - Plan: worktree-cli-default | Status: designed
-  - Absorbs: pre-merge untracked file fix, worktree skill adhoc mode, `--slug` override, `rm --confirm` gate fix
-  - Remove sandbox configuration from `_worktree new` — no more `additionalDirectories` in settings.local.json. All inter-tree operations via git or user-validated sandbox override
 
 - [ ] **Quality infra reform** → `quality-infra-reform` — `/runbook plans/quality-infrastructure/outline.md` | sonnet
   - Plan: quality-infrastructure | Status: designed
