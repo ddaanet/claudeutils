@@ -1,38 +1,15 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Fixed learnings validator + worktree cleanup.
+**Status:** Merged two worktrees (phase-scoped-agents, wt-new-errors).
 
 ## Completed This Session
 
-**Worktree cleanup:**
-- Removed `merge-artifact-validation` worktree (already merged, leftover directory)
-
-**Learnings validator fix:**
-- Structural preamble boundary detection in `src/claudeutils/validation/learnings.py` — `_find_preamble_end()` uses `---`/first `## ` instead of hardcoded 10-line count
-- Updated `extract_titles()` and `_detect_orphaned_content()` to use structural boundary
-- Reverted merge workaround padding in `tests/test_validation_learnings.py` — 9 fixtures simplified, 3 new structural boundary tests added
-
-**Worktree merges:**
-- `runbook-fenced-blocks` — merged (commit: 073f4ad7) + removed. Clean merge, task complete
-- `remember-skill-update` — merged (commit: 38fa0d80). `rm` failed at amend step (merge-commit issue) then `--force` failed at submodule removal. Directory needs manual `rm -rf /Users/david/code/claudeutils-wt/remember-skill-update`. Task completed on branch; successor task (UserPromptSubmit topic detection hook) came through
-- `merge-artifact-validation` — merged (commit: 7071b523). Conflict in `tests/test_validation_learnings.py` (orphan detection vs preamble line count). Resolved: dropped filler line to keep `---` within 10-line preamble zone, split test file (438 → 284 + 159 lines). Workaround — see pending task for real fix
-- `session-cli-tool` — merged (commit: d51c6459) + removed. Task still live (blocked)
-
-**Session housekeeping:**
-- Merged Backlog section into Pending Tasks — eliminated separate section, 30 items in flat list to prevent bitrot
-- Removed "Simplify when-resolve CLI" — absorbed into remember-skill-update worktree
-- Removed fenced code block parsing blocker (fix shipped)
-- Added "Phase-scoped agent context" task — per-phase agent generation in prepare-runbook.py
-- Added "Worktree new error formatting" task — error output cleanup
-- Added "Learnings validator structural boundaries" task — orphan detector uses line count not structure
-
-**Worktrees created:**
-- `merge-artifact-validation` — merged this session
-- `session-cli-tool` — merged this session
-- `phase-scoped-agents` — Phase-scoped agent context (sonnet)
-- `wt-new-errors` — Worktree new error formatting (sonnet)
+- Merged `phase-scoped-agents` — clean merge, precommit passed. `rm` failed (exit 255, submodule), `--force` succeeded. Task completed
+- Merged `wt-new-errors` — one conflict in `agents/plan-archive.md` (both-sides-added: remember-skill-update + worktree-error-output). Resolved, precommit passed, rm clean
+- Phase-scoped agent context unblocks: Session CLI tool, Orchestrate evolution
 
 ## Pending Tasks
+
 
 - [ ] **Codebase sweep** — `/design plans/codebase-sweep/requirements.md` | sonnet
   - Plan: codebase-sweep | Status: requirements
@@ -49,7 +26,6 @@
   - Insights input: ping-pong TDD agent pattern — alternating tester/implementer agents with mechanical RED/GREEN gates between handoffs. Tester holds spec context (can't mirror code structure), implementer holds codebase context (can't over-implement beyond test demands). Resume-based context preservation avoids startup cost per cycle
   - Absorbs: Task agent guardrails — tool-call limits, regression detection, model escalation (haiku→sonnet→opus on capability mismatch) all additive. Design covers agent→user escalation and context-size heuristic but not inter-tier promotion or tool-call budgets
   - Absorbs: RED pass protocol — classification taxonomy, blast radius procedure, defect impact evaluation. Design has remediation + escalation patterns but not formal classification or blast radius assessment
-  - Depends on: Phase-scoped agent context (prepare-runbook.py generates per-phase agents, orchestrate dispatches)
 
 - [ ] **Deslop remaining skills** — Prose quality pass on skills not yet optimized | sonnet
 
@@ -57,9 +33,6 @@
 
 - [ ] **Consolidate learnings** — `/remember` | sonnet
   - learnings.md at 227 lines (>150 trigger), 0 entries ≥7 active days
-
-- [ ] **Worktree rm confirm gate fix** — fix `rm --confirm` gate | sonnet
-  - Separated from CLI default task as orthogonal
 
 - [ ] **Precommit python3 redirect** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
   - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
@@ -105,15 +78,15 @@
   - Plan: handoff-cli-tool | Status: designed (outline reviewed 6 rounds, ready for runbook)
   - `_session` group (handoff, status, commit)
   - Discussion conclusions baked into outline: amend, git passthrough, deviation-only output, submodule labeling
-  - Blocked on: Phase-scoped agent context (mixed-type runbook needs per-phase agent generation)
 - [ ] **UserPromptSubmit topic detection hook** — Phase 7 analysis recommends this as highest-impact recall improvement | sonnet
   - Seed keyword table from 200+ memory-index triggers
   - Inject matching decision content via additionalContext on prompt submit
-- [x] **Learnings validator structural boundaries** — orphan detector should use `---`/first `## ` as preamble boundary, not hardcoded 10-line count | sonnet
 
 ## Worktree Tasks
 
-
+- [ ] **Worktree rm error UX** → `worktree-rm-error-ux` — `x` | sonnet
+  - Do not require `--confirm` flag, on git failure print git error not traceback
+  - Absorbs: Worktree rm confirm gate fix
 
 ## Blockers / Gotchas
 
@@ -153,7 +126,7 @@
 
 ## Next Steps
 
-Two worktrees active: `phase-scoped-agents` (sonnet), `wt-new-errors` (sonnet). Manual cleanup needed for remember-skill-update directory.
+No active worktrees. Next task: Worktree rm error UX (sonnet).
 
 ## Reference Files
 
