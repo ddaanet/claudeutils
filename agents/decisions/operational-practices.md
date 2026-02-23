@@ -198,3 +198,119 @@ Only then does the fix address the cause, not the symptoms.
 **Correct pattern:** Either keep the full Read (agent sees all options) or move selection to a CLI tool (e.g., embeddings search over full corpus). Partial inlining is worse than both alternatives.
 
 **Rationale:** Optimization must not degrade decision quality. The agent cannot know what it hasn't seen.
+
+### When Comparing File Versions Across Branches
+
+**Decision Date:** 2026-02-19
+
+**Anti-pattern:** Using `wc -l` equality to conclude files are identical. Same line count ≠ same content.
+
+**Correct pattern:** Diff content, not counts. `git diff <base>..<branch> -- <file>` or compare actual text.
+
+### When Merging Worktree With Consolidated Learnings
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Git merge brings branch's full learnings.md (pre-consolidation content) over main's consolidated version. Branch diverged before consolidation; merge favors longer file.
+
+**Correct pattern:** After merging a branch that diverged before a learnings consolidation, verify learnings.md. Only the delta (new entries added on branch after divergence) should be appended to main's consolidated version.
+
+### When Batch Review Routing Overrides Per-Artifact Judgment
+
+**Decision Date:** 2026-02-21
+
+**Anti-pattern:** Collapsing multi-file batch into single reviewer. Agent fabricates capability limitations on the correct reviewer to justify the simpler single-reviewer path. Same root cause as "batch momentum skip prevention."
+
+**Correct pattern:** Apply proportionality per-file (trivial → self-review). Route remaining by artifact type per routing table. Routing is per-artifact-type, not per-batch.
+
+### When Discovery Decomposes By Data Point
+
+**Decision Date:** 2026-02-21
+
+**Anti-pattern:** Brief presents N items sharing identical structure. Agent mirrors the table — one verification chain per row — instead of recognizing a single parametrized operation.
+
+**Correct pattern:** Identify the operation pattern first. Verify it holds (1-2 spot checks). Produce a single inline step with a variation table, not N separate steps.
+
+### When Verifying Delivered Plan Artifacts
+
+**Decision Date:** 2026-02-21
+
+**Anti-pattern:** Checking file existence (`test -f`) as proof of delivery. Presence ≠ completeness.
+
+**Correct pattern:** Verify content — line counts for substance, function/class signatures for API coverage, test counts for coverage. Cross-reference against requirements.
+
+### When Assessing Fragment Demotion
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Defending "frequently useful" as "always needed." Treating workflow-specific content as cross-cutting.
+
+**Correct pattern:** Distinguish behavioral rules (shape every interaction, no injection point) from procedural/reference content (needed at specific workflow steps, injectable via skills/hooks). Passive fragments that don't trigger behavior are dead weight regardless of content quality.
+
+### When Evaluating Recall System Effectiveness
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Measuring "did the agent use the lookup tool" as proxy for recall improvement. The lookup tool requires the same metacognitive recognition step as the passive index it replaced.
+
+**Correct pattern:** Distinguish recognition (knowing when to look something up) from retrieval (performing the lookup). Tools that improve retrieval without addressing recognition produce no measurable improvement. Forced injection (hooks detect topic mechanically, inject content) bypasses recognition entirely.
+
+**Evidence:** 801 sessions, 22 `/when` invocations in 8/193 post-merge sessions (4.1%). Baseline skill activation ~20%; `/when` at 4.1% suggests metacognitive triggers have additional activation penalty vs procedural triggers.
+
+### When Step File Inventory Misses Codebase References
+
+**Decision Date:** 2026-02-23
+
+**Anti-pattern:** Runbook step lists ~30 files for propagation based on Phase 0.5 discovery. Actual codebase has ~45 files with old names.
+
+**Correct pattern:** Discovery inventory should use `grep -r` across the full tree, not manual file listing. The verification step is the safety net, but discovery should cast a wider net initially.
+
+### When Loading Context Before Skill Edits
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Modifying skill `description` frontmatter without loading the platform skill guide first.
+
+**Correct pattern:** Load `/plugin-dev:skill-development` before editing any skill file. The guide mandates "This skill should be used when..." (third-person with trigger phrases). The H1 heading is what Claude Code displays in the skill picker.
+
+### When Reusable Components Reference Project Paths
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Hardcoding project-specific paths (e.g., `agent-core/skills/**`) in reusable packages or submodule code.
+
+**Correct pattern:** Project-specific paths belong in project-level configuration (e.g., `pyproject.toml`). Reusable code reads config, doesn't hardcode paths.
+
+### When Validate-Runbook Flags Pre-Existing Files
+
+**Decision Date:** 2026-02-21
+
+**Anti-pattern:** Treating lifecycle exit 1 violations as blocking when the runbook modifies pre-existing files.
+
+**Correct pattern:** Verify flagged files exist on disk. If pre-existing, the violation is a false positive. Real violations are "modify before create" for NEW files.
+
+### When Execution Routing Preempts Skill Scanning
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Forming an execution plan (Read → Edit → Write) without checking if a skill handles the workflow. Skill matching gate never fires.
+
+**Correct pattern:** Skill matching must precede execution routing. Structural fix: UserPromptSubmit hook injects skill-trigger reminders. Rule strengthening alone doesn't work.
+
+**Evidence:** Forced-eval hook reaches 84% activation vs 20% baseline.
+
+### When Skill Sections Cross-Reference Context
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Back-referencing criteria from a different gate that has context-dependent framing. The referenced gate's framing only applies under different preconditions.
+
+**Correct pattern:** Inline shared criteria at each usage site with context-appropriate framing.
+
+### When Recovering Broken Submodule Worktree Refs
+
+**Decision Date:** 2026-02-21
+
+**Correct pattern:** `git worktree repair` for parent repo links. For submodule worktrees: remove broken `.git` pointer files, remove stale admin dirs, then `git -C <submodule> worktree add --detach <path> HEAD`. Fix HEAD: `git ls-tree HEAD <submodule>` gives expected commit.
+
+**Root cause:** `core.worktree` in `.git/modules/<submodule>/config` gets overwritten when a worktree runs `submodule init`.

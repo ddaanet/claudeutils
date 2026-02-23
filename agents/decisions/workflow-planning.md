@@ -311,3 +311,23 @@ This is not full test code — it is precise prose that preserves the specificat
 **Correct pattern:** After updating the authoritative definition, grep all affected files for existing variant names (e.g., "tdd.*general", "both TDD and general") and update every enumeration site.
 
 **Evidence:** Skill-reviewer found 1 critical (Phase 0.75 outline generation wouldn't produce inline phases), 3 major (description triggering, When to Use, Phase 1 expansion branch missing), 4 minor enumeration sites — all in runbook/SKILL.md alone.
+
+### When TDD Cycles Grow Shared Test File
+
+**Decision Date:** 2026-02-23
+
+**Anti-pattern:** Each cycle agent adds tests to the designated test module without awareness of cumulative line count. The 400-line limit surfaces as precommit failure requiring refactor escalation.
+
+**Correct pattern:** Step files for later cycles should include conditional split instructions: "If test file exceeds 380 lines, extract to separate module before adding tests." Alternatively, runbook planning should pre-assign test classes to separate files when cumulative growth is predictable.
+
+**Evidence:** Test file grew from 382 → 478 lines across Phases 3-4. Each refactor escalation cost ~80-110K tokens.
+
+### When Triaging Behavioral Code Changes As Simple
+
+**Decision Date:** 2026-02-21
+
+**Anti-pattern:** Assessing complexity from conceptual simplicity ("just read a config file") rather than structural criteria. Resolving ambiguity downward due to implementation eagerness.
+
+**Correct pattern:** Simple criteria include "no behavioral code changes." Behavioral code (new functions, changed logic paths, conditional branches) routes to Moderate → `/runbook` → TDD phase-type assessment. Test discipline gated at triage, not emergent from routing.
+
+**Root cause chain:** Motivated reasoning → resolved ambiguity downward → Simple path had no test gate → behavioral code shipped untested.

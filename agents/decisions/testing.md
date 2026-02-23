@@ -234,3 +234,13 @@ Standard TDD uses prose descriptions instead of full test code (per workflow-adv
 **Anti-pattern:** Weakening a safety check (`-d` to `-D`) to make tests pass. If `git branch -d` correctly identifies unreachable commits, the problem is upstream (test scenario or code ordering).
 
 **Correct pattern:** Understand why the safety check fires. If the test scenario is unrealistic, fix the test. If code creates the problem (e.g., amend before delete), fix the ordering. Safety checks that detect merge parent loss are critical — suppressing them masks data loss.
+
+## When GREEN Phase Verification Includes Lint
+
+**Decision Date:** 2026-02-23
+
+**Anti-pattern:** Step file specifies `just test` or `pytest` for GREEN verification. Haiku runs tests (pass), commits, but lint errors exist. Separate fix commit required.
+
+**Correct pattern:** GREEN verification command must be `just check && just test` (or `just lint && just test`). Lint is a required gate before commit, not just test pass.
+
+**Evidence:** Cycle 1.1 GREEN commit had F821 (undefined `Never`) and PLC0415. Fix commit required. TDD audit flagged as primary compliance violation.

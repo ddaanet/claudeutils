@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Codify skill updated with learning-ages script integration.
+**Status:** Learnings consolidated (237→28 lines). 23 entries routed to 10 decision files.
 
 ## Completed This Session
 
@@ -8,6 +8,7 @@
 - Merged `wt-new-errors` — one conflict in `agents/plan-archive.md` (both-sides-added: remember-skill-update + worktree-error-output). Resolved, precommit passed, rm clean
 - Phase-scoped agent context unblocks: Session CLI tool, Orchestrate evolution
 - Updated codify skill: H1 → "Codify Learnings into Permanent Docs", Step 1 uses `learning-ages.py` for automated age gating
+- Consolidated learnings: 55 entries → 5 kept. 24 already in decision files (dropped), 23 consolidated to cli.md, orchestration-execution.md, workflow-planning.md, workflow-advanced.md, testing.md, pipeline-contracts.md, operational-practices.md, implementation-notes.md, project-tooling.md. Fixed duplicate soft-limit line
 
 ## Pending Tasks
 
@@ -32,8 +33,8 @@
 
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 
-- [ ] **Consolidate learnings** — `/remember` | sonnet
-  - learnings.md at 227 lines (>150 trigger), 0 entries ≥7 active days
+- [x] **Consolidate learnings** — `/codify` | sonnet
+  - Consolidated 55 entries → 28 lines. 24 already in decision files (dropped). 23 consolidated to 10 files. 5 kept for continuity
 
 - [ ] **Precommit python3 redirect** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
   - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
@@ -104,8 +105,8 @@
 **Memory index `/how` operator mapping:**
 - `/how X` → internally `"how to X"` — index keys must NOT include "to"
 
-**Learnings at 227 lines — consolidation deferred:**
-- Past 150-line trigger but 0 entries ≥7 active days. Aging required before graduation.
+**Learnings consolidated — 28 lines, 5 entries:**
+- Next consolidation when entries age past 7 active days or file approaches 80-line soft limit.
 
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback deployed (Phase 4).

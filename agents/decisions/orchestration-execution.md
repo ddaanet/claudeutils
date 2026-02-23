@@ -354,3 +354,23 @@ FR-17 documents the three-tier escalation requirement. Concrete detection mechan
 **Correct pattern:** Use main session first-turn `cache_creation_input_tokens` to measure system prompt size (~43K tokens p50). Use minimal-work agents (≤3 tool uses) for fixed overhead proxy.
 
 **Evidence:** 709 Task calls analyzed. Minimal-work agents: 35.7K total_tokens p50. Main session cache hit rate: 94-100% after warmup.
+
+### When Submodule Commits Diverge During Orchestration
+
+**Decision Date:** 2026-02-21
+
+**Anti-pattern:** Sequential agents committing to a submodule create branching history. Each agent's commit may create a new branch point if parent repo's submodule pointer isn't updated between steps. A merge can silently drop earlier commits.
+
+**Correct pattern:** After each step that modifies the submodule, verify the submodule pointer in parent matches expected commit. At phase boundaries, verify submodule history is linear: `git -C <submodule> log --oneline -N` should show all phase commits in sequence.
+
+**Evidence:** Phases 3-4 hook scripts lost due to submodule merge at commit `118cd8b`. Recovered from git history.
+
+### When Selecting Agent Type For Orchestrated Steps
+
+**Decision Date:** 2026-02-23
+
+**Anti-pattern:** Substituting a built-in agent type (`tdd-task`) when the plan-specific agent (`<plan>-task`) isn't found. Silent substitution loses common context injected by prepare-runbook.py.
+
+**Correct pattern:** Plan-specific agent is mandatory for `/orchestrate`. If `<plan>-task` isn't available as a subagent_type, STOP and report. Session restart makes custom agents in `.claude/agents/` discoverable. `tdd-task` is only for ad-hoc TDD cycles outside prepared runbooks.
+
+**Evidence:** Dispatched Cycle 1.1 via `tdd-task` instead of `runbook-generation-fixes-task`. Remaining 12 cycles used correct agent after restart.

@@ -142,3 +142,19 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 **Rationale:** Precommit is validation, not transformation. Session state is ephemeral metadata, not source code.
 
 **Impact:** Clear separation between validation (precommit) and transformation (dev) workflows.
+
+### When Constraining Task Names For Slug Validity
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Propagating the 25-char git branch slug limit to task naming time. Forces suboptimal prose keys for tasks that may never become worktrees.
+
+**Correct pattern:** Task names are prose keys (session management layer). Slug derivation is a worktree concern. When a derived slug is too long, provide a `--branch` override at invocation time — not a constraint at naming time.
+
+### When Tracking Worktree Tasks In Session
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Separate Worktree Tasks section with move semantics (Pending → Worktree on create, Worktree → Completed on rm). Creates merge-commit amend ceremony (`_update_session_and_amend`), drifts from filesystem state.
+
+**Correct pattern:** Tasks stay in Pending with inline `→ \`slug\`` marker. `#status` renders worktree section from `_worktree ls`, not from session.md section. Single source of truth is git worktree state.

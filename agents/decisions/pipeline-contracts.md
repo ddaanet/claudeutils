@@ -291,3 +291,21 @@ Inline phases in orchestrator-plan.md use `Execution: inline` (vs `Execution: st
 - Rationale (decision record): this section
 
 **Evidence:** Phase 5 checkpoint audited exit codes cross-cuttingly but missed MERGE_HEAD lifecycle — vet scope was limited to changed files. resolve.py had relevant calls but wasn't in the changed-files list.
+
+## When Review Gates Feel Redundant
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Skipping procedural review after redrafting because individual changes were user-validated in discussion. Implicit reasoning: "user approved each change → combined redraft doesn't need review."
+
+**Correct pattern:** Review gates are non-negotiable checkpoints, not confidence-gated decisions. User validates *approach*; review agent validates *completeness, internal consistency, requirement coverage*. Combining multiple changes can introduce inconsistencies the individual discussions didn't surface.
+
+**Root cause:** Inserting a confidence assessment step that doesn't exist in the procedure.
+
+## When Batch Changes Span Multiple Artifact Types
+
+**Decision Date:** 2026-02-21
+
+**Anti-pattern:** Collapsing a multi-file batch into a single reviewer. Batch framing overrides per-artifact routing — agent fabricates capability limitations to justify the simpler single-reviewer path.
+
+**Correct pattern:** Apply proportionality per-file first (trivial changes → self-review). Route remaining files by artifact type per routing table. Routing is per-artifact-type, not per-batch.

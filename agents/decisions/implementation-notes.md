@@ -364,3 +364,31 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 **Constraint added:** handoff skill step 4b, commit-delegation.md step 3.
 
 **Impact:** Maintains consistency between code and documentation.
+
+## .Tooling and Platform Quirks
+
+### When Edit Tool Reports Stale Success
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Trusting Edit tool "success" confirmation after Bash has modified the file. Write doesn't persist — silently dropped.
+
+**Correct pattern:** Use Write tool for files needing guaranteed writes after Bash commands (sed, git mv) touch the file in the same session. Also: git mv and sed on tracked files require `dangerouslyDisableSandbox: true`.
+
+### When Custom Agents Not Discoverable As Subagent Types
+
+**Decision Date:** 2026-02-23
+
+**Anti-pattern:** Assuming `.claude/agents/*.md` files with proper frontmatter are automatically available as `subagent_type` values in Task tool.
+
+**Correct pattern:** Use built-in agent types with phase context injected in prompt. Include agent instructions directly in Task prompt. Session restart MAY make custom agents discoverable but isn't guaranteed.
+
+**Evidence:** 5 custom agents created with valid frontmatter, not discoverable. All 16 steps executed successfully via built-in types.
+
+### When Phase Files Contain H2 Headers In Code Blocks
+
+**Decision Date:** 2026-02-22
+
+**Anti-pattern:** Putting example runbook content in fenced code blocks within phase files. `extract_sections()` parses headers line-by-line without honoring code fence boundaries.
+
+**Correct pattern:** Describe fixture content using inline backtick-wrapped text or bullet lists instead of code blocks with actual H2 headers.

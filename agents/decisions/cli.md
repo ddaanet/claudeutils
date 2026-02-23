@@ -124,3 +124,25 @@ Total: 350 tokens
 **Principle:** Each layer in the error handling chain has one responsibility. Failure site: collect context, raise typed exception. Top level: display and exit. When both layers print, you get duplicate output or conflicting messages. The `raise from` chain preserves the causal chain without duplicating display logic.
 
 **Project instance:** Double error handling in cli.py — exceptions caught and messages printed at both the failure site and a top-level handler. Rule: context collection at the failure site, display at the top level, never both.
+
+## .LLM-Native Design
+
+### When Designing CLI Tools For LLM Callers
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Using traditional CLI conventions (flags, short options, positional args) for tools whose sole caller is an LLM agent. Quoting/escaping in bash heredocs is error-prone, multiline arguments need gymnastics.
+
+**Correct pattern:** Structured markdown on stdin, structured markdown on stdout. LLM-native format — no quoting issues, natural multiline, extensible without code changes. Section-based parsing with known section names as boundaries.
+
+**Rationale:** CLI conventions exist for human ergonomics (tab completion, discoverability). LLMs need formats they produce and consume natively.
+
+### When CLI Error Messages Are LLM-Consumed
+
+**Decision Date:** 2026-02-20
+
+**Anti-pattern:** Including suggested causes or recovery actions in error messages ("may have been committed already", "remove and retry"). LLM agents treat suggestions as instructions, enabling rationalization past real problems.
+
+**Correct pattern:** Facts only — state what IS, not what MIGHT BE. For unrecoverable errors (data loss risk), include `STOP:` directive. For recoverable errors, CLI handles recovery itself and surfaces a warning.
+
+**Evidence:** Clean-files error without STOP → agent removes file from list and confabulates "already committed." With STOP directive, agent reports to user instead.
