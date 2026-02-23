@@ -13,6 +13,8 @@ _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 extract_sections = _mod.extract_sections
 extract_cycles = _mod.extract_cycles
 extract_phase_preambles = _mod.extract_phase_preambles
+extract_phase_models = _mod.extract_phase_models
+strip_fenced_blocks = _mod.strip_fenced_blocks
 
 
 class TestFencedStepHeaders:
@@ -256,3 +258,24 @@ class TestFencedPhasePreambles:
         preambles = extract_phase_preambles(content)
         assert 1 in preambles
         assert "More preamble content after the fence." in preambles[1]
+
+
+class TestExtractPhaseModelsIgnoresFences:
+    """Phase model extraction should ignore model: annotations inside fenced blocks."""
+
+    def test_extract_phase_models_ignores_fenced_annotations(self) -> None:
+        """Regex should not match phase headers inside fenced code blocks."""
+        content = dedent("""\
+            ### Phase 1: Core (model: haiku)
+
+            ## Step 1.1: Real step
+
+            Example:
+
+            ```
+            ### Phase 2: Infrastructure (model: opus)
+            ```
+        """)
+        models = extract_phase_models(content)
+        assert models == {1: "haiku"}
+        assert 2 not in models
