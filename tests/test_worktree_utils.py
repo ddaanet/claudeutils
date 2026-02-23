@@ -239,7 +239,7 @@ def test_fail_writes_to_stdout(capsys: pytest.CaptureFixture[str]) -> None:
     assert captured.err == ""
 
 
-def test_fail_default_code(capsys: pytest.CaptureFixture[str]) -> None:
+def test_fail_default_code() -> None:
     """_fail defaults to exit code 1 when code not provided."""
     with pytest.raises(SystemExit) as exc_info:
         _fail("msg")
@@ -247,7 +247,7 @@ def test_fail_default_code(capsys: pytest.CaptureFixture[str]) -> None:
     assert exc_info.value.code == 1
 
 
-def test_fail_custom_code(capsys: pytest.CaptureFixture[str]) -> None:
+def test_fail_custom_code() -> None:
     """_fail uses custom exit code when provided."""
     with pytest.raises(SystemExit) as exc_info:
         _fail("validation error", 2)

@@ -36,7 +36,6 @@ from claudeutils.worktree.session import (
 
 
 def _fail(msg: str, code: int = 1) -> Never:
-    """Print error message to stdout and exit with code."""
     click.echo(msg)
     raise SystemExit(code)
 
