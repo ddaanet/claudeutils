@@ -34,6 +34,12 @@ from claudeutils.worktree.session import (
 )
 
 
+def _fail(msg: str, code: int = 1) -> Never:
+    """Print error message to stdout and exit with code."""
+    click.echo(msg)
+    raise SystemExit(code)
+
+
 def derive_slug(task_name: str) -> str:
     """Task name to slug."""
     if not task_name or not task_name.strip():
