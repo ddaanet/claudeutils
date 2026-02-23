@@ -15,3 +15,15 @@
   - `make_repo_with_branch` PLR0913 too many arguments (8 > 5) — pre-existing
   - `tests/test_worktree_merge_conflicts.py` 440 lines (exceeds 400 limit)
 - Decision made: none
+
+### Cycle 5: Precommit Orphan Detection 2026-02-23
+- Status: STOP_CONDITION
+- Test command: `pytest tests/test_validation_learnings.py -k orphan -v`
+- RED result: FAIL as expected — `test_orphaned_content_after_preamble_detected` failed with "Expected orphan error, got: []"
+- GREEN result: PASS — both orphan tests pass; all learnings tests pass (14/14); full suite 1211/1212 passed (1 xfail pre-existing)
+- Regression check: Fixed 3 test fixture regressions (line number updates after removing "Preamble line 10" from non-preamble section)
+- Refactoring: None (skipped — precommit triggered quality check)
+- Files modified: `src/claudeutils/validation/learnings.py`, `tests/test_validation_learnings.py`
+- Stop condition: precommit found quality warning:
+  - `validate()` C901 too complex (11 > 10)
+- Decision made: none

@@ -67,6 +67,29 @@ def parse_segments(content: str) -> dict[str, list[str]]:
     return segments
 
 
+def _detect_orphaned_content(lines: list[str]) -> list[str]:
+    """Find non-blank lines after preamble but before first ## heading."""
+    errors: list[str] = []
+    first_heading_line = None
+    for i, line in enumerate(lines, 1):
+        if i <= 10:
+            continue
+        if TITLE_PATTERN.match(line.strip()):
+            first_heading_line = i
+            break
+
+    if first_heading_line is None:
+        return errors
+
+    for i in range(11, first_heading_line):
+        stripped = lines[i - 1].strip()
+        if stripped:
+            errors.append(
+                f"  line {i}: orphaned content (not under a ## heading): {stripped}"
+            )
+    return errors
+
+
 def validate(path: Path, root: Path, max_words: int = MAX_WORDS) -> list[str]:
     """Validate learnings file. Returns list of error strings.
 
@@ -90,7 +113,6 @@ def validate(path: Path, root: Path, max_words: int = MAX_WORDS) -> list[str]:
     seen: dict[str, int] = {}
 
     for lineno, title in titles:
-        # Word count check
         words = title.split()
         if len(words) > max_words:
             errors.append(
@@ -98,7 +120,6 @@ def validate(path: Path, root: Path, max_words: int = MAX_WORDS) -> list[str]:
                 f"## {title}"
             )
 
-        # Uniqueness check
         key = title.lower()
         if key in seen:
             errors.append(
@@ -108,4 +129,5 @@ def validate(path: Path, root: Path, max_words: int = MAX_WORDS) -> list[str]:
         else:
             seen[key] = lineno
 
+    errors.extend(_detect_orphaned_content(lines))
     return errors

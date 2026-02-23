@@ -40,14 +40,13 @@ Preamble line 6
 Preamble line 7
 Preamble line 8
 Preamble line 9
-Preamble line 10
 ## This is a title with way too many words for the validator
 Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "title has 12 words (max 5)" in errors[0]
-    assert "line 12" in errors[0]
+    assert "line 11" in errors[0]
 
 
 def test_duplicate_titles_detected_case_insensitive(tmp_path: Path) -> None:
@@ -63,7 +62,6 @@ Preamble line 6
 Preamble line 7
 Preamble line 8
 Preamble line 9
-Preamble line 10
 ## First Learning Title
 Content here.
 
@@ -73,8 +71,8 @@ Different content but same title.
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "duplicate title" in errors[0]
-    assert "line 15" in errors[0]
-    assert "first at line 12" in errors[0]
+    assert "line 14" in errors[0]
+    assert "first at line 11" in errors[0]
 
 
 def test_preamble_first_10_lines_skipped(tmp_path: Path) -> None:
@@ -124,7 +122,6 @@ Preamble line 6
 Preamble line 7
 Preamble line 8
 Preamble line 9
-Preamble line 10
 ## First Title Word Count Too Long Here Now
 Content here.
 
@@ -248,3 +245,51 @@ Line 5 (after another blank)
         "",
         "Line 5 (after another blank)",
     ]
+
+
+def test_orphaned_content_after_preamble_detected(tmp_path: Path) -> None:
+    """Orphaned bullets after preamble but before first heading are detected."""
+    learnings_file = tmp_path / "learnings.md"
+    learnings_file.write_text(
+        "# Learnings\n"
+        "\n"
+        "Preamble line 2\n"
+        "Preamble line 3\n"
+        "Preamble line 4\n"
+        "Preamble line 5\n"
+        "Preamble line 6\n"
+        "Preamble line 7\n"
+        "Preamble line 8\n"
+        "Preamble line 9\n"
+        "Preamble line 10\n"
+        "- orphaned bullet without heading\n"
+        "- another orphaned line\n"
+        "## Valid Heading\n"
+        "- properly placed bullet\n"
+    )
+    errors = validate(Path("learnings.md"), tmp_path)
+    assert any("orphan" in e.lower() for e in errors), (
+        f"Expected orphan error, got: {errors}"
+    )
+
+
+def test_clean_learnings_file_no_orphan_errors(tmp_path: Path) -> None:
+    """Clean learnings file with proper structure produces no orphan errors."""
+    learnings_file = tmp_path / "learnings.md"
+    learnings_file.write_text(
+        "# Learnings\n"
+        "\n"
+        "Institutional knowledge accumulated across sessions.\n"
+        "\n"
+        "**Soft limit: 80 lines.**\n"
+        "\n"
+        "---\n"
+        "## When analyzing X\n"
+        "- bullet A1\n"
+        "- bullet A2\n"
+        "\n"
+        "## When selecting Y\n"
+        "- bullet B1\n"
+    )
+    errors = validate(Path("learnings.md"), tmp_path)
+    assert errors == [], f"Expected no errors for clean file, got: {errors}"
