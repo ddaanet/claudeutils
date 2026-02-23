@@ -240,6 +240,39 @@ def test_batched_recall_multiple_queries() -> None:
         assert "---" not in result.output
 
 
+def test_invalid_prefix_rejected() -> None:
+    """Test prefix validation: rejects invalid prefix, accepts case-insensitive prefix.
+
+    Verifies:
+    1. Query with no valid prefix ("no prefix query") exits non-zero
+    2. Error message states what is wrong (mentions "when" or "how")
+    3. Uppercase operator ("WHEN writing tests") accepted (case-insensitive)
+    4. Invalid prefix never reaches resolver (validated before resolve() call)
+    """
+    runner = CliRunner()
+
+    # Invalid prefix: no operator prefix at all
+    result = runner.invoke(cli, ["when", "no prefix query"])
+    assert result.exit_code != 0
+    assert "when" in result.output.lower() or "how" in result.output.lower()
+
+    # Prefix validation must NOT call resolve() for invalid prefix
+    with patch("claudeutils.when.cli.resolve") as mock_resolve:
+        result = runner.invoke(cli, ["when", "no prefix query"])
+        assert result.exit_code != 0
+        mock_resolve.assert_not_called()
+
+    # Case-insensitive: "WHEN writing tests" should be accepted
+    with patch("claudeutils.when.cli.resolve") as mock_resolve:
+        mock_resolve.return_value = "# Result\n\nContent"
+        result = runner.invoke(cli, ["when", "WHEN writing tests"])
+        assert result.exit_code == 0
+        mock_resolve.assert_called_once()
+        call_args = mock_resolve.call_args[0]
+        assert call_args[0] == "when"  # operator normalised to lowercase
+        assert call_args[1] == "writing tests"
+
+
 def test_cli_error_handling() -> None:
     """Test that CLI properly handles errors with stderr output and exit code 1.
 

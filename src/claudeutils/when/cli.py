@@ -21,8 +21,8 @@ def _parse_operator_query(arg: str) -> tuple[str, str] | None:
         (operator, query) tuple, or None if arg has no valid operator prefix
     """
     parts = arg.split(" ", 1)
-    if len(parts) >= 2 and parts[0] in VALID_OPERATORS:
-        return parts[0], parts[1]
+    if len(parts) >= 2 and parts[0].lower() in VALID_OPERATORS:
+        return parts[0].lower(), parts[1]
     return None
 
 
