@@ -22,12 +22,12 @@ Titles must pass existing learnings.py validation and be compatible with planned
 
 - Max 5 words (enforced, includes "When"/"How to")
 - Unique (enforced)
-- Min 2 words (planned — Workstream 1 Phase 1)
+- Min 2 content words after prefix (planned — Workstream 1 Phase 1). "When X Y" = 2 content words → pass. "When X" = 1 → fail.
 - ~~No special characters beyond alphanumeric + spaces~~ **Resolved:** hyphens allowed (memory-index already uses hyphens in 30+ triggers; SKILL.md "no hyphens" was unenforced and contradicted by practice). Special character restriction dropped from scope.
 
 **FR-3: Structural validation enforced at precommit**
 learnings.py updated with:
-- Min 2 words check
+- Min 2 content words check (words after stripping "When " or "How to " prefix)
 - When/How prefix check
 - Existing checks preserved (max 5 words, uniqueness, H2 format)
 

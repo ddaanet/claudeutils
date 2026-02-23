@@ -18,10 +18,10 @@ Separately, consolidated knowledge is indexed but rarely recalled. Agents don't 
 
 1. **Structural validation (learnings.py)** — Precommit enforcement of trigger-compatible format:
    - When/How prefix required (`## When ...` or `## How to ...`)
-   - Min 2 words (prevents single-word titles)
+   - Min 2 content words after prefix (prevents vague triggers like "When testing")
    - Current checks preserved: max 5 words, uniqueness, H2 format
    - Precommit integration: Runs in existing validation suite, blocks commits on violation
-   - Test requirements: When/How prefix (pass/fail), min 2 words (pass/fail), existing checks preserved (regression)
+   - Test requirements: When/How prefix (pass/fail), min 2 content words (pass/fail), existing checks preserved (regression)
 
 2. **Semantic guidance (skill + handoff documentation)** — Agent-facing instructions:
    - Learning titles should be usable as triggers without modification
@@ -66,7 +66,7 @@ Separately, consolidated knowledge is indexed but rarely recalled. Agents don't 
 **Phase 1: TDD Validation (type: tdd)**
 - Implement structural validation in `src/claudeutils/validation/learnings.py`
 - Tests in `tests/test_validation_learnings.py` (7 existing tests)
-- Test requirements: When/How prefix (pass/fail), min 2 words (pass/fail), existing checks preserved (regression)
+- Test requirements: When/How prefix (pass/fail), min 2 content words (pass/fail), existing checks preserved (regression)
 - Precommit integration via `src/claudeutils/validation/cli.py` (imports `validate_learnings`)
 
 **Phase 2: Semantic Guidance + Pipeline Simplification (type: general)**
