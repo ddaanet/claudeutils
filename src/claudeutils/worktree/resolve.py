@@ -168,6 +168,49 @@ def resolve_learnings_md(conflicts: list[str]) -> list[str]:
     return [c for c in conflicts if c != "agents/learnings.md"]
 
 
+def _resolve_heading(
+    heading: str,
+    base: dict[str, list[str]],
+    ours: dict[str, list[str]],
+    theirs: dict[str, list[str]],
+) -> tuple[list[str] | None, bool]:
+    """Resolve a single heading across base/ours/theirs.
+
+    Returns (body_or_none, is_conflict). None means delete/omit.
+    """
+    in_ours = heading in ours
+    in_theirs = heading in theirs
+
+    # Absent from ours — omit (deleted or never existed on our side)
+    if not in_ours:
+        return None, False
+
+    # Absent from theirs — keep ours
+    if not in_theirs:
+        return ours[heading], False
+
+    # Not in base — new on one or both sides; keep ours
+    if heading not in base:
+        return ours[heading], False
+
+    # Preamble: additive merge
+    if heading == "":
+        ours_set = set(ours[heading])
+        extra = [ln for ln in theirs[heading] if ln not in ours_set]
+        return ours[heading] + extra, False
+
+    # In all three — compare bodies for modification
+    base_body = "\n".join(base[heading])
+    ours_body = "\n".join(ours[heading])
+    theirs_body = "\n".join(theirs[heading])
+    ours_changed = ours_body != base_body
+    theirs_changed = theirs_body != base_body
+
+    if ours_changed and theirs_changed:
+        return ours[heading], True
+    return theirs[heading] if theirs_changed else ours[heading], False
+
+
 def diff3_merge_segments(
     base: dict[str, list[str]],
     ours: dict[str, list[str]],
@@ -194,56 +237,13 @@ def diff3_merge_segments(
     conflicts: list[str] = []
 
     for heading in all_headings:
-        in_base = heading in base
-        in_ours = heading in ours
-        in_theirs = heading in theirs
-
-        if not in_ours and not in_theirs:
-            # deleted from both — omit
-            continue
-        if not in_ours:
-            # deleted from ours — omit (ours wins on deletion)
-            continue
-        if not in_theirs:
-            # new in ours only, or deleted from theirs — keep ours
-            merged[heading] = ours[heading]
-            continue
-
-        if not in_base:
-            if not in_ours:
-                # new in theirs only
-                merged[heading] = theirs[heading]
-            else:
-                # new in both — keep ours (created independently)
-                merged[heading] = ours[heading]
-            continue
-
-        # Preamble (empty heading) is additive: keep ours, append theirs-only lines
-        if heading == "":
-            ours_preamble_set = set(ours[heading])
-            extra = [ln for ln in theirs[heading] if ln not in ours_preamble_set]
-            merged[heading] = ours[heading] + extra
-            continue
-
-        base_body = "\n".join(base[heading])
-        ours_body = "\n".join(ours[heading])
-        theirs_body = "\n".join(theirs[heading])
-
-        ours_changed = ours_body != base_body
-        theirs_changed = theirs_body != base_body
-
-        if ours_changed and theirs_changed:
-            # Both modified — conflict, keep ours for now
+        body, is_conflict = _resolve_heading(heading, base, ours, theirs)
+        if body is not None:
+            merged[heading] = body
+        if is_conflict:
             conflicts.append(heading)
-            merged[heading] = ours[heading]
-        elif ours_changed:
-            merged[heading] = ours[heading]
-        elif theirs_changed:
-            merged[heading] = theirs[heading]
-        else:
-            merged[heading] = ours[heading]
 
-    # Append theirs-only new entries (not in base, not in ours)
+    # Append theirs-only new entries missed by iteration order
     for heading, body in theirs.items():
         if heading not in base and heading not in ours and heading not in merged:
             merged[heading] = body
