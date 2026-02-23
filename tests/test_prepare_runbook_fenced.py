@@ -16,6 +16,7 @@ extract_phase_preambles = _mod.extract_phase_preambles
 extract_phase_models = _mod.extract_phase_models
 strip_fenced_blocks = _mod.strip_fenced_blocks
 extract_file_references = _mod.extract_file_references
+assemble_phase_files = _mod.assemble_phase_files
 
 
 class TestFencedStepHeaders:
@@ -308,3 +309,34 @@ class TestExtractFileReferencesIgnoresFences:
         assert "src/main.py" in refs
         assert "src/example.py" not in refs
         assert "src/fake.py" not in refs
+
+
+class TestAssemblePhaseFencedHeaders:
+    """Phase assembly should ignore Cycle headers inside fenced blocks."""
+
+    def test_assemble_ignores_fenced_cycle_headers(self, tmp_path: Path) -> None:
+        """assemble_phase_files should not detect TDD from fenced Cycle headers.
+
+        A phase file with Step headers (general phase) should not be misdetected
+        as TDD when example cycle headers appear inside fenced code blocks.
+        """
+        phase_file = tmp_path / "runbook-phase-1.md"
+        phase_file.write_text(
+            dedent("""\
+            ### Phase 1: Core
+
+            ## Step 1.1: Real step
+
+            Example TDD cycle:
+
+            ```
+            ## Cycle 1.1: Example
+            ### RED Phase
+            test something
+            ```
+        """)
+        )
+        assembled, _ = assemble_phase_files(tmp_path)
+        assert assembled is not None
+        # Should detect as general (has Step), not TDD (fenced Cycle)
+        assert "type: tdd" not in assembled
