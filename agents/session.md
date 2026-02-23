@@ -121,10 +121,6 @@
 - [ ] **TDD cycle test optimization** — Selective test rerun via dependency analysis | sonnet
 - [ ] **Fix task-context.sh task list bloat** — Filter/trim output | sonnet
 - [ ] **Upstream skills field** — PR/issue for missing skills frontmatter | sonnet
-- [ ] **Phase-scoped agent context** — `/design` | sonnet
-  - prepare-runbook.py emits per-phase agents with phase-scoped shared context instead of one agent per runbook
-  - Same base type can serve multiple phases — differentiator is injected context, not protocol
-  - Orchestrate-evolution depends on this for dispatch side
 - [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
 
 ## Worktree Tasks
@@ -143,6 +139,13 @@
   - Plan: handoff-cli-tool | Status: designed (outline reviewed 5 rounds, ready for runbook)
   - `_session` group (handoff, status, commit)
   - New requirement: commit subcommand must output shortened commit IDs
+
+- [ ] **Phase-scoped agent context** → `phase-scoped-agents` — `/design` | sonnet
+  - prepare-runbook.py emits per-phase agents with phase-scoped shared context instead of one agent per runbook
+  - Same base type can serve multiple phases — differentiator is injected context, not protocol
+  - Orchestrate-evolution depends on this for dispatch side
+
+- [ ] **Worktree new error formatting** → `wt-new-errors` — clean up `derive_slug` error output (duplicated traceback, no agent-friendly guidance) | sonnet
 
 ## Blockers / Gotchas
 
