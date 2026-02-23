@@ -167,8 +167,7 @@ def clean_tree() -> None:
         )
     ]
     if dirty:
-        click.echo("\n".join(dirty))
-        raise SystemExit(1)
+        _fail("\n".join(dirty))
 
 
 @worktree.command()
@@ -227,8 +226,7 @@ def merge(slug: str) -> None:
         merge_impl(slug)
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.strip() if isinstance(e.stderr, str) else ""
-        click.echo(f"git error: {stderr or e}")
-        raise SystemExit(1) from None
+        _fail(f"git error: {stderr or e}")
 
 
 def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:
