@@ -123,6 +123,11 @@
 - [ ] **Upstream skills field** — PR/issue for missing skills frontmatter | sonnet
 - [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
 
+- [ ] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet
+  - Plan: handoff-cli-tool | Status: designed (outline reviewed 6 rounds, ready for runbook)
+  - `_session` group (handoff, status, commit)
+  - Discussion conclusions baked into outline: amend, git passthrough, deviation-only output, submodule labeling
+
 ## Worktree Tasks
 
 - [ ] **Remember skill update** → `remember-skill-update` — Resume `/design` Phase B | opus
