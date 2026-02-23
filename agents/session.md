@@ -1,41 +1,40 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Artifacts reviewed, ready for `/orchestrate remember-skill-update` (restart required).
+**Status:** remember-skill-update orchestration complete. All 7 phases executed, reviewed. Restart required (skill rename + agent deletions).
 
 ## Completed This Session
 
-**Design Phase B — outline refinement (prior session):**
-- Resolved KD-1 through KD-3, added FR-12/13, systematic audit, requirements.md updated
+**Remember skill update orchestration (7 phases, 16 items):**
 
-**Runbook generation (prior sessions):**
-- TDD test plan prepared for Phases 1 and 4 (6 cycles total)
-- User clarified "min 2 words" means 2 content words after stripping prefix (not 2 total)
-- Updated requirements.md, outline.md to match content-words interpretation
-- Tier 3 assessment: 7 phases, 16 items, mixed TDD/general/inline
-- Outline generated, reviewed (outline-corrector: 3 major fixed), committed
-- Simplification pass: 18→15 items (batched trivial removals + same-module agent routing)
-- Sufficiency check passed → promoted outline to runbook (skipped full expansion)
-- Holistic review (runbook-corrector: 4 major + 1 minor, all fixed)
-- Pre-execution validation skipped (validator expects multi-file runbooks, not promoted single-file)
-- `prepare-runbook.py` generated 14 step files + agent + orchestrator plan
+- Phase 1 (TDD, sonnet): Prefix validation + content word count in learnings.py. 3 cycles, 12 tests total. Checkpoint: 2 minor fixed (redundant var, duplicate assertion)
+- Phase 2 (inline, opus): SKILL.md title guidance (FR-5), mechanical trigger derivation (FR-4), inline execution prerequisite (FR-8), file splitting (FR-9), hyphen fix (KD-1). consolidation-flow.md delegation→inline. consolidation-patterns.md trigger derivation. Handoff SKILL.md title format. Deleted remember-task.md + memory-refactor.md. Removed @agents/memory-index.md from CLAUDE.md (FR-13)
+- Phase 3 (inline, opus): Agent routing in SKILL.md + consolidation-patterns.md (13 eligible agents)
+- Phase 4 (TDD, sonnet): CLI rewrite to one-arg syntax. 3 cycles, 8 tests total. Checkpoint: 3 minor fixed (error message, docstring, test dedup)
+- Phase 5 (inline, opus): Docs update in when, how, memory-index skills + project-config.md
+- Phase 6 (sonnet): Renamed /remember → /codify across codebase. Fixed stale symlinks (.claude/agents/remember-task.md, memory-refactor.md, .claude/skills/remember)
+- Phase 7 (inline, opus): Frozen-domain analysis → recommends UserPromptSubmit topic detection hook (84% analog activation vs 4.1% status quo)
 
-**Artifact review:**
-- Read all 14 step files, orchestrator plan, agent definition, runbook, outline, requirements, TDD test plan, 3 review reports
-- Confirmed: step 1-3 and 4-3 have inline-phase bleed tails (known extract_sections behavior)
-- Confirmed: consolidation-flow.md line references stable (Phase 1 doesn't touch that file)
+**Reviews:**
+- Phase 1 checkpoint: 0 critical, 0 major, 2 minor (fixed)
+- Phase 4 checkpoint: 0 critical, 0 major, 3 minor (fixed)
+- Final review: 2 minor fixed (examples/remember-patterns.md renamed, test docstring)
+- TDD audit: compliance assessed for both TDD phases
 
 ## Pending Tasks
 
-- [ ] **Remember skill update** — `/orchestrate remember-skill-update` | sonnet | restart
-  - Plan: remember-skill-update | Runbook ready, 7 phases, 16 items
-  - Phase 1: TDD validation (learnings.py — When/How prefix, min 2 content words)
-  - Phase 2: Semantic guidance + pipeline simplification (opus — skills, agents, CLAUDE.md)
-  - Phase 3: Agent routing for learnings (opus — 13 eligible agents)
-  - Phase 4: Recall CLI code (sonnet — one-arg syntax, batched recall)
-  - Phase 5: Recall CLI docs (inline — 4 skill/decision files)
-  - Phase 6: Skill rename to `/codify` (sonnet — ~30 files, requires restart)
-  - Phase 7: Frozen-domain analysis (inline — independent)
+- [ ] **Deliverable review: remember-skill-update** — `/deliverable-review plans/remember-skill-update` | opus | restart
+- [ ] **UserPromptSubmit topic detection hook** — Phase 7 analysis recommends this as highest-impact recall improvement | sonnet
+  - Seed keyword table from 200+ memory-index triggers
+  - Inject matching decision content via additionalContext on prompt submit
 
 ## Next Steps
 
-Restart session, run `/orchestrate remember-skill-update`.
+Run deliverable review after restart (skill directory changed, agents deleted).
+
+## Reference Files
+
+- `plans/remember-skill-update/reports/final-review.md` — corrector final review
+- `plans/remember-skill-update/reports/tdd-process-review.md` — TDD compliance audit
+- `plans/remember-skill-update/reports/frozen-domain-analysis.md` — recall option evaluation
+- `plans/remember-skill-update/reports/checkpoint-1-review.md` — Phase 1 checkpoint
+- `plans/remember-skill-update/reports/checkpoint-4-review.md` — Phase 4 checkpoint

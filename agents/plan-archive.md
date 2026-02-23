@@ -203,6 +203,10 @@ Safety gates for `_worktree rm`: dirty tree check (parent + submodule), exit cod
 
 CLI interface redesign: task name as positional argument (was `--task` flag), `--branch` for bare slug override, sandbox removal from `_worktree new` (no more `additionalDirectories` in settings.local.json). Absorbed: pre-merge untracked file fix, worktree skill adhoc mode, `--slug` override, `rm --confirm` gate fix (separated as orthogonal). Affected: src/claudeutils/worktree/cli.py, agent-core/skills/worktree/SKILL.md.
 
+## remember-skill-update
+
+13 FRs: learnings.py prefix + content word validation (TDD, 12 tests), CLI rewrite to one-arg syntax + batched recall (TDD, 8 tests), skill docs updated (title guidance, mechanical trigger derivation, inline execution, agent routing for 13 agents), pipeline simplification (deleted remember-task + memory-refactor agents, inline execution), renamed /remember → /codify (~30 files), removed memory-index from always-loaded context (~5000 tokens), frozen-domain analysis recommends UserPromptSubmit hook. Affected: src/claudeutils/validation/learnings.py, src/claudeutils/when/cli.py, agent-core/skills/codify/, agent-core/skills/handoff/, agent-core/skills/when/, agent-core/skills/how/, agent-core/skills/memory-index/, agents/decisions/project-config.md.
+
 ## quality-infrastructure
 
 3 FRs delivered: FR-3 renamed 11 agents (vet-fix-agent→corrector, quiet-task→artisan, tdd-task→test-driver, etc.) + deleted vet-agent + embedded vet-taxonomy in corrector + deleted 8 plan-specific detritus + propagated across ~45 files including prepare-runbook.py code paths. FR-1 split deslop.md into communication.md (prose rules, ambient) and project-conventions skill (code rules, injected). FR-2 added 5 grounded code density entries to cli.md + memory-index triggers. Affected: agent-core/agents/ (11 renames, 3 deletions), agent-core/skills/ (vet→review dir rename, 11 skill files updated), agent-core/fragments/ (vet-requirement→review-requirement, deslop deleted), agents/decisions/ (9 files), ~15 other files.
