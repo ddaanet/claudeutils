@@ -83,7 +83,7 @@ def test_rm_blocks_on_dirty_worktree(
     (worktree_path / "dirty.txt").write_text("dirty")
 
     runner = CliRunner()
-    result = runner.invoke(worktree, ["rm", "--confirm", "test-feature"])
+    result = runner.invoke(worktree, ["rm", "test-feature"])
 
     assert result.exit_code == 2
     assert "uncommitted" in result.output.lower()
@@ -105,7 +105,7 @@ def test_rm_allows_removal_with_dirty_parent(
     (repo_path / "dirty.txt").write_text("dirty")
 
     runner = CliRunner()
-    result = runner.invoke(worktree, ["rm", "--confirm", "test-feature"])
+    result = runner.invoke(worktree, ["rm", "test-feature"])
 
     assert result.exit_code == 0
     assert not worktree_path.exists()
@@ -130,7 +130,7 @@ def test_rm_blocks_on_dirty_submodule(
     )
 
     runner = CliRunner()
-    result = runner.invoke(worktree, ["rm", "--confirm", "test-feature"])
+    result = runner.invoke(worktree, ["rm", "test-feature"])
 
     assert result.exit_code == 2
     assert (

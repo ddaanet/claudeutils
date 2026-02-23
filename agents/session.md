@@ -86,9 +86,6 @@
 
 ## Worktree Tasks
 
-- [ ] **Worktree rm error UX** → `worktree-rm-error-ux` — `x` | sonnet
-  - Do not require `--confirm` flag, on git failure print git error not traceback
-  - Absorbs: Worktree rm confirm gate fix
 
 ## Blockers / Gotchas
 

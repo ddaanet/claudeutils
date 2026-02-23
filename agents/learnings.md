@@ -6,6 +6,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 
 ---
 
+**Soft limit: 80 lines.** When approaching this limit, use `/remember` to consolidate older learnings into permanent documentation (behavioral rules → `agent-core/fragments/*.md`, technical details → `agents/decisions/*.md` or `agents/decisions/implementation-notes.md`). Keep the 3-5 most recent learnings for continuity.
 ## When selecting agent type for orchestrated steps
 - Anti-pattern: Substituting a built-in agent type (`tdd-task`) when the plan-specific agent (`<plan>-task`) isn't found. Silent substitution loses the common context injected by prepare-runbook.py and violates the orchestration contract.
 - Correct pattern: Plan-specific agent is mandatory for `/orchestrate`. If `<plan>-task` isn't available as a subagent_type, STOP and report — don't substitute. Session restart makes custom agents in `.claude/agents/` discoverable. `tdd-task` is only for ad-hoc TDD cycles outside prepared runbooks.
@@ -18,11 +19,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Assuming `.claude/agents/*.md` files with proper frontmatter are automatically available as `subagent_type` values in the Task tool. Attempting to use them produces "Agent type not found" errors.
 - Correct pattern: Use built-in agent types (`test-driver`, `artisan`, `general-purpose`, etc.) with phase context injected in the prompt. Include the agent's instructions (TDD protocol, stop conditions, output format) directly in the Task prompt. Read the phase context file path so the agent can load it.
 - Evidence: 5 custom agents (`hb-p1` through `hb-p5`) created with valid YAML frontmatter, not discoverable. Session restart was noted as required but didn't resolve. All 16 steps executed successfully via built-in types.
-## When haiku GREEN phase uses pytest without lint
-- Anti-pattern: Step file specifies `just test` or `pytest` for GREEN verification. Haiku runs tests (pass), commits, writes report — but lint errors exist. Separate fix commit required before REFACTOR can run.
-- Correct pattern: GREEN verification command must be `just check && just test` (or `just lint && just test`). The runbook template's TDD cycle GREEN section should list lint as a required gate before the commit, not just test pass.
-- Evidence: Cycle 1.1 GREEN commit `a097b114` had F821 (undefined `Never`) and PLC0415 (local imports). Fix commit `1100569d` required. TDD audit flagged as the primary compliance violation.
 ## When step file inventory misses codebase references
 - Anti-pattern: Runbook step lists ~30 files for substitution propagation based on Phase 0.5 discovery. Actual codebase has ~45 files with old names — discovery missed skills, decisions, fragments, agents, and script code paths.
 - Correct pattern: Discovery inventory should use `grep -r` across the full tree, not manual file listing. The verification step is the safety net, but discovery should cast a wider net initially.
 - Evidence: Step 1.6 opus agent modified 30 listed files, hit ceiling. Second opus agent fixed 17 additional files. Orchestrator fixed 3 more path references.
+## When haiku GREEN phase uses pytest without lint
+- Anti-pattern: Step file specifies `just test` or `pytest` for GREEN verification. Haiku runs tests (pass), commits, writes report — but lint errors exist. Separate fix commit required before REFACTOR can run.
+- Correct pattern: GREEN verification command must be `just check && just test` (or `just lint && just test`). The runbook template's TDD cycle GREEN section should list lint as a required gate before the commit, not just test pass.
+- Evidence: Cycle 1.1 GREEN commit `a097b114` had F821 (undefined `Never`) and PLC0415 (local imports). Fix commit `1100569d` required. TDD audit flagged as the primary compliance violation.

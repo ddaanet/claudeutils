@@ -166,7 +166,7 @@ def test_rm_deletes_submodule_branch(
     init_repo: Callable[[Path], None],
     setup_repo_with_submodule: Callable[[Path, Callable[[Path], None]], None],
 ) -> None:
-    """Rm --confirm deletes both parent and submodule branches."""
+    """Rm deletes both parent and submodule branches."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -186,7 +186,7 @@ def test_rm_deletes_submodule_branch(
     )
     assert "test-feature" in sub_branch.stdout, "submodule branch should exist"
 
-    result = runner.invoke(worktree, ["rm", "--confirm", "test-feature"])
+    result = runner.invoke(worktree, ["rm", "test-feature"])
     assert result.exit_code == 0
 
     # Parent branch gone
