@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import Never
 
 import click
 
@@ -32,6 +33,11 @@ from claudeutils.worktree.session import (
     move_task_to_worktree,
     remove_worktree_task,
 )
+
+
+def _fail(msg: str, code: int = 1) -> Never:
+    click.echo(msg)
+    raise SystemExit(code)
 
 
 def derive_slug(task_name: str) -> str:
@@ -74,7 +80,7 @@ def _initialize_environment(worktree_path: Path) -> None:
         check=False,
     )
     if r.returncode != 0:
-        click.echo(f"Warning: just setup failed: {r.stderr}", err=True)
+        click.echo(f"Warning: just setup failed: {r.stderr}")
 
 
 @click.group(name="_worktree")
@@ -107,7 +113,7 @@ def _create_parent_worktree(
         == 0
     )
     if branch_exists and session:
-        click.echo(f"Warning: branch {slug} exists, ignoring --session", err=True)
+        click.echo(f"Warning: branch {slug} exists, ignoring --session")
         session = ""
     if session:
         _git("branch", slug, _create_session_commit(slug, base, session))
@@ -161,8 +167,7 @@ def clean_tree() -> None:
         )
     ]
     if dirty:
-        click.echo("\n".join(dirty))
-        raise SystemExit(1)
+        _fail("\n".join(dirty))
 
 
 @worktree.command()
@@ -180,21 +185,22 @@ def new(
     temp_session_file = None
     try:
         if task_name:
-            slug = branch or derive_slug(task_name)
+            try:
+                slug = branch or derive_slug(task_name)
+            except ValueError as e:
+                _fail(str(e), 2)
             with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
                 f.write(focus_session(task_name, session_md))
                 temp_session_file = session = f.name
         else:
             slug = branch
         if (path := wt_path(slug, create_container=True)).exists():
-            click.echo(f"Error: existing directory {path}", err=True)
-            raise SystemExit(1)
+            _fail(f"Error: existing directory {path}")
         _setup_worktree_safe(path, slug, base, session, task_name or "")
         if task_name:
             session_md_path = Path(session_md)
             if not session_md_path.exists():
-                click.echo(f"Error: session.md not found at {session_md}", err=True)
-                raise SystemExit(1)
+                _fail(f"Error: session.md not found at {session_md}")
             move_task_to_worktree(session_md_path, task_name, slug)
     finally:
         if temp_session_file:
@@ -220,8 +226,7 @@ def merge(slug: str) -> None:
         merge_impl(slug)
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.strip() if isinstance(e.stderr, str) else ""
-        click.echo(f"git error: {stderr or e}")
-        raise SystemExit(1) from None
+        _fail(f"git error: {stderr or e}")
 
 
 def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:
@@ -247,8 +252,7 @@ def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:
         if count == 0
         else f"Branch {slug} has {count} unmerged commit(s). Merge first."
     )
-    click.echo(msg, err=True)
-    raise SystemExit(2)
+    _fail(msg, 2)
 
 
 def _delete_branch(slug: str, removal_type: str | None) -> None:
@@ -257,18 +261,16 @@ def _delete_branch(slug: str, removal_type: str | None) -> None:
         ["git", "branch", flag, slug], capture_output=True, text=True, check=False
     )
     if r.returncode != 0 and "not found" not in r.stderr.lower():
-        click.echo(f"Branch {slug} deletion failed: {r.stderr.strip()}", err=True)
-        raise SystemExit(1)
+        _fail(f"Branch {slug} deletion failed: {r.stderr.strip()}")
 
 
 def _check_confirm(slug: str, confirm: bool) -> None:  # noqa: FBT001
     if not confirm:
-        click.echo(
+        msg = (
             f"Use the worktree skill (wt merge {slug}) to remove worktrees safely. "
-            "Pass --confirm to invoke directly.",
-            err=True,
+            "Pass --confirm to invoke directly."
         )
-        raise SystemExit(2)
+        _fail(msg, 2)
 
 
 def _check_not_dirty(slug: str, worktree_path: Path) -> None:  # noqa: ARG001
@@ -277,19 +279,17 @@ def _check_not_dirty(slug: str, worktree_path: Path) -> None:  # noqa: ARG001
         status = _git("-C", str(worktree_path), "status", "--porcelain", check=False)
         if status.strip():
             n = len(status.strip().split("\n"))
-            click.echo(
+            msg = (
                 f"Worktree has {n} uncommitted file(s). "
-                "Commit or stash before removing worktree.",
-                err=True,
+                "Commit or stash before removing worktree."
             )
-            raise SystemExit(2)
+            _fail(msg, 2)
     if _is_submodule_dirty():
-        click.echo(
+        msg = (
             "Submodule (agent-core) has uncommitted changes. "
-            "Commit or stash before removing worktree.",
-            err=True,
+            "Commit or stash before removing worktree."
         )
-        raise SystemExit(2)
+        _fail(msg, 2)
 
 
 def _update_session_and_amend(slug: str) -> bool:
@@ -306,7 +306,7 @@ def _update_session_and_amend(slug: str) -> bool:
         if line and not line.endswith("agents/session.md")
     ]
     if other_dirty:
-        click.echo("Warning: skipping session amend (parent repo dirty)", err=True)
+        click.echo("Warning: skipping session amend (parent repo dirty)")
         return False
     status_output = _git("status", "--porcelain", "agents/session.md", check=False)
     if not status_output.strip():
@@ -360,7 +360,7 @@ def rm(slug: str, confirm: bool, force: bool) -> None:  # noqa: FBT001
     if branch_exists:
         _delete_branch(slug, removal_type)
         if warning := _delete_submodule_branch(slug):
-            click.echo(warning, err=True)
+            click.echo(warning)
     amend_note = " Merge commit amended." if amended else ""
     detail = " (focused session only)" if removal_type == "focused" else ""
     prefix = "Removed worktree" if removal_type is None else "Removed"

@@ -114,7 +114,6 @@
 ## Worktree Tasks
 
 
-- [ ] **Worktree new error formatting** → `wt-new-errors` — clean up `derive_slug` error output (duplicated traceback, no agent-friendly guidance) | sonnet
 
 ## Blockers / Gotchas
 
