@@ -182,6 +182,76 @@ Content here.
     assert "line 12" in errors[0]
 
 
+def test_how_to_prefix_accepted(tmp_path: Path) -> None:
+    """Test that 'How to' prefix with 2 content words returns no errors."""
+    learnings_file = tmp_path / "learnings.md"
+    learnings_file.write_text("""# Learnings
+
+Preamble line 2
+Preamble line 3
+Preamble line 4
+Preamble line 5
+Preamble line 6
+Preamble line 7
+Preamble line 8
+Preamble line 9
+Preamble line 10
+## How to encode paths
+Content here.
+""")
+    errors = validate(Path("learnings.md"), tmp_path)
+    assert errors == []
+
+
+def test_how_without_to_rejected(tmp_path: Path) -> None:
+    """Test that 'How encode' (missing 'to') is rejected as invalid prefix."""
+    learnings_file = tmp_path / "learnings.md"
+    learnings_file.write_text("""# Learnings
+
+Preamble line 2
+Preamble line 3
+Preamble line 4
+Preamble line 5
+Preamble line 6
+Preamble line 7
+Preamble line 8
+Preamble line 9
+Preamble line 10
+## How encode
+Content here.
+""")
+    errors = validate(Path("learnings.md"), tmp_path)
+    assert len(errors) == 1
+    assert "prefix" in errors[0].lower()
+    assert "line 12" in errors[0]
+
+
+def test_combined_errors_reported(tmp_path: Path) -> None:
+    """Test that prefix error and content word error are both reported."""
+    learnings_file = tmp_path / "learnings.md"
+    learnings_file.write_text("""# Learnings
+
+Preamble line 2
+Preamble line 3
+Preamble line 4
+Preamble line 5
+Preamble line 6
+Preamble line 7
+Preamble line 8
+Preamble line 9
+Preamble line 10
+## When testing
+Content here.
+
+## Bad
+More content.
+""")
+    errors = validate(Path("learnings.md"), tmp_path)
+    assert len(errors) == 2
+    assert any("content word" in e.lower() for e in errors)
+    assert any("prefix" in e.lower() for e in errors)
+
+
 def test_multiple_errors_reported(tmp_path: Path) -> None:
     """Test that multiple errors are all reported."""
     learnings_file = tmp_path / "learnings.md"
