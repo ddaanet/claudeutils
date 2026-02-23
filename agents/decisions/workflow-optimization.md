@@ -122,7 +122,7 @@ File count is a proxy — 7 files with independent additive changes can be simpl
 
 **Anti-pattern:** Producing scoring frameworks, evaluation axes, or "best practice" documents from internal reasoning alone — yields confabulated methodologies with subjective weights and ungrounded criteria. Also: framing grounded output as project-specific problems validated by external research (inverted framing).
 
-**Correct pattern:** Invoke `/ground` skill. Diverge-converge with parallel branches: internal (brainstorm for project-specific dimensions) + external (web search for established frameworks). Synthesize by mapping internal dimensions onto external skeleton.
+**Correct pattern:** Invoke `/ground` skill. Diverge-converge with parallel branches: internal explore (codebase or conceptual scope for project-specific dimensions) + external research (web search for established frameworks). Both run as parallel Task agents writing to `plans/reports/`. Synthesize by mapping internal dimensions onto external skeleton.
 
 **Framing rule — general first:** State each principle as the general insight derived from external research. Project-specific implementation is an instance that validates the principle. The internal branch confirms applicability; it does not define the principle. Inverted framing (project-specific → external validation) produces entries that read as local fixes rather than transferable knowledge.
 
@@ -178,17 +178,17 @@ File count is a proxy — 7 files with independent additive changes can be simpl
 
 **Impact:** Review/correction agents: corrector (code + fixes, sonnet), design-corrector (architecture, opus).
 
-### When Brainstorming
+### When Using Conceptual Explore
 
-**Decision Date:** 2026-02-16
+**Decision Date:** 2026-02-16 (updated 2026-02-24: brainstorm renamed to conceptual explore)
 
-**Decision:** Brainstorming always delegates to opus. Use `Task(subagent_type: "general-purpose", model: "opus")`.
+**Decision:** Conceptual exploration (generative divergence) always delegates to opus. Use `Task(subagent_type: "general-purpose", model: "opus")`.
 
-**Anti-pattern:** Running brainstorm at sonnet tier because the parent workflow is sonnet.
+**Anti-pattern:** Running conceptual explore at sonnet tier because the parent workflow is sonnet.
 
-**Correct pattern:** Brainstorming is generative divergence — requires opus regardless of the invoking workflow's model tier. Explore (codebase pattern extraction) can run at sonnet.
+**Correct pattern:** Conceptual exploration is generative divergence — requires opus regardless of the invoking workflow's model tier. Codebase exploration (pattern extraction) can run at sonnet.
 
-**Rationale:** Sonnet underperforms on open-ended generative tasks. The ground skill's internal branch and design exploration both need opus for brainstorming to surface non-obvious dimensions.
+**Rationale:** Sonnet underperforms on open-ended generative tasks. The ground skill's internal branch and design exploration both need opus for conceptual scope to surface non-obvious dimensions.
 
 ### When Research Required Before Outline
 

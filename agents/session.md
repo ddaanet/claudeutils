@@ -96,7 +96,6 @@
   - Plan: recall-pass | Status: grounded (brief + grounding report complete)
   - Next: define FRs from discussion conclusions + grounding, then `/design`
 
-- [ ] **Update grounding skill** → `update-grounding-skill` — Use scouts for divergent-convergent, produce exploration artifacts | opus
 
 ## Blockers / Gotchas
 
