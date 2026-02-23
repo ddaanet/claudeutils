@@ -65,6 +65,15 @@ def validate(path: Path, root: Path, max_words: int = MAX_WORDS) -> list[str]:
                 f"  line {lineno}: prefix required — title must start with "
                 f"'When ' or 'How to ': ## {title}"
             )
+        else:
+            # Content word count check: min 2 words after prefix
+            words = title.split()
+            content_words = words[2:] if title.startswith("How to ") else words[1:]
+            if len(content_words) < 2:
+                errors.append(
+                    f"  line {lineno}: insufficient content words — need at least 2 "
+                    f"content words after prefix: ## {title}"
+                )
 
         # Word count check
         words = title.split()
