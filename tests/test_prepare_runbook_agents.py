@@ -14,6 +14,7 @@ _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 generate_agent_frontmatter = _mod.generate_agent_frontmatter
 get_phase_baseline_type = _mod.get_phase_baseline_type
 generate_phase_agent = _mod.generate_phase_agent
+detect_phase_types = _mod.detect_phase_types
 
 
 def setup_baseline_agents(tmp_path: Path) -> None:
@@ -30,6 +31,26 @@ def setup_baseline_agents(tmp_path: Path) -> None:
         "---\nname: artisan\ndescription: Artisan agent\n---\n\n"
         "# Artisan Baseline\n\nGeneral execution protocol.\n"
     )
+
+
+class TestDetectPhaseTypes:
+    """Phase type detection from assembled runbook content."""
+
+    def test_detect_phase_types_mixed(self) -> None:
+        """Mixed content: TDD, inline, and general phases detected correctly."""
+        content = (
+            "### Phase 1: Core functions\n\n"
+            "## Cycle 1.1: First cycle\n"
+            "**RED Phase:** test\n"
+            "**GREEN Phase:** impl\n\n"
+            "### Phase 2: Infrastructure (type: inline)\n\n"
+            "Some inline orchestration text.\n\n"
+            "### Phase 3: Cleanup\n\n"
+            "## Step 3.1: Do cleanup\n"
+            "Step content here.\n"
+        )
+        result = detect_phase_types(content)
+        assert result == {1: "tdd", 2: "inline", 3: "general"}
 
 
 class TestPhaseBaselineType:
