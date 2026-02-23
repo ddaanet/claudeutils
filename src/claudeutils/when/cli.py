@@ -43,7 +43,11 @@ def when_cmd(queries: tuple[str, ...]) -> None:
         parsed = _parse_operator_query(arg)
         if parsed is None:
             operators = ", ".join(sorted(VALID_OPERATORS))
-            msg = f"Error: Query must start with a valid operator ({operators})."
+            word = arg.split(" ", 1)[0]
+            if word.lower() in VALID_OPERATORS:
+                msg = f"Error: Query '{arg}' has operator '{word}' but no query body."
+            else:
+                msg = f"Error: Query must start with a valid operator ({operators})."
             click.echo(msg, err=True)
             sys.exit(1)
         operator, query_str = parsed

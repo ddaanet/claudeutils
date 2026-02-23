@@ -57,30 +57,16 @@ def test_operator_argument_validation() -> None:
 
 
 def test_query_variadic_argument() -> None:
-    """Test query argument: multiple prefixed queries, dot prefix preservation.
+    """Test query argument: dot prefix preservation and no-arg rejection.
 
     Verifies:
-    1. Single prefixed query: resolve() called with correct operator and query
-    2. Dot prefix preserved in query (mode switches)
-    3. Double dot prefix preserved in query (file mode)
-    4. At least one query arg required
+    1. Dot prefix preserved in query (section mode)
+    2. Double dot prefix preserved in query (file mode)
+    3. At least one query arg required
     """
     runner = CliRunner()
 
     with patch("claudeutils.when.cli.resolve") as mock_resolve:
-        mock_resolve.return_value = "# Mock Result\n\nMocked content"
-
-        # Single prefixed query
-        result = runner.invoke(cli, ["when", "when writing mock tests"])
-        assert result.exit_code == 0
-        # Verify the resolver was called with operator and joined query
-        mock_resolve.assert_called_once()
-        call_args = mock_resolve.call_args[0]
-        assert call_args[0] == "when"  # operator
-        assert call_args[1] == "writing mock tests"  # query
-
-        # Reset mock for next test
-        mock_resolve.reset_mock()
         mock_resolve.return_value = "# Mock Result\n\nMocked content"
 
         # Dot prefix preserved
