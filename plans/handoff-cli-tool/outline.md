@@ -46,7 +46,7 @@ All subcommands:
 - Exit code carries the semantic signal: 0=success, 1=pipeline error (runtime failure), 2=input validation (malformed caller input)
 - No stderr — LLM callers consume stdout; exit code determines success/failure
 
-Error output uses `**Header:** content` format (same as success). Stop errors include `STOP:` directive for data-loss risk cases. Aligns with worktree merge pattern (all output to stdout, exit code carries signal).
+Error and warning output uses `**Header:** content` format. Stop errors include `STOP:` directive for data-loss risk cases. Success output varies by subcommand (commit: raw git passthrough; handoff/status: structured markdown). Aligns with worktree merge pattern (all output to stdout, exit code carries signal).
 
 ### S-4: Session.md parser
 
@@ -149,6 +149,7 @@ Pipeline: validate → vet check → precommit → stage → submodule commit �
 
 ## Options
 - no-vet
+- amend
 
 ## Submodule Message
 > 🤖 Update vet-requirement fragment
@@ -164,7 +165,7 @@ Pipeline: validate → vet check → precommit → stage → submodule commit �
 
 **Sections:**
 - `## Files` — required, first. Bulleted paths to stage (modifications, additions, deletions — `git add` handles all).
-- `## Options` — optional. `no-vet` (skip vet check), `just-lint` (lint only). Unknown options → error (fail-fast).
+- `## Options` — optional. `no-vet` (skip vet check), `just-lint` (lint only), `amend` (amend previous commit). Unknown options → error (fail-fast).
 - `## Submodule Message` — conditionally required (see C-2). Blockquoted.
 - `## Message` — required, last. Blockquoted. Everything from `## Message` to EOF is message body — safe for content containing `## ` lines.
 
@@ -172,13 +173,32 @@ Parsing: `## ` prefix matched against known section names. Unknown `## ` within 
 
 ### Output
 
-All output to stdout as structured markdown. Exit code carries success/failure signal.
+All output to stdout as structured markdown. Exit code carries success/failure signal. Success path: git CLI output only — gate results omitted (exit 0 is the signal). Failure path: gate-specific diagnostic output. Report deviations, not confirmations.
 
-Success (exit 0):
+Success — parent only (exit 0):
 ```markdown
-- **Committed:** a7f38c2
-- **Vet check:** passed
-- **Precommit:** passed
+[session-cli-tool a7f38c2] ✨ Add commit CLI with scripted vet check
+ 3 files changed, 142 insertions(+), 8 deletions(-)
+ create mode 100644 src/commit/gate.py
+```
+
+Success — with submodule (exit 0):
+```markdown
+agent-core:
+[session-cli-tool 4b2c1a0] 🤖 Update vet-requirement fragment
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+[session-cli-tool a7f38c2] ✨ Add commit CLI with scripted vet check
+ 4 files changed, 142 insertions(+), 8 deletions(-)
+```
+
+Submodule output labeled with `agent-core:` prefix. Parent output unlabeled (default context). Distinguishes repos when branch names are identical.
+
+Amend success (exit 0):
+```markdown
+[session-cli-tool e91b2d4] ✨ Add commit CLI with scripted vet check
+ Date: Sun Feb 23 10:15:00 2026 -0800
+ 4 files changed, 158 insertions(+), 8 deletions(-)
+ create mode 100644 src/commit/gate.py
 ```
 
 Vet check failure — unreviewed files (exit 1):
@@ -196,8 +216,7 @@ Vet check failure — stale report (exit 1):
 
 Precommit failure (exit 1):
 ```markdown
-- **Vet check:** passed
-- **Precommit:** failed
+**Precommit:** failed
 
 ruff check: 2 errors
 ...
@@ -215,10 +234,11 @@ Warning + success (exit 0):
 ```markdown
 **Warning:** Submodule message provided but no agent-core changes found. Ignored.
 
-- **Committed:** a7f38c2
-- **Vet check:** passed
-- **Precommit:** passed
+[session-cli-tool a7f38c2] ✨ Add commit CLI with scripted vet check
+ 3 files changed, 142 insertions(+), 8 deletions(-)
 ```
+
+**Output principle:** Report deviations only. Success = git output verbatim (agent extracts short hash from `[branch hash]` line). Failure = gate-specific diagnostic. Warnings prepended to git output. No CLI-side parsing of git output — passthrough preserves diagnostic value, especially for `amend` where the output reveals which commit was modified.
 
 Error taxonomy: **stop** (non-zero, no commit) for clean-files, missing submodule message, vet check failure, precommit failure. **Warning + proceed** (zero exit) for orphaned submodule message.
 
@@ -261,7 +281,14 @@ Each path in Files must appear in `git status --porcelain`. Clean files → erro
 | Pre-review (initial implementation, no vet report yet) | Skip vet check only | `no-vet` |
 | Combined | `just lint` + skip vet check | `just-lint` + `no-vet` |
 
-No option to skip validation entirely.
+Options are orthogonal: `amend` combines with any validation level above. `amend` alone = full validation + amend. `amend` + `just-lint` = lint + amend. `amend` + `no-vet` = precommit + amend without vet check. No option to skip validation entirely.
+
+### C-5: Amend semantics
+
+`amend` option passes `--amend` to `git commit`. Interactions:
+- **C-3 (input validation):** When amending, listed files may already be committed (in HEAD) with no further changes. Validation checks `git status --porcelain` (uncommitted changes) OR `git diff-tree --no-commit-id --name-only HEAD` (file is part of HEAD commit). Clean-file error only fires when a file appears in neither.
+- **C-2 (submodule):** Amend propagation is directional — submodule amend implies parent amend (pointer hash changes), but parent-only amend is independent. When submodule files are in the amend set: amend submodule → re-stage pointer → amend parent. When only parent files: amend parent only.
+- **Message:** Required even with `amend` — no `--no-edit` implicit behavior. The caller provides the full (potentially updated) message.
 
 ---
 
@@ -347,5 +374,28 @@ Old format (no metadata) → defaults. Empty sections omitted.
 - Phase 3: Handoff pipeline — **TDD** (stdin parsing, session.md writes, committed detection, state caching, diagnostics)
 - Phase 4: Commit parser + input validation — **TDD** (markdown parsing, file status check, submodule message consistency)
 - Phase 5: Commit scripted vet check — **TDD** (pyproject.toml patterns, file classification, report discovery + freshness)
-- Phase 6: Commit pipeline + output — **TDD** (staging, submodule coordination, structured output)
+- Phase 6: Commit pipeline + output — **TDD** (staging, submodule coordination, amend, structured output with git passthrough)
 - Phase 7: Integration tests — **TDD** (end-to-end across subcommands, real git repos)
+
+## Decision References
+
+Decisions and learnings that inform implementation:
+
+**CLI conventions** (`agents/decisions/cli.md`):
+- S-3 output/error: all output to stdout, exit code carries signal — `/when writing CLI output` (no destructive suggestions)
+- Error routing: `/how output errors to stderr` → overridden by S-3 (stdout-only for LLM callers)
+- Exit codes: `/when writing error exit code` (consolidate display+exit, `_fail()` pattern)
+- Error layers: `/when adding error handling to call chain` (context at failure site, display at top level)
+- State queries: `/when checking expected program state` (`_git_ok()` boolean pattern)
+
+**LLM-caller design** (`agents/learnings.md`):
+- Structured markdown on stdin/stdout — no quoting issues, natural multiline (`When designing CLI tools for LLM callers`)
+- CLI output consumed by agents: facts only, no recovery suggestions (`When CLI outputs errors consumed by LLM agents`)
+- Git output passthrough: agent extracts short hash from `[branch hash]` line, full output enables amend correctness diagnosis (design decision, this outline)
+
+**Testing** (`agents/decisions/testing.md`):
+- `/when testing CLI tools` — Click CliRunner, in-process, isolated filesystem
+- Real git repos via `tmp_path` for commit/submodule integration tests
+
+**Output format** (`agents/decisions/cli.md`):
+- `/when choosing feedback output format` — text default, json optional (future extension point)
