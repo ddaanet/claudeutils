@@ -144,6 +144,11 @@ Structural validation in `src/claudeutils/validation/learnings.py`. Three new ch
 **Verify GREEN:** `just test tests/test_validation_learnings.py -v`
 **Verify no regression:** `just test -v`
 
+**Stop/Error Conditions:**
+- Existing test fixtures break after prefix check: update fixture titles per mapping above, don't remove error conditions they test
+
+**Dependencies:** None (first cycle)
+
 ---
 
 ## Cycle 1.2: Min 2 content words after prefix
@@ -163,6 +168,11 @@ Structural validation in `src/claudeutils/validation/learnings.py`. Three new ch
 **Verify GREEN:** `just test tests/test_validation_learnings.py -v`
 **Verify no regression:** `just test -v`
 
+**Stop/Error Conditions:**
+- Content word count logic differs for "When" (1-word prefix) vs "How to" (2-word prefix) — verify both paths
+
+**Dependencies:** Cycle 1.1 (prefix check must exist before content word check)
+
 ---
 
 ## Cycle 1.3: Edge cases and combined validation
@@ -179,6 +189,11 @@ Structural validation in `src/claudeutils/validation/learnings.py`. Three new ch
 
 **Verify GREEN:** `just test tests/test_validation_learnings.py -v`
 **Verify no regression:** `just test -v`
+
+**Stop/Error Conditions:**
+- `test_how_to_prefix_accepted` passes immediately (no RED fail) → expected, this is a regression-guard test verifying existing logic accepts valid "How to" prefix
+
+**Dependencies:** Cycles 1.1, 1.2 (edge cases validate the combined logic)
 
 **Phase 1 Checkpoint:** `just precommit` — validates new checks propagate through CLI.
 
@@ -326,6 +341,12 @@ Rewrite Click command for one-arg syntax with batched recall.
 **Verify GREEN:** `just test tests/test_when_cli.py -v`
 **Verify no regression:** `just test -v`
 
+**Stop/Error Conditions:**
+- resolver.py signature must NOT change — CLI parses operator, calls resolve(operator, query, ...) as before
+- If Click arg parsing conflicts with dot-prefix queries (e.g., "when .Section"), test dot-prefix in existing test migration
+
+**Dependencies:** None (first cycle in Phase 4)
+
 ---
 
 ## Cycle 4.2: Batched recall
@@ -345,6 +366,12 @@ Rewrite Click command for one-arg syntax with batched recall.
 **Verify GREEN:** `just test tests/test_when_cli.py -v`
 **Verify no regression:** `just test -v`
 
+**Stop/Error Conditions:**
+- Batch separator must not appear in single-query output (backward compat)
+- If resolve() raises ResolveError on one query, decide: fail fast or collect errors — fail fast (exit on first error)
+
+**Dependencies:** Cycle 4.1 (batch iterates over single-arg queries)
+
 ---
 
 ## Cycle 4.3: Invalid prefix rejection
@@ -363,6 +390,11 @@ Rewrite Click command for one-arg syntax with batched recall.
 
 **Verify GREEN:** `just test tests/test_when_cli.py -v`
 **Verify no regression:** `just test -v`
+
+**Stop/Error Conditions:**
+- Prefix validation must happen BEFORE resolve() call — invalid prefix should not reach resolver
+
+**Dependencies:** Cycle 4.1 (prefix parsing logic exists before validation added)
 
 **Phase 4 Checkpoint:** `just precommit` passes. Verify dot-prefix modes still work (covered by existing test migration in 4.1).
 

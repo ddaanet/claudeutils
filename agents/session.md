@@ -1,31 +1,37 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Design Phase B complete. Outline finalized with 6 phases, all FRs covered. Ready for `/runbook`.
+**Status:** Runbook complete, execution artifacts generated. Ready for `/orchestrate remember-skill-update` (restart required).
 
 ## Completed This Session
 
-**Design Phase B — outline refinement:**
-- Resolved KD-1 (hyphens): false premise — memory-index uses hyphens in 30+ triggers, allow them
-- Resolved KD-2 (migration): already done — all 54 titles use `When` prefix
-- Resolved KD-3 (agent duplication): eliminated by FR-8 (delete remember-task)
-- Brainstormed skill rename via opus agent → `/codify` selected (convergence between manual and agent picks)
-- Added FR-12 (recall CLI simplification: one-arg syntax + batched recall) and FR-13 (remove memory-index from CLAUDE.md)
-- Absorbed FR-10 (rename to `/codify`) and FR-11 (agent routing, no deferral) into outline
-- Systematic audit: verified all FR coverage, identified missing file references (test files, `/how` skill, `memory-index/SKILL.md`, `project-config.md`, precommit integration path)
-- Added Context References section for runbook agent discovery
-- Updated requirements.md to match outline (struck FR-7, Q-1, C-3; updated FR-2/3/4/5/10/11; added FR-12/13)
+**Design Phase B — outline refinement (prior session):**
+- Resolved KD-1 through KD-3, added FR-12/13, systematic audit, requirements.md updated
+
+**Runbook generation:**
+- TDD test plan prepared for Phases 1 and 4 (6 cycles total)
+- User clarified "min 2 words" means 2 content words after stripping prefix (not 2 total)
+- Updated requirements.md, outline.md to match content-words interpretation
+- Tier 3 assessment: 7 phases, 16 items, mixed TDD/general/inline
+- Outline generated, reviewed (outline-corrector: 3 major fixed), committed
+- Simplification pass: 18→15 items (batched trivial removals + same-module agent routing)
+- Sufficiency check passed → promoted outline to runbook (skipped full expansion)
+- Holistic review (runbook-corrector: 4 major + 1 minor, all fixed)
+- Pre-execution validation skipped (validator expects multi-file runbooks, not promoted single-file)
+- `prepare-runbook.py` generated 14 step files + agent + orchestrator plan
+- `/orchestrate remember-skill-update` copied to clipboard
 
 ## Pending Tasks
 
-- [ ] **Remember skill update** — `/runbook plans/remember-skill-update/outline.md` | sonnet
-  - Plan: remember-skill-update | Outline complete, 6 phases, all 13 FRs covered
-  - Phase 1: TDD validation (learnings.py — When/How prefix, min 2 words)
-  - Phase 2: Semantic guidance + pipeline simplification (SKILL.md, delete agents, handoff, CLAUDE.md)
-  - Phase 3: Agent routing for learnings (13 eligible agents)
-  - Phase 4: Recall CLI fix (one-arg syntax, batched recall) — TDD, independent
-  - Phase 5: Skill rename to `/codify` (~30 files)
-  - Phase 6: Frozen-domain analysis (independent)
+- [ ] **Remember skill update** — `/orchestrate remember-skill-update` | sonnet | restart
+  - Plan: remember-skill-update | Runbook ready, 7 phases, 16 items
+  - Phase 1: TDD validation (learnings.py — When/How prefix, min 2 content words)
+  - Phase 2: Semantic guidance + pipeline simplification (opus — skills, agents, CLAUDE.md)
+  - Phase 3: Agent routing for learnings (opus — 13 eligible agents)
+  - Phase 4: Recall CLI code (sonnet — one-arg syntax, batched recall)
+  - Phase 5: Recall CLI docs (inline — 4 skill/decision files)
+  - Phase 6: Skill rename to `/codify` (sonnet — ~30 files, requires restart)
+  - Phase 7: Frozen-domain analysis (inline — independent)
 
 ## Next Steps
 
-Run `/runbook plans/remember-skill-update/outline.md` to generate execution runbook from the finalized outline.
+Restart session, paste `/orchestrate remember-skill-update` from clipboard.
