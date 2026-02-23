@@ -105,7 +105,7 @@ All 14 cycles, 5 phases executed and validated. Parity testing for statusline ou
 
 ## learnings-consolidation
 
-Learnings consolidation infrastructure. 7 steps, 4 phases. Automated consolidation of learnings.md into permanent documentation. Affected: agent-core/skills/remember/, agent-core/bin/.
+Learnings consolidation infrastructure. 7 steps, 4 phases. Automated consolidation of learnings.md into permanent documentation. Affected: agent-core/skills/codify/, agent-core/bin/.
 
 ## workflow-feedback-loops
 
@@ -202,6 +202,10 @@ Safety gates for `_worktree rm`: dirty tree check (parent + submodule), exit cod
 ## worktree-cli-default
 
 CLI interface redesign: task name as positional argument (was `--task` flag), `--branch` for bare slug override, sandbox removal from `_worktree new` (no more `additionalDirectories` in settings.local.json). Absorbed: pre-merge untracked file fix, worktree skill adhoc mode, `--slug` override, `rm --confirm` gate fix (separated as orthogonal). Affected: src/claudeutils/worktree/cli.py, agent-core/skills/worktree/SKILL.md.
+
+## remember-skill-update
+
+13 FRs: learnings.py prefix + content word validation (TDD, 12 tests), CLI rewrite to one-arg syntax + batched recall (TDD, 8 tests), skill docs updated (title guidance, mechanical trigger derivation, inline execution, agent routing for 13 agents), pipeline simplification (deleted remember-task + memory-refactor agents, inline execution), renamed /remember → /codify (~30 files), removed memory-index from always-loaded context (~5000 tokens), frozen-domain analysis recommends UserPromptSubmit hook. Affected: src/claudeutils/validation/learnings.py, src/claudeutils/when/cli.py, agent-core/skills/codify/, agent-core/skills/handoff/, agent-core/skills/when/, agent-core/skills/how/, agent-core/skills/memory-index/, agents/decisions/project-config.md.
 
 ## quality-infrastructure
 

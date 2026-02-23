@@ -59,8 +59,24 @@ def validate(path: Path, root: Path, max_words: int = MAX_WORDS) -> list[str]:
     seen: dict[str, int] = {}
 
     for lineno, title in titles:
-        # Word count check
         words = title.split()
+
+        # Prefix check: title must start with When or How to
+        if not (title.startswith(("When ", "How to "))):
+            errors.append(
+                f"  line {lineno}: prefix required — title must start with "
+                f"'When ' or 'How to ': ## {title}"
+            )
+        else:
+            # Content word count check: min 2 words after prefix
+            content_words = words[2:] if title.startswith("How to ") else words[1:]
+            if len(content_words) < 2:
+                errors.append(
+                    f"  line {lineno}: insufficient content words — need at least 2 "
+                    f"content words after prefix: ## {title}"
+                )
+
+        # Word count check
         if len(words) > max_words:
             errors.append(
                 f"  line {lineno}: title has {len(words)} words (max {max_words}): "

@@ -128,12 +128,13 @@
   - `_session` group (handoff, status, commit)
   - Discussion conclusions baked into outline: amend, git passthrough, deviation-only output, submodule labeling
 
+- [x] **Deliverable review: remember-skill-update** — `/deliverable-review plans/remember-skill-update` | opus | restart
+- [ ] **UserPromptSubmit topic detection hook** — Phase 7 analysis recommends this as highest-impact recall improvement | sonnet
+  - Seed keyword table from 200+ memory-index triggers
+  - Inject matching decision content via additionalContext on prompt submit
+
 ## Worktree Tasks
 
-- [ ] **Remember skill update** → `remember-skill-update` — Resume `/design` Phase B | opus
-  - Plan: remember-skill-update | Outline reviewed, Phase B discussion next
-  - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
-  - Absorbs: memory-index auto-sync, learning ages consol, rename remember skill (FR-10), remember agent routing (FR-11)
 
 
 - [ ] **Merge artifact validation** → `merge-artifact-validation` — post-merge orphan detection in `_worktree merge` | sonnet
