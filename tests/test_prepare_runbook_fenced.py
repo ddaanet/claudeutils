@@ -114,6 +114,40 @@ class TestFencedPhaseHeaders:
         assert len(sections["inline_phases"]) == 0
         assert len(sections["steps"]) == 2
 
+    def test_extract_sections_step_content_intact_after_fenced_phase_header(
+        self,
+    ) -> None:
+        """Step content after a fenced phase header must not be truncated.
+
+        Second-pass phase boundary detection (save_current + clear) must be
+        fence-gated. Without the guard, the fenced phase header prematurely
+        closes the step accumulator and content after the fence is lost.
+        """
+        content = dedent("""\
+            ### Phase 1: Core (type: general)
+
+            ## Step 1.1: Setup
+
+            Preamble text.
+
+            ```
+            ### Phase 2: Example (type: inline)
+            Example content.
+            ```
+
+            Post-fence text that must be in step content.
+
+            ## Step 1.2: Verify
+
+            Other work.
+        """)
+        sections = extract_sections(content)
+        assert sections is not None
+        assert "1.1" in sections["steps"]
+        assert (
+            "Post-fence text that must be in step content." in sections["steps"]["1.1"]
+        )
+
 
 class TestFencedMultiBacktickFences:
     """Fence detection should handle 4+ backtick fences.
