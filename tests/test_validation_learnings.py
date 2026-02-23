@@ -15,10 +15,10 @@ Institutional knowledge accumulated across sessions.
 **Soft limit: 80 lines.** When approaching this limit, use `/remember` to consolidate.
 
 ---
-## Learning One
+## When learning one
 Content here.
 
-## Learning Two
+## When learning two
 More content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
@@ -41,12 +41,12 @@ Preamble line 7
 Preamble line 8
 Preamble line 9
 Preamble line 10
-## This is a title with way too many words for the validator
+## When this title has way too many words for the validator
 Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
-    assert "title has 12 words (max 5)" in errors[0]
+    assert "title has 11 words (max 5)" in errors[0]
     assert "line 12" in errors[0]
 
 
@@ -64,10 +64,10 @@ Preamble line 7
 Preamble line 8
 Preamble line 9
 Preamble line 10
-## First Learning Title
+## When first learning title
 Content here.
 
-## First learning title
+## When first learning title
 Different content but same title.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
@@ -90,7 +90,7 @@ Line 7
 Line 8
 Line 9
 Line 10
-## First Valid Title
+## When valid title
 Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
@@ -111,6 +111,29 @@ def test_missing_file_returns_no_errors(tmp_path: Path) -> None:
     assert errors == []
 
 
+def test_title_without_prefix_returns_error(tmp_path: Path) -> None:
+    """Test that title without When/How to prefix returns an error."""
+    learnings_file = tmp_path / "learnings.md"
+    learnings_file.write_text("""# Learnings
+
+Preamble line 2
+Preamble line 3
+Preamble line 4
+Preamble line 5
+Preamble line 6
+Preamble line 7
+Preamble line 8
+Preamble line 9
+Preamble line 10
+## Bad Title
+Content here.
+""")
+    errors = validate(Path("learnings.md"), tmp_path)
+    assert len(errors) == 1
+    assert "prefix" in errors[0].lower()
+    assert "line 12" in errors[0]
+
+
 def test_multiple_errors_reported(tmp_path: Path) -> None:
     """Test that multiple errors are all reported."""
     learnings_file = tmp_path / "learnings.md"
@@ -125,16 +148,16 @@ Preamble line 7
 Preamble line 8
 Preamble line 9
 Preamble line 10
-## First Title Word Count Too Long Here Now
+## When first title word count too long here
 Content here.
 
-## Second Title Word Count Too Long Here Now
+## When second title word count too long here
 Different content.
 
-## Duplicate Title
+## When duplicate title word
 Another content.
 
-## duplicate title
+## When duplicate title word
 Final content.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
