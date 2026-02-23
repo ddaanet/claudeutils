@@ -179,6 +179,8 @@
 **`_worktree rm --force` doesn't restore task to Pending:**
 - `rm --force` removes worktree but leaves task in Worktree Tasks section. Manual session.md edit needed to move back to Pending.
 
+- Blocker "Manual post-merge check required" is now resolved by the diff3 implementation [from: merge-artifact-validation]
+- `agents/learnings.md` at 227 lines (soft limit 80) — `/remember` consolidation overdue [from: merge-artifact-validation]
 ## Next Steps
 
 Four worktrees active: `remember-skill-update` (opus), `merge-artifact-validation` (sonnet), `session-cli-tool` (sonnet), `phase-scoped-agent-context` (sonnet).

@@ -39,15 +39,14 @@ Preamble line 5
 Preamble line 6
 Preamble line 7
 Preamble line 8
-Preamble line 9
-Preamble line 10
+---
 ## When this title has way too many words for the validator
 Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "title has 11 words (max 5)" in errors[0]
-    assert "line 12" in errors[0]
+    assert "line 11" in errors[0]
 
 
 def test_duplicate_titles_detected_case_insensitive(tmp_path: Path) -> None:
@@ -62,8 +61,7 @@ Preamble line 5
 Preamble line 6
 Preamble line 7
 Preamble line 8
-Preamble line 9
-Preamble line 10
+---
 ## When first learning title
 Content here.
 
@@ -73,8 +71,8 @@ Different content but same title.
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "duplicate title" in errors[0]
-    assert "line 15" in errors[0]
-    assert "first at line 12" in errors[0]
+    assert "line 14" in errors[0]
+    assert "first at line 11" in errors[0]
 
 
 def test_preamble_first_10_lines_skipped(tmp_path: Path) -> None:
@@ -123,15 +121,14 @@ Preamble line 5
 Preamble line 6
 Preamble line 7
 Preamble line 8
-Preamble line 9
-Preamble line 10
+---
 ## Bad Title
 Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "prefix" in errors[0].lower()
-    assert "line 12" in errors[0]
+    assert "line 11" in errors[0]
 
 
 def test_insufficient_content_words_returns_error(tmp_path: Path) -> None:
@@ -146,15 +143,14 @@ Preamble line 5
 Preamble line 6
 Preamble line 7
 Preamble line 8
-Preamble line 9
-Preamble line 10
+---
 ## When testing
 Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "content word" in errors[0].lower()
-    assert "line 12" in errors[0]
+    assert "line 11" in errors[0]
 
 
 def test_how_to_prefix_insufficient_content_words_returns_error(
@@ -171,15 +167,14 @@ Preamble line 5
 Preamble line 6
 Preamble line 7
 Preamble line 8
-Preamble line 9
-Preamble line 10
+---
 ## How to configure
 Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "content word" in errors[0].lower()
-    assert "line 12" in errors[0]
+    assert "line 11" in errors[0]
 
 
 def test_how_to_prefix_accepted(tmp_path: Path) -> None:
@@ -194,8 +189,7 @@ Preamble line 5
 Preamble line 6
 Preamble line 7
 Preamble line 8
-Preamble line 9
-Preamble line 10
+---
 ## How to encode paths
 Content here.
 """)
@@ -215,15 +209,14 @@ Preamble line 5
 Preamble line 6
 Preamble line 7
 Preamble line 8
-Preamble line 9
-Preamble line 10
+---
 ## How encode
 Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "prefix" in errors[0].lower()
-    assert "line 12" in errors[0]
+    assert "line 11" in errors[0]
 
 
 def test_combined_errors_reported(tmp_path: Path) -> None:
@@ -238,8 +231,7 @@ Preamble line 5
 Preamble line 6
 Preamble line 7
 Preamble line 8
-Preamble line 9
-Preamble line 10
+---
 ## When testing
 Content here.
 
@@ -264,8 +256,7 @@ Preamble line 5
 Preamble line 6
 Preamble line 7
 Preamble line 8
-Preamble line 9
-Preamble line 10
+---
 ## When first title word count too long here
 Content here.
 

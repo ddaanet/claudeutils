@@ -6,6 +6,7 @@ from pathlib import Path
 
 import click
 
+from claudeutils.validation.learnings import parse_segments
 from claudeutils.worktree.git_ops import _git
 from claudeutils.worktree.session import (
     extract_blockers,
@@ -142,26 +143,256 @@ def resolve_session_md(conflicts: list[str], slug: str | None = None) -> list[st
     return [c for c in conflicts if c != "agents/session.md"]
 
 
-def resolve_learnings_md(conflicts: list[str]) -> list[str]:
-    """Resolve agents/learnings.md conflict.
+def _format_conflict_segment(
+    heading: str, ours_body: list[str], theirs_body: list[str]
+) -> list[str]:
+    """Format a conflicting segment with diff3 markers."""
+    lines = [f"## {heading}"]
+    lines.append("<<<<<<< ours")
+    lines.extend(ours_body)
+    lines.append("=======")
+    lines.extend(theirs_body)
+    lines.append(">>>>>>> theirs")
+    return lines
 
-    Keep ours and append theirs-only content.
+
+def _segments_to_content_with_conflicts(
+    merged: dict[str, list[str]],
+    conflict_headings: list[str],
+    ours: dict[str, list[str]],
+    theirs: dict[str, list[str]],
+) -> str:
+    """Assemble content with diff3 conflict markers for conflicting segments."""
+    parts: list[str] = []
+    conflict_set = set(conflict_headings)
+    for heading, body in merged.items():
+        if heading == "":
+            parts.extend(body)
+        elif heading in conflict_set:
+            parts.extend(
+                _format_conflict_segment(
+                    heading, ours.get(heading, []), theirs.get(heading, [])
+                )
+            )
+        else:
+            parts.append(f"## {heading}")
+            parts.extend(body)
+    return "\n".join(parts)
+
+
+def resolve_learnings_md(conflicts: list[str]) -> list[str]:
+    """Resolve agents/learnings.md conflict using segment-level diff3.
+
+    If segment conflicts detected, writes conflict markers and leaves the file
+    unresolved (not staged, not removed from conflicts list).
     """
     if "agents/learnings.md" not in conflicts:
         return conflicts
 
+    base_content = _git("show", ":1:agents/learnings.md", check=False)
     ours_content = _git("show", ":2:agents/learnings.md", check=False)
     theirs_content = _git("show", ":3:agents/learnings.md", check=False)
 
-    ours_lines = set(ours_content.split("\n"))
-    theirs_lines = theirs_content.split("\n")
-    theirs_only = [line for line in theirs_lines if line not in ours_lines]
+    base_segs = parse_segments(base_content)
+    ours_segs = parse_segments(ours_content)
+    theirs_segs = parse_segments(theirs_content)
 
-    merged = ours_content
-    if theirs_only:
-        merged += "\n" + "\n".join(theirs_only)
+    merged_segs, conflict_headings = diff3_merge_segments(
+        base_segs, ours_segs, theirs_segs
+    )
 
-    Path("agents/learnings.md").write_text(merged)
+    if conflict_headings:
+        content = _segments_to_content_with_conflicts(
+            merged_segs, conflict_headings, ours_segs, theirs_segs
+        )
+        Path("agents/learnings.md").write_text(content)
+        # Leave in conflicts list — caller will report and exit 3
+        return conflicts
+
+    Path("agents/learnings.md").write_text(_segments_to_content(merged_segs))
     _git("add", "agents/learnings.md")
-
     return [c for c in conflicts if c != "agents/learnings.md"]
+
+
+def _resolve_one_sided_deletion(
+    present: list[str],
+    present_body: str,
+    base_body: str,
+) -> tuple[list[str] | None, bool]:
+    """Resolve when one side deleted the entry.
+
+    Returns (body_or_none, is_conflict) per deletion matrix rows 10-13.
+    """
+    if present_body == base_body:
+        # Present side unchanged → respect deletion (Rows 10, 11)
+        return None, False
+    # Present side modified → conflict (Rows 12, 13)
+    return present, True
+
+
+def _resolve_both_present(
+    heading: str,
+    base: dict[str, list[str]],
+    ours: dict[str, list[str]],
+    theirs: dict[str, list[str]],
+) -> tuple[list[str] | None, bool]:
+    """Resolve heading when present in both ours and theirs."""
+    if heading not in base:
+        # Rows 3-4: both new, no base — conflict if bodies differ
+        return ours[heading], ours[heading] != theirs[heading]
+
+    if heading == "":
+        # Preamble: additive merge
+        ours_set = set(ours[heading])
+        extra = [ln for ln in theirs[heading] if ln not in ours_set]
+        return ours[heading] + extra, False
+
+    # Rows 5-9: all three present, named entry
+    base_body = "\n".join(base[heading])
+    ours_body = "\n".join(ours[heading])
+    theirs_body = "\n".join(theirs[heading])
+    ours_changed = ours_body != base_body
+    theirs_changed = theirs_body != base_body
+
+    if ours_changed and theirs_changed:
+        # Row 8: convergent; Row 9: divergent
+        return ours[heading], ours_body != theirs_body
+    return theirs[heading] if theirs_changed else ours[heading], False
+
+
+def _resolve_heading(
+    heading: str,
+    base: dict[str, list[str]],
+    ours: dict[str, list[str]],
+    theirs: dict[str, list[str]],
+) -> tuple[list[str] | None, bool]:
+    """Resolve a single heading across base/ours/theirs.
+
+    Returns (body_or_none, is_conflict). None means delete/omit.
+    """
+    in_ours = heading in ours
+    in_theirs = heading in theirs
+
+    if not in_ours and not in_theirs:
+        return None, False  # Row 14
+
+    if in_ours and in_theirs:
+        return _resolve_both_present(heading, base, ours, theirs)
+
+    # One side absent
+    if not in_ours:
+        if heading not in base:
+            # Row 1: theirs-only new. Return None so diff3_merge_segments
+            # post-loop catch-all can append it in theirs-dict order.
+            return None, False
+        return _resolve_one_sided_deletion(
+            theirs[heading], "\n".join(theirs[heading]), "\n".join(base[heading])
+        )
+
+    # not in_theirs
+    if heading not in base:
+        return ours[heading], False  # Row 2: ours-only new
+    return _resolve_one_sided_deletion(
+        ours[heading], "\n".join(ours[heading]), "\n".join(base[heading])
+    )
+
+
+def diff3_merge_segments(
+    base: dict[str, list[str]],
+    ours: dict[str, list[str]],
+    theirs: dict[str, list[str]],
+) -> tuple[dict[str, list[str]], list[str]]:
+    """Three-way segment merge using diff3 semantics.
+
+    Resolution matrix:
+    - only ours modified: keep ours
+    - only theirs modified: take theirs
+    - both modified: conflict (returned in conflicts list, ours kept)
+    - new in theirs only: append
+    - new in ours only: keep
+    - unchanged: keep
+    """
+    all_headings: list[str] = []
+    seen: set[str] = set()
+    for heading in list(base) + list(ours) + list(theirs):
+        if heading not in seen:
+            all_headings.append(heading)
+            seen.add(heading)
+
+    merged: dict[str, list[str]] = {}
+    conflicts: list[str] = []
+
+    for heading in all_headings:
+        body, is_conflict = _resolve_heading(heading, base, ours, theirs)
+        if body is not None:
+            merged[heading] = body
+        if is_conflict:
+            conflicts.append(heading)
+
+    # Append theirs-only new entries missed by iteration order
+    for heading, body in theirs.items():
+        if heading not in base and heading not in ours and heading not in merged:
+            merged[heading] = body
+
+    return merged, conflicts
+
+
+def _segments_to_content(segments: dict[str, list[str]]) -> str:
+    """Reassemble segments dict into file content string."""
+    parts: list[str] = []
+    for heading, body in segments.items():
+        if heading == "":
+            parts.extend(body)
+        else:
+            parts.append(f"## {heading}")
+            parts.extend(body)
+    return "\n".join(parts)
+
+
+def remerge_learnings_md() -> None:
+    """Segment-level diff3 merge for learnings.md; skips when no MERGE_HEAD."""
+    merge_head_check = subprocess.run(
+        ["git", "rev-parse", "--verify", "MERGE_HEAD"],
+        capture_output=True,
+        check=False,
+    )
+    if merge_head_check.returncode != 0:
+        return
+
+    # Skip if learnings.md doesn't exist on disk (repo doesn't use it)
+    if not Path("agents/learnings.md").exists():
+        return
+
+    merge_base = _git("merge-base", "HEAD", "MERGE_HEAD", check=False)
+    base_content = _git("show", f"{merge_base}:agents/learnings.md", check=False)
+    ours_content = _git("show", "HEAD:agents/learnings.md", check=False)
+    theirs_content = _git("show", "MERGE_HEAD:agents/learnings.md", check=False)
+
+    ours_segs = parse_segments(ours_content)
+    theirs_segs = parse_segments(theirs_content)
+    merged_segments, conflicts = diff3_merge_segments(
+        parse_segments(base_content),
+        ours_segs,
+        theirs_segs,
+    )
+
+    if conflicts:
+        click.echo(
+            f"learnings.md: {len(conflicts)} segment conflict(s): {conflicts}",
+            err=True,
+        )
+        click.echo(
+            "Resolve agents/learnings.md and re-run merge.",
+            err=True,
+        )
+        conflict_content = _segments_to_content_with_conflicts(
+            merged_segments,
+            conflicts,
+            ours_segs,
+            theirs_segs,
+        )
+        Path("agents/learnings.md").write_text(conflict_content)
+        raise SystemExit(3)
+
+    Path("agents/learnings.md").write_text(_segments_to_content(merged_segments))
+    _git("add", "agents/learnings.md")

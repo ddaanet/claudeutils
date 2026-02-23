@@ -5,6 +5,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 **Soft limit: 80 lines.** When approaching this limit, use `/codify` to consolidate older learnings into permanent documentation (behavioral rules → `agent-core/fragments/*.md`, technical details → `agents/decisions/*.md` or `agents/decisions/implementation-notes.md`). Keep the 3-5 most recent learnings for continuity.
 
 ---
+**Soft limit: 80 lines.** When approaching this limit, use `/remember` to consolidate older learnings into permanent documentation (behavioral rules → `agent-core/fragments/*.md`, technical details → `agents/decisions/*.md` or `agents/decisions/implementation-notes.md`). Keep the 3-5 most recent learnings for continuity.
 ## When analyzing sub-agent token costs
 - Anti-pattern: Treating `total_tokens` from CLI `<usage>` as fresh input cost. The field sums all token types (cache reads + writes + fresh) without decomposition. Sub-agent per-turn cache breakdown isn't in session JSONL — only main session assistant messages carry `cache_read_input_tokens`/`cache_creation_input_tokens`.
 - Correct pattern: Use main session first-turn `cache_creation_input_tokens` to measure system prompt size (~43K tokens p50). Use minimal-work agents (≤3 tool uses) for fixed overhead proxy. For actual $ cost with cache breakdown, use litellm proxy with SQLite spend logging.
