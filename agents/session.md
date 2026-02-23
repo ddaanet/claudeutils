@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Quality infrastructure reform complete. All 3 FRs delivered: 11 agent renames + propagation, deslop restructuring, 5 code density decisions.
+**Status:** Quality infra reform complete. Code density entries remediated — haiku prose replaced with sonnet rewrite from grounding doc.
 
 ## Completed This Session
 
@@ -18,17 +18,22 @@
 **Verification:**
 - Zero grep hits for all old names across production files (plans/ excluded as historical)
 - `just precommit` passes
-- 5 code density entries in cli.md, 5 /when triggers in memory-index.md
 - artisan.md + test-driver.md have project-conventions skill injection
 - deslop.md deleted, prose rules in communication.md "Prose Quality" section
 
+**Code density remediation:**
+- Phase 3 entries were haiku-authored prose (editorial synthesis from grounding doc — model tier mismatch)
+- Sonnet agent rewrote 5 cli.md entry bodies from `plans/reports/code-density-grounding.md`: restored grounding context, source citations, qualifiers haiku dropped
+- Opus (interactive) renamed H3 headings from outcome-named to activity-at-decision-point per naming rules, rewrote 5 memory-index.md triggers to match
+
 ## Pending Tasks
 
-*(none)*
+- [ ] **Deliverable review: quality-infra reform** — `/deliverable-review` | sonnet
+  - Phase 3 code density entries already remediated (haiku contamination → sonnet body rewrite + opus heading/trigger rename). Review should focus on the rest: 11 agent renames + propagation (Steps 1.1-1.6), deslop restructuring (Phase 2), symlink state, project-conventions skill injection. Plan: `plans/quality-infrastructure/`
 
 ## Next Steps
 
-Plan complete. Session restart recommended — agent definitions changed (11 renames, skill directory rename, fragment rename). New names load on restart.
+Session restart recommended — agent definitions changed (11 renames, skill directory rename, fragment rename). New names load on restart.
 
 ## Reference Files
 

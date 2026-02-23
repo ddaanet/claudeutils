@@ -27,11 +27,11 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when choosing feedback output format
 /how format token count output
 /when writing CLI output | no destructive suggestions agents follow instructions
-/when expected state checks return booleans | EAFP exceptional events only
-/when error termination consolidates display and exit | single call
-/when formatter expansion signals abstraction | 5+ lines Black kwargs helper
-/when exceptions are for exceptional events | custom types not ValueError
-/when error handling layers dont overlap | context at site display at top
+/when checking expected program state | boolean return not exception EAFP state-query
+/when writing error exit code | consolidate display exit single call Click
+/when call site expands under formatter | 5+ lines Black kwargs extract helper
+/when raising exceptions for expected conditions | custom types not ValueError broad masking
+/when adding error handling to call chain | layer separation context site display top
 
 ## agents/decisions/data-processing.md
 
