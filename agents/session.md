@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Inline phase bleed bug fixed in prepare-runbook.py. tdd-auditor scope violation detection added.
+**Status:** Task triage and merge audit. 3 tasks absorbed, 1 delivered plan removed, merge orphan found and fixed.
 
 ## Completed This Session
 
@@ -26,6 +26,21 @@
 **Learnings correction:**
 - Corrected "When inline phases are appended to last step file" — removed false "actually beneficial" rationalization, documented as defect with detection gap
 
+**Task triage:**
+- Absorbed "Task agent guardrails" into Orchestrate evolution — tool-call limits, regression detection, model escalation all additive to existing design
+- Absorbed "RED pass protocol" into Orchestrate evolution — classification taxonomy, blast radius, defect impact evaluation additive
+- Removed "Runbook evolution" — all FRs already delivered (prose atomicity, testing diamond, self-modification discipline all present in SKILL.md). Deleted `plans/runbook-evolution/`
+- Updated "Migrate test suite to diamond" dependency note (runbook evolution delivered)
+
+**Merge audit (last 3 merges):**
+- No task loss across merges. Only drop: "Runbook generation fixes" correctly superseded by completed orchestration task
+- Found 6 orphaned bullets in learnings.md from merge `6086650e` — headingless duplicates of existing entries (lines 211-216). Removed
+- Brief written: `plans/worktree-merge-resilience/brief.md` documenting the instance, commit IDs, root cause, detection gap
+
+**Worktrees created:**
+- `remember-skill-update` — Remember skill update (opus design Phase B)
+- `runbook-fenced-blocks` — Runbook fenced code blocks (sonnet)
+
 ## Pending Tasks
 
 - [ ] **Codebase sweep** — `/design plans/codebase-sweep/requirements.md` | sonnet
@@ -41,6 +56,8 @@
 - [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
   - Design complete with Phase 1 (foundation) + Phase 2 (ping-pong TDD), ready for runbook planning
   - Insights input: ping-pong TDD agent pattern — alternating tester/implementer agents with mechanical RED/GREEN gates between handoffs. Tester holds spec context (can't mirror code structure), implementer holds codebase context (can't over-implement beyond test demands). Resume-based context preservation avoids startup cost per cycle
+  - Absorbs: Task agent guardrails — tool-call limits, regression detection, model escalation (haiku→sonnet→opus on capability mismatch) all additive. Design covers agent→user escalation and context-size heuristic but not inter-tier promotion or tool-call budgets
+  - Absorbs: RED pass protocol — classification taxonomy, blast radius procedure, defect impact evaluation. Design has remediation + escalation patterns but not formal classification or blast radius assessment
 
 - [ ] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet
   - Plan: handoff-cli-tool | Status: designed (outline reviewed 5 rounds, ready for runbook)
@@ -51,24 +68,27 @@
 
 - [ ] **Merge artifact validation** — post-merge orphan detection in `_worktree merge` | sonnet
   - Plan: worktree-merge-resilience | Diagnostic: `plans/worktree-merge-resilience/diagnostic.md`
+  - New instance found: `6086650e` merge produced 6 orphaned bullets in learnings.md (headingless, under wrong entry). Brief: `plans/worktree-merge-resilience/brief.md`
 
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 
 - [ ] **Consolidate learnings** — `/remember` | sonnet
-  - learnings.md at 197 lines (>150 trigger), 0 entries ≥7 active days
+  - learnings.md at 227 lines (>150 trigger), 0 entries ≥7 active days
 
 - [ ] **Worktree rm confirm gate fix** — fix `rm --confirm` gate | sonnet
   - Separated from CLI default task as orthogonal
 
-- [x] **Orchestrate runbook generation fixes** — `/orchestrate runbook-generation-fixes` | sonnet | restart
-  - 13 TDD cycles: Phases 1-4 sequential, Phase 5 inline (orchestrator-direct, opus for skill prose)
-  - Phase 1: numbering fix (3 cycles), Phase 2: model propagation (5 cycles), Phase 3: context extraction (3 cycles), Phase 4: orchestrator plan (2 cycles)
-  - Affected files: prepare-runbook.py, tests/test_prepare_runbook_mixed.py (new), SKILL.md, implementation-notes.md
-
 - [ ] **Precommit python3 redirect** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
   - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
 
-- [ ] **Runbook fenced code blocks** — update prepare-runbook.py to honor fenced code blocks | sonnet
+## Worktree Tasks
+
+- [ ] **Remember skill update** → `remember-skill-update` — Resume `/design` Phase B | opus
+  - Plan: remember-skill-update | Outline reviewed, Phase B discussion next
+  - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
+  - Absorbs: memory-index auto-sync, learning ages consol, rename remember skill (FR-10), remember agent routing (FR-11)
+
+- [ ] **Runbook fenced code blocks** → `runbook-fenced-blocks` — update prepare-runbook.py to honor fenced code blocks | sonnet
   - `extract_sections()`/`extract_cycles()` parse headers inside fenced code blocks, causing duplicate step errors
 
 ## Backlog
@@ -85,15 +105,8 @@
 
 ### Pipeline & Orchestration
 - [ ] **Model directive pipeline** — Model guidance design → runbook → execution | opus
-- [ ] **RED pass protocol** — Formalize orchestrator RED pass handling | sonnet
-  - Scope: Classification taxonomy, blast radius procedure, defect impact evaluation
-- [ ] **Runbook evolution** — `/design plans/runbook-evolution/` | sonnet
 
 ### Memory & Learning
-- [ ] **Remember skill update** — Resume `/design` Phase B | opus
-  - Plan: remember-skill-update | Outline reviewed, Phase B discussion next
-  - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
-  - Absorbs: memory-index auto-sync, learning ages consol, rename remember skill (FR-10), remember agent routing (FR-11)
 - [ ] **Merge learnings delta** — Reconcile learnings.md after diverged merge | sonnet
   - Plan: merge-learnings-delta | Strategy: main base + branch delta
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
@@ -102,14 +115,13 @@
 - [ ] **Execute plugin migration** — Refresh outline then orchestrate | opus
   - Plan: plugin-migration | Status: ready (stale — Feb 9)
   - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite
-- [ ] **Migrate test suite to diamond** — Needs scoping | depends on runbook evolution
+- [ ] **Migrate test suite to diamond** — Needs scoping | depends on runbook evolution (delivered)
 - [ ] **Test diagnostic helper** — Replace subprocess.run check=True with stderr surfacing | sonnet
 - [ ] **Session.md validator** — Scripted precommit check | sonnet
   - Plan: session-validator | worktree-cli-default merged; all FRs can proceed
 
 ### Agents & Rules
 - [ ] **Agent rule injection** — Distill sub-agent rules into agent templates | sonnet
-- [ ] **Task agent guardrails** — Tool-call limits, regression detection, model escalation | sonnet
 - [ ] **Handoff insertion policy** — Insert at priority position instead of append | sonnet
 
 ### Design (opus)
@@ -150,7 +162,7 @@
 **Memory index `/how` operator mapping:**
 - `/how X` → internally `"how to X"` — index keys must NOT include "to"
 
-**Learnings at 197 lines — consolidation deferred:**
+**Learnings at 227 lines — consolidation deferred:**
 - Past 150-line trigger but 0 entries ≥7 active days. Aging required before graduation.
 
 **SessionStart hook #10373 still open:**
@@ -170,7 +182,7 @@
 
 ## Next Steps
 
-Session CLI tool unblocked — ready for `/runbook` expansion.
+Two worktrees active: `remember-skill-update` (opus), `runbook-fenced-blocks` (sonnet). On main: session CLI tool ready for `/runbook` expansion.
 
 ## Reference Files
 
@@ -180,5 +192,6 @@ Session CLI tool unblocked — ready for `/runbook` expansion.
 - `plans/handoff-cli-tool/reports/outline-review-round5.md` — Latest review report
 - `plans/hook-batch/reports/deliverable-review.md` — Hook batch final review (0C/0M/6m)
 - `plans/worktree-merge-resilience/diagnostic.md` — Merge artifact reproduction conditions
+- `plans/worktree-merge-resilience/brief.md` — Orphaned bullets instance from merge `6086650e`
 - `plans/codebase-sweep/requirements.md` — mechanical refactoring (_git_ok, _fail, exceptions)
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
