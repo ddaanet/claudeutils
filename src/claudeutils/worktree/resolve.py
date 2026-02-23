@@ -282,7 +282,9 @@ def _resolve_heading(
     # One side absent
     if not in_ours:
         if heading not in base:
-            return None, False  # Row 1: theirs-only new — catch-all handles it
+            # Row 1: theirs-only new. Return None so diff3_merge_segments
+            # post-loop catch-all can append it in theirs-dict order.
+            return None, False
         return _resolve_one_sided_deletion(
             theirs[heading], "\n".join(theirs[heading]), "\n".join(base[heading])
         )
@@ -366,26 +368,31 @@ def remerge_learnings_md() -> None:
     ours_content = _git("show", "HEAD:agents/learnings.md", check=False)
     theirs_content = _git("show", "MERGE_HEAD:agents/learnings.md", check=False)
 
+    ours_segs = parse_segments(ours_content)
+    theirs_segs = parse_segments(theirs_content)
     merged_segments, conflicts = diff3_merge_segments(
         parse_segments(base_content),
-        parse_segments(ours_content),
-        parse_segments(theirs_content),
+        ours_segs,
+        theirs_segs,
     )
-    merged_content = _segments_to_content(merged_segments)
 
     if conflicts:
         click.echo(
             f"learnings.md: {len(conflicts)} segment conflict(s): {conflicts}",
             err=True,
         )
+        click.echo(
+            "Resolve agents/learnings.md and re-run merge.",
+            err=True,
+        )
         conflict_content = _segments_to_content_with_conflicts(
             merged_segments,
             conflicts,
-            parse_segments(ours_content),
-            parse_segments(theirs_content),
+            ours_segs,
+            theirs_segs,
         )
         Path("agents/learnings.md").write_text(conflict_content)
         raise SystemExit(3)
 
-    Path("agents/learnings.md").write_text(merged_content)
+    Path("agents/learnings.md").write_text(_segments_to_content(merged_segments))
     _git("add", "agents/learnings.md")

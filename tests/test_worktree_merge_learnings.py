@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
+from claudeutils.validation.learnings import parse_segments
 from claudeutils.worktree.cli import worktree
 
 
@@ -81,7 +82,6 @@ def test_merge_learnings_segment_diff3_prevents_orphans(
     assert result.exit_code == 0, f"merge should succeed: {result.output}"
 
     merged_text = (repo_with_submodule / "agents" / "learnings.md").read_text()
-    from claudeutils.validation.learnings import parse_segments  # noqa: PLC0415
 
     segments = parse_segments(merged_text)
 
