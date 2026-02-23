@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Design complete for merge artifact resilience. Outline serves as design — ready for `/runbook`.
+**Status:** Merge artifact validation implemented and reviewed. Segment-level diff3 merge for learnings.md operational on all merge paths.
 
 ## Completed This Session
 
@@ -8,29 +8,28 @@
 - Complexity triage: Moderate (clear requirements from diagnostic, no architectural uncertainty)
 - Produced outline with segment-level diff3 approach (file: `plans/worktree-merge-resilience/outline.md`)
 - Two outline review rounds via outline-corrector (reports: `plans/worktree-merge-resilience/reports/outline-review.md`, `outline-review-2.md`)
-- Key design decisions from user discussion:
-  - No ours-wins — full diff3 semantics, conflicts surface to user
-  - Merge base involved — three-way comparison distinguishes created/deleted/modified
-  - diff3 runs on every merge (not just conflicts) — eliminates clean-merge orphan gap
-  - Conflict output at line granularity within conflicting segments
-  - Integration tests restricted to observed scenarios (diagnostic c330b7d2, brief 6086650e)
 - Outline sufficiency gate: sufficient, not execution-ready → route to `/runbook`
+
+**Implementation: Merge artifact validation (Tier 2, 5 TDD cycles):**
+- Cycle 1 (haiku): `parse_segments()` in `src/claudeutils/validation/learnings.py` — reusable parser for resolver + validator
+- Cycle 2 (sonnet): Integration test — diagnostic reproduction (clean merge, orphan prevention). Implemented `diff3_merge_segments()`, `remerge_learnings_md()`, phase 4 integration in merge.py
+- Cycle 3 (sonnet): Integration test — brief reproduction (divergent edit → conflict markers, exit 3). Rewrote `resolve_learnings_md()` with shared diff3 core + `_format_conflict_segment()`
+- Cycle 4 (sonnet, resumed from Cycle 3): 30 unit tests for all 15 resolution matrix rows. Fixed 5 bugs in deletion/divergent-creation handling
+- Cycle 5 (haiku): Precommit orphan detection in `validate()` via `_detect_orphaned_content()`
+- Review (sonnet corrector): 1 major (redundant parse_segments calls), 2 minor (missing user hint, local import). All fixed.
+- Report: `plans/worktree-merge-resilience/reports/tier2-review.md`
+- 52 tests pass across 4 test files, ruff clean
 
 ## Pending Tasks
 
-- [ ] **Merge artifact validation** — `/runbook plans/worktree-merge-resilience/outline.md` | sonnet
-  - Plan: worktree-merge-resilience | Outline: `plans/worktree-merge-resilience/outline.md`
-  - Segment-level diff3 for learnings.md on every merge + precommit structural validation
-  - Two integration tests (observed scenarios), unit tests for parser + resolution matrix + validator
-
 ## Blockers / Gotchas
 
-- Manual post-merge check required until worktree-merge-resilience automated
-**Validator orphan entries not autofixable:**
+- Blocker "Manual post-merge check required" is now resolved by the diff3 implementation
+- `agents/learnings.md` at 227 lines (soft limit 80) — `/remember` consolidation overdue
 
 ## Reference Files
 
 - `plans/worktree-merge-resilience/outline.md` — Design outline (serves as design document)
 - `plans/worktree-merge-resilience/diagnostic.md` — Merge artifact reproduction conditions
 - `plans/worktree-merge-resilience/brief.md` — Orphaned bullets instance from merge `6086650e`
-- `plans/worktree-merge-resilience/reports/outline-review-2.md` — Final outline review
+- `plans/worktree-merge-resilience/reports/tier2-review.md` — Implementation review (all requirements satisfied)
