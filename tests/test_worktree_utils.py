@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from claudeutils.worktree.cli import add_sandbox_dir, derive_slug, focus_session
+from claudeutils.worktree.cli import _fail, add_sandbox_dir, derive_slug, focus_session
 from claudeutils.worktree.git_ops import wt_path
 
 
@@ -230,8 +230,6 @@ def test_focus_session_missing_task(tmp_path: Path) -> None:
 
 def test_fail_writes_to_stdout(capsys: pytest.CaptureFixture[str]) -> None:
     """_fail prints message to stdout and raises SystemExit with code."""
-    from claudeutils.worktree.cli import _fail
-
     with pytest.raises(SystemExit) as exc_info:
         _fail("error message", 1)
 
@@ -243,8 +241,6 @@ def test_fail_writes_to_stdout(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_fail_default_code(capsys: pytest.CaptureFixture[str]) -> None:
     """_fail defaults to exit code 1 when code not provided."""
-    from claudeutils.worktree.cli import _fail
-
     with pytest.raises(SystemExit) as exc_info:
         _fail("msg")
 
@@ -253,8 +249,6 @@ def test_fail_default_code(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_fail_custom_code(capsys: pytest.CaptureFixture[str]) -> None:
     """_fail uses custom exit code when provided."""
-    from claudeutils.worktree.cli import _fail
-
     with pytest.raises(SystemExit) as exc_info:
         _fail("validation error", 2)
 
