@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Session housekeeping — backlog merged into pending, worktree created for merge-artifact-validation, preparing to merge runbook-fenced-blocks.
+**Status:** Housekeeping + worktree management. Backlog merged, fenced-blocks merged+removed, new worktrees for merge-artifact-validation and session-cli-tool.
 
 ## Completed This Session
 
@@ -45,6 +45,11 @@
 **Session housekeeping:**
 - Merged Backlog section into Pending Tasks — eliminated separate section, 30 items now in flat list to prevent bitrot
 - Removed "Simplify when-resolve CLI" — absorbed into remember-skill-update worktree
+- Merged `runbook-fenced-blocks` (commit: 073f4ad7) + removed worktree. Fenced code blocks task complete
+- Created worktrees: `merge-artifact-validation`, `session-cli-tool`
+- Removed fenced code block parsing blocker (fix shipped)
+- Added "Phase-scoped agent context" task — per-phase agent generation in prepare-runbook.py
+- Annotated orchestrate-evolution with per-phase agent dispatch gap
 
 ## Pending Tasks
 
@@ -63,11 +68,8 @@
   - Insights input: ping-pong TDD agent pattern — alternating tester/implementer agents with mechanical RED/GREEN gates between handoffs. Tester holds spec context (can't mirror code structure), implementer holds codebase context (can't over-implement beyond test demands). Resume-based context preservation avoids startup cost per cycle
   - Absorbs: Task agent guardrails — tool-call limits, regression detection, model escalation (haiku→sonnet→opus on capability mismatch) all additive. Design covers agent→user escalation and context-size heuristic but not inter-tier promotion or tool-call budgets
   - Absorbs: RED pass protocol — classification taxonomy, blast radius procedure, defect impact evaluation. Design has remediation + escalation patterns but not formal classification or blast radius assessment
+  - Depends on: Phase-scoped agent context (prepare-runbook.py generates per-phase agents, orchestrate dispatches)
 
-- [ ] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet
-  - Plan: handoff-cli-tool | Status: designed (outline reviewed 5 rounds, ready for runbook)
-  - `_session` group (handoff, status, commit)
-  - New requirement: commit subcommand must output shortened commit IDs
 
 - [ ] **Deslop remaining skills** — Prose quality pass on skills not yet optimized | sonnet
 
@@ -119,12 +121,11 @@
 - [ ] **TDD cycle test optimization** — Selective test rerun via dependency analysis | sonnet
 - [ ] **Fix task-context.sh task list bloat** — Filter/trim output | sonnet
 - [ ] **Upstream skills field** — PR/issue for missing skills frontmatter | sonnet
+- [ ] **Phase-scoped agent context** — `/design` | sonnet
+  - prepare-runbook.py emits per-phase agents with phase-scoped shared context instead of one agent per runbook
+  - Same base type can serve multiple phases — differentiator is injected context, not protocol
+  - Orchestrate-evolution depends on this for dispatch side
 - [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet
-
-- [ ] **Runbook fenced code blocks** — execute test plan `plans/runbook-fenced-blocks/test-plan.md` | sonnet
-  - 9 TDD cycles: 5 core (bug fix + CommonMark compliance), 4 completeness (remaining functions)
-  - Tier 2 lightweight delegation — test-driver agents per cycle
-  - All discovery done — test plan has references, affected function table, design decisions
 
 ## Worktree Tasks
 
@@ -133,12 +134,15 @@
   - Three concerns: trigger framing enforcement, title-trigger alignment, frozen-domain recall
   - Absorbs: memory-index auto-sync, learning ages consol, rename remember skill (FR-10), remember agent routing (FR-11)
 
-- [ ] **Runbook fenced code blocks** → `runbook-fenced-blocks` — update prepare-runbook.py to honor fenced code blocks | sonnet
-  - `extract_sections()`/`extract_cycles()` parse headers inside fenced code blocks, causing duplicate step errors
 
 - [ ] **Merge artifact validation** → `merge-artifact-validation` — post-merge orphan detection in `_worktree merge` | sonnet
   - Plan: worktree-merge-resilience | Diagnostic: `plans/worktree-merge-resilience/diagnostic.md`
   - New instance found: `6086650e` merge produced 6 orphaned bullets in learnings.md (headingless, under wrong entry). Brief: `plans/worktree-merge-resilience/brief.md`
+
+- [ ] **Session CLI tool** → `session-cli-tool` — `/runbook plans/handoff-cli-tool/outline.md` | sonnet
+  - Plan: handoff-cli-tool | Status: designed (outline reviewed 5 rounds, ready for runbook)
+  - `_session` group (handoff, status, commit)
+  - New requirement: commit subcommand must output shortened commit IDs
 
 ## Blockers / Gotchas
 
@@ -167,15 +171,12 @@
 **Custom agents not discoverable as subagent_types:**
 - `.claude/agents/*.md` files with proper frontmatter weren't available via Task tool. Built-in types work. May need platform investigation.
 
-**prepare-runbook.py fenced code block parsing:**
-- `extract_sections()`/`extract_cycles()` parse headers inside fenced code blocks. Workaround: describe fixtures inline instead of code blocks with H2 headers.
-
 **`_worktree rm --force` doesn't restore task to Pending:**
 - `rm --force` removes worktree but leaves task in Worktree Tasks section. Manual session.md edit needed to move back to Pending.
 
 ## Next Steps
 
-Three worktrees active: `remember-skill-update` (opus), `runbook-fenced-blocks` (sonnet), `merge-artifact-validation` (sonnet). Merging runbook-fenced-blocks next.
+Four worktrees active: `remember-skill-update` (opus), `merge-artifact-validation` (sonnet), `session-cli-tool` (sonnet), `phase-scoped-agent-context` (sonnet).
 
 ## Reference Files
 
