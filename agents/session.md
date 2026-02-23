@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-23
 
-**Status:** worktree-error-output execution complete. All `err=True` removed, `_fail()` in place, TDD audit done.
+**Status:** All wt-new-errors tasks complete. Ready to merge to main.
 
 ## Completed This Session
 
@@ -12,6 +12,9 @@
 - Final corrector: fixed `_fail(str(e), code=2)` → positional style (commit: b7fcb340)
 - TDD audit: 50% compliance — Cycle 2.1 clean, Cycle 1.1 broken GREEN (lint not run before commit). Key recommendation: add `just lint` to GREEN verification in runbook template (commit: 022adb72)
 
+**Runbook template lint gate:**
+- Added `**Verify lint:** \`just lint\`` to GREEN phase template in `agent-core/skills/runbook/SKILL.md` (before Verify GREEN / Verify no regression)
+
 **Design invariants satisfied:**
 - Zero `err=True` in `cli.py` (grep confirms)
 - All error+exit pairs use `_fail()` (10 call sites)
@@ -19,11 +22,9 @@
 
 ## Pending Tasks
 
-- [ ] **Runbook template lint gate** — Add `just lint` to GREEN verification sequence in `agent-core/skills/runbook/SKILL.md`; TDD audit critical finding: broken GREEN commits bypass lint, corrupt cycle invariant | sonnet
-
 ## Next Steps
 
-Merge `wt-new-errors` to main, then address the runbook template lint gate task (single prose edit to SKILL.md TDD cycle GREEN verification section).
+Merge `wt-new-errors` to main.
 
 ## Reference Files
 
