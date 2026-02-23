@@ -32,13 +32,6 @@ def test_title_exceeding_max_word_count_returns_error(
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
 
-Preamble line 2
-Preamble line 3
-Preamble line 4
-Preamble line 5
-Preamble line 6
-Preamble line 7
-Preamble line 8
 ---
 ## When this title has way too many words for the validator
 Content here.
@@ -46,7 +39,7 @@ Content here.
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "title has 11 words (max 5)" in errors[0]
-    assert "line 11" in errors[0]
+    assert "line 4" in errors[0]
 
 
 def test_duplicate_titles_detected_case_insensitive(tmp_path: Path) -> None:
@@ -54,13 +47,6 @@ def test_duplicate_titles_detected_case_insensitive(tmp_path: Path) -> None:
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
 
-Preamble line 2
-Preamble line 3
-Preamble line 4
-Preamble line 5
-Preamble line 6
-Preamble line 7
-Preamble line 8
 ---
 ## When first learning title
 Content here.
@@ -71,14 +57,28 @@ Different content but same title.
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "duplicate title" in errors[0]
-    assert "line 14" in errors[0]
-    assert "first at line 11" in errors[0]
+    assert "line 7" in errors[0]
+    assert "first at line 4" in errors[0]
 
 
-def test_preamble_first_10_lines_skipped(tmp_path: Path) -> None:
-    """Test that preamble (first 10 lines) is skipped."""
+def test_preamble_bounded_by_first_heading(tmp_path: Path) -> None:
+    """Test that preamble ends at first ## heading when no --- present."""
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
+Line 2
+Line 3
+## When valid title here
+Content here.
+""")
+    errors = validate(Path("learnings.md"), tmp_path)
+    assert errors == []
+
+
+def test_preamble_bounded_by_hr_beyond_10_lines(tmp_path: Path) -> None:
+    """Test that --- as structural boundary works beyond 10 lines."""
+    learnings_file = tmp_path / "learnings.md"
+    learnings_file.write_text("""# Learnings
+
 Line 2
 Line 3
 Line 4
@@ -88,11 +88,31 @@ Line 7
 Line 8
 Line 9
 Line 10
-## When valid title
+Line 11
+---
+## When valid title here
 Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
     assert errors == []
+
+
+def test_orphaned_content_between_hr_and_heading(tmp_path: Path) -> None:
+    """Test that content between --- and first ## heading is orphaned."""
+    learnings_file = tmp_path / "learnings.md"
+    learnings_file.write_text("""# Learnings
+
+Preamble text.
+
+---
+This line is orphaned.
+## When valid title here
+Content here.
+""")
+    errors = validate(Path("learnings.md"), tmp_path)
+    assert len(errors) == 1
+    assert "orphaned content" in errors[0]
+    assert "line 6" in errors[0]
 
 
 def test_empty_file_returns_no_errors(tmp_path: Path) -> None:
@@ -114,13 +134,6 @@ def test_title_without_prefix_returns_error(tmp_path: Path) -> None:
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
 
-Preamble line 2
-Preamble line 3
-Preamble line 4
-Preamble line 5
-Preamble line 6
-Preamble line 7
-Preamble line 8
 ---
 ## Bad Title
 Content here.
@@ -128,7 +141,7 @@ Content here.
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "prefix" in errors[0].lower()
-    assert "line 11" in errors[0]
+    assert "line 4" in errors[0]
 
 
 def test_insufficient_content_words_returns_error(tmp_path: Path) -> None:
@@ -136,13 +149,6 @@ def test_insufficient_content_words_returns_error(tmp_path: Path) -> None:
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
 
-Preamble line 2
-Preamble line 3
-Preamble line 4
-Preamble line 5
-Preamble line 6
-Preamble line 7
-Preamble line 8
 ---
 ## When testing
 Content here.
@@ -150,7 +156,7 @@ Content here.
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "content word" in errors[0].lower()
-    assert "line 11" in errors[0]
+    assert "line 4" in errors[0]
 
 
 def test_how_to_prefix_insufficient_content_words_returns_error(
@@ -160,13 +166,6 @@ def test_how_to_prefix_insufficient_content_words_returns_error(
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
 
-Preamble line 2
-Preamble line 3
-Preamble line 4
-Preamble line 5
-Preamble line 6
-Preamble line 7
-Preamble line 8
 ---
 ## How to configure
 Content here.
@@ -174,7 +173,7 @@ Content here.
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "content word" in errors[0].lower()
-    assert "line 11" in errors[0]
+    assert "line 4" in errors[0]
 
 
 def test_how_to_prefix_accepted(tmp_path: Path) -> None:
@@ -182,13 +181,6 @@ def test_how_to_prefix_accepted(tmp_path: Path) -> None:
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
 
-Preamble line 2
-Preamble line 3
-Preamble line 4
-Preamble line 5
-Preamble line 6
-Preamble line 7
-Preamble line 8
 ---
 ## How to encode paths
 Content here.
@@ -202,13 +194,6 @@ def test_how_without_to_rejected(tmp_path: Path) -> None:
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
 
-Preamble line 2
-Preamble line 3
-Preamble line 4
-Preamble line 5
-Preamble line 6
-Preamble line 7
-Preamble line 8
 ---
 ## How encode
 Content here.
@@ -216,7 +201,7 @@ Content here.
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
     assert "prefix" in errors[0].lower()
-    assert "line 11" in errors[0]
+    assert "line 4" in errors[0]
 
 
 def test_combined_errors_reported(tmp_path: Path) -> None:
@@ -224,13 +209,6 @@ def test_combined_errors_reported(tmp_path: Path) -> None:
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
 
-Preamble line 2
-Preamble line 3
-Preamble line 4
-Preamble line 5
-Preamble line 6
-Preamble line 7
-Preamble line 8
 ---
 ## When testing
 Content here.
@@ -249,13 +227,6 @@ def test_multiple_errors_reported(tmp_path: Path) -> None:
     learnings_file = tmp_path / "learnings.md"
     learnings_file.write_text("""# Learnings
 
-Preamble line 2
-Preamble line 3
-Preamble line 4
-Preamble line 5
-Preamble line 6
-Preamble line 7
-Preamble line 8
 ---
 ## When first title word count too long here
 Content here.

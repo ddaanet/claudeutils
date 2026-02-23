@@ -14,6 +14,26 @@ MAX_WORDS = 5
 TITLE_PATTERN = re.compile(r"^## (.+)$")
 
 
+def _find_preamble_end(lines: list[str]) -> int:
+    """Find the 1-based line number where preamble ends.
+
+    Preamble boundary is the first ``---`` (horizontal rule) or first ``## ``
+    heading, whichever comes first. ``---`` is included in the preamble;
+    a ``## `` heading is content (preamble ends at the line before it).
+
+    Returns:
+        1-based line number of last preamble line. 0 if file starts with
+        a ``## `` heading. ``len(lines)`` if no boundary found.
+    """
+    for i, line in enumerate(lines, 1):
+        stripped = line.strip()
+        if stripped == "---":
+            return i
+        if TITLE_PATTERN.match(stripped):
+            return i - 1
+    return len(lines)
+
+
 def extract_titles(lines: list[str]) -> list[tuple[int, str]]:
     """Extract (line_number, title_text) pairs from learning titles.
 
@@ -21,15 +41,14 @@ def extract_titles(lines: list[str]) -> list[tuple[int, str]]:
         lines: List of file lines.
 
     Returns:
-        List of (line_number, title_text) tuples, skipping preamble (first 10 lines).
+        List of (line_number, title_text) tuples, skipping preamble.
     """
+    preamble_end = _find_preamble_end(lines)
     titles = []
     for i, line in enumerate(lines, 1):
-        stripped = line.strip()
-        # Skip first 10 lines (preamble/header)
-        if i <= 10:
+        if i <= preamble_end:
             continue
-        # Match ## Title headers
+        stripped = line.strip()
         m = TITLE_PATTERN.match(stripped)
         if m:
             titles.append((i, m.group(1)))
@@ -69,10 +88,11 @@ def parse_segments(content: str) -> dict[str, list[str]]:
 
 def _detect_orphaned_content(lines: list[str]) -> list[str]:
     """Find non-blank lines after preamble but before first ## heading."""
+    preamble_end = _find_preamble_end(lines)
     errors: list[str] = []
     first_heading_line = None
     for i, line in enumerate(lines, 1):
-        if i <= 10:
+        if i <= preamble_end:
             continue
         if TITLE_PATTERN.match(line.strip()):
             first_heading_line = i
@@ -81,7 +101,7 @@ def _detect_orphaned_content(lines: list[str]) -> list[str]:
     if first_heading_line is None:
         return errors
 
-    for i in range(11, first_heading_line):
+    for i in range(preamble_end + 1, first_heading_line):
         stripped = lines[i - 1].strip()
         if stripped:
             errors.append(

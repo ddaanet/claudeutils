@@ -1,8 +1,13 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Worktree management session — merged 4 worktrees, created 4 new ones, merged backlog into pending.
+**Status:** Fixed learnings validator structural boundaries + prior worktree management.
 
 ## Completed This Session
+
+**Learnings validator fix:**
+- Structural preamble boundary detection in `src/claudeutils/validation/learnings.py` — `_find_preamble_end()` uses `---`/first `## ` instead of hardcoded 10-line count
+- Updated `extract_titles()` and `_detect_orphaned_content()` to use structural boundary
+- Reverted merge workaround padding in `tests/test_validation_learnings.py` — 9 fixtures simplified, 3 new structural boundary tests added
 
 **Worktree merges:**
 - `runbook-fenced-blocks` — merged (commit: 073f4ad7) + removed. Clean merge, task complete
@@ -101,9 +106,7 @@
 - [ ] **UserPromptSubmit topic detection hook** — Phase 7 analysis recommends this as highest-impact recall improvement | sonnet
   - Seed keyword table from 200+ memory-index triggers
   - Inject matching decision content via additionalContext on prompt submit
-- [ ] **Learnings validator structural boundaries** — orphan detector should use `---`/first `## ` as preamble boundary, not hardcoded 10-line count | sonnet
-  - Current: `_detect_orphaned_content()` skips first 10 lines, flags non-heading content after. `---` on line 11+ flagged as orphaned
-  - Fix: detect preamble end structurally. Test fixtures updated as workaround (test_validation_learnings.py)
+- [x] **Learnings validator structural boundaries** — orphan detector should use `---`/first `## ` as preamble boundary, not hardcoded 10-line count | sonnet
 
 ## Worktree Tasks
 
