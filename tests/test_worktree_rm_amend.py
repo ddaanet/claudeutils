@@ -48,7 +48,7 @@ def test_rm_does_not_amend_wrong_branch_merge(
     head_before = _git_setup("rev-parse", "HEAD").strip()
 
     runner = CliRunner()
-    result = runner.invoke(worktree, ["rm", "--confirm", "other-wt"])
+    result = runner.invoke(worktree, ["rm", "other-wt"])
     assert result.exit_code == 0
 
     # HEAD should NOT have been amended — commit hash unchanged

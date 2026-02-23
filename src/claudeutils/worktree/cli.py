@@ -264,15 +264,6 @@ def _delete_branch(slug: str, removal_type: str | None) -> None:
         _fail(f"Branch {slug} deletion failed: {r.stderr.strip()}")
 
 
-def _check_confirm(slug: str, confirm: bool) -> None:  # noqa: FBT001
-    if not confirm:
-        msg = (
-            f"Use the worktree skill (wt merge {slug}) to remove worktrees safely. "
-            "Pass --confirm to invoke directly."
-        )
-        _fail(msg, 2)
-
-
 def _check_not_dirty(slug: str, worktree_path: Path) -> None:  # noqa: ARG001
     """Block removal if worktree or submodule has uncommitted changes."""
     if worktree_path.exists():
@@ -319,49 +310,44 @@ def _update_session_and_amend(slug: str) -> bool:
 @worktree.command()
 @click.argument("slug")
 @click.option(
-    "--confirm",
-    is_flag=True,
-    default=False,
-    help="Confirm direct invocation (bypass skill requirement)",
-)
-@click.option(
     "--force",
     is_flag=True,
     default=False,
     help="Force removal bypassing all safety checks",
 )
-def rm(slug: str, confirm: bool, force: bool) -> None:  # noqa: FBT001
+def rm(slug: str, force: bool) -> None:  # noqa: FBT001
     """Remove worktree and its branch."""
-    if not force:
-        _check_confirm(slug, confirm)
+    try:
+        worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)
+        if not force:
+            _check_not_dirty(slug, worktree_path)
+            branch_exists, removal_type = _guard_branch_removal(slug)
+        else:
+            branch_exists = True
+            removal_type = "focused"
+        parent_reg, submodule_reg = _probe_registrations(worktree_path)
+        amended = _update_session_and_amend(slug)
 
-    worktree_path = _get_worktree_path_for_branch(slug) or wt_path(slug)
-    if not force:
-        _check_not_dirty(slug, worktree_path)
-        branch_exists, removal_type = _guard_branch_removal(slug)
-    else:
-        branch_exists = True
-        removal_type = "focused"
-    parent_reg, submodule_reg = _probe_registrations(worktree_path)
-    amended = _update_session_and_amend(slug)
+        if parent_reg or submodule_reg:
+            _remove_worktrees(worktree_path, parent_reg, submodule_reg)
 
-    if parent_reg or submodule_reg:
-        _remove_worktrees(worktree_path, parent_reg, submodule_reg)
+        if worktree_path.exists():
+            shutil.rmtree(worktree_path)
 
-    if worktree_path.exists():
-        shutil.rmtree(worktree_path)
+        _git("worktree", "prune")
 
-    _git("worktree", "prune")
+        container = worktree_path.parent
+        if container.exists() and not list(container.iterdir()):
+            container.rmdir()
 
-    container = worktree_path.parent
-    if container.exists() and not list(container.iterdir()):
-        container.rmdir()
-
-    if branch_exists:
-        _delete_branch(slug, removal_type)
-        if warning := _delete_submodule_branch(slug):
-            click.echo(warning)
-    amend_note = " Merge commit amended." if amended else ""
-    detail = " (focused session only)" if removal_type == "focused" else ""
-    prefix = "Removed worktree" if removal_type is None else "Removed"
-    click.echo(f"{prefix} {slug}{detail}{amend_note}")
+        if branch_exists:
+            _delete_branch(slug, removal_type)
+            if warning := _delete_submodule_branch(slug):
+                click.echo(warning)
+        amend_note = " Merge commit amended." if amended else ""
+        detail = " (focused session only)" if removal_type == "focused" else ""
+        prefix = "Removed worktree" if removal_type is None else "Removed"
+        click.echo(f"{prefix} {slug}{detail}{amend_note}")
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr.strip() if isinstance(e.stderr, str) else ""
+        _fail(f"git error: {stderr or e}")
