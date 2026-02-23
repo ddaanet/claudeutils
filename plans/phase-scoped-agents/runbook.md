@@ -55,6 +55,11 @@ model: sonnet
 - Inline phases: no agent generated (orchestrator-direct, unchanged)
 - Orchestrator plan: Phase-Agent Mapping table populated, `Agent:` field per step
 
+**Stop/Error Conditions (all cycles):**
+STOP IMMEDIATELY if: RED phase test passes (expected failure) • RED phase failure message doesn't match expected • GREEN phase tests don't pass after implementation • Any existing tests break (regression)
+
+Actions when stopped: 1) Document in reports/cycle-{X}-{Y}-notes.md 2) Test passes unexpectedly → Investigate if feature exists 3) Regression → STOP, report broken tests 4) Scope unclear → STOP, document ambiguity
+
 **Project Paths:**
 - `agent-core/bin/prepare-runbook.py` — main script under modification
 - `tests/test_prepare_runbook_agents.py` — NEW test file for Phase 1-2 tests
