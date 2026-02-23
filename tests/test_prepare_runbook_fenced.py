@@ -108,3 +108,46 @@ class TestFencedPhaseHeaders:
         assert sections is not None
         assert len(sections["inline_phases"]) == 0
         assert len(sections["steps"]) == 2
+
+
+class TestFencedMultiBacktickFences:
+    """Fence detection should handle 4+ backtick fences.
+
+    CommonMark semantics: closing fence requires >= opening count.
+    """
+
+    def test_extract_sections_handles_four_backtick_fences(self) -> None:
+        """4-backtick fence should not be closed by nested 3-backtick.
+
+        Opening 3-backtick inside 4-backtick fence incorrectly toggles the fence
+        state with toggle-based logic.
+        """
+        content = dedent("""\
+            ### Phase 1: Core (type: general)
+
+            ## Step 1.1: Real step
+
+            Example with nested fences:
+
+            ````markdown
+            Here is a code example:
+
+            ```python
+            print("hello")
+            ```
+
+            ## Step 2.1: This is inside the outer fence
+
+            Still inside.
+            ````
+
+            ## Step 1.2: Another real step
+
+            More work.
+        """)
+        sections = extract_sections(content)
+        assert sections is not None
+        assert "1.1" in sections["steps"]
+        assert "1.2" in sections["steps"]
+        assert "2.1" not in sections["steps"]
+        assert len(sections["steps"]) == 2
