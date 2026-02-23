@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-23
 
-**Status:** Phase-scoped agent context implemented and tested. All 45 tests pass. Deliverable review pending.
+**Status:** Phase-scoped agent context complete. All findings fixed, 45/45 tests pass, precommit clean.
 
 ## Completed This Session
 
@@ -28,13 +28,20 @@
 **Inline execution — Phase 3 (orchestrate skill update):**
 - Updated SKILL.md Section 3.1: `subagent_type` reads from orchestrator plan `Agent:` field instead of hardcoded `<runbook-name>-task` (commit: 129b2596)
 
+**Deliverable review + fixes (this session):**
+- TDD process audit completed (file: `plans/phase-scoped-agents/reports/tdd-process-review.md`)
+- Deliverable review: 0 critical, 1 major, 3 minor (file: `plans/phase-scoped-agents/reports/deliverable-review.md`)
+- Fixed major: stale `-task` naming in docstring/usage at 4 locations in prepare-runbook.py
+- Fixed minor: fallback header text (`crew-{name}` instead of `{name}-task`), stale `agent_path` variable naming in test_prepare_runbook_inline.py (5 call sites → `agents_dir`)
+- Deferred minor: loose table assertions in test_prepare_runbook_agents.py (acceptable, not fragile enough to warrant change)
+
 ## Pending Tasks
 
-- [ ] **Deliverable review: phase-scoped-agents** — `/deliverable-review plans/phase-scoped-agents` | opus | restart
+No pending tasks.
 
 ## Next Steps
 
-Deliverable review of the implementation. TDD auditor report at `plans/phase-scoped-agents/reports/tdd-process-review.md` (background task may have completed).
+Plan complete. Ready to merge `phase-scoped-agents` branch.
 
 ## Reference Files
 
