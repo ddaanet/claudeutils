@@ -188,7 +188,7 @@ def new(
             try:
                 slug = branch or derive_slug(task_name)
             except ValueError as e:
-                _fail(str(e), code=2)
+                _fail(str(e), 2)
             with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
                 f.write(focus_session(task_name, session_md))
                 temp_session_file = session = f.name
