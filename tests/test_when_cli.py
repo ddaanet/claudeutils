@@ -260,14 +260,14 @@ def test_invalid_prefix_rejected() -> None:
 
 
 def test_cli_error_handling() -> None:
-    """Test that CLI properly handles errors with stderr output and exit code 1.
+    """Test CLI error handling: exit code 1 and diagnostic output for resolver errors.
 
     Verifies:
-    1. CLI with nonexistent trigger: exit code 1 (not 0)
-    2. Error message printed to stderr (not stdout)
-    3. Error message contains suggestion text ("Did you mean:" for trigger mode)
-    4. CLI with nonexistent section: exit code 1, stderr contains "not found"
-    5. CLI with nonexistent file: exit code 1, stderr contains "not found"
+    1. Nonexistent trigger: exit code 1, output contains "Did you mean:"
+    2. Nonexistent section (dot prefix): exit code 1, output contains "not found"
+    3. Nonexistent file (double-dot prefix): exit code 1, output contains "not found"
+
+    Note: click 8.2 removed mix_stderr — both stdout and stderr go to result.output.
     """
     runner = CliRunner()
 
@@ -288,10 +288,7 @@ def test_cli_error_handling() -> None:
         # Test 1: Nonexistent trigger
         result = runner.invoke(cli, ["when", "when nonexistent trigger"])
         assert result.exit_code == 1
-        # Error message should contain suggestion text
         assert "Did you mean:" in result.output
-        # Verify it's an error condition
-        assert result.exit_code != 0
 
         # Test 2: Nonexistent section (using . prefix)
         result = runner.invoke(cli, ["when", "when .NotExist"])
