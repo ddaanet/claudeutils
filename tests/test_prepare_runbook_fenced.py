@@ -44,3 +44,39 @@ class TestFencedStepHeaders:
         assert "1.2" in sections["steps"]
         assert "2.1" not in sections["steps"]
         assert len(sections["steps"]) == 2
+
+
+class TestFencedCycleHeaders:
+    """Cycle header detection should ignore headers inside fenced blocks."""
+
+    def test_extract_cycles_ignores_cycle_header_inside_fence(self) -> None:
+        """Parser should ignore ## Cycle headers inside fenced code blocks."""
+        content = dedent("""\
+            ## Cycle 1.1: Real cycle
+
+            ### RED Phase
+            Test something.
+
+            ### GREEN Phase
+            Implement something.
+
+            Example of a cycle definition:
+
+            ```markdown
+            ## Cycle 1.2: Example cycle
+
+            ### RED Phase
+            Example test.
+            ```
+
+            ## Cycle 1.3: Another real cycle
+
+            ### RED Phase
+            Test more.
+        """)
+        cycles = extract_cycles(content)
+        numbers = [c["number"] for c in cycles]
+        assert "1.1" in numbers
+        assert "1.3" in numbers
+        assert "1.2" not in numbers
+        assert len(cycles) == 2
