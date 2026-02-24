@@ -57,9 +57,7 @@
   Action: Rewrite body of `generate_default_orchestrator`
   Location hint: line 1065
 
-**Verify lint:** `just lint`
-**Verify GREEN:** `pytest tests/test_prepare_runbook_orchestrator.py -v`
-**Verify no regression:** `just test`
+**Verify GREEN:** `just check && just test`
 
 ---
 
@@ -102,9 +100,7 @@
   Action: Add PHASE_BOUNDARY suffix and Phase Summaries section to `generate_default_orchestrator`
   Location hint: in the step list generation loop and after the loop
 
-**Verify lint:** `just lint`
-**Verify GREEN:** `pytest tests/test_prepare_runbook_orchestrator.py -v`
-**Verify no regression:** `just test`
+**Verify GREEN:** `just check && just test`
 
 ---
 
@@ -148,9 +144,7 @@
   Action: Include max_turns in step list entries in `generate_default_orchestrator`
   Location hint: in the step list formatting loop
 
-**Verify lint:** `just lint`
-**Verify GREEN:** `pytest tests/test_prepare_runbook_orchestrator.py -v`
-**Verify no regression:** `just test`
+**Verify GREEN:** `just check && just test`
 
 ---
 
@@ -160,7 +154,7 @@
 
 **Test:** `test_verify_step_clean_state` and `test_verify_step_dirty_states`
 **File:** `tests/test_verify_step.py` (create)
-**Prerequisite:** Read `agent-core/skills/orchestrate/scripts/` directory (currently empty) — confirm location for new script. Read design section "Verification Script" for contract.
+**Prerequisite:** Read `agent-core/skills/orchestrate/SKILL.md` — confirm the `scripts/` subdirectory doesn't exist yet and will be created. Read design section "Verification Script" for contract.
 
 **Assertions (clean state test):**
 - Script at `agent-core/skills/orchestrate/scripts/verify-step.sh` exists and is executable
@@ -200,6 +194,4 @@
 
 **Note on precommit test:** The `just precommit` check is hard to test in isolation (requires project tooling in tmp_path). The E2E tests cover git-clean and submodule checks. Precommit validation is tested implicitly through the existing test suite's precommit runs. If needed, mock `just precommit` as a simple script in the test fixture.
 
-**Verify lint:** `just lint`
-**Verify GREEN:** `pytest tests/test_verify_step.py -v`
-**Verify no regression:** `just test`
+**Verify GREEN:** `just check && just test`

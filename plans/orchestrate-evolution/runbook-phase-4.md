@@ -75,11 +75,13 @@ The rewrite replaces the current SKILL.md with a new version reflecting all desi
 **Validation:**
 - SKILL.md line count between 200-350
 - All 6 design decisions (D-1 through D-6) addressed
-- verify-step.sh and verify-red.sh referenced by correct paths
+- verify-step.sh referenced as `agent-core/skills/orchestrate/scripts/verify-step.sh`
+- verify-red.sh referenced as `agent-core/skills/orchestrate/scripts/verify-red.sh`
 - Agent naming uses `{name}-task`, `{name}-tester`, etc. (not `crew-` prefix)
 - No `allowed-tools` in frontmatter
 - Continuation protocol preserved
 - Deliverable review assessment preserved
+- D+B hybrid compliance: every numbered step in the skill opens with a tool call (Read/Bash/Glob) — no prose-only step sections
 
 ---
 
@@ -124,8 +126,6 @@ Four modifications to existing fragment:
 
 3. **Agent caching note** — Add after file reference pattern:
    - "Plan-specific agents (`{name}-task`, `{name}-corrector`) embed design and outline context. Prompt needs only the step file reference — Plan Context is baked into the agent definition."
-
-4. **Remove haiku line** — Delete "Haiku: Execution, implementation, simple edits, file operations" from Model Selection
 
 **Expected Outcome:** refactor.md gains ~30 lines of quality directives and resume pattern. delegation.md updated to reflect sonnet-default model with file reference dispatch.
 

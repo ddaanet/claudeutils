@@ -82,7 +82,7 @@
 
 **Test:** `test_tdd_cycle_splits_into_test_and_impl_files`
 **File:** `tests/test_prepare_runbook_tdd_agents.py`
-**Prerequisite:** Read `agent-core/bin/prepare-runbook.py` lines 1377-1390 (current TDD cycle step file generation) — understand how cycles currently produce single `step-N-M.md` files. Read lines 1020-1062 (`generate_cycle_file`) — understand current cycle file content structure with RED/GREEN sections.
+**Prerequisite:** Read `agent-core/bin/prepare-runbook.py` lines 1377-1390 (current TDD cycle step file generation) — understand how cycles currently produce single `step-N-M.md` files. Read lines 1031-1062 (`generate_cycle_file`) — understand current cycle file content structure with RED/GREEN sections.
 
 **Assertions:**
 - For a TDD runbook with cycle 1.1: two step files created, not one
@@ -141,7 +141,7 @@
 - Impl step entries: `- step-1-1-impl.md | Phase 1 | sonnet | 25 | IMPLEMENT`
 - TEST and IMPLEMENT markers alternate within each cycle (test before impl)
 - For a general runbook: step entries have NO role marker (existing format preserved)
-- Orchestrator plan header `**Agent:**` field lists tester agent for TEST steps, implementer for IMPLEMENT steps (or a mapping section)
+- Orchestrator plan contains a phase-agent mapping table or header that associates TEST steps with the tester agent and IMPLEMENT steps with the implementer agent (e.g., Phase-Agent Mapping section or `**Agent:**` fields per step entry)
 
 **Expected failure:** AssertionError — current orchestrator plan generates single entry per cycle with no role marker
 
@@ -182,7 +182,7 @@
 
 **Test:** `test_verify_red_confirms_failing_test` and `test_verify_red_rejects_passing_test`
 **File:** `tests/test_verify_red.py` (create)
-**Prerequisite:** Read `agent-core/skills/orchestrate/scripts/` directory — confirm location for new script. Read design section "Ping-Pong TDD Orchestration (D-5)" for RED gate contract.
+**Prerequisite:** Read design section "Ping-Pong TDD Orchestration (D-5)" for RED gate contract. Confirm `agent-core/skills/orchestrate/scripts/` directory exists (created in Phase 2 alongside verify-step.sh); if absent, the directory must be created alongside the script.
 
 **Assertions (failing test = RED confirmed):**
 - Script at `agent-core/skills/orchestrate/scripts/verify-red.sh` exists and is executable
