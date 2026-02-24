@@ -75,23 +75,3 @@
   Location hint: around line 821
 
 **Verify GREEN:** `just check && just test`
-
-
-### Phase 2: Orchestrator plan and verification (type: tdd, model: sonnet)
-
-**Scope:** New structured orchestrator plan format with metadata fields. verify-step.sh creation with E2E tests.
-
-**Files:** `agent-core/bin/prepare-runbook.py`, `agent-core/skills/orchestrate/scripts/verify-step.sh` (create), `tests/test_prepare_runbook_orchestrator.py` (extend), `tests/test_verify_step.py` (create)
-
-**Depends on:** Phase 1 (agent naming used in orchestrator plan header)
-
-**Key constraints:**
-- Orchestrator plan format: structured metadata, not prose instructions
-- Step list: `- filename | Phase N | model | max_turns [| PHASE_BOUNDARY]`
-- Header fields: `**Agent:**`, `**Corrector Agent:**`, `**Type:**`
-- INLINE marker for inline phases
-- Phase summaries with IN/OUT scope
-- verify-step.sh: deterministic script (non-cognitive → script, per recall "When Choosing Script vs Agent Judgment")
-- Shell script testing: real git repos in tmp_path (per recall "When Preferring E2E Over Mocked Subprocess")
-
----

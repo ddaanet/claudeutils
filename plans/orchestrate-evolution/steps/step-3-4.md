@@ -82,23 +82,3 @@
   Location hint: new file
 
 **Verify GREEN:** `just check && just test`
-
-
-### Phase 4: Skill and prose updates (type: general, model: opus)
-
-**Scope:** Rewrite orchestrate SKILL.md, update refactor agent and delegation fragment. Final phase — all code/infrastructure from Phases 1-3 exists; opus writes about implemented artifacts, not forward references.
-
-**Files:** `agent-core/skills/orchestrate/SKILL.md` (rewrite), `agent-core/agents/refactor.md` (modify), `agent-core/fragments/delegation.md` (modify)
-
-**Depends on:** Phase 1 (agent caching model — `{name}-task` naming, Plan Context embedding), Phase 2 (verify-step.sh, structured orchestrator plan format with pipe-delimited steps), Phase 3 (TDD agents: tester/implementer/test-corrector/impl-corrector, step file splitting, verify-red.sh, TDD role markers)
-
-**Key constraints:**
-- All files are architectural artifacts → opus mandatory (per recall: "When Selecting Model For Prose Artifact Edits")
-- SKILL.md every section must open with a tool call (per recall: "How to Prevent Skill Steps From Being Skipped" — D+B hybrid pattern)
-- Positional authority in agent definitions: constraints in primacy, plan context middle, scope enforcement recency (per recall artifact)
-- Design section references: D-1 through D-6 must all be addressed in SKILL.md rewrite
-- Prose atomicity: all SKILL.md edits in a single step (one opus pass writes complete skill)
-- Sonnet default (D-1): remove haiku orchestrator assumption throughout
-- delegation.md is a CLAUDE.md fragment loaded via @-reference — changes affect all sessions
-
----
