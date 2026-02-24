@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-24
 
-**Status:** Task-classification designed (8 discussion rounds, `/prime` skill + two-section task list). wt-merge-dirty-tree merged and removed.
+**Status:** Validated merge integrity, 4 worktrees created, task-lifecycle designed and executed (planstate-derived commands + STATUS continuation).
 
 ## Completed This Session
 
@@ -25,6 +25,15 @@
   - Design evolution: @ref preload → SessionStart hook → scripted gate → all dropped → explicit `/prime` skill invocation
   - Key insight: @ref expansion and Read calls are cumulative (not deduplicated) — drove decision away from implicit injection
   - Outline reviewed by corrector: 0 critical, 3 major fixed, 3 minor fixed
+- Validated merge integrity — wt-merge-dirty-tree (`50e37ede`) and planstate-delivered (`8a97fb71`), no session detail or learning loss
+  - planstate-delivered merge: 5 `[from:]` artifacts appended to Blockers (cleaned in subsequent handoff `b571df3c`)
+- Created 4 worktrees: recall-tool-anchoring, wt-merge-session-loss, when-resolve-fix, prepare-runbook-fixes
+- Designed and executed task-lifecycle (`plans/task-lifecycle/`)
+  - D: stale task commands in session.md after `/design` and `/runbook` advance plan
+  - D: STATUS missing session-level continuation after direct skill execution
+  - Three changes: (1) STATUS derives commands from planstate via CLI, (2) handoff carry-forward derives commands from `_NEXT_ACTION_TEMPLATES` mapping, (3) STATUS shows session continuation when tree dirty
+  - Files: `execute-rule.md`, `handoff/SKILL.md`
+  - Skill-reviewer caught 2 bugs: `designed` → wrong file (`outline.md` not `design.md`), `planned` → missing `agent-core/bin/` prefix. Fixed.
 
 ## Pending Tasks
 
@@ -88,22 +97,12 @@
   - Plan: task-classification | Status: designed (outline reviewed, ready for runbook)
   - `/prime` skill (ad-hoc plan context) + two-section task list (In-tree / Worktree Tasks)
   - Scope: `session.py`, `resolve.py`, `aggregation.py`, `session_structure.py`, handoff skill, execute-rule.md
-- [ ] **Recall tool anchoring** — `/design plans/recall-tool-anchoring/outline.md` | sonnet
-  - Plan: recall-tool-anchoring | Status: designed (outline reviewed, ready for prototype)
-  - Throwaway prototype: 3 shell scripts (check, resolve, diff) + D+B restructure of 8 skills/agents + PreToolUse hook
-  - Reference manifest format: thin trigger list replaces content dump in recall-artifact.md
 - [ ] **Recall CLI integration** — Production `claudeutils _recall` CLI (check/resolve/diff), Click, TDD | sonnet
   - Blocked on: recall-tool-anchoring prototype
 - [ ] **Prose gate anchoring terminology** — Find proper name for D+B pattern, ground, update docs | opus
 
 - [ ] **Consolidate recall tooling** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
 
-- [ ] **Worktree merge session loss diagnosis** — RCA why `_worktree merge` autostrategy drops session.md context | sonnet
-  - Root cause: focused session.md in branch lacks main's Worktree Tasks, autostrategy favors branch version
-  - Observed: Merge 1 (`f525d705`) dropped WT entry, Merge 2 (`c91c7628`) left orphan + malformed blocker. Pre-merge: `0c91d969`
-  - Fix target: `src/claudeutils/worktree/merge.py` session autostrategy
-  - Related: planstate-delivered (plan: planstate-delivered) would prevent "completed but no record" class
-- [x] **Orchestrate evolution** — runbook planned (4 phases, 14 steps). Superseded by Execute task below
 - [ ] **Execute orchestrate-evolution** — `/orchestrate orchestrate-evolution` | sonnet | restart
   - 14 steps: 12 TDD cycles (sonnet) + 2 general steps (opus)
   - Phase 1: agent caching model (4 cycles)
@@ -111,20 +110,37 @@
   - Phase 3: TDD agent generation + verify-red.sh (4 cycles)
   - Phase 4: SKILL.md rewrite + refactor.md/delegation.md updates (2 steps, opus)
   - Checkpoints: light at phase boundaries, full at Phase 4 (final)
-- [ ] **Fix prepare-runbook.py step file generation bugs** — sonnet
-  - Bug 1: `extract_cycles()` line 150 — only terminates on H2, not H3 phase headers; last cycle captures next phase's preamble
-  - Bug 2: `generate_cycle_file()` line 1048 / `generate_step_file()` line 1000 — writes non-existent `runbook.md` path as provenance metadata
-  - Diagnostic: `plans/prepare-runbook-fixes/diagnostic.md`
 - [ ] **Fix validate-runbook.py false positives** — sonnet
   - model-tags: bash scripts under `agent-core/skills/` falsely flagged as prose artifacts
   - lifecycle: pre-existing files flagged as "modified before creation"
 
 - [ ] **Deliverable review auto-commit** — after fixing all issues in deliverable-review, auto handoff and commit | sonnet
-- [ ] **Fix when-resolve.py heading lookup** — fuzzy heading match in `_resolve_trigger()` instead of exact | sonnet
-  - Plan: when-resolve-fix | Status: requirements (problem.md exists)
-  - Scope: `src/claudeutils/when/resolver.py` `_resolve_trigger()` lines 241-253
+- [ ] **Worktree new fuzzy matching** — `_worktree new` accepts approximate task names instead of exact match | sonnet
+
 ## Worktree Tasks
 
+
+- [ ] **Recall tool anchoring** → `recall-tool-anchoring` — `/design plans/recall-tool-anchoring/outline.md` | sonnet
+  - Plan: recall-tool-anchoring | Status: designed (outline reviewed, ready for prototype)
+  - Throwaway prototype: 3 shell scripts (check, resolve, diff) + D+B restructure of 8 skills/agents + PreToolUse hook
+  - Reference manifest format: thin trigger list replaces content dump in recall-artifact.md
+
+- [ ] **Worktree merge session loss diagnosis** → `wt-merge-session-loss` — RCA why `_worktree merge` autostrategy drops session.md context | sonnet
+  - Root cause: focused session.md in branch lacks main's Worktree Tasks, autostrategy favors branch version
+  - Observed: Merge 1 (`f525d705`) dropped WT entry, Merge 2 (`c91c7628`) left orphan + malformed blocker. Pre-merge: `0c91d969`
+  - Observed: Merge 3 (`8a97fb71` planstate-delivered) appended 5 `[from: planstate-delivered]` entries into Blockers section. Merge 4 (`50e37ede` wt-merge-dirty-tree) clean — code-only branch, no session.md changes
+  - Fix target: `src/claudeutils/worktree/merge.py` session autostrategy
+  - Two manifestations: (1) WT Tasks entries dropped, (2) branch-only content appended to wrong section (Blockers)
+  - Related: planstate-delivered (plan: planstate-delivered) would prevent "completed but no record" class
+
+- [ ] **Fix when-resolve.py heading lookup** → `when-resolve-fix` — fuzzy heading match in `_resolve_trigger()` instead of exact | sonnet
+  - Plan: when-resolve-fix | Status: requirements (problem.md exists)
+  - Scope: `src/claudeutils/when/resolver.py` `_resolve_trigger()` lines 241-253
+
+- [ ] **Fix prepare-runbook.py step file generation bugs** → `prepare-runbook-fixes` — sonnet
+  - Bug 1: `extract_cycles()` line 150 — only terminates on H2, not H3 phase headers; last cycle captures next phase's preamble
+  - Bug 2: `generate_cycle_file()` line 1048 / `generate_step_file()` line 1000 — writes non-existent `runbook.md` path as provenance metadata
+  - Diagnostic: `plans/prepare-runbook-fixes/diagnostic.md`
 
 ## Blockers / Gotchas
 
@@ -170,7 +186,7 @@
 
 ## Next Steps
 
-Task-classification designed and ready for runbook. Recall tool anchoring prototype also ready. Next: task-classification runbook, recall-tool-anchoring prototype, or execute orchestrate-evolution.
+4 worktrees active (recall-tool-anchoring, wt-merge-session-loss, when-resolve-fix, prepare-runbook-fixes). Next: execute in worktrees, or task-classification runbook, or execute orchestrate-evolution on main.
 
 ## Reference Files
 
@@ -189,3 +205,4 @@ Task-classification designed and ready for runbook. Recall tool anchoring protot
 - `plans/recall-tool-anchoring/reports/recall-gate-inventory.md` — 31 gates inventoried across 13 files
 - `plans/task-classification/outline.md` — `/prime` skill + two-section task list design (8 rounds, reviewed)
 - `plans/task-classification/reports/outline-review.md` — Corrector review (0 critical, 3 major fixed)
+- `plans/task-lifecycle/outline.md` — Planstate-derived commands + STATUS continuation design
