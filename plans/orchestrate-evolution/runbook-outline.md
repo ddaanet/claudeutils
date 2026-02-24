@@ -7,20 +7,20 @@
 
 | Requirement | Phase | Item |
 |-------------|-------|------|
-| FR-2 (post-step remediation) | 3 | Step 3.1 (SKILL.md remediation protocol) |
-| FR-3 (RCA task generation) | 3 | Step 3.1 (SKILL.md RCA after remediation) |
+| FR-2 (post-step remediation) | 4 | Step 4.1 (SKILL.md remediation protocol) |
+| FR-3 (RCA task generation) | 4 | Step 4.1 (SKILL.md RCA after remediation) |
 | FR-4 (delegation prompt dedup) | 1 | Cycles 1.1-1.3 (agent caching eliminates inline content) |
 | FR-5 (commit instruction) | 1 | Cycle 1.1 (clean tree footer in agent definition) |
 | FR-6 (scope constraint) | 1 | Cycle 1.1 (scope enforcement footer + structural absence) |
-| FR-7 (precommit verification) | 2 | Cycle 2.4 (verify-step.sh) + Phase 3 (SKILL.md invocation) |
-| FR-8 (ping-pong TDD) | 4, 5 | Phase 4 (agents + scripts) + Phase 5 (SKILL.md loop) |
-| FR-8a (RED gate) | 4 | Cycle 4.4 (verify-red.sh) |
-| FR-8b (GREEN gate) | 2, 5 | Cycle 2.4 (verify-step.sh: clean tree), Step 5.1 (composed GREEN = `just test` + verify-step.sh) |
-| FR-8c (role-specific correctors) | 4 | Cycle 4.1 (test-corrector + impl-corrector) |
-| FR-8d (agent resume) | 5 | Step 5.1 (SKILL.md TDD loop resume strategy) |
+| FR-7 (precommit verification) | 2 | Cycle 2.4 (verify-step.sh) + Phase 4 (SKILL.md invocation) |
+| FR-8 (ping-pong TDD) | 3, 4 | Phase 3 (agents + scripts) + Step 4.1 (SKILL.md TDD loop) |
+| FR-8a (RED gate) | 3 | Cycle 3.4 (verify-red.sh) |
+| FR-8b (GREEN gate) | 2, 4 | Cycle 2.4 (verify-step.sh: clean tree), Step 4.1 (composed GREEN = `just test` + verify-step.sh) |
+| FR-8c (role-specific correctors) | 3 | Cycle 3.1 (test-corrector + impl-corrector) |
+| FR-8d (agent resume) | 4 | Step 4.1 (SKILL.md TDD loop resume strategy) |
 | NFR-1 (context bloat) | 1, 2 | Agent caching + structured plan format |
 | NFR-2 (backward compat) | All | Q-4 clean break — no migration needed |
-| NFR-3 (orchestrator model) | 3 | Step 3.1 (SKILL.md sonnet default) |
+| NFR-3 (orchestrator model) | 4 | Step 4.1 (SKILL.md sonnet default) |
 
 ## Key Decisions Reference
 
@@ -39,7 +39,7 @@
 - **prepare-runbook.py size:** ~1500 lines. Monitor line count; extract helpers for repeated kwargs patterns before splitting.
 - **Shell script testing:** Use pytest with real git repos in `tmp_path` fixtures (E2E pattern from `agents/decisions/testing.md`).
 - **Architectural artifacts:** SKILL.md, refactor.md, delegation.md require opus per Model Assignment rules.
-- **Test file growth risk:** `test_prepare_runbook_agents.py` is 353 lines. Phase 1 (4 cycles) and Phase 4 Cycle 4.1 both extend it. Project split threshold is 400 lines. Planner should route Phase 4 TDD agent tests to a new `tests/test_prepare_runbook_tdd_agents.py` file, or split Phase 1 tests into `test_prepare_runbook_agent_caching.py` before Phase 4 begins. See learnings: "When TDD cycles grow a shared test file past line limits."
+- **Test file growth risk:** `test_prepare_runbook_agents.py` is 353 lines. Phase 1 (4 cycles) and Phase 3 Cycle 3.1 both extend it. Project split threshold is 400 lines. Planner should route Phase 3 TDD agent tests to a new `tests/test_prepare_runbook_tdd_agents.py` file, or split Phase 1 tests into `test_prepare_runbook_agent_caching.py` before Phase 3 begins. See learnings: "When TDD cycles grow a shared test file past line limits."
 
 ---
 
@@ -105,39 +105,15 @@
 
 **Complexity:** Medium — new format generation + shell script with E2E tests
 
-### Phase 3: Skill and prose updates (type: general, model: opus)
+### Phase 3: TDD agent generation (type: tdd)
 
-**Scope:** Rewrite orchestrate SKILL.md, update refactor agent and delegation fragment.
+**Scope:** Extend prepare-runbook.py for ping-pong TDD: 4 agent types, step file splitting, orchestrator plan TDD markers, verify-red.sh.
 
-**Files:** `agent-core/skills/orchestrate/SKILL.md` (rewrite), `agent-core/agents/refactor.md` (modify), `agent-core/fragments/delegation.md` (modify)
-
-**Depends on:** Phase 1 (agent caching model), Phase 2 (verify-step.sh, orchestrator plan format)
-
-- Step 3.1: SKILL.md rewrite
-  - Rewrite from ~517 lines to ~200 lines
-  - Sonnet orchestrator (D-1), remove `allowed-tools` constraint
-  - New execution loop: verify artifacts → read plan → dispatch with file reference → verify-step.sh → remediate (D-3) → phase boundary corrector → inline handling (D-6)
-  - Post-step remediation protocol: resume agent → recovery delegation → RCA task (FR-2, FR-3)
-  - Completion review: plan-specific corrector (multi-phase) or generic corrector (single-phase)
-  - Cleanup: delete `.claude/agents/<plan>-*.md` files
-  - Continuation protocol preserved
-  - Keep: deliverable review assessment, progress tracking, error escalation
-
-- Step 3.2: Refactor agent and delegation fragment updates
-  - **refactor.md:** Add deslop directives before Step 3 (Refactoring Protocol), factorization-before-splitting rule to Evaluation section, resume pattern to return protocol (~30 lines of additions to existing 244-line agent)
-  - **delegation.md:** Sonnet default (remove haiku default), remove "Never use opus for straightforward execution" (covered by skill), add file reference pattern and agent caching note, update quiet execution pattern references
-
-**Complexity:** High (Step 3.1), Low (Step 3.2)
-
-### Phase 4: TDD agent generation (type: tdd)
-
-**Scope:** Extend prepare-runbook.py for ping-pong TDD: 4 agent types, step file splitting, orchestrator plan TDD markers.
-
-**Files:** `agent-core/bin/prepare-runbook.py`, `agent-core/skills/orchestrate/scripts/verify-red.sh` (create), `tests/test_prepare_runbook_agents.py` (extend), `tests/test_verify_red.py` (create)
+**Files:** `agent-core/bin/prepare-runbook.py`, `agent-core/skills/orchestrate/scripts/verify-red.sh` (create), `tests/test_prepare_runbook_tdd_agents.py` (create), `tests/test_verify_red.py` (create)
 
 **Depends on:** Phase 1 (agent caching model used as foundation for TDD agents), Phase 2 (orchestrator plan format extended with TDD role markers)
 
-- Cycle 4.1: TDD agent type generation (4 agents)
+- Cycle 3.1: TDD agent type generation (4 agents)
   - `<plan>-tester.md`: test-driver.md baseline + design + outline + test quality rules
   - `<plan>-implementer.md`: test-driver.md baseline + design + outline + coding rules
   - `<plan>-test-corrector.md`: corrector.md baseline + design + outline + test quality rules
@@ -145,18 +121,18 @@
   - Generated only for TDD-typed runbooks (pure TDD or TDD phases in mixed)
   - Verify: all 4 agents generated for TDD runbook; none for general runbook; correct baselines and cached rules
 
-- Cycle 4.2: Step file splitting (test/impl per TDD cycle)
+- Cycle 3.2: Step file splitting (test/impl per TDD cycle)
   - Split each TDD cycle into `step-N-test.md` (test spec) and `step-N-impl.md` (implementation hints)
   - Test file: RED phase content. Impl file: GREEN phase content.
   - Verify: two files per cycle; correct content separation; metadata headers on both
 
-- Cycle 4.3: Orchestrator plan TDD role markers
+- Cycle 3.3: Orchestrator plan TDD role markers
   - TDD step entries include role: `step-1-1-test.md | Phase 1 | sonnet | 25 | TEST`
   - IMPLEMENT role on impl steps
   - Orchestrator dispatches TEST → tester agent, IMPLEMENT → implementer agent
   - Verify: role markers present; TEST/IMPLEMENT alternating per cycle
 
-- Cycle 4.4: verify-red.sh creation and testing
+- Cycle 3.4: verify-red.sh creation and testing
   - Create `agent-core/skills/orchestrate/scripts/verify-red.sh`
   - Contract: input = test file path; exit 0 if test fails (RED confirmed); exit 1 if test passes
   - Mechanism: `pytest <test_file> --no-header -q`, invert exit code
@@ -164,22 +140,31 @@
 
 **Complexity:** Medium — extends Phase 1 patterns to TDD-specific generation
 
-### Phase 5: TDD orchestration skill (type: general, model: opus)
+### Phase 4: Skill and prose updates (type: general, model: opus)
 
-**Scope:** Extend SKILL.md with TDD orchestration loop.
+**Scope:** Rewrite orchestrate SKILL.md, update refactor agent and delegation fragment. Final phase — all code/infrastructure from Phases 1-3 exists; opus writes about implemented artifacts.
 
-**Files:** `agent-core/skills/orchestrate/SKILL.md` (extend)
+**Files:** `agent-core/skills/orchestrate/SKILL.md` (rewrite), `agent-core/agents/refactor.md` (modify), `agent-core/fragments/delegation.md` (modify)
 
-**Depends on:** Phase 3 (SKILL.md rewrite provides base to extend), Phase 4 (TDD agents, verify-red.sh, step splitting)
+**Depends on:** Phase 1 (agent caching model), Phase 2 (verify-step.sh, orchestrator plan format), Phase 3 (TDD agents, verify-red.sh, step splitting)
 
-- Step 5.1: SKILL.md TDD loop extension (extends ~200-line rewrite from Phase 3)
-  - Add TDD orchestration loop section (D-5):
-    - Dispatch tester with test spec → RED gate (verify-red.sh) → test-corrector → dispatch implementer → GREEN gate (just test + verify-step.sh) → impl-corrector → next cycle
+- Step 4.1: SKILL.md complete rewrite (including TDD orchestration loop)
+  - Rewrite from ~517 lines to ~250 lines (general loop + TDD loop in one pass)
+  - Sonnet orchestrator (D-1), remove `allowed-tools` constraint
+  - New execution loop: verify artifacts → read plan → dispatch with file reference → verify-step.sh → remediate (D-3) → phase boundary corrector → inline handling (D-6)
+  - Post-step remediation protocol: resume agent → recovery delegation → RCA task (FR-2, FR-3)
+  - TDD orchestration loop (D-5): dispatch tester → RED gate (verify-red.sh) → test-corrector → dispatch implementer → GREEN gate (just test + verify-step.sh) → impl-corrector → next cycle
   - Agent resume strategy: resume tester/implementer across cycles; fresh if >15 messages; correctors never resumed
-  - Error handling: RED gate failure → resume tester or escalate; GREEN gate failure → resume implementer or remediate (D-3 pattern)
-  - Reference the 4 TDD agent types and their dispatch conditions
+  - Completion review: plan-specific corrector (multi-phase) or generic corrector (single-phase)
+  - Cleanup: delete `.claude/agents/<plan>-*.md` files
+  - Continuation protocol preserved
+  - Keep: deliverable review assessment, progress tracking, error escalation
 
-**Complexity:** Medium — single opus step extending existing skill with fully-specified loop
+- Step 4.2: Refactor agent and delegation fragment updates
+  - **refactor.md:** Add deslop directives before Step 3 (Refactoring Protocol), factorization-before-splitting rule to Evaluation section, resume pattern to return protocol (~30 lines of additions to existing 244-line agent)
+  - **delegation.md:** Sonnet default (remove haiku default), remove "Never use opus for straightforward execution" (covered by skill), add file reference pattern and agent caching note, update quiet execution pattern references
+
+**Complexity:** High (Step 4.1), Low (Step 4.2)
 
 ---
 
@@ -187,27 +172,28 @@
 
 - **Phase 1 → 2 boundary:** Light checkpoint (fix + functional). Verify: single task agent generated, design+outline embedded, corrector for multi-phase.
 - **Phase 2 → 3 boundary:** Light checkpoint. Verify: structured plan format, verify-step.sh functional.
-- **Phase 3 → 4 boundary:** Full checkpoint (fix + review + functional). SKILL.md rewrite is high-impact architectural artifact.
-- **Phase 4 → 5 boundary:** Light checkpoint. Verify: TDD agents generated, step splitting works, verify-red.sh functional.
-- **Phase 5 (final):** Full checkpoint. Complete review of all changes.
+- **Phase 3 → 4 boundary:** Light checkpoint. Verify: TDD agents generated, step splitting works, verify-red.sh functional.
+- **Phase 4 (final):** Full checkpoint (fix + review + functional). SKILL.md rewrite is high-impact architectural artifact. Complete review of all changes.
 
 ## Expansion Guidance (Review)
 
 The following recommendations should be incorporated during full runbook expansion:
 
 **Consolidation candidates:**
-- Phase 5 (1 step, Medium complexity) is a valid standalone phase — opus model differs from Phase 4's sonnet, and SKILL.md extension logically follows TDD infrastructure. Preserve as separate phase.
-- Step 3.2 (refactor agent + delegation fragment) is Low complexity but grouped correctly with Step 3.1 (all prose/architectural artifacts requiring opus).
+- Step 4.2 (refactor agent + delegation fragment) is Low complexity but grouped correctly with Step 4.1 (all prose/architectural artifacts requiring opus).
+- Phase 5 merged into Phase 4 Step 4.1 — SKILL.md is prose, references Phase 3 artifacts that now exist. Single opus pass writes complete skill (general loop + TDD loop).
 
 **Cycle expansion:**
-- Cycle 4.1 tests should target a new test file (`tests/test_prepare_runbook_tdd_agents.py`) to avoid pushing `test_prepare_runbook_agents.py` past 400 lines. Phase 1 cycles own the existing test file; Phase 4 creates a new one.
-- Cycle 2.4 and Cycle 4.4 (shell script creation + testing) should each specify E2E test pattern: real git repos in `tmp_path` fixtures, not mocked subprocess (per recall artifact: "When Preferring E2E Over Mocked Subprocess").
+- Cycle 3.1 tests should target a new test file (`tests/test_prepare_runbook_tdd_agents.py`) to avoid pushing `test_prepare_runbook_agents.py` past 400 lines. Phase 1 cycles own the existing test file; Phase 3 creates a new one.
+- Cycle 2.4 and Cycle 3.4 (shell script creation + testing) should each specify E2E test pattern: real git repos in `tmp_path` fixtures, not mocked subprocess (per recall artifact: "When Preferring E2E Over Mocked Subprocess").
 
 **Checkpoint guidance:**
-- Phase 3 → 4 full checkpoint is critical: validate SKILL.md rewrite covers all design sections (D-1 through D-6, inline handling, remediation protocol, cleanup step).
-- Phase 5 final checkpoint should validate TDD loop integration end-to-end against the composed GREEN gate (`just test` + `verify-step.sh`).
+- Phase 4 full checkpoint is critical: validate SKILL.md rewrite covers all design sections (D-1 through D-6, inline handling, remediation protocol, cleanup step).
+
+**Phase ordering rationale:**
+- Phase 4 (prose/SKILL.md) is last so opus writes about artifacts that already exist from Phases 1-3, not forward references. Aligns with "When Bootstrapping Self-Referential Improvements" — tool-improvement items precede tool-usage items.
 
 **References to include:**
 - Recall artifact entries on positional authority (agent definitions: constraints in primacy, plan context middle, scope enforcement recency).
 - Recall artifact entry on GREEN phase lint inclusion (`just check && just test` not just `just test`).
-- Design section "Post-Step Remediation Protocol (D-3)" for Step 3.1 remediation detail — reference, do not reproduce.
+- Design section "Post-Step Remediation Protocol (D-3)" for Step 4.1 remediation detail — reference, do not reproduce.

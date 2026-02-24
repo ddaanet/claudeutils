@@ -4,6 +4,8 @@
 
 **Files:** `agent-core/bin/prepare-runbook.py`, `tests/test_prepare_runbook_agents.py` (extend)
 
+**File growth constraint:** `tests/test_prepare_runbook_agents.py` is currently 354 lines. Phase 1 adds 4 test functions (~20-30 lines each), projecting to 434-474 lines — above the 400-line enforcement threshold. Before starting Cycle 1.3, check line count: if `tests/test_prepare_runbook_agents.py` exceeds 380 lines, extract the new Cycle 1.1/1.2 test classes to `tests/test_prepare_runbook_agent_caching.py` before continuing.
+
 **Key constraints:**
 - Clean break (Q-4): no backward compatibility with `crew-` naming
 - Agent naming: `<plan>-task.md`, `<plan>-corrector.md`
@@ -52,15 +54,13 @@
 **Changes:**
 - File: `agent-core/bin/prepare-runbook.py`
   Action: Replace `generate_phase_agent` with `generate_task_agent` that takes all plan context
-  Location hint: around line 858
+  Location hint: line 858 (`generate_phase_agent` function — rename/replace this function)
 
 - File: `agent-core/bin/prepare-runbook.py`
   Action: Modify `validate_and_create` to generate single task agent
   Location hint: around line 1341
 
-**Verify lint:** `just lint`
-**Verify GREEN:** `pytest tests/test_prepare_runbook_agents.py -v`
-**Verify no regression:** `just test`
+**Verify GREEN:** `just check && just test`
 
 ---
 
@@ -105,9 +105,7 @@
   Action: Modify task agent generator to accept and embed design content
   Location hint: in the new `generate_task_agent` function
 
-**Verify lint:** `just lint`
-**Verify GREEN:** `pytest tests/test_prepare_runbook_agents.py -v`
-**Verify no regression:** `just test`
+**Verify GREEN:** `just check && just test`
 
 ---
 
@@ -153,9 +151,7 @@
   Action: Pass outline content to task agent generator
   Location hint: agent generation call
 
-**Verify lint:** `just lint`
-**Verify GREEN:** `pytest tests/test_prepare_runbook_agents.py -v`
-**Verify no regression:** `just test`
+**Verify GREEN:** `just check && just test`
 
 ---
 
@@ -207,6 +203,4 @@
   Action: Extend `read_baseline_agent` to support "corrector" type or add separate reader
   Location hint: around line 821
 
-**Verify lint:** `just lint`
-**Verify GREEN:** `pytest tests/test_prepare_runbook_agents.py -v`
-**Verify no regression:** `just test`
+**Verify GREEN:** `just check && just test`
