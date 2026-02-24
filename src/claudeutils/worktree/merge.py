@@ -21,6 +21,8 @@ from claudeutils.worktree.resolve import (
 
 def _append_lifecycle_delivered(plans_dir: Path) -> None:
     """Append delivered entry to lifecycle.md for reviewed plans."""
+    if not plans_dir.exists():
+        return
     today = datetime.now(UTC).date().isoformat()
     for plan_dir in sorted(plans_dir.iterdir()):
         if not plan_dir.is_dir():

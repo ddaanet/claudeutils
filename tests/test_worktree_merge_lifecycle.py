@@ -35,3 +35,12 @@ def test_append_lifecycle_delivered_skips_non_reviewed(tmp_path: Path) -> None:
     _append_lifecycle_delivered(plans_dir)
 
     assert lifecycle_file.read_text() == original_content
+
+
+def test_append_lifecycle_delivered_graceful_missing_plans_dir(tmp_path: Path) -> None:
+    """Test: _append_lifecycle_delivered handles missing plans_dir gracefully."""
+    nonexistent_dir = tmp_path / "no-such-plans"
+
+    _append_lifecycle_delivered(nonexistent_dir)
+
+    # No exception raised, call completes normally
