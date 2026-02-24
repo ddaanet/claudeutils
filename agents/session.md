@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-24
 
-**Status:** Prioritized backlog. 2 worktrees active (orchestrate-evolution, planstate-delivered). Merging orchestrate-evolution.
+**Status:** Prioritized backlog. Merged orchestrate-evolution (recall skill tweak only — runbook planning not started). planstate-delivered worktree active.
 
 ## Completed This Session
 
@@ -9,6 +9,8 @@
   - Parallel batch A identified: 4 independent sonnet tasks
 - Created worktrees: orchestrate-evolution, planstate-delivered
 - Discussion: test sentinel versioning (rejected — local cache, not versionable), sentinel copy on wt new (accepted as task)
+- Merged `orchestrate-evolution` — recall skill tweak only (runbook planning not started in that worktree)
+  - Merge artifact: autostrategy duplicated task into Pending + kept in Worktree Tasks. Manually cleaned
 
 ## Pending Tasks
 
@@ -84,14 +86,13 @@
   - Observed: Merge 1 (`f525d705`) dropped WT entry, Merge 2 (`c91c7628`) left orphan + malformed blocker. Pre-merge: `0c91d969`
   - Fix target: `src/claudeutils/worktree/merge.py` session autostrategy
   - Related: planstate-delivered (plan: planstate-delivered) would prevent "completed but no record" class
-## Worktree Tasks
-
-
-- [ ] **Orchestrate evolution** → `orchestrate-evolution` — `/runbook plans/orchestrate-evolution/design.md` | sonnet
+- [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
   - Design complete with Phase 1 (foundation) + Phase 2 (ping-pong TDD), ready for runbook planning
   - Insights input: ping-pong TDD agent pattern — alternating tester/implementer agents with mechanical RED/GREEN gates between handoffs. Tester holds spec context (can't mirror code structure), implementer holds codebase context (can't over-implement beyond test demands). Resume-based context preservation avoids startup cost per cycle
   - Absorbs: Task agent guardrails — tool-call limits, regression detection, model escalation (haiku→sonnet→opus on capability mismatch) all additive. Design covers agent→user escalation and context-size heuristic but not inter-tier promotion or tool-call budgets
   - Absorbs: RED pass protocol — classification taxonomy, blast radius procedure, defect impact evaluation. Design has remediation + escalation patterns but not formal classification or blast radius assessment
+
+## Worktree Tasks
 
 - [ ] **Planstate delivered status** → `planstate-delivered` — `/runbook plans/planstate-delivered/outline.md` | sonnet
   - Plan: planstate-delivered | Status: designed
@@ -143,7 +144,7 @@
 
 ## Next Steps
 
-Merge orchestrate-evolution. WT new sentinel copy (quick). Then WT merge session loss dx or codebase sweep.
+Create sentinel-copy worktree. WT new sentinel copy (quick). Then WT merge session loss dx or codebase sweep.
 
 ## Reference Files
 
