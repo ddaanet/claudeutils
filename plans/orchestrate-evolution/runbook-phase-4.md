@@ -93,7 +93,7 @@ The rewrite replaces the current SKILL.md with a new version reflecting all desi
 
 **Implementation:**
 
-**refactor.md (244 lines → ~274 lines):**
+**refactor.md (243 lines → ~273 lines):**
 
 Three targeted additions to existing agent definition:
 

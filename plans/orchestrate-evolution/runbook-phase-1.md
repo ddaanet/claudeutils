@@ -1,3 +1,84 @@
+## Common Context
+
+**Design:** `plans/orchestrate-evolution/design.md`
+**Recall:** `plans/orchestrate-evolution/recall-artifact.md`
+
+**Requirements (from design):**
+- FR-2: Post-step remediation (D-3) — Phase 4
+- FR-3: RCA task generation (D-3) — Phase 4
+- FR-4: Delegation prompt dedup (D-2) — Phase 1
+- FR-5: Commit instruction (D-2) — Phase 1
+- FR-6: Scope constraint (D-2) — Phase 1
+- FR-7: Precommit verification (D-3) — Phase 2 + Phase 4
+- FR-8: Ping-pong TDD (D-5) — Phase 3 + Phase 4
+- FR-8a-d: RED/GREEN gates, correctors, resume — Phase 3 + Phase 4
+- NFR-1: Context bloat — file references only (D-2)
+- NFR-2: Clean break — no backward compat (Q-4)
+- NFR-3: Sonnet orchestrator (D-1)
+
+**Scope boundaries:**
+- IN: orchestrate SKILL.md, prepare-runbook.py, verify-step.sh, verify-red.sh, refactor.md, delegation.md
+- OUT: planning skills (plan-tdd, plan-adhoc), corrector agent behavior, continuation passing, parallel dispatch
+
+**Key Constraints:**
+- Clean break (Q-4): no backward compatibility with `crew-` naming
+- Agent naming: `<plan>-task`, `<plan>-corrector`, `<plan>-tester`, `<plan>-implementer`, `<plan>-test-corrector`, `<plan>-impl-corrector`
+- Baselines: artisan.md (general), test-driver.md (TDD), corrector.md (review)
+- prepare-runbook.py: ~1500 lines, monitor growth, extract helpers before splitting
+
+**TDD Protocol:**
+Strict RED-GREEN-REFACTOR: 1) RED: Write failing test, 2) Verify RED, 3) GREEN: Minimal implementation, 4) Verify GREEN, 5) Verify Regression, 6) REFACTOR (optional)
+
+**Stop/Error Conditions (all cycles):**
+STOP IMMEDIATELY if: RED phase test passes (expected failure) • GREEN phase tests don't pass after implementation • Any existing tests break (regression)
+
+**Recall (phase-neutral — constraint format for sonnet consumers):**
+- DO commit all changes before reporting success. Orchestrator rejects dirty trees.
+- DO verify GREEN with `just check && just test` (lint + test), not just tests.
+- DO use file references in dispatch prompts, never inline step content.
+- DO NOT edit generated agent files or step files directly — edit source phase files, re-run prepare-runbook.py.
+- DO NOT substitute built-in agent types when plan-specific agent not found — STOP and report.
+- Rules files (.claude/rules/) fire in main session only. Embed domain context in agent definitions.
+
+**Project Paths:**
+- `agent-core/bin/prepare-runbook.py` — main modification target (Phases 1-3)
+- `agent-core/skills/orchestrate/SKILL.md` — rewrite target (Phase 4)
+- `agent-core/agents/refactor.md` — update target (Phase 4)
+- `agent-core/fragments/delegation.md` — update target (Phase 4)
+- `agent-core/skills/orchestrate/scripts/` — new scripts (Phases 2-3)
+- `tests/test_prepare_runbook_agents.py` — extend (Phase 1)
+- `tests/test_prepare_runbook_tdd_agents.py` — create (Phase 3)
+- `tests/test_prepare_runbook_orchestrator.py` — extend (Phase 2)
+- `tests/test_verify_step.py` — create (Phase 2)
+- `tests/test_verify_red.py` — create (Phase 3)
+
+## Weak Orchestrator Metadata
+
+**Total Steps**: 14 (12 TDD cycles + 2 general steps)
+
+**Execution Model:**
+- Cycles 1.1-1.4: Sonnet (restructuring existing logic, agent composition)
+- Cycles 2.1-2.4: Sonnet (new format generation, shell script with E2E tests)
+- Cycles 3.1-3.4: Sonnet (extending Phase 1 patterns to TDD-specific generation)
+- Steps 4.1-4.2: Opus (architectural artifacts — SKILL.md, refactor.md, delegation.md)
+
+**Step Dependencies**: Sequential within phases; Phase 3 depends on Phases 1+2; Phase 4 depends on Phases 1+2+3
+
+**Error Escalation**:
+- Sonnet → User: design decisions needed, architectural changes, unresolvable test failures
+
+**Report Locations**: `plans/orchestrate-evolution/reports/`
+
+**Success Criteria**: All 14 requirements (FR-2 through NFR-3) addressed. prepare-runbook.py generates new agent types and structured plan format. SKILL.md rewritten with general + TDD orchestration loops. verify-step.sh and verify-red.sh functional.
+
+**Prerequisites**:
+- Design document reviewed and updated (✓ 2026-02-24, 6 amendments)
+- Recall artifact generated (✓ 25 entries from 14 decision files)
+- Baseline agents exist: artisan.md, test-driver.md, corrector.md (✓ verified via Glob)
+- Test suite passing (✓ `just test` clean)
+
+---
+
 ### Phase 1: Agent caching model (type: tdd, model: sonnet)
 
 **Scope:** Restructure prepare-runbook.py agent generation from per-phase to per-role model. Single task agent with embedded design+outline replaces N per-phase agents.

@@ -14,7 +14,7 @@
 - Generated only for TDD-typed runbooks (pure TDD or TDD phases in mixed)
 - Step file splitting: each TDD cycle → `step-N-test.md` (RED) + `step-N-impl.md` (GREEN)
 - Orchestrator plan TDD markers: TEST/IMPLEMENT role on step entries
-- Tests in NEW file `tests/test_prepare_runbook_tdd_agents.py` — NOT in `test_prepare_runbook_agents.py` (353 lines, near 400-line threshold)
+- Tests in NEW file `tests/test_prepare_runbook_tdd_agents.py` — NOT in `test_prepare_runbook_agents.py` (354 lines, near 400-line threshold)
 - verify-red.sh: deterministic script (non-cognitive → script, per recall "When Choosing Script vs Agent Judgment")
 - Shell script testing: real git repos in tmp_path (per recall "When Preferring E2E Over Mocked Subprocess")
 
