@@ -1,21 +1,22 @@
-# Session Handoff: 2026-02-24
+# Session Handoff: 2026-02-25
 
-**Status:** Design skill triage restructured with 4 structural fixes + companion task rule. Learnings at 75 lines — `/codify` needed.
+**Status:** Recall gate anchoring applied to /reflect and /runbook skills. Learnings at 76 lines — `/codify` needed urgently.
 
 ## Completed This Session
 
-**Design skill triage: 4 structural fixes from RCA:**
-- D+B anchor: `when-resolve.py` call before classification prevents triage from being skipped
-- Reorder: Complex → Moderate → Simple (removes primacy bias toward Simple)
-- Separate: Classification Criteria / Classification Gate / Routing as distinct sections
-- Anchor: Classification gate requires explicit statement (classification, behavioral code check, evidence)
-- Companion task rule: bundled work gets its own Phase 0 pass — venue doesn't exempt process
+**RCA: skipped recall in /design → /runbook Moderate path:**
+- /design triaged Moderate correctly, routed to /runbook Tier 1
+- No recall pass executed — "skip if already in context" escape hatch allowed full skip
+- On-disk skills already had triage recall D+B anchor (commit `e1a35cd1`) but injected versions were stale (possible Claude Code caching)
 
-**RCA: failure to load /recall and /skill-development:**
-- Agent treated companion tasks ("address during /design") as exempt from design process
-- Skipped A.0 skill dependency scan and A.1 documentation checkpoint for triage fix work
-- Root cause: Moderate routing for main task + no guidance for bundled companion tasks
-- Learning appended: "When companion tasks bundled into /design invocation"
+**Recall gate anchoring — `when-resolve.py` as structural anchor:**
+- `/reflect` Phase 4.5: restructured as 3 numbered tool-call-anchored steps — step 1 is `when-resolve.py` (recall), step 2 is file reads (verification), step 3 is presentation
+- `/runbook` Tier 1, Tier 2, Phase 0.5: replaced "Read memory-index.md (skip if already in context)" with `when-resolve.py` as leading anchor
+- Pattern: `when-resolve.py` proves both Read (requires trigger knowledge from memory-index) and resolution (produces output). Single gate anchor sufficient — passphrase/proof-of-Read redundant.
+- Invalidated learning removed: "When writing instructions that reference memory-index" (said "skip if in context" was correct — now identified as the anti-pattern)
+
+**Partial: inline regex task started but interrupted for RCA:**
+- `test_prepare_runbook_inline.py`: `detect_phase_types` import added (line 21), no test class yet
 
 ## Pending Tasks
 
@@ -27,16 +28,21 @@
   - Plan: prepare-runbook-inline-regex | Status: problem filed
   - 2 regex changes: `\(type:\s*inline\)` → `\(type:\s*inline[^)]*\)` to handle compound type tags
   - Workaround applied: manually added inline entries to orchestrator-plan.md
-  - Design skill triage fixes now applied — proceed with /design for the regex fix only
+  - Partial state: `detect_phase_types` import added to test file, no RED test yet
+- [ ] **Codify learnings** — `/codify` | opus
+  - Learnings at 76 lines (soft limit 80) — consolidation urgent
 
 ## Blockers / Gotchas
 
-**Learnings at 75 lines (soft limit 80):**
-- Run `/codify` before next substantial learning accumulation
+**Stale skill injection:**
+- On-disk skills (both `.claude/skills/` and `agent-core/skills/`) are current, but `/design` and `/reflect` invocations received older content. Possible Claude Code caching. No structural fix available — awareness only.
+
+**Learnings at 76 lines (soft limit 80):**
+- `/codify` before next learning accumulation
 
 ## Next Steps
 
-`/design plans/prepare-runbook-inline-regex/problem.md` — regex fix only (triage fixes done). Will triage as Moderate → `/runbook` TDD.
+`/codify` first (at limit), then `/design plans/prepare-runbook-inline-regex/problem.md` — Moderate → `/runbook` Tier 1 TDD.
 
 ## Reference Files
 
@@ -45,3 +51,5 @@
 - `plans/recall-tool-anchoring/lifecycle.md` — reviewed
 - `plans/prepare-runbook-inline-regex/problem.md` — Inline phase detection regex bug diagnostic
 - `agent-core/skills/design/SKILL.md` — Updated triage with D+B anchor, reorder, separation, gate
+- `agent-core/skills/reflect/SKILL.md` — Phase 4.5 restructured with recall gate
+- `agent-core/skills/runbook/SKILL.md` — Tier 1/2/Phase 0.5 recall anchored with when-resolve.py

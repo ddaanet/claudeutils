@@ -27,10 +27,6 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Applying "opus for prose artifacts" model rule to justify delegation when the cognitive work (designing what to add) was already done at opus during design. Launches N agents for N independent file edits, each re-reading files already in planner context.
 - Correct pattern: The "opus for prose artifacts" rule targets cases where design decisions happen during editing. When an outline pre-resolves all decisions and specifies exact insertion points, execution is mechanical — sonnet follows the outline. The "design resolves to simple execution" decision applies: delegation ceremony exceeds edit cost for all-prose work.
 - Evidence: 4 opus artisan agents launched for 47 lines of prose insertions across 4 skill files. User corrected: "why not inline?" The existing decision file explicitly warns against this pattern.
-## When writing instructions that reference memory-index
-- Anti-pattern: Using "scan memory-index" or "check loaded memory-index" language. "Scan file" triggers agents to Read the file even when it's already in context, wasting tokens on redundant reads.
-- Correct pattern: "Read memory-index.md (skip if already in context)" — on-demand read with explicit skip condition. First recall point in a session reads it; subsequent points find it loaded. Never assume ambient preloading via CLAUDE.md @-reference.
-- Rationale: Memory-index was removed from CLAUDE.md because it was useless without explicit action. The recall pass provides explicit action at cognitive boundaries, making on-demand reading the right pattern.
 ## When memory-index amplifies thin user input
 - Memory-index keyword-rich entries surface relevant decisions even from sparse queries — cross-references between entries create an amplification effect superior to direct corpus search.
 - This makes pipeline recall effective even on the moderate path (no formal requirements): derive domain keywords from user request, match against memory-index, follow cross-references to discover relevant decisions the user didn't explicitly mention.
@@ -74,3 +70,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Session note says "address X during /design." Agent treats companion work as exempt from design process — no recall, no skill loading, no classification gate. Rationalizes "well-specified from prior RCA" to skip all process steps.
 - Correct pattern: Companion tasks get their own triage pass through the same Phase 0 gates. "Address during /design" means the /design session is the venue, not that process is optional. Each workstream needs: recall, classification, routing.
 - Evidence: 4 triage fixes to design skill attempted without /recall or /skill-development loading. /reflect identified same pattern class as "Simple triage skips recall" learning.
+## When recall step uses "skip if already in context" language
+- Anti-pattern: "Read X (skip if already in context)" as a recall gate. Agent rationalizes the skip condition without verifying — substitutes related activity for the required Read. The escape hatch IS the failure mode.
+- Correct pattern: Anchor recall with a tool call that proves work happened. `when-resolve.py` is the gate: it's a Bash call (unskippable), requires trigger knowledge (forces prior Read of memory-index), and produces output (proves resolution). One gate anchor is sufficient — passphrase/proof-of-Read mechanisms are redundant when the resolution tool already proves both.
+- Evidence: /reflect Phase 4.5 skipped recall entirely. Same class as "treating recall-artifact summary as recall pass" — agent substitutes adjacent activity for the specific required action.
