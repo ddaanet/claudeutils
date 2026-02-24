@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-24
 
-**Status:** Prioritized backlog. 3 worktrees merged (orchestrate-evolution ×2, sentinel-copy, planstate-delivered). wt-merge-dirty-tree active.
+**Status:** Recall tool anchoring designed (outline through 3 discussion rounds). Two new pending tasks spawned. wt-merge-dirty-tree active.
 
 ## Completed This Session
 
@@ -13,6 +13,11 @@
   - New tasks: execute orchestrate-evolution, fix prepare-runbook.py bugs, fix validate-runbook.py false positives, deliverable review auto-commit, fix when-resolve.py heading lookup
 - Created `wt-merge-dirty-tree` worktree — bug: merge blocks on dirty worktree (should only check main)
 - Post-merge validation: 4 merges checked, artifacts cleaned each time. Autostrategy still unreliable for session.md
+- Designed recall tool anchoring (`plans/recall-tool-anchoring/`)
+  - Gate inventory: 31 gates across 13 files, 61% prose-only (report: `plans/recall-tool-anchoring/reports/recall-gate-inventory.md`)
+  - Outline through 3 discussion rounds: D+B hybrid application, reference manifest format, throwaway prototype
+  - Key decisions: reference manifest forces tool-anchoring structurally (format requires resolution call); `_recall diff` anchors write-side gates; `_recall generate` deferred (entry selection is cognitive)
+  - Recall artifact written with 11 entries from 6 decision files
 
 ## Pending Tasks
 
@@ -71,6 +76,14 @@
   - Inject matching decision content via additionalContext on prompt submit
   - Complementary to recall pass (cheap first layer vs deep pipeline integration)
 - [ ] **Prioritize script assistance** — Automate mechanical parts of prioritization scoring | sonnet
+
+- [ ] **Recall tool anchoring** — `/design plans/recall-tool-anchoring/outline.md` | sonnet
+  - Plan: recall-tool-anchoring | Status: designed (outline reviewed, ready for prototype)
+  - Throwaway prototype: 3 shell scripts (check, resolve, diff) + D+B restructure of 8 skills/agents + PreToolUse hook
+  - Reference manifest format: thin trigger list replaces content dump in recall-artifact.md
+- [ ] **Recall CLI integration** — Production `claudeutils _recall` CLI (check/resolve/diff), Click, TDD | sonnet
+  - Blocked on: recall-tool-anchoring prototype
+- [ ] **Prose gate anchoring terminology** — Find proper name for D+B pattern, ground, update docs | opus
 
 - [ ] **Consolidate recall tooling** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
 
@@ -149,7 +162,7 @@
 
 ## Next Steps
 
-Merge wt-merge-dirty-tree when done. Then session.md cleanup (merge artifacts need fresh-context pass — details below). Next real work: WT merge session loss dx or execute orchestrate-evolution.
+Merge wt-merge-dirty-tree when done. Recall tool anchoring prototype is ready to execute (outline finalized). Next real work: recall-tool-anchoring prototype, execute orchestrate-evolution, or WT merge session loss dx.
 
 **Session.md cleanup needed (commit `d170244b`):**
 Handoff cleaned most artifacts but residual issues remain from 4 worktree merges in one session. The autostrategy appended branch content without deduplicating or placing in correct sections. Specific items for next-session validation:
@@ -171,3 +184,6 @@ Handoff cleaned most artifacts but residual issues remain from 4 worktree merges
 - `plans/codebase-sweep/requirements.md` — mechanical refactoring (_git_ok, _fail, exceptions)
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
 - `plans/reports/prioritization-2026-02-24.md` — WSJF scoring, 37 tasks ranked
+- `plans/recall-tool-anchoring/outline.md` — Recall gate tool-anchoring design (D+B + reference manifest)
+- `plans/recall-tool-anchoring/recall-artifact.md` — 11 entries, reference manifest format
+- `plans/recall-tool-anchoring/reports/recall-gate-inventory.md` — 31 gates inventoried across 13 files
