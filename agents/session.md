@@ -1,28 +1,23 @@
 # Session Handoff: 2026-02-24
 
-**Status:** Runbook planned, artifacts generated. Ready for orchestration after restart.
+**Status:** Recall tool anchoring orchestrated — all 4 phases complete. Deliverable review pending.
 
 ## Completed This Session
 
-**Design triage (prior session):**
-- `/recall all` loaded 9 decision files
-- `/design` assessed outline sufficiency — routed to `/runbook`
-
-**Runbook planning:**
-- `/recall deep` loaded 26 entries from 10 decision files (4-pass saturation)
-- Augmented recall artifact with 5 planning-relevant entries (16 total)
-- Tier 3 assessment: model switching (opus for 8 architectural artifacts, sonnet for scripts/hook)
-- Runbook outline: 4 phases, ~7 items — promoted via Phase 0.95 sufficiency
-- Phase 1: general/sonnet (3 prototype scripts), Phase 2: inline/sonnet (format conversion), Phase 3: inline/opus (D+B restructure of 8 files), Phase 4: general/sonnet (hook + config)
-- prepare-runbook.py generated artifacts (commit: 66f58df0 + staged)
-- Manually added inline phase entries to orchestrator-plan.md (prepare-runbook.py skipped them)
+**Orchestration: recall-tool-anchoring (4 phases):**
+- Phase 1: 3 prototype scripts via crew-recall-tool-anchoring-p1 (recall-check.sh, recall-resolve.sh, recall-diff.sh)
+- Phase 2 (inline): Converted recall-artifact.md from content-dump to reference manifest format (16 entries)
+- Phase 3 (inline/opus): D+B restructured 9 recall gates across 8 files — 6 read-side (recall-resolve.sh), 3 write-side (recall-diff.sh). Eliminated "proceed without it" anti-pattern
+- Phase 4: PreToolUse hook (pretooluse-recall-check.py) + settings.json registration via crew-recall-tool-anchoring-p4
+- Final review: corrector fixed 2 trigger phrases in recall-artifact.md (`how to X` → `how X` to match memory-index keys)
+- Reports: `plans/recall-tool-anchoring/reports/` (checkpoint-1 through 4, review.md)
 
 ## Pending Tasks
 
-- [ ] **Orchestrate recall tool anchoring** — `/orchestrate recall-tool-anchoring` | sonnet | restart
-  - Plan: recall-tool-anchoring | Status: ready
-  - 4 phases: scripts → format conversion → D+B restructure (opus) → hook+config
-  - Inline phases 2+3 require orchestrator-direct execution (no Task dispatch)
+- [x] **Orchestrate recall tool anchoring** — `/orchestrate recall-tool-anchoring` | sonnet | restart
+  - Plan: recall-tool-anchoring | Status: review-pending
+- [ ] **Deliverable review: recall-tool-anchoring** — `/deliverable-review plans/recall-tool-anchoring` | opus | restart
+  - Production artifacts: 3 skills, 3 agents, 1 hook, settings.json
 - [ ] **Fix prepare-runbook inline regex** — `/design plans/prepare-runbook-inline-regex/problem.md` | sonnet
   - Plan: prepare-runbook-inline-regex | Status: problem filed
   - 2 regex changes: `\(type:\s*inline\)` → `\(type:\s*inline[^)]*\)` to handle compound type tags
@@ -30,13 +25,11 @@
 
 ## Next Steps
 
-Restart session, paste `/orchestrate recall-tool-anchoring` from clipboard. Custom agents `crew-recall-tool-anchoring-p1` and `crew-recall-tool-anchoring-p4` need restart for discoverability.
+Deliverable review requires opus + restart (new hook registered in settings.json).
 
 ## Reference Files
 
 - `plans/recall-tool-anchoring/outline.md` — Design (D+B + reference manifest)
-- `plans/recall-tool-anchoring/runbook.md` — Runbook (promoted from outline)
-- `plans/recall-tool-anchoring/orchestrator-plan.md` — Execution plan with inline phases
-- `plans/recall-tool-anchoring/recall-artifact.md` — 16 entries, content-dump format (Phase 2 converts to reference manifest)
-- `plans/recall-tool-anchoring/reports/recall-gate-inventory.md` — 31 gates across 13 files
+- `plans/recall-tool-anchoring/reports/review.md` — Final corrector review
+- `plans/recall-tool-anchoring/lifecycle.md` — review-pending
 - `plans/prepare-runbook-inline-regex/problem.md` — Inline phase detection regex bug diagnostic
