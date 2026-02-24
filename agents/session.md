@@ -108,13 +108,16 @@
   - model-tags: bash scripts under `agent-core/skills/` falsely flagged as prose artifacts
   - lifecycle: pre-existing files flagged as "modified before creation"
 
-## Worktree Tasks
+- [ ] **Deliverable review auto-commit** — after fixing all issues in deliverable-review, auto handoff and commit | sonnet
+- [x] **Deliverable review: planstate-delivered** — 0 Critical, 2 Major fixed inline, 3 Minor noted
+  - Plan: planstate-delivered | Status: reviewed
+  - Report: `plans/planstate-delivered/reports/deliverable-review.md`
+- [ ] **Fix when-resolve.py heading lookup** — fuzzy heading match in `_resolve_trigger()` instead of exact | sonnet
+  - Plan: when-resolve-fix | Status: requirements (problem.md exists)
+  - Scope: `src/claudeutils/when/resolver.py` `_resolve_trigger()` lines 241-253
+- [x] **Planstate delivered status** — completed prior session
 
-- [ ] **Planstate delivered status** → `planstate-delivered` — `/runbook plans/planstate-delivered/outline.md` | sonnet
-  - Plan: planstate-delivered | Status: designed
-  - Grounded lifecycle: `requirements → designed → planned → ready → review-pending → [rework ↔ review-pending] → reviewed → delivered`
-  - Single `lifecycle.md` per plan (append-only, last entry = status) replaces 4 marker files
-  - 3 phases: core inference (TDD), merge integration (TDD), skill/prose updates (general)
+## Worktree Tasks
 
 - [ ] **Fix wt merge dirty-tree guard** → `wt-merge-dirty-tree` — Remove worktree-side clean-tree check from merge | sonnet
   - Plan: wt-merge-dirty-tree | Bug: merge blocks on dirty worktree even though it merges branch ref not working tree
@@ -166,6 +169,11 @@
 - model-tags validator matches `agent-core/skills/` path prefix too broadly — catches bash scripts (verify-step.sh, verify-red.sh) meant for deterministic execution, not LLM-consumed prose [from: orchestrate-evolution]
 - lifecycle validator treats first mention of pre-existing file as "creation" — all prepare-runbook.py modifications flagged [from: orchestrate-evolution]
 - Non-blocking: violations are false positives, not actual runbook problems [from: orchestrate-evolution]
+- Rule says "Read recall-artifact.md if it exists" as terminal condition. After /clear, this loads summaries only — referenced decision files are not loaded. [from: planstate-delivered]
+- Correct: read artifact to identify entries, then batch-resolve via `agent-core/bin/when-resolve.py "when <trigger>" ...` to load full content. [from: planstate-delivered]
+- Not yet fixed in runbook/SKILL.md Tier 2 recall section (fixed corrector side; planner side still has the gap). [from: planstate-delivered]
+- Resolved for planstate-delivered: manual `review-pending` entry + deliverable review appended `reviewed`. [from: planstate-delivered]
+- Pattern: Tier 2 plans without `/orchestrate` need manual lifecycle bootstrapping before deliverable review. [from: planstate-delivered]
 ## Next Steps
 
 Create sentinel-copy worktree. WT new sentinel copy (quick). Then WT merge session loss dx or codebase sweep.
