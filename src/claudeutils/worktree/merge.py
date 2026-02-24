@@ -379,3 +379,5 @@ def merge(slug: str) -> None:
         _phase2_resolve_submodule(slug)
         _phase3_merge_parent(slug)
         _phase4_merge_commit_and_precommit(slug)
+
+    _append_lifecycle_delivered(Path("plans"))
