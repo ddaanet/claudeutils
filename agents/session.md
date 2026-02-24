@@ -93,6 +93,21 @@
 
 - [x] **WT new sentinel copy** — Copy `tmp/.test-sentinel` during `_worktree new` | sonnet
 
+- [ ] **Execute orchestrate-evolution** — `/orchestrate orchestrate-evolution` | sonnet | restart
+  - 14 steps: 12 TDD cycles (sonnet) + 2 general steps (opus)
+  - Phase 1: agent caching model (4 cycles)
+  - Phase 2: orchestrator plan format + verify-step.sh (4 cycles)
+  - Phase 3: TDD agent generation + verify-red.sh (4 cycles)
+  - Phase 4: SKILL.md rewrite + refactor.md/delegation.md updates (2 steps, opus)
+  - Checkpoints: light at phase boundaries, full at Phase 4 (final)
+- [ ] **Fix prepare-runbook.py step file generation bugs** — sonnet
+  - Bug 1: `extract_cycles()` line 150 — only terminates on H2, not H3 phase headers; last cycle captures next phase's preamble
+  - Bug 2: `generate_cycle_file()` line 1048 / `generate_step_file()` line 1000 — writes non-existent `runbook.md` path as provenance metadata
+  - Diagnostic: `plans/prepare-runbook-fixes/diagnostic.md`
+- [ ] **Fix validate-runbook.py false positives** — sonnet
+  - model-tags: bash scripts under `agent-core/skills/` falsely flagged as prose artifacts
+  - lifecycle: pre-existing files flagged as "modified before creation"
+
 ## Worktree Tasks
 
 - [ ] **Planstate delivered status** → `planstate-delivered` — `/runbook plans/planstate-delivered/outline.md` | sonnet
@@ -144,6 +159,9 @@
 - Recipe removes and recreates symlinks in `.claude/` — sandbox blocks `rm` on those paths
 
 - Code was written outside TDD discipline due to mis-triage. Implementation is correct (tests pass) but process was not followed. Design skill Simple criteria now strengthened to prevent recurrence. [from: sentinel-copy]
+- model-tags validator matches `agent-core/skills/` path prefix too broadly — catches bash scripts (verify-step.sh, verify-red.sh) meant for deterministic execution, not LLM-consumed prose [from: orchestrate-evolution]
+- lifecycle validator treats first mention of pre-existing file as "creation" — all prepare-runbook.py modifications flagged [from: orchestrate-evolution]
+- Non-blocking: violations are false positives, not actual runbook problems [from: orchestrate-evolution]
 ## Next Steps
 
 Create sentinel-copy worktree. WT new sentinel copy (quick). Then WT merge session loss dx or codebase sweep.

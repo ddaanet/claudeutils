@@ -18,7 +18,7 @@ The orchestrate skill assumes a weak (haiku) orchestrator. Many accumulated lear
 - FR-8: Ping-pong TDD orchestration — alternating tester/implementer agents → D-5
   - FR-8a: Mechanical RED gate — verify new test fails before implementation → D-5
   - FR-8b: Mechanical GREEN gate — verify full suite passes after implementation → D-5
-  - FR-8c: Role-specific correctors — test-vet and impl-vet with specialized cached context → D-5
+  - FR-8c: Role-specific correctors — test-corrector and impl-corrector with specialized cached context → D-5
   - FR-8d: Agent resume across TDD cycles — context reuse within phase → D-5
 
 **Non-functional:**
@@ -38,7 +38,7 @@ The orchestrate skill assumes a weak (haiku) orchestrator. Many accumulated lear
 | FR-4 | Yes | Agent Caching Model (D-2), plan-specific agent templates |
 | FR-5 | Yes | Agent Caching Model (D-2), "Clean tree requirement" footer |
 | FR-6 | Yes | Agent Caching Model (D-2), "Scope enforcement" footer + structural boundary |
-| FR-7 | Yes | Verification Script, git status + precommit check |
+| FR-7 | Yes | Verification Script, git status + submodule pointer + precommit check |
 | NFR-1 | Yes | Orchestrator Plan Format + Key Orchestration Principles (bloat prevention) |
 | NFR-2 | Yes | Q-4 resolution: clean break |
 | NFR-3 | Yes | D-1: sonnet default, mechanical checks preserved |
@@ -49,10 +49,16 @@ The orchestrate skill assumes a weak (haiku) orchestrator. Many accumulated lear
 | FR-8c | Yes | Ping-Pong TDD Orchestration (D-5), role-specific correctors |
 | FR-8d | Yes | Ping-Pong TDD Orchestration (D-5), agent resume |
 
+**Absorbed from session context:**
+- Task agent guardrails: `max_turns` budget per step (D-3). Regression detection via mechanical gates (D-5). Model escalation simplified to sonnet→user (D-4).
+- RED pass protocol: mechanical RED gate (D-5). Classification taxonomy not needed with 2-level escalation.
+- Deferred: duration timeout (no platform mechanism), blast radius assessment (future enhancement).
+
 **Out of scope:**
 - Planning orchestration (plan-tdd / plan-adhoc stay as independent skills)
-- vet-fix-agent behavioral changes
+- Corrector agent behavioral changes
 - Continuation passing changes (preserved as-is)
+- Duration timeout (no platform mechanism)
 
 ## Architecture
 
@@ -67,10 +73,11 @@ The skill shrinks significantly. The current 474-line skill contains verbose exa
 2. Read orchestrator plan (step list with metadata)
 3. For each step:
    a. Dispatch to plan-specific task agent with step file reference
-   b. Run verification script (git clean + precommit)
+   b. Run verification script (git clean + precommit + submodule pointer)
    c. If dirty: remediate (resume agent or recovery delegation)
-   d. If phase boundary: delegate to plan-specific vet agent
-4. Completion vet: single-phase uses generic vet-fix-agent with file references; multi-phase already vetted per-phase
+   d. If phase boundary: delegate to plan-specific corrector agent
+   e. If inline phase: execute directly (no Task dispatch)
+4. Completion review: single-phase uses generic corrector with file references; multi-phase already reviewed per-phase
 5. Cleanup plan-specific agents, continuation protocol
 ```
 
@@ -78,7 +85,7 @@ The skill shrinks significantly. The current 474-line skill contains verbose exa
 - Sonnet orchestrator (not haiku) — can handle exceptions inline
 - Step dispatch is a file reference, not inline content
 - Post-step remediation replaces immediate user escalation
-- Phase boundary uses plan-specific vet agent (not ad-hoc vet-fix-agent prompt)
+- Phase boundary uses plan-specific corrector agent (not ad-hoc corrector prompt)
 - Error escalation simplifies to sonnet → user (2 levels, not 3)
 - Refactor agent invoked for complexity warnings with deslop directives
 - Cleanup step deletes plan-specific agents from `.claude/agents/`
@@ -137,6 +144,8 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 **Clean tree requirement:** Commit all changes before reporting success. The orchestrator will reject dirty trees — there are no exceptions.
 ```
 
+**Agent discoverability:** Plan-specific agents in `.claude/agents/` are discoverable as Task `subagent_type` values after session restart. The workflow (prepare-runbook.py → restart → orchestrate) naturally includes this boundary.
+
 **Content source priority for design embedding:**
 1. `plans/<plan>/design.md` — always present (created during design phase)
 2. Falls back to empty section with note "No design document found"
@@ -146,18 +155,18 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 2. `plans/<plan>/outline.md` (if separate file exists)
 3. Falls back to empty section
 
-#### `<plan>-vet.md` (multi-phase plans only)
+#### `<plan>-corrector.md` (multi-phase plans only)
 
 ```markdown
 ---
-name: <plan>-vet
+name: <plan>-corrector
 description: Review and fix <plan> runbook phase checkpoints...
 model: sonnet
 color: yellow
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
 
-[vet-fix-agent baseline body — review protocol, fix protocol, return protocol]
+[corrector baseline body — review protocol, fix protocol, return protocol]
 
 ---
 
@@ -176,13 +185,13 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 **Scope enforcement:** Review ONLY the phase checkpoint described in your prompt. Focus on changed files provided. Do NOT flag items explicitly listed as OUT of scope.
 ```
 
-**Multi-phase detection:** prepare-runbook.py already detects phases (from H3 "Phase N" markers or major cycle number changes). Generate vet agent when phase count > 1.
+**Multi-phase detection:** prepare-runbook.py already detects phases (from H3 "Phase N" markers or major cycle number changes). Generate corrector agent when phase count > 1.
 
-**Model for vet agent:** Always sonnet. Vet requires reasoning and judgment regardless of implementation model.
+**Model for corrector agent:** Always sonnet. Review requires reasoning and judgment regardless of implementation model.
 
-#### Single-phase plans: generic vet-fix-agent
+#### Single-phase plans: generic corrector
 
-Single-phase plans don't get `<plan>-vet.md`. At completion, the orchestrator delegates to the generic `vet-fix-agent` with file references (non-cached):
+Single-phase plans don't get `<plan>-corrector.md`. At completion, the orchestrator delegates to the generic `corrector` with file references (non-cached):
 
 ```
 Review all changes from runbook execution.
@@ -191,11 +200,11 @@ Review all changes from runbook execution.
 **Runbook outline:** plans/<name>/outline.md
 **Changed files:** [git diff --name-only]
 
-Fix all issues. Write report to: plans/<name>/reports/completion-vet.md
+Fix all issues. Write report to: plans/<name>/reports/completion-review.md
 Return filepath or error.
 ```
 
-The vet-fix-agent reads design and outline on demand. Context is not cached (no plan-specific vet agent), but this is acceptable — single-phase plans have fewer steps, so one non-cached vet invocation at completion is a minor cost.
+The corrector reads design and outline on demand. Context is not cached (no plan-specific corrector agent), but this is acceptable — single-phase plans have fewer steps, so one non-cached invocation at completion is a minor cost.
 
 #### Orchestrator prompt (minimal)
 
@@ -205,7 +214,7 @@ The orchestrator sends only:
 Execute: plans/<name>/steps/step-N.md
 ```
 
-For vet checkpoints:
+For checkpoints:
 
 ```
 Phase N checkpoint.
@@ -216,11 +225,11 @@ Phase N checkpoint.
 
 **Changed files:** [git diff --name-only output]
 
-Write report to: plans/<name>/reports/checkpoint-N-vet.md
+Write report to: plans/<name>/reports/checkpoint-N-review.md
 Return filepath or error.
 ```
 
-The vet agent has design+outline cached — orchestrator doesn't repeat them.
+The corrector agent has design+outline cached — orchestrator doesn't repeat them.
 
 ### Orchestrator Plan Format
 
@@ -232,17 +241,18 @@ The vet agent has design+outline cached — orchestrator doesn't repeat them.
 # Orchestrator Plan: <runbook-name>
 
 **Agent:** <runbook-name>-task
-**Vet Agent:** <runbook-name>-vet (or "none" for single-phase)
+**Corrector Agent:** <runbook-name>-corrector (or "none" for single-phase)
 **Type:** tdd | general
 
 ## Steps
 
-- step-0-1.md | Phase 0 | sonnet
-- step-0-2.md | Phase 0 | sonnet
-- step-0-3.md | Phase 0 | sonnet | PHASE_BOUNDARY
-- step-1-1.md | Phase 1 | sonnet
-- step-1-2.md | Phase 1 | sonnet | PHASE_BOUNDARY
-- step-2-1.md | Phase 2 | haiku
+- step-0-1.md | Phase 0 | sonnet | 25
+- step-0-2.md | Phase 0 | sonnet | 25
+- step-0-3.md | Phase 0 | sonnet | 25 | PHASE_BOUNDARY
+- step-1-1.md | Phase 1 | sonnet | 30
+- step-1-2.md | Phase 1 | sonnet | 30 | PHASE_BOUNDARY
+- INLINE | Phase 2 | —
+- step-3-1.md | Phase 3 | haiku | 20
 
 ## Phase Summaries
 
@@ -255,12 +265,16 @@ The vet agent has design+outline cached — orchestrator doesn't repeat them.
 - OUT: [what future phases implement]
 ```
 
-**Step list format:** `filename | phase | model [| PHASE_BOUNDARY]`
+**Step list format:** `filename | phase | model | max_turns [| PHASE_BOUNDARY]`
+- `max_turns` passed to Task tool, prevents spinning agents
 - PHASE_BOUNDARY marker on last step of each phase
+- INLINE marker for phases executed directly by orchestrator (no Task dispatch, no step files)
 - Model from step file metadata
 - Phase from step file metadata
 
-**Phase summaries:** IN/OUT scope for vet checkpoint delegation. Generated from runbook phase descriptions.
+**Inline phases:** Phases where all decisions are pre-resolved and no runtime feedback loop exists (prose edits, config additions, mechanical content application). Orchestrator reads phase content from the plan and executes directly. prepare-runbook.py skips step-file generation for inline phases.
+
+**Phase summaries:** IN/OUT scope for checkpoint delegation. Generated from runbook phase descriptions.
 
 **What this eliminates:**
 - Prose instructions ("Execute steps sequentially using...")
@@ -275,7 +289,7 @@ The vet agent has design+outline cached — orchestrator doesn't repeat them.
 **Contract:**
 - Input: None (checks current git state)
 - Output: Exit code 0 (clean) or 1 (dirty) + details on stdout
-- Checks: `git status --porcelain` + `just precommit`
+- Checks: `git status --porcelain` + submodule pointer consistency + `just precommit`
 
 ```bash
 #!/usr/bin/env bash
@@ -287,6 +301,14 @@ status=$(git status --porcelain)
 if [[ -n "$status" ]]; then
     echo "DIRTY: uncommitted changes"
     echo "$status"
+    exit 1
+fi
+
+# Check submodule pointer consistency
+sub_status=$(git submodule status)
+if echo "$sub_status" | grep -q '^+'; then
+    echo "SUBMODULE: pointer out of sync"
+    echo "$sub_status"
     exit 1
 fi
 
@@ -331,6 +353,8 @@ agent-core/skills/orchestrate/scripts/verify-step.sh
 
 **Context measurement heuristic:** The Task tool doesn't expose token counts. Use message count as proxy: if the step agent exchanged >15 messages (tool calls + responses), skip resume and delegate recovery directly. This avoids resuming into a near-full context window.
 
+**Execution bounds:** Each step dispatch includes `max_turns` from the orchestrator plan. This is the only platform-supported mechanism for preventing spinning agents. Duration timeout is not available — noted as a platform gap, not solvable at design level.
+
 **Note:** The outline's D-3 step 5 describes recovery agent receiving "design + outline from task agent." This design narrows that: recovery is mechanical (lint-clean + git-clean), so design/outline context is unnecessary. Recovery agents receive only step file reference, git diff, git status, and error output.
 
 ### Refactor Agent Updates
@@ -370,15 +394,15 @@ agent-core/skills/orchestrate/scripts/verify-step.sh
 
 Four plan-specific agent types generated by prepare-runbook.py for TDD-typed phases. All placed in `.claude/agents/` for discovery (same as `<plan>-task.md`).
 
-**Baseline templates:** `<plan>-tester.md` and `<plan>-implementer.md` derive from `tdd-task.md` (existing baseline — RED/GREEN/REFACTOR protocol). `<plan>-test-vet.md` and `<plan>-impl-vet.md` derive from `vet-fix-agent.md` (existing baseline — review/fix/report protocol). prepare-runbook.py appends cached plan context to each baseline, same pattern as D-2 `<plan>-task.md` generation.
+**Baseline templates:** `<plan>-tester.md` and `<plan>-implementer.md` derive from `tdd-task.md` (existing baseline — RED/GREEN/REFACTOR protocol). `<plan>-test-corrector.md` and `<plan>-impl-corrector.md` derive from `corrector.md` (existing baseline — review/fix/report protocol). prepare-runbook.py appends cached plan context to each baseline, same pattern as D-2 `<plan>-task.md` generation.
 
 **`<plan>-tester.md`** — Baseline: `tdd-task.md`. Cached context: design.md + outline + test quality rules (assertion clarity, naming, single-concern tests, RED plausibility). Receives test spec file reference. Writes test functions. Commits.
 
 **`<plan>-implementer.md`** — Baseline: `tdd-task.md`. Cached context: design.md + outline + coding rules (project conventions, deslop, factorization). Receives implementation hints file reference. Implements minimum code to pass tests. Commits.
 
-**`<plan>-test-vet.md`** — Baseline: `vet-fix-agent.md`. Cached context: design.md + outline + test quality rules. Reviews test quality after RED gate: assertion strength, naming, spec coverage, no vacuous assertions. Same vet protocol (review, fix, report).
+**`<plan>-test-corrector.md`** — Baseline: `corrector.md`. Cached context: design.md + outline + test quality rules. Reviews test quality after RED gate: assertion strength, naming, spec coverage, no vacuous assertions. Same corrector protocol (review, fix, report).
 
-**`<plan>-impl-vet.md`** — Baseline: `vet-fix-agent.md`. Cached context: design.md + outline + coding rules. Reviews implementation after GREEN gate: project pattern conformity, deslop compliance, no over-implementation beyond test demands. Same vet protocol.
+**`<plan>-impl-corrector.md`** — Baseline: `corrector.md`. Cached context: design.md + outline + coding rules. Reviews implementation after GREEN gate: project pattern conformity, deslop compliance, no over-implementation beyond test demands. Same corrector protocol.
 
 #### Orchestration Loop
 
@@ -389,13 +413,13 @@ Per TDD cycle within a phase:
 2. RED gate: verify-red.sh <test_file>
    - Exit 0 (test fails) → proceed
    - Exit 1 (test passes) → resume tester to fix, or escalate
-3. Dispatch test-vet for quality review
+3. Dispatch test-corrector for quality review
 4. Dispatch implementer with hints (step-N-impl.md)
 5. GREEN gate: run full test suite (e.g., `just test`), then verify-step.sh (git clean + precommit)
    - Both exit 0 → proceed
    - Test failure → resume implementer to fix, or escalate
    - Dirty tree/precommit failure → remediate (D-3 pattern)
-6. Dispatch impl-vet for quality review
+6. Dispatch impl-corrector for quality review
 7. Next cycle: resume tester/implementer (fresh if >15 messages)
 ```
 
@@ -424,7 +448,7 @@ The orchestrator dispatches TEST steps to `<plan>-tester`, IMPLEMENT steps to `<
 - Output: Exit 0 if test fails (RED confirmed), exit 1 if test passes (not RED)
 - Mechanism: `pytest <test_file> --no-header -q`, invert exit code
 
-The gate validates the mechanical property (test not passing). "Fails for right reason" vs "import error" is the test-vet's responsibility — the gate only ensures the test doesn't trivially pass.
+The gate validates the mechanical property (test not passing). "Fails for right reason" vs "import error" is the test-corrector's responsibility — the gate only ensures the test doesn't trivially pass.
 
 #### Agent Resume Strategy
 
@@ -432,7 +456,7 @@ Within a phase's TDD cycles:
 - Resume tester for subsequent test specs (preserves test context — spec understanding, naming patterns)
 - Resume implementer for subsequent implementations (preserves codebase context — module structure, existing patterns)
 - Fresh agent if >15 messages (context overflow — same heuristic as D-3)
-- Correctors (test-vet, impl-vet) are NOT resumed — each review is independent
+- Correctors (test-corrector, impl-corrector) are NOT resumed — each review is independent
 
 ### delegation.md Updates
 
@@ -451,11 +475,11 @@ Within a phase's TDD cycles:
 
 | File | Action | Description |
 |------|--------|-------------|
-| `agent-core/skills/orchestrate/SKILL.md` | Rewrite | ~200 lines, sonnet orchestrator, new execution loop |
-| `agent-core/bin/prepare-runbook.py` | Modify | Embed design+outline in agents, new orchestrator plan format, vet agent generation |
+| `agent-core/skills/orchestrate/SKILL.md` | Rewrite | ~200 lines, sonnet orchestrator, new execution loop, inline phase support |
+| `agent-core/bin/prepare-runbook.py` | Modify | Embed design+outline in agents, structured orchestrator plan format with max_turns, corrector agent generation, inline phase handling |
 | `agent-core/agents/refactor.md` | Modify | Add deslop directives, factorization rule, resume pattern |
 | `agent-core/fragments/delegation.md` | Modify | Update model selection, add file reference pattern |
-| `agent-core/skills/orchestrate/scripts/verify-step.sh` | Create | Post-step verification script |
+| `agent-core/skills/orchestrate/scripts/verify-step.sh` | Create | Post-step verification script (git clean + submodule + precommit) |
 | `plans/<plan>/orchestrator-plan.md` | Generated | New orchestrator plan format (generated by prepare-runbook.py per plan) |
 
 **Phase 2 (additive — extends Phase 1 files):**
@@ -467,14 +491,14 @@ Within a phase's TDD cycles:
 | `agent-core/skills/orchestrate/scripts/verify-red.sh` | Create | RED gate script (run test, verify failure) |
 | `.claude/agents/<plan>-tester.md` | Generated | Test agent with test quality rules cached |
 | `.claude/agents/<plan>-implementer.md` | Generated | Implementation agent with coding rules cached |
-| `.claude/agents/<plan>-test-vet.md` | Generated | Test quality reviewer |
-| `.claude/agents/<plan>-impl-vet.md` | Generated | Implementation quality reviewer |
+| `.claude/agents/<plan>-test-corrector.md` | Generated | Test quality reviewer |
+| `.claude/agents/<plan>-impl-corrector.md` | Generated | Implementation quality reviewer |
 
 ### Testing Strategy
 
 **Phase 1:**
 - **Orchestrate skill:** Manual integration test — regenerate and run against existing runbook (e.g., plugin-migration; requires regeneration per Q-4 clean break)
-- **prepare-runbook.py:** Unit tests for design/outline embedding, vet agent generation
+- **prepare-runbook.py:** Unit tests for design/outline embedding, corrector agent generation
 - **Verification script:** Unit test with clean/dirty git states
 - **Refactor agent:** Manual validation via orchestrated execution
 - **delegation.md:** Review-only (documentation)
@@ -496,7 +520,7 @@ Within a phase's TDD cycles:
 - `agent-core/agents/refactor.md` — current refactor agent (to update)
 - `agent-core/bin/prepare-runbook.py` — current script (to modify)
 - `agent-core/agents/tdd-task.md` — existing TDD baseline template (Phase 2 tester/implementer agents derive from this)
-- `agent-core/agents/vet-fix-agent.md` — existing vet baseline template (Phase 2 test-vet/impl-vet agents derive from this)
+- `agent-core/agents/corrector.md` — existing corrector baseline template (Phase 2 test-corrector/impl-corrector agents derive from this)
 
 **Skill loading:**
 - Load `plugin-dev:agent-development` before planning (agent definition generation)
