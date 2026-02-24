@@ -1,30 +1,14 @@
 # Session Handoff: 2026-02-24
 
-**Status:** Recall pass delivered. 3 worktrees merged. Merge context loss diagnosed — worktree merge diagnosis pending.
+**Status:** Prioritized backlog. 2 worktrees active (orchestrate-evolution, planstate-delivered). Merging orchestrate-evolution.
 
 ## Completed This Session
 
-- Merged `worktree-rm-error-ux` — clean merge, precommit passed, rm succeeded
-- Recall pass discussion — 4-pass model with reference forwarding, convergence via forwarding not repetition
-  - Named "recall pass" — explicit step in pipeline where project memory is read, entries selected by name, results forwarded downstream
-  - 4 passes: design recall (deep, whole decision files) → runbook recall (+impl +testing) → task agent injection (filtered) → review recall (+failure modes)
-- Created `plans/recall-pass/brief.md` capturing discussion conclusions
-- Grounded recall pass methodology — Moderate grounding quality
-  - CE framework (Write/Select/Compress/Isolate) maps well; failure modes (distraction, clash, confusion, poisoning) independently confirmed
-  - Agentic RAG paradigm deliberately inverted: prescriptive retrieval at fixed points, not adaptive agent-decided retrieval (justified by 2.9% measured adaptive recall)
-  - Key project-specific insight: multiplicative token cost (artifact × agent count), mechanical filterability for haiku orchestrators, format-per-consumer-tier
-  - Reports: `plans/reports/recall-pass-grounding.md`, `plans/reports/recall-pass-internal-brainstorm.md`
-- Merged `update-grounding-skill` — scout-based diverge-converge pattern replacing general-purpose agents
-- Merged `recall-pass-requirements` — requirements captured via Tier 2 delegation, recall skill added, 4 new learnings
-  - New task: Consolidate recall tooling (rename when-resolve, phase out /when + /how)
-  - Read tool context optimization test: no dedup confirmed (T1 protocol)
-  - Sync-to-parent sandbox documentation updated
-- Validated merge context — diagnosed 2 merges for session.md loss:
-  - Merge 1 (`update-grounding-skill`, `f525d705`): Worktree Tasks entry dropped by autostrategy (focused session lacks main's WT section)
-  - Merge 2 (`recall-pass-requirements`, `c91c7628`): orphaned Worktree Tasks entry, malformed blocker, completed tasks not in Completed section
-  - Pre-merge state with both WT entries: `0c91d969`. Fixed all artifacts manually
-  - Root cause: session.md autostrategy doesn't preserve main-only sections when branch has diverged focused session
-- Recall pass marked delivered (full pipeline: brief → grounding → requirements → execution in worktree)
+- Prioritization report — 37 tasks scored via WSJF, report at `plans/reports/prioritization-2026-02-24.md`
+  - Top 5: orchestrate evolution (5.3), session CLI tool (4.0, blocked), planstate delivered (3.8), session.md validator (2.6), WT merge session loss dx (2.6)
+  - Parallel batch A identified: 4 independent sonnet tasks
+- Created worktrees: orchestrate-evolution, planstate-delivered
+- Discussion: test sentinel versioning (rejected — local cache, not versionable), sentinel copy on wt new (accepted as task)
 
 ## Pending Tasks
 
@@ -33,17 +17,7 @@
   - _git_ok, _fail, exception cleanup — mechanical refactoring
 
 
-- [ ] **Planstate delivered status** — `/runbook plans/planstate-delivered/outline.md` | sonnet
-  - Plan: planstate-delivered | Status: designed
-  - Grounded lifecycle: `requirements → designed → planned → ready → review-pending → [rework ↔ review-pending] → reviewed → delivered`
-  - Single `lifecycle.md` per plan (append-only, last entry = status) replaces 4 marker files
-  - 3 phases: core inference (TDD), merge integration (TDD), skill/prose updates (general)
 
-- [ ] **Orchestrate evolution** — `/runbook plans/orchestrate-evolution/design.md` | sonnet
-  - Design complete with Phase 1 (foundation) + Phase 2 (ping-pong TDD), ready for runbook planning
-  - Insights input: ping-pong TDD agent pattern — alternating tester/implementer agents with mechanical RED/GREEN gates between handoffs. Tester holds spec context (can't mirror code structure), implementer holds codebase context (can't over-implement beyond test demands). Resume-based context preservation avoids startup cost per cycle
-  - Absorbs: Task agent guardrails — tool-call limits, regression detection, model escalation (haiku→sonnet→opus on capability mismatch) all additive. Design covers agent→user escalation and context-size heuristic but not inter-tier promotion or tool-call budgets
-  - Absorbs: RED pass protocol — classification taxonomy, blast radius procedure, defect impact evaluation. Design has remediation + escalation patterns but not formal classification or blast radius assessment
 
 - [ ] **Deslop remaining skills** — Prose quality pass on skills not yet optimized | sonnet
 
@@ -100,8 +74,8 @@
   - Complementary to recall pass (cheap first layer vs deep pipeline integration)
 
 
-- [x] **Recall pass** — delivered (brief → grounding → requirements → design → runbook → execution → review)
-  - Plan: recall-pass
+- [ ] **WT new sentinel copy** — Copy `tmp/.test-sentinel` during `_worktree new` | sonnet
+- [ ] **Prioritize script assistance** — Automate mechanical parts of prioritization scoring | sonnet
 
 - [ ] **Consolidate recall tooling** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
 
@@ -112,6 +86,18 @@
   - Related: planstate-delivered (plan: planstate-delivered) would prevent "completed but no record" class
 ## Worktree Tasks
 
+
+- [ ] **Orchestrate evolution** → `orchestrate-evolution` — `/runbook plans/orchestrate-evolution/design.md` | sonnet
+  - Design complete with Phase 1 (foundation) + Phase 2 (ping-pong TDD), ready for runbook planning
+  - Insights input: ping-pong TDD agent pattern — alternating tester/implementer agents with mechanical RED/GREEN gates between handoffs. Tester holds spec context (can't mirror code structure), implementer holds codebase context (can't over-implement beyond test demands). Resume-based context preservation avoids startup cost per cycle
+  - Absorbs: Task agent guardrails — tool-call limits, regression detection, model escalation (haiku→sonnet→opus on capability mismatch) all additive. Design covers agent→user escalation and context-size heuristic but not inter-tier promotion or tool-call budgets
+  - Absorbs: RED pass protocol — classification taxonomy, blast radius procedure, defect impact evaluation. Design has remediation + escalation patterns but not formal classification or blast radius assessment
+
+- [ ] **Planstate delivered status** → `planstate-delivered` — `/runbook plans/planstate-delivered/outline.md` | sonnet
+  - Plan: planstate-delivered | Status: designed
+  - Grounded lifecycle: `requirements → designed → planned → ready → review-pending → [rework ↔ review-pending] → reviewed → delivered`
+  - Single `lifecycle.md` per plan (append-only, last entry = status) replaces 4 marker files
+  - 3 phases: core inference (TDD), merge integration (TDD), skill/prose updates (general)
 
 ## Blockers / Gotchas
 
@@ -157,7 +143,7 @@
 
 ## Next Steps
 
-Worktree merge session loss diagnosis, then planstate-delivered or codebase sweep.
+Merge orchestrate-evolution. WT new sentinel copy (quick). Then WT merge session loss dx or codebase sweep.
 
 ## Reference Files
 
@@ -170,3 +156,4 @@ Worktree merge session loss diagnosis, then planstate-delivered or codebase swee
 - `plans/worktree-merge-resilience/diagnostic.md` — Merge artifact reproduction conditions
 - `plans/codebase-sweep/requirements.md` — mechanical refactoring (_git_ok, _fail, exceptions)
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
+- `plans/reports/prioritization-2026-02-24.md` — WSJF scoring, 37 tasks ranked
