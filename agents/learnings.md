@@ -27,3 +27,18 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Step file specifies `just test` or `pytest` for GREEN verification. Haiku runs tests (pass), commits, writes report — but lint errors exist. Separate fix commit required before REFACTOR can run.
 - Correct pattern: GREEN verification command must be `just check && just test` (or `just lint && just test`). The runbook template's TDD cycle GREEN section should list lint as a required gate before the commit, not just test pass.
 - Evidence: Cycle 1.1 GREEN commit `a097b114` had F821 (undefined `Never`) and PLC0415 (local imports). Fix commit `1100569d` required. TDD audit flagged as the primary compliance violation.
+## When delegating well-specified prose edits
+- Anti-pattern: Applying "opus for prose artifacts" model rule to justify delegation when the cognitive work (designing what to add) was already done at opus during design. Launches N agents for N independent file edits, each re-reading files already in planner context.
+- Correct pattern: The "opus for prose artifacts" rule targets cases where design decisions happen during editing. When an outline pre-resolves all decisions and specifies exact insertion points, execution is mechanical — sonnet follows the outline. The "design resolves to simple execution" decision applies: delegation ceremony exceeds edit cost for all-prose work.
+- Evidence: 4 opus artisan agents launched for 47 lines of prose insertions across 4 skill files. User corrected: "why not inline?" The existing decision file explicitly warns against this pattern.
+## When writing instructions that reference memory-index
+- Anti-pattern: Using "scan memory-index" or "check loaded memory-index" language. "Scan file" triggers agents to Read the file even when it's already in context, wasting tokens on redundant reads.
+- Correct pattern: "Read memory-index.md (skip if already in context)" — on-demand read with explicit skip condition. First recall point in a session reads it; subsequent points find it loaded. Never assume ambient preloading via CLAUDE.md @-reference.
+- Rationale: Memory-index was removed from CLAUDE.md because it was useless without explicit action. The recall pass provides explicit action at cognitive boundaries, making on-demand reading the right pattern.
+## When memory-index amplifies thin user input
+- Memory-index keyword-rich entries surface relevant decisions even from sparse queries — cross-references between entries create an amplification effect superior to direct corpus search.
+- This makes pipeline recall effective even on the moderate path (no formal requirements): derive domain keywords from user request, match against memory-index, follow cross-references to discover relevant decisions the user didn't explicitly mention.
+## When recall-artifact.md is absent during review
+- Anti-pattern: Skill says "if absent, proceed without it" and reviewer takes the early exit — no recall at all. Reviewing recall-pass deliverables without performing recall is the exact gap the deliverables are designed to close.
+- Correct pattern: "If absent, do lightweight recall" — read memory-index.md, identify review-relevant entries (quality patterns, failure modes), batch-resolve. The Tier 1/2 sections in the runbook skill already have this fallback; deliverable-review was missing it.
+- Evidence: Deliverable review of recall-pass ran without any recall. Fixed: added lightweight recall fallback to deliverable-review skill Layer 2.

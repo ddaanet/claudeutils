@@ -89,6 +89,11 @@
   - Complementary to recall pass (cheap first layer vs deep pipeline integration)
 
 
+- [ ] **Consolidate recall tooling** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
+- [x] **Read tool context optimization test** — run T1 protocol, no dedup confirmed | sonnet
+- [x] **Recall pass requirements** — implemented via Tier 2 delegation
+- [x] **Sync-to-parent sandbox documentation** — update references to document required sandbox bypass | haiku
+
 ## Worktree Tasks
 
 
@@ -133,6 +138,7 @@
 **Orphaned remember-skill-update directory:**
 - `/Users/david/code/claudeutils-wt/remember-skill-update` — git deregistered but directory remains. Needs manual removal.
 
+- Recipe removes and recreates symlinks in `.claude/` — sandbox blocks `rm` on those paths [from: recall-pass-requirements]
 ## Next Steps
 
 Recall pass requirements in worktree. Brief and grounding complete — define FRs next.
