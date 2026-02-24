@@ -50,6 +50,21 @@ def test_append_lifecycle_delivered_graceful_missing_plans_dir(tmp_path: Path) -
     # No exception raised, call completes normally
 
 
+def test_append_lifecycle_delivered_skips_plan_without_lifecycle(
+    tmp_path: Path,
+) -> None:
+    """Test: _append_lifecycle_delivered skips plan directories without lifecycle.md."""
+    plans_dir = tmp_path / "plans"
+    plan_dir = plans_dir / "my-plan"
+    plan_dir.mkdir(parents=True)
+    # plan_dir exists but has no lifecycle.md
+
+    _append_lifecycle_delivered(plans_dir)
+
+    # No lifecycle.md created — function only appends to existing reviewed files
+    assert not (plan_dir / "lifecycle.md").exists()
+
+
 def test_merge_appends_lifecycle_delivered(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
