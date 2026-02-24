@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-24
 
-**Status:** Deliverable review complete, all major findings fixed. Progressive recall refinement model implemented — recall re-evaluation at A.5, C.1, Phase 0.75.
+**Status:** Sync-to-parent sandbox bypass documented in CLAUDE.md and project-tooling.md.
 
 ## Completed This Session
 
@@ -24,18 +24,20 @@
 - FR-11 rationale changed from "compaction insurance" to "progressive refinement" — each discovery phase changes what recall entries are relevant. Initial broad recall surfaces non-obvious connections for weakly specified tasks; subsequent recalls refine as the task becomes better specified.
 - "Re-evaluate" not "re-read" — the cognitive operation is assessing existing entries against new understanding, not re-ingesting content
 
-**/reflect RCA (this session):**
+**/reflect RCA (prior session):**
 - Deviation: deliverable review ran without recall pass
 - Root cause: skill text said "if absent, proceed without" with no lightweight fallback
 - Fix: added lightweight recall fallback to deliverable-review Layer 2
 
+**Sync-to-parent sandbox documentation (this session):**
+- Added `(requires dangerouslyDisableSandbox: true)` to `just sync-to-parent` in CLAUDE.md and `agent-core/fragments/project-tooling.md`
+
 ## Pending Tasks
 
 - [x] **Recall pass requirements** — implemented via Tier 2 delegation
-- [ ] **Sync-to-parent sandbox documentation** — update references to document required sandbox bypass | haiku
-- [ ] **Rename when-resolve.py to claudeutils _recall** — consolidate into CLI, remove `..file` syntax | sonnet
+- [x] **Sync-to-parent sandbox documentation** — update references to document required sandbox bypass | haiku
 - [x] **Read tool context optimization test** — run T1 protocol, no dedup confirmed | sonnet
-- [ ] **Consolidate /when and /how into /recall** — phase out as separate skills, ensure /recall covers reactive single-entry lookups | sonnet
+- [ ] **Consolidate recall tooling** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
 
 ## Blockers / Gotchas
 
@@ -47,7 +49,7 @@
 
 ## Next Steps
 
-Sync-to-parent sandbox documentation (haiku) or consolidate /when+/how into /recall (sonnet).
+Consolidate recall tooling (sonnet): rename `when-resolve.py` → `claudeutils _recall`, phase out `/when`+`/how` as separate skills.
 
 ## Reference Files
 
