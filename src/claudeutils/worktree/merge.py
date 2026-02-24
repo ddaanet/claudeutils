@@ -1,6 +1,7 @@
 """Worktree merge operations."""
 
 import subprocess
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -15,6 +16,17 @@ from claudeutils.worktree.resolve import (
     resolve_learnings_md,
     resolve_session_md,
 )
+
+
+def _append_lifecycle_delivered(plans_dir: Path) -> None:
+    """Append delivered entry to lifecycle.md for reviewed plans."""
+    today = datetime.now(UTC).date().isoformat()
+    for plan_dir in sorted(plans_dir.iterdir()):
+        if not plan_dir.is_dir():
+            continue
+        lifecycle_file = plan_dir / "lifecycle.md"
+        with lifecycle_file.open("a") as f:
+            f.write(f"{today} delivered — _worktree merge\n")
 
 
 def _format_git_error(e: subprocess.CalledProcessError) -> str:
