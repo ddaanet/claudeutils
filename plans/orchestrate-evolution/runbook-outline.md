@@ -15,7 +15,7 @@
 | FR-7 (precommit verification) | 2 | Cycle 2.4 (verify-step.sh) + Phase 3 (SKILL.md invocation) |
 | FR-8 (ping-pong TDD) | 4, 5 | Phase 4 (agents + scripts) + Phase 5 (SKILL.md loop) |
 | FR-8a (RED gate) | 4 | Cycle 4.4 (verify-red.sh) |
-| FR-8b (GREEN gate) | 2 | Cycle 2.4 (verify-step.sh composes with `just test`) |
+| FR-8b (GREEN gate) | 2, 5 | Cycle 2.4 (verify-step.sh: clean tree), Step 5.1 (composed GREEN = `just test` + verify-step.sh) |
 | FR-8c (role-specific correctors) | 4 | Cycle 4.1 (test-corrector + impl-corrector) |
 | FR-8d (agent resume) | 5 | Step 5.1 (SKILL.md TDD loop resume strategy) |
 | NFR-1 (context bloat) | 1, 2 | Agent caching + structured plan format |
@@ -39,6 +39,7 @@
 - **prepare-runbook.py size:** ~1500 lines. Monitor line count; extract helpers for repeated kwargs patterns before splitting.
 - **Shell script testing:** Use pytest with real git repos in `tmp_path` fixtures (E2E pattern from `agents/decisions/testing.md`).
 - **Architectural artifacts:** SKILL.md, refactor.md, delegation.md require opus per Model Assignment rules.
+- **Test file growth risk:** `test_prepare_runbook_agents.py` is 353 lines. Phase 1 (4 cycles) and Phase 4 Cycle 4.1 both extend it. Project split threshold is 400 lines. Planner should route Phase 4 TDD agent tests to a new `tests/test_prepare_runbook_tdd_agents.py` file, or split Phase 1 tests into `test_prepare_runbook_agent_caching.py` before Phase 4 begins. See learnings: "When TDD cycles grow a shared test file past line limits."
 
 ---
 
@@ -143,7 +144,7 @@
 
 **Files:** `agent-core/bin/prepare-runbook.py`, `agent-core/skills/orchestrate/scripts/verify-red.sh` (create), `tests/test_prepare_runbook_agents.py` (extend), `tests/test_verify_red.py` (create)
 
-**Depends on:** Phase 1 (agent caching model used as foundation for TDD agents)
+**Depends on:** Phase 1 (agent caching model used as foundation for TDD agents), Phase 2 (orchestrator plan format extended with TDD role markers)
 
 - Cycle 4.1: TDD agent type generation (4 agents)
   - `<plan>-tester.md`: test-driver.md baseline + design + outline + test quality rules
@@ -178,9 +179,9 @@
 
 **Files:** `agent-core/skills/orchestrate/SKILL.md` (extend)
 
-**Depends on:** Phase 4 (TDD agents, verify-red.sh, step splitting)
+**Depends on:** Phase 3 (SKILL.md rewrite provides base to extend), Phase 4 (TDD agents, verify-red.sh, step splitting)
 
-- Step 5.1: SKILL.md TDD loop extension
+- Step 5.1: SKILL.md TDD loop extension (extends ~200-line rewrite from Phase 3)
   - Add TDD orchestration loop section (D-5):
     - Dispatch tester with test spec → RED gate (verify-red.sh) → test-corrector → dispatch implementer → GREEN gate (just test + verify-step.sh) → impl-corrector → next cycle
   - Agent resume strategy: resume tester/implementer across cycles; fresh if >15 messages; correctors never resumed
@@ -198,3 +199,24 @@
 - **Phase 3 → 4 boundary:** Full checkpoint (fix + review + functional). SKILL.md rewrite is high-impact architectural artifact.
 - **Phase 4 → 5 boundary:** Light checkpoint. Verify: TDD agents generated, step splitting works, verify-red.sh functional.
 - **Phase 5 (final):** Full checkpoint. Complete review of all changes.
+
+## Expansion Guidance (Review)
+
+The following recommendations should be incorporated during full runbook expansion:
+
+**Consolidation candidates:**
+- Phase 5 (1 step, Medium complexity) is a valid standalone phase — opus model differs from Phase 4's sonnet, and SKILL.md extension logically follows TDD infrastructure. Preserve as separate phase.
+- Steps 3.2 and 3.3 are Low complexity but grouped correctly with Step 3.1 (all prose/architectural artifacts requiring opus).
+
+**Cycle expansion:**
+- Cycle 4.1 tests should target a new test file (`tests/test_prepare_runbook_tdd_agents.py`) to avoid pushing `test_prepare_runbook_agents.py` past 400 lines. Phase 1 cycles own the existing test file; Phase 4 creates a new one.
+- Cycle 2.4 and Cycle 4.4 (shell script creation + testing) should each specify E2E test pattern: real git repos in `tmp_path` fixtures, not mocked subprocess (per recall artifact: "When Preferring E2E Over Mocked Subprocess").
+
+**Checkpoint guidance:**
+- Phase 3 → 4 full checkpoint is critical: validate SKILL.md rewrite covers all design sections (D-1 through D-6, inline handling, remediation protocol, cleanup step).
+- Phase 5 final checkpoint should validate TDD loop integration end-to-end against the composed GREEN gate (`just test` + `verify-step.sh`).
+
+**References to include:**
+- Recall artifact entries on positional authority (agent definitions: constraints in primacy, plan context middle, scope enforcement recency).
+- Recall artifact entry on GREEN phase lint inclusion (`just check && just test` not just `just test`).
+- Design section "Post-Step Remediation Protocol (D-3)" for Step 3.1 remediation detail — reference, do not reproduce.
