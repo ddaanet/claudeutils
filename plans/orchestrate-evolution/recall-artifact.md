@@ -1,6 +1,7 @@
 # Recall Artifact: Orchestrate Evolution
 
 **Generated:** 2026-02-24
+**Augmented:** 2026-02-24 (runbook planning — added implementation/testing entries from Phase 0.5 discovery)
 **Context:** Design review session — `/recall all` loaded 14 decision files, assessed relevance during 6-amendment update.
 
 ## When Delegation Requires Commit Instruction
@@ -184,3 +185,17 @@ Strong primacy bias — critical rules at document start. Recency bias at end. M
 **Relevance:** D-2 agent templates — different instruction density for haiku vs sonnet execution agents.
 
 Haiku needs explicit steps, markers, DO NOT examples. Sonnet handles clear bullets with context. Opus handles concise prose. Agent templates should match instruction style to execution model.
+
+## When Preferring E2E Over Mocked Subprocess
+
+**Source:** `agents/decisions/testing.md`
+**Relevance:** verify-step.sh and verify-red.sh testing — E2E with real git repos in tmp_path, not mocked subprocess.
+
+E2E only with real git repos (tmp_path fixtures), mocking only for error injection. Git with tmp_path is fast (milliseconds). Interesting bugs are state transitions that mocks can't catch.
+
+## When Hitting File Line Limits
+
+**Source:** `agents/decisions/implementation-notes.md`
+**Relevance:** prepare-runbook.py is ~1500 lines and will grow — look for code quality improvements (dedup, dead code, helpers), not file splitting as first resort.
+
+Look for code quality improvements first — redundant calls, dead code, extraction candidates. Black expansion of 5+ line call sites signals too many parameters for inline use — extract a helper.
