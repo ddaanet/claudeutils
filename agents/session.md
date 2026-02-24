@@ -76,7 +76,6 @@
   - Complementary to recall pass (cheap first layer vs deep pipeline integration)
 
 
-- [ ] **WT new sentinel copy** — Copy `tmp/.test-sentinel` during `_worktree new` | sonnet
 - [ ] **Prioritize script assistance** — Automate mechanical parts of prioritization scoring | sonnet
 
 - [ ] **Consolidate recall tooling** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
@@ -99,6 +98,8 @@
   - Grounded lifecycle: `requirements → designed → planned → ready → review-pending → [rework ↔ review-pending] → reviewed → delivered`
   - Single `lifecycle.md` per plan (append-only, last entry = status) replaces 4 marker files
   - 3 phases: core inference (TDD), merge integration (TDD), skill/prose updates (general)
+
+- [ ] **WT new sentinel copy** → `sentinel-copy` — Copy `tmp/.test-sentinel` during `_worktree new` | sonnet
 
 ## Blockers / Gotchas
 
