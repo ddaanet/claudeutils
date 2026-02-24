@@ -91,6 +91,8 @@
   - Absorbs: Task agent guardrails — tool-call limits, regression detection, model escalation (haiku→sonnet→opus on capability mismatch) all additive. Design covers agent→user escalation and context-size heuristic but not inter-tier promotion or tool-call budgets
   - Absorbs: RED pass protocol — classification taxonomy, blast radius procedure, defect impact evaluation. Design has remediation + escalation patterns but not formal classification or blast radius assessment
 
+- [x] **WT new sentinel copy** — Copy `tmp/.test-sentinel` during `_worktree new` | sonnet
+
 ## Worktree Tasks
 
 - [ ] **Planstate delivered status** → `planstate-delivered` — `/runbook plans/planstate-delivered/outline.md` | sonnet
@@ -98,8 +100,6 @@
   - Grounded lifecycle: `requirements → designed → planned → ready → review-pending → [rework ↔ review-pending] → reviewed → delivered`
   - Single `lifecycle.md` per plan (append-only, last entry = status) replaces 4 marker files
   - 3 phases: core inference (TDD), merge integration (TDD), skill/prose updates (general)
-
-- [ ] **WT new sentinel copy** → `sentinel-copy` — Copy `tmp/.test-sentinel` during `_worktree new` | sonnet
 
 ## Blockers / Gotchas
 
@@ -143,6 +143,7 @@
 **`just sync-to-parent` requires sandbox bypass:**
 - Recipe removes and recreates symlinks in `.claude/` — sandbox blocks `rm` on those paths
 
+- Code was written outside TDD discipline due to mis-triage. Implementation is correct (tests pass) but process was not followed. Design skill Simple criteria now strengthened to prevent recurrence. [from: sentinel-copy]
 ## Next Steps
 
 Create sentinel-copy worktree. WT new sentinel copy (quick). Then WT merge session loss dx or codebase sweep.
