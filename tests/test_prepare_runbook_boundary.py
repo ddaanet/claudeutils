@@ -94,6 +94,36 @@ class TestCycleBoundaryExtraction:
 
         assert "Test for cycle 2.1" in cycle_2_1["content"]
 
+    def test_single_phase_cycles_intact(self) -> None:
+        """Single-phase runbook extracts cycles via final-flush path."""
+        content = """\
+### Phase 1: Core behavior (type: tdd, model: sonnet)
+
+Phase 1 preamble text.
+
+## Cycle 1.1: First cycle
+
+**RED Phase:**
+Test for cycle 1.1.
+**GREEN Phase:**
+Impl for cycle 1.1.
+**Stop/Error Conditions:** STOP if unexpected.
+
+## Cycle 1.2: Last cycle
+
+**RED Phase:**
+Test for cycle 1.2.
+**GREEN Phase:**
+Impl for cycle 1.2.
+**Stop/Error Conditions:** STOP if unexpected.
+"""
+        cycles = extract_cycles(content)
+
+        numbers = [c["number"] for c in cycles]
+        assert numbers == ["1.1", "1.2"]
+        assert "Phase 1 preamble" not in cycles[-1]["content"]
+        assert "Test for cycle 1.2" in cycles[-1]["content"]
+
 
 # -- Bug 2: Provenance metadata path ----------------------------------------
 
@@ -157,6 +187,53 @@ def _run_with_phase_dir(
     return result, steps_dir
 
 
+SINGLE_FILE_RUNBOOK = """\
+---
+type: tdd
+model: sonnet
+name: sf-test
+---
+
+## Cycle 1.1: First cycle
+
+**RED Phase:**
+Test for cycle 1.1.
+**GREEN Phase:**
+Impl for cycle 1.1.
+**Stop/Error Conditions:** STOP if unexpected.
+"""
+
+
+def _run_without_phase_dir(
+    tmp_path: Path, runbook_content: str, name: str
+) -> tuple[bool, Path]:
+    """Run validate_and_create simulating single-file input (no phase_dir)."""
+    plan_dir = tmp_path / "plans" / name
+    plan_dir.mkdir(parents=True, exist_ok=True)
+    rf = plan_dir / "runbook.md"
+    rf.write_text(runbook_content)
+
+    metadata, body = parse_frontmatter(runbook_content)
+    sections = extract_sections(body)
+    cycles = extract_cycles(body)
+    phase_models = extract_phase_models(body)
+    preambles = extract_phase_preambles(body)
+    steps_dir = plan_dir / "steps"
+    result = validate_and_create(
+        rf,
+        sections,
+        name,
+        tmp_path / ".claude" / "agents",
+        steps_dir,
+        plan_dir / "orchestrator-plan.md",
+        metadata,
+        cycles,
+        phase_models,
+        preambles,
+    )
+    return result, steps_dir
+
+
 class TestProvenanceMetadata:
     """Generated step files reference actual source phase file."""
 
@@ -197,3 +274,22 @@ class TestProvenanceMetadata:
 
         assert "runbook-phase-2.md" in content
         assert "runbook.md`" not in content
+
+    def test_single_file_references_runbook_path(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Without phase_dir, Plan field references runbook.md directly."""
+        setup_git_repo(tmp_path)
+        setup_baseline_agents(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        result, steps_dir = _run_without_phase_dir(
+            tmp_path, SINGLE_FILE_RUNBOOK, "sf-test"
+        )
+        assert result is True
+
+        cycle_file = steps_dir / "step-1-1.md"
+        content = cycle_file.read_text()
+
+        assert "runbook.md`" in content
+        assert "runbook-phase-" not in content
