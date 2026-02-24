@@ -38,3 +38,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 ## When memory-index amplifies thin user input
 - Memory-index keyword-rich entries surface relevant decisions even from sparse queries — cross-references between entries create an amplification effect superior to direct corpus search.
 - This makes pipeline recall effective even on the moderate path (no formal requirements): derive domain keywords from user request, match against memory-index, follow cross-references to discover relevant decisions the user didn't explicitly mention.
+## When recall-artifact.md is absent during review
+- Anti-pattern: Skill says "if absent, proceed without it" and reviewer takes the early exit — no recall at all. Reviewing recall-pass deliverables without performing recall is the exact gap the deliverables are designed to close.
+- Correct pattern: "If absent, do lightweight recall" — read memory-index.md, identify review-relevant entries (quality patterns, failure modes), batch-resolve. The Tier 1/2 sections in the runbook skill already have this fallback; deliverable-review was missing it.
+- Evidence: Deliverable review of recall-pass ran without any recall. Fixed: added lightweight recall fallback to deliverable-review skill Layer 2.

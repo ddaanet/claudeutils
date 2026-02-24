@@ -1,55 +1,33 @@
 # Session Handoff: 2026-02-24
 
-**Status:** Recall pass requirements updated with FR-11 (cognitive boundaries), fast path coverage, on-demand memory-index, batch-resolve. Skill review applied.
+**Status:** Deliverable review complete, all major findings fixed. Progressive recall refinement model implemented — recall re-evaluation at A.5, C.1, Phase 0.75.
 
 ## Completed This Session
 
 **Recall pass pipeline (prior sessions, carried forward):**
-- `plans/recall-pass/requirements.md` — 10 FRs, 3 NFRs, 5 constraints
+- `plans/recall-pass/requirements.md` — 11 FRs, 3 NFRs, 5 constraints
 - `plans/recall-pass/outline.md` — 10 key decisions, all open questions resolved
-- 4 pipeline skill files edited with recall artifact generation, augmentation, injection, and review recall (47 insertions across design, runbook, orchestrate, deliverable-review skills)
+- 4 pipeline skill files edited with recall artifact generation, augmentation, injection, and review recall
+- `/recall` skill created — interactive recall for sessions bypassing the pipeline
 
-**`/recall` skill — interactive recall pass (prior sessions, carried forward):**
-- Created `agent-core/skills/recall/SKILL.md` — manual recall for interactive sessions
-- 5-mode taxonomy: default, deep, broad, all, everything
-- Tail-recursive design with mechanical exit condition
+**Deliverable review (this session):**
+- Full review: 10 files, 170 net lines, all agentic prose
+- 4 major findings, all fixed in-session:
+  1. Outline Q-4/D-7 contradicted FR-11 — outline updated to "progressive recall within design"
+  2. FR-11 within-session boundaries lacked recall re-evaluation — added at A.5, C.1 (design), Phase 0.75 (runbook)
+  3. Pipeline contracts didn't reflect progressive refinement — T1/T2 updated
+  4. Deliverable-review skill lacked lightweight recall fallback — added (from /reflect RCA)
+- 2 minor findings: FR-10 artifact format field (deferred), unspecified deliverables (justified)
+- Report: `plans/recall-pass/reports/deliverable-review.md`
 
-**Read tool context optimization test (prior sessions, carried forward):**
-- No dedup — each Read appends. Skip-tracking confirmed necessary.
+**Key reframing from discussion:**
+- FR-11 rationale changed from "compaction insurance" to "progressive refinement" — each discovery phase changes what recall entries are relevant. Initial broad recall surfaces non-obvious connections for weakly specified tasks; subsequent recalls refine as the task becomes better specified.
+- "Re-evaluate" not "re-read" — the cognitive operation is assessing existing entries against new understanding, not re-ingesting content
 
-**Recall pass requirements expansion (this session):**
-- FR-11 added: recall at every cognitive boundary (not just 4 pipeline stages)
-  - Before requirements capture, exploration, design outline (A.5), full design (C.1), runbook outline (0.75), phase expansion (Phase 1), implementation, tests, review/correction
-  - Within-session recall as compaction insurance (low cost, high upside)
-- FR-1 enhanced: on-demand memory-index read (not preloaded), batch-resolve via `when-resolve.py`, no-requirements keyword derivation, memory-index amplification property documented
-- C-1: "pipeline stages" → "cognitive boundaries"
-- C-3: expanded integration points to `/requirements`, granular design/runbook phases, Tier 1/2
-- Q-4: resolved by FR-11 (yes, mid-design recall)
-
-**Fast path recall coverage (this session):**
-- Runbook Tier 1: recall context paragraph — read artifact + lightweight recall when no artifact
-- Runbook Tier 2: same + injection into delegation prompts with format-per-tier
-- Design direct execution (outline-sufficient + C.5): review recall in corrector prompt
-- Runbook Phase 0.5: on-demand memory-index read, batch-resolve, removed stale "do NOT grep" language
-
-**Pipeline contracts updated:**
-- T1 output: +recall-artifact.md
-- T2 input: +recall-artifact.md
-
-**On-demand memory-index pattern (this session):**
-- Removed memory-index from ambient CLAUDE.md preloading assumption
-- All recall points now: Read memory-index.md (skip if already in context)
-- First recall point in session reads it; subsequent points find it loaded
-- "Scan file" language replaced everywhere — prevents spurious file re-reads
-
-**Skill review (this session):**
-- Batch review of 5 modified skills (design, runbook, recall, when, how)
-- 2 major fixes: runbook description trigger phrases, Tier 1 format-per-tier guidance
-- 4 minor fixes: recall skip-phrasing standardized, "Bash transport" → "batch-resolve", cumulative behavior wording, cross-reference stability
-
-**/when and /how stale reference fix:**
-- Removed "already loaded via CLAUDE.md @-reference" from both skills
-- Replaced with "already in context from prior /recall, /when, or /how invocation"
+**/reflect RCA (this session):**
+- Deviation: deliverable review ran without recall pass
+- Root cause: skill text said "if absent, proceed without" with no lightweight fallback
+- Fix: added lightweight recall fallback to deliverable-review Layer 2
 
 ## Pending Tasks
 
@@ -73,7 +51,7 @@ Sync-to-parent sandbox documentation (haiku) or consolidate /when+/how into /rec
 
 ## Reference Files
 
-- `plans/recall-pass/requirements.md` — 11 FRs including FR-11 cognitive boundaries
-- `plans/recall-pass/outline.md` — pipeline recall pass design (10 key decisions)
-- `agent-core/skills/recall/SKILL.md` — interactive recall skill (5 modes)
-- `agents/decisions/pipeline-contracts.md` — T1/T2 recall-artifact.md in I/O flow
+- `plans/recall-pass/requirements.md` — 11 FRs, FR-11 progressive refinement model
+- `plans/recall-pass/outline.md` — pipeline recall pass design, D-7 updated
+- `plans/recall-pass/reports/deliverable-review.md` — full review with all findings
+- `agents/decisions/pipeline-contracts.md` — T1/T2 progressive refinement in I/O flow

@@ -26,8 +26,8 @@ Artifact reflects corpus state at design time. For multi-session pipelines, the 
 **D-6: Conflict resolution at planning time**
 The planner (sonnet/opus) resolves conflicting entries when writing Common Context. This is cognitive work at an appropriate model tier. No mechanical tiebreaker system.
 
-**D-7: Mid-design recall — no separate pass**
-The design skill's A.1 checkpoint already loads documentation. Pass 1 adds artifact persistence to the existing process. No second recall pass within design.
+**D-7: Progressive recall within design**
+Recall is not a one-shot cache fill at A.1. Each discovery phase (exploration, user discussion) changes what's relevant. Re-evaluate the recall artifact at A.5 (post-exploration: codebase findings change which entries matter) and C.1 (post-discussion: approach commitment changes which implementation/testing entries are relevant). The artifact is progressively refined, not front-loaded.
 
 **D-8: Positional effectiveness**
 Common Context → agent system prompt → early-mid zone after baseline agent template. Phase preambles → step files → "## Phase Context" section before step body. Both are acceptable positions for conventions and failure modes. Step-specific content (recency position) still dominates for implementation details.
@@ -66,7 +66,7 @@ Pass 2 (runbook planning) + Pass 3 (execution injection via Common Context) deli
 - Q-1 (growth control): ≤1.5K token budget for Common Context section; planner curates
 - Q-2 (conflict resolution): Planner resolves at planning time (cognitive, not mechanical)
 - Q-3 (staleness): Accept; optional regeneration at `/runbook` Phase 0.5
-- Q-4 (mid-design recall): No — A.1 checkpoint is sufficient
+- Q-4 (mid-design recall): Yes — re-evaluate at A.5 and C.1 (FR-11: new information changes what's relevant)
 - Q-5 (positional effectiveness): Early-mid zone via Common Context → agent system prompt
 
 ## Scope

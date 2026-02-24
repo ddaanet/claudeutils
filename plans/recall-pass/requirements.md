@@ -94,14 +94,14 @@ Acceptance criteria:
 - Scope conditions evaluable by the consuming agent without external lookups
 
 **FR-11: Recall at cognitive boundaries**
-Recall relevant context before every cognitive work boundary in the pipeline. Within-session recall serves as compaction insurance (low token cost, high upside against context loss). Extends FR-1 through FR-4 (pipeline stage boundaries) to cover all cognitive transitions.
+Recall relevant context before every cognitive work boundary in the pipeline. Each boundary follows a discovery phase that changes the agent's understanding — new information makes different recall entries relevant. The initial broad recall (A.1) surfaces non-obvious connections for a weakly specified task; subsequent recalls progressively refine the artifact as the task becomes better specified through exploration, discussion, and codebase discovery. Extends FR-1 through FR-4 (pipeline stage boundaries) to cover all cognitive transitions.
 
 Acceptance criteria — recall at each boundary:
 - Before requirements capture: domain context, prior art, settled decisions
 - Before exploration (A.2, Phase 0.5 step 4, Tier 1/2 ad-hoc): recall domain context to target exploration — especially critical when no formal requirements exist (derive keywords from user request)
-- Before design outline (A.5): re-surface artifact after exploration/research
-- Before full design (C.1): re-surface artifact after user discussion
-- Before runbook outline (Phase 0.75): re-surface artifact after codebase discovery
+- Before design outline (A.5): re-evaluate artifact given exploration findings — codebase discovery changes which entries are relevant
+- Before full design (C.1): re-evaluate artifact given user discussion — approach commitment changes which implementation/testing entries matter
+- Before runbook outline (Phase 0.75): re-evaluate artifact given codebase discovery — structural findings change which implementation learnings apply
 - Before phase expansion (Phase 1): re-surface per-phase with phase-specific entries
 - Before implementation: recall implementation decisions (per-tier: direct read / delegation injection / Common Context)
 - Before tests: recall testing conventions (same per-tier mechanism)
