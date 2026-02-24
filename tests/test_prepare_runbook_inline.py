@@ -18,7 +18,6 @@ extract_sections = _mod.extract_sections
 extract_cycles = _mod.extract_cycles
 validate_and_create = _mod.validate_and_create
 derive_paths = _mod.derive_paths
-detect_phase_types = _mod.detect_phase_types
 
 
 MIXED_RUNBOOK = """\

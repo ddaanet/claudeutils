@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Recall gate anchoring applied to /reflect and /runbook skills. Learnings at 76 lines — `/codify` needed urgently.
+**Status:** Inline regex bug fixed. Learnings at 76 lines — `/codify` needed urgently.
 
 ## Completed This Session
 
@@ -15,8 +15,11 @@
 - Pattern: `when-resolve.py` proves both Read (requires trigger knowledge from memory-index) and resolution (produces output). Single gate anchor sufficient — passphrase/proof-of-Read redundant.
 - Invalidated learning removed: "When writing instructions that reference memory-index" (said "skip if in context" was correct — now identified as the anti-pattern)
 
-**Partial: inline regex task started but interrupted for RCA:**
-- `test_prepare_runbook_inline.py`: `detect_phase_types` import added (line 21), no test class yet
+**Fix prepare-runbook inline regex:**
+- /design triaged as Moderate (behavioral code), routed to /runbook Tier 1 TDD
+- 2 TDD cycles: `detect_phase_types` regex (line 671), `extract_sections` regex (line 484)
+- Both: `\(type:\s*inline\)` → `\(type:\s*inline[^)]*\)` — handles compound tags like `(type: inline, model: sonnet)`
+- 2 new tests in `TestCompoundInlineTypeTags` class, 10/10 inline tests pass, full suite 1258/1259 (1 pre-existing xfail)
 
 ## Pending Tasks
 
@@ -24,11 +27,8 @@
   - Plan: recall-tool-anchoring | Status: review-pending
 - [x] **Deliverable review: recall-tool-anchoring** — `/deliverable-review plans/recall-tool-anchoring` | opus | restart
   - Plan: recall-tool-anchoring | Status: reviewed
-- [ ] **Fix prepare-runbook inline regex** — `/design plans/prepare-runbook-inline-regex/problem.md` | sonnet
-  - Plan: prepare-runbook-inline-regex | Status: problem filed
-  - 2 regex changes: `\(type:\s*inline\)` → `\(type:\s*inline[^)]*\)` to handle compound type tags
-  - Workaround applied: manually added inline entries to orchestrator-plan.md
-  - Partial state: `detect_phase_types` import added to test file, no RED test yet
+- [x] **Fix prepare-runbook inline regex** — `/design plans/prepare-runbook-inline-regex/problem.md` | sonnet
+  - Plan: prepare-runbook-inline-regex | Status: delivered
 - [ ] **Codify learnings** — `/codify` | opus
   - Learnings at 76 lines (soft limit 80) — consolidation urgent
 
@@ -42,7 +42,7 @@
 
 ## Next Steps
 
-`/codify` first (at limit), then `/design plans/prepare-runbook-inline-regex/problem.md` — Moderate → `/runbook` Tier 1 TDD.
+`/codify` — learnings at 76/80 soft limit.
 
 ## Reference Files
 
