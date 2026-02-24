@@ -1,6 +1,6 @@
-# Session Handoff: 2026-02-23
+# Session Handoff: 2026-02-24
 
-**Status:** Recall pass grounded (Moderate). Worktree-rm-error-ux merged. Ready for recall-pass requirements in worktree.
+**Status:** Recall pass delivered. 3 worktrees merged. Merge context loss diagnosed — worktree merge diagnosis pending.
 
 ## Completed This Session
 
@@ -14,6 +14,17 @@
   - Agentic RAG paradigm deliberately inverted: prescriptive retrieval at fixed points, not adaptive agent-decided retrieval (justified by 2.9% measured adaptive recall)
   - Key project-specific insight: multiplicative token cost (artifact × agent count), mechanical filterability for haiku orchestrators, format-per-consumer-tier
   - Reports: `plans/reports/recall-pass-grounding.md`, `plans/reports/recall-pass-internal-brainstorm.md`
+- Merged `update-grounding-skill` — scout-based diverge-converge pattern replacing general-purpose agents
+- Merged `recall-pass-requirements` — requirements captured via Tier 2 delegation, recall skill added, 4 new learnings
+  - New task: Consolidate recall tooling (rename when-resolve, phase out /when + /how)
+  - Read tool context optimization test: no dedup confirmed (T1 protocol)
+  - Sync-to-parent sandbox documentation updated
+- Validated merge context — diagnosed 2 merges for session.md loss:
+  - Merge 1 (`update-grounding-skill`, `f525d705`): Worktree Tasks entry dropped by autostrategy (focused session lacks main's WT section)
+  - Merge 2 (`recall-pass-requirements`, `c91c7628`): orphaned Worktree Tasks entry, malformed blocker, completed tasks not in Completed section
+  - Pre-merge state with both WT entries: `0c91d969`. Fixed all artifacts manually
+  - Root cause: session.md autostrategy doesn't preserve main-only sections when branch has diverged focused session
+- Recall pass marked delivered (full pipeline: brief → grounding → requirements → execution in worktree)
 
 ## Pending Tasks
 
@@ -89,17 +100,17 @@
   - Complementary to recall pass (cheap first layer vs deep pipeline integration)
 
 
+- [x] **Recall pass** — delivered (brief → grounding → requirements → design → runbook → execution → review)
+  - Plan: recall-pass
+
 - [ ] **Consolidate recall tooling** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
-- [x] **Read tool context optimization test** — run T1 protocol, no dedup confirmed | sonnet
-- [x] **Recall pass requirements** — implemented via Tier 2 delegation
-- [x] **Sync-to-parent sandbox documentation** — update references to document required sandbox bypass | haiku
 
+- [ ] **Worktree merge session loss diagnosis** — RCA why `_worktree merge` autostrategy drops session.md context | sonnet
+  - Root cause: focused session.md in branch lacks main's Worktree Tasks, autostrategy favors branch version
+  - Observed: Merge 1 (`f525d705`) dropped WT entry, Merge 2 (`c91c7628`) left orphan + malformed blocker. Pre-merge: `0c91d969`
+  - Fix target: `src/claudeutils/worktree/merge.py` session autostrategy
+  - Related: planstate-delivered (plan: planstate-delivered) would prevent "completed but no record" class
 ## Worktree Tasks
-
-
-- [ ] **Recall pass requirements** → `recall-pass-requirements` — `/requirements plans/recall-pass/brief.md` | sonnet
-  - Plan: recall-pass | Status: grounded (brief + grounding report complete)
-  - Next: define FRs from discussion conclusions + grounding, then `/design`
 
 
 ## Blockers / Gotchas
@@ -138,10 +149,15 @@
 **Orphaned remember-skill-update directory:**
 - `/Users/david/code/claudeutils-wt/remember-skill-update` — git deregistered but directory remains. Needs manual removal.
 
-- Recipe removes and recreates symlinks in `.claude/` — sandbox blocks `rm` on those paths [from: recall-pass-requirements]
+**Worktree merge drops session.md Worktree Tasks entries:**
+- Focused session in branch lacks main's full Worktree Tasks section. Autostrategy resolves in favor of branch, dropping main-only entries. Manual post-merge validation required until merge.py fixed.
+
+**`just sync-to-parent` requires sandbox bypass:**
+- Recipe removes and recreates symlinks in `.claude/` — sandbox blocks `rm` on those paths
+
 ## Next Steps
 
-Recall pass requirements in worktree. Brief and grounding complete — define FRs next.
+Worktree merge session loss diagnosis, then planstate-delivered or codebase sweep.
 
 ## Reference Files
 

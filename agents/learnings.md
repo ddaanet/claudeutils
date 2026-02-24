@@ -42,3 +42,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Skill says "if absent, proceed without it" and reviewer takes the early exit — no recall at all. Reviewing recall-pass deliverables without performing recall is the exact gap the deliverables are designed to close.
 - Correct pattern: "If absent, do lightweight recall" — read memory-index.md, identify review-relevant entries (quality patterns, failure modes), batch-resolve. The Tier 1/2 sections in the runbook skill already have this fallback; deliverable-review was missing it.
 - Evidence: Deliverable review of recall-pass ran without any recall. Fixed: added lightweight recall fallback to deliverable-review skill Layer 2.
+## When validating worktree merges
+- Anti-pattern: Trusting `_worktree merge` autostrategy for session.md without post-merge validation. The autostrategy resolves in favor of the branch's focused session, dropping main-only content (Worktree Tasks entries for other worktrees, blocker formatting).
+- Correct pattern: After every `_worktree merge`, validate session.md: check Worktree Tasks section preserved main's entries, check Blockers formatting, check completed tasks have completion records. Manual check until merge.py autostrategy is fixed.
+- Evidence: Merge 1 dropped "Update grounding skill" from Worktree Tasks. Merge 2 left orphaned entry + malformed blocker line. Both required manual recovery.
