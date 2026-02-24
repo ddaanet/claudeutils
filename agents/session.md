@@ -1,13 +1,28 @@
-# Session: Worktree — Worktree merge session loss diagnosis
+# Session Handoff: 2026-02-24
 
-**Status:** Focused worktree for parallel execution.
+**Status:** Session.md merge fix designed (outline sufficient, ready for runbook).
+
+## Completed This Session
+
+**Worktree merge session loss — design:**
+- Recall all: loaded operational-tooling.md, testing.md (full), 6 section-level entries (defense-in-depth, cli, workflow-planning)
+- Read source: merge.py (4-phase state machine, 5 paths), resolve.py (session + learnings resolvers), session.py (focus_session, task/blocker parsing)
+- Root cause confirmed: `resolve_session_md()` only runs on conflict path; no `remerge_session_md()` for clean-merge path (same class as learnings.md fix)
+- Triage: Moderate — clear approach, established pattern from `remerge_learnings_md()`
+- Created `plans/worktree-session-merge/` with outline.md + recall-artifact.md
+- Outline assessed as sufficient — skipped full design generation
 
 ## Pending Tasks
 
-- [ ] **Worktree merge session loss diagnosis** — RCA why `_worktree merge` autostrategy drops session.md context | sonnet
-  - Root cause: focused session.md in branch lacks main's Worktree Tasks, autostrategy favors branch version
-  - Observed: Merge 1 (`f525d705`) dropped WT entry, Merge 2 (`c91c7628`) left orphan + malformed blocker. Pre-merge: `0c91d969`
-  - Observed: Merge 3 (`8a97fb71` planstate-delivered) appended 5 `[from: planstate-delivered]` entries into Blockers section. Merge 4 (`50e37ede` wt-merge-dirty-tree) clean — code-only branch, no session.md changes
-  - Fix target: `src/claudeutils/worktree/merge.py` session autostrategy
-  - Two manifestations: (1) WT Tasks entries dropped, (2) branch-only content appended to wrong section (Blockers)
-  - Related: planstate-delivered (plan: planstate-delivered) would prevent "completed but no record" class
+- [ ] **Worktree merge session loss fix** — `/runbook plans/worktree-session-merge/outline.md` | sonnet
+  - Plan: worktree-session-merge | Status: designed (outline sufficient)
+  - Add `remerge_session_md(slug)` in resolve.py, call from phase 4 in merge.py
+  - Thread slug param through `_phase4_merge_commit_and_precommit()`
+  - Integration tests with focused session merge scenarios
+
+## Reference Files
+
+- `plans/worktree-session-merge/outline.md` — approach, decisions D-1 through D-5, scope, phase typing
+- `plans/worktree-session-merge/recall-artifact.md` — 9 curated entries for downstream consumers
+- `plans/worktree-merge-resilience/outline.md` — learnings.md fix (pattern reference)
+- `plans/worktree-merge-resilience/diagnostic.md` — merge artifact reproduction conditions
