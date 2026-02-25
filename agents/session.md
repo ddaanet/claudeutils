@@ -26,8 +26,6 @@
   - Plan: codebase-sweep | Status: requirements
   - _git_ok, _fail, exception cleanup — mechanical refactoring
 - [ ] **Diagnose compression loss** — RCA against commit `0418cedb` | sonnet
-- [ ] **Python3 redirect hook** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
-  - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
 - [ ] **Worktree merge from main** — `/design plans/worktree-merge-from-main/` | sonnet
 - [ ] **Cross-tree requirements** — `/requirements` skill writes to main from worktree | sonnet
   - Transport solved: `git show <branch>:<path>` from main (no sandbox needed)
@@ -121,6 +119,9 @@
 - [ ] **Session scraping prototype** → `session-scraping-prototype` — `agent-core/bin/scrape-session-logs.py <topic>` | sonnet
   - Extract conversation turns from session transcripts relevant to a topic
   - Referenced in grounding-criteria.md; git history shows what changed, session logs show why
+
+- [ ] **Python3 redirect hook** → `python3-redirect-hook` — `/design plans/precommit-python3-redirect/brief.md` | sonnet
+  - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
 
 ## Blockers / Gotchas
 
