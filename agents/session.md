@@ -4,48 +4,7 @@
 
 ## Completed This Session
 
-- **Parsing fixes batch executed** — all 6 cycles, 2 fixes + 3 verifications + 1 dead code cleanup
-  - Cycle 1: validate-runbook model-tags extension filter — `.sh` files under artifact paths no longer flagged (only `.md`)
-  - Cycle 2: validate-runbook lifecycle `known_files` parameter — pre-existing files exempt from modify-before-create
-  - Cycle 3: C1 model propagation — verified already fixed, regression test added
-  - Cycle 4: C2 phase numbering — verified already fixed (gapped phases 1,3,5 preserved), regression test added
-  - Cycle 5: C3 phase context completeness — documented post-cycle content not in preamble by design
-  - Cycle 6: Dead code — removed discarded `splitlines()` in prepare-runbook.py, discarded expression in memory_index_checks.py
-  - Test file compaction: extracted `_run_validate` and `_run_prepare` helpers, both files under 400-line limit
-  - Plans delivered: parsing-fixes-batch, runbook-generation-fixes (absorbed)
-- **Memory index orphan investigation** — tracked `when validating runbook pre-execution` entry
-  - Entry added in prior commit, section never created (content only in T4.5 table row)
-  - `check_orphan_entries()` correctly detects it via `claudeutils validate memory-index`
-  - Precommit gap: `just precommit` runs ruff/docformatter/mypy/pytest/line-limits but NOT `claudeutils validate`
-  - Scale: 12 orphan index entries + 33 orphan headers + 3 cross-file duplicates
-- **Parsing-fixes review** — 0 critical, 2 major, 2 minor
-  - Report: `plans/parsing-fixes-batch/reports/deliverable-review.md`
-  - Findings fixed: added `test_lifecycle_known_file_cli`, refactored `test_model_tags_non_markdown_artifact_not_flagged` to use `_run_validate` helper, moved `datetime` import to module-level
-  - Extended `_run_validate` helper with keyword-only `extra_args` parameter
-- **Batch fix: 3 pending tasks**
-  - Removed `ruff check --fix-only` from `posttooluse-autoformat.sh` — hook now formats only, no autofix
-  - Fixed 3 duplicate decision headers, added 37 memory-index entries for orphan headers
-  - Wired `claudeutils validate memory-index` into `run-checks()` in justfile
-- **Wire precommit validators** — all 4 validators wired, pre-existing errors fixed
-  - `learnings.py`: MAX_WORDS 5→7; removed orphaned duplicate "Soft limit" block; renamed 2 long titles; added "When naming learning headings" learning
-  - `planstate.py`: false-positive fix — old-format plans (orchestrator-plan.md + steps/) no longer flagged; `inference.py` adds `brief.md` as recognized artifact
-  - `tasks.py`: 25-char limit and forbidden-char check stand; renamed 31 task names in session.md to comply
-  - `session_structure.py`: no code change — removed 9 stale reference file lines (deleted plans + glob patterns)
-  - Deleted 11 archived plan directories + 5 stale no-artifact directories
-  - Wired all 4 validators into `run-checks()` in justfile
-
-- **Ground design skill** — opus convergence from prior sonnet branch artifacts + direct execution
-  - Grounding report: `plans/reports/design-skill-grounding.md` (Strong — 6 frameworks, 8 principles, 7 gaps)
-  - 8 edits applied to SKILL.md (gaps 1-2, 4-6) and design-content-rules.md (gap 3)
-  - Gap 1: requirements-clarity gate upgraded from prose-only to D+B anchor with structured output block
-  - Gap 2: classification criteria reframed around Stacey axes (implementation certainty × requirement stability)
-  - Gap 3: decision tradeoff documentation rule added (ADR consequences pattern)
-  - Gap 4: outline-corrector prompt → PDR criteria; design-corrector prompt → CDR criteria (NASA staged review)
-  - Gap 5: companion task enforcement upgraded from prose to enumeration-before-processing
-  - Gap 6: defect/structured-bugfix fourth triage path added (Cynefin Complicated domain)
-  - Gap 7: triage feedback loop — out of scope (monitoring, not /design)
-  - Added session log scraping as third internal source for process skill grounding (`grounding-criteria.md`)
-  - Script `scrape-session-logs.py` referenced but not yet implemented
+(flushed)
 
 ## Pending Tasks
 
@@ -56,9 +15,6 @@
 - [ ] **Compensate-continue skill** — `/ground` then `/design` | opus
   - Activated after unexpected stop. Records compensation strategy. Applies trivial workarounds inline (e.g., rename heading to route around parser bug). Creates pending task for proper fix. Resumes interrupted work via continuation-prepend.
   - Needs grounding on failure recovery patterns, compensation strategies
-
-- [x] **Ground design skill** — grounded + redesigned, 8 principles applied
-  - Report: `plans/reports/design-skill-grounding.md`
 
 - [ ] **Ground workflow skills** — `/ground` each per audit | opus
   - Audit: `plans/reports/workflow-grounding-audit.md`
@@ -159,6 +115,10 @@
   - Each decision/learning declares keywords for index. Index generated from declarations. Diff displayed after update for agent review. Supersedes manual append workflow in `/codify` step 4a.
 - [ ] **Skill prompt-composer** — migrate skill authoring to use prompt-composer pattern | sonnet
 
+## Worktree Tasks
+
+- [ ] **Block index.lock rm** → `block-rm-lock` — PreToolUse hook blocking `rm */index.lock`, says retry | haiku | restart
+
 ## Blockers / Gotchas
 
 **Never run `git merge` without sandbox bypass:**
@@ -217,34 +177,13 @@ Design skill grounding artifacts are complete — branch reports + final synthes
 
 ## Reference Files
 
-- `plans/parsing-fixes-batch/plan.md` — Tier 2 cycle plan (6 cycles, validate-runbook + prepare-runbook + dead code)
-- `plans/parsing-fixes-batch/recall-artifact.md` — Testing decisions, diagnostic context
 - `plans/reports/workflow-grounding-audit.md` — Grounding provenance for all workflow skills/agents
-- `plans/runbook-generation-fixes/brief.md` — C1-C3 bug diagnostics (absorbed into parsing-fixes-batch)
-- `plans/reports/recall-pass-grounding.md` — Moderate grounding (CE + Agentic RAG synthesis)
-- `plans/reports/recall-pass-internal-brainstorm.md` — 27 dimensions, project-specific constraints
-- `plans/planstate-delivered/outline.md` — Plan lifecycle design (7 decisions, 3 phases)
 - `plans/orchestrate-evolution/design.md` — Orchestration evolution design (ready for runbook)
 - `plans/handoff-cli-tool/outline.md` — Session CLI combined outline (reviewed 6 rounds)
-- `plans/worktree-merge-resilience/diagnostic.md` — Merge artifact reproduction conditions
 - `plans/codebase-sweep/requirements.md` — mechanical refactoring (_git_ok, _fail, exceptions)
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
 - `plans/reports/prioritization-2026-02-24.md` — WSJF scoring, 37 tasks ranked
-- `plans/task-classification/outline.md` — `/prime` skill + two-section task list design (8 rounds, reviewed)
-- `plans/task-classification/reports/outline-review.md` — Corrector review (0 critical, 3 major fixed)
-- `plans/task-lifecycle/outline.md` — Planstate-derived commands + STATUS continuation design
-- `plans/skills-quality-pass/design.md` — Skills quality pass design (3 workstreams, 10 FRs, 7 NFRs)
-- `plans/skills-quality-pass/recall-artifact.md` — 10 resolution keys (corrected from inline summaries)
-- `plans/skills-quality-pass/runbook-outline.md` — 5 phases, 16 steps, parallel 4-agent execution model
-- `plans/skills-quality-pass/reports/runbook-outline-review.md` — Corrector review (0 critical, 3 major fixed)
+- `plans/task-classification/outline.md` — `/prime` skill + two-section task list design
 - `plans/runbook-recall-expansion/requirements.md` — Step agent + corrector recall during full orchestration (7 FRs)
-- `plans/skills-quality-pass/reports/skill-inventory.md` — Sonnet scout v2: 30 skills, content segmentation, compression opportunities
-- `plans/skills-quality-pass/reports/full-gate-audit.md` — Sonnet scout: 12 prose-only gates, fix directions
-- `plans/reports/skill-optimization-grounding.md` — Segment→Attribute→Compress framework (LLMLingua/ProCut)
 - `plans/skill-progressive-disclosure/brief.md` — Segment loading at gate boundaries (/design and /runbook)
-- `plans/skills-quality-pass/reports/behavior-invariance-review.md` — 50-path independent verification (0 issues)
-- `plans/skills-quality-pass/reports/resolved-recall.md` — Pre-resolved recall dump for shared agent consumption
-- `plans/parsing-fixes-batch/reports/deliverable-review.md` — Deliverable review (0 critical, 2 major fixed)
-- `plans/reports/design-skill-grounding.md` — Design skill grounding (Strong — Cynefin, Stacey, IEEE 29148, Double Diamond, ADR, NASA PDR/CDR)
-- `plans/reports/design-skill-internal-codebase.md` — Branch A: 10 failure patterns, 8 gaps, 5 structural patterns
-- `plans/reports/design-skill-external-research.md` — Branch B: 6 frameworks with authority assessments
+- `plans/reports/design-skill-grounding.md` — Design skill grounding (Strong — 6 frameworks, 8 principles, 7 gaps)
