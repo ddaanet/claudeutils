@@ -44,21 +44,10 @@
   - Gap 5: companion task enforcement upgraded from prose to enumeration-before-processing
   - Gap 6: defect/structured-bugfix fourth triage path added (Cynefin Complicated domain)
   - Gap 7: triage feedback loop — out of scope (monitoring, not /design)
+  - Added session log scraping as third internal source for process skill grounding (`grounding-criteria.md`)
+  - Script `scrape-session-logs.py` referenced but not yet implemented
 
 ## Pending Tasks
-
-- [x] **Parsing-fixes review** — reviewed, 0 critical, 2 major
-  - Plan: parsing-fixes-batch | Status: delivered
-  - Report: `plans/parsing-fixes-batch/reports/deliverable-review.md`
-
-- [x] **Wire precommit check** — memory-index validator wired into `run-checks()`
-  - Scoped to memory-index only; other validators deferred (pre-existing errors)
-
-- [x] **Remove hook autofix** — `ruff check --fix-only` removed, format-only now
-
-- [x] **Fix when-recall lookup** — orphan entry already removed in prior commit
-
-- [x] **Wire precommit validators** — all 4 validators wired; task names, learnings, plans cleaned up
 
 - [ ] **Tool deviation hook** — PostToolUse hook on Bash to detect when-resolve.py failures | sonnet
   - Check exit code + stderr patterns from specific scripts
@@ -187,7 +176,7 @@
 - Operator prefix no longer used in matching — bare trigger matching handles both `/when` and `/how` entries
 - `removeprefix("to ")` in resolver strips leftover "to" from "how to X" invocations
 
-**Learnings healthy — 44 lines, 9 entries:**
+**Learnings healthy — 49 lines, 10 entries:**
 - `/codify` completed. Next consolidation when approaching 80-line limit.
 
 **SessionStart hook #10373 still open:**
