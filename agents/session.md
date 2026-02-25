@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Parsing fixes batch executed (6/6 cycles). Memory index orphan investigation completed — validator works but not wired into precommit.
+**Status:** Parsing-fixes-batch delivered and reviewed. Review findings fixed (CLI test coverage, helper consistency, import cleanup).
 
 ## Completed This Session
 
@@ -30,11 +30,16 @@
 - **Bugfix process discussion** — converged on: structured-bugfix skill absorbed into grounded /design (fix-category assessment as routing outcome, not separate skill)
   - Compensate-and-continue remains separate (operational recovery, not design-time)
   - Three-part model: tool deviation detection (hook) → compensation+continue (skill) → proper fix (via grounded /design)
+- **Deliverable review: parsing-fixes-batch** — 0 critical, 2 major, 2 minor
+  - Report: `plans/parsing-fixes-batch/reports/deliverable-review.md`
+  - Findings fixed: added `test_lifecycle_known_file_cli` (CLI `--known-file` arg path), refactored `test_model_tags_non_markdown_artifact_not_flagged` to use `_run_validate` helper, moved `datetime` import to module-level alongside `UTC`
+  - Extended `_run_validate` helper with keyword-only `extra_args` parameter
 
 ## Pending Tasks
 
-- [ ] **Deliverable review: parsing-fixes-batch** — `/deliverable-review plans/parsing-fixes-batch` | sonnet
-  - Plan: parsing-fixes-batch | Status: delivered (review pending)
+- [x] **Deliverable review: parsing-fixes-batch** — reviewed, 0 critical, 2 major
+  - Plan: parsing-fixes-batch | Status: delivered
+  - Report: `plans/parsing-fixes-batch/reports/deliverable-review.md`
 
 - [ ] **Wire validation into precommit** — add `claudeutils validate` to `run-checks()`, fix orphan entries/headers | sonnet
   - 12 orphan index entries, 33 orphan headers, 3 cross-file duplicates
@@ -49,10 +54,6 @@
 - [ ] **Tool deviation detection hook** — PostToolUse hook on Bash to detect when-resolve.py failures | sonnet
   - Check exit code + stderr patterns from specific scripts
   - Narrower than governor agent (PreToolUse on everything), but catches the specific failure class
-
-- [ ] **Wire validation into precommit** — add `claudeutils validate` to `run-checks()`, fix orphan entries/headers | sonnet
-  - 12 orphan index entries, 33 orphan headers, 3 cross-file duplicates
-  - Precommit gap: `just precommit` never runs `claudeutils validate`
 
 - [ ] **Design compensate-and-continue skill** — `/ground` then `/design` | opus
   - Activated after unexpected stop. Records compensation strategy. Applies trivial workarounds inline (e.g., rename heading to route around parser bug). Creates pending task for proper fix. Resumes interrupted work via continuation-prepend.
@@ -142,7 +143,7 @@
   - Line-wrap all files, replace ad-hoc regex parsers (prepare-runbook, session merge, validate-runbook, markdown cleanup)
   - Token counting API + sqlite user cache, threshold migration (line counts → tokens)
   - `just setup` sandbox config for cache dir
-  - Depends on: Parsing fixes batch (short-term fixes first, parser replaces regex code)
+  - Parsing fixes batch delivered — parser can now replace regex code
 - [ ] **Deliverable review auto-commit** — after fixing all issues in deliverable-review, auto handoff and commit | sonnet
 - [ ] **Worktree new fuzzy matching** — `_worktree new` accepts approximate task names instead of exact match | sonnet
 - [ ] **Design skill stale recall artifact format** — diagnose /design producing old-style recall artifact instead of memory key list | sonnet
@@ -213,7 +214,7 @@
 
 ## Next Steps
 
-Next session: `/deliverable-review plans/parsing-fixes-batch` then continue with pending tasks.
+Continue with pending tasks.
 
 ## Reference Files
 
@@ -253,3 +254,4 @@ Next session: `/deliverable-review plans/parsing-fixes-batch` then continue with
 - `plans/skills-quality-pass/reports/review-r{1-4}-phase{2-5}.md` — Convergence skill reviews (4 reviewers)
 - `plans/skills-quality-pass/reports/behavior-invariance-review.md` — 50-path independent verification (0 issues)
 - `plans/skills-quality-pass/reports/resolved-recall.md` — Pre-resolved recall dump for shared agent consumption
+- `plans/parsing-fixes-batch/reports/deliverable-review.md` — Deliverable review (0 critical, 2 major fixed)

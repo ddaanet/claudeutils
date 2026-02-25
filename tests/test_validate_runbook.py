@@ -28,14 +28,21 @@ _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 main = _mod.main
 
 
-def _run_validate(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, subcmd: str, name: str, text: str
+def _run_validate(  # noqa: PLR0913
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    subcmd: str,
+    name: str,
+    text: str,
+    *,
+    extra_args: list[str] | None = None,
 ) -> tuple[int, str]:
     """Run validate-runbook subcommand, return (exit_code, report_content)."""
     monkeypatch.chdir(tmp_path)
     runbook = tmp_path / f"{name}.md"
     runbook.write_text(text)
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", subcmd, str(runbook)])
+    argv = ["validate-runbook", subcmd, str(runbook)] + (extra_args or [])
+    monkeypatch.setattr(sys, "argv", argv)
     try:
         main()
         code = 0
@@ -235,20 +242,24 @@ def test_model_tags_non_markdown_artifact_not_flagged(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Non-.md files under artifact paths are not flagged by model-tags."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "script-runbook.md"
-    runbook.write_text(NON_MARKDOWN_ARTIFACT)
-
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", "model-tags", str(runbook)])
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 0, "Non-.md file under artifact path should not be flagged"
-    report_path = (
-        tmp_path / "plans" / "script-runbook" / "reports" / "validation-model-tags.md"
+    code, content = _run_validate(
+        monkeypatch, tmp_path, "model-tags", "script-runbook", NON_MARKDOWN_ARTIFACT
     )
-    content = report_path.read_text()
+    assert code == 0, "Non-.md file under artifact path should not be flagged"
+    assert "**Result:** PASS" in content
+
+
+def test_lifecycle_known_file_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CLI --known-file argument wires through to check_lifecycle."""
+    code, content = _run_validate(
+        monkeypatch,
+        tmp_path,
+        "lifecycle",
+        "cli-known",
+        LIFECYCLE_KNOWN_FILE,
+        extra_args=["--known-file", "src/existing.py"],
+    )
+    assert code == 0, "Known file via CLI should not be flagged"
     assert "**Result:** PASS" in content
