@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Skills quality pass designed. Sonnet scouts produced skill inventory (30 skills graded) and gate audit (12 prose-only gates). Design document and recall artifact written, ready for `/runbook`.
+**Status:** Skills quality pass design updated with v2 scout (content segmentation framework), 3 new FRs, 7 NFRs. Ready for `/runbook`.
 
 ## Completed This Session
 
@@ -9,6 +9,17 @@
   - Gate audit: 12 genuine prose-only gates across 7 files. 3 high (design skill routing gates), 4 medium, 5 low
   - Discussion: doc update for regression prevention (yes) vs optimize-skill skill (no — low recurrence)
   - Haiku scouts re-run at sonnet after user correction — haiku produced 3 false positives in gate audit, uncritical grading in inventory
+- Updated skills-quality-pass design with v2 scout report
+  - Re-ran scout with Segment→Attribute→Compress framework from `plans/reports/skill-optimization-grounding.md`
+  - Grade shifts: design B+→C+, runbook B→C, commit A+→A-. C/C+ list expanded to 5 skills
+  - 3 new FRs: FR-8 redundant always-loaded (6 skills), FR-9 tail sections (12 skills), FR-10 conditional path bloat (5 skills)
+  - 3 new NFRs: extraction completeness, description format preservation, D+B gate safety
+  - Corrected D-3: description must stay in platform-required format (was incorrectly "replace with noun phrase")
+  - Total corpus: 7,182 lines, ~1,770 removable (25%)
+  - Discussion: no optimize-skill skill (D-1 holds), no plan-scanning recall pass (index gap not architecture gap), persistent constraints → learnings not direct decision-file edit
+- Added learning: grounding report discoverability (`plans/reports/skill-optimization-grounding.md`)
+- Added learning: skill editing constraints (platform format, extraction safety, control flow verification, D+B gate safety)
+- New pending: Design skill stale recall artifact format (sonnet)
 
 ## Pending Tasks
 
@@ -18,9 +29,10 @@
   - _git_ok, _fail, exception cleanup — mechanical refactoring
 - [ ] **Skills quality pass** — `/runbook plans/skills-quality-pass/design.md` | sonnet
   - Plan: skills-quality-pass | Status: designed
-  - 3 workstreams: deslop (30 skills), D+B gate anchoring (12 gates/7 files), doc update (regression prevention)
-  - Opus required for all prose edits (pipeline-contracts.md). Bootstrapping order: corrector agents first
-  - Reports: `plans/skills-quality-pass/reports/skill-inventory.md`, `plans/skills-quality-pass/reports/full-gate-audit.md`
+  - 3 workstreams: deslop (30 skills, ~1,770 lines removable), D+B gate anchoring (12 gates/7 files), doc update (regression prevention)
+  - 10 FRs, 7 NFRs. Opus required for all prose edits (pipeline-contracts.md). Bootstrapping order: corrector agents first
+  - Top compression: runbook (−350), token-efficient-bash (−200), design (−150), review (−140), orchestrate (−130)
+  - Reports: `plans/skills-quality-pass/reports/skill-inventory.md` (v2 with content segmentation), `plans/skills-quality-pass/reports/full-gate-audit.md`
 
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 - [ ] **Precommit python3 redirect** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
@@ -97,8 +109,9 @@
 - [ ] **Deliverable review auto-commit** — after fixing all issues in deliverable-review, auto handoff and commit | sonnet
 - [ ] **Worktree new fuzzy matching** — `_worktree new` accepts approximate task names instead of exact match | sonnet
 
+- [ ] **Design skill stale recall artifact format** — diagnose /design producing old-style recall artifact instead of memory key list | sonnet
 - [ ] **Codify learnings** — `/codify` | opus
-  - Learnings at 80 lines (AT soft limit) — consolidation urgent
+  - Learnings at 88 lines (PAST soft limit) — consolidation urgent
 
 - [ ] **Skill progressive disclosure** — `d:` discuss optimizing /runbook and /design for progressive disclosure: fast paths don't need whole skill loaded | opus
 
@@ -120,8 +133,8 @@
 - Operator prefix no longer used in matching — bare trigger matching handles both `/when` and `/how` entries
 - `removeprefix("to ")` in resolver strips leftover "to" from "how to X" invocations
 
-**Learnings consolidated — 28 lines, 5 entries:**
-- Next consolidation when entries age past 7 active days or file approaches 80-line soft limit.
+**Learnings past soft limit — 88 lines, 20 entries:**
+- `/codify` urgent. Two new entries this session (grounding report discoverability, skill editing constraints).
 
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback deployed (Phase 4).
@@ -152,7 +165,7 @@
 
 ## Next Steps
 
-Skills quality pass: `/runbook plans/skills-quality-pass/design.md`. Codify learnings urgent (78/80).
+Skills quality pass: `/runbook plans/skills-quality-pass/design.md`. Codify learnings critical (88/80).
 
 ## Reference Files
 
@@ -174,7 +187,8 @@ Skills quality pass: `/runbook plans/skills-quality-pass/design.md`. Codify lear
 - `plans/task-lifecycle/outline.md` — Planstate-derived commands + STATUS continuation design
 - `plans/when-resolve-fix/diagnostic-double-to.md` — Double-to + cross-operator bugs, TDD plan, code paths
 - `plans/when-resolve-fix/reports/corrector-review.md` — Corrector review of 4-bug fix (0 critical, 0 major)
-- `plans/skills-quality-pass/design.md` — Skills quality pass design (3 workstreams, 7 FRs, 4 NFRs)
+- `plans/skills-quality-pass/design.md` — Skills quality pass design (3 workstreams, 10 FRs, 7 NFRs)
 - `plans/skills-quality-pass/recall-artifact.md` — 12 recall entries for downstream consumers
-- `plans/skills-quality-pass/reports/skill-inventory.md` — Sonnet scout: 30 skills graded, 5 anti-patterns identified
+- `plans/skills-quality-pass/reports/skill-inventory.md` — Sonnet scout v2: 30 skills, content segmentation, compression opportunities
 - `plans/skills-quality-pass/reports/full-gate-audit.md` — Sonnet scout: 12 prose-only gates, fix directions
+- `plans/reports/skill-optimization-grounding.md` — Segment→Attribute→Compress framework (LLMLingua/ProCut)

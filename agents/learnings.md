@@ -78,3 +78,12 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Using haiku scouts to audit prose quality or detect structural anti-patterns in LLM-consumed instruction files (skills, agents, fragments). Haiku grades generously, misses dominant failure patterns, and produces false positives that require opus validation — double work.
 - Correct pattern: Sonnet minimum for any discovery/audit touching skills, agents, or fragments. These are architectural prose artifacts — assessing their quality requires the same judgment tier as editing them. The "model by complexity" rule applies to analysis, not just edits.
 - Evidence: Haiku scout graded 0 skills at C (sonnet found 3), missed description anti-pattern as dominant issue (18/30), produced 15 gate findings vs sonnet's 12 (3 false positives from over-flagging steps where preceding tool output naturally feeds judgment).
+## When optimizing skill prose quality
+- Reference: `plans/reports/skill-optimization-grounding.md` — Segment → Attribute → Compress framework adapted from LLMLingua/ProCut. 9 content categories with compression budgets per category.
+- Triggers: deslop, compression, segment, attribute, budget, skill optimization, prose quality pass
+## When editing skill files
+- Platform constraint: skill `description` frontmatter MUST use "This skill should be used when..." format (plugin-dev:skill-development, skill-reviewer enforce this). Improve wording within this format, do not replace the format.
+- Extraction safety: every content block moved to references/ must leave a trigger condition + Read instruction in the main SKILL.md body. Verify each references/ file has a corresponding load point.
+- Control flow verification: after restructuring skills with conditional branches, enumerate all execution paths and verify user-visible output on each path. Prior deslop on design skill combined two fast paths and regressed user-facing classification message.
+- D+B gate additions: adding tool calls to anchor prose-only gates must not change the gate's decision outcome on existing paths. The added Read/Bash provides data for judgment — it should not introduce new content that shifts the judgment itself.
+- Triggers: editing skills, skill surgery, deslop, extraction, progressive disclosure, restructuring conditional branches
