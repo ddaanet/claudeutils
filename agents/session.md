@@ -1,28 +1,30 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Runbook skill updated with lightweight orchestration exit (Phase 0.95). Skills quality pass ready for orchestration next session via outline dispatch.
+**Status:** Skills quality pass complete: 28 skills edited, 3 agents fixed, 15 reference files created, ~2,600 lines compressed. 7 convergence review majors fixed and committed.
 
 ## Completed This Session
 
-- Designed skills-quality-pass (prior session): triage, scouts, design.md, recall-artifact.md
-- Skills quality pass runbook outline (`plans/skills-quality-pass/runbook-outline.md`)
-  - Tier 3 assessment: 24+ files, 3 parallelizable workstreams, opus throughout
-  - Phase 0.5: loaded full documentation perimeter (6 files), resolved 10 recall keys via when-resolve.py, verified all 26 skill/agent file locations via Glob
-  - Phase 0.75: 5 phases, 16 general steps, all opus. Prose atomicity enforced (no file in 2 steps)
-  - Phase 1: agent D+B gates (bootstrap, restart). Phases 2-5: 4 parallel background opus agents (disjoint file sets)
-  - FR-7 (doc update) removed from scope — content already in learnings.md line 87, deferred to `/codify`
-  - Discussion: Phase 6 inline violated codify workflow; batching by modified file confirmed; parallel agent structure (4 background opus, resume until quality degrades); recall injection gap identified and fixed
-- Corrected recall artifact format: replaced inline summaries with 10 pure resolution keys
-- Outline corrector review (commit: 644ce558): 0 critical, 3 major (mapping traceability, checkpoint mechanism, NFR-5 consistency), 2 minor — all fixed
-- Added recall injection + baked learnings sections to outline (execution + review agents both get recall)
-- New requirements: `plans/runbook-recall-expansion/requirements.md` — 7 FRs for step agent + corrector recall during full orchestration
-- New pending: Runbook outline review loop, Recall learnings integration, Runbook recall expansion
-- RCA: /runbook skill execution momentum — agent ran full Tier 3 planning against already-planned work
-  - Root cause: tier model conflates parallelism with pipeline need; lightweight orchestration pattern not codified
-  - Structural fix: added lightweight orchestration exit to runbook skill Phase 0.95 (discriminator: `## Execution Model` section presence)
-  - Skill-reviewer: 2 major (discriminator position, item 3 actionability), 2 minor — all fixed
-- Created `plans/skill-progressive-disclosure/brief.md` — segment loading at gate boundaries for /design and /runbook
-- New pending: Recall pipeline improvements
+- **Skills quality pass execution** — lightweight orchestration from outline, 4 parallel opus agents
+  - Phase 1: 3 agent D+B gates (corrector gate 10, design-corrector gate 11, runbook-outline-corrector gate 9) + restart
+  - Phases 2-5: 4 background opus agents dispatched in parallel (disjoint file sets)
+  - Phase 2 (Agent A): commit, handoff, codify — 5 D+B gates added, FR-1/2/8/9 applied, 21 control flow paths verified
+  - Phase 3 (Agent B): design, runbook, token-efficient-bash, orchestrate, review — 1,499 lines removed (50%), 15 reference files created, 4 D+B gates in design skill
+  - Phase 4 (Agent C): review-plan, reflect, plugin-dev-validation, shelve, requirements — 572 lines removed, 5 reference files, gate 6 added to requirements
+  - Phase 5 (Agent D): 15 light-touch skills — FR-1/2/6/8/9 per variation table, error-handling reduced to redirect stub
+  - Pre-resolved recall dump (`plans/skills-quality-pass/reports/resolved-recall.md`) — shared file eliminated redundant when-resolve.py calls across agents
+- **Convergence review** — 5 parallel opus agents (4 skill reviewers + 1 behavior invariance)
+  - R1 (Phase 2): 0 critical, 2 major — handoff Gate 5 Bash anchor missing, orphaned consolidation-flow.md
+  - R2 (Phase 3): 0 critical, 2 major — orchestrate and review description NFR-6 violations
+  - R3 (Phase 4): 0 critical, 1 major — reflect 2 references lack in-body load points
+  - R4 (Phase 5): 0 critical, 2 major — how/when retained preambles (design scope gap), prioritize list_plans()
+  - BI (behavior invariance): 0 broken paths across 50 paths in 6 conditional-branch skills
+- Codify learnings worktree spawned → `codify-learnings`
+- **Skills quality pass convergence fixes** — 7 majors from review reports applied
+  - handoff: Gate 5 Bash anchor (`claudeutils _worktree ls`), orphaned `consolidation-flow.md` deleted
+  - orchestrate/review: description rewritten to NFR-6 format
+  - reflect: in-body load points added for `rca-design-decisions.md` and `rca-examples.md`
+  - how/when: "When to Use"/"When NOT to Use" preambles folded into description
+  - prioritize: `list_plans()` replaced with CLI wrapper
 
 ## Pending Tasks
 
@@ -30,11 +32,9 @@
 - [ ] **Codebase sweep** — `/design plans/codebase-sweep/requirements.md` | sonnet
   - Plan: codebase-sweep | Status: requirements
   - _git_ok, _fail, exception cleanup — mechanical refactoring
-- [ ] **Skills quality pass** — orchestrate from outline + recall artifact per Execution Model and Recall Injection sections | sonnet
-  - Plan: skills-quality-pass | Status: planned (outline reviewed, ready for lightweight orchestration)
-  - 5 phases, 16 steps. Phase 1 (bootstrap agents) → restart → 4 parallel agents (Phases 2-5)
-  - Recall injection: agents resolve artifact keys + baked learnings in dispatch prompt
-  - Reports: `plans/skills-quality-pass/reports/runbook-outline-review.md` (0 critical, 3 major fixed)
+- [x] **Skills quality pass fixes** — 7 major fixes applied from convergence review | sonnet
+  - Plan: skills-quality-pass | Status: designed
+  - Reports: `plans/skills-quality-pass/reports/review-r{1-4}-phase{2-5}.md`, `behavior-invariance-review.md`
 
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 - [ ] **Precommit python3 redirect** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
@@ -112,8 +112,6 @@
 - [ ] **Worktree new fuzzy matching** — `_worktree new` accepts approximate task names instead of exact match | sonnet
 
 - [ ] **Design skill stale recall artifact format** — diagnose /design producing old-style recall artifact instead of memory key list | sonnet
-- [ ] **Codify learnings** — `/codify` | opus
-  - Learnings at 88 lines (PAST soft limit) — consolidation urgent
 
 - [ ] **Skill progressive disclosure** — `/design plans/skill-progressive-disclosure/brief.md` | opus
   - Plan: skill-progressive-disclosure | Status: requirements
@@ -131,6 +129,9 @@
   - Implies memory-index format changes (new source type), resolver changes — genuine design uncertainty
 
 ## Worktree Tasks
+
+- [ ] **Codify learnings** → `codify-learnings` — `/codify` | opus
+  - Learnings at 88 lines (PAST soft limit) — consolidation urgent
 
 ## Blockers / Gotchas
 
@@ -180,7 +181,7 @@
 
 ## Next Steps
 
-Skills quality pass: `/runbook plans/skills-quality-pass/design.md` → lightweight orchestration exit → orchestrate from outline. Codify learnings critical (88/80).
+Skills quality pass delivered. Codify learnings in parallel worktree (88/80 lines).
 
 ## Reference Files
 
@@ -211,3 +212,7 @@ Skills quality pass: `/runbook plans/skills-quality-pass/design.md` → lightwei
 - `plans/skills-quality-pass/reports/full-gate-audit.md` — Sonnet scout: 12 prose-only gates, fix directions
 - `plans/reports/skill-optimization-grounding.md` — Segment→Attribute→Compress framework (LLMLingua/ProCut)
 - `plans/skill-progressive-disclosure/brief.md` — Segment loading at gate boundaries (/design and /runbook)
+- `plans/skills-quality-pass/reports/phase-{2-5}-report.md` — Execution agent reports (changes, NFR verification, line counts)
+- `plans/skills-quality-pass/reports/review-r{1-4}-phase{2-5}.md` — Convergence skill reviews (4 reviewers)
+- `plans/skills-quality-pass/reports/behavior-invariance-review.md` — 50-path independent verification (0 issues)
+- `plans/skills-quality-pass/reports/resolved-recall.md` — Pre-resolved recall dump for shared agent consumption

@@ -87,3 +87,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Control flow verification: after restructuring skills with conditional branches, enumerate all execution paths and verify user-visible output on each path. Prior deslop on design skill combined two fast paths and regressed user-facing classification message.
 - D+B gate additions: adding tool calls to anchor prose-only gates must not change the gate's decision outcome on existing paths. The added Read/Bash provides data for judgment — it should not introduce new content that shifts the judgment itself.
 - Triggers: editing skills, skill surgery, deslop, extraction, progressive disclosure, restructuring conditional branches
+## When dispatching parallel agents with shared recall
+- Anti-pattern: Each parallel agent independently resolves the same recall artifact keys (N agents × 10 when-resolve.py calls = N×10 redundant Bash calls + parsing). Design/audit reports also re-read by each agent.
+- Correct pattern: Pre-resolve recall to a shared file (`plans/<job>/reports/resolved-recall.md`) before dispatch. All agents Read one file instead of each running the resolver. Same approach for any shared context (design doc summaries, audit findings) — resolve once, share the output.
+- Evidence: 4 execution agents each ran when-resolve.py with 10 keys independently. Pre-resolved file created for 5 convergence review agents, eliminating ~50 redundant Bash calls.
+## When reviewing skills after batch edits
+- Anti-pattern: Single reviewer agent for all modified skills. Context fills with 28 skill reads before review begins. Quality degrades as context grows.
+- Correct pattern: Parallel reviewers split by relatedness (phase groupings natural — related skills, similar edit patterns, cross-skill consistency visible within group). Separate behavior invariance agent for conditional-branch skills. All read-only, no file conflicts.
+- Evidence: 5 parallel opus reviewers (4 skill quality + 1 behavior invariance) completed convergence review. Found 7 majors that single reviewer might have missed in later skills due to context pressure.
