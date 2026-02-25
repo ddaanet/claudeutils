@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Merged 3 worktrees (prepare-runbook-fixes, when-resolve-fix, wt-merge-session-loss), validated session/learnings integrity, 1 worktree remains.
+**Status:** Merged 4 worktrees (prepare-runbook-fixes, when-resolve-fix, wt-merge-session-loss, recall-tool-anchoring), all validated, 0 worktrees remain.
 
 ## Completed This Session
 
@@ -10,6 +10,9 @@
 - All 3 merges required same autostrategy fix: completed `[x]` appended to Pending instead of replacing WT entry
 - Removed 3 worktrees (prepare-runbook-fixes, when-resolve-fix, wt-merge-session-loss)
 - Renamed "Deslop remaining skills" → "Skills quality pass", enriched with deslop/gate references
+- Merged `recall-tool-anchoring` (commit: `ae268de1`) — D+B prototype, 3 shell scripts, 8 skill restructures, PreToolUse hook, prepare-runbook-inline-regex fix
+  - Learnings: 1 entry invalidated, 3 new entries from worktree (behavioral deviation RCA, companion task bundling, recall gate anchoring)
+  - New task surfaced: Codify learnings (76/80 lines urgent)
 
 ## Pending Tasks
 
@@ -77,7 +80,7 @@
   - `/prime` skill (ad-hoc plan context) + two-section task list (In-tree / Worktree Tasks)
   - Scope: `session.py`, `resolve.py`, `aggregation.py`, `session_structure.py`, handoff skill, execute-rule.md
 - [ ] **Recall CLI integration** — Production `claudeutils _recall` CLI (check/resolve/diff), Click, TDD | sonnet
-  - Blocked on: recall-tool-anchoring prototype
+  - Prototype delivered via recall-tool-anchoring worktree
 - [ ] **Prose gate anchoring terminology** — Find proper name for D+B pattern, ground, update docs | opus
 
 - [ ] **Consolidate recall tooling** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
@@ -145,9 +148,10 @@
 
 **Possible Claude Code skill caching:**
 - On-disk skills current, but `/design` and `/reflect` invocations received older content. No structural fix — awareness only.
+
 ## Next Steps
 
-1 worktree active (recall-tool-anchoring). Next: merge recall-tool-anchoring, or task-classification runbook, or execute orchestrate-evolution on main.
+Codify learnings (urgent, 76/80 lines), then task-classification runbook or execute orchestrate-evolution.
 
 ## Reference Files
 

@@ -215,6 +215,14 @@ Migrated all `_worktree` CLI error output from stderr to stdout per LLM-native C
 
 4-pass pipeline memory model integrated into design, runbook, orchestrate, and deliverable-review skills. Recall passes at cognitive boundaries: design recall (deep, whole decision files), runbook recall (+implementation +testing), task agent injection (orchestrator filters per phase), review recall (+failure modes). Reference forwarding eliminates convergence problem — each pass augments rather than re-discovers. Grounded against CE framework (Write/Select/Compress/Isolate) and Agentic RAG; deliberately inverts adaptive retrieval to prescriptive (fixed pipeline points, justified by 2.9% baseline). Added `/recall` skill, updated grounding skill to use scouts for diverge-converge. Delivered: 4 skill integrations, recall skill, grounding report, internal brainstorm (27 dimensions).
 
+## recall-tool-anchoring
+
+D+B hybrid prototype for recall gate tool-anchoring. 3 shell scripts (_recall check/resolve/diff), reference manifest format replacing content dump in recall-artifact.md, D+B restructure of 8 skills/agents anchoring prose gates with tool calls, PreToolUse hook for recipe-redirect. Side fix: prepare-runbook-inline-regex. 3 new learnings codified. Affected: agent-core/skills/ (8 files), agent-core/hooks/, agent-core/bin/, plans/recall-tool-anchoring/.
+
+## prepare-runbook-inline-regex
+
+Fix inline phase detection in prepare-runbook.py for compound type tags (e.g., `general+inline`). Regex was matching only simple `inline` tag, missing compound forms. TDD with deliverable review. Affected: agent-core/bin/prepare-runbook.py.
+
 ## prepare-runbook-fixes
 
 2 bug fixes in prepare-runbook.py: extract_cycles() H3 phase header termination (last cycle captured next phase's preamble), generate_cycle_file/generate_step_file provenance metadata pointing to non-existent runbook.md. TDD with edge-case tests and deliverable review. Affected: agent-core/bin/prepare-runbook.py.
