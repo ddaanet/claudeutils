@@ -322,6 +322,16 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Evidence:** Test file grew from 382 → 478 lines across Phases 3-4. Each refactor escalation cost ~80-110K tokens.
 
+### When Step File Inventory Misses Codebase References
+
+**Decision Date:** 2026-02-23
+
+**Anti-pattern:** Runbook step lists ~30 files for name propagation based on Phase 0.5 discovery. Actual codebase has ~45 files — discovery missed skills, decisions, fragments, agents, and script code paths.
+
+**Correct pattern:** Discovery inventory must use `grep -r` across the full tree, not manual file listing. The verification step is the safety net, but discovery should cast a wider net initially.
+
+**Evidence:** Step 1.6 agent modified 30 listed files. Second agent fixed 17 additional files. Orchestrator fixed 3 more.
+
 ### When Triaging Behavioral Code Changes As Simple
 
 **Decision Date:** 2026-02-21

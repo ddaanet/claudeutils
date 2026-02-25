@@ -272,3 +272,13 @@ description: |
 **Pattern:** "Review and fix this agent definition at [path]" works for validation + autofix.
 
 **Note:** No dedicated agent-reviewer exists in plugin-dev (only skill-reviewer, plugin-validator, agent-creator).
+
+### When Custom Agents Need Session Restart For Discoverability
+
+**Decision Date:** 2026-02-24
+
+**Anti-pattern:** Using plan-specific agents as `subagent_type` values in the same session they were created. They aren't indexed until restart.
+
+**Correct pattern:** Plan-specific agents in `.claude/agents/` are discoverable as Task `subagent_type` values only after session restart. The prepare-runbook.py → restart → orchestrate workflow naturally includes this boundary. Built-in types with prompt injection work as fallback when restart isn't feasible.
+
+**Evidence:** `hb-p1` through `hb-p5` not discoverable in creating session. Confirmed discoverable in subsequent sessions.

@@ -128,10 +128,13 @@
 - [ ] **Recall learnings integration** — `d:` whether learnings.md entries should be resolvable via when-resolve.py | opus
   - Implies memory-index format changes (new source type), resolver changes — genuine design uncertainty
 
-## Worktree Tasks
-
-- [ ] **Codify learnings** → `codify-learnings` — `/codify` | opus
-  - Learnings at 88 lines (PAST soft limit) — consolidation urgent
+- [x] **Codify learnings** — `/codify` | opus
+  - Consolidated 14 entries (89→32 lines) into 9 decision files
+  - Split workflow-optimization.md → workflow-execution.md (exceeded 400-line limit)
+  - 14 memory-index entries added, all resolve correctly
+  - 5 entries kept in staging (0-day)
+- [ ] **Generate memory index from decisions** — `/design` | opus
+  - Each decision/learning declares keywords for index. Index generated from declarations. Diff displayed after update for agent review. Supersedes manual append workflow in `/codify` step 4a.
 
 ## Blockers / Gotchas
 
@@ -149,8 +152,8 @@
 - Operator prefix no longer used in matching — bare trigger matching handles both `/when` and `/how` entries
 - `removeprefix("to ")` in resolver strips leftover "to" from "how to X" invocations
 
-**Learnings past soft limit — 88 lines, 20 entries:**
-- `/codify` urgent. Two new entries this session (grounding report discoverability, skill editing constraints).
+**Learnings consolidated — 40 lines, 7 entries:**
+- `/codify` completed. 14 entries consolidated into decision files. 5 recent entries retained.
 
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback deployed (Phase 4).

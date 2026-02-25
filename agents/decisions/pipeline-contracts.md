@@ -302,6 +302,36 @@ Inline phases in orchestrator-plan.md use `Execution: inline` (vs `Execution: st
 
 **Root cause:** Inserting a confidence assessment step that doesn't exist in the procedure.
 
+## When Recall-Artifact Is Absent During Review
+
+**Decision Date:** 2026-02-24
+
+**Anti-pattern:** Skill says "if absent, proceed without it" and reviewer takes the early exit — no recall at all. Reviewing recall-pass deliverables without performing recall is the exact gap the deliverables are designed to close.
+
+**Correct pattern:** "If absent, do lightweight recall" — read memory-index.md, identify review-relevant entries (quality patterns, failure modes), batch-resolve. The Tier 1/2 sections in the runbook skill already have this fallback.
+
+**Evidence:** Deliverable review of recall-pass ran without any recall. Fixed: added lightweight recall fallback to deliverable-review skill Layer 2.
+
+## When Corrector Agents Lack Recall Mechanism
+
+**Decision Date:** 2026-02-24
+
+**Anti-pattern:** Corrector agents (design-corrector, outline-corrector, runbook-outline-corrector) had no recall loading in their protocols. Reviewing without recall cannot flag project-specific failure modes.
+
+**Correct pattern:** Every corrector agent needs recall via one of: (a) self-contained loading in agent body, (b) caller passing recall entries in delegation prompt, or (c) skill-level Recall Context section. runbook-corrector gets (c) via its `skills: ["review-plan"]` field; design/outline correctors need (a) directly.
+
+**Evidence:** RCA identified the gap. Fixed 3 skills + 3 agents.
+
+## When Treating Recall-Artifact Summary As Recall Pass
+
+**Decision Date:** 2026-02-24
+
+**Anti-pattern:** Reading recall-artifact.md summaries (titles + 2-line descriptions) as terminal recall step. After `/clear`, summaries alone miss behavioral nuance that delegation prompts need verbatim.
+
+**Correct pattern:** Read artifact to identify WHICH decisions matter, then batch-resolve via `when-resolve.py "when <trigger>" ...` to load WHAT they say (full decision section content). Both steps required in new sessions.
+
+**Evidence:** /reflect RCA identified the root cause.
+
 ## When Batch Changes Span Multiple Artifact Types
 
 **Decision Date:** 2026-02-21

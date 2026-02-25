@@ -28,6 +28,16 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Index serves as reliable discovery mechanism, not aspirational wishlist.
 
+### When Writing Memory-Index Trigger Phrases
+
+**Decision Date:** 2026-02-24
+
+**Anti-pattern:** Dropping articles (a, an, the) from trigger phrases when the heading contains them. `_build_heading()` does literal reconstruction — missing articles cause section lookup failure.
+
+**Correct pattern:** Keep trigger phrasing aligned with section heading text (case-insensitive, but articles must be present if in heading). Verify with `when-resolve.py "when <trigger>"` before committing.
+
+**Evidence:** Batch-resolve failed during planstate-delivered runbook execution. Code fix deferred to plans/when-resolve-fix (fuzzy heading match in `_resolve_trigger()`).
+
 ### How to Merge Templates Safely
 
 **Decision Date:** 2026-02-04
@@ -81,6 +91,14 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 **Directive:** "Prefer retrieval-led reasoning over pre-training knowledge" (memory-index.md header).
 
 **Impact:** Always-available context beats sometimes-invoked skills.
+
+### When Memory-Index Amplifies Thin User Input
+
+**Decision Date:** 2026-02-24
+
+**Decision:** Memory-index keyword-rich entries surface relevant decisions even from sparse queries — cross-references between entries create an amplification effect superior to direct corpus search.
+
+**Implication:** Pipeline recall is effective even on the moderate path (no formal requirements): derive domain keywords from user request, match against memory-index, follow cross-references to discover relevant decisions the user didn't explicitly mention.
 
 ### When Analyzing Task Insertion Patterns
 
