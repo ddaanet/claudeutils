@@ -213,6 +213,16 @@ FR-17 documents the three-tier escalation requirement. Concrete detection mechan
 
 **Evidence:** Cycle 1.2 haiku committed with 3 failing tests. Required sonnet escalation to diagnose and fix.
 
+### When Haiku GREEN Phase Skips Lint
+
+**Decision Date:** 2026-02-23
+
+**Anti-pattern:** Step file specifies `just test` or `pytest` for GREEN verification. Haiku runs tests (pass), commits — but lint errors exist. Separate fix commit required before REFACTOR.
+
+**Correct pattern:** GREEN verification command must be `just check && just test` (or `just lint && just test`). Runbook template TDD cycle GREEN section must list lint as a required gate before commit, not just test pass.
+
+**Evidence:** Cycle 1.1 GREEN commit had F821 (undefined `Never`) and PLC0415 (local imports). TDD audit flagged as primary compliance violation.
+
 ### When Classifying Errors By Tier
 
 **Decision Date:** 2026-02-19

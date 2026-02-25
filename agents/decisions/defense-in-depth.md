@@ -114,3 +114,13 @@ When designing a new quality gate or quality process:
 - [ ] Do layers have different failure modes (not redundant)?
 - [ ] Can any single layer failure cause total system failure? (If yes, add another layer)
 
+## When Fixing Behavioral Deviations Identified By RCA
+
+**Decision Date:** 2026-02-25
+
+**Anti-pattern:** Strengthening language ("no exceptions", "MUST", scenario-specific warnings) in rules the agent already saw and rationalized past. If the rule was clear and the agent overrode it, clarity wasn't the problem — the environment allowed the override.
+
+**Correct pattern:** Structural fixes — resolve conflicting directives, anchor gates with tool calls (D+B), add environmental enforcement (hooks/scripts) with guidance, ensure sufficient context loaded at decision point. Fix the environment, not the prose.
+
+**Evidence:** /reflect prescribed "no exceptions" language for design skill Simple gate after agent rationalized past existing clear behavioral-code rule. Same anti-pattern class as ambient rules without enforcement.
+

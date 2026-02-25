@@ -55,6 +55,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 ## agents/decisions/defense-in-depth.md
 
 /when designing quality gates | layered defense multiple independent checks
+/when fixing behavioral deviations identified by RCA | structural fix environment prose
 /when reviewing quality gate coverage | defense layer checklist
 /when placing quality gates | commit chokepoint scripted mechanical enforcement
 /when splitting validation into mechanical and semantic | script deterministic agent judgment advisory
@@ -153,6 +154,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when tracking worktree tasks in session.md | inline marker filesystem query
 /when merging worktree with consolidated learnings | delta only post-consolidation
 /when comparing file versions across branches | diff content not line count
+/when validating worktree merges | session.md merge autostrategy remerge
 /when CLI command fails and raw commands denied | routing signal use wrapper
 
 ## agents/decisions/orchestration-execution.md
@@ -190,6 +192,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when haiku rationalizes test failures | regression green phase bugs
 /when classifying errors by tier | tier-aware self-classify report
 /when measuring agent durations | sleep inflation tool use rate
+/when haiku GREEN phase skips lint | tdd green verification lint check
+/when selecting agent type for orchestrated steps | plan-specific mandatory restart
 /when analyzing sub-agent token costs | total_tokens cache decomposition
 
 ## agents/decisions/pipeline-contracts.md
@@ -215,6 +219,9 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when selecting review model | match model to correctness property
 /when holistic review applies fixes | grep all references fix-all occurrences
 /when scoping review for cross-cutting invariants | verification scope full call graph
+/when recall-artifact is absent during review | lightweight recall fallback
+/when corrector agents lack recall mechanism | design-corrector outline-corrector recall loading
+/when treating recall-artifact summary as recall pass | batch-resolve full content when-resolve
 /when reviewing final orchestration checkpoint | lifecycle audit stateful objects
 
 ## agents/decisions/project-config.md
@@ -231,6 +238,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how recall sub-agent memory | bash transport when-resolve
 /how augment agent context | always-inject on-demand two-tier
 /when agent-creator reviews agents | plugin-dev write read fix
+/when custom agents need session restart for discoverability | subagent_type agent lifecycle
 
 ## agents/decisions/prompt-structure-research.md
 
@@ -285,6 +293,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how name session tasks | prose keys task naming
 /when committing rca fixes
 /when running precommit validation
+/when memory-index amplifies thin user input | sparse query recall cross-reference
+/when writing memory-index trigger phrases | articles heading alignment exact
 /when compressing session tasks | classify sub-items contextual vs artifact
 
 ## agents/decisions/workflow-planning.md
@@ -305,6 +315,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how write green phase descriptions
 /when verifying model analysis results
 /how implement domain validation
+/when step file inventory misses codebase references | discovery grep propagation rename
 /when adding a new variant to an enumerated system | grep downstream enumeration sites
 
 ## agents/decisions/workflow-core.md
@@ -329,6 +340,14 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when context already loaded for delegation
 /when complexity assessed twice | assessing routing layer efficiency double assessment
 /when reusing review agent context
+/when delegating well-specified prose edits | opus delegation ceremony cost pre-resolved
+/when designing context preloading mechanisms | @ref duplication skill invocation prime
+/when design ceremony continues after uncertainty | two gates entry mid-stream
+/when design resolves to simple execution | execution readiness gate exit ramp prose inline
+/when writing methodology | ground skill diverge converge external research general-first framing parallel agents
+
+## agents/decisions/workflow-execution.md
+
 /how design with outline first approach
 /when selecting model for design guidance
 /when choosing model for design review
@@ -343,6 +362,3 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /how format runbook outlines
 /how chain multiple skills together | continuation passing tail calls
 /when using hook based parsing
-/when writing methodology | ground skill diverge converge external research general-first framing parallel agents
-/when design ceremony continues after uncertainty | two gates entry mid-stream
-/when design resolves to simple execution | execution readiness gate exit ramp prose inline

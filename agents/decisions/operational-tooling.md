@@ -88,6 +88,16 @@ Git workflow, platform constraints, code patterns, and naming conventions.
 
 **Evidence:** Learnings.md had 62 lines on both merge base and branch → concluded "no changes." Post-merge found 36 genuine new entries.
 
+### When Validating Worktree Merges
+
+**Decision Date:** 2026-02-24
+
+**Anti-pattern:** Trusting `_worktree merge` autostrategy for session.md without post-merge validation. The autostrategy resolves in favor of the branch's focused session, dropping main-only content (Worktree Tasks entries for other worktrees, blocker formatting).
+
+**Correct pattern:** `remerge_session_md(slug)` now runs in phase 4 on ALL merge paths, structurally merging session.md via `_merge_session_contents`. Manual validation no longer required for known failure modes (WT section drops, task list loss, blocker bleed). Still validate novel merge scenarios not yet covered by tests.
+
+**Evidence:** Merge 1 dropped "Update grounding skill" from Worktree Tasks. Merge 2 left orphaned entry + malformed blocker line. Fix: `remerge_session_md` in resolve.py.
+
 ## .Known Issues
 
 ### When CLI Command Fails And Raw Commands Are Denied
