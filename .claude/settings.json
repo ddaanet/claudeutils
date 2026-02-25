@@ -44,6 +44,7 @@
       "Bash(uv sync:*)"
     ],
     "deny": [
+      "Bash(rm:*/.git/index.lock)",
       "Write(.claude/skills/*)",
       "Write(.claude/agents/*)",
       "Write(.claude/hooks/*)",

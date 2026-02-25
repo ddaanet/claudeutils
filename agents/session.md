@@ -119,6 +119,10 @@
 
 - [ ] **Block index.lock rm** → `block-rm-lock` — PreToolUse hook blocking `rm */index.lock`, says retry | haiku | restart
 
+- [ ] **Session scraping prototype** → `session-scraping-prototype` — `agent-core/bin/scrape-session-logs.py <topic>` | sonnet
+  - Extract conversation turns from session transcripts relevant to a topic
+  - Referenced in grounding-criteria.md; git history shows what changed, session logs show why
+
 ## Blockers / Gotchas
 
 **Never run `git merge` without sandbox bypass:**
