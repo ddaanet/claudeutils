@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Skills quality pass runbook outline complete (5 phases, 16 steps, 4 parallel opus agents). Corrector reviewed (0 critical, 3 major fixed). Ready for orchestration next session.
+**Status:** Runbook skill updated with lightweight orchestration exit (Phase 0.95). Skills quality pass ready for orchestration next session via outline dispatch.
 
 ## Completed This Session
 
@@ -17,6 +17,12 @@
 - Added recall injection + baked learnings sections to outline (execution + review agents both get recall)
 - New requirements: `plans/runbook-recall-expansion/requirements.md` — 7 FRs for step agent + corrector recall during full orchestration
 - New pending: Runbook outline review loop, Recall learnings integration, Runbook recall expansion
+- RCA: /runbook skill execution momentum — agent ran full Tier 3 planning against already-planned work
+  - Root cause: tier model conflates parallelism with pipeline need; lightweight orchestration pattern not codified
+  - Structural fix: added lightweight orchestration exit to runbook skill Phase 0.95 (discriminator: `## Execution Model` section presence)
+  - Skill-reviewer: 2 major (discriminator position, item 3 actionability), 2 minor — all fixed
+- Created `plans/skill-progressive-disclosure/brief.md` — segment loading at gate boundaries for /design and /runbook
+- New pending: Recall pipeline improvements
 
 ## Pending Tasks
 
@@ -24,8 +30,8 @@
 - [ ] **Codebase sweep** — `/design plans/codebase-sweep/requirements.md` | sonnet
   - Plan: codebase-sweep | Status: requirements
   - _git_ok, _fail, exception cleanup — mechanical refactoring
-- [ ] **Skills quality pass** — orchestrate with 4 parallel opus agents | sonnet
-  - Plan: skills-quality-pass | Status: planned (outline reviewed, ready for orchestration)
+- [ ] **Skills quality pass** — orchestrate from outline + recall artifact per Execution Model and Recall Injection sections | sonnet
+  - Plan: skills-quality-pass | Status: planned (outline reviewed, ready for lightweight orchestration)
   - 5 phases, 16 steps. Phase 1 (bootstrap agents) → restart → 4 parallel agents (Phases 2-5)
   - Recall injection: agents resolve artifact keys + baked learnings in dispatch prompt
   - Reports: `plans/skills-quality-pass/reports/runbook-outline-review.md` (0 critical, 3 major fixed)
@@ -109,12 +115,18 @@
 - [ ] **Codify learnings** — `/codify` | opus
   - Learnings at 88 lines (PAST soft limit) — consolidation urgent
 
-- [ ] **Skill progressive disclosure** — `d:` discuss optimizing /runbook and /design for progressive disclosure: fast paths don't need whole skill loaded | opus
+- [ ] **Skill progressive disclosure** — `/design plans/skill-progressive-disclosure/brief.md` | opus
+  - Plan: skill-progressive-disclosure | Status: requirements
+  - Segment loading at gate boundaries: initial load → write-outline → write-design (/design); tier assessment → tier3-planning → expansion (/runbook)
+  - Complementary with skills-quality-pass FR-3 extractions
 
 - [ ] **Runbook outline review loop** — update runbook skill: user review gate after outline correction, iterative fix cycle until approved | sonnet
 - [ ] **Runbook recall expansion** — `/design plans/runbook-recall-expansion/requirements.md` | sonnet
   - Plan: runbook-recall-expansion | Status: requirements
   - prepare-runbook.py recall injection, corrector.md self-loading, two-pattern docs (7 FRs)
+- [ ] **Recall pipeline improvements** — `d:` when-resolve.py stdin/recall-artifact support, session log dedup | opus
+  - Accept recall keys on stdin (ignore post-"|" memory-index format), change recall-artifact format (dash separator unsafe)
+  - Session log scraping to auto-eliminate already-recalled entries
 - [ ] **Recall learnings integration** — `d:` whether learnings.md entries should be resolvable via when-resolve.py | opus
   - Implies memory-index format changes (new source type), resolver changes — genuine design uncertainty
 
@@ -168,7 +180,7 @@
 
 ## Next Steps
 
-Skills quality pass: orchestrate with parallel agents per outline. Codify learnings critical (88/80).
+Skills quality pass: `/runbook plans/skills-quality-pass/design.md` → lightweight orchestration exit → orchestrate from outline. Codify learnings critical (88/80).
 
 ## Reference Files
 
@@ -198,3 +210,4 @@ Skills quality pass: orchestrate with parallel agents per outline. Codify learni
 - `plans/skills-quality-pass/reports/skill-inventory.md` — Sonnet scout v2: 30 skills, content segmentation, compression opportunities
 - `plans/skills-quality-pass/reports/full-gate-audit.md` — Sonnet scout: 12 prose-only gates, fix directions
 - `plans/reports/skill-optimization-grounding.md` — Segment→Attribute→Compress framework (LLMLingua/ProCut)
+- `plans/skill-progressive-disclosure/brief.md` — Segment loading at gate boundaries (/design and /runbook)
