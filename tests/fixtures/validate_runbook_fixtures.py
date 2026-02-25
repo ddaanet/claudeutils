@@ -1,5 +1,51 @@
 """Fixture constants for test_validate_runbook.py."""
 
+# Non-markdown file under artifact path — should NOT trigger model-tags violation
+NON_MARKDOWN_ARTIFACT = """\
+---
+title: Script Runbook
+---
+
+# Phase 1: Skills setup (type: tdd)
+
+---
+
+## Cycle 1.1: add script
+
+**Execution Model**: Sonnet
+
+**GREEN Phase:**
+
+**Changes:**
+- File: `agent-core/skills/commit/format-message.sh`
+  Action: Create
+
+---
+"""
+
+# Pre-existing file modified without creation — should be OK with known_files
+LIFECYCLE_KNOWN_FILE = """\
+---
+title: Known File Runbook
+---
+
+# Phase 1: Core module (type: tdd)
+
+---
+
+## Cycle 1.1: update existing
+
+**Execution Model**: Sonnet
+
+**GREEN Phase:**
+
+**Changes:**
+- File: `src/existing.py`
+  Action: Modify
+
+---
+"""
+
 VIOLATION_MODEL_TAGS = """\
 ---
 title: Violation Runbook

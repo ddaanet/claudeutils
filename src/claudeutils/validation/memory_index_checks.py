@@ -41,7 +41,6 @@ def check_duplicate_entries(index_path: Path | str, root: Path) -> list[str]:
 
         # Track section headers
         if stripped.startswith("##") and not stripped.startswith("###"):
-            stripped[3:] if stripped.startswith("## ") else None
             continue
 
         # Skip non-entry lines

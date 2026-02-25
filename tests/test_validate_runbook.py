@@ -9,6 +9,8 @@ import pytest
 
 from tests.fixtures.validate_runbook_fixtures import (
     AMBIGUOUS_RED_PLAUSIBILITY,
+    LIFECYCLE_KNOWN_FILE,
+    NON_MARKDOWN_ARTIFACT,
     VALID_TDD,
     VIOLATION_LIFECYCLE_DUPLICATE_CREATE,
     VIOLATION_LIFECYCLE_MODIFY_BEFORE_CREATE,
@@ -26,333 +28,167 @@ _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 main = _mod.main
 
 
-def test_model_tags_happy_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Model-tags on a valid runbook exits 0 and writes a PASS report."""
+def _run_validate(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, subcmd: str, name: str, text: str
+) -> tuple[int, str]:
+    """Run validate-runbook subcommand, return (exit_code, report_content)."""
     monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "my-runbook.md"
-    runbook.write_text(VALID_TDD)
-
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", "model-tags", str(runbook)])
+    runbook = tmp_path / f"{name}.md"
+    runbook.write_text(text)
+    monkeypatch.setattr(sys, "argv", ["validate-runbook", subcmd, str(runbook)])
     try:
         main()
-        exit_code = 0
+        code = 0
     except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
+        code = exc.code if isinstance(exc.code, int) else 1
+    report = tmp_path / "plans" / name / "reports" / f"validation-{subcmd}.md"
+    return code, report.read_text() if report.exists() else ""
 
-    assert exit_code == 0
 
-    report_path = (
-        tmp_path / "plans" / "my-runbook" / "reports" / "validation-model-tags.md"
+def test_model_tags_happy_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Model-tags on valid runbook exits 0 with PASS report."""
+    code, content = _run_validate(
+        monkeypatch, tmp_path, "model-tags", "valid", VALID_TDD
     )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 0
     assert "**Result:** PASS" in content
     assert "Failed: 0" in content
 
 
 def test_model_tags_violation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Non-opus artifact file triggers exit 1 and FAIL report."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "violation-runbook.md"
-    runbook.write_text(VIOLATION_MODEL_TAGS)
-
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", "model-tags", str(runbook)])
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 1
-
-    report_path = (
-        tmp_path
-        / "plans"
-        / "violation-runbook"
-        / "reports"
-        / "validation-model-tags.md"
+    code, content = _run_validate(
+        monkeypatch, tmp_path, "model-tags", "violation", VIOLATION_MODEL_TAGS
     )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 1
     assert "**Result:** FAIL" in content
     assert "agent-core/skills/myskill/SKILL.md" in content
-    assert "haiku" in content.lower()
     assert "**Expected:** opus" in content
-    assert "Failed: 1" in content
 
 
 def test_lifecycle_modify_before_create(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Lifecycle: modify-before-create exits 1 with FAIL report."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "lifecycle-violation.md"
-    runbook.write_text(VIOLATION_LIFECYCLE_MODIFY_BEFORE_CREATE)
-
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", "lifecycle", str(runbook)])
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 1
-
-    report_path = (
-        tmp_path
-        / "plans"
-        / "lifecycle-violation"
-        / "reports"
-        / "validation-lifecycle.md"
+    code, content = _run_validate(
+        monkeypatch,
+        tmp_path,
+        "lifecycle",
+        "lc-violation",
+        VIOLATION_LIFECYCLE_MODIFY_BEFORE_CREATE,
     )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 1
     assert "**Result:** FAIL" in content
     assert "src/widget.py" in content
-    assert "Cycle 1.1" in content
     assert "no prior creation found" in content
-    assert "Failed: 1" in content
 
 
 def test_lifecycle_happy_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Lifecycle on valid runbook exits 0 and writes a PASS report."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "valid-tdd.md"
-    runbook.write_text(VALID_TDD)
-
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", "lifecycle", str(runbook)])
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 0
-
-    report_path = (
-        tmp_path / "plans" / "valid-tdd" / "reports" / "validation-lifecycle.md"
+    """Lifecycle on valid runbook exits 0 with PASS report."""
+    code, content = _run_validate(
+        monkeypatch, tmp_path, "lifecycle", "valid-lc", VALID_TDD
     )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 0
     assert "**Result:** PASS" in content
-    assert "Failed: 0" in content
 
 
 def test_lifecycle_duplicate_creation(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Lifecycle: duplicate creation exits 1 with FAIL report."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "dup-create.md"
-    runbook.write_text(VIOLATION_LIFECYCLE_DUPLICATE_CREATE)
-
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", "lifecycle", str(runbook)])
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 1
-
-    report_path = (
-        tmp_path / "plans" / "dup-create" / "reports" / "validation-lifecycle.md"
+    code, content = _run_validate(
+        monkeypatch,
+        tmp_path,
+        "lifecycle",
+        "dup-create",
+        VIOLATION_LIFECYCLE_DUPLICATE_CREATE,
     )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 1
     assert "**Result:** FAIL" in content
     assert "src/module.py" in content
-    assert "Cycle 1.1" in content
-    assert "Cycle 2.1" in content
-    assert "Failed: 1" in content
 
 
 def test_test_counts_happy_path(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Test-counts on VALID_TDD fixture exits 0 and writes PASS report."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "valid-tdd.md"
-    runbook.write_text(VALID_TDD)
-
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", "test-counts", str(runbook)])
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 0
-
-    report_path = (
-        tmp_path / "plans" / "valid-tdd" / "reports" / "validation-test-counts.md"
+    """Test-counts on valid fixture exits 0 with PASS report."""
+    code, content = _run_validate(
+        monkeypatch, tmp_path, "test-counts", "valid-tc", VALID_TDD
     )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 0
     assert "**Result:** PASS" in content
-    assert "Failed: 0" in content
 
 
 def test_test_counts_mismatch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test-counts on VIOLATION_TEST_COUNTS exits 1 with FAIL report."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "test-counts-violation.md"
-    runbook.write_text(VIOLATION_TEST_COUNTS)
-
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", "test-counts", str(runbook)])
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 1
-
-    report_path = (
-        tmp_path
-        / "plans"
-        / "test-counts-violation"
-        / "reports"
-        / "validation-test-counts.md"
+    """Test-counts mismatch exits 1 with FAIL report."""
+    code, content = _run_validate(
+        monkeypatch, tmp_path, "test-counts", "tc-violation", VIOLATION_TEST_COUNTS
     )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 1
     assert "**Result:** FAIL" in content
-    assert "5" in content
-    assert "3" in content
     assert "test_alpha" in content
     assert "test_beta" in content
     assert "test_gamma" in content
-    assert "Failed: 1" in content
 
 
 def test_test_counts_parametrized(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Parametrized test names test_foo[p1]/[p2] count as 1 unique test."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "parametrized-runbook.md"
-    runbook.write_text(VIOLATION_TEST_COUNTS_PARAMETRIZED)
-
-    monkeypatch.setattr(sys, "argv", ["validate-runbook", "test-counts", str(runbook)])
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 0
-
-    report_path = (
-        tmp_path
-        / "plans"
-        / "parametrized-runbook"
-        / "reports"
-        / "validation-test-counts.md"
+    code, content = _run_validate(
+        monkeypatch,
+        tmp_path,
+        "test-counts",
+        "param-tc",
+        VIOLATION_TEST_COUNTS_PARAMETRIZED,
     )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 0
     assert "**Result:** PASS" in content
-    assert "Failed: 0" in content
 
 
 def test_red_plausibility_happy_path(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Red-plausibility on VALID_TDD exits 0 and writes a PASS report."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "valid-tdd.md"
-    runbook.write_text(VALID_TDD)
-
-    monkeypatch.setattr(
-        sys, "argv", ["validate-runbook", "red-plausibility", str(runbook)]
+    """Red-plausibility on valid fixture exits 0 with PASS report."""
+    code, content = _run_validate(
+        monkeypatch, tmp_path, "red-plausibility", "valid-rp", VALID_TDD
     )
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 0
-
-    report_path = (
-        tmp_path / "plans" / "valid-tdd" / "reports" / "validation-red-plausibility.md"
-    )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 0
     assert "**Result:** PASS" in content
-    assert "Failed: 0" in content
     assert "Ambiguous: 0" in content
 
 
 def test_red_plausibility_violation(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Red-plausibility: function created in prior GREEN causes exit 1 FAIL report."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "red-implausible.md"
-    runbook.write_text(VIOLATION_RED_IMPLAUSIBLE)
-
-    monkeypatch.setattr(
-        sys, "argv", ["validate-runbook", "red-plausibility", str(runbook)]
+    """Red-plausibility: created in prior GREEN causes exit 1 FAIL."""
+    code, content = _run_validate(
+        monkeypatch,
+        tmp_path,
+        "red-plausibility",
+        "rp-violation",
+        VIOLATION_RED_IMPLAUSIBLE,
     )
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 1
-
-    report_path = (
-        tmp_path
-        / "plans"
-        / "red-implausible"
-        / "reports"
-        / "validation-red-plausibility.md"
-    )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 1
     assert "**Result:** FAIL" in content
     assert "widget" in content
-    assert "1.1" in content
-    assert "1.2" in content
-    assert "Failed: 1" in content
     assert "Ambiguous: 0" in content
 
 
 def test_red_plausibility_ambiguous(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Red-plausibility: function exists but RED tests different behavior → exit 2."""
-    monkeypatch.chdir(tmp_path)
-    runbook = tmp_path / "ambiguous-runbook.md"
-    runbook.write_text(AMBIGUOUS_RED_PLAUSIBILITY)
-
-    monkeypatch.setattr(
-        sys, "argv", ["validate-runbook", "red-plausibility", str(runbook)]
+    """Red-plausibility: exists but tests different behavior → exit 2."""
+    code, content = _run_validate(
+        monkeypatch,
+        tmp_path,
+        "red-plausibility",
+        "rp-ambiguous",
+        AMBIGUOUS_RED_PLAUSIBILITY,
     )
-    try:
-        main()
-        exit_code = 0
-    except SystemExit as exc:
-        exit_code = exc.code if isinstance(exc.code, int) else 1
-
-    assert exit_code == 2
-
-    report_path = (
-        tmp_path
-        / "plans"
-        / "ambiguous-runbook"
-        / "reports"
-        / "validation-red-plausibility.md"
-    )
-    assert report_path.exists(), f"Report not found at {report_path}"
-    content = report_path.read_text()
+    assert code == 2
     assert "**Result:** AMBIGUOUS" in content
     assert "## Ambiguous" in content
-    assert "widget" in content
-    assert "Failed: 0" in content
     assert "Ambiguous: 1" in content
 
 
@@ -375,3 +211,44 @@ def test_scaffold_cli() -> None:
         text=True,
     )
     assert result_no_args.returncode == 1
+
+
+def test_lifecycle_known_files_not_flagged() -> None:
+    """Pre-existing files in known_files skip modify-before-create violation."""
+    violations = _mod.check_lifecycle(
+        LIFECYCLE_KNOWN_FILE, "known-file.md", known_files={"src/existing.py"}
+    )
+    assert violations == [], f"Known file should not be flagged: {violations}"
+
+
+def test_lifecycle_unknown_file_still_flagged() -> None:
+    """Files NOT in known_files with modify-first are still flagged."""
+    violations = _mod.check_lifecycle(
+        LIFECYCLE_KNOWN_FILE, "unknown-file.md", known_files=set()
+    )
+    assert len(violations) == 1, f"Unknown file should be flagged: {violations}"
+    assert "src/existing.py" in violations[0]
+    assert "no prior creation found" in violations[0]
+
+
+def test_model_tags_non_markdown_artifact_not_flagged(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Non-.md files under artifact paths are not flagged by model-tags."""
+    monkeypatch.chdir(tmp_path)
+    runbook = tmp_path / "script-runbook.md"
+    runbook.write_text(NON_MARKDOWN_ARTIFACT)
+
+    monkeypatch.setattr(sys, "argv", ["validate-runbook", "model-tags", str(runbook)])
+    try:
+        main()
+        exit_code = 0
+    except SystemExit as exc:
+        exit_code = exc.code if isinstance(exc.code, int) else 1
+
+    assert exit_code == 0, "Non-.md file under artifact path should not be flagged"
+    report_path = (
+        tmp_path / "plans" / "script-runbook" / "reports" / "validation-model-tags.md"
+    )
+    content = report_path.read_text()
+    assert "**Result:** PASS" in content

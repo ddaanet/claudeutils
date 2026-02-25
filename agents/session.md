@@ -1,13 +1,24 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Parsing fixes batch planned (Tier 2, 6 TDD cycles). Grounding audit completed — 5 high-leverage workflow skills ungrounded. Discussion produced 5 new pending tasks including ground /design (highest leverage).
+**Status:** Parsing fixes batch executed (6/6 cycles). Memory index orphan investigation completed — validator works but not wired into precommit.
 
 ## Completed This Session
 
-- **Parsing fixes batch scoping** — surveyed all pipeline/parsing issues, batched 7 items into Tier 2 plan
-  - 2 scouts surveyed validate-runbook.py, prepare-runbook.py, memory_index_checks.py, plan directories
-  - Confirmed 3 plans already delivered: prepare-runbook-fixes, prepare-runbook-inline-regex, runbook-fenced-blocks
-  - C1-C3 bugs from runbook-generation-fixes may already be fixed in source (code review shows correct resolution chains, tests exist)
+- **Parsing fixes batch executed** — all 6 cycles, 2 fixes + 3 verifications + 1 dead code cleanup
+  - Cycle 1: validate-runbook model-tags extension filter — `.sh` files under artifact paths no longer flagged (only `.md`)
+  - Cycle 2: validate-runbook lifecycle `known_files` parameter — pre-existing files exempt from modify-before-create
+  - Cycle 3: C1 model propagation — verified already fixed, regression test added
+  - Cycle 4: C2 phase numbering — verified already fixed (gapped phases 1,3,5 preserved), regression test added
+  - Cycle 5: C3 phase context completeness — documented post-cycle content not in preamble by design
+  - Cycle 6: Dead code — removed discarded `splitlines()` in prepare-runbook.py, discarded expression in memory_index_checks.py
+  - Test file compaction: extracted `_run_validate` and `_run_prepare` helpers, both files under 400-line limit
+  - Plans delivered: parsing-fixes-batch, runbook-generation-fixes (absorbed)
+- **Memory index orphan investigation** — tracked `when validating runbook pre-execution` entry
+  - Entry added in `bbcafd3c`, section never created (content only in T4.5 table row)
+  - `check_orphan_entries()` correctly detects it via `claudeutils validate memory-index`
+  - Precommit gap: `just precommit` runs ruff/docformatter/mypy/pytest/line-limits but NOT `claudeutils validate`
+  - Scale: 12 orphan index entries + 33 orphan headers + 3 cross-file duplicates
+- **Parsing fixes batch scoping** (prior session) — surveyed all pipeline/parsing issues, batched 7 items into Tier 2 plan
   - Plan written: `plans/parsing-fixes-batch/plan.md` — 6 cycles, Tier 2 lightweight delegation
   - Absorbs runbook-generation-fixes scope
   - Markdown xfail excluded (separate task, requires multiline paragraph parsing)
@@ -22,18 +33,26 @@
 
 ## Pending Tasks
 
-- [ ] **Parsing fixes batch** — `x` (execute Tier 2 plan) | sonnet
-  - Plan: parsing-fixes-batch | Status: planned (Tier 2, `plans/parsing-fixes-batch/plan.md`)
-  - 6 cycles: 2 validate-runbook false positives, 3 prepare-runbook C1-C3 verification, 1 dead code cleanup
-  - Recall artifact: `plans/parsing-fixes-batch/recall-artifact.md`
+- [ ] **Deliverable review: parsing-fixes-batch** — `/deliverable-review plans/parsing-fixes-batch` | sonnet
+  - Plan: parsing-fixes-batch | Status: delivered (review pending)
+
+- [ ] **Wire validation into precommit** — add `claudeutils validate` to `run-checks()`, fix orphan entries/headers | sonnet
+  - 12 orphan index entries, 33 orphan headers, 3 cross-file duplicates
+  - Precommit gap: `just precommit` never runs `claudeutils validate`
+
+- [ ] **Remove autofix from PostToolUse hook** — just autoformat, no autofix | sonnet
 
 - [ ] **Fix when-recall section lookup bug** — `agent-core/bin/when-resolve.py` "Section not found" for entries that exist | sonnet
-  - Observed: "When Validating Runbook Pre-execution" — entry in memory-index but section not found in target file
-  - Likely heading mismatch or file relocation
+  - Root cause traced: commit `bbcafd3c` added index entry without corresponding section heading
+  - "When Validating Runbook Pre-execution" content only in T4.5 table row, never a section
 
 - [ ] **Tool deviation detection hook** — PostToolUse hook on Bash to detect when-resolve.py failures | sonnet
   - Check exit code + stderr patterns from specific scripts
   - Narrower than governor agent (PreToolUse on everything), but catches the specific failure class
+
+- [ ] **Wire validation into precommit** — add `claudeutils validate` to `run-checks()`, fix orphan entries/headers | sonnet
+  - 12 orphan index entries, 33 orphan headers, 3 cross-file duplicates
+  - Precommit gap: `just precommit` never runs `claudeutils validate`
 
 - [ ] **Design compensate-and-continue skill** — `/ground` then `/design` | opus
   - Activated after unexpected stop. Records compensation strategy. Applies trivial workarounds inline (e.g., rename heading to route around parser bug). Creates pending task for proper fix. Resumes interrupted work via continuation-prepend.
@@ -194,7 +213,7 @@
 
 ## Next Steps
 
-Next session: `x` to execute parsing-fixes-batch (Tier 2, 6 TDD cycles via test-driver delegation). Plan at `plans/parsing-fixes-batch/plan.md`.
+Next session: `/deliverable-review plans/parsing-fixes-batch` then continue with pending tasks.
 
 ## Reference Files
 

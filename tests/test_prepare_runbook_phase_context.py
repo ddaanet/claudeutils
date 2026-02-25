@@ -1,6 +1,8 @@
 """Tests for extract_phase_preambles and phase context injection (RC-2, D-2)."""
 
+import contextlib
 import importlib.util
+import io
 from pathlib import Path
 
 import pytest
@@ -21,6 +23,39 @@ extract_phase_models = _mod.extract_phase_models
 validate_and_create = _mod.validate_and_create
 
 
+def _run_prepare(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, name: str, content: str
+) -> Path:
+    """Set up git repo, run validate_and_create, return steps_dir."""
+    setup_git_repo(tmp_path)
+    setup_baseline_agents(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    rf = tmp_path / "runbook.md"
+    rf.write_text(content)
+    metadata, body = parse_frontmatter(content)
+    sections = extract_sections(body)
+    cycles = extract_cycles(body)
+    phase_models = extract_phase_models(body)
+    preambles = extract_phase_preambles(body)
+    steps_dir = tmp_path / "plans" / name / "steps"
+    stderr_buf = io.StringIO()
+    with contextlib.redirect_stderr(stderr_buf):
+        result = validate_and_create(
+            rf,
+            sections,
+            name,
+            tmp_path / ".claude" / "agents",
+            steps_dir,
+            tmp_path / "plans" / name / "orchestrator-plan.md",
+            metadata,
+            cycles,
+            phase_models,
+            preambles,
+        )
+    assert result is True, f"validate_and_create failed: {stderr_buf.getvalue()}"
+    return steps_dir
+
+
 class TestPhaseContext:
     """extract_phase_preambles extracts per-phase preamble text."""
 
@@ -37,9 +72,7 @@ class TestPhaseContext:
             "### Phase 3: Cleanup (type: tdd, model: sonnet)\n\n"
             "## Cycle 3.1: Clean state\n"
         )
-
         result = extract_phase_preambles(content)
-
         assert set(result.keys()) == {1, 2, 3}
         assert "RC-1 fix" in result[1]
         assert "Constraints" in result[1]
@@ -52,11 +85,11 @@ class TestPhaseContext:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Phase preamble text appears in generated step and cycle files."""
-        setup_git_repo(tmp_path)
-        setup_baseline_agents(tmp_path)
-        monkeypatch.chdir(tmp_path)
-
-        runbook_content = """\
+        steps_dir = _run_prepare(
+            tmp_path,
+            monkeypatch,
+            "context-test",
+            """\
 ---
 type: mixed
 model: sonnet
@@ -82,75 +115,33 @@ Phase 2 constraints: no breaking changes.
 ## Step 2.1: First step
 
 Step 2.1 content.
-"""
-
-        rf = tmp_path / "runbook.md"
-        rf.write_text(runbook_content)
-        metadata, body = parse_frontmatter(runbook_content)
-        sections = extract_sections(body)
-        cycles = extract_cycles(body)
-        phase_models = extract_phase_models(body)
-        phase_preambles = extract_phase_preambles(body)
-        steps_dir = tmp_path / "plans" / "context-test" / "steps"
-        result = validate_and_create(
-            rf,
-            sections,
-            "context-test",
-            tmp_path / ".claude" / "agents",
-            steps_dir,
-            tmp_path / "plans" / "context-test" / "orchestrator-plan.md",
-            metadata,
-            cycles,
-            phase_models,
-            phase_preambles,
+""",
         )
+        cycle_content = (steps_dir / "step-1-1.md").read_text()
+        step_content = (steps_dir / "step-2-1.md").read_text()
 
-        assert result is True
+        assert "## Phase Context" in cycle_content
+        assert "Phase 1 prerequisites: module X exists." in cycle_content
+        assert "## Phase Context" in step_content
+        assert "Phase 2 constraints: no breaking changes." in step_content
 
-        cycle_file = steps_dir / "step-1-1.md"
-        assert cycle_file.exists()
-        cycle_content = cycle_file.read_text()
-
-        step_file = steps_dir / "step-2-1.md"
-        assert step_file.exists()
-        step_content = step_file.read_text()
-
-        assert "## Phase Context" in cycle_content, (
-            f"Expected '## Phase Context' in cycle file. Got:\n{cycle_content}"
-        )
-        assert "Phase 1 prerequisites: module X exists." in cycle_content, (
-            f"Expected preamble text in cycle file. Got:\n{cycle_content}"
-        )
-        assert "## Phase Context" in step_content, (
-            f"Expected '## Phase Context' in step file. Got:\n{step_content}"
-        )
-        assert "Phase 2 constraints: no breaking changes." in step_content, (
-            f"Expected preamble text in step file. Got:\n{step_content}"
-        )
-
-        # Verify ordering: metadata header BEFORE phase context BEFORE body content
-        for filename, content in [("cycle", cycle_content), ("step", step_content)]:
-            metadata_pos = content.find("**Plan**:")
-            phase_ctx_pos = content.find("## Phase Context")
-            # Use rfind to locate the last "---" divider, which precedes body content
+        # Verify ordering: metadata BEFORE phase context BEFORE body
+        for label, content in [("cycle", cycle_content), ("step", step_content)]:
+            meta_pos = content.find("**Plan**:")
+            ctx_pos = content.find("## Phase Context")
             body_pos = content.rfind("---\n\n") + 5
-
-            assert metadata_pos < phase_ctx_pos, (
-                f"{filename}: metadata header must precede ## Phase Context"
-            )
-            assert phase_ctx_pos < body_pos, (
-                f"{filename}: ## Phase Context must appear before body content"
-            )
+            assert meta_pos < ctx_pos, f"{label}: metadata must precede Phase Context"
+            assert ctx_pos < body_pos, f"{label}: Phase Context must precede body"
 
     def test_no_phase_context_when_preamble_empty(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Whitespace-only preamble omits Phase Context section."""
-        setup_git_repo(tmp_path)
-        setup_baseline_agents(tmp_path)
-        monkeypatch.chdir(tmp_path)
-
-        runbook_content = """\
+        steps_dir = _run_prepare(
+            tmp_path,
+            monkeypatch,
+            "preamble-test",
+            """\
 ---
 type: mixed
 model: sonnet
@@ -175,49 +166,118 @@ Some preamble here.
 ## Step 2.1: Thing
 
 Step content.
-"""
-
-        rf = tmp_path / "runbook.md"
-        rf.write_text(runbook_content)
-        metadata, body = parse_frontmatter(runbook_content)
-        sections = extract_sections(body)
-        cycles = extract_cycles(body)
-        phase_models = extract_phase_models(body)
-        preambles = extract_phase_preambles(body)
-        steps_dir = tmp_path / "plans" / "preamble-test" / "steps"
-
-        assert preambles.get(1, "").strip() == "", (
-            f"Phase 1 preamble should be empty after strip, got: {preambles.get(1)!r}"
+""",
         )
+        cycle_content = (steps_dir / "step-1-1.md").read_text()
+        step_content = (steps_dir / "step-2-1.md").read_text()
 
-        result = validate_and_create(
-            rf,
-            sections,
-            "preamble-test",
-            tmp_path / ".claude" / "agents",
-            steps_dir,
-            tmp_path / "plans" / "preamble-test" / "orchestrator-plan.md",
-            metadata,
-            cycles,
-            phase_models,
-            preambles,
-        )
-        assert result is True
+        assert "## Phase Context" not in cycle_content
+        assert "## Phase Context" in step_content
+        assert "Some preamble here." in step_content
 
-        cycle_file = steps_dir / "step-1-1.md"
-        assert cycle_file.exists()
-        cycle_content = cycle_file.read_text()
-        assert "## Phase Context" not in cycle_content, (
-            "Whitespace-only preamble injected Phase Context section:\n"
-            f"{cycle_content[:500]}"
-        )
 
-        step_file = steps_dir / "step-2-1.md"
-        assert step_file.exists()
-        step_content = step_file.read_text()
-        assert "## Phase Context" in step_content, (
-            f"Expected Phase Context section in step-2-1.md:\n{step_content[:500]}"
+class TestModelPropagation:
+    """C1/C2 verification: model propagation and phase numbering."""
+
+    def test_phase_model_overrides_frontmatter(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Phase model: sonnet overrides frontmatter model: haiku in step file."""
+        steps_dir = _run_prepare(
+            tmp_path,
+            monkeypatch,
+            "model-test",
+            """\
+---
+type: tdd
+model: haiku
+name: model-test
+---
+
+### Phase 1: Core (type: tdd, model: sonnet)
+
+## Cycle 1.1: First cycle
+
+**RED Phase:**
+Write a test.
+**GREEN Phase:**
+Implement it.
+**Stop/Error Conditions:** STOP if unexpected.
+""",
         )
-        assert "Some preamble here." in step_content, (
-            f"Expected preamble text in step-2-1.md:\n{step_content[:500]}"
+        content = (steps_dir / "step-1-1.md").read_text()
+        assert "**Execution Model**: sonnet" in content
+
+    def test_gapped_phase_numbering_preserved(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Phases 1, 3, 5 generate step files with correct phase numbers."""
+        steps_dir = _run_prepare(
+            tmp_path,
+            monkeypatch,
+            "gap-test",
+            """\
+---
+type: tdd
+model: sonnet
+name: gap-test
+---
+
+### Phase 1: First (type: tdd, model: sonnet)
+
+## Cycle 1.1: First thing
+
+**RED Phase:**
+Write a test.
+**GREEN Phase:**
+Implement it.
+**Stop/Error Conditions:** STOP if unexpected.
+
+### Phase 3: Third (type: tdd, model: sonnet)
+
+## Cycle 3.1: Third thing
+
+**RED Phase:**
+Write a test.
+**GREEN Phase:**
+Implement it.
+**Stop/Error Conditions:** STOP if unexpected.
+
+### Phase 5: Fifth (type: tdd, model: sonnet)
+
+## Cycle 5.1: Fifth thing
+
+**RED Phase:**
+Write a test.
+**GREEN Phase:**
+Implement it.
+**Stop/Error Conditions:** STOP if unexpected.
+""",
         )
+        assert (steps_dir / "step-1-1.md").exists()
+        assert (steps_dir / "step-3-1.md").exists()
+        assert (steps_dir / "step-5-1.md").exists()
+        assert not (steps_dir / "step-2-1.md").exists()
+        assert "**Phase**: 3" in (steps_dir / "step-3-1.md").read_text()
+        assert "**Phase**: 5" in (steps_dir / "step-5-1.md").read_text()
+
+
+class TestPhaseContextCompleteness:
+    """C3 verification: post-cycle content in preambles."""
+
+    def test_post_cycle_content_not_in_preamble(self) -> None:
+        """Post-cycle content is not captured in preamble (by design)."""
+        content = (
+            "### Phase 1: Core (type: tdd, model: sonnet)\n\n"
+            "Prerequisites: module X exists.\n\n"
+            "## Cycle 1.1: First\n\n"
+            "Cycle content.\n\n"
+            "## Cycle 1.2: Second\n\n"
+            "More content.\n\n"
+            "**Completion validation:** All 2 tests pass.\n\n"
+            "### Phase 2: Next (type: tdd, model: sonnet)\n\n"
+            "## Cycle 2.1: Start\n"
+        )
+        result = extract_phase_preambles(content)
+        assert "Prerequisites: module X exists." in result[1]
+        assert "Completion validation" not in result.get(1, "")
