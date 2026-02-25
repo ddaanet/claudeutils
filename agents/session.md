@@ -1,45 +1,62 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Skills quality pass delivered. Codify learnings merged. Markdown migration discussed and scoped — batch short-term parsing fixes, then design parser + line-wrap + token counting migration.
+**Status:** Parsing fixes batch planned (Tier 2, 6 TDD cycles). Grounding audit completed — 5 high-leverage workflow skills ungrounded. Discussion produced 5 new pending tasks including ground /design (highest leverage).
 
 ## Completed This Session
 
-- **Skills quality pass execution** — lightweight orchestration from outline, 4 parallel opus agents
-  - Phase 1: 3 agent D+B gates (corrector gate 10, design-corrector gate 11, runbook-outline-corrector gate 9) + restart
-  - Phases 2-5: 4 background opus agents dispatched in parallel (disjoint file sets)
-  - Phase 2 (Agent A): commit, handoff, codify — 5 D+B gates added, FR-1/2/8/9 applied, 21 control flow paths verified
-  - Phase 3 (Agent B): design, runbook, token-efficient-bash, orchestrate, review — 1,499 lines removed (50%), 15 reference files created, 4 D+B gates in design skill
-  - Phase 4 (Agent C): review-plan, reflect, plugin-dev-validation, shelve, requirements — 572 lines removed, 5 reference files, gate 6 added to requirements
-  - Phase 5 (Agent D): 15 light-touch skills — FR-1/2/6/8/9 per variation table, error-handling reduced to redirect stub
-  - Pre-resolved recall dump (`plans/skills-quality-pass/reports/resolved-recall.md`) — shared file eliminated redundant when-resolve.py calls across agents
-- **Convergence review** — 5 parallel opus agents (4 skill reviewers + 1 behavior invariance)
-  - R1 (Phase 2): 0 critical, 2 major — handoff Gate 5 Bash anchor missing, orphaned consolidation-flow.md
-  - R2 (Phase 3): 0 critical, 2 major — orchestrate and review description NFR-6 violations
-  - R3 (Phase 4): 0 critical, 1 major — reflect 2 references lack in-body load points
-  - R4 (Phase 5): 0 critical, 2 major — how/when retained preambles (design scope gap), prioritize list_plans()
-  - BI (behavior invariance): 0 broken paths across 50 paths in 6 conditional-branch skills
-- Codify learnings worktree spawned, executed, merged → 14 entries consolidated into 9 decision files (89→32 lines)
-- **Skills quality pass convergence fixes** — 7 majors applied + handoff skill: no commit hashes in session.md
-- **Markdown migration discussion** — converged on: batch parsing fixes (immediate), then branch for parser + line-wrap + token counting
-  - Wrap existing parser with Claude-specific normalization (lenient: implicit lists, quoting)
-  - Line-wrap all files (watershed diff), switch from line counts to token counting API
-  - Sqlite user cache (`~/.cache/claudeutils/`) for cross-tree token count sharing
-  - `just setup` for sandbox configuration (cache dir allowlist)
+- **Parsing fixes batch scoping** — surveyed all pipeline/parsing issues, batched 7 items into Tier 2 plan
+  - 2 scouts surveyed validate-runbook.py, prepare-runbook.py, memory_index_checks.py, plan directories
+  - Confirmed 3 plans already delivered: prepare-runbook-fixes, prepare-runbook-inline-regex, runbook-fenced-blocks
+  - C1-C3 bugs from runbook-generation-fixes may already be fixed in source (code review shows correct resolution chains, tests exist)
+  - Plan written: `plans/parsing-fixes-batch/plan.md` — 6 cycles, Tier 2 lightweight delegation
+  - Absorbs runbook-generation-fixes scope
+  - Markdown xfail excluded (separate task, requires multiline paragraph parsing)
+- **Workflow grounding audit** — inventoried all workflow skills/agents for grounding provenance
+  - Report: `plans/reports/workflow-grounding-audit.md`
+  - 2 grounded from scratch (/ground, /prioritize), 3 partially grounded, 5 high-leverage ungrounded
+  - /design identified as highest-leverage grounding gap — gates all downstream work
+  - Discussion: /design's accumulated patches (triage gate, sufficiency gate, recall artifact, D+B anchors) are symptom-oriented fixes that grounded foundations might have prevented
+- **Bugfix process discussion** — converged on: structured-bugfix skill absorbed into grounded /design (fix-category assessment as routing outcome, not separate skill)
+  - Compensate-and-continue remains separate (operational recovery, not design-time)
+  - Three-part model: tool deviation detection (hook) → compensation+continue (skill) → proper fix (via grounded /design)
 
 ## Pending Tasks
 
-- [x] **Fix when-resolve double-to and cross-operator** — 4 bugs fixed via TDD | sonnet
+- [ ] **Parsing fixes batch** — `x` (execute Tier 2 plan) | sonnet
+  - Plan: parsing-fixes-batch | Status: planned (Tier 2, `plans/parsing-fixes-batch/plan.md`)
+  - 6 cycles: 2 validate-runbook false positives, 3 prepare-runbook C1-C3 verification, 1 dead code cleanup
+  - Recall artifact: `plans/parsing-fixes-batch/recall-artifact.md`
+
+- [ ] **Fix when-recall section lookup bug** — `agent-core/bin/when-resolve.py` "Section not found" for entries that exist | sonnet
+  - Observed: "When Validating Runbook Pre-execution" — entry in memory-index but section not found in target file
+  - Likely heading mismatch or file relocation
+
+- [ ] **Tool deviation detection hook** — PostToolUse hook on Bash to detect when-resolve.py failures | sonnet
+  - Check exit code + stderr patterns from specific scripts
+  - Narrower than governor agent (PreToolUse on everything), but catches the specific failure class
+
+- [ ] **Design compensate-and-continue skill** — `/ground` then `/design` | opus
+  - Activated after unexpected stop. Records compensation strategy. Applies trivial workarounds inline (e.g., rename heading to route around parser bug). Creates pending task for proper fix. Resumes interrupted work via continuation-prepend.
+  - Needs grounding on failure recovery patterns, compensation strategies
+
+- [ ] **Ground /design skill** — `/ground` then redesign | opus
+  - Highest-leverage grounding target — every task flows through /design
+  - Ground against established design methodology (requirements engineering, architectural decision processes, complexity assessment)
+  - Absorbs structured-bugfix process as routing outcome (fix-category assessment in triage)
+  - Compare grounded structure against current /design to identify structural gaps vs cosmetic differences
+
+- [ ] **Ground workflow skills (priority order)** — `/ground` each per audit | opus
+  - Audit: `plans/reports/workflow-grounding-audit.md`
+  - Priority: /runbook → review agents (corrector + design-corrector batch) → /orchestrate → /handoff
+  - /design done separately (above) as highest priority
+  - Skip low-benefit: /commit, artisan, test-driver, /shelve
+
 - [ ] **Codebase sweep** — `/design plans/codebase-sweep/requirements.md` | sonnet
   - Plan: codebase-sweep | Status: requirements
   - _git_ok, _fail, exception cleanup — mechanical refactoring
-- [x] **Skills quality pass fixes** — 7 major fixes applied from convergence review | sonnet
-  - Plan: skills-quality-pass | Status: designed
-  - Reports: `plans/skills-quality-pass/reports/review-r{1-4}-phase{2-5}.md`, `behavior-invariance-review.md`
-
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 - [ ] **Precommit python3 redirect** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
   - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
-
 - [ ] **Worktree merge from main** — `/design plans/worktree-merge-from-main/` | sonnet
 - [ ] **Cross-tree requirements transport** — `/requirements` skill writes to main from worktree | sonnet
   - Transport solved: `git show <branch>:<path>` from main (no sandbox needed)
@@ -86,7 +103,6 @@
   - Inject matching decision content via additionalContext on prompt submit
   - Complementary to recall pass (cheap first layer vs deep pipeline integration)
 - [ ] **Prioritize script assistance** — Automate mechanical parts of prioritization scoring | sonnet
-
 - [ ] **Task classification** — `/runbook plans/task-classification/outline.md` | sonnet
   - Plan: task-classification | Status: designed (outline reviewed, ready for runbook)
   - `/prime` skill (ad-hoc plan context) + two-section task list (In-tree / Worktree Tasks)
@@ -94,9 +110,7 @@
 - [ ] **Recall CLI integration** — Production `claudeutils _recall` CLI (check/resolve/diff), Click, TDD | sonnet
   - Prototype delivered via recall-tool-anchoring worktree
 - [ ] **Prose gate anchoring terminology** — Find proper name for D+B pattern, ground, update docs | opus
-
 - [ ] **Consolidate recall tooling** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
-
 - [ ] **Execute orchestrate-evolution** — `/orchestrate orchestrate-evolution` | sonnet | restart
   - 14 steps: 12 TDD cycles (sonnet) + 2 general steps (opus)
   - Phase 1: agent caching model (4 cycles)
@@ -104,28 +118,19 @@
   - Phase 3: TDD agent generation + verify-red.sh (4 cycles)
   - Phase 4: SKILL.md rewrite + refactor.md/delegation.md updates (2 steps, opus)
   - Checkpoints: light at phase boundaries, full at Phase 4 (final)
-- [ ] **Parsing fixes batch** — fix all pending regex parsing bugs before markdown migration | sonnet
-  - validate-runbook.py false positives: model-tags (bash scripts falsely flagged), lifecycle (pre-existing files flagged)
-  - Markdown cleanup xfail bug
-  - Absorbs: Fix validate-runbook.py false positives
-
 - [ ] **Markdown migration** — `/design` | opus
   - Wrap existing markdown parser with Claude-specific lenient normalization
   - Line-wrap all files, replace ad-hoc regex parsers (prepare-runbook, session merge, validate-runbook, markdown cleanup)
   - Token counting API + sqlite user cache, threshold migration (line counts → tokens)
   - `just setup` sandbox config for cache dir
   - Depends on: Parsing fixes batch (short-term fixes first, parser replaces regex code)
-
 - [ ] **Deliverable review auto-commit** — after fixing all issues in deliverable-review, auto handoff and commit | sonnet
 - [ ] **Worktree new fuzzy matching** — `_worktree new` accepts approximate task names instead of exact match | sonnet
-
 - [ ] **Design skill stale recall artifact format** — diagnose /design producing old-style recall artifact instead of memory key list | sonnet
-
 - [ ] **Skill progressive disclosure** — `/design plans/skill-progressive-disclosure/brief.md` | opus
   - Plan: skill-progressive-disclosure | Status: requirements
   - Segment loading at gate boundaries: initial load → write-outline → write-design (/design); tier assessment → tier3-planning → expansion (/runbook)
   - Complementary with skills-quality-pass FR-3 extractions
-
 - [ ] **Runbook outline review loop** — update runbook skill: user review gate after outline correction, iterative fix cycle until approved | sonnet
 - [ ] **Runbook recall expansion** — `/design plans/runbook-recall-expansion/requirements.md` | sonnet
   - Plan: runbook-recall-expansion | Status: requirements
@@ -135,12 +140,6 @@
   - Session log scraping to auto-eliminate already-recalled entries
 - [ ] **Recall learnings integration** — `d:` whether learnings.md entries should be resolvable via when-resolve.py | opus
   - Implies memory-index format changes (new source type), resolver changes — genuine design uncertainty
-
-- [x] **Codify learnings** — `/codify` | opus
-  - Consolidated 14 entries (89→32 lines) into 9 decision files
-  - Split workflow-optimization.md → workflow-execution.md (exceeded 400-line limit)
-  - 14 memory-index entries added, all resolve correctly
-  - 5 entries kept in staging (0-day)
 - [ ] **Generate memory index from decisions** — `/design` | opus
   - Each decision/learning declares keywords for index. Index generated from declarations. Diff displayed after update for agent review. Supersedes manual append workflow in `/codify` step 4a.
 
@@ -190,12 +189,20 @@
 **Possible Claude Code skill caching:**
 - On-disk skills current, but `/design` and `/reflect` invocations received older content. No structural fix — awareness only.
 
+**when-resolve.py "Section not found" for valid entries:**
+- Observed this session: "When Validating Runbook Pre-execution" entry in memory-index but section lookup fails in target file. Heading mismatch or file relocation. Tracked as pending task.
+
 ## Next Steps
 
-Next session: `/design` the parsing fixes batch + markdown migration. Parsing fixes batch is short-term (sonnet), markdown migration is the big branch (opus).
+Next session: `x` to execute parsing-fixes-batch (Tier 2, 6 TDD cycles via test-driver delegation). Plan at `plans/parsing-fixes-batch/plan.md`.
 
 ## Reference Files
 
+- `plans/parsing-fixes-batch/plan.md` — Tier 2 cycle plan (6 cycles, validate-runbook + prepare-runbook + dead code)
+- `plans/parsing-fixes-batch/recall-artifact.md` — Testing decisions, diagnostic context
+- `plans/reports/workflow-grounding-audit.md` — Grounding provenance for all workflow skills/agents
+- `plans/runbook-generation-fixes/brief.md` — C1-C3 bug diagnostics (absorbed into parsing-fixes-batch)
+- `plans/prepare-runbook-fixes/diagnostic.md` — Bug 1-2 diagnostics (delivered)
 - `plans/recall-pass/brief.md` — 4-pass model, reference forwarding, discussion conclusions
 - `plans/reports/recall-pass-grounding.md` — Moderate grounding (CE + Agentic RAG synthesis)
 - `plans/reports/recall-pass-internal-brainstorm.md` — 27 dimensions, project-specific constraints
