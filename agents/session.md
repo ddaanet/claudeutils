@@ -1,46 +1,25 @@
-# Session Handoff: 2026-02-24
+# Session Handoff: 2026-02-25
 
-**Status:** Validated merge integrity, 4 worktrees created, task-lifecycle designed and executed (planstate-derived commands + STATUS continuation).
+**Status:** Merged 3 worktrees (prepare-runbook-fixes, when-resolve-fix, wt-merge-session-loss), validated session/learnings integrity, 1 worktree remains.
 
 ## Completed This Session
 
-- Prioritization report — 37 tasks scored via WSJF, report at `plans/reports/prioritization-2026-02-24.md`
-  - Top 5: orchestrate evolution (5.3), session CLI tool (4.0, blocked), planstate delivered (3.8), session.md validator (2.6), WT merge session loss dx (2.6)
-- Discussion: test sentinel versioning (rejected — local cache, not versionable)
-- Merged `orchestrate-evolution` (×2) — 1st: recall skill tweak. 2nd: runbook planning (11 commits, design amendments + 4-phase runbook + execution artifacts)
-- Merged `sentinel-copy` — `_worktree new` copies `tmp/.test-sentinel` to new worktrees
-- Merged `planstate-delivered` — lifecycle implementation (TDD), deliverable review (0 Critical, 2 Major fixed), new bug tasks spawned
-  - New tasks: execute orchestrate-evolution, fix prepare-runbook.py bugs, fix validate-runbook.py false positives, deliverable review auto-commit, fix when-resolve.py heading lookup
-- Created `wt-merge-dirty-tree` worktree — bug: merge blocks on dirty worktree (should only check main)
-- Post-merge validation: 4 merges checked, artifacts cleaned each time. Autostrategy still unreliable for session.md
-- Designed recall tool anchoring (`plans/recall-tool-anchoring/`)
-  - Gate inventory: 31 gates across 13 files, 61% prose-only (report: `plans/recall-tool-anchoring/reports/recall-gate-inventory.md`)
-  - Outline through 3 discussion rounds: D+B hybrid application, reference manifest format, throwaway prototype
-  - Key decisions: reference manifest forces tool-anchoring structurally (format requires resolution call); `_recall diff` anchors write-side gates; `_recall generate` deferred (entry selection is cognitive)
-  - Recall artifact written with 11 entries from 6 decision files
-- Merged `wt-merge-dirty-tree` — dirty-tree guard fix on main, worktree removed
-- Designed task-classification (`plans/task-classification/`)
-  - Feature 1: `/prime` skill — loads plan artifacts + chain-calls `/recall` for ad-hoc plan work outside workflow skills
-  - Feature 2: Two-section task list — "In-tree Tasks" + "Worktree Tasks" (static planning signal, no move semantics)
-  - Design evolution: @ref preload → SessionStart hook → scripted gate → all dropped → explicit `/prime` skill invocation
-  - Key insight: @ref expansion and Read calls are cumulative (not deduplicated) — drove decision away from implicit injection
-  - Outline reviewed by corrector: 0 critical, 3 major fixed, 3 minor fixed
-- Validated merge integrity — wt-merge-dirty-tree (`50e37ede`) and planstate-delivered (`8a97fb71`), no session detail or learning loss
-  - planstate-delivered merge: 5 `[from:]` artifacts appended to Blockers (cleaned in subsequent handoff `b571df3c`)
-- Created 4 worktrees: recall-tool-anchoring, wt-merge-session-loss, when-resolve-fix, prepare-runbook-fixes
-- Designed and executed task-lifecycle (`plans/task-lifecycle/`)
-  - D: stale task commands in session.md after `/design` and `/runbook` advance plan
-  - D: STATUS missing session-level continuation after direct skill execution
-  - Three changes: (1) STATUS derives commands from planstate via CLI, (2) handoff carry-forward derives commands from `_NEXT_ACTION_TEMPLATES` mapping, (3) STATUS shows session continuation when tree dirty
-  - Files: `execute-rule.md`, `handoff/SKILL.md`
-  - Skill-reviewer caught 2 bugs: `designed` → wrong file (`outline.md` not `design.md`), `planned` → missing `agent-core/bin/` prefix. Fixed.
+- Merged `prepare-runbook-fixes` (commit: `885b06b8`) — extract_cycles() H3 termination + provenance path fixes
+- Merged `when-resolve-fix` (commit: `919b892e`) — fuzzy heading match in `_resolve_trigger()`
+- Merged `wt-merge-session-loss` (commit: `6003c424`) — session autostrategy RCA + fixes
+- All 3 merges required same autostrategy fix: completed `[x]` appended to Pending instead of replacing WT entry
+- Removed 3 worktrees (prepare-runbook-fixes, when-resolve-fix, wt-merge-session-loss)
+- Renamed "Deslop remaining skills" → "Skills quality pass", enriched with deslop/gate references
 
 ## Pending Tasks
 
 - [ ] **Codebase sweep** — `/design plans/codebase-sweep/requirements.md` | sonnet
   - Plan: codebase-sweep | Status: requirements
   - _git_ok, _fail, exception cleanup — mechanical refactoring
-- [ ] **Deslop remaining skills** — Prose quality pass on skills not yet optimized | sonnet
+- [ ] **Skills quality pass** — Prose quality pass on skills not yet optimized + complete skill audit for prose-only recall gates | sonnet
+  - Deslop reference: `agent-core/skills/project-conventions/SKILL.md` (bundles deslop rules)
+  - Prose-only gate antipattern: `plans/recall-tool-anchoring/recall-artifact.md` entry "How to Prevent Skill Steps From Being Skipped" — D+B fix anchors each gate with tool call
+  - Recall gate inventory: `plans/recall-tool-anchoring/reports/recall-gate-inventory.md` — 19/31 recall gates (61%) prose-only; skill audit extends this to all skill gates
 
 - [ ] **Diagnose compression detail loss** — RCA against commit `0418cedb` | sonnet
 - [ ] **Precommit python3 redirect** — `/design plans/precommit-python3-redirect/brief.md` | sonnet
@@ -169,7 +148,7 @@
 
 ## Next Steps
 
-4 worktrees active (recall-tool-anchoring, wt-merge-session-loss, when-resolve-fix, prepare-runbook-fixes). Next: execute in worktrees, or task-classification runbook, or execute orchestrate-evolution on main.
+1 worktree active (recall-tool-anchoring). Next: merge recall-tool-anchoring, or task-classification runbook, or execute orchestrate-evolution on main.
 
 ## Reference Files
 

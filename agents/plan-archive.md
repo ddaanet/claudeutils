@@ -215,6 +215,18 @@ Migrated all `_worktree` CLI error output from stderr to stdout per LLM-native C
 
 4-pass pipeline memory model integrated into design, runbook, orchestrate, and deliverable-review skills. Recall passes at cognitive boundaries: design recall (deep, whole decision files), runbook recall (+implementation +testing), task agent injection (orchestrator filters per phase), review recall (+failure modes). Reference forwarding eliminates convergence problem — each pass augments rather than re-discovers. Grounded against CE framework (Write/Select/Compress/Isolate) and Agentic RAG; deliberately inverts adaptive retrieval to prescriptive (fixed pipeline points, justified by 2.9% baseline). Added `/recall` skill, updated grounding skill to use scouts for diverge-converge. Delivered: 4 skill integrations, recall skill, grounding report, internal brainstorm (27 dimensions).
 
+## prepare-runbook-fixes
+
+2 bug fixes in prepare-runbook.py: extract_cycles() H3 phase header termination (last cycle captured next phase's preamble), generate_cycle_file/generate_step_file provenance metadata pointing to non-existent runbook.md. TDD with edge-case tests and deliverable review. Affected: agent-core/bin/prepare-runbook.py.
+
+## when-resolve-fix
+
+Fuzzy heading match in _resolve_trigger() replacing exact match. Resolves memory-index trigger failures when trigger phrasing differs from section heading by articles or minor wording. TDD with deliverable review. Affected: src/claudeutils/when/resolver.py.
+
+## worktree-session-merge
+
+RCA and fix for _worktree merge autostrategy dropping session.md content. Two manifestations: Worktree Tasks entries dropped (branch lacks main's section), branch-only content appended to wrong section (Blockers). Affected: src/claudeutils/worktree/merge.py.
+
 ## quality-infrastructure
 
 3 FRs delivered: FR-3 renamed 11 agents (vet-fix-agent→corrector, quiet-task→artisan, tdd-task→test-driver, etc.) + deleted vet-agent + embedded vet-taxonomy in corrector + deleted 8 plan-specific detritus + propagated across ~45 files including prepare-runbook.py code paths. FR-1 split deslop.md into communication.md (prose rules, ambient) and project-conventions skill (code rules, injected). FR-2 added 5 grounded code density entries to cli.md + memory-index triggers. Affected: agent-core/agents/ (11 renames, 3 deletions), agent-core/skills/ (vet→review dir rename, 11 skill files updated), agent-core/fragments/ (vet-requirement→review-requirement, deslop deleted), agents/decisions/ (9 files), ~15 other files.
