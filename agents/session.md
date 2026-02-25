@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Skills quality pass complete: 28 skills edited, 3 agents fixed, 15 reference files created, ~2,600 lines compressed. 7 convergence review majors fixed and committed.
+**Status:** Skills quality pass delivered. Codify learnings merged. Markdown migration discussed and scoped — batch short-term parsing fixes, then design parser + line-wrap + token counting migration.
 
 ## Completed This Session
 
@@ -18,13 +18,13 @@
   - R3 (Phase 4): 0 critical, 1 major — reflect 2 references lack in-body load points
   - R4 (Phase 5): 0 critical, 2 major — how/when retained preambles (design scope gap), prioritize list_plans()
   - BI (behavior invariance): 0 broken paths across 50 paths in 6 conditional-branch skills
-- Codify learnings worktree spawned → `codify-learnings`
-- **Skills quality pass convergence fixes** — 7 majors from review reports applied
-  - handoff: Gate 5 Bash anchor (`claudeutils _worktree ls`), orphaned `consolidation-flow.md` deleted
-  - orchestrate/review: description rewritten to NFR-6 format
-  - reflect: in-body load points added for `rca-design-decisions.md` and `rca-examples.md`
-  - how/when: "When to Use"/"When NOT to Use" preambles folded into description
-  - prioritize: `list_plans()` replaced with CLI wrapper
+- Codify learnings worktree spawned, executed, merged → 14 entries consolidated into 9 decision files (89→32 lines)
+- **Skills quality pass convergence fixes** — 7 majors applied + handoff skill: no commit hashes in session.md
+- **Markdown migration discussion** — converged on: batch parsing fixes (immediate), then branch for parser + line-wrap + token counting
+  - Wrap existing parser with Claude-specific normalization (lenient: implicit lists, quoting)
+  - Line-wrap all files (watershed diff), switch from line counts to token counting API
+  - Sqlite user cache (`~/.cache/claudeutils/`) for cross-tree token count sharing
+  - `just setup` for sandbox configuration (cache dir allowlist)
 
 ## Pending Tasks
 
@@ -104,9 +104,17 @@
   - Phase 3: TDD agent generation + verify-red.sh (4 cycles)
   - Phase 4: SKILL.md rewrite + refactor.md/delegation.md updates (2 steps, opus)
   - Checkpoints: light at phase boundaries, full at Phase 4 (final)
-- [ ] **Fix validate-runbook.py false positives** — sonnet
-  - model-tags: bash scripts under `agent-core/skills/` falsely flagged as prose artifacts
-  - lifecycle: pre-existing files flagged as "modified before creation"
+- [ ] **Parsing fixes batch** — fix all pending regex parsing bugs before markdown migration | sonnet
+  - validate-runbook.py false positives: model-tags (bash scripts falsely flagged), lifecycle (pre-existing files flagged)
+  - Markdown cleanup xfail bug
+  - Absorbs: Fix validate-runbook.py false positives
+
+- [ ] **Markdown migration** — `/design` | opus
+  - Wrap existing markdown parser with Claude-specific lenient normalization
+  - Line-wrap all files, replace ad-hoc regex parsers (prepare-runbook, session merge, validate-runbook, markdown cleanup)
+  - Token counting API + sqlite user cache, threshold migration (line counts → tokens)
+  - `just setup` sandbox config for cache dir
+  - Depends on: Parsing fixes batch (short-term fixes first, parser replaces regex code)
 
 - [ ] **Deliverable review auto-commit** — after fixing all issues in deliverable-review, auto handoff and commit | sonnet
 - [ ] **Worktree new fuzzy matching** — `_worktree new` accepts approximate task names instead of exact match | sonnet
@@ -152,8 +160,8 @@
 - Operator prefix no longer used in matching — bare trigger matching handles both `/when` and `/how` entries
 - `removeprefix("to ")` in resolver strips leftover "to" from "how to X" invocations
 
-**Learnings consolidated — 40 lines, 7 entries:**
-- `/codify` completed. 14 entries consolidated into decision files. 5 recent entries retained.
+**Learnings healthy — 40 lines, 7 entries:**
+- `/codify` completed and merged. Next consolidation not urgent.
 
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback deployed (Phase 4).
@@ -184,7 +192,7 @@
 
 ## Next Steps
 
-Skills quality pass delivered. Codify learnings in parallel worktree (88/80 lines).
+Next session: `/design` the parsing fixes batch + markdown migration. Parsing fixes batch is short-term (sonnet), markdown migration is the big branch (opus).
 
 ## Reference Files
 
