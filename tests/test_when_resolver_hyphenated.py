@@ -31,7 +31,7 @@ def test_hyphenated_trigger_matches_title_case_heading(tmp_path: Path) -> None:
 
     # Act: Resolve the trigger
     result = resolve(
-        "when", "agent-creator reviews agents", str(index_file), str(decisions_dir)
+        "agent-creator reviews agents", str(index_file), str(decisions_dir)
     )
 
     # Assert: Should find and extract the section

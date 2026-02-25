@@ -18,11 +18,11 @@ def test_mode_detection(tmp_path: Path) -> None:
     testing_file = decisions_dir / "testing.md"
     testing_file.write_text("## Test Section\n\nTest content.\n")
 
-    section = resolve("when", ".Test Section", str(index_file), str(decisions_dir))
+    section = resolve(".Test Section", str(index_file), str(decisions_dir))
     assert "## Test Section" in section
     assert "Test content." in section
 
-    file_mode = resolve("when", "..testing.md", str(index_file), str(decisions_dir))
+    file_mode = resolve("..testing.md", str(index_file), str(decisions_dir))
     assert "## Test Section" in file_mode
     assert "Test content." in file_mode
 
@@ -50,17 +50,13 @@ def test_section_mode_resolves(tmp_path: Path) -> None:
         "Other content here.\n"
     )
 
-    result = resolve(
-        "when", ".Mock Patching Pattern", str(index_file), str(decisions_dir)
-    )
+    result = resolve(".Mock Patching Pattern", str(index_file), str(decisions_dir))
     assert "## Mock Patching Pattern" in result
     assert "Use exact match for restoration operations" in result
     assert "Prevents exploitation via command continuation" in result
     assert "## Next Section" not in result
 
-    result = resolve(
-        "when", ".mock patching pattern", str(index_file), str(decisions_dir)
-    )
+    result = resolve(".mock patching pattern", str(index_file), str(decisions_dir))
     assert "## Mock Patching Pattern" in result
 
 
@@ -75,12 +71,12 @@ def test_file_mode_resolves(tmp_path: Path) -> None:
     testing_file = decisions_dir / "testing.md"
     testing_file.write_text("## Test Section\n\nTest file content.\n")
 
-    result = resolve("when", "..testing.md", str(index_file), str(decisions_dir))
+    result = resolve("..testing.md", str(index_file), str(decisions_dir))
     assert "## Test Section" in result
     assert "Test file content." in result
 
     with pytest.raises(ResolveError):
-        resolve("when", "..nonexistent.md", str(index_file), str(decisions_dir))
+        resolve("..nonexistent.md", str(index_file), str(decisions_dir))
 
 
 def test_trigger_mode_resolves(tmp_path: Path) -> None:
@@ -107,11 +103,11 @@ def test_trigger_mode_resolves(tmp_path: Path) -> None:
         "Handle errors gracefully.\n"
     )
 
-    result = resolve("when", "writing mock tests", str(index_file), str(decisions_dir))
+    result = resolve("writing mock tests", str(index_file), str(decisions_dir))
     assert "# When Writing Mock Tests" in result
     assert "Mock tests prevent side effects" in result
 
-    result = resolve("when", "mock test", str(index_file), str(decisions_dir))
+    result = resolve("mock test", str(index_file), str(decisions_dir))
     assert "# When Writing Mock Tests" in result
 
 
@@ -150,7 +146,6 @@ def test_trigger_fuzzy_heading_match(tmp_path: Path) -> None:
     # Actual heading has "An" that trigger omits
     # Fuzzy fallback should find the correct heading
     result = resolve(
-        "when",
         "adding a new variant to enumerated system",
         str(index_file),
         str(decisions_dir),
@@ -183,7 +178,6 @@ def test_trigger_fuzzy_heading_match_how_operator(tmp_path: Path) -> None:
     )
 
     result = resolve(
-        "how",
         "configure script entry points",
         str(index_file),
         str(decisions_dir),
@@ -223,7 +217,7 @@ def test_resolve_output_format(tmp_path: Path) -> None:
         "Prevents exploitation via command continuation.\n"
     )
 
-    result = resolve("when", "writing mock tests", str(index_file), str(decisions_dir))
+    result = resolve("writing mock tests", str(index_file), str(decisions_dir))
 
     assert "# When Writing Mock Tests" in result
     assert "Mock tests prevent side effects" in result
@@ -231,3 +225,115 @@ def test_resolve_output_format(tmp_path: Path) -> None:
     assert "Broader:" in result
     assert "/when ..testing.md" in result
     assert "Related:" in result or "/when mock patching" in result
+
+
+def test_how_to_prefix_not_doubled(tmp_path: Path) -> None:
+    """Calling with 'how to X' doesn't double the 'to' prefix."""
+    index_file = tmp_path / "test_index.md"
+    index_file.write_text(
+        "## implementation\n"
+        "\n"
+        "/how prevent skill steps from being skipped | prose gates D+B\n"
+    )
+
+    decisions_dir = tmp_path / "decisions"
+    decisions_dir.mkdir()
+
+    decision_file = decisions_dir / "implementation.md"
+    decision_file.write_text(
+        "# Implementation Notes\n"
+        "\n"
+        "## How to Prevent Skill Steps From Being Skipped\n"
+        "\n"
+        "Use D+B hybrid anchoring.\n"
+        "\n"
+        "## Other Section\n"
+        "\n"
+        "Other content.\n"
+    )
+
+    # Simulates cli.py passing "to X" after stripping "how" from "how to X".
+    # resolver.py strips leading "to " so fuzzy match hits the bare trigger.
+    result = resolve(
+        "to prevent skill steps from being skipped",
+        str(index_file),
+        str(decisions_dir),
+    )
+    assert "D+B hybrid anchoring" in result
+
+
+def test_cross_operator_matching(tmp_path: Path) -> None:
+    """Entry under /how resolves when called with 'when' operator."""
+    index_file = tmp_path / "test_index.md"
+    index_file.write_text(
+        "## implementation\n"
+        "\n"
+        "/how prevent skill steps from being skipped | prose gates D+B\n"
+    )
+
+    decisions_dir = tmp_path / "decisions"
+    decisions_dir.mkdir()
+
+    decision_file = decisions_dir / "implementation.md"
+    decision_file.write_text(
+        "# Implementation Notes\n"
+        "\n"
+        "## How to Prevent Skill Steps From Being Skipped\n"
+        "\n"
+        "Use D+B hybrid anchoring.\n"
+        "\n"
+        "## Other Section\n"
+        "\n"
+        "Other content.\n"
+    )
+
+    # Caller uses "when" prefix but entry is /how — should still match
+    result = resolve(
+        "prevent skill steps from being skipped",
+        str(index_file),
+        str(decisions_dir),
+    )
+    assert "D+B hybrid anchoring" in result
+
+
+def test_bare_trigger_no_operator(tmp_path: Path) -> None:
+    """Bare trigger query (no operator) resolves to matching entry."""
+    index_file = tmp_path / "test_index.md"
+    index_file.write_text(
+        "## testing\n"
+        "\n"
+        "/when writing mock tests | mock patch, test doubles\n"
+        "/how configure script entry points | pyproject scripts\n"
+    )
+
+    decisions_dir = tmp_path / "decisions"
+    decisions_dir.mkdir()
+
+    decision_file = decisions_dir / "testing.md"
+    decision_file.write_text(
+        "# Testing\n"
+        "\n"
+        "## When Writing Mock Tests\n"
+        "\n"
+        "Mock tests prevent side effects.\n"
+        "\n"
+        "## How to Configure Script Entry Points\n"
+        "\n"
+        "Add project.scripts to pyproject.toml.\n"
+    )
+
+    # No operator — bare trigger resolves /when entry
+    result = resolve(
+        "writing mock tests",
+        str(index_file),
+        str(decisions_dir),
+    )
+    assert "Mock tests prevent side effects" in result
+
+    # No operator — bare trigger resolves /how entry
+    result = resolve(
+        "configure script entry points",
+        str(index_file),
+        str(decisions_dir),
+    )
+    assert "Add project.scripts to pyproject.toml" in result

@@ -1,22 +1,22 @@
 # Session Handoff: 2026-02-25
 
-**Status:** Diagnosed when-resolve.py double-to + cross-operator bugs, confirmed skill caching blocker, wrote diagnostic for next session.
+**Status:** Fixed 4 when-resolve bugs via TDD, simplified to operator-optional single matching path. Corrector reviewed, precommit green.
 
 ## Completed This Session
 
-- Diagnosed when-resolve.py bugs: double-to prefix (`"how to X"` → `"how to to X"`) and cross-operator mismatch (`"when X"` for `/how` entries fails fuzzy matching)
-  - Diagnostic: `plans/when-resolve-fix/diagnostic-double-to.md` — reproduction, code paths, TDD cycles, fix locations
-  - Both bugs in `resolver.py:194-265` (`_resolve_trigger`), cli.py contributing
-- Confirmed skill caching blocker: reflect skill updated on disk (recall-tool-anchoring merge has Phase 4.5 STOP gate + D+B anchoring) but Claude Code served stale cached version without those fixes
-  - Blocker already noted in session.md; no new structural fix available
-- `/recall all` + `/recall deep` loaded 14 entries from 7 decision files for when-resolve and reflect topics
-- `/reflect` diagnosed itself applying fixes without recall or user validation — root cause was stale skill cache serving old version without Phase 4.5 checkpoint
+- Fixed when-resolve.py: 4 bugs, 4 TDD cycles + simplification
+  - Bug 1: Double-to prefix — `removeprefix("to ")` in `_resolve_trigger` (resolver.py:196)
+  - Bug 2: Cross-operator matching — bare-trigger matching replaces operator-prefixed matching (resolver.py:197-203)
+  - Bug 3: Fail-fast batch — accumulate errors, print successes first, errors to stdout (cli.py:38-59)
+  - Bug 4: Operator made optional — `_strip_operator` in CLI, `operator` parameter removed from `resolve()`, single matching path
+  - Collision safety: `check_duplicate_entries` in `memory_index_checks.py` already validates trigger uniqueness across operators
+  - "Did you mean" suggestions now show entry's actual operator via `trigger_to_op` dict
+  - Corrector review: 0 critical, 0 major, 3 minor (all fixed) — `plans/when-resolve-fix/reports/corrector-review.md`
+  - Tests: 28/28 pass (4 new tests added, disambiguation test updated, CLI tests rewritten)
 
 ## Pending Tasks
 
-- [ ] **Fix when-resolve double-to and cross-operator** — TDD fix per `plans/when-resolve-fix/diagnostic-double-to.md` | sonnet
-  - 2 TDD cycles: (1) strip "to " prefix for /how, (2) match on bare triggers not operator-prefixed
-  - Files: `src/claudeutils/when/resolver.py`, `tests/test_when_resolver.py`
+- [x] **Fix when-resolve double-to and cross-operator** — 4 bugs fixed via TDD | sonnet
 - [ ] **Codebase sweep** — `/design plans/codebase-sweep/requirements.md` | sonnet
   - Plan: codebase-sweep | Status: requirements
   - _git_ok, _fail, exception cleanup — mechanical refactoring
@@ -117,8 +117,9 @@
 **Validator orphan entries not autofixable:**
 - Marking headings structural (`.` prefix) causes non-autofixable error in `check_orphan_entries`
 
-**Memory index `/how` operator mapping:**
-- `/how X` → internally `"how to X"` — index keys must NOT include "to"
+**Memory index `/how` operator mapping (resolved):**
+- Operator prefix no longer used in matching — bare trigger matching handles both `/when` and `/how` entries
+- `removeprefix("to ")` in resolver strips leftover "to" from "how to X" invocations
 
 **Learnings consolidated — 28 lines, 5 entries:**
 - Next consolidation when entries age past 7 active days or file approaches 80-line soft limit.
@@ -152,7 +153,7 @@
 
 ## Next Steps
 
-Fix when-resolve bugs (unblocks all recall tooling), then codify learnings (urgent, 76/80 lines).
+Codify learnings (urgent, 76/80 lines). When-resolve fix unblocks recall CLI integration and consolidate recall tooling tasks.
 
 ## Reference Files
 
@@ -173,3 +174,4 @@ Fix when-resolve bugs (unblocks all recall tooling), then codify learnings (urge
 - `plans/task-classification/reports/outline-review.md` — Corrector review (0 critical, 3 major fixed)
 - `plans/task-lifecycle/outline.md` — Planstate-derived commands + STATUS continuation design
 - `plans/when-resolve-fix/diagnostic-double-to.md` — Double-to + cross-operator bugs, TDD plan, code paths
+- `plans/when-resolve-fix/reports/corrector-review.md` — Corrector review of 4-bug fix (0 critical, 0 major)

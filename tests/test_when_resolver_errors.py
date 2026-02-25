@@ -42,7 +42,7 @@ def test_trigger_not_found_suggests_matches(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ResolveError) as exc_info:
-        resolve("when", "nonexistent topic xyz", str(index_file), str(decisions_dir))
+        resolve("nonexistent topic xyz", str(index_file), str(decisions_dir))
 
     error_msg = str(exc_info.value)
     assert "No match for" in error_msg
@@ -93,7 +93,7 @@ def test_trigger_suggestions_limited_to_three(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ResolveError) as exc_info:
-        resolve("when", "nonmatching query xyz", str(index_file), str(decisions_dir))
+        resolve("nonmatching query xyz", str(index_file), str(decisions_dir))
 
     error_msg = str(exc_info.value)
     suggestion_count = error_msg.count("/when ")
@@ -122,7 +122,7 @@ def test_section_not_found_lists_headings(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ResolveError) as exc_info:
-        resolve("when", ".Nonexistent Section", str(index_file), str(decisions_dir))
+        resolve(".Nonexistent Section", str(index_file), str(decisions_dir))
 
     error_msg = str(exc_info.value)
     assert "Section 'Nonexistent Section' not found." in error_msg
@@ -215,7 +215,7 @@ def test_file_not_found_lists_files(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ResolveError) as exc_info:
-        resolve("when", "..nonexistent.md", str(index_file), str(decisions_dir))
+        resolve("..nonexistent.md", str(index_file), str(decisions_dir))
 
     error_msg = str(exc_info.value)
     assert "File 'nonexistent.md' not found in decision files." in error_msg
@@ -229,11 +229,10 @@ def test_file_not_found_lists_files(tmp_path: Path) -> None:
     assert arch_idx < cli_idx < test_idx
 
 
-def test_operator_parameter_disambiguates(tmp_path: Path) -> None:
-    """Operator parameter distinguishes /when vs /how entries with same trigger.
+def test_duplicate_trigger_returns_first_match(tmp_path: Path) -> None:
+    """Duplicate trigger text returns first entry.
 
-    When two entries have same trigger but different operators, the operator
-    parameter selects the correct one.
+    Collisions caught by precommit validator.
     """
     index_file = tmp_path / "test_index.md"
     index_file.write_text(
@@ -254,17 +253,10 @@ def test_operator_parameter_disambiguates(tmp_path: Path) -> None:
         "Procedural steps here.\n"
     )
 
-    # /when should resolve to "When Mock Testing"
-    when_result = resolve("when", "mock testing", str(index_file), str(decisions_dir))
-    assert "When Mock Testing" in when_result
-    assert "Behavioral guidance" in when_result
-    assert "Procedural steps" not in when_result
-
-    # /how should resolve to "How to Mock Testing"
-    how_result = resolve("how", "mock testing", str(index_file), str(decisions_dir))
-    assert "How to Mock Testing" in how_result
-    assert "Procedural steps" in how_result
-    assert "Behavioral guidance" not in how_result
+    # No operator preference — returns first entry (/when)
+    result = resolve("mock testing", str(index_file), str(decisions_dir))
+    assert "When Mock Testing" in result
+    assert "Behavioral guidance" in result
 
 
 def test_section_mode_resolves_h3_headings(tmp_path: Path) -> None:
@@ -287,12 +279,12 @@ def test_section_mode_resolves_h3_headings(tmp_path: Path) -> None:
     )
 
     # H3 heading should resolve
-    result = resolve("when", ".When Mock Testing", str(index_file), str(decisions_dir))
+    result = resolve(".When Mock Testing", str(index_file), str(decisions_dir))
     assert "### When Mock Testing" in result
     assert "Mock testing guidance" in result
 
     # H4 heading should resolve
-    result = resolve("when", ".Specific Detail", str(index_file), str(decisions_dir))
+    result = resolve(".Specific Detail", str(index_file), str(decisions_dir))
     assert "#### Specific Detail" in result
     assert "Detailed content" in result
 
@@ -322,7 +314,7 @@ def test_how_operator_error_suggestions(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ResolveError) as exc_info:
-        resolve("how", "nonexistent procedure", str(index_file), str(decisions_dir))
+        resolve("nonexistent procedure", str(index_file), str(decisions_dir))
 
     error_msg = str(exc_info.value)
     assert "No match for" in error_msg

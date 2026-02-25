@@ -10,12 +10,11 @@ class ResolveError(Exception):
     """Error during resolution."""
 
 
-def resolve(operator: str, query: str, index_path: str, decisions_dir: str) -> str:
+def resolve(query: str, index_path: str, decisions_dir: str) -> str:
     """Resolve query to decision file content via prefix-based routing.
 
     Args:
-        operator: The operator prefix ("when" or "how")
-        query: The search query
+        query: The search query (bare trigger text)
         index_path: Path to memory index file
         decisions_dir: Path to decisions directory
 
@@ -26,7 +25,7 @@ def resolve(operator: str, query: str, index_path: str, decisions_dir: str) -> s
         return _resolve_file(query[2:].strip(), decisions_dir)
     if query.startswith("."):
         return _resolve_section(query[1:].strip(), decisions_dir)
-    return _resolve_trigger(operator, query, index_path, decisions_dir)
+    return _resolve_trigger(query, index_path, decisions_dir)
 
 
 def _resolve_file(filename: str, decisions_dir: str) -> str:
@@ -147,58 +146,39 @@ def _get_suggestions(
     return scored[:limit]
 
 
-def _handle_no_match(query: str, candidates: list[str], operator: str) -> None:
-    """Raise ResolveError with fuzzy suggestions."""
+def _handle_no_match(
+    query: str, candidates: list[str], entries: list[WhenEntry]
+) -> None:
+    """Raise ResolveError with fuzzy suggestions.
+
+    Candidates are bare trigger text (no operator prefix). Shows each suggestion
+    with its entry's actual operator.
+    """
     suggestions = _get_suggestions(query, candidates)
     msg = f"No match for '{query}'"
     if suggestions:
+        trigger_to_op = {e.trigger: e.operator for e in entries}
         msg += "\nDid you mean:"
-        for candidate, _score in suggestions:
-            # Parse candidate: "when <trigger>" or "how to <trigger>"
-            if candidate.startswith("how to "):
-                trigger = candidate[7:]  # Strip "how to "
-            elif candidate.startswith("when "):
-                trigger = candidate[5:]  # Strip "when "
-            else:
-                trigger = candidate
-            msg += f"\n  /{operator} {trigger}"
+        for trigger, _score in suggestions:
+            op = trigger_to_op.get(trigger, "when")
+            msg += f"\n  /{op} {trigger}"
     raise ResolveError(msg)
 
 
-def _load_matched_entry(matched_candidate: str, entries: list[WhenEntry]) -> WhenEntry:
-    """Find matching entry for candidate string.
-
-    The matched_candidate uses "how to" mapping, so we need to map it back to
-    the stored operator value when matching against entries.
-    """
-    # Parse candidate to extract operator and trigger
-    if matched_candidate.startswith("how to "):
-        operator_prefix = "how to"
-        trigger_text = matched_candidate[7:]  # len("how to ") = 7
-        original_operator = "how"
-    else:
-        parts = matched_candidate.split(" ", 1)
-        operator_prefix = parts[0]
-        trigger_text = parts[1] if len(parts) > 1 else ""
-        original_operator = operator_prefix
-
-    # Find entry with matching original operator and trigger
+def _load_matched_entry(matched_trigger: str, entries: list[WhenEntry]) -> WhenEntry:
+    """Find entry by bare trigger text."""
     for entry in entries:
-        if entry.operator == original_operator and entry.trigger == trigger_text:
+        if entry.trigger == matched_trigger:
             return entry
-
-    msg = "Could not map matched candidate to entry"
+    msg = "Could not map matched trigger to entry"
     raise ResolveError(msg)
 
 
-def _resolve_trigger(
-    operator: str, query: str, index_path: str, decisions_dir: str
-) -> str:
+def _resolve_trigger(query: str, index_path: str, decisions_dir: str) -> str:
     """Resolve trigger via fuzzy matching with navigation.
 
     Args:
-        operator: The operator prefix ("when" or "how")
-        query: The search query
+        query: The search query (bare trigger text)
         index_path: Path to memory index file
         decisions_dir: Path to decisions directory
 
@@ -209,21 +189,19 @@ def _resolve_trigger(
     dec_dir = Path(decisions_dir)
 
     entries = parse_index(index_file)
-    # Build query with operator prefix for matching
-    operator_prefix = "how to" if operator == "how" else operator
-    query_with_operator = f"{operator_prefix} {query}"
-    # Build candidates with same operator mapping
-    candidates = [
-        f"{'how to' if e.operator == 'how' else e.operator} {e.trigger}"
-        for e in entries
-    ]
-    matches = fuzzy.rank_matches(query_with_operator, candidates, limit=1)
+    # Strip leading "to " — cli.py splits "how to X" → query="to X".
+    # Safe to match lowercase only: callers always pass lowercase (memory-index
+    # entries use /how, cli.py lowercases the operator check, so "to " prefix
+    # is always lowercase when present).
+    query = query.removeprefix("to ")
+    trigger_candidates = [e.trigger for e in entries]
+    matches = fuzzy.rank_matches(query, trigger_candidates, limit=1)
 
     if not matches:
-        _handle_no_match(query, candidates, operator)
+        _handle_no_match(query, trigger_candidates, entries)
 
-    matched_candidate, _score = matches[0]
-    matching_entry = _load_matched_entry(matched_candidate, entries)
+    matched_trigger, _score = matches[0]
+    matching_entry = _load_matched_entry(matched_trigger, entries)
     # Section: full path (agents/decisions/cli.md) or bare name
     section_path = Path(matching_entry.section)
     if section_path.suffix == ".md":
