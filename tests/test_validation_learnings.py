@@ -38,7 +38,7 @@ Content here.
 """)
     errors = validate(Path("learnings.md"), tmp_path)
     assert len(errors) == 1
-    assert "title has 11 words (max 5)" in errors[0]
+    assert "title has 11 words (max 7)" in errors[0]
     assert "line 4" in errors[0]
 
 

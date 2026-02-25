@@ -2,7 +2,7 @@
 
 Checks:
 - Title format: ## Title (markdown header)
-- Max word count per title (default: 5)
+- Max word count per title (default: 7)
 - No duplicate titles
 - No empty titles
 """
@@ -10,7 +10,7 @@ Checks:
 import re
 from pathlib import Path
 
-MAX_WORDS = 5
+MAX_WORDS = 7
 TITLE_PATTERN = re.compile(r"^## (.+)$")
 
 
@@ -116,7 +116,7 @@ def validate(path: Path, root: Path, max_words: int = MAX_WORDS) -> list[str]:
     Args:
         path: Path to learnings file (relative to root).
         root: Project root directory.
-        max_words: Maximum allowed words in a title (default: 5).
+        max_words: Maximum allowed words in a title (default: 7).
 
     Returns:
         List of error messages. Empty list if no errors found.

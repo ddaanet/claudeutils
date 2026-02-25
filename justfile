@@ -563,6 +563,10 @@ run-checks() {
     report "docformatter -c" docformatter -c src tests
     report "mypy" mypy
     report "validate memory-index" claudeutils validate memory-index
+    report "validate learnings" claudeutils validate learnings
+    report "validate tasks" claudeutils validate tasks
+    report "validate planstate" claudeutils validate planstate
+    report "validate session-structure" claudeutils validate session-structure
 }
 
 run-pytest() {
