@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-26
 
-**Status:** Session-scraping design complete (outline is the design). RCA identified pipeline routing gap for prototypes. Two tasks pending.
+**Status:** Session scraper prototype delivered. Ground skill updated to reference it. One task pending (complexity routing).
 
 ## Completed This Session
 
@@ -17,9 +17,12 @@
 - Captured problem statement: `plans/complexity-routing/problem.md`
 - Learning appended to learnings.md
 
+**Ground skill update:**
+- Updated `agent-core/skills/ground/references/grounding-criteria.md` — replaced session scraper placeholder with actual CLI reference (`plans/prototypes/session-scraper.py`), removed "when available" caveat from scope selector
+
 ## Pending Tasks
 
-- [ ] **Session scraper** — write `plans/prototypes/session-scraper.py` directly | sonnet
+- [x] **Session scraper** — write `plans/prototypes/session-scraper.py` directly | sonnet
   - Design complete: `plans/session-scraping/outline.md` (4-stage pipeline, 6 Pydantic models, 7 entry types)
   - Recall artifact: `plans/session-scraping/recall-artifact.md` (26 entry keys)
   - Prototype — no TDD, no runbook. Write script, test against real session JSONL, iterate.
