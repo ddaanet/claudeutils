@@ -1,10 +1,18 @@
-# Session Handoff: 2026-02-25
+# Session Handoff: 2026-02-26
 
-**Status:** Design skill grounded and redesigned; 8 principles applied across 7 gaps.
+**Status:** Skill descriptions rewritten for CLI display; worktree lifecycle (create, merge, rm); filed upstream issue.
 
 ## Completed This Session
 
-(flushed)
+- **Worktree SKILL.md CLI signature** — documented positional `TASK_NAME` (no `--task` flag)
+- **Worktree lifecycle** — created block-rm-lock (merged), session-scraping-prototype (merged, kept), python3-redirect-hook (active)
+- **Skill H1 titles** — fixed 6 skills with generic/internal titles (design, runbook, error-handling, gitmoji, plugin-dev-validation, project-conventions)
+- **Skill description rewrite** — 21 skills rewritten from "This skill should be used when..." to action-verb-first format for CLI picker readability
+  - Pattern: "Action verb what it does. Triggers on 'X', 'Y', 'Z'."
+  - Used `batch-edit.py` for efficient bulk application
+- **Filed upstream issue** — [anthropics/claude-code#28934](https://github.com/anthropics/claude-code/issues/28934): skill `description` serves dual purpose (agent triggering + CLI picker display), proposed `display` field
+- **Decision file fix** — corrected `operational-practices.md` "When Loading Context Before Skill Edits" entry (H1 is body content, not picker text)
+- **Learnings updated** — new "When editing skill files" entry documenting dual-purpose constraint; invalidated old entry claiming "This skill should be used when..." format is required
 
 ## Pending Tasks
 
@@ -144,8 +152,8 @@
 - Operator prefix no longer used in matching — bare trigger matching handles both `/when` and `/how` entries
 - `removeprefix("to ")` in resolver strips leftover "to" from "how to X" invocations
 
-**Learnings healthy — 49 lines, 10 entries:**
-- `/codify` completed. Next consolidation when approaching 80-line limit.
+**Learnings at 67 lines, 13 entries:**
+- Approaching 80-line soft limit. `/codify` needed soon.
 
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback deployed (Phase 4).
@@ -180,8 +188,6 @@
 ## Next Steps
 
 Proceed with next pending task: **Tool deviation hook** — PostToolUse hook to detect when-resolve.py failures.
-
-Design skill grounding artifacts are complete — branch reports + final synthesis retained in `plans/reports/` for audit trail.
 
 ## Reference Files
 

@@ -255,7 +255,7 @@ Only then does the fix address the cause, not the symptoms.
 
 **Anti-pattern:** Modifying skill `description` frontmatter without loading the platform skill guide first.
 
-**Correct pattern:** Load `/plugin-dev:skill-development` before editing any skill file. The guide mandates "This skill should be used when..." (third-person with trigger phrases). The H1 heading is what Claude Code displays in the skill picker.
+**Correct pattern:** Load `/plugin-dev:skill-development` before editing any skill file. The `description` frontmatter is what Claude Code displays in the CLI slash command picker — it serves dual duty (agent triggering + user display). Lead with an action verb describing what the skill does, then include trigger phrases. The H1 title is body content only — not shown in the picker.
 
 ### When Reusable Components Reference Project Paths
 

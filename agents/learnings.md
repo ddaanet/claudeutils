@@ -22,7 +22,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Reference: `plans/reports/skill-optimization-grounding.md` — Segment → Attribute → Compress framework adapted from LLMLingua/ProCut. 9 content categories with compression budgets per category.
 - Triggers: deslop, compression, segment, attribute, budget, skill optimization, prose quality pass
 ## When editing skill files
-- Platform constraint: skill `description` frontmatter MUST use "This skill should be used when..." format (plugin-dev:skill-development, skill-reviewer enforce this). Improve wording within this format, do not replace the format.
+- The `description` field is what Claude Code displays in the CLI slash command picker AND what the agent uses for triggering decisions (dual purpose, no separate field — filed #28934).
+- Correct pattern: lead with an action verb describing what the skill does (user display), then include trigger phrases (agent matching). Example: "Save session state for the next agent. Triggers on 'handoff', 'h', 'hc', or session update requests."
+- Anti-pattern: leading with "This skill should be used when..." — good for triggering but unreadable in the picker.
+- The H1 title is body content only — not displayed in the picker.
+- Fallback: if `description` is omitted, the first paragraph of markdown content is used instead.
 - Extraction safety: every content block moved to references/ must leave a trigger condition + Read instruction in the main SKILL.md body. Verify each references/ file has a corresponding load point.
 - Control flow verification: after restructuring skills with conditional branches, enumerate all execution paths and verify user-visible output on each path. Prior deslop on design skill combined two fast paths and regressed user-facing classification message.
 - D+B gate additions: adding tool calls to anchor prose-only gates must not change the gate's decision outcome on existing paths. The added Read/Bash provides data for judgment — it should not introduce new content that shifts the judgment itself.
