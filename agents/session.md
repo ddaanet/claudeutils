@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-26
 
-**Status:** Hook output audit complete; design decisions established, implementation pending.
+**Status:** Hook output improvements complete; all audit design decisions implemented.
 
 ## Completed This Session
 
@@ -24,21 +24,27 @@
 - `userpromptsubmit-shortcuts.py` systemMessage design: brief expansions (c, y) → same text both audiences; Tier 2 injections → behavioral outline + non-blank line count e.g. `discuss: assess, stress-test, state verdict. (N lines)`; Tier 2.5 guards → authored ~60 char user summary; ~60 char terminal constraint (29 char prefix, 90 char width)
 - Token count preferred over line count for injection weight; deferred — `claudeutils tokens` cache plan not located
 
+**Hook output improvements:**
+- `pretooluse-recipe-redirect.py` — removed `_Redirect`/`_Block`/`_Action` classes; added `_deny()` helper; all cases now use `permissionDecision:deny` + `permissionDecisionReason` + `additionalContext` + `systemMessage`
+- `pretooluse-recall-check.py` — rewrote with `subagent_type` discriminator gate; EXECUTION_AGENTS set (9 types); non-execution agents pass through; execution agents without recall-artifact blocked via `permissionDecision:deny`; fixes architectural issue where exit 0 advisory had no effect
+- `pretooluse-block-tmp.sh` + `pretooluse-symlink-redirect.sh` — migrated from `stderr + exit 2` to `permissionDecision:deny` JSON + `exit 0`; bash scripts use `jq -n --arg` for safe JSON construction
+- `userpromptsubmit-shortcuts.py` — added `c`/`y` Tier 1 shortcuts; `_nonblank()` helper + `DIRECTIVE_SYSTEM_MSGS` dict; Tier 2 systemMessage now behavioral outline + line count; Tier 2.5 guards now emit authored systemMessage summaries; final `if context_parts:` block includes systemMessage
+
 ## Pending Tasks
 
-- [ ] **Hook output improvements** — Implement audit design decisions: pretooluse-recipe-redirect.py (remove _Redirect/_Block, all blocks via permissionDecision:deny + short reason + additionalContext + systemMessage), pretooluse-recall-check.py rewrite (agent-type discriminator, EXECUTION_AGENTS block gate), pretooluse-block-tmp.sh + pretooluse-symlink-redirect.sh migrate from exit 2 to permissionDecision:deny, userpromptsubmit-shortcuts.py systemMessage improvements (behavioral outlines for Tier 2, authored summaries for Tier 2.5, add c/y shortcuts) | sonnet
+- [x] **Hook output improvements** — Implement audit design decisions: pretooluse-recipe-redirect.py (remove _Redirect/_Block, all blocks via permissionDecision:deny + short reason + additionalContext + systemMessage), pretooluse-recall-check.py rewrite (agent-type discriminator, EXECUTION_AGENTS block gate), pretooluse-block-tmp.sh + pretooluse-symlink-redirect.sh migrate from exit 2 to permissionDecision:deny, userpromptsubmit-shortcuts.py systemMessage improvements (behavioral outlines for Tier 2, authored summaries for Tier 2.5, add c/y shortcuts) | sonnet
 
 ## Blockers / Gotchas
 
-**Autoformatter invalidates Edit batches:** PostToolUse autoformat hook fires between sequential Edit calls on same file, causing stale-read errors. Use Write for multi-edit rewrites instead of sequential Edits.
+**claudeutils tokens cache plan not located:** Token count in hook systemMessage (preferred over line count) requires `claudeutils tokens` without API latency. Use non-blank line count as fallback (implemented); swap when cache lands.
 
-**claudeutils tokens cache plan not located:** Token count in hook systemMessage (preferred over line count) requires `claudeutils tokens` without API latency. Searched all plan requirements.md files — no plan explicitly captures adding a file cache to `claudeutils tokens`. Use line count (non-blank lines) as fallback; swap when cache lands.
+**test-hook-channels.py still in settings.json:** `tmp/test-hook-channels.py` remains in Bash PreToolUse hooks (has guard — only fires on `echo test-hook` commands). Ephemeral test artifact; cleanup deferred.
 
 ## Next Steps
 
-Implement hook output improvements per design decisions above. Start with `pretooluse-recipe-redirect.py` (simplest — remove two classes, convert all cases to permissionDecision:deny JSON), then recall-check rewrite, then UPS systemMessage.
+No pending tasks. Branch ready to merge to main.
 
 ## Reference Files
 
-- `tmp/test-hook-channels.py` — empirical test hook (ephemeral, can delete after implementation)
 - `plans/precommit-python3-redirect/recall-artifact.md` — recall artifact for hook work
+- `tmp/test-hook-channels.py` — empirical test hook (ephemeral, can delete)
