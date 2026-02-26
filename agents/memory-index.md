@@ -72,6 +72,13 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when orchestrator handles review delegation | sub-agents lack Task all reviews post-commit
 /when deliverable review catches drift | inter-file consistency holistic not per-step
 
+## agents/decisions/execution-strategy.md
+
+/when choosing execution tier | inline delegate orchestrate context window capacity three-tier
+/when tier boundary is capacity vs orchestration complexity | Tier 1 Tier 2 Tier 3 prompt generation ad-hoc runbook
+/when tier thresholds are ungrounded | file count cycle count calibration empirical measurement
+/when relating execution tiers to complexity routing | design ceremony work type quality obligations execution mechanics
+
 ## agents/decisions/implementation-notes.md
 
 /when using at-sign references

@@ -1,39 +1,39 @@
 # Session Handoff: 2026-02-26
 
-**Status:** Session scraper prototype delivered. Ground skill updated to reference it. One task pending (complexity routing).
+**Status:** Complexity routing grounded. Three-dimensional classification model produced (complexity × work type × artifact destination). 7 fix points identified across `/design` and `/runbook` skills. Execution strategy decision file written.
 
 ## Completed This Session
 
-**Session scraping design:**
-- Ran /design on requirements — classified Complex, produced outline
-- Iterative discussion refined: FR-3 simplified to single-level agents (no recursion), git_commit dropped as entry type (commit hash in detail dict), C-1 refined to targeted per-call expansion (not binary toggle), skill_invocation added as 7th entry type
-- Investigated JSONL format for skill invocations — `<command-name>` tags in user string content, skill body as subsequent user list entry
-- Outline validated as sufficient design — `plans/session-scraping/outline.md`
+**Complexity routing grounding (`/ground`):**
+- Parallel diverge: internal codebase exploration (scout) + external research (7 frameworks: Cynefin, Stacey, Boehm Spiral, XP Spikes, SAFe Enablers, Lean Startup, Gartner Bimodal)
+- Synthesized 6 principles, all general-first with project instance
+- Three-dimensional classification model: complexity (existing Stacey) × work type (new: Production/Exploration/Investigation) × artifact destination (new: production/exploration/investigation paths)
+- 7 fix points across `/design` (Phase 0 output, Phase 0 vocabulary, Simple path recall, Phase B routing, second recall after explore) and `/runbook` (destination-aware counting, threshold flagging)
+- Discussion resolved all gaps: three-tier structure grounded in execution environment constraints, time-boxing irrelevant to agentic execution, prototype-to-production handled by existing `/design`, artifact destination reclassified as adaptation not gap
+- Grounding quality: Strong
 
-**RCA: pipeline overengineering for prototypes:**
-- /runbook invoked, assessed Tier 3 (~20 TDD cycles) for a C-3 prototype script
-- User interrupted — prototype doesn't need production ceremony
-- Root cause: design skill's behavioral-code gate routes all non-prose to /runbook; no exploration/prototype work type in pipeline vocabulary
-- Captured problem statement: `plans/complexity-routing/problem.md`
-- Learning appended to learnings.md
-
-**Ground skill update:**
-- Updated `agent-core/skills/ground/references/grounding-criteria.md` — replaced session scraper placeholder with actual CLI reference (`plans/prototypes/session-scraper.py`), removed "when available" caveat from scope selector
+**Execution strategy decision file:**
+- `agents/decisions/execution-strategy.md` — captures why three tiers (context window capacity, delegation overhead, prompt generation cost), boundary analysis, relationship to complexity routing
+- User's explanation preserved as reference for future `/design` and `/runbook` skill revisions
 
 ## Pending Tasks
 
-- [x] **Session scraper** — write `plans/prototypes/session-scraper.py` directly | sonnet
-  - Design complete: `plans/session-scraping/outline.md` (4-stage pipeline, 6 Pydantic models, 7 entry types)
-  - Recall artifact: `plans/session-scraping/recall-artifact.md` (26 entry keys)
-  - Prototype — no TDD, no runbook. Write script, test against real session JSONL, iterate.
-- [ ] **Complexity routing** — `/ground plans/complexity-routing/problem.md` | opus | restart
+- [x] **Complexity routing** — `/ground plans/complexity-routing/problem.md` | opus | restart
   - Ground classification + routing model against external frameworks (Cynefin, XP spikes, Lean)
   - Produces revised taxonomy and routing rules; skill edits are separate execution task
+- [ ] **Apply routing model** — apply grounded model to `/design` and `/runbook` skills | sonnet
+  - 7 fix points from grounding report: `plans/reports/complexity-routing-grounding.md`
+  - `/design`: Phase 0 output + vocabulary, Simple path recall-explore-recall, Phase B exploration routing, second recall after explore
+  - `/runbook`: destination-aware file counting, flag thresholds as ungrounded
+  - Reference: `agents/decisions/execution-strategy.md` for tier rationale
+- [ ] **Tier threshold grounding** — calibrate Tier 1/2/3 file-count thresholds against empirical data | opus
+  - Thresholds (<6, 6-15, >15) are ungrounded operational parameters
+  - Needs measurement from execution history, not confabulated heuristics
 
 ## Reference Files
 
-- `plans/session-scraping/outline.md` — design outline (serves as design document)
-- `plans/session-scraping/requirements.md` — 4 FRs, 3 constraints, 5 out-of-scope
-- `plans/session-scraping/recall-artifact.md` — 26 entry keys
-- `plans/session-scraping/reports/explore-prototypes.md` — scout report on existing prototypes
-- `plans/complexity-routing/problem.md` — grounding problem statement for classification/routing
+- `plans/reports/complexity-routing-grounding.md` — grounded classification + routing model (6 principles, 7 fix points)
+- `plans/reports/complexity-routing-internal-codebase.md` — internal branch: decision gates, git history, failure patterns
+- `plans/reports/complexity-routing-external-research.md` — external branch: 7 frameworks with routing analysis
+- `agents/decisions/execution-strategy.md` — three-tier execution rationale (context window economics)
+- `plans/complexity-routing/problem.md` — original problem statement (4 gaps)
