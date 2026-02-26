@@ -159,9 +159,10 @@
 **Never run `git merge` without sandbox bypass:**
 - `git merge` without `dangerouslyDisableSandbox: true` partially checks out files, hits sandbox, leaves 80+ orphaned untracked files
 
-**Merge resolution produces orphaned lines in append-only files:**
-- When branch modifies existing entry in-place AND both sides add at tail, git appends modified line as duplicate.
-- Manual post-merge check required until worktree-merge-resilience automated
+**Post-merge validation (permanent):**
+- After every worktree merge, validate session.md (pending tasks from branch carried over) AND learnings.md (no entries lost from either side)
+- Known failure modes: autostrategy drops branch pending tasks, orphaned duplicate lines in append-only files, branch overwrites main-only learnings entries
+- Not automated — manual check required until worktree-merge-resilience delivered
 
 **Validator autofix handles placement:**
 - `claudeutils validate memory-index` autofixes placement (file section) and ordering issues
@@ -171,8 +172,8 @@
 - Operator prefix no longer used in matching — bare trigger matching handles both `/when` and `/how` entries
 - `removeprefix("to ")` in resolver strips leftover "to" from "how to X" invocations
 
-**Learnings at 67 lines, 13 entries:**
-- Approaching 80-line soft limit. `/codify` needed soon.
+**Learnings at 90 lines, 19 entries:**
+- Over 80-line soft limit. `/codify` needed.
 
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback deployed (Phase 4).
