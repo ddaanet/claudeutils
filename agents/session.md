@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-26
 
-**Status:** Routing model applied to `/design` and `/runbook` skills. 7 fix points implemented. Discussion identified two additional issues: A.2.5 gate design (recall-diff inappropriate, replaced with when-resolve null anchor) and direct execution criteria alignment (design gate must match runbook Tier 1 on capacity).
+**Status:** Routing model applied and reviewed. 7 fix points implemented, opus skill review found 2 major + 5 minor, 4 fixed (destination vocabulary alignment, path disambiguation, ungrounded count, agentic-prose terminology). A.2.5 escape hatch removed.
 
 ## Completed This Session
 
@@ -30,6 +30,12 @@
 - Direct execution criteria in `/design` must assess capacity (not just coordination complexity) since it bypasses `/runbook` entirely
 - Session scraping integration into when-resolve.py discussed as path to context-aware deduplication — separate task
 
+**Skill review (opus, post-implementation):**
+- 0 critical, 2 major, 5 minor found
+- Fixed: destination vocabulary mismatch (Major 1 — design outputs closed enum matching runbook), ungrounded "3-5 triggers" count (Minor 1), `agent-core/` path overlap between production and prose rows (Minor 2), "LLM-prose" → "agentic-prose" terminology (Minor 4)
+- Skipped with rationale: execution routing duplication (Major 2 — inline per cross-reference anti-pattern learning), ephemeral missing from runbook enum (Minor 3 — unreachable category), threshold annotation consolidation (Minor 5 — independently ungrounded)
+- A.2.5 escape hatch removed (was "skip if direct Read" — any skip condition on recall gates is the failure mode per learnings)
+
 ## Pending Tasks
 
 - [x] **Complexity routing** — `/ground plans/complexity-routing/problem.md` | opus | restart
@@ -47,6 +53,9 @@
 - [ ] **Recall deduplication** — integrate session context scraping into `when-resolve.py` to filter already-loaded entries | sonnet
   - Session scraper prototype: `plans/prototypes/session-scraper.py`
   - Dedup should be opt-in (`--new-only` flag or `null` mode), not default — explicit queries may resolve for sub-agent prompts
+- [ ] **Agentic prose terminology** — replace "LLM prose"/"LLM-consumed prose" variants across codebase | sonnet
+  - Search: "llm prose", "llm-prose", "LLM-prose", "LLM-consumed prose", "LLM generated prose" (with/without hyphens)
+  - Replace with "agentic prose" / "agentic-prose" as appropriate per context
 - [ ] **Tier threshold grounding** — calibrate Tier 1/2/3 file-count thresholds against empirical data | opus
   - Thresholds (<6, 6-15, >15) are ungrounded operational parameters
   - Needs measurement from execution history, not confabulated heuristics
