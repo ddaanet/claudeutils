@@ -125,12 +125,31 @@
   - Requirements captured, ready for design
   - Key decisions: all ~/.claude/projects/ (not just claudeutils), agent files are first-class sources, many-to-many session↔commit, tool I/O noise by default
 
+- [ ] **Agentic prose terminology** — replace "LLM prose"/"LLM-consumed prose" variants across codebase | sonnet
+  - Search: "llm prose", "llm-prose", "LLM-prose", "LLM-consumed prose", "LLM generated prose" (with/without hyphens)
+  - Replace with "agentic prose" / "agentic-prose" as appropriate per context
+- [x] **Apply routing model** — apply grounded model to `/design` and `/runbook` skills | sonnet
+  - 7 fix points from grounding report: `plans/reports/complexity-routing-grounding.md`
+  - `/design`: Phase 0 output + vocabulary, Simple path recall-explore-recall, Phase B exploration routing, second recall after explore
+  - `/runbook`: destination-aware file counting, flag thresholds as ungrounded
+  - Reference: `agents/decisions/execution-strategy.md` for tier rationale
+- [x] **Complexity routing** — `/ground plans/complexity-routing/problem.md` | opus | restart
+  - Ground classification + routing model against external frameworks (Cynefin, XP spikes, Lean)
+  - Produces revised taxonomy and routing rules; skill edits are separate execution task
+- [ ] **Recall deduplication** — integrate session context scraping into `when-resolve.py` to filter already-loaded entries | sonnet
+  - Session scraper prototype: `plans/prototypes/session-scraper.py`
+  - Dedup should be opt-in (`--new-only` flag or `null` mode), not default — explicit queries may resolve for sub-agent prompts
+- [ ] **Tier threshold grounding** — calibrate Tier 1/2/3 file-count thresholds against empirical data | opus
+  - Thresholds (<6, 6-15, >15) are ungrounded operational parameters
+  - Needs measurement from execution history, not confabulated heuristics
+- [ ] **when-resolve null mode** — add no-op `null` argument to `when-resolve.py` for gate anchoring | sonnet
+  - Equalizes tool call cost between positive/negative recall paths
+  - Prevents fast-pathing past recall gates
+  - Referenced by `/design` A.2.5 post-explore recall gate
+
 ## Worktree Tasks
 
 
-- [ ] **Session scraping prototype** → `session-scraping-prototype` — `agent-core/bin/scrape-session-logs.py <topic>` | sonnet
-  - Extract conversation turns from session transcripts relevant to a topic
-  - Referenced in grounding-criteria.md; git history shows what changed, session logs show why
 
 - [ ] **Python3 redirect hook** → `python3-redirect-hook` — `/design plans/precommit-python3-redirect/brief.md` | sonnet
   - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
