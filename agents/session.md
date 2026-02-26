@@ -147,12 +147,12 @@
   - Prevents fast-pathing past recall gates
   - Referenced by `/design` A.2.5 post-explore recall gate
 
+- [x] **Hook output improvements** — Implement audit design decisions: pretooluse-recipe-redirect.py (remove _Redirect/_Block, all blocks via permissionDecision:deny + short reason + additionalContext + systemMessage), pretooluse-recall-check.py rewrite (agent-type discriminator, EXECUTION_AGENTS block gate), pretooluse-block-tmp.sh + pretooluse-symlink-redirect.sh migrate from exit 2 to permissionDecision:deny, userpromptsubmit-shortcuts.py systemMessage improvements (behavioral outlines for Tier 2, authored summaries for Tier 2.5, add c/y shortcuts) | sonnet
+
 ## Worktree Tasks
 
 
 
-- [ ] **Python3 redirect hook** → `python3-redirect-hook` — `/design plans/precommit-python3-redirect/brief.md` | sonnet
-  - PreToolUse hook: intercept python3/uv-run/ln patterns, redirect to correct invocations
 
 ## Blockers / Gotchas
 
