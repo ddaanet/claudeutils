@@ -64,3 +64,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Full excerpts per entry (heading + source + relevance + content excerpt). Creates stale snapshots — if decision files change between artifact creation and consumption, excerpts are outdated.
 - Correct pattern: Entry keys only. Artifact lists trigger phrases with 1-line relevance notes. Downstream consumers batch-resolve via `when-resolve.py` to get current content. No staleness, no excerpt duplication.
 - Evidence: `plans/skills-quality-pass/recall-artifact.md` used keys-only format; `plans/task-lifecycle/recall-artifact.md` used full excerpts. Keys-only is structurally superior — the artifact is a curated index, not a cache.
+## When writing hook redirect messages
+- Anti-pattern: "Use X instead of Y" without explaining why. Agent sees the redirect but lacks rationale to internalize the preference — may override in future invocations.
+- Correct pattern: Include brief rationale in every hook message. "Use X directly — python3 prefix breaks permissions.allow matching." Rationale improves agent adherence because it provides a reason to comply, not just an instruction.
+- Platform noise: Claude Code prepends `[hook-command-path]:` to stderr on exit 2 blocks. Shorten hook commands in settings.json (drop interpreter prefix, drop `$CLAUDE_PROJECT_DIR`) to reduce this noise. Scripts have shebangs; hooks execute from project root.
