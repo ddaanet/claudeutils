@@ -1,24 +1,24 @@
 # Session Handoff: 2026-02-26
 
-**Status:** Skill descriptions rewritten for CLI display; worktree lifecycle (create, merge, rm); filed upstream issue.
+**Status:** Worktree merges consolidated; post-merge validation permanent gotcha; diff baseline rule; stale hook cleanup; 3 worktrees ready to create.
 
 ## Completed This Session
 
-- **Worktree SKILL.md CLI signature** — documented positional `TASK_NAME` (no `--task` flag)
-- **Worktree lifecycle** — created block-rm-lock (merged), session-scraping-prototype (merged, kept), python3-redirect-hook (active)
-- **Skill H1 titles** — fixed 6 skills with generic/internal titles (design, runbook, error-handling, gitmoji, plugin-dev-validation, project-conventions)
-- **Skill description rewrite** — 21 skills rewritten from "This skill should be used when..." to action-verb-first format for CLI picker readability
-  - Pattern: "Action verb what it does. Triggers on 'X', 'Y', 'Z'."
-  - Used `batch-edit.py` for efficient bulk application
-- **Filed upstream issue** — [anthropics/claude-code#28934](https://github.com/anthropics/claude-code/issues/28934): skill `description` serves dual purpose (agent triggering + CLI picker display), proposed `display` field
-- **Decision file fix** — corrected `operational-practices.md` "When Loading Context Before Skill Edits" entry (H1 is body content, not picker text)
-- **Learnings updated** — new "When editing skill files" entry documenting dual-purpose constraint; invalidated old entry claiming "This skill should be used when..." format is required
+- **Merged python3-redirect-hook** — hook command shortening (drop python3/bash prefix, drop $CLAUDE_PROJECT_DIR), permissionDecision:deny migration, hook output audit learnings (3 new entries)
+- **Merged session-scraping-prototype** — complexity routing grounding (6 frameworks → 8 principles → 7 fix points applied), execution-strategy.md decision file, session scraper prototype, 6 new learnings
+- **Post-merge validation** — both merges verified: no session.md task loss, no learnings.md entry loss
+- **Diff baseline rule** — ambient directive in worktree skill: use three-dot diff (`main...branch`) for merge analysis, not two-dot
+- **Permanent post-merge gotcha** — session.md gotcha rewritten: validate session.md AND learnings.md after every merge, 3 known failure modes documented
+- **Stale hook cleanup** — removed `tmp/test-hook-channels.py` entry from settings.json (leftover from hook output audit, produced empty user-directed message)
+- **Process-critical triage** — identified 8 process-critical tasks; handoff wt awareness superseded; tool deviation hook scope redefined; merge learnings delta reevaluated
+- **New task: Design grounding update** — `/ground` with session scraper exploration input
 
 ## Pending Tasks
 
-- [ ] **Tool deviation hook** — PostToolUse hook on Bash to detect when-resolve.py failures | sonnet
-  - Check exit code + stderr patterns from specific scripts
-  - Narrower than governor agent (PreToolUse on everything), but catches the specific failure class
+- [ ] **Tool deviation hook** — PostToolUse hook: agents declare expected Bash outcome, hook validates actual vs declared | sonnet
+  - General framework: agent declares expected exit code + output pattern before Bash call
+  - PostToolUse hook compares actual result, stops or redirects to diagnose-and-compensate on mismatch
+  - Broader than original scope (was: just when-resolve.py failures)
 
 - [ ] **Compensate-continue skill** — `/ground` then `/design` | opus
   - Activated after unexpected stop. Records compensation strategy. Applies trivial workarounds inline (e.g., rename heading to route around parser bug). Creates pending task for proper fix. Resumes interrupted work via continuation-prepend.
@@ -39,7 +39,7 @@
   - Transport solved: `git show <branch>:<path>` from main (no sandbox needed)
   - Remaining: requirements skill path flag/auto-detection, optional CLI subcommand (`_worktree import`)
   - Absorbs: Revert cross-tree sandbox access (remove `additionalDirectories` from `_worktree new`)
-- [ ] **Handoff wt awareness** — Only consolidate memory in main repo | sonnet
+- [–] **Handoff wt awareness** — superseded; /codify is now manual
 - [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
   - Plan: parallel-orchestration | Blocked on: orchestrate-evolution
 - [ ] **Model directive pipeline** — Model guidance design → runbook → execution | opus
@@ -128,31 +128,22 @@
 - [ ] **Agentic prose terminology** — replace "LLM prose"/"LLM-consumed prose" variants across codebase | sonnet
   - Search: "llm prose", "llm-prose", "LLM-prose", "LLM-consumed prose", "LLM generated prose" (with/without hyphens)
   - Replace with "agentic prose" / "agentic-prose" as appropriate per context
-- [x] **Apply routing model** — apply grounded model to `/design` and `/runbook` skills | sonnet
-  - 7 fix points from grounding report: `plans/reports/complexity-routing-grounding.md`
-  - `/design`: Phase 0 output + vocabulary, Simple path recall-explore-recall, Phase B exploration routing, second recall after explore
-  - `/runbook`: destination-aware file counting, flag thresholds as ungrounded
-  - Reference: `agents/decisions/execution-strategy.md` for tier rationale
-- [x] **Complexity routing** — `/ground plans/complexity-routing/problem.md` | opus | restart
-  - Ground classification + routing model against external frameworks (Cynefin, XP spikes, Lean)
-  - Produces revised taxonomy and routing rules; skill edits are separate execution task
 - [ ] **Recall deduplication** — integrate session context scraping into `when-resolve.py` to filter already-loaded entries | sonnet
   - Session scraper prototype: `plans/prototypes/session-scraper.py`
   - Dedup should be opt-in (`--new-only` flag or `null` mode), not default — explicit queries may resolve for sub-agent prompts
 - [ ] **Tier threshold grounding** — calibrate Tier 1/2/3 file-count thresholds against empirical data | opus
   - Thresholds (<6, 6-15, >15) are ungrounded operational parameters
   - Needs measurement from execution history, not confabulated heuristics
+- [ ] **Design grounding update** — `/ground` with session scraper exploration input | opus
+  - Session scraper (`plans/prototypes/session-scraper.py`) extracts actual session behavior as grounding evidence
+  - Feeds into /design skill grounding refresh — complements external framework research with empirical session data
+  - Prior grounding: `plans/reports/design-skill-grounding.md` (6 frameworks, 8 principles, 7 gaps)
 - [ ] **when-resolve null mode** — add no-op `null` argument to `when-resolve.py` for gate anchoring | sonnet
   - Equalizes tool call cost between positive/negative recall paths
   - Prevents fast-pathing past recall gates
   - Referenced by `/design` A.2.5 post-explore recall gate
 
-- [x] **Hook output improvements** — Implement audit design decisions: pretooluse-recipe-redirect.py (remove _Redirect/_Block, all blocks via permissionDecision:deny + short reason + additionalContext + systemMessage), pretooluse-recall-check.py rewrite (agent-type discriminator, EXECUTION_AGENTS block gate), pretooluse-block-tmp.sh + pretooluse-symlink-redirect.sh migrate from exit 2 to permissionDecision:deny, userpromptsubmit-shortcuts.py systemMessage improvements (behavioral outlines for Tier 2, authored summaries for Tier 2.5, add c/y shortcuts) | sonnet
-
 ## Worktree Tasks
-
-
-
 
 ## Blockers / Gotchas
 
@@ -172,8 +163,8 @@
 - Operator prefix no longer used in matching — bare trigger matching handles both `/when` and `/how` entries
 - `removeprefix("to ")` in resolver strips leftover "to" from "how to X" invocations
 
-**Learnings at 90 lines, 19 entries:**
-- Over 80-line soft limit. `/codify` needed.
+**Learnings at 102 lines, 22 entries:**
+- Well over 80-line soft limit. `/codify` needed.
 
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback deployed (Phase 4).
@@ -207,7 +198,7 @@
 
 ## Next Steps
 
-Proceed with next pending task: **Tool deviation hook** — PostToolUse hook to detect when-resolve.py failures.
+3 worktrees to create: design-grounding-update, merge-learnings-delta, session-md-validator. Then proceed with next in-tree task.
 
 ## Reference Files
 

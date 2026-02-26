@@ -86,10 +86,6 @@
           {
             "type": "command",
             "command": "agent-core/hooks/pretooluse-recipe-redirect.py"
-          },
-          {
-            "type": "command",
-            "command": "tmp/test-hook-channels.py"
           }
         ]
       },
