@@ -37,3 +37,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Decisions loaded via `/recall broad` early in session aren't functionally present when errors fire later (context rotation). The agent processes lint error against immediate context (error message, rule description), not against decisions loaded 50k+ tokens earlier.
 - Anti-pattern: Adding another recall pass as prose instruction ("recall after lint failure") — this is a prose gate, same failure mode as the original recall.
 - Correct pattern: Structural injection — PostToolUse hook injects memory-index content on first lint/precommit red after green (state-transition gated). Separate PreToolUse recall gate forces index scanning before fix attempt. Two layers: injection (availability) + gate (application).
+## When handling deliverable review findings
+- Anti-pattern: "Minor findings deferred — no pending task created." Deferral without a tracking mechanism is abandonment. The finding disappears from all active surfaces.
+- Correct pattern: Every finding must resolve to one of: (1) fix inline now, or (2) pending task as issue tracker entry. There is no third option. "Noted in report" is not a resolution — reports are not checked proactively.
+- Rationale: Session.md pending tasks are the issue tracker. If work isn't there, it doesn't exist.

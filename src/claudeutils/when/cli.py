@@ -20,7 +20,10 @@ def _strip_operator(arg: str) -> str:
 
 
 def _collect_queries(args: tuple[str, ...]) -> list[str]:
-    """Collect queries from CLI args and stdin."""
+    """Collect queries from CLI args and stdin.
+
+    Args first, then stdin lines (if piped). Blank stdin lines skipped.
+    """
     queries = list(args or [])
 
     if not sys.stdin.isatty():
@@ -40,10 +43,10 @@ def _resolve_queries(
     seen: set[str] = set()
     errors: list[str] = []
 
-    for arg in queries:
-        query_str = _strip_operator(arg)
+    for query in queries:
+        query_str = _strip_operator(query)
         if not query_str.strip():
-            errors.append(f"Error: Empty query body in '{arg}'.")
+            errors.append(f"Error: Empty query body in '{query}'.")
             continue
 
         try:

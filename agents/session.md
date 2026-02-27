@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-27
 
-**Status:** Fix when-resolve.py delivered (dedup, stdin, navigation simplification). Corrector review clean. Discussion: recall artifact models, lint-gated recall, `resync` shorthand.
+**Status:** when-resolve-fix delivered and reviewed. Deliverable review: 0C/0M/4m, 3 fixed inline. Learning: all review findings must resolve to fix-now or pending-task.
 
 ## Completed This Session
 
@@ -17,13 +17,17 @@
 - **Discussion: recall artifact models** — two distinct models identified: pipeline (grouped entries with relevance notes, selective resolution) vs sub-agent injection (flat list, resolve-all, no selection judgment)
 - **Discussion: lint-gated recall** — context rotation problem: decisions loaded via `/recall broad` early in session aren't functionally present when lint error fires later. Fix: PostToolUse hook injects memory-index on first lint/precommit red after green (state-transition gated). Separate recall gate (PreToolUse) forces index scanning before fix attempt. Defense-in-depth: injection (layer 1) + mandatory recall gate (layer 2)
 - **Discussion: `resync` shorthand** — summarize conversation state for user validation before resuming execution; interpreted as "stop and report," NOT "continue"
+- **Deliverable review: when-resolve-fix** — 0C/0M/4m (3 fixed, 1 kept as-is)
+  - Fixed: `arg` → `query` loop variable rename, `_collect_queries` docstring ordering note, added `test_dedup_with_error`
+  - Kept: `tuple[str, ...]` type annotation — documents Click call site
+  - Plan: when-resolve-fix | Status: delivered | Report: `plans/when-resolve-fix/reports/deliverable-review.md`
 
 ## Pending Tasks
 
 ### Tier 1: Recall/when-resolve (foundational)
 
 - [x] **Fix when-resolve.py** — dedup, stdin, navigation simplification delivered
-- [ ] **Review when-resolve** — `/deliverable-review plans/when-resolve-fix` | opus | restart
+- [x] **Review when-resolve** — delivered, 0C/0M/4m (3 fixed inline)
 - [ ] **when-resolve null mode** — add no-op `null` argument to `when-resolve.py` for gate anchoring | sonnet
   - Equalizes tool call cost between positive/negative recall paths
   - Prevents fast-pathing past recall gates
@@ -235,7 +239,7 @@
 
 ## Next Steps
 
-Fix when-resolve.py delivered. Next: **Deliverable review: when-resolve-fix** (opus, restart) then **when-resolve null mode** (4.3).
+when-resolve-fix fully delivered. Next: **when-resolve null mode** (sonnet).
 
 ## Reference Files
 

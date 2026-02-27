@@ -322,6 +322,23 @@ def test_stdin_strips_operator_prefix() -> None:
         assert mock_resolve.call_args[0][0] == "writing tests"
 
 
+def test_dedup_with_error() -> None:
+    """Dedup removes duplicate, error still surfaces, exit 1."""
+    runner = CliRunner()
+
+    with patch("claudeutils.when.cli.resolve") as mock_resolve:
+        mock_resolve.side_effect = [
+            "# Same\n\nContent",
+            "# Same\n\nContent",
+            ResolveError("No match for 'bad'"),
+        ]
+
+        result = runner.invoke(cli, ["when", "q1", "q2", "bad"])
+        assert result.exit_code == 1
+        assert result.output.count("# Same") == 1
+        assert "No match for 'bad'" in result.output
+
+
 def test_no_queries_error() -> None:
     """Error when no queries from args or stdin."""
     runner = CliRunner()
