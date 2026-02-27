@@ -101,3 +101,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Tier 2 injections (discuss, pending, brainstorm, quick, learn): behavioral outline + non-blank line count. Format: `discuss: assess, stress-test, state verdict. (N lines)`. Non-blank lines: `sum(1 for l in expansion.split('\n') if l.strip())`.
 - Tier 2.5 guards (1-line injections): authored human summary, not verbatim content. Example: "Agent instructed to use claude-code-guide" not the raw 130-char injection text.
 - Terse commands (c, y): same brief text for both audiences — instruction IS the summary.
+## When a proximal requirement reveals lifecycle gaps
+- Triage feedback (Gap 7) required a post-execution comparison point. Investigation: /commit too generic (fires all sessions), /handoff wrong scope (session state not execution assessment). Root cause: inline execution (Tier 1, /design direct execution) has no lifecycle skill. The pipeline state machine goes /requirements → /design → /runbook → /orchestrate → /deliverable-review → /commit, but work classified as execution-ready exits through an unstructured gap between /design and /handoff.
+- Correct pattern: the proximal requirement points at the structural gap. Fix the gap (inline execution skill covering pre-work + execute + post-work), and the proximal requirement becomes one FR among many.
+- Corollary: conditional gates ("skip Read if no /design ran") reintroduce prose-gate failure modes. The D+B principle applies: unconditional Read, file absence is the negative path. A Read returning file-not-found is cheaper than the risk of a missed comparison.
+## When requirements-clarity gate fires
+- /design Phase 0 correctly detected 5 mechanism-free open questions in `plans/triage-feedback/problem.md` and rerouted to /requirements. This is the first empirical validation of the requirements-clarity gate — previously 0 events in n=38 sessions (Gap 4 coverage note in grounding report).
+- Data point: Gap 1 remains Mitigated (not Closed). The structured output block format was sufficient to trigger the correct routing decision without a full D+B tool-call anchor.
