@@ -177,3 +177,221 @@ def test_report_count_excludes_preexecution(tmp_path: Path) -> None:
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
     assert "Reports: 2" in result.stdout, f"Expected 'Reports: 2', got: {result.stdout}"
+
+
+def test_behavioral_code_detected(tmp_path: Path) -> None:
+    """Script detects behavioral code (functions and classes)."""
+    repo_path, baseline_sha = _init_repo(tmp_path)
+
+    (repo_path / "newcode.py").write_text(
+        "def new_function():\n    pass\n\nclass NewClass:\n    pass\n"
+    )
+
+    result = subprocess.run(
+        ["git", "add", "newcode.py"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git add failed: {result.stderr}"
+
+    result = subprocess.run(
+        ["git", "commit", "-m", "add code"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git commit failed: {result.stderr}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "testjob", baseline_sha],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"Expected exit 0, got {result.returncode}: {result.stderr}"
+    )
+    assert "Behavioral code: yes" in result.stdout, (
+        f"Expected 'Behavioral code: yes', got: {result.stdout}"
+    )
+
+
+def test_no_behavioral_code_for_prose(tmp_path: Path) -> None:
+    """Script reports no behavioral code for prose-only files."""
+    repo_path, baseline_sha = _init_repo(tmp_path)
+
+    (repo_path / "README.md").write_text(
+        "# My Project\n\nThis is a readme file with only prose.\n"
+    )
+
+    result = subprocess.run(
+        ["git", "add", "README.md"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git add failed: {result.stderr}"
+
+    result = subprocess.run(
+        ["git", "commit", "-m", "add readme"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git commit failed: {result.stderr}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "testjob", baseline_sha],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"Expected exit 0, got {result.returncode}: {result.stderr}"
+    )
+    assert "Behavioral code: no" in result.stdout, (
+        f"Expected 'Behavioral code: no', got: {result.stdout}"
+    )
+
+
+def test_underclassified_simple_with_behavioral_code(tmp_path: Path) -> None:
+    """Script detects underclassification when Simple has behavioral code."""
+    repo_path, baseline_sha = _init_repo(tmp_path)
+
+    classification_dir = repo_path / "plans" / "testjob"
+    classification_dir.mkdir(parents=True)
+    (classification_dir / "classification.md").write_text(
+        "**Classification:** Simple\n"
+    )
+
+    (repo_path / "code.py").write_text("def foo():\n    pass\n")
+
+    result = subprocess.run(
+        ["git", "add", "code.py"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git add failed: {result.stderr}"
+
+    result = subprocess.run(
+        ["git", "commit", "-m", "add code"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git commit failed: {result.stderr}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "testjob", baseline_sha],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"Expected exit 0, got {result.returncode}: {result.stderr}"
+    )
+    assert "underclassified" in result.stdout, (
+        f"Expected 'underclassified' in: {result.stdout}"
+    )
+    assert "Triage: predicted Simple" in result.stdout, (
+        f"Expected 'Triage: predicted Simple' in: {result.stdout}"
+    )
+
+
+def test_overclassified_complex_minimal_changes(tmp_path: Path) -> None:
+    """Script detects overclassification when Complex has minimal changes."""
+    repo_path, baseline_sha = _init_repo(tmp_path)
+
+    classification_dir = repo_path / "plans" / "testjob"
+    classification_dir.mkdir(parents=True)
+    (classification_dir / "classification.md").write_text(
+        "**Classification:** Complex\n"
+    )
+
+    (repo_path / "README.md").write_text("# Documentation\n\nJust prose.\n")
+
+    result = subprocess.run(
+        ["git", "add", "README.md"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git add failed: {result.stderr}"
+
+    result = subprocess.run(
+        ["git", "commit", "-m", "add readme"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git commit failed: {result.stderr}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "testjob", baseline_sha],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"Expected exit 0, got {result.returncode}: {result.stderr}"
+    )
+    assert "overclassified" in result.stdout, (
+        f"Expected 'overclassified' in: {result.stdout}"
+    )
+
+
+def test_match_moderate(tmp_path: Path) -> None:
+    """Script reports match for Moderate classification with behavioral code."""
+    repo_path, baseline_sha = _init_repo(tmp_path)
+
+    classification_dir = repo_path / "plans" / "testjob"
+    classification_dir.mkdir(parents=True)
+    (classification_dir / "classification.md").write_text(
+        "**Classification:** Moderate\n"
+    )
+
+    (repo_path / "code.py").write_text("def bar():\n    pass\n")
+
+    result = subprocess.run(
+        ["git", "add", "code.py"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git add failed: {result.stderr}"
+
+    result = subprocess.run(
+        ["git", "commit", "-m", "add code"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git commit failed: {result.stderr}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "testjob", baseline_sha],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"Expected exit 0, got {result.returncode}: {result.stderr}"
+    )
+    assert "match" in result.stdout, f"Expected 'match' in: {result.stdout}"
