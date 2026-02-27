@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-27
 
-**Status:** Inline-execute plan delivered (5/5 tasks complete). All FRs integrated: /design, /runbook, pipeline-contracts, memory-index, continuation-passing. Cross-skill review clean on routing and lifecycle coverage.
+**Status:** Deliverable review complete → rework. 1 Critical (reclassified Major by discussion), 1 Major (reclassified Minor), 7 Layer 1 fixes applied. Next session: `/design` the findings report.
 
 ## Completed This Session
 
@@ -67,12 +67,23 @@
 - Corrector (opus): 1 critical FIXED (memory-index SKILL.md missing 3 entries), 1 major FIXED (heading "How Dispatch" → "How To Dispatch"), 1 minor FIXED (skills count Five → Six). All 8 verification criteria pass.
 - Review: `plans/inline-execute/reports/review-integration.md`
 
-**Cross-skill consistency review (this session):**
+**Cross-skill consistency review (prior session):**
 - Opus reviewer on design + runbook + inline + orchestrate + deliverable-review
 - 6 criteria: routing correctness, continuation-passing, allowed-tools, lifecycle coverage, downstream consumers, deliverable-review
 - 2 major (pre-existing): /design and /runbook lack `continuation:` frontmatter blocks — added to Retrofit skill pre-work task
 - 3 minor (pre-existing): no `## Continuation` body sections, /runbook lacks Downstream Consumers section — same task
 - Review: `plans/inline-execute/reports/cross-skill-review.md`
+
+**Deliverable review (this session):**
+- Phase 1: Inventory — 11 deliverables, 786 net lines, all design scope items covered
+- Phase 2: Gap analysis — no missing deliverables, 2 unspecified but justified (execution-strategy.md, continuation-passing.md)
+- Phase 3 Layer 1: Two opus corrector agents (code+test, prose). 7 fixes applied: inline divergence message missing evidence summary (Major→FIXED), underclassified-via-reports untested (Major→FIXED), Tier 2 planning guidance removed from /runbook (Major→FIXED), fragile grep, empty classification guard, overclassified assertion, variable naming (4 Minor→FIXED). Tests 14/14 green.
+- Phase 3 Layer 2: Cross-cutting review found format mismatch (Critical, reclassified Major in discussion) + pivot table gap (Major, reclassified Minor in discussion)
+- Classification format mismatch: /design writes `- **Classification:** Simple` (list marker), triage-feedback.sh grep expects `**Classification:**` at line start. Tests pass because fixtures use bare format. Script degrades safely to no-classification but FR-6 comparison non-functional.
+- Pivot table gap: /inline missing from continuation-passing.md Pivot Transactions table (Tier 2 delegated = pivot, Tier 1 direct = not)
+- Severity reclassification discussion: Critical→Major (safe degradation, not incorrect behavior), Major→Minor (advisory table, no operational impact)
+- Lifecycle: `rework` (user chose rework regardless of reclassification)
+- Reports: `plans/inline-execute/reports/deliverable-review.md` (consolidated), `deliverable-review-code-test.md`, `deliverable-review-prose.md`
 
 ## Pending Tasks
 
@@ -98,6 +109,11 @@
   - Plan: inline-execute
   - FR-10 + T6.5 + memory-index + continuation-passing applied, corrector clean (1 critical, 1 major, 1 minor fixed). Review: `plans/inline-execute/reports/review-integration.md`
   - Cross-skill review: `plans/inline-execute/reports/cross-skill-review.md` — 2 major pre-existing (continuation frontmatter) → Retrofit task
+- [ ] **Fix inline-exec findings** — `/design plans/inline-execute/reports/deliverable-review.md` | opus
+  - Plan: inline-execute | Status: rework
+  - Classification format mismatch (grep pattern vs /design list-marker format)
+  - Pivot Transactions table missing /inline entry
+  - Unspecified A.3-5 restructure in /design (Minor/excess)
 - [ ] **Entry gate propagation** — `/design` | opus
   - Add git-clean + precommit entry gates to /orchestrate, /deliverable-review, corrector agent
   - Cross-cutting pattern — needs /design to resolve: each skill body vs shared fragment vs hook, and per-consumer questions (corrector double-gating, orchestrate checkpoint overlap, deliverable-review session context)
@@ -125,13 +141,17 @@
 
 ## Blockers / Gotchas
 
-**Task dependency chain:** ~~Triage feedback script~~ → ~~Execution feedback~~ → ~~Create inline skill~~ → ~~Design skill integration~~ → ~~Pipeline integration~~. All 5 inline-execute tasks complete.
+**Task dependency chain:** ~~Triage feedback script~~ → ~~Execution feedback~~ → ~~Create inline skill~~ → ~~Design skill integration~~ → ~~Pipeline integration~~ → deliverable review (rework). Fix inline-execute findings is next.
 
-**Planstate mismatch:** `inline-execute` plan has outline.md (design-sufficient) but no design.md, so planstate reads `requirements`. Task commands reference outline.md directly.
+**Planstate:** `inline-execute` plan lifecycle at `rework`. Plan has outline.md (design-sufficient) but no design.md.
 
 **Learnings.md over soft limit:** ~126 lines vs 80-line soft limit. /codify should run before next substantive work session.
 
 **Hook false positives on template paths:** Corrector dispatch prompts containing `plans/<job>/` trigger pretooluse-recall-check hook. Workaround: use actual plan paths or avoid angle-bracket template placeholders in Task prompts.
+
+## Next Steps
+
+Fix inline-execute findings via `/design plans/inline-execute/reports/deliverable-review.md`. Classification format mismatch is the primary fix; pivot table and A.3-5 excess are minor.
 
 ## Reference Files
 
@@ -149,3 +169,7 @@
 - `plans/inline-execute/reports/review-design-integration.md` — Corrector review (design skill FR-1/FR-9)
 - `plans/inline-execute/reports/review-integration.md` — Corrector review (pipeline integration FR-10/T6.5)
 - `plans/inline-execute/reports/cross-skill-review.md` — Cross-skill consistency (5 skills, 6 criteria)
+- `plans/inline-execute/reports/deliverable-review.md` — Consolidated deliverable review (1C/4M/6m, 7 fixed)
+- `plans/inline-execute/reports/deliverable-review-code-test.md` — Layer 1 code+test review (2M/4m FIXED)
+- `plans/inline-execute/reports/deliverable-review-prose.md` — Layer 1 prose review (1M FIXED)
+- `plans/inline-execute/lifecycle.md` — Plan lifecycle (rework)

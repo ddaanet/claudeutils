@@ -43,6 +43,21 @@ def _git_add_commit(repo_path: Path, filename: str, content: str, message: str) 
     _run_git(repo_path, "commit", "-m", message)
 
 
+def _run_script(
+    repo_path: Path,
+    job: str,
+    baseline: str,
+) -> subprocess.CompletedProcess[str]:
+    """Run triage-feedback.sh and return result."""
+    return subprocess.run(
+        [str(SCRIPT), job, baseline],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+
 def test_script_exists_and_executable() -> None:
     """Script exists and has executable permission."""
     assert SCRIPT.exists(), f"Script not found at {SCRIPT}"
@@ -67,13 +82,7 @@ def test_basic_invocation_produces_output(tmp_path: Path) -> None:
     """Invocation with args produces both Evidence and Verdict sections."""
     repo_path, baseline_sha = _init_repo(tmp_path)
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
@@ -87,13 +96,7 @@ def test_files_changed_count(tmp_path: Path) -> None:
 
     _git_add_commit(repo_path, "newfile.txt", "new content", "add new file")
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
@@ -115,13 +118,7 @@ def test_report_count_excludes_preexecution(tmp_path: Path) -> None:
     (reports_dir / "design-review.md").write_text("design review")
     (reports_dir / "recall-artifact.md").write_text("recall artifact")
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
@@ -139,13 +136,7 @@ def test_behavioral_code_detected(tmp_path: Path) -> None:
         "add code",
     )
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
@@ -165,13 +156,7 @@ def test_no_behavioral_code_for_prose(tmp_path: Path) -> None:
         "add readme",
     )
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
@@ -192,13 +177,7 @@ def test_underclassified_simple_with_behavioral_code(tmp_path: Path) -> None:
 
     _git_add_commit(repo_path, "code.py", "def foo():\n    pass\n", "add code")
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
@@ -224,18 +203,43 @@ def test_overclassified_complex_minimal_changes(tmp_path: Path) -> None:
         repo_path, "README.md", "# Documentation\n\nJust prose.\n", "add readme"
     )
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
     assert "overclassified" in result.stdout, (
         f"Expected 'overclassified' in: {result.stdout}"
+    )
+    assert "Triage: predicted Complex" in result.stdout, (
+        f"Expected 'Triage: predicted Complex' in: {result.stdout}"
+    )
+
+
+def test_underclassified_simple_with_reports(tmp_path: Path) -> None:
+    """Underclassified when Simple has reports but no behavioral code."""
+    repo_path, baseline_sha = _init_repo(tmp_path)
+
+    classification_dir = repo_path / "plans" / "testjob"
+    classification_dir.mkdir(parents=True)
+    (classification_dir / "classification.md").write_text(
+        "**Classification:** Simple\n"
+    )
+
+    reports_dir = classification_dir / "reports"
+    reports_dir.mkdir(parents=True)
+    (reports_dir / "review.md").write_text("review content")
+
+    _git_add_commit(repo_path, "README.md", "# Prose only\n", "add readme")
+
+    result = _run_script(repo_path, "testjob", baseline_sha)
+    assert result.returncode == 0, (
+        f"Expected exit 0, got {result.returncode}: {result.stderr}"
+    )
+    assert "underclassified" in result.stdout, (
+        f"Expected 'underclassified' in: {result.stdout}"
+    )
+    assert "Triage: predicted Simple" in result.stdout, (
+        f"Expected 'Triage: predicted Simple' in: {result.stdout}"
     )
 
 
@@ -251,13 +255,7 @@ def test_match_moderate(tmp_path: Path) -> None:
 
     _git_add_commit(repo_path, "code.py", "def bar():\n    pass\n", "add code")
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
@@ -277,13 +275,7 @@ def test_log_created_with_entry(tmp_path: Path) -> None:
     _git_add_commit(repo_path, "code.py", "def foo():\n    pass\n", "add code")
     (repo_path / "plans" / "reports").mkdir(parents=True, exist_ok=True)
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
@@ -310,27 +302,13 @@ def test_log_appends_multiple_entries(tmp_path: Path) -> None:
     (repo_path / "plans" / "reports").mkdir(parents=True, exist_ok=True)
 
     _git_add_commit(repo_path, "code.py", "def foo():\n    pass\n", "add code")
-    first_baseline = baseline_sha
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", first_baseline],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, f"First script run failed: {result.stderr}"
 
     _git_add_commit(repo_path, "code2.py", "def bar():\n    pass\n", "add code2")
-    second_baseline = baseline_sha
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", second_baseline],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, f"Second script run failed: {result.stderr}"
 
     log_file = repo_path / "plans" / "reports" / "triage-feedback-log.md"
@@ -351,13 +329,7 @@ def test_no_classification_skips_log(tmp_path: Path) -> None:
 
     _git_add_commit(repo_path, "file.txt", "some content", "add file")
 
-    result = subprocess.run(
-        [str(SCRIPT), "testjob", baseline_sha],
-        cwd=repo_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    result = _run_script(repo_path, "testjob", baseline_sha)
     assert result.returncode == 0, (
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
