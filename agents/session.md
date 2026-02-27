@@ -43,16 +43,12 @@
 - [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
   - Plan: parallel-orchestration | Blocked on: orchestrate-evolution
 - [ ] **Model directive pipeline** — Model guidance design → runbook → execution | opus
-- [ ] **Merge learnings delta** — Reconcile learnings.md after diverged merge | sonnet
-  - Plan: merge-learnings-delta | Strategy: main base + branch delta
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
 - [ ] **Plugin migration** — Refresh outline then orchestrate | opus
   - Plan: plugin-migration | Status: ready (stale — Feb 9)
   - Recovery: design.md architecture valid, outline Phases 0-3/5-6 recoverable, Phase 4 needs rewrite
 - [ ] **Test diamond migration** — Needs scoping | depends on runbook evolution (delivered)
 - [ ] **Test diagnostic helper** — Replace subprocess.run check=True with stderr surfacing | sonnet
-- [ ] **Session.md validator** — Scripted precommit check | sonnet
-  - Plan: session-validator | worktree-cli-default merged; all FRs can proceed
 - [ ] **Agent rule injection** — Distill sub-agent rules into agent templates | sonnet
 - [ ] **Handoff insertion policy** — Insert at priority position instead of append | sonnet
 - [ ] **Behavioral design** — Nuanced conversational pattern intervention | opus
@@ -134,16 +130,23 @@
 - [ ] **Tier threshold grounding** — calibrate Tier 1/2/3 file-count thresholds against empirical data | opus
   - Thresholds (<6, 6-15, >15) are ungrounded operational parameters
   - Needs measurement from execution history, not confabulated heuristics
-- [ ] **Design grounding update** — `/ground` with session scraper exploration input | opus
-  - Session scraper (`plans/prototypes/session-scraper.py`) extracts actual session behavior as grounding evidence
-  - Feeds into /design skill grounding refresh — complements external framework research with empirical session data
-  - Prior grounding: `plans/reports/design-skill-grounding.md` (6 frameworks, 8 principles, 7 gaps)
 - [ ] **when-resolve null mode** — add no-op `null` argument to `when-resolve.py` for gate anchoring | sonnet
   - Equalizes tool call cost between positive/negative recall paths
   - Prevents fast-pathing past recall gates
   - Referenced by `/design` A.2.5 post-explore recall gate
 
 ## Worktree Tasks
+
+- [ ] **Design grounding update** → `design-grounding-update` — `/ground` with session scraper exploration input | opus
+  - Session scraper (`plans/prototypes/session-scraper.py`) extracts actual session behavior as grounding evidence
+  - Feeds into /design skill grounding refresh — complements external framework research with empirical session data
+  - Prior grounding: `plans/reports/design-skill-grounding.md` (6 frameworks, 8 principles, 7 gaps)
+
+- [ ] **Merge learnings delta** → `merge-learnings-delta` — Reconcile learnings.md after diverged merge | sonnet
+  - Plan: merge-learnings-delta | Strategy: main base + branch delta
+
+- [ ] **Session.md validator** → `session-md-validator` — Scripted precommit check | sonnet
+  - Plan: session-validator | worktree-cli-default merged; all FRs can proceed
 
 ## Blockers / Gotchas
 
