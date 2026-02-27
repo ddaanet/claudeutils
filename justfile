@@ -2,7 +2,8 @@
 # - Errors should not pass silently without good reason
 # - Only use `2>/dev/null` for probing (checking exit status when command has no quiet option)
 # - Only use `|| true` to continue after expected failures (required with `set -e`)
-# Enable bash tracing (set -x) for all recipes. Usage: just trace=true <recipe>
+
+# To enable bash tracing (set -x): just trace=true <recipe>
 
 trace := "false"
 
