@@ -4,7 +4,6 @@
 # - Only use `|| true` to continue after expected failures (required with `set -e`)
 
 # To enable bash tracing (set -x): just trace=true <recipe>
-
 trace := "false"
 
 # List available recipes

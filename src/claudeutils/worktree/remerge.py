@@ -34,10 +34,11 @@ def remerge_learnings_md() -> None:
     ours_content = _git("show", "HEAD:agents/learnings.md", check=False)
     theirs_content = _git("show", "MERGE_HEAD:agents/learnings.md", check=False)
 
+    base_segs = parse_segments(base_content)
     ours_segs = parse_segments(ours_content)
     theirs_segs = parse_segments(theirs_content)
     merged_segments, conflicts = diff3_merge_segments(
-        parse_segments(base_content),
+        base_segs,
         ours_segs,
         theirs_segs,
     )
@@ -63,7 +64,6 @@ def remerge_learnings_md() -> None:
     Path("agents/learnings.md").write_text(_segments_to_content(merged_segments))
     _git("add", "agents/learnings.md")
 
-    base_segs = parse_segments(base_content)
     kept = sum(1 for h in merged_segments if h != "" and h in ours_segs)
     appended = sum(1 for h in merged_segments if h != "" and h not in ours_segs)
     dropped = sum(
