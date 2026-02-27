@@ -38,6 +38,9 @@
 - **Plan cleanup** — deleted 4 delivered plan directories (merge-learnings-delta, parsing-fixes-batch, planstate-delivered, skills-quality-pass)
 - **Pending task reorder** — session.md reordered by prioritization tiers (recall → prose → workflow → rest)
 - **FR-6 added to session-validator** — plan-archive coverage check (deleted plans must have archive entry)
+- **Merged inline-exec-fixes** — classification format fix (list-marker parsing), test added, worktree merge validator caught duplicate task
+- **Worktree cleanup** — removed when-resolve-fixes, skill-retrofit, session-md-validator worktrees (no changes on any)
+- **Discussion: plan archival** — precommit validator (option A) selected over workflow integration (B) or lifecycle coupling (C); proven failure mode (2 bulk deletes without archival)
 
 ## Pending Tasks
 
@@ -256,7 +259,7 @@
 
 ## Next Steps
 
-One worktree active: **inline-exec-fixes** (Fix inline-exec findings). Next in-tree per prioritization: **Fix when-resolve.py** (4.8) then **when-resolve null mode** (4.3).
+No worktrees active. Next per prioritization: **Fix when-resolve.py** (4.8) then **when-resolve null mode** (4.3) — both Tier 1 recall fixes.
 
 ## Reference Files
 
