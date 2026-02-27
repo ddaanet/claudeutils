@@ -395,3 +395,141 @@ def test_match_moderate(tmp_path: Path) -> None:
         f"Expected exit 0, got {result.returncode}: {result.stderr}"
     )
     assert "match" in result.stdout, f"Expected 'match' in: {result.stdout}"
+
+
+def test_log_created_with_entry(tmp_path: Path) -> None:
+    """Script creates and appends to triage-feedback-log.md."""
+    repo_path, baseline_sha = _init_repo(tmp_path)
+
+    classification_dir = repo_path / "plans" / "testjob"
+    classification_dir.mkdir(parents=True)
+    (classification_dir / "classification.md").write_text(
+        "**Classification:** Simple\n"
+    )
+
+    (repo_path / "code.py").write_text("def foo():\n    pass\n")
+
+    result = subprocess.run(
+        ["git", "add", "code.py"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git add failed: {result.stderr}"
+
+    result = subprocess.run(
+        ["git", "commit", "-m", "add code"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git commit failed: {result.stderr}"
+
+    (repo_path / "plans" / "reports").mkdir(parents=True, exist_ok=True)
+
+    result = subprocess.run(
+        [str(SCRIPT), "testjob", baseline_sha],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"Expected exit 0, got {result.returncode}: {result.stderr}"
+    )
+
+    log_file = repo_path / "plans" / "reports" / "triage-feedback-log.md"
+    assert log_file.exists(), f"Log file not created at {log_file}"
+
+    log_content = log_file.read_text()
+    assert "| Date |" in log_content, f"Header missing in log: {log_content}"
+    assert "testjob" in log_content, f"Job name missing in log: {log_content}"
+    assert "underclassified" in log_content, f"Verdict missing in log: {log_content}"
+
+
+def test_log_appends_multiple_entries(tmp_path: Path) -> None:
+    """Script appends multiple entries to triage-feedback-log.md."""
+    repo_path, baseline_sha = _init_repo(tmp_path)
+
+    classification_dir = repo_path / "plans" / "testjob"
+    classification_dir.mkdir(parents=True)
+    (classification_dir / "classification.md").write_text(
+        "**Classification:** Simple\n"
+    )
+
+    (repo_path / "plans" / "reports").mkdir(parents=True, exist_ok=True)
+
+    (repo_path / "code.py").write_text("def foo():\n    pass\n")
+
+    result = subprocess.run(
+        ["git", "add", "code.py"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git add failed: {result.stderr}"
+
+    result = subprocess.run(
+        ["git", "commit", "-m", "add code"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git commit failed: {result.stderr}"
+
+    first_baseline = baseline_sha
+
+    result = subprocess.run(
+        [str(SCRIPT), "testjob", first_baseline],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"First script run failed: {result.stderr}"
+
+    (repo_path / "code2.py").write_text("def bar():\n    pass\n")
+
+    result = subprocess.run(
+        ["git", "add", "code2.py"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git add code2 failed: {result.stderr}"
+
+    result = subprocess.run(
+        ["git", "commit", "-m", "add code2"],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"git commit code2 failed: {result.stderr}"
+
+    second_baseline = baseline_sha
+
+    result = subprocess.run(
+        [str(SCRIPT), "testjob", second_baseline],
+        cwd=repo_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"Second script run failed: {result.stderr}"
+
+    log_file = repo_path / "plans" / "reports" / "triage-feedback-log.md"
+    assert log_file.exists(), f"Log file not created at {log_file}"
+
+    log_content = log_file.read_text()
+    lines = log_content.strip().split("\n")
+
+    data_rows = [line for line in lines if line.startswith("|") and "testjob" in line]
+    assert len(data_rows) == 2, (
+        f"Expected 2 data rows, got {len(data_rows)}: {log_content}"
+    )
