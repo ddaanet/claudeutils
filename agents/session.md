@@ -1,17 +1,20 @@
-# Session Handoff: 2026-02-26
+# Session Handoff: 2026-02-27
 
-**Status:** Worktree merges consolidated; post-merge validation permanent gotcha; diff baseline rule; stale hook cleanup; 3 worktrees ready to create.
+**Status:** 4 worktree merges consolidated; /inline skill and triage-feedback delivered from design-grounding-update; recall skill path fix; 2 new pending tasks from discussion.
 
 ## Completed This Session
 
-- **Merged python3-redirect-hook** — hook command shortening (drop python3/bash prefix, drop $CLAUDE_PROJECT_DIR), permissionDecision:deny migration, hook output audit learnings (3 new entries)
-- **Merged session-scraping-prototype** — complexity routing grounding (6 frameworks → 8 principles → 7 fix points applied), execution-strategy.md decision file, session scraper prototype, 6 new learnings
-- **Post-merge validation** — both merges verified: no session.md task loss, no learnings.md entry loss
-- **Diff baseline rule** — ambient directive in worktree skill: use three-dot diff (`main...branch`) for merge analysis, not two-dot
-- **Permanent post-merge gotcha** — session.md gotcha rewritten: validate session.md AND learnings.md after every merge, 3 known failure modes documented
-- **Stale hook cleanup** — removed `tmp/test-hook-channels.py` entry from settings.json (leftover from hook output audit, produced empty user-directed message)
-- **Process-critical triage** — identified 8 process-critical tasks; handoff wt awareness superseded; tool deviation hook scope redefined; merge learnings delta reevaluated
-- **New task: Design grounding update** — `/ground` with session scraper exploration input
+- **Merged python3-redirect-hook** — hook command shortening, permissionDecision:deny migration, hook output audit learnings (3 entries)
+- **Merged session-scraping-prototype** — complexity routing grounding (6 frameworks → 7 fix points), execution-strategy.md, session scraper prototype, 6 learnings
+- **Merged merge-learnings-delta** — 7 TDD cycles, remerge.py improvements, test fixtures refactored, justfile recipes added
+- **Merged design-grounding-update** — /inline skill (create + design integration + pipeline integration), triage-feedback.sh TDD (7 cycles, 13 tests), design grounding update with session scraper empirical data, execution feedback processed (6 issues classified)
+- **Post-merge validation** — all 4 merges verified: no session.md task loss, no learnings.md entry loss
+- **Diff baseline rule** — ambient directive in worktree skill: three-dot diff for merge analysis
+- **Permanent post-merge gotcha** — validate session.md AND learnings.md after every merge
+- **Stale hook cleanup** — removed `tmp/test-hook-channels.py` from settings.json
+- **Recall skill path fix** — `memory-index.md` → `agents/memory-index.md` across all references
+- **Process-critical triage** — handoff wt awareness superseded; tool deviation hook scope broadened
+- **Discussion: handoff --commit removal** — motivation: decouple handoff from commit-ready state; chain `["/handoff", "/commit"]` replaces `--commit` flag; ~60 occurrences across skills, fragments, tests, continuation infrastructure
 
 ## Pending Tasks
 
@@ -182,6 +185,10 @@
   - /runbook lacks "Downstream Consumers" summary section (issue 5)
   - Audit skills for cold-start gaps; retrofit where beneficial
   - Follow-on after /inline delivery
+- [ ] **When-resolve bloat** — group entries by section, list broader/related once per section header | sonnet
+- [ ] **Handoff --commit removal** — remove --commit from /handoff, expand standalone to chain, deduplicate [handoff, commit] | sonnet
+  - ~60 occurrences: skills, fragments, tests, continuation infrastructure, decision files
+  - Motivation: decouple handoff from commit-ready state (handoff should work on dirty tree)
 - [ ] **Runbook post-explore gate** — opus
   - /runbook Tier 3 Phase 0.5 has recall (resolve + augment) and Phase 0.75 has recall-diff, but no post-exploration re-scan of memory-index for domains discovered during Glob/Grep verification (step 3). /design has A.2.5 for this. Same pattern needed after Phase 0.5 step 3 discovers file areas not anticipated during step 1 recall.
   - Separate from inline-execute delivery — standalone skill edit
@@ -191,10 +198,6 @@
 
 ## Worktree Tasks
 
-- [ ] **Design grounding update** → `design-grounding-update` — `/ground` with session scraper exploration input | opus
-  - Session scraper (`plans/prototypes/session-scraper.py`) extracts actual session behavior as grounding evidence
-  - Feeds into /design skill grounding refresh — complements external framework research with empirical session data
-  - Prior grounding: `plans/reports/design-skill-grounding.md` (6 frameworks, 8 principles, 7 gaps)
 
 - [ ] **Session.md validator** → `session-md-validator` — Scripted precommit check | sonnet
   - Plan: session-validator | worktree-cli-default merged; all FRs can proceed
@@ -217,8 +220,8 @@
 - Operator prefix no longer used in matching — bare trigger matching handles both `/when` and `/how` entries
 - `removeprefix("to ")` in resolver strips leftover "to" from "how to X" invocations
 
-**Learnings at 102 lines, 22 entries:**
-- Well over 80-line soft limit. `/codify` needed.
+**Learnings at 134 lines, 31 entries:**
+- Well over 80-line soft limit. `/codify` urgently needed.
 
 **SessionStart hook #10373 still open:**
 - Output discarded for new interactive sessions. Stop hook fallback deployed (Phase 4).
@@ -252,7 +255,7 @@
 
 ## Next Steps
 
-3 worktrees to create: design-grounding-update, merge-learnings-delta, session-md-validator. Then proceed with next in-tree task.
+Session.md validator worktree active. Next in-tree: **Tool deviation hook** or **Fix when-resolve output bloat** (high priority).
 
 ## Reference Files
 
@@ -265,4 +268,7 @@
 - `plans/task-classification/outline.md` — `/prime` skill + two-section task list design
 - `plans/runbook-recall-expansion/requirements.md` — Step agent + corrector recall during full orchestration (7 FRs)
 - `plans/skill-progressive-disclosure/brief.md` — Segment loading at gate boundaries (/design and /runbook)
-- `plans/reports/design-skill-grounding.md` — Design skill grounding (Strong — 6 frameworks, 8 principles, 7 gaps)
+- `plans/reports/design-skill-grounding.md` — Design skill grounding (updated with session empirical data)
+- `plans/inline-execute/outline.md` — /inline skill design outline
+- `plans/inline-execute/reports/cross-skill-review.md` — Cross-skill review (continuation frontmatter gaps)
+- `agents/decisions/pipeline-contracts.md` — Pipeline contract decision file (new)
