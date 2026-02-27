@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-27
 
-**Status:** merge-learnings-delta reviewed — deliverable review clean (0 critical, 0 major), 1 minor fix applied.
+**Status:** merge-learnings-delta reviewed + RCA fix — cross-context action leakage in worktree Next Steps.
 
 ## Completed This Session
 
@@ -27,13 +27,19 @@
 - Fixed `_pytest.monkeypatch.MonkeyPatch` → `pytest.MonkeyPatch` in `test_learnings_consolidation.py`
 - Report: `plans/merge-learnings-delta/reports/deliverable-review.md`
 
+**RCA: cross-context action leakage (this session):**
+- `/reflect`: STATUS showed `[x]` task as "Next" + promoted merge-to-main as actionable from source worktree
+- Root cause: handoff wrote merge-to-main in Next Steps (unperformable from worktree), STATUS rationalized it into task slot
+- 4 fixes: learning, decision generalization (`workflow-optimization.md`), handoff skill worktree-terminal rule, STATUS graceful degradation
+- Principle: Next Steps must contain only actions performable from current context (generalizes existing commit-task prohibition)
+
 ## Pending Tasks
 
 - [x] **Merge learnings delta** — `x` | sonnet
 
 ## Next Steps
 
-Merge `merge-learnings-delta` branch to main. Plan status will auto-update to `delivered` on merge.
+Branch work complete.
 
 ## Reference Files
 
