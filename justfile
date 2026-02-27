@@ -2,8 +2,8 @@
 # - Errors should not pass silently without good reason
 # - Only use `2>/dev/null` for probing (checking exit status when command has no quiet option)
 # - Only use `|| true` to continue after expected failures (required with `set -e`)
-# Enable bash tracing (set -x) for all recipes. Usage: just trace=true <recipe>
 
+# To enable bash tracing (set -x): just trace=true <recipe>
 trace := "false"
 
 # List available recipes
@@ -19,6 +19,11 @@ dev: format precommit
 precommit:
     #!{{ bash_prolog }}
     sync
+    report "validate memory-index" claudeutils validate memory-index
+    report "validate learnings" claudeutils validate learnings
+    report "validate tasks" claudeutils validate tasks
+    report "validate planstate" claudeutils validate planstate
+    report "validate session-structure" claudeutils validate session-structure
     run-checks
     run-pytest
     run-line-limits
@@ -317,24 +322,29 @@ wt-merge name:
     echo "${GREEN}✓${NORMAL} Merged $branch"
     echo "  Cleanup: ${COMMAND}just wt-rm $slug${NORMAL}"
 
-# Format, check with complexity disabled, test
+# Format, check without complexity, test
 [no-exit-message]
 lint: format
     #!{{ bash_prolog }}
     sync
-    ruff_ignores=C901,PLR0904,PLR0911,PLR0912,PLR0913,PLR0914,PLR0915,PLR0916,PLR0917,PLR1701,PLR1702
-    report "ruff check" ruff check -q --ignore=$ruff_ignores
-    report "docformatter -c" docformatter -c src tests
-    report "mypy" mypy
+    run-lint-checks
     run-pytest
     report-end-safe "Lint"
+
+# Format, check without complexity, NO test
+[no-exit-message]
+red-lint: format
+    #!{{ bash_prolog }}
+    sync
+    run-lint-checks
+    report-end-safe "Red Lint"
 
 # Check code style
 [no-exit-message]
 check:
     #!{{ bash_prolog }}
     sync
-    run-checks
+    run-lint-checks
     report-end-safe "Checks"
 
 # Format code
@@ -562,11 +572,13 @@ run-checks() {
     report "ruff check" ruff check -q
     report "docformatter -c" docformatter -c src tests
     report "mypy" mypy
-    report "validate memory-index" claudeutils validate memory-index
-    report "validate learnings" claudeutils validate learnings
-    report "validate tasks" claudeutils validate tasks
-    report "validate planstate" claudeutils validate planstate
-    report "validate session-structure" claudeutils validate session-structure
+}
+
+run-lint-checks() {
+    ruff_ignores=C901,PLR0904,PLR0911,PLR0912,PLR0913,PLR0914,PLR0915,PLR0916,PLR0917,PLR1701,PLR1702
+    report "ruff check" ruff check -q --ignore=$ruff_ignores
+    report "docformatter -c" docformatter -c src tests
+    report "mypy" mypy
 }
 
 run-pytest() {
@@ -576,7 +588,7 @@ run-pytest() {
     local current_hash
     current_hash=$( {
         python3 --version 2>&1
-        git ls-files -z src/ tests/ | sort -z | xargs -0 cat
+        git ls-files -z src/ tests/ agent-core/hooks/ agent-core/bin/ | sort -z | xargs -0 cat
         cat pyproject.toml
     } | cksum )
     if [ -f "$sentinel" ] && [ "$(cat "$sentinel")" = "$current_hash" ]; then

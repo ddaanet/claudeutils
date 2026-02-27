@@ -135,15 +135,14 @@
   - Prevents fast-pathing past recall gates
   - Referenced by `/design` A.2.5 post-explore recall gate
 
+- [x] **Merge learnings delta** — `x` | sonnet
+
 ## Worktree Tasks
 
 - [ ] **Design grounding update** → `design-grounding-update` — `/ground` with session scraper exploration input | opus
   - Session scraper (`plans/prototypes/session-scraper.py`) extracts actual session behavior as grounding evidence
   - Feeds into /design skill grounding refresh — complements external framework research with empirical session data
   - Prior grounding: `plans/reports/design-skill-grounding.md` (6 frameworks, 8 principles, 7 gaps)
-
-- [ ] **Merge learnings delta** → `merge-learnings-delta` — Reconcile learnings.md after diverged merge | sonnet
-  - Plan: merge-learnings-delta | Strategy: main base + branch delta
 
 - [ ] **Session.md validator** → `session-md-validator` — Scripted precommit check | sonnet
   - Plan: session-validator | worktree-cli-default merged; all FRs can proceed

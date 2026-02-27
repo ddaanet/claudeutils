@@ -34,7 +34,9 @@ Patterns for efficient workflow execution, delegation, and resource usage.
 
 **Rationale:** Next session reads session.md post-commit. Stale commit-pending language causes agents to re-attempt already-completed commits. The rule against commit tasks in Pending/Next Steps must extend to ALL sections.
 
-**Impact:** Prevents duplicate commit attempts in subsequent sessions.
+**Generalization:** Next Steps must contain only actions performable from the current context. Cross-context actions (commit when `--commit` active, merge-to-main from source worktree) create false affordances that agents promote into STATUS task slots. Same principle, different venues.
+
+**Impact:** Prevents duplicate commit attempts and cross-context action leakage in subsequent sessions.
 
 ## .Workflow Efficiency
 

@@ -101,3 +101,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Tier 2 injections (discuss, pending, brainstorm, quick, learn): behavioral outline + non-blank line count. Format: `discuss: assess, stress-test, state verdict. (N lines)`. Non-blank lines: `sum(1 for l in expansion.split('\n') if l.strip())`.
 - Tier 2.5 guards (1-line injections): authored human summary, not verbatim content. Example: "Agent instructed to use claude-code-guide" not the raw 130-char injection text.
 - Terse commands (c, y): same brief text for both audiences — instruction IS the summary.
+## When scoping corrector on TDD deliverables
+- Anti-pattern: Scoping corrector to only the files modified in the most recent TDD cycle. Rationale: "the test is the spec" — production code change is small and test-driven, so review is implicit.
+- Correct pattern: Scope corrector to ALL files changed on the branch vs main (`git diff --name-only main...HEAD`). The deliverable is the full branch, not the last cycle. Test-driven specification doesn't replace review — it narrows what the review needs to check.
+- Evidence: Corrector run on `remerge.py` + test file only (cycle 7 files). User correctly pointed out the full deliverable includes fixtures refactor, hook test updates, justfile changes, and all test files.
+## When writing Next Steps in completed worktree
+- Anti-pattern: Writing "Merge branch to main" in the worktree's Next Steps section. The merge operation can only be performed from main — the instruction creates a false affordance in the source branch. Agent then promotes the Next Steps guidance into STATUS as an actionable task.
+- Correct pattern: Next Steps must contain only actions performable from the current context. In a completed worktree (all tasks `[x]`), Next Steps says "Branch work complete." — no merge instruction. The merge task is tracked on main's session.md (Worktree Tasks section). Same principle as the "no commit tasks in Next Steps" decision (workflow-optimization.md).
+- Evidence: STATUS displayed "Next: Merge learnings delta" from a worktree where the task was `[x]` and the merge could only run from main.
