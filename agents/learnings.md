@@ -101,3 +101,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Tier 2 injections (discuss, pending, brainstorm, quick, learn): behavioral outline + non-blank line count. Format: `discuss: assess, stress-test, state verdict. (N lines)`. Non-blank lines: `sum(1 for l in expansion.split('\n') if l.strip())`.
 - Tier 2.5 guards (1-line injections): authored human summary, not verbatim content. Example: "Agent instructed to use claude-code-guide" not the raw 130-char injection text.
 - Terse commands (c, y): same brief text for both audiences — instruction IS the summary.
+## When scoping corrector on TDD deliverables
+- Anti-pattern: Scoping corrector to only the files modified in the most recent TDD cycle. Rationale: "the test is the spec" — production code change is small and test-driven, so review is implicit.
+- Correct pattern: Scope corrector to ALL files changed on the branch vs main (`git diff --name-only main...HEAD`). The deliverable is the full branch, not the last cycle. Test-driven specification doesn't replace review — it narrows what the review needs to check.
+- Evidence: Corrector run on `remerge.py` + test file only (cycle 7 files). User correctly pointed out the full deliverable includes fixtures refactor, hook test updates, justfile changes, and all test files.
