@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-27
 
-**Status:** Inline skill created (task 3 of 5). Two remaining inline-execute integration tasks pending. Next: Design skill integration (FR-1, FR-9).
+**Status:** Inline-execute plan delivered (5/5 tasks complete). All FRs integrated: /design, /runbook, pipeline-contracts, memory-index, continuation-passing. Cross-skill review clean on routing and lifecycle coverage.
 
 ## Completed This Session
 
@@ -49,6 +49,31 @@
 - Skill-reviewer (opus): 2 major, 3 minor found. Applied 4 fixes: description triggers + Tier 1/2, passive voice, Phase 2.3 D+B anchor, Phase 4c standard task format
 - Deferred: continuation-passing.md cooperative skills table entry for /inline (pipeline integration task scope)
 
+**Design skill integration (this session):**
+- Pre-work recall: 10 design-related entries batch-resolved (design gates, classification, execution routing)
+- FR-1: Classification persistence Write step added after classification block in Phase 0 (line 115)
+- FR-9: Phase B (line 332) and Phase C.5 (line 425) replaced with `/inline plans/<job> execute`
+- Frontmatter: `Skill` added to /design allowed-tools
+- Corrector (opus): 1 major FIXED (Downstream Consumer → Downstream Consumers, added /inline alongside /runbook). All 7 verification criteria pass.
+- Review: `plans/inline-execute/reports/review-design-integration.md`
+
+**Pipeline integration (this session):**
+- Pre-work recall: 10 runbook-related entries batch-resolved (pipeline integration, tier planning, enumeration systems)
+- FR-10: /runbook Tier 1 Sequence (4-step) and Tier 2 execution (TDD/general/common tail) replaced with `/inline` invocations. Criteria, recall context, design constraints, escalation handling retained.
+- T6.5 row added to pipeline-contracts.md transformation table
+- 3 new decision sections in pipeline-contracts.md: inline lifecycle, corrector dispatch, triage feedback divergence
+- memory-index.md: T1-T6 → T1-T6.5, 3 new /inline entries. SKILL.md copy synced.
+- continuation-passing.md: /inline row added, "Six cooperative skills" count, tier annotations
+- Corrector (opus): 1 critical FIXED (memory-index SKILL.md missing 3 entries), 1 major FIXED (heading "How Dispatch" → "How To Dispatch"), 1 minor FIXED (skills count Five → Six). All 8 verification criteria pass.
+- Review: `plans/inline-execute/reports/review-integration.md`
+
+**Cross-skill consistency review (this session):**
+- Opus reviewer on design + runbook + inline + orchestrate + deliverable-review
+- 6 criteria: routing correctness, continuation-passing, allowed-tools, lifecycle coverage, downstream consumers, deliverable-review
+- 2 major (pre-existing): /design and /runbook lack `continuation:` frontmatter blocks — added to Retrofit skill pre-work task
+- 3 minor (pre-existing): no `## Continuation` body sections, /runbook lacks Downstream Consumers section — same task
+- Review: `plans/inline-execute/reports/cross-skill-review.md`
+
 ## Pending Tasks
 
 - [x] **Triage feedback script** — sonnet
@@ -66,23 +91,13 @@
   - Deliverables: `agent-core/skills/inline/SKILL.md`, `agent-core/skills/inline/references/corrector-template.md`
   - Corrector + skill-reviewer both dispatched; all in-scope issues fixed
   - Review: `plans/inline-execute/reports/review-skill.md`
-- [ ] **Design skill integration** — `x` | opus
+- [x] **Design skill integration** — `x` | opus
   - Plan: inline-execute
-  - **Pre-work recall:** Resolve design-related section of `plans/inline-execute/recall-artifact.md` — focus on design gates/classification and execution routing subsections.
-  - **Scope:** Edit `agent-core/skills/design/SKILL.md` only
-  - **FR-1:** Add Write step after classification block in Phase 0 — write to `plans/<job>/classification.md` (verbatim block, per C-2)
-  - **FR-9:** Phase B sufficiency gate (lines ~330-333) and Phase C.5 execution readiness (lines ~426-427) — replace inline execution sequences with `/inline plans/<job> execute` invocation
-  - **Verification:** Read modified skill, verify all existing paths unchanged (Simple, Moderate, Complex, Defect routing intact), new paths route to /inline correctly
-  - **Post-work:** Corrector dispatch. Report → `plans/inline-execute/reports/review-design-integration.md`
-- [ ] **Pipeline integration** — `x` | opus
+  - FR-1 + FR-9 applied, corrector clean (1 major fixed). Review: `plans/inline-execute/reports/review-design-integration.md`
+- [x] **Pipeline integration** — `x` | opus
   - Plan: inline-execute
-  - **Pre-work recall:** Resolve runbook-related section of `plans/inline-execute/recall-artifact.md` — focus on pipeline integration and phase/tier planning subsections.
-  - **Scope:** Edit `agent-core/skills/runbook/SKILL.md` (FR-10), `agents/decisions/pipeline-contracts.md` (T6.5), `agents/memory-index.md`
-  - **FR-10:** Runbook Tier 1 (lines ~122-126) AND Tier 2 execution (lines ~144-157) — replace both with `/inline` routing. /runbook retains Tier 2 criteria + planning + design-constraint rules; execution routes out.
-  - **Pipeline contracts:** Add T6.5 row (inline lifecycle transformation) to transformation table. Grep enumeration sites for existing variants per "when adding a new variant to an enumerated system"
-  - **Memory-index:** Add entries for /inline skill decisions (when using inline execution lifecycle, how dispatch corrector from inline skill, when triage feedback shows divergence)
-  - **Continuation-passing.md:** Add /inline row to cooperative skills table (deferred from skill creation — both corrector and skill-reviewer flagged)
-  - **Post-work:** Corrector dispatch. Report → `plans/inline-execute/reports/review-integration.md`
+  - FR-10 + T6.5 + memory-index + continuation-passing applied, corrector clean (1 critical, 1 major, 1 minor fixed). Review: `plans/inline-execute/reports/review-integration.md`
+  - Cross-skill review: `plans/inline-execute/reports/cross-skill-review.md` — 2 major pre-existing (continuation frontmatter) → Retrofit task
 - [ ] **Entry gate propagation** — `/design` | opus
   - Add git-clean + precommit entry gates to /orchestrate, /deliverable-review, corrector agent
   - Cross-cutting pattern — needs /design to resolve: each skill body vs shared fragment vs hook, and per-consumer questions (corrector double-gating, orchestrate checkpoint overlap, deliverable-review session context)
@@ -92,6 +107,8 @@
   - Separate from inline-execute delivery — standalone skill edit
 - [ ] **Retrofit skill pre-work** — `/design` | opus
   - Many skills lack initial task context loading (task-context.sh, brief.md, recall-artifact) and skill-adapted recall
+  - Continuation-passing retrofit: /design and /runbook lack `continuation:` frontmatter blocks and `## Continuation` body sections (cross-skill review: `plans/inline-execute/reports/cross-skill-review.md`, issues 1-4)
+  - /runbook lacks "Downstream Consumers" summary section (issue 5)
   - Audit skills for cold-start gaps; retrofit where beneficial
   - Follow-on after /inline delivery
 - [ ] **Artifact staleness gate** — sonnet
@@ -108,15 +125,13 @@
 
 ## Blockers / Gotchas
 
-**Task dependency chain:** ~~Triage feedback script~~ → ~~Execution feedback~~ → ~~Create inline skill~~ → Design skill integration → Pipeline integration. Strict sequence — each task depends on prior.
+**Task dependency chain:** ~~Triage feedback script~~ → ~~Execution feedback~~ → ~~Create inline skill~~ → ~~Design skill integration~~ → ~~Pipeline integration~~. All 5 inline-execute tasks complete.
 
 **Planstate mismatch:** `inline-execute` plan has outline.md (design-sufficient) but no design.md, so planstate reads `requirements`. Task commands reference outline.md directly.
 
-**Learnings.md over soft limit:** ~125 lines vs 80-line soft limit. /codify should run before next substantive work session.
+**Learnings.md over soft limit:** ~126 lines vs 80-line soft limit. /codify should run before next substantive work session.
 
-**Test file over soft limit:** `tests/test_triage_feedback.py` reduced to 423 lines by corrector (helper extraction). Residual 23 lines over limit from test body density — no further split possible without breaking coherent groups.
-
-**Self-modification:** Tasks 3-4 edit skills that define the pipeline being used. Execute with fresh session loads to pick up changes.
+**Hook false positives on template paths:** Corrector dispatch prompts containing `plans/<job>/` trigger pretooluse-recall-check hook. Workaround: use actual plan paths or avoid angle-bracket template placeholders in Task prompts.
 
 ## Reference Files
 
@@ -131,3 +146,6 @@
 - `plans/inline-execute/reports/execution-feedback.md` — Execution friction report (6 issues, 4 recommendations)
 - `plans/inline-execute/reports/review-script.md` — Corrector review output (triage-feedback.sh)
 - `plans/inline-execute/reports/review-skill.md` — Corrector + skill-reviewer output (inline skill)
+- `plans/inline-execute/reports/review-design-integration.md` — Corrector review (design skill FR-1/FR-9)
+- `plans/inline-execute/reports/review-integration.md` — Corrector review (pipeline integration FR-10/T6.5)
+- `plans/inline-execute/reports/cross-skill-review.md` — Cross-skill consistency (5 skills, 6 criteria)
