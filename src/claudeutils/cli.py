@@ -20,6 +20,7 @@ from claudeutils.model.cli import model
 from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
 from claudeutils.recall.cli import recall
+from claudeutils.recall_cli.cli import recall_cmd
 from claudeutils.statusline.cli import statusline
 from claudeutils.tokens_cli import handle_tokens
 from claudeutils.validation.cli import validate
@@ -144,6 +145,7 @@ def list_sessions(project: str | None) -> None:
 cli.add_command(account)
 cli.add_command(model)
 cli.add_command(recall)
+cli.add_command(recall_cmd)
 cli.add_command(statusline)
 cli.add_command(validate)
 cli.add_command(when_cmd)

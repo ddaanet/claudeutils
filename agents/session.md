@@ -223,10 +223,23 @@
 - [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
   - Plan: parallel-orchestration | Blocked on: orchestrate-evolution
 
-## Worktree Tasks
+- [ ] **Execute flag lint** — precommit lint gate for `/inline ... execute` in session.md | haiku
+  - Scan session.md pending tasks for `/inline plans/.* execute` pattern
+  - Flag as error: execute entry point in session.md bypasses Phase 2 recall (D+B anchor)
+- [ ] **Moderate outline gate** — `/design` skill update | opus
+  - When requirements lack structural decisions (module layout, function decomposition, wiring), generate lightweight outline before routing to /runbook
+  - Single data point so far — trigger condition needs sharper criteria before implementing
+  - Self-modification risk: editing /design during active use
+- [ ] **Python hook ordering fix** — `/requirements` | haiku | restart
+  - `python -c` one-liner allowance evaluated before `uv run` redirect
+  - `uv run` redirect message mentions `uv sync` as dependency-change path
+  - SessionStart: verify `claudeutils` importable, emit `STOP:` if not
+  - agent-core SessionStart can assume claudeutils (all consumers have it; post-migration edify ships in plugin)
+- [x] **Recall CLI integration** — `/inline plans/recall-cli-integration` | sonnet
+  - Plan: recall-cli-integration
+- [x] **Recall CLI review** — `/deliverable-review plans/recall-cli-integration` | opus | restart
 
-- [ ] **Recall CLI integration** → `recall-cli-integration` — `/design plans/recall-cli-integration/requirements.md` | sonnet
-  - Prototype delivered via recall-tool-anchoring worktree
+## Worktree Tasks
 
 - [ ] **UserPromptSubmit topic** → `userpromptsubmit-topic` — Phase 7 analysis recommends this as highest-impact recall improvement | sonnet
   - Seed keyword table from 200+ memory-index triggers
@@ -281,6 +294,10 @@
 **brief.md in planstate inference:**
 - Added as recognized artifact so precommit doesn't flag brief-only plans. But inferred next-action command uses `requirements.md` template (wrong for brief-only). Tasks with brief-only plans must preserve `/design plans/{name}/brief.md` command manually in session.md.
 
+- `test_markdown_fixtures.py::test_full_pipeline_remark` xfail renders full traceback in markdown report, visually identical to real failure [from: recall-cli-integration]
+- `just precommit` shows `✗ Precommit failed` when test sentinel invalidates (any test file change forces rerun) [from: recall-cli-integration]
+- All 30 recall tests pass. The `✗` is from xfail report formatting, not a real failure [from: recall-cli-integration]
+- Fix is in `pytest-markdown-report` (separate repo), not here [from: recall-cli-integration]
 ## Next Steps
 
 Two worktrees active: recall-cli-integration (recreated for session recovery), userpromptsubmit-topic. Next in-tree: Runbook recall expansion (`/design plans/runbook-recall-expansion/requirements.md`).
