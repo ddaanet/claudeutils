@@ -37,7 +37,9 @@ def test_null_mixed_with_real_queries() -> None:
 
     assert result.exit_code == 0
     assert "When Writing Mock Tests" in result.output
-    assert "null" not in result.output.lower().replace("when writing mock tests", "")
+    # "null" must not appear as a resolved result — only the real query resolves
+    output_lines = [ln.strip() for ln in result.output.splitlines() if ln.strip()]
+    assert not any(ln == "null" for ln in output_lines)
 
 
 def test_when_null_operator_prefix() -> None:

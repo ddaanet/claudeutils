@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-28
 
-**Status:** Recall lifecycle grounded. Three-mode recall system designed (default/all/everything). Recall-null outline unchanged — grounding informs broader recall simplification, not the null mode delivery.
+**Status:** Recall-null delivered. Null mode in when-resolve.py (TDD), D+B gate anchoring propagated to 4 pipeline skills, null artifact format added. Corrector: 0C/0M/2m fixed. Deliverable review pending.
 
 ## Completed This Session
 
@@ -23,6 +23,12 @@
   - Post-resolve relevance scoring at skill transitions (not per-point) — design input for recall calibration
   - Reports: grounding (`plans/reports/recall-lifecycle-grounding.md`), internal inventory (`plans/reports/recall-lifecycle-internal-codebase.md`), external research (`plans/reports/recall-lifecycle-external-research.md`)
 - **Recall everything** — loaded all 21 decision files (full corpus for grounding context)
+- **Recall-null delivery** — `/inline plans/recall-null` executed (Tier 2)
+  - Phase 1 (TDD, sonnet): 2 cycles — null query silent exit, mixed null+real filtering. Tests: `tests/test_when_null.py`
+  - Phase 2 (inline, opus): D+B gate anchoring propagated to /requirements, /runbook (T1/T2 + T3), /inline. /design A.2.5 verified canonical (no-op). Post-explore recall gates added to /requirements and /runbook T3
+  - Null artifact format: explicit `null — no relevant entries found` entry in /requirements and /design artifact format blocks
+  - Corrector: 0C/0M/2m — Tier 2 parenthetical consistency, fragile test assertion. Both fixed. Report: `plans/recall-null/reports/review.md`
+  - Triage feedback: no-classification (no divergence)
 
 ## Pending Tasks
 
@@ -30,10 +36,11 @@
 
 - [x] **Fix when-resolve.py** — dedup, stdin, navigation simplification delivered
 - [x] **Review when-resolve** — delivered, 0C/0M/4m (3 fixed inline)
-- [ ] **Recall-null delivery** — `/inline plans/recall-null` | opus
-  - Plan: recall-null | Status: planned (outline with Execution Model)
+- [x] **Recall-null delivery** — `/inline plans/recall-null` | opus
+  - Plan: recall-null | Status: delivered
   - Phase 1: null mode TDD (2 cycles, test-driver at sonnet). Phase 2: skill gate language (5 inline edits, opus direct)
   - Absorbs: when-resolve null mode + runbook post-explore gate
+- [ ] **Review recall-null** — `/deliverable-review plans/recall-null` | opus | restart
 - [ ] **Recall CLI integration** — Production `claudeutils _recall` CLI (check/resolve/diff), Click, TDD | sonnet
   - Prototype delivered via recall-tool-anchoring worktree
 - [ ] **UserPromptSubmit topic** — Phase 7 analysis recommends this as highest-impact recall improvement | sonnet
@@ -246,7 +253,7 @@
 
 ## Next Steps
 
-Recall lifecycle grounded. Next: **Recall-null delivery** — `/inline plans/recall-null` (opus). Outline unchanged — grounding results inform recall tool consolidation, not null mode delivery.
+Recall-null delivered. Next: **Deliverable review: recall-null** — `/deliverable-review plans/recall-null` (opus, restart).
 
 ## Reference Files
 
