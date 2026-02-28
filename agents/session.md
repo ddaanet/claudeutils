@@ -1,6 +1,6 @@
-# Session Handoff: 2026-02-28
+# Session Handoff: 2026-03-01
 
-**Status:** Continuation prepend complete. Cooperative protocol gaps pending (separate task, not this branch).
+**Status:** Branch work complete — continuation prepend + cooperative protocol gaps all done.
 
 ## Completed This Session
 
@@ -12,27 +12,30 @@
 - Updated `agent-core/skills/orchestrate/references/continuation.md` §Consumption — added prepend step + worked example
 - Added `TestContinuationPrepend` class (6 tests) to `tests/test_continuation_integration.py`
 - Corrector review clean (file: `plans/continuation-prepend/reports/review.md`)
-- Precommit green (1370 passed, 1 xfail pre-existing)
 
 **Fix deliverable review findings:**
 - Updated problem.md step ordering to match implementation (prepend before empty-check)
 - Restored explicit conditionality ("If continuation present:") in continuation-passing.md and inline/SKILL.md step 3
-- Created pending task for pre-existing cooperative protocol gaps (#3-5)
 - Corrector review clean (file: `plans/continuation-prepend/reports/fix-review.md`)
+
+**Cooperative protocol gaps:**
+- Triage: Simple classification (file: `plans/cooperative-protocol-gaps/classification.md`)
+- Added `continuation: cooperative: true` frontmatter to `/design` and `/runbook` SKILL.md
+- Added §Continuation sections to `/design`, `/runbook`, `/worktree`, `/commit` SKILL.md
+- Updated body exit points in `/design` (3 locations) and `/runbook` (3 locations) to reference §Continuation instead of hardcoded tail-calls
+- Added `/worktree` to cooperative skills table in `continuation-passing.md`
+- All 7 cooperative skills now have both frontmatter and §Continuation sections
 
 ## Pending Tasks
 
 - [x] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
 - [x] **Review prepend** — `/deliverable-review plans/continuation-prepend` | opus | restart
 - [x] **Fix prepend findings** — `/design plans/continuation-prepend/reports/deliverable-review.md` | opus
-- [ ] **Cooperative protocol gaps** — `/design` | sonnet
+- [x] **Cooperative protocol gaps** — `/design` | sonnet
 
 ## Blockers / Gotchas
 
-**Pre-existing cooperative protocol gaps** (tracked as pending task, not this PR):
-- `/design` and `/runbook` listed as cooperative in fragment table but lack `cooperative: true` frontmatter and §Continuation sections
-- `/worktree` has `cooperative: true` frontmatter but no §Continuation section
-- `/handoff` says "If empty: stop" vs canonical "default-exit behavior" — intentional (--commit flag handles it)
+None.
 
 ## Next Steps
 
@@ -45,3 +48,5 @@ Branch work complete.
 - `agent-core/fragments/continuation-passing.md` — Updated protocol reference
 - `plans/continuation-prepend/reports/fix-review.md` — Corrector review of fix task
 - `plans/continuation-prepend/reports/deliverable-review.md` — Deliverable review findings
+- `plans/cooperative-protocol-gaps/problem.md` — Gap specification
+- `plans/cooperative-protocol-gaps/classification.md` — Simple triage classification
