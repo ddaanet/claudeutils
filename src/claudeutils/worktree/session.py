@@ -193,6 +193,32 @@ def add_slug_marker(session_path: Path, task_name: str, slug: str) -> None:
     session_path.write_text("\n".join(lines))
 
 
+def remove_slug_marker(session_path: Path, slug: str) -> None:
+    """Remove slug marker inline from task in Worktree Tasks section.
+
+    Args:
+        session_path: Path to session.md file
+        slug: Worktree slug to find and remove
+
+    No-op if slug not found.
+    """
+    content = session_path.read_text()
+    lines = content.split("\n")
+
+    # Find line containing the slug marker and remove it
+    pattern = rf" → `{re.escape(slug)}`"
+    modified = False
+
+    for i, line in enumerate(lines):
+        if re.search(pattern, line):
+            lines[i] = re.sub(pattern, "", line)
+            modified = True
+            break
+
+    if modified:
+        session_path.write_text("\n".join(lines))
+
+
 def move_task_to_worktree(session_path: Path, task_name: str, slug: str) -> None:
     """Move task from Pending Tasks to Worktree Tasks section.
 
