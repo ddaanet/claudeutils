@@ -74,11 +74,17 @@ def when_cmd(queries: tuple[str, ...]) -> None:
     if not all_queries:
         raise click.UsageError("No queries provided")  # noqa: TRY003 — Click API
 
+    # "null" is a reserved gate anchor — silently skip it so D+B gates have
+    # an equal-cost negative path (no output, exit 0).
+    active_queries = [q for q in all_queries if _strip_operator(q) != "null"]
+    if not active_queries:
+        return
+
     project_root = Path(os.getenv("CLAUDE_PROJECT_DIR", "."))
     index_path = str(project_root / "agents" / "memory-index.md")
     decisions_dir = str(project_root / "agents" / "decisions")
 
-    results, errors = _resolve_queries(all_queries, index_path, decisions_dir)
+    results, errors = _resolve_queries(active_queries, index_path, decisions_dir)
 
     if results:
         click.echo("\n---\n".join(results))
