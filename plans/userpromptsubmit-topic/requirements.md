@@ -39,14 +39,14 @@ Acceptance criteria:
 - Cold build (cache miss) completes within hook timeout budget
 - Cache hit path avoids re-parsing and re-indexing
 
-**FR-5: Integrate as new tier in existing UserPromptSubmit hook**
-Add topic matching as a new tier in `agent-core/hooks/userpromptsubmit-shortcuts.py`. Additive with existing tiers — topic injection combines with Tier 2.5 pattern guards and Tier 3 continuation parsing. Dual-channel output: `additionalContext` for agent, `systemMessage` for user transparency.
+**FR-5: Integrate as parallel detector in existing UserPromptSubmit hook**
+Add topic matching as a detector block in `agent-core/hooks/userpromptsubmit-shortcuts.py`. Additive with all existing features — topic injection combines with commands, directives, pattern guards, and continuation parsing via `context_parts`/`system_parts` accumulation. Dual-channel output: `additionalContext` for agent, `systemMessage` for user transparency.
 
 Acceptance criteria:
-- Fires after Tier 2 directives (directives change interaction mode — topic injection not appropriate on `d:` or `p:` prompts that already have custom behavior)
-- Additive with Tier 2.5 and Tier 3 (combined via `context_parts` and `system_parts` lists)
-- Silent pass-through when no entries match (no output, exit 0)
-- Does not fire on Tier 1 exact-match commands (s, x, r, etc. — already return early)
+- Fires on all prompts (parallel detector — no early-return exclusions in flattened architecture)
+- Additive with all features (combined via `context_parts` and `system_parts` lists)
+- Silent pass-through when no entries match (no output added to accumulators)
+- Single-line commands (s, x, r, etc.) naturally produce no keyword matches — no explicit exclusion needed
 
 **FR-7: User-visible match feedback via systemMessage**
 Show matched memory-index lines in `systemMessage` so the user can audit what context the agent received. Follows the established pattern: Tier 2 shows directive summaries, Tier 2.5 shows guard triggers.

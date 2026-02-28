@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-28
 
-**Status:** Flatten-hook-tiers delivered (reviewed + all findings fixed). UPS topic injection unblocked.
+**Status:** UPS topic injection outline reviewed (2 passes), ready for runbook.
 
 ## Completed This Session
 
@@ -10,6 +10,14 @@
 - Outline produced with 10 decisions (D-1 through D-10), corrector-reviewed
 - Discussion deltas: D-3 additive all tiers, D-4 project-local tmp, D-8 dropped (YAGNI), D-10 calibration via session-scraper, hook flattening as prerequisite
 - Outline corrector review: `plans/userpromptsubmit-topic/reports/outline-review.md`
+
+**Post-flattening impact assessment + outline update:**
+- 5 stale items updated in outline: prerequisite section compressed, D-3 dependency → integration point, OUT scope pruned, tier naming fixed, prerequisite risk struck
+- FR-5 AC updated in requirements: removed "already return early" exclusion, reframed as parallel detector
+- Second corrector review: `plans/userpromptsubmit-topic/reports/outline-review-2.md`
+  - 1 major: D-5 resolver interface mismatch — `resolve()` uses fuzzy `WhenEntry` lookup, rewrote to direct `IndexEntry` + `_extract_section_content()` path
+  - 4 minor: systemMessage join semantics, private API flags, missing integration test file, stale entry counts
+- Discussion: `score_relevance()` coupling not an issue — stable pure function, same package, D-10 sync risk outweighs synthetic session_id cost. Recommendation struck.
 
 **Flatten hook tiers (prerequisite):**
 - `/requirements` → `/design` (Moderate, skip design) → `/runbook` (Tier 2) → `/inline execute`
@@ -38,5 +46,8 @@
 - [ ] **Calibrate topic params** — extend session-scraper.py | sonnet
   - Plan: (new) | Status: requirements needed
   - Blocked by: UPS topic injection (needs production data first)
+- [ ] **Fix planstate detector** — `/design plans/fix-planstate-detector/requirements.md` | sonnet
+  - Plan: fix-planstate-detector | Status: requirements
+  - Missing `outlined` status: outline.md grouped under `requirements` fallback
 - [ ] **Registry cache to tmp** — inline | sonnet
   - Move continuation registry cache from TMPDIR to project-local tmp/

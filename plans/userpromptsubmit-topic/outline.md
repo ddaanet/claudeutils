@@ -6,17 +6,9 @@ Ambient recall injection via UserPromptSubmit hook. When a user prompt contains 
 
 **Scoring algorithm:** Reuse `score_relevance()` from `recall/relevance.py` — normalized entry coverage (`|Q∩D|/|D|`, threshold 0.3). Grounding: BM25/TF-IDF inoperative for this corpus (TF=1, N=200); Jaccard penalizes recall. Entry coverage is tested, deployed, statistic-free. See `plans/reports/scoring-algorithm-grounding.md`.
 
-**Architecture:** New module `src/claudeutils/recall/topic_matcher.py` containing the matching pipeline. Hook integration in `userpromptsubmit-shortcuts.py` — assumes flattened tier architecture (prerequisite task).
+**Architecture:** New module `src/claudeutils/recall/topic_matcher.py` containing the matching pipeline. Hook integration in `userpromptsubmit-shortcuts.py` — parallel detector block in the flattened architecture.
 
-**Prerequisite:** Flatten hook tier architecture. Current hook uses mutual-exclusion tiers with early-returns — Tier 1 commands and Tier 2 directives exit before later tiers run. This conflates dispatch order with mutual exclusion. The correct model: all features are parallel detectors that accumulate into unified output.
-
-Key architectural changes in the prerequisite:
-- **Commands match any line** (not just first line). A multi-line prompt with `s` on line 1 and discussion on line 3 should expand the command AND process the discussion through all other features. Current behavior discards everything after the first command match.
-- **No early-returns.** All features scan the full prompt independently, append to `context_parts`/`system_parts`, single output assembly at end.
-- **Commands on any line.** Current Tier 1 matches `stripped` (whole prompt). Should scan all lines for command keywords — same as directives already scan all lines.
-- **Integration tests** for every existing feature combination before and after refactor.
-
-Separate task, must complete before topic injection integration.
+**Prerequisite complete:** Hook tier flattening delivered. All features are parallel detectors accumulating into `context_parts`/`system_parts` with single output assembly. No early returns. Commands match any line. Integration tests cover all feature combinations.
 
 ## Key Decisions
 
@@ -35,26 +27,28 @@ Topic injection is one of several parallel feature detectors in the flattened ho
 - Continuations — detect multi-skill chains, accumulate
 - Topic injection — detect decision-relevant keywords, accumulate
 
-**Prerequisite dependency:** This design assumes the flattened tier architecture from the prerequisite task. Topic injection integrates into the flattened accumulate pattern — no insertion-point complexity.
+**Integration point:** Topic injection is a new detector block in the existing parallel architecture. Inserts between pattern guards and continuation parsing in `main()`. No insertion-point complexity — same accumulate pattern as all other features.
 
 ### D-4: Cache strategy — project-local `tmp/` [FR-4, NFR-1]
 - Cache path: `tmp/topic-index-{hash}.json` (project-local per CLAUDE.md tmp rule)
 - Hash key: memory-index.md path + project dir
 - Invalidation: mtime comparison
 - Contents: inverted index + parsed entries (avoid re-parsing on each prompt)
-- Cold build: parse memory-index.md (~347 entries) + build inverted index. Cheap — regeneration on worktree creation is acceptable.
+- Cold build: parse memory-index.md (all entries) + build inverted index. Cheap — regeneration on worktree creation is acceptable.
 - Must fit within 5s hook timeout shared with all features.
 - Note: continuation registry currently uses `$TMPDIR` — migration to `tmp/` is a separate pending task.
 
-### D-5: Resolution — batch resolve via resolver [FR-3]
-For top-N matched entries above threshold, call `resolve()` per entry to get decision section content. Handle `ResolveError` silently (skip entry, no hook failure). Combine resolved sections into single additionalContext payload.
+### D-5: Resolution — section extraction from decision files [FR-3]
+For top-N matched entries above threshold, extract the decision section content from the file referenced by `IndexEntry.referenced_file`. Each `IndexEntry` carries `referenced_file` (H2 heading = file path) and `key` (trigger text) — use these to locate the decision file and extract the section headed by the trigger's `When`/`How` heading. Reuse `_extract_section_content()` from `when/resolver.py` for heading-boundary extraction. Handle missing files or sections silently (skip entry, no hook failure). Combine resolved sections into single additionalContext payload.
+
+Note: `resolve()` itself is not called — it expects a query string for fuzzy CLI lookup via `WhenEntry`. The hook has exact `IndexEntry` references, so direct file + heading extraction is the correct path.
 
 ### D-6: Token budget — entry count cap [FR-6, C-3]
 Cap injected entries at N (design decision: start with 3, calibrate empirically). When matches exceed cap, highest-scored entries win. Token counting deferred per C-3 (requirements note: "token count replaces line count when token count caching infrastructure lands").
 
 ### D-7: Dual-channel output [FR-3, FR-7, C-2]
 - `additionalContext`: resolved decision sections with heading + content + source. Prefixed with context header.
-- `systemMessage`: matched trigger lines (full `/when trigger | extras` minus `/when` prefix), newline-separated, with injected line count: `"topic (N lines):\ntrigger1 | extras\ntrigger2 | extras"`
+- `systemMessage`: matched trigger lines (full `/when trigger | extras` minus `/when` prefix), newline-separated, with injected line count: `"topic (N lines):\ntrigger1 | extras\ntrigger2 | extras"`. This entire block is a single entry in `system_parts` — the existing hook joins system_parts with `" | "`, so the topic block must be pre-formatted as one string containing internal newlines.
 
 ### D-8: Code block filtering (Q-1) — DROPPED
 Dropped (YAGNI). Existing Tier 2.5 pattern guards match full prompts without fence filtering and work in production. Threshold 0.3 + cap 3 limits false positive impact. Add if false positives from code blocks manifest in practice.
@@ -81,7 +75,6 @@ Parameters (threshold 0.3, cap 3) are declared-ungrounded — borrowed from `sco
 - Integration tests for hook output
 
 **OUT:**
-- Hook tier flattening refactor (prerequisite task, blocked-by dependency)
 - Sub-agent recall injection
 - Memory-index generation/maintenance
 - Deep recall pipeline integration
@@ -97,14 +90,15 @@ Parameters (threshold 0.3, cap 3) are declared-ungrounded — borrowed from `sco
 **New:**
 - `src/claudeutils/recall/topic_matcher.py` — matching pipeline (build index, match prompt, resolve entries)
 - `tests/test_recall_topic_matcher.py` — unit tests
+- `tests/test_ups_topic_integration.py` — integration tests for hook output with topic injection
 
 **Modified:**
-- `agent-core/hooks/userpromptsubmit-shortcuts.py` — add Tier 2.75 topic injection call
+- `agent-core/hooks/userpromptsubmit-shortcuts.py` — add topic injection detector block
 
 **Read-only dependencies:**
-- `src/claudeutils/recall/index_parser.py` — `_extract_keywords()`, `parse_memory_index()`
+- `src/claudeutils/recall/index_parser.py` — `_extract_keywords()`, `parse_memory_index()`. Note: `_extract_keywords()` is private API; promote to public (`extract_keywords()`) or inline tokenization logic in topic_matcher.
 - `src/claudeutils/recall/relevance.py` — `score_relevance()` (direct call)
-- `src/claudeutils/when/resolver.py` — `resolve()`, `ResolveError`
+- `src/claudeutils/when/resolver.py` — `_extract_section_content()` for heading-boundary extraction (not `resolve()` — see D-5). Note: also private API; same promotion consideration applies.
 - `agents/memory-index.md` — source data
 
 ## Open Questions
@@ -113,8 +107,8 @@ None — Q-1 and Q-2 resolved in D-8 and D-9.
 
 ## Risks
 
-- **Performance:** Cold cache parse of 347 entries + inverted index build. Mitigation: profile during implementation; regeneration is cheap, budget shared with existing tiers (fast: regex, dict lookup).
+- **Performance:** Cold cache parse of all memory-index entries + inverted index build. Mitigation: profile during implementation; regeneration is cheap, budget shared with existing tiers (fast: regex, dict lookup).
 - **False positives:** Common keywords ("error", "file", "test") match many entries. Mitigation: threshold 0.3 means entry must have 30%+ of its keywords matched; combined with entry count cap (3), only strong matches surface.
 - **Threshold calibration:** 0.3 threshold and cap 3 are declared-ungrounded (different context from `score_relevance()` production use). Calibration via D-10 retrospective analysis. SystemMessage visibility provides real-time observability.
 - **Context budget pressure:** Injected content adds to the ~150 user rule budget before adherence degradation (recall: "too many rules in context"). D-6 cap mitigates, but resolved decision sections vary in length. Mitigation: monitor systemMessage line counts during initial deployment; tighten cap if degradation observed.
-- **Prerequisite dependency:** Topic injection blocked by hook tier flattening. If flattening is delayed or descoped, topic injection needs an interim insertion strategy.
+- ~~**Prerequisite dependency:**~~ Resolved — hook tier flattening delivered.
