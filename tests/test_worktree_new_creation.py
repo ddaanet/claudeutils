@@ -8,6 +8,7 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.worktree.cli import worktree
+from claudeutils.worktree.session import move_task_to_worktree
 
 
 def test_new_collision_detection(
@@ -214,9 +215,16 @@ def test_new_task_name_with_branch_override(
     )
 
     moved = []
+
+    def mock_move(path: Path, task: str, slug: str) -> None:
+        """Mock that tracks calls and actually moves the task."""
+        moved.append((task, slug))
+        # Actually move the task to simulate real behavior
+        move_task_to_worktree(path, task, slug)
+
     monkeypatch.setattr(
         "claudeutils.worktree.cli.move_task_to_worktree",
-        lambda path, task, slug: moved.append((task, slug)),
+        mock_move,
     )
 
     runner = CliRunner()
@@ -258,9 +266,16 @@ def test_new_positional_task_name_derives_slug_with_session(
     )
 
     moved = []
+
+    def mock_move(path: Path, task: str, slug: str) -> None:
+        """Mock that tracks calls and actually moves the task."""
+        moved.append((task, slug))
+        # Actually move the task to simulate real behavior
+        move_task_to_worktree(path, task, slug)
+
     monkeypatch.setattr(
         "claudeutils.worktree.cli.move_task_to_worktree",
-        lambda path, task, slug: moved.append((task, slug)),
+        mock_move,
     )
 
     runner = CliRunner()

@@ -199,6 +199,10 @@ def new(
                 slug = branch or derive_slug(task_name)
             except ValueError as e:
                 _fail(str(e), 2)
+            session_md_path = Path(session_md)
+            if not session_md_path.exists():
+                _fail(f"Error: session.md not found at {session_md}")
+            move_task_to_worktree(session_md_path, task_name, slug)
             with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
                 f.write(focus_session(task_name, session_md))
                 temp_session_file = session = f.name
@@ -207,11 +211,6 @@ def new(
         if (path := wt_path(slug, create_container=True)).exists():
             _fail(f"Error: existing directory {path}")
         _setup_worktree_safe(path, slug, base, session, task_name or "")
-        if task_name:
-            session_md_path = Path(session_md)
-            if not session_md_path.exists():
-                _fail(f"Error: session.md not found at {session_md}")
-            move_task_to_worktree(session_md_path, task_name, slug)
     finally:
         if temp_session_file:
             Path(temp_session_file).unlink(missing_ok=True)

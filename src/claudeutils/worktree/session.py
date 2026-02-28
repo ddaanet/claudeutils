@@ -392,19 +392,22 @@ def _filter_section(
 def focus_session(task_name: str, session_md_path: str | Path) -> str:
     """Filter session.md to task_name with relevant context sections."""
     content = Path(session_md_path).read_text()
-    blocks = extract_task_blocks(content, section="Pending Tasks")
+    blocks = extract_task_blocks(content, section="Worktree Tasks")
     task_block = next((b for b in blocks if b.name == task_name), None)
     if not task_block:
         msg = f"Task '{task_name}' not found in session.md"
         raise ValueError(msg)
-    task_lines_str = "\n".join(task_block.lines)
+    task_lines = list(task_block.lines)
+    # Strip → `slug` marker from first line
+    task_lines[0] = re.sub(r" → `[^`]+`", "", task_lines[0])
+    task_lines_str = "\n".join(task_lines)
     plan_dir = (
         m.group(1) if (m := re.search(r"[Pp]lan:\s*(\S+)", task_lines_str)) else None
     )
     result = (
         f"# Session: Worktree — {task_name}\n\n"
         f"**Status:** Focused worktree for parallel execution.\n\n"
-        f"## Pending Tasks\n\n{task_lines_str}\n"
+        f"## In-tree Tasks\n\n{task_lines_str}\n"
     )
     for section in ["Blockers / Gotchas", "Reference Files"]:
         if filtered := _filter_section(content, section, task_name, plan_dir):

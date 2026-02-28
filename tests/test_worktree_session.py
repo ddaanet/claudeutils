@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from claudeutils.worktree.cli import focus_session
 from claudeutils.worktree.session import (
     extract_task_blocks,
@@ -131,16 +133,18 @@ def test_extract_section_filter() -> None:
 
 
 def test_focus_session_multiline(tmp_path: Path) -> None:
-    """Focus session preserves continuation lines from task block."""
+    """Focus session reads from Worktree Tasks, outputs In-tree Tasks header."""
     session_content = """# Session Handoff
 
 ## Pending Tasks
 
-- [ ] **My task** — `/design plans/my-task/` | sonnet
+- [ ] **Other task** — `/runbook plans/other/` | haiku
+
+## Worktree Tasks
+
+- [ ] **My task** → `my-task` — `/design plans/my-task/` | sonnet
   - Plan: my-task | Status: designed
   - Note: some detail
-
-- [ ] **Other task** — `/runbook plans/other/` | haiku
 
 ## Blockers / Gotchas
 
@@ -152,10 +156,17 @@ def test_focus_session_multiline(tmp_path: Path) -> None:
 
     result = focus_session("My task", session_path)
 
+    # Output header should be "In-tree Tasks"
+    assert "## In-tree Tasks" in result
+    # Task line should NOT include → `my-task` marker
     assert "- [ ] **My task** — `/design plans/my-task/` | sonnet" in result
+    assert "→ `my-task`" not in result
+    # Continuation lines preserved
     assert "- Plan: my-task | Status: designed" in result
     assert "- Note: some detail" in result
+    # Other task not included
     assert "Other task" not in result
+    # Relevant context included
     assert "Something about My task" in result
     assert "Something unrelated" not in result
 
@@ -283,3 +294,49 @@ def test_move_task_to_worktree_multiline(tmp_path: Path) -> None:
     # Task A's main line should not appear before Worktree Tasks
     pending_section = "\n".join(lines[pending_start : worktree_start or len(lines)])
     assert "**Task A**" not in pending_section
+
+
+def test_focus_session_strips_slug_marker(tmp_path: Path) -> None:
+    """Focused output strips the → `slug` marker from task line."""
+    session_content = """# Session
+
+## Worktree Tasks
+
+- [ ] **My task** → `my-slug` — `/design` | sonnet
+  - Plan: my-plan | Status: ready
+
+## Blockers / Gotchas
+
+- Nothing here
+"""
+    session_path = tmp_path / "session.md"
+    session_path.write_text(session_content)
+
+    result = focus_session("My task", session_path)
+
+    # Task line without slug marker
+    assert "- [ ] **My task** — `/design` | sonnet" in result
+    # Slug marker NOT in output
+    assert "→ `my-slug`" not in result
+    # Continuation lines still present
+    assert "- Plan: my-plan | Status: ready" in result
+
+
+def test_focus_session_worktree_only(tmp_path: Path) -> None:
+    """Focus session searches Worktree Tasks only, not Pending Tasks."""
+    session_content = """# Session
+
+## Pending Tasks
+
+- [ ] **My task** — `/design` | sonnet
+
+## Worktree Tasks
+
+- [ ] **Other task** → `other` — `/runbook` | haiku
+"""
+    session_path = tmp_path / "session.md"
+    session_path.write_text(session_content)
+
+    # Task in Pending Tasks should not be found
+    with pytest.raises(ValueError, match=r"My task.*not found"):
+        focus_session("My task", session_path)
