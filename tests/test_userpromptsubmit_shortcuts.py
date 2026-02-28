@@ -328,3 +328,28 @@ class TestContinuationOnly:
         assert "Current:" in additional_context
         assert "handoff" in additional_context
         assert "commit" in additional_context
+
+
+class TestDirectiveWithContinuation:
+    """Test directive + continuation co-firing (Cycle 4: FR-4)."""
+
+    def test_directive_cofires_with_continuation(self) -> None:
+        """Directive + continuation co-fire as expected.
+
+        Both directive and continuation outputs are present in hook result.
+        Verifies that Cycle 2 refactor removed the early-return block.
+        """
+        fake_registry = {
+            "handoff": {"cooperative": True, "default-exit": []},
+            "commit": {"cooperative": True, "default-exit": []},
+        }
+        with patch.object(hook, "build_registry", return_value=fake_registry):
+            result = call_hook("p: new task\n/handoff and /commit")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        # Directive expansion must be present
+        assert "PENDING" in additional_context or "Do NOT execute" in additional_context
+        # Continuation must also be present
+        assert "CONTINUATION" in additional_context
+        # systemMessage should include directive summary
+        assert "pending" in result["systemMessage"].lower()
