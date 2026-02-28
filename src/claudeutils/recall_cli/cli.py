@@ -1,6 +1,8 @@
 """Click group and subcommands for _recall artifact operations."""
 
+import datetime
 import os
+import subprocess
 from pathlib import Path
 from typing import NoReturn
 
@@ -131,3 +133,69 @@ def resolve_cmd(args: tuple[str, ...]) -> None:
 
     if not results:
         _fail("No entries resolved", code=1)
+
+
+@recall_cmd.command()
+@click.argument("job")
+def diff(job: str) -> None:
+    """List files changed in job directory since artifact mtime.
+
+    Uses git log --since to find commits after artifact modification time.
+    Excludes the artifact file itself from the output. Exits 0 on success
+    (output may be empty), exits 1 only on precondition failures.
+    """
+    project_root = Path(os.getenv("CLAUDE_PROJECT_DIR", "."))
+    artifact_path = project_root / "plans" / job / "recall-artifact.md"
+
+    if not artifact_path.exists():
+        _fail(f"recall-artifact.md missing for {job}", code=1)
+
+    # Check if inside a git repository
+    try:
+        subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=project_root,
+            check=True,
+            capture_output=True,
+        )
+    except subprocess.CalledProcessError:
+        _fail("not inside a git repository", code=1)
+
+    # Get artifact mtime, formatted for git log --since (ISO 8601)
+    try:
+        mtime_ts = artifact_path.stat().st_mtime
+        mtime_dt = datetime.datetime.fromtimestamp(mtime_ts, tz=datetime.UTC)
+        mtime_iso = mtime_dt.strftime("%Y-%m-%dT%H:%M:%S")
+    except (OSError, ValueError) as e:
+        _fail(f"Failed to get artifact mtime: {e}", code=1)
+
+    # Run git log to find changed files
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "log",
+                f"--since={mtime_iso}",
+                "--name-only",
+                "--pretty=format:",
+                "--",
+                f"plans/{job}/",
+            ],
+            cwd=project_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError) as e:
+        _fail(f"Failed to run git log: {e}", code=1)
+
+    # Parse output: split by lines, filter blanks, exclude artifact, dedup, sort
+    lines = [line for line in result.stdout.split("\n") if line.strip()]
+    artifact_relative = f"plans/{job}/recall-artifact.md"
+    changed_files = sorted({line for line in lines if line != artifact_relative})
+
+    # Output sorted list
+    for file_path in changed_files:
+        click.echo(file_path)
+
+    # Exit 0 always for this command (empty output is valid)
