@@ -1,0 +1,7 @@
+- **Classification:** Moderate
+- **Implementation certainty:** High — each finding specifies exact file, line, and fix mechanism
+- **Requirement stability:** High — 9 concrete findings, all mechanism-specified
+- **Behavioral code check:** Yes — Major #1 (add_slug_marker section-bounded search), Minor #6 (TASK_PATTERN regex). Moderate minimum.
+- **Work type:** Production
+- **Artifact destination:** production + agentic-prose
+- **Evidence:** "When Triaging Behavioral Code Changes As Simple" decision, "When Resolving Deliverable Review Findings" decision
