@@ -1,35 +1,24 @@
-# Session Handoff: 2026-02-28
+# Session Handoff: 2026-03-01
 
-**Status:** 5 worktrees active for parallel execution. Pushback grounding merged and removed. flatten-hook-tiers plan delivered.
+**Status:** 4 worktrees active. Pushback grounding and runbook recall expansion merged. Worktree-ad-hoc-task requirements captured.
 
 ## Completed This Session
 
-- **Recall-cli-integration merge** — worktree merged to main, session.md duplicate fixed during merge (task in both Pending and Worktree), plan lifecycle marked delivered
-  - Branch delivered: Recall CLI integration (inline execution) + Recall CLI review (deliverable review)
-  - 4 new learnings from branch (Moderate routing, multi-step orchestration, multiline dedent, validation output)
-  - 3 new pending tasks from branch (Execute flag lint, Moderate outline gate, Python hook ordering fix)
-  - Validated: no session detail or learning loss
-- **Userpromptsubmit-topic merge** — worktree merged to main
-  - Branch delivered: flatten-hook-tiers plan (reviewed), UPS scanning/shortcuts rework, scoring grounding reports
-  - New pending tasks from branch (Calibrate topic params, Fix planstate detector, Registry cache to tmp, UPS topic injection)
-  - Precommit failure: `test_merge_learnings_segment_diff3_prevents_orphans` — non-reproducible (passes in isolation and full suite post-merge), recorded as ordering dep bug for reoccurrence
-- **Post-merge validation** — both merges validated for session.md and learnings.md completeness
-- **Recall skill path fix** — updated `agent-core/bin/when-resolve.py` → `claudeutils _recall resolve` across 15 active files
-  - Skills: recall, when, how, design, runbook, inline, orchestrate, deliverable-review, review-plan, reflect, requirements, memory-index
-  - Agents: runbook-outline-corrector, outline-corrector, design-corrector
-  - References: corrector-template.md, tier3-planning-process.md
-  - Decision files: defense-in-depth.md, workflow-advanced.md, orchestration-execution.md, pipeline-contracts.md, project-config.md
-  - Remaining ~50 references in plans/, reports/, learnings — historical records, consolidation task scope
-- **Post-merge reprioritization** — scored 71 tasks (19 new/rescored), 6 removed (3 delivered, 3 absorbed)
-  - Report: `plans/reports/prioritization-2026-02-28.md`
-  - Key movements: UPS topic injection 2.4→3.2 (ME drop, infrastructure delivered), Fix planstate detector new at 2.6, Execute flag lint new at 3.0
-  - Scoring arithmetic via `tmp/score.py` (tool-assisted, not mental math)
 - **Worktree parallel setup** — 6 tasks branched for parallel execution
   - Runbook recall expansion, Pushback grounding, Fix planstate detector, UPS topic injection, Task classification, Continuation prepend
 - **Pushback grounding merge** — worktree merged to main and removed
   - Branch delivered: `plans/pushback-grounding/classification.md`, test additions
   - Validated: no session.md or learnings.md loss (62 lines pre/post)
   - flatten-hook-tiers plan status changed to `delivered` during merge
+- **Runbook recall expansion merge** — worktree merged to main and removed
+  - Branch delivered: recall artifact resolution in prepare-runbook.py
+  - 1 new learning (TDD after full codebase exploration)
+  - Validated: learnings 62→66 lines, task removed from Worktree Tasks
+  - `_worktree rm` needed `--force` (directory not empty on merge commits — existing blocker)
+- **Discussion: wt fuzzy matching** — concluded fuzzy matching belongs at agent layer (inherent in LLM name resolution), not CLI. Agent reads session.md, copies exact name. CLI strict matching prevents silent wrong-task matches. Recommend canceling task.
+- **Requirements: worktree-ad-hoc-task** — captured requirements for adding task to session.md before `_worktree new` when task absent from Pending Tasks
+  - Plan: worktree-ad-hoc-task | Status: requirements
+  - Skill-layer fix only (SKILL.md Mode A), no CLI changes
 
 ## Pending Tasks
 
@@ -161,7 +150,10 @@
   - Remaining: requirements skill path flag/auto-detection, optional CLI subcommand (`_worktree import`)
   - Absorbs: Revert cross-tree sandbox access (remove `additionalDirectories` from `_worktree new`)
 - [ ] **Test diagnostic helper** — Replace subprocess.run check=True with stderr surfacing | sonnet
-- [ ] **Worktree fuzzy matching** — `_worktree new` accepts approximate task names instead of exact match | sonnet
+- [–] **Worktree fuzzy matching** — canceled; agent layer handles name resolution inherently
+- [ ] **Worktree ad-hoc task** — `/design plans/worktree-ad-hoc-task/requirements.md` | sonnet
+  - Plan: worktree-ad-hoc-task | Status: requirements
+  - Add task to session.md before `_worktree new` when task not yet present
 - [ ] **TDD test optimization** — Selective test rerun via dependency analysis | sonnet
 - [ ] **Session.md validator** — Scripted precommit check | sonnet
   - Plan: session-validator
@@ -206,8 +198,6 @@
 - [ ] **Wt ls session ordering** — `_worktree ls` prints plans in pending task order from session.md | sonnet
 
 ## Worktree Tasks
-
-
 
 - [ ] **Fix planstate detector** → `fix-planstate-detector` — `/design plans/fix-planstate-detector/requirements.md` | sonnet
   - Plan: fix-planstate-detector | Status: requirements
@@ -283,7 +273,7 @@
 - Inline TDD after full codebase exploration produces test-after with ceremony. All 15 tests passed on first attempt — no behavioral RED. Must delegate to test-driver in fresh context when task is marked TDD and design session loaded implementation context. [from: runbook-recall-expansion]
 ## Next Steps
 
-5 worktrees active (runbook-recall-expansion, fix-planstate-detector, ups-topic-injection, task-classification, continuation-prepend). Userpromptsubmit-topic worktree still registered (merged, needs `wt-rm userpromptsubmit-topic`). Merge returning worktrees as they complete via `wt merge <slug>`.
+4 worktrees active (fix-planstate-detector, ups-topic-injection, task-classification, continuation-prepend). Userpromptsubmit-topic worktree still registered (merged, needs `wt-rm userpromptsubmit-topic`). Merge returning worktrees as they complete via `wt merge <slug>`. Worktree-ad-hoc-task ready for `/design`.
 
 ## Reference Files
 
@@ -305,3 +295,4 @@
 - `plans/reports/recall-lifecycle-internal-codebase.md` — Internal inventory: recall-artifact handling across all pipeline skills
 - `plans/reports/recall-lifecycle-external-research.md` — External research: 10 frameworks (HL7 CRMI, PROV-DM, OpenLineage, ADK, LangGraph, etc.)
 - `plans/pushback-grounding/requirements.md` — Claim verification + recall for `d:` discussion mode
+- `plans/worktree-ad-hoc-task/requirements.md` — Add task to session.md before worktree creation when absent
