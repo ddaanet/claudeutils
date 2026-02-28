@@ -152,6 +152,47 @@ def find_section_bounds(content: str, header: str) -> tuple[int, int] | None:
     return (start_idx, end_idx)
 
 
+def add_slug_marker(session_path: Path, task_name: str, slug: str) -> None:
+    """Add slug marker inline to task in Worktree Tasks section.
+
+    Args:
+        session_path: Path to session.md file
+        task_name: Task name to add marker to
+        slug: Worktree slug to append as marker
+
+    Raises:
+        ValueError: If task_name not found in Worktree Tasks
+    """
+    content = session_path.read_text()
+
+    # Find task in Worktree Tasks section
+    worktree_blocks = extract_task_blocks(content, section="Worktree Tasks")
+    task_block = next((b for b in worktree_blocks if b.name == task_name), None)
+
+    if task_block is None:
+        msg = f"Task '{task_name}' not found in Worktree Tasks"
+        raise ValueError(msg)
+
+    # Find task block in file content
+    lines = content.split("\n")
+    task_start_idx = None
+    for i, line in enumerate(lines):
+        if line == task_block.lines[0]:
+            task_start_idx = i
+            break
+
+    if task_start_idx is None:
+        msg = f"Task '{task_name}' block found but could not locate in file content"
+        raise ValueError(msg)
+
+    # Add slug marker to first line (after ** but before —)
+    first_line = task_block.lines[0]
+    modified_first_line = re.sub(r"(\*\*[^*]+\*\*)", f"\\1 → `{slug}`", first_line)
+    lines[task_start_idx] = modified_first_line
+
+    session_path.write_text("\n".join(lines))
+
+
 def move_task_to_worktree(session_path: Path, task_name: str, slug: str) -> None:
     """Move task from Pending Tasks to Worktree Tasks section.
 
