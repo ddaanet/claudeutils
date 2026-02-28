@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-28
 
-**Status:** Recall skill path fix applied (15 active files), post-merge reprioritization scored (71 tasks, 19 new/rescored). Recall CLI path now `claudeutils _recall resolve` across all skills/agents/decisions.
+**Status:** 5 worktrees active for parallel execution. Pushback grounding merged and removed. flatten-hook-tiers plan delivered.
 
 ## Completed This Session
 
@@ -24,6 +24,12 @@
   - Report: `plans/reports/prioritization-2026-02-28.md`
   - Key movements: UPS topic injection 2.4→3.2 (ME drop, infrastructure delivered), Fix planstate detector new at 2.6, Execute flag lint new at 3.0
   - Scoring arithmetic via `tmp/score.py` (tool-assisted, not mental math)
+- **Worktree parallel setup** — 6 tasks branched for parallel execution
+  - Runbook recall expansion, Pushback grounding, Fix planstate detector, UPS topic injection, Task classification, Continuation prepend
+- **Pushback grounding merge** — worktree merged to main and removed
+  - Branch delivered: `plans/pushback-grounding/classification.md`, test additions
+  - Validated: no session.md or learnings.md loss (62 lines pre/post)
+  - flatten-hook-tiers plan status changed to `delivered` during merge
 
 ## Pending Tasks
 
@@ -201,15 +207,10 @@
 
 ## Worktree Tasks
 
-(none — userpromptsubmit-topic and recall-cli-integration merged this session)
-
 - [ ] **Runbook recall expansion** → `runbook-recall-expansion` — `/design plans/runbook-recall-expansion/requirements.md` | sonnet
   - Plan: runbook-recall-expansion | Status: requirements
   - prepare-runbook.py recall injection, corrector.md self-loading, two-pattern docs (7 FRs)
 
-- [ ] **Pushback grounding** → `pushback-grounding` — `/design plans/pushback-grounding/requirements.md` | sonnet
-  - Plan: pushback-grounding | Status: requirements
-  - Add claim verification + recall to `d:` discussion protocol (pushback.md + hook expansion)
 
 - [ ] **Fix planstate detector** → `fix-planstate-detector` — `/design plans/fix-planstate-detector/requirements.md` | sonnet
   - Plan: fix-planstate-detector | Status: requirements
@@ -284,7 +285,7 @@
 - Root cause unknown — not CWD pollution (test uses monkeypatch.chdir), not UPS tests (verified), not worktree presence
 ## Next Steps
 
-No worktrees active. Userpromptsubmit-topic worktree still registered (merged, needs `_worktree rm`). Per reprioritization: UPS topic injection (`/runbook plans/userpromptsubmit-topic/outline.md`) or Fix planstate detector (`/design plans/fix-planstate-detector/requirements.md`).
+5 worktrees active (runbook-recall-expansion, fix-planstate-detector, ups-topic-injection, task-classification, continuation-prepend). Userpromptsubmit-topic worktree still registered (merged, needs `wt-rm userpromptsubmit-topic`). Merge returning worktrees as they complete via `wt merge <slug>`.
 
 ## Reference Files
 
