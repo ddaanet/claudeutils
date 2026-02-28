@@ -17,7 +17,8 @@
 ## Pending Tasks
 
 - [x] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
-- [ ] **Review prepend** — `/deliverable-review plans/continuation-prepend` | opus | restart
+- [x] **Review prepend** — `/deliverable-review plans/continuation-prepend` | opus | restart
+- [ ] **Fix prepend findings** — `/design plans/continuation-prepend/reports/deliverable-review.md` | opus
 
 ## Blockers / Gotchas
 
