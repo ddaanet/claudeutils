@@ -1,5 +1,6 @@
 """Tests for userpromptsubmit-shortcuts hook."""
 
+from typing import Any
 from unittest.mock import patch
 
 from tests.ups_hook_helpers import call_hook, hook
@@ -307,6 +308,25 @@ class TestDirectiveWithContinuation:
         assert "CONTINUATION" in additional_context
         # systemMessage should include directive summary
         assert "pending" in result["systemMessage"].lower()
+
+
+class TestExecuteCommandInjection:
+    """Test FR-2: x shortcut injects task command from session.md."""
+
+    def test_x_injects_pending_task_command(
+        self, tmp_path: Any, monkeypatch: Any
+    ) -> None:
+        """X with session.md pending task injects Invoke directive."""
+        session_dir = tmp_path / "agents"
+        session_dir.mkdir()
+        (session_dir / "session.md").write_text(
+            "## Pending Tasks\n\n"
+            "- [ ] **Do something** — `/design my-requirements` | sonnet\n"
+        )
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(tmp_path))
+        result = call_hook("x")
+        ctx = result["hookSpecificOutput"]["additionalContext"]
+        assert "Invoke: /design my-requirements" in ctx
 
 
 class TestFeatureCombinations:
