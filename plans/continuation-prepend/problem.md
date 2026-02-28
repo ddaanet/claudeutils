@@ -32,11 +32,11 @@ Current:
 
 Extended:
   1. Read continuation
-  2. If empty → stop
-  3. If skill needs a subroutine: prepend entries to continuation
+  2. If skill needs a subroutine: prepend entries to continuation
      - Existing entries remain in original order (append-only invariant)
      - Prepend only — never remove, reorder, or modify existing entries
-  4. Consume first entry from (possibly modified) list → tail-call with remainder
+  3. If continuation present: consume first entry from (possibly modified) list → tail-call with remainder
+  4. If no continuation: default-exit behavior
 ```
 
 Backward-compatible: skills that don't prepend skip step 3.

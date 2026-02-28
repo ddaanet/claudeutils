@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-28
 
-**Status:** Continuation prepend implemented, pending deliverable review.
+**Status:** Continuation prepend complete. Cooperative protocol gaps pending (separate task, not this branch).
 
 ## Completed This Session
 
@@ -14,25 +14,34 @@
 - Corrector review clean (file: `plans/continuation-prepend/reports/review.md`)
 - Precommit green (1370 passed, 1 xfail pre-existing)
 
+**Fix deliverable review findings:**
+- Updated problem.md step ordering to match implementation (prepend before empty-check)
+- Restored explicit conditionality ("If continuation present:") in continuation-passing.md and inline/SKILL.md step 3
+- Created pending task for pre-existing cooperative protocol gaps (#3-5)
+- Corrector review clean (file: `plans/continuation-prepend/reports/fix-review.md`)
+
 ## Pending Tasks
 
 - [x] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
 - [x] **Review prepend** — `/deliverable-review plans/continuation-prepend` | opus | restart
-- [ ] **Fix prepend findings** — `/design plans/continuation-prepend/reports/deliverable-review.md` | opus
+- [x] **Fix prepend findings** — `/design plans/continuation-prepend/reports/deliverable-review.md` | opus
+- [ ] **Cooperative protocol gaps** — `/design` | sonnet
 
 ## Blockers / Gotchas
 
-**Pre-existing inconsistencies noted by corrector (not introduced by this PR):**
+**Pre-existing cooperative protocol gaps** (tracked as pending task, not this PR):
 - `/design` and `/runbook` listed as cooperative in fragment table but lack `cooperative: true` frontmatter and §Continuation sections
 - `/worktree` has `cooperative: true` frontmatter but no §Continuation section
 - `/handoff` says "If empty: stop" vs canonical "default-exit behavior" — intentional (--commit flag handles it)
 
 ## Next Steps
 
-Deliverable review, then branch work complete.
+Branch work complete.
 
 ## Reference Files
 
 - `plans/continuation-prepend/problem.md` — Design specification (subroutine call mechanism)
 - `plans/continuation-prepend/reports/review.md` — Corrector review report
 - `agent-core/fragments/continuation-passing.md` — Updated protocol reference
+- `plans/continuation-prepend/reports/fix-review.md` — Corrector review of fix task
+- `plans/continuation-prepend/reports/deliverable-review.md` — Deliverable review findings
