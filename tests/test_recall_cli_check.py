@@ -26,3 +26,51 @@ when test entry two
 
         result = runner.invoke(cli, ["_recall", "check", "test-job"])
         assert result.exit_code == 0
+
+
+def test_check_missing_artifact() -> None:
+    """Check exits 1 when artifact file is missing."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, ["_recall", "check", "test-job"])
+        assert result.exit_code == 1
+        assert "recall-artifact.md missing for test-job" in result.output
+
+
+def test_check_no_entry_keys_section() -> None:
+    """Check exits 1 when artifact has no Entry Keys section."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        artifact_content = """# Recall Artifact: Test Job
+
+Some other content without Entry Keys section.
+"""
+        artifact_dir = Path("plans/test-job")
+        artifact_dir.mkdir(parents=True)
+        artifact_path = artifact_dir / "recall-artifact.md"
+        artifact_path.write_text(artifact_content)
+
+        result = runner.invoke(cli, ["_recall", "check", "test-job"])
+        assert result.exit_code == 1
+        assert (
+            "recall-artifact.md has no Entry Keys section for test-job" in result.output
+        )
+
+
+def test_check_empty_section() -> None:
+    """Check exits 1 when Entry Keys section has no entries."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        artifact_content = """# Recall Artifact: Test Job
+
+## Entry Keys
+
+"""
+        artifact_dir = Path("plans/test-job")
+        artifact_dir.mkdir(parents=True)
+        artifact_path = artifact_dir / "recall-artifact.md"
+        artifact_path.write_text(artifact_content)
+
+        result = runner.invoke(cli, ["_recall", "check", "test-job"])
+        assert result.exit_code == 1
+        assert "recall-artifact.md has no entries for test-job" in result.output

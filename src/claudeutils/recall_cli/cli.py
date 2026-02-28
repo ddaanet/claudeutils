@@ -34,7 +34,7 @@ def check(job: str) -> None:
     artifact_path = project_root / "plans" / job / "recall-artifact.md"
 
     if not artifact_path.exists():
-        _fail(f"Artifact not found: {artifact_path}", code=1)
+        _fail(f"recall-artifact.md missing for {job}", code=1)
 
     try:
         content = artifact_path.read_text()
@@ -44,9 +44,9 @@ def check(job: str) -> None:
     entries = parse_entry_keys_section(content)
 
     if entries is None:
-        _fail(f"No Entry Keys section found in {artifact_path}", code=1)
+        _fail(f"recall-artifact.md has no Entry Keys section for {job}", code=1)
 
     if not entries:
-        _fail(f"Entry Keys section is empty in {artifact_path}", code=1)
+        _fail(f"recall-artifact.md has no entries for {job}", code=1)
 
     # Valid artifact: exit 0
