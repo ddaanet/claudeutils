@@ -126,8 +126,11 @@ def test_task_mode_integration(
 
 ## Pending Tasks
 
-- [ ] **Implement feature X** — `\`/runbook\`` | sonnet
 - [ ] **Fix bug Y** — `\`/design\`` | haiku
+
+## Worktree Tasks
+
+- [ ] **Implement feature X** — `\`/runbook\`` | sonnet
 """
     session_file.write_text(session_content)
 

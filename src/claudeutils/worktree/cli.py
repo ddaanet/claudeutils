@@ -20,7 +20,6 @@ from claudeutils.worktree.git_ops import (
     _get_worktree_path_for_branch,
     _git,
     _is_branch_merged,
-    _is_merge_of,
     _is_submodule_dirty,
     _parse_worktree_list,
     _probe_registrations,
@@ -28,11 +27,11 @@ from claudeutils.worktree.git_ops import (
     wt_path,
 )
 from claudeutils.worktree.merge import merge as merge_impl
-from claudeutils.worktree.session import focus_session as focus_session  # noqa: PLC0414
 from claudeutils.worktree.session import (
-    move_task_to_worktree,
-    remove_worktree_task,
+    add_slug_marker,
+    remove_slug_marker,
 )
+from claudeutils.worktree.session import focus_session as focus_session  # noqa: PLC0414
 
 
 def _fail(msg: str, code: int = 1) -> Never:
@@ -202,7 +201,7 @@ def new(
             session_md_path = Path(session_md)
             if not session_md_path.exists():
                 _fail(f"Error: session.md not found at {session_md}")
-            move_task_to_worktree(session_md_path, task_name, slug)
+            add_slug_marker(session_md_path, task_name, slug)
             with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
                 f.write(focus_session(task_name, session_md))
                 temp_session_file = session = f.name
@@ -292,28 +291,11 @@ def _check_not_dirty(slug: str, worktree_path: Path) -> None:  # noqa: ARG001
         _fail(msg, 2)
 
 
-def _update_session_and_amend(slug: str) -> bool:
+def _update_session(slug: str) -> None:
     session_md_path = Path("agents/session.md")
     if not session_md_path.exists():
-        return False
-    remove_worktree_task(session_md_path, slug, slug)
-    if not _is_merge_of(slug):
-        return False
-    parent_status = _git("status", "--porcelain", check=False)
-    other_dirty = [
-        line
-        for line in parent_status.strip().split("\n")
-        if line and not line.endswith("agents/session.md")
-    ]
-    if other_dirty:
-        click.echo("Warning: skipping session amend (parent repo dirty)")
-        return False
-    status_output = _git("status", "--porcelain", "agents/session.md", check=False)
-    if not status_output.strip():
-        return False
-    _git("add", "agents/session.md")
-    _git("commit", "--amend", "--no-edit")
-    return True
+        return
+    remove_slug_marker(session_md_path, slug)
 
 
 @worktree.command()
@@ -335,7 +317,7 @@ def rm(slug: str, force: bool) -> None:  # noqa: FBT001
             branch_exists = True
             removal_type = "focused"
         parent_reg, submodule_reg = _probe_registrations(worktree_path)
-        amended = _update_session_and_amend(slug)
+        _update_session(slug)
 
         if parent_reg or submodule_reg:
             _remove_worktrees(worktree_path, parent_reg, submodule_reg)
@@ -353,10 +335,9 @@ def rm(slug: str, force: bool) -> None:  # noqa: FBT001
             _delete_branch(slug, removal_type)
             if warning := _delete_submodule_branch(slug):
                 click.echo(warning)
-        amend_note = " Merge commit amended." if amended else ""
         detail = " (focused session only)" if removal_type == "focused" else ""
         prefix = "Removed worktree" if removal_type is None else "Removed"
-        click.echo(f"{prefix} {slug}{detail}{amend_note}")
+        click.echo(f"{prefix} {slug}{detail}")
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.strip() if isinstance(e.stderr, str) else ""
         _fail(f"git error: {stderr or e}")
