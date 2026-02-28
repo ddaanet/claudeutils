@@ -1,6 +1,6 @@
-# Session Handoff: 2026-02-28
+# Session Handoff: 2026-03-01
 
-**Status:** Task classification implemented — two-section task list + /prime skill. Corrector-reviewed, all fixes applied.
+**Status:** Task classification delivered + reviewed. 0 Critical, 2 Major, 7 Minor — fix task pending.
 
 ## Completed This Session
 
@@ -13,10 +13,18 @@
 - Corrector review: 2 major (worktree skill, test coverage) + 3 minor (docstrings, handoff-haiku, focus-session.py) — all fixed
 - Review: `plans/task-classification/reports/review.md`
 
+**Deliverable review:**
+- Layer 1: Two parallel opus agents (code+test, prose) — 29 files, +902/-801 lines
+- Layer 2: Interactive cross-cutting review (path consistency, API contracts, naming, memory-index)
+- Findings: 0 Critical, 2 Major (add_slug_marker global line search, execute-rule.md `--task` flag), 7 Minor
+- Report: `plans/task-classification/reports/deliverable-review.md`
+- Lifecycle: `reviewed`
+
 ## In-tree Tasks
 
 - [x] **Task classification** — `/runbook plans/task-classification/outline.md` | sonnet
-- [ ] **Review task-class** — `/deliverable-review plans/task-classification` | opus | restart
+- [x] **Review task-class** — `/deliverable-review plans/task-classification` | opus | restart
+- [ ] **Fix task-class findings** — `/design plans/task-classification/reports/deliverable-review.md` | opus
 
 ## Worktree Tasks
 
@@ -29,3 +37,4 @@ Branch work complete.
 - `plans/task-classification/outline.md` — design (8 rounds, D-1 through D-9)
 - `plans/task-classification/runbook.md` — Tier 2 implementation plan
 - `plans/task-classification/reports/review.md` — corrector review (0 critical, 2 major fixed)
+- `plans/task-classification/reports/deliverable-review.md` — deliverable review (0 critical, 2 major, 7 minor)
