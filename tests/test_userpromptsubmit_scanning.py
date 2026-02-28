@@ -1,54 +1,66 @@
 """Tests for directive scanning: fence detection, any-line matching, enhanced d:."""
 
-import importlib.util
-import json
-from io import StringIO
-from pathlib import Path
-from typing import Any
-from unittest.mock import patch
-
-# Import hook module using importlib (filename contains hyphen)
-HOOK_PATH = (
-    Path(__file__).parent.parent
-    / "agent-core"
-    / "hooks"
-    / "userpromptsubmit-shortcuts.py"
-)
-spec = importlib.util.spec_from_file_location("hook_module", HOOK_PATH)
-if spec is None or spec.loader is None:
-    raise RuntimeError(f"Failed to load hook module from {HOOK_PATH}")
-hook = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(hook)
+from tests.ups_hook_helpers import call_hook, hook
 
 
-def call_hook(prompt: str) -> dict[str, Any]:
-    """Call hook with prompt, return parsed output or empty dict if exit 0."""
-    hook_input = {"prompt": prompt}
-    input_data = json.dumps(hook_input)
+class TestDirectiveCharacterization:
+    """Characterization tests for each directive in isolation (FR-6)."""
 
-    captured_stdout = StringIO()
-    captured_stderr = StringIO()
+    def test_d_directive_standalone(self) -> None:
+        """d: directive produces discuss expansion."""
+        result = call_hook("d: analyze this approach")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert (
+            "DISCUSS" in additional_context
+            or "Evaluate critically" in additional_context
+        )
+        assert "stress-test" in additional_context.lower()
+        assert "discuss" in result["systemMessage"].lower()
 
-    with (
-        patch("sys.stdin", StringIO(input_data)),
-        patch("sys.stdout", captured_stdout),
-        patch("sys.stderr", captured_stderr),
-    ):
-        try:
-            hook.main()
-        except SystemExit as e:
-            if e.code == 0:
-                return {}
-            raise
+    def test_p_directive_standalone(self) -> None:
+        """p: directive produces pending expansion."""
+        result = call_hook("p: implement feature X")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "PENDING" in additional_context or "Do NOT execute" in additional_context
+        assert (
+            "model tier" in additional_context.lower()
+            or "opus" in additional_context.lower()
+        )
+        assert "pending" in result["systemMessage"].lower()
 
-    output_str = captured_stdout.getvalue()
-    if not output_str:
-        return {}
+    def test_b_directive_standalone(self) -> None:
+        """b: directive produces brainstorm expansion."""
+        result = call_hook("b: approaches for caching")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert (
+            "BRAINSTORM" in additional_context
+            or "diverge" in additional_context.lower()
+        )
+        assert "brainstorm" in result["systemMessage"].lower()
 
-    result = json.loads(output_str)
-    if not isinstance(result, dict):
-        return {}
-    return result
+    def test_q_directive_standalone(self) -> None:
+        """q: directive produces quick/terse expansion."""
+        result = call_hook("q: what does FR-1 mean")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "QUICK" in additional_context or "terse" in additional_context.lower()
+        assert "quick" in result["systemMessage"].lower()
+
+    def test_learn_directive_standalone(self) -> None:
+        """learn: directive produces learn expansion."""
+        result = call_hook("learn: always use project-local tmp")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "LEARN" in additional_context or "learnings.md" in additional_context
+        assert "learn" in result["systemMessage"].lower()
+
+    def test_no_match_pass_through(self) -> None:
+        """Prompt with no feature match produces silent exit (empty result)."""
+        assert call_hook("just a regular prompt with no shortcuts") == {}
+        assert call_hook("hello world") == {}
 
 
 class TestLongFormAliases:

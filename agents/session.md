@@ -239,6 +239,17 @@
   - Plan: recall-cli-integration
 - [x] **Recall CLI review** — `/deliverable-review plans/recall-cli-integration` | opus | restart
 
+- [ ] **Calibrate topic params** — extend session-scraper.py | sonnet
+  - Plan: (new) | Status: requirements needed
+  - Blocked by: UPS topic injection (needs production data first)
+- [ ] **Fix planstate detector** — `/design plans/fix-planstate-detector/requirements.md` | sonnet
+  - Plan: fix-planstate-detector | Status: requirements
+  - Missing `outlined` status: outline.md grouped under `requirements` fallback
+- [ ] **Registry cache to tmp** — inline | sonnet
+  - Move continuation registry cache from TMPDIR to project-local tmp/
+- [ ] **UPS topic injection** — `/runbook plans/userpromptsubmit-topic/outline.md` | sonnet
+  - Plan: userpromptsubmit-topic | Status: outlined
+
 ## Worktree Tasks
 
 - [ ] **UserPromptSubmit topic** → `userpromptsubmit-topic` — Phase 7 analysis recommends this as highest-impact recall improvement | sonnet

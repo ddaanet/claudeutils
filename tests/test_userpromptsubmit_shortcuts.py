@@ -1,64 +1,18 @@
 """Tests for userpromptsubmit-shortcuts hook."""
 
-import importlib.util
-import json
-from io import StringIO
-from pathlib import Path
-from typing import Any
 from unittest.mock import patch
 
-# Import hook module using importlib (filename contains hyphen)
-HOOK_PATH = (
-    Path(__file__).parent.parent
-    / "agent-core"
-    / "hooks"
-    / "userpromptsubmit-shortcuts.py"
-)
-spec = importlib.util.spec_from_file_location("hook_module", HOOK_PATH)
-if spec is None or spec.loader is None:
-    raise RuntimeError(f"Failed to load hook module from {HOOK_PATH}")
-hook = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(hook)
-
-
-def call_hook(prompt: str) -> dict[str, Any]:
-    """Call hook with prompt, return parsed output or empty dict if exit 0."""
-    hook_input = {"prompt": prompt}
-    input_data = json.dumps(hook_input)
-
-    # Capture stdout and stderr
-    captured_stdout = StringIO()
-    captured_stderr = StringIO()
-
-    with (
-        patch("sys.stdin", StringIO(input_data)),
-        patch("sys.stdout", captured_stdout),
-        patch("sys.stderr", captured_stderr),
-    ):
-        try:
-            hook.main()
-        except SystemExit as e:
-            if e.code == 0:
-                # Silent pass-through
-                return {}
-            raise
-
-    # Parse output
-    output_str = captured_stdout.getvalue()
-    if not output_str:
-        return {}
-
-    result = json.loads(output_str)
-    if not isinstance(result, dict):
-        return {}
-    return result
+from tests.ups_hook_helpers import call_hook, hook
 
 
 class TestTier1Commands:
     """Test Tier 1 command matching on any prompt line."""
 
-    def test_tier1_shortcut_on_own_line_in_multiline_prompt(self) -> None:
-        """Shortcut on own line in multi-line prompt triggers expansion."""
+    def test_multiline_command_no_systemmessage(self) -> None:
+        """Command + plain text, no other feature (FR-2).
+
+        Multi-line command produces additionalContext only, no systemMessage.
+        """
         result = call_hook("s\nsome additional context")
         assert result != {}
         assert "[#status]" in result["hookSpecificOutput"]["additionalContext"]
@@ -98,6 +52,77 @@ class TestTier1Commands:
         assert call_hook("this is about status") == {}
         assert call_hook("fix something") == {}
         assert call_hook("  s  trailing space") == {}
+
+    def test_command_cofires_with_directive(self) -> None:
+        """Command on one line + directive on another → both fire."""
+        result = call_hook("s\nd: discuss this topic")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        # Command expansion must be present
+        assert "[#status]" in additional_context
+        # Directive expansion must also be present
+        assert (
+            "DISCUSS" in additional_context
+            or "Evaluate critically" in additional_context
+        )
+        # systemMessage should include directive summary (not command multiline)
+        assert "discuss" in result["systemMessage"].lower()
+
+    def test_h_expansion(self) -> None:
+        """H command expands to handoff instruction."""
+        result = call_hook("h")
+        assert "[/handoff]" in result["systemMessage"]
+        assert "Update session.md" in result["systemMessage"]
+
+    def test_ci_expansion(self) -> None:
+        """CI command expands to commit instruction."""
+        result = call_hook("ci")
+        assert "[/commit]" in result["systemMessage"]
+        assert "status display" in result["systemMessage"]
+
+    def test_c_expansion(self) -> None:
+        """C command expands to continue instruction."""
+        result = call_hook("c")
+        assert "Continue." in result["systemMessage"]
+
+    def test_y_expansion(self) -> None:
+        """Y command expands to proceed instruction."""
+        result = call_hook("y")
+        assert "Yes, proceed." in result["systemMessage"]
+
+    def test_question_expansion(self) -> None:
+        """? command expands to help instruction."""
+        result = call_hook("?")
+        assert "[#help]" in result["systemMessage"]
+        assert "shortcuts" in result["systemMessage"].lower()
+        assert "skills" in result["systemMessage"].lower()
+
+    def test_multi_command_first_wins(self) -> None:
+        """Multiple commands → only first fires, warning in systemMessage."""
+        result = call_hook("s\nx")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        # First command (s) fires
+        assert "[#status]" in additional_context
+        # Second command (x) does NOT fire
+        assert "[#execute]" not in additional_context
+        # Warning in systemMessage
+        assert "s" in result["systemMessage"]
+        assert "x" in result["systemMessage"]
+
+    def test_multi_command_reverse_order(self) -> None:
+        """Verify first-wins is position-based, not alphabetical."""
+        result = call_hook("x\ns")
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "[#execute]" in additional_context
+        assert "[#status]" not in additional_context
+
+    def test_single_command_no_warning(self) -> None:
+        """Single command produces no multi-command warning."""
+        result = call_hook("s")
+        sys_msg = result["systemMessage"]
+        # systemMessage should contain expansion, not a warning about multiple commands
+        assert "Multiple" not in sys_msg
 
 
 class TestPatternGuards:
@@ -238,3 +263,96 @@ discuss: after fence should match"""
         assert "systemMessage" in output_x
         assert "[#execute]" in output_x["systemMessage"]
         assert "[#execute]" in output_x["hookSpecificOutput"]["additionalContext"]
+
+
+class TestContinuationOnly:
+    """Test Tier 3 continuation parsing with no guards matching."""
+
+    def test_continuation_with_cooperative_skills(self) -> None:
+        """Continuation parsing detects multi-skill chains without guards."""
+        fake_registry = {
+            "handoff": {"cooperative": True, "default-exit": []},
+            "commit": {"cooperative": True, "default-exit": []},
+        }
+        with patch.object(hook, "build_registry", return_value=fake_registry):
+            result = call_hook("/handoff and /commit")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "CONTINUATION" in additional_context
+        assert "Current:" in additional_context
+        assert "handoff" in additional_context
+        assert "commit" in additional_context
+
+
+class TestDirectiveWithContinuation:
+    """Test directive + continuation co-firing (Cycle 4: FR-4)."""
+
+    def test_directive_cofires_with_continuation(self) -> None:
+        """Directive + continuation co-fire as expected.
+
+        Both directive and continuation outputs are present in hook result.
+        Verifies that Cycle 2 refactor removed the early-return block.
+        """
+        fake_registry = {
+            "handoff": {"cooperative": True, "default-exit": []},
+            "commit": {"cooperative": True, "default-exit": []},
+        }
+        with patch.object(hook, "build_registry", return_value=fake_registry):
+            result = call_hook("p: new task\n/handoff and /commit")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        # Directive expansion must be present
+        assert "PENDING" in additional_context or "Do NOT execute" in additional_context
+        # Continuation must also be present
+        assert "CONTINUATION" in additional_context
+        # systemMessage should include directive summary
+        assert "pending" in result["systemMessage"].lower()
+
+
+class TestFeatureCombinations:
+    """Test pairwise and triple feature combinations (FR-7)."""
+
+    def test_command_plus_pattern_guard(self) -> None:
+        """Command on one line + CCG pattern keyword → both fire."""
+        result = call_hook("s\nhow do hooks work")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "[#status]" in additional_context
+        assert "claude-code-guide" in additional_context
+        # systemMessage: multi-line command adds nothing, CCG guard adds summary
+        assert "systemMessage" in result
+        assert "claude-code-guide" in result["systemMessage"].lower()
+
+    def test_command_plus_continuation(self) -> None:
+        """Command on one line + continuation chain → both fire."""
+        fake_registry = {
+            "handoff": {"cooperative": True, "default-exit": []},
+            "commit": {"cooperative": True, "default-exit": []},
+        }
+        with patch.object(hook, "build_registry", return_value=fake_registry):
+            result = call_hook("s\n/handoff and /commit")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "[#status]" in additional_context
+        assert "CONTINUATION" in additional_context
+        # systemMessage: multi-line command and continuation both add nothing
+        assert "systemMessage" not in result
+
+    def test_command_plus_directive_plus_guard(self) -> None:
+        """Command + directive + pattern guard triple → all three fire."""
+        result = call_hook("s\nd: how do hooks work")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        # Command
+        assert "[#status]" in additional_context
+        # Directive
+        assert (
+            "DISCUSS" in additional_context
+            or "Evaluate critically" in additional_context
+        )
+        # CCG guard (triggered by "hooks" keyword)
+        assert "claude-code-guide" in additional_context
+        # systemMessage should include directive and guard summaries
+        sys_msg = result["systemMessage"]
+        assert "discuss" in sys_msg.lower()
+        assert "claude-code-guide" in sys_msg.lower()
