@@ -3,6 +3,7 @@
 from collections import defaultdict
 
 from claudeutils.recall.index_parser import IndexEntry, extract_keywords
+from claudeutils.recall.relevance import RelevanceScore, score_relevance
 
 
 def build_inverted_index(entries: list[IndexEntry]) -> dict[str, list[IndexEntry]]:
@@ -42,3 +43,31 @@ def get_candidates(
         if keyword in inverted_index:
             candidates.update(inverted_index[keyword])
     return candidates
+
+
+def score_and_rank(
+    prompt_keywords: set[str],
+    candidates: set[IndexEntry],
+    threshold: float = 0.3,
+    max_entries: int | None = None,
+) -> list[tuple[IndexEntry, RelevanceScore]]:
+    """Score and rank candidates by relevance to prompt keywords.
+
+    Filters entries by relevance threshold and caps results to max_entries.
+
+    Args:
+        prompt_keywords: Set of keywords extracted from prompt
+        candidates: Set of candidate entries to score
+        threshold: Minimum score to include entry (default 0.3)
+        max_entries: Maximum entries to return (default None = all)
+
+    Returns:
+        List of (IndexEntry, RelevanceScore) tuples sorted by score descending
+    """
+    scored = [
+        (entry, score_relevance("hook", prompt_keywords, entry, threshold=threshold))
+        for entry in candidates
+    ]
+    relevant = [(entry, score) for entry, score in scored if score.is_relevant]
+    ranked = sorted(relevant, key=lambda x: x[1].score, reverse=True)
+    return ranked[:max_entries] if max_entries else ranked

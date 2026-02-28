@@ -1,7 +1,14 @@
 """Tests for topic matching and inverted index construction."""
 
+import pytest
+
 from claudeutils.recall.index_parser import IndexEntry
-from claudeutils.recall.topic_matcher import build_inverted_index, get_candidates
+from claudeutils.recall.relevance import RelevanceScore
+from claudeutils.recall.topic_matcher import (
+    build_inverted_index,
+    get_candidates,
+    score_and_rank,
+)
 
 
 def test_build_inverted_index_maps_keywords_to_entries() -> None:
@@ -90,3 +97,79 @@ def test_match_prompt_returns_candidates_with_overlap() -> None:
     assert entry_b in candidates
     assert entry_c not in candidates
     assert len(candidates) == 2
+
+
+@pytest.mark.parametrize(
+    ("threshold", "max_entries"),
+    [(0.3, None), (0.3, 2)],
+)
+def test_score_candidates_ranks_by_relevance_and_filters(
+    threshold: float, max_entries: int | None
+) -> None:
+    """score_and_rank should rank by relevance and apply threshold/cap."""
+    entry_high = IndexEntry(
+        key="high_match",
+        description="test entry",
+        referenced_file="file_a.md",
+        section="Section A",
+        keywords=frozenset({"recall", "system", "matching"}),
+    )
+    entry_mid = IndexEntry(
+        key="mid_match",
+        description="test entry",
+        referenced_file="file_b.md",
+        section="Section B",
+        keywords=frozenset({"recall", "matching"}),
+    )
+    entry_low = IndexEntry(
+        key="low_match",
+        description="test entry",
+        referenced_file="file_c.md",
+        section="Section C",
+        keywords=frozenset(
+            {
+                "other",
+                "unrelated",
+                "keywords",
+                "none",
+                "match",
+                "here",
+                "at",
+                "all",
+                "in",
+            }
+        ),
+    )
+    entry_cap1 = IndexEntry(
+        key="cap1",
+        description="test entry",
+        referenced_file="file_d.md",
+        section="Section D",
+        keywords=frozenset({"recall", "test"}),
+    )
+    entry_cap2 = IndexEntry(
+        key="cap2",
+        description="test entry",
+        referenced_file="file_e.md",
+        section="Section E",
+        keywords=frozenset({"system"}),
+    )
+
+    prompt_keywords = {"recall", "system", "matching"}
+    candidates = {entry_high, entry_mid, entry_low, entry_cap1, entry_cap2}
+
+    result = score_and_rank(
+        prompt_keywords, candidates, threshold=threshold, max_entries=max_entries
+    )
+
+    assert isinstance(result, list)
+    assert all(isinstance(item, tuple) and len(item) == 2 for item in result)
+    assert all(isinstance(item[1], RelevanceScore) for item in result)
+    assert all(item[1].score >= threshold for item in result)
+
+    if max_entries:
+        assert len(result) <= max_entries
+
+    if len(result) > 1:
+        scores = [item[1].score for item in result]
+        assert scores == sorted(scores, reverse=True)
