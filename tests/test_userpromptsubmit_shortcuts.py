@@ -365,6 +365,36 @@ class TestExecuteCommandInjection:
         assert "Invoke: /orchestrate my-job" in ctx
         assert "other-thing" not in ctx
 
+    def test_x_fallback_no_session_md(self, tmp_path: Any, monkeypatch: Any) -> None:
+        """X without session.md uses generic expansion only."""
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(tmp_path))
+        # No agents/session.md exists
+        result = call_hook("x")
+        ctx = result["hookSpecificOutput"]["additionalContext"]
+        assert "[#execute]" in ctx
+        assert "Invoke:" not in ctx
+
+    def test_x_fallback_no_eligible_tasks(
+        self, tmp_path: Any, monkeypatch: Any
+    ) -> None:
+        """X with no eligible tasks uses generic expansion.
+
+        When session.md contains only non-eligible tasks, x falls back to the
+        generic [#execute] expansion without Invoke directive.
+        """
+        session_dir = tmp_path / "agents"
+        session_dir.mkdir()
+        (session_dir / "session.md").write_text(
+            "## Pending Tasks\n\n"
+            "- [x] **Done** — `/commit` | sonnet\n"
+            "- [!] **Blocked** — `/orchestrate something` | sonnet\n"
+        )
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(tmp_path))
+        result = call_hook("x")
+        ctx = result["hookSpecificOutput"]["additionalContext"]
+        assert "[#execute]" in ctx
+        assert "Invoke:" not in ctx
+
 
 class TestFeatureCombinations:
     """Test pairwise and triple feature combinations (FR-7)."""
