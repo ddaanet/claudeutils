@@ -57,3 +57,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: `just precommit 2>&1 | tail -N` or similar truncation. Validation output is a diagnostic signal — truncation hides the pass/fail/xfail summary that distinguishes real failures from expected noise. Agent then draws wrong conclusions from incomplete data.
 - Correct pattern: Show full output from `just precommit`, `just test`, `just lint`. If output is too long, fix the recipe (add `--quiet`, `--tb=no`), not the consumption site.
 - Evidence: xfail traceback from `pytest-markdown-report` was visually identical to real failure. Agent tailed output, missed summary counts, ran `git stash` diagnostic cycle, still drew wrong conclusion. Full output would have shown "30 passed, 1 xfailed" immediately.
+## When a test fails only in suite
+- Anti-pattern: Treating test ordering dependence as "flaky" and retrying or ignoring. A test that fails only when run after other tests has shared mutable state — that's a bug, not noise.
+- Correct pattern: Diagnose the pollution. Run `pytest --lf` to confirm, then bisect with `pytest -x` subsets. Fix the shared state (fixture cleanup, monkeypatch teardown, global mutation). The test or its predecessor is wrong.
+- Rationale: "Passes in isolation" is a diagnostic signal, not a resolution. Merging with a known ordering-dependent failure means the suite is unreliable — future failures get dismissed as "that flaky test."

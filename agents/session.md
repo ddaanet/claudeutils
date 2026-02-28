@@ -1,68 +1,27 @@
 # Session Handoff: 2026-02-28
 
-**Status:** Worktree operations (create, merge, rm) for 3 recall tasks. Pushback-grounding requirements captured. Discussion: remove `_worktree rm --force`.
+**Status:** Merged recall-cli-integration and userpromptsubmit-topic worktrees. Test ordering dep in `test_merge_learnings_segment_diff3_prevents_orphans` — non-reproducible, recorded for reoccurrence. Discussion: dev integration branch for async merge issue resolution.
 
 ## Completed This Session
 
-- **Recall-null planning** — `/design` triage → Moderate → `/runbook` Tier 2 assessment → outline with Execution Model
-  - Scope discussion: null mode + D+B gate language + post-explore gates. Artifact generation for sub-agents excluded (that's runbook-recall-expansion scope).
-  - Inventoried recall gate state across 4 pipeline skills: /requirements, /design, /runbook, /inline
-  - Classification: Moderate (behavioral code forces minimum), mixed artifact destination (production + agentic-prose)
-  - Tier 2: 6 files, benefits from agent isolation (TDD sonnet + prose opus), no full orchestration
-  - Plan: recall-null | Outline: `plans/recall-null/outline.md` (has Execution Model — ready for /inline)
-- **Per-consumer recall artifacts** — curated subsets of recall-artifact for each agent type
-  - `tdd-recall-artifact.md` (5 entries: CLI testing, assertions, lint gate)
-  - `review-recall-artifact.md` (7 entries: D+B pattern, model selection, holistic fixes)
-  - `skill-review-recall-artifact.md` (6 entries: skill editing, D+B propagation)
-- **Recall broad** — loaded 16/21 decision files. Remaining 5 (data-processing, deliverable-review, markdown-tooling, operational-tooling, validation-quality) irrelevant to recall gates
-- **Recall lifecycle grounding** — `/ground` research on artifact lifecycle across pipeline stages
-  - Three grounded patterns: accumulator with stage provenance (LangGraph+OpenLineage), forward-only refinement (HL7 CRMI), lifecycle role contract (RUP+TOGAF)
-  - Per-point retrieval mode assignment across 10 pipeline recall points: 8 per-key (default), 2 per-file iterated (all)
-  - Recall system simplification: no sibling expansion (redundant with index scanning), per-key and per-file only
-  - Revised mode set: default (per-key, two passes, scored selection), all (per-file, iterated), everything (full corpus). `broad` and `deep` drop from pipeline usage.
-  - Post-resolve relevance scoring at skill transitions (not per-point) — design input for recall calibration
-  - Reports: grounding (`plans/reports/recall-lifecycle-grounding.md`), internal inventory (`plans/reports/recall-lifecycle-internal-codebase.md`), external research (`plans/reports/recall-lifecycle-external-research.md`)
-- **Recall everything** — loaded all 21 decision files (full corpus for grounding context)
-- **Recall-null delivery** — `/inline plans/recall-null` executed (Tier 2)
-  - Phase 1 (TDD, sonnet): 2 cycles — null query silent exit, mixed null+real filtering. Tests: `tests/test_when_null.py`
-  - Phase 2 (inline, opus): D+B gate anchoring propagated to /requirements, /runbook (T1/T2 + T3), /inline. /design A.2.5 verified canonical (no-op). Post-explore recall gates added to /requirements and /runbook T3
-  - Null artifact format: explicit `null — no relevant entries found` entry in /requirements and /design artifact format blocks
-  - Corrector: 0C/0M/2m — Tier 2 parenthetical consistency, fragile test assertion. Both fixed. Report: `plans/recall-null/reports/review.md`
-  - Triage feedback: no-classification (no divergence)
-- **Hook cwd-drift bypass** — diagnosed and fixed
-  - Root cause: `.claude/hooks/submodule-safety.py` used relative path in settings.json. After cwd drift (`cd agent-core && ...`), hook file not found → hook errors are non-blocking → guard silently disabled
-  - Fix: prefixed 4 relative hook paths with `$CLAUDE_PROJECT_DIR/` (submodule-safety ×2, block-tmp, symlink-redirect, recall-check)
-  - New decision: "When Hook Commands Use Relative Paths" in hook-patterns.md + memory-index entry
-- **Supercession passes** — recall-null + hook fix
-  - Recall-null: updated "When Selecting Gate Anchor Tools" (null mode now delivered, not proposed). 6 other entries checked — describe patterns recall-null conforms to, no supersession
-  - Hook fix: new decision entry, no existing entries superseded
-- **Worktree setup** — 3 worktrees for parallel recall work
-  - `review-recall-null` — deliverable review (opus)
-  - `recall-cli-integration` — production CLI (sonnet)
-  - `userpromptsubmit-topic` — prompt-submit recall injection (sonnet)
-- **Review recall-null** — deliverable review completed in worktree, merged back
-  - Report: `plans/recall-null/reports/deliverable-review.md`
-- **Recall-null plan delivered** — lifecycle marked, worktree removed
-- **Recall-cli-integration merge** — merged empty worktree (focused session only, no work done). Data loss: uncommitted `plans/recall-cli-integration/` destroyed by `--force` rm. Worktree recreated with same slug for session recovery.
-- **Pushback-grounding requirements** — `/requirements pushback-grounding`
-  - 4 FRs: claim verification, discussion recall, protocol integration, hook expansion update
-  - Plan: pushback-grounding | Requirements: `plans/pushback-grounding/requirements.md`
-- **Task updates** — when-resolve bloat marked superseded (confirmed in recall-cli-integration wt). Stale recall artifact absorbed into Recall tool consolidation.
+- **Recall-cli-integration merge** — worktree merged to main, session.md duplicate fixed during merge (task in both Pending and Worktree), plan lifecycle marked delivered
+  - Branch delivered: Recall CLI integration (inline execution) + Recall CLI review (deliverable review)
+  - 4 new learnings from branch (Moderate routing, multi-step orchestration, multiline dedent, validation output)
+  - 3 new pending tasks from branch (Execute flag lint, Moderate outline gate, Python hook ordering fix)
+  - Validated: no session detail or learning loss
+- **Userpromptsubmit-topic merge** — worktree merged to main
+  - Branch delivered: flatten-hook-tiers plan (reviewed), UPS scanning/shortcuts rework, scoring grounding reports
+  - New pending tasks from branch (Calibrate topic params, Fix planstate detector, Registry cache to tmp, UPS topic injection)
+  - Precommit failure: `test_merge_learnings_segment_diff3_prevents_orphans` — non-reproducible (passes in isolation and full suite post-merge), recorded as ordering dep bug for reoccurrence
+- **Post-merge validation** — both merges validated for session.md and learnings.md completeness
 
 ## Pending Tasks
 
 ### Tier 1: Recall/when-resolve (foundational)
 
-- [x] **Fix when-resolve.py** — dedup, stdin, navigation simplification delivered
-- [x] **Review when-resolve** — delivered, 0C/0M/4m (3 fixed inline)
-- [x] **Recall-null delivery** — `/inline plans/recall-null` | opus
-  - Plan: recall-null | Status: delivered
-  - Phase 1: null mode TDD (2 cycles, test-driver at sonnet). Phase 2: skill gate language (5 inline edits, opus direct)
-  - Absorbs: when-resolve null mode + runbook post-explore gate
 - [ ] **Runbook recall expansion** — `/design plans/runbook-recall-expansion/requirements.md` | sonnet
   - Plan: runbook-recall-expansion | Status: requirements
   - prepare-runbook.py recall injection, corrector.md self-loading, two-pattern docs (7 FRs)
-- [x] **When-resolve bloat** — superseded by recall-cli-integration FR-2
 - [ ] **Recall tool consolidation** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
   - Recall simplification: remove sibling expansion (redundant with index scanning). Resolver = pure lookup (key in, section out).
   - Mode reduction: default (per-key, 2 passes), all (per-file, iterated), everything (full corpus). Drop `broad` and `deep` from formal mode set.
@@ -79,7 +38,6 @@
   - Grounding: `plans/reports/recall-lifecycle-grounding.md` §Revised Mode Assignment
 - [ ] **Generate memory index** — `/design` | opus
   - Each decision/learning declares keywords for index. Index generated from declarations. Diff displayed after update for agent review. Supersedes manual append workflow in `/codify` step 4a.
-- [x] **Runbook post-explore gate** — absorbed into recall-null delivery (outline item 2.4)
 - [ ] **Delivery supercession** — `d:` memory-index pass at plan delivery for supercession | opus
 - [ ] **Recall deduplication** — integrate session context scraping into `when-resolve.py` to filter already-loaded entries | sonnet
   - Session scraper prototype: `plans/prototypes/session-scraper.py`
@@ -156,6 +114,20 @@
 - [ ] **Continuation prepend** — `/design plans/continuation-prepend/problem.md` | sonnet
 - [ ] **Runbook outline review** — update runbook skill: user review gate after outline correction, iterative fix cycle until approved | sonnet
 - [ ] **Review auto-commit** — after fixing all issues in deliverable-review, auto handoff and commit | sonnet
+- [ ] **Execute flag lint** — precommit lint gate for `/inline ... execute` in session.md | haiku
+  - Scan session.md pending tasks for `/inline plans/.* execute` pattern
+  - Flag as error: execute entry point in session.md bypasses Phase 2 recall (D+B anchor)
+- [ ] **Moderate outline gate** — `/design` skill update | opus
+  - When requirements lack structural decisions (module layout, function decomposition, wiring), generate lightweight outline before routing to /runbook
+  - Single data point so far — trigger condition needs sharper criteria before implementing
+  - Self-modification risk: editing /design during active use
+- [ ] **Fix planstate detector** — `/design plans/fix-planstate-detector/requirements.md` | sonnet
+  - Plan: fix-planstate-detector | Status: requirements
+  - Missing `outlined` status: outline.md grouped under `requirements` fallback
+- [ ] **UPS topic injection** — `/runbook plans/userpromptsubmit-topic/outline.md` | sonnet
+  - Plan: userpromptsubmit-topic | Status: outlined (planstate detector shows `requirements` — fix-planstate-detector bug)
+- [ ] **Registry cache to tmp** — inline | sonnet
+  - Move continuation registry cache from TMPDIR to project-local tmp/
 - [ ] **Block cd-chaining in bash** — PreToolUse hook to block `cd * && *` and `cd *; *`, recommend `git -C` or subshell | sonnet
 - [ ] **Model directive pipeline** — Model guidance design → runbook → execution | opus
 
@@ -222,40 +194,20 @@
   - Discussion conclusions baked into outline: amend, git passthrough, deviation-only output, submodule labeling
 - [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
   - Plan: parallel-orchestration | Blocked on: orchestrate-evolution
-
-- [ ] **Execute flag lint** — precommit lint gate for `/inline ... execute` in session.md | haiku
-  - Scan session.md pending tasks for `/inline plans/.* execute` pattern
-  - Flag as error: execute entry point in session.md bypasses Phase 2 recall (D+B anchor)
-- [ ] **Moderate outline gate** — `/design` skill update | opus
-  - When requirements lack structural decisions (module layout, function decomposition, wiring), generate lightweight outline before routing to /runbook
-  - Single data point so far — trigger condition needs sharper criteria before implementing
-  - Self-modification risk: editing /design during active use
-- [ ] **Python hook ordering fix** — `/requirements` | haiku | restart
+- [ ] **Python hook ordering fix** — `/design plans/precommit-python3-redirect/requirements.md` | haiku | restart
   - `python -c` one-liner allowance evaluated before `uv run` redirect
   - `uv run` redirect message mentions `uv sync` as dependency-change path
   - SessionStart: verify `claudeutils` importable, emit `STOP:` if not
   - agent-core SessionStart can assume claudeutils (all consumers have it; post-migration edify ships in plugin)
-- [x] **Recall CLI integration** — `/inline plans/recall-cli-integration` | sonnet
-  - Plan: recall-cli-integration
-- [x] **Recall CLI review** — `/deliverable-review plans/recall-cli-integration` | opus | restart
-
 - [ ] **Calibrate topic params** — extend session-scraper.py | sonnet
-  - Plan: (new) | Status: requirements needed
   - Blocked by: UPS topic injection (needs production data first)
-- [ ] **Fix planstate detector** — `/design plans/fix-planstate-detector/requirements.md` | sonnet
-  - Plan: fix-planstate-detector | Status: requirements
-  - Missing `outlined` status: outline.md grouped under `requirements` fallback
-- [ ] **Registry cache to tmp** — inline | sonnet
-  - Move continuation registry cache from TMPDIR to project-local tmp/
-- [ ] **UPS topic injection** — `/runbook plans/userpromptsubmit-topic/outline.md` | sonnet
-  - Plan: userpromptsubmit-topic | Status: outlined
+
+- [ ] **Dev integration branch** — `/design` persistent worktree for merge landing, async issue resolution | opus
+- [ ] **Wt ls session ordering** — `_worktree ls` prints plans in pending task order from session.md | sonnet
 
 ## Worktree Tasks
 
-- [ ] **UserPromptSubmit topic** → `userpromptsubmit-topic` — Phase 7 analysis recommends this as highest-impact recall improvement | sonnet
-  - Seed keyword table from 200+ memory-index triggers
-  - Inject matching decision content via additionalContext on prompt submit
-  - Complementary to recall pass (cheap first layer vs deep pipeline integration)
+(none — userpromptsubmit-topic and recall-cli-integration merged this session)
 
 ## Blockers / Gotchas
 
@@ -309,9 +261,14 @@
 - `just precommit` shows `✗ Precommit failed` when test sentinel invalidates (any test file change forces rerun) [from: recall-cli-integration]
 - All 30 recall tests pass. The `✗` is from xfail report formatting, not a real failure [from: recall-cli-integration]
 - Fix is in `pytest-markdown-report` (separate repo), not here [from: recall-cli-integration]
+
+**`test_merge_learnings_segment_diff3_prevents_orphans` ordering dep:**
+- Fails during `_worktree merge` precommit, passes in isolation and standalone full suite
+- Non-reproducible after merge completes. On reoccurrence: capture `pytest -v` output to identify predecessor test
+- Root cause unknown — not CWD pollution (test uses monkeypatch.chdir), not UPS tests (verified), not worktree presence
 ## Next Steps
 
-Two worktrees active: recall-cli-integration (recreated for session recovery), userpromptsubmit-topic. Next in-tree: Runbook recall expansion (`/design plans/runbook-recall-expansion/requirements.md`).
+No worktrees active. Userpromptsubmit-topic worktree still registered (merged, needs `_worktree rm`). Next in-tree: Runbook recall expansion (`/design plans/runbook-recall-expansion/requirements.md`).
 
 ## Reference Files
 
