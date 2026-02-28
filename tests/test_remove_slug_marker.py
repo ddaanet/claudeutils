@@ -106,3 +106,32 @@ def test_remove_slug_marker_multiline(tmp_path: Path) -> None:
     assert "  - Notes: Complex work" in result
     # No markers
     assert "→" not in result
+
+
+def test_remove_slug_marker_only_modifies_worktree_section(tmp_path: Path) -> None:
+    """Remove marker only within Worktree Tasks section."""
+    session_content = """# Session
+
+## In-tree Tasks
+
+- [ ] **Task X** — see → `task-a` ref | sonnet
+
+## Worktree Tasks
+
+- [ ] **Task A** → `task-a` — desc | sonnet
+"""
+    session_path = tmp_path / "session.md"
+    session_path.write_text(session_content)
+
+    remove_slug_marker(session_path, "task-a")
+
+    result = session_path.read_text()
+    # Worktree Tasks marker removed
+    wt_idx = result.find("## Worktree Tasks")
+    worktree_section = result[wt_idx:]
+    assert "→ `task-a`" not in worktree_section
+    assert "- [ ] **Task A** — desc | sonnet" in worktree_section
+    # In-tree Tasks content preserved (even though it contains the pattern)
+    it_idx = result.find("## In-tree Tasks")
+    in_tree_section = result[it_idx:wt_idx]
+    assert "→ `task-a`" in in_tree_section

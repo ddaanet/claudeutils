@@ -23,13 +23,13 @@ class TestExtractTaskNames:
 
     def test_extract_single_task(self) -> None:
         """Extract a single task."""
-        lines = ["# Session", "", "## Pending Tasks", "", "- [ ] **Task One** — desc"]
+        lines = ["# Session", "", "## In-tree Tasks", "", "- [ ] **Task One** — desc"]
         assert extract_task_names(lines) == [(5, "Task One")]
 
     def test_extract_multiple_tasks(self) -> None:
         """Extract multiple tasks with different states."""
         lines = [
-            "## Pending Tasks",
+            "## In-tree Tasks",
             "- [ ] **Task One** — desc",
             "- [x] **Task Two** — done",
             "- [>] **Task Three** — in progress",
@@ -253,7 +253,7 @@ class TestValidate:
     def test_valid_session_no_errors(self, tmp_path: Path) -> None:
         """Valid session returns no errors."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n"
+            "# Session\n\n## In-tree Tasks\n\n"
             "- [ ] **Task One** — desc\n"
             "- [ ] **Task Two** — desc\n"
         )
@@ -263,7 +263,7 @@ class TestValidate:
     def test_duplicate_task_names(self, tmp_path: Path) -> None:
         """Duplicate task names detected."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n- [ ] **Task One** — first\n"
+            "# Session\n\n## In-tree Tasks\n\n- [ ] **Task One** — first\n"
             "- [ ] **Task Two** — second\n- [ ] **Task One** — duplicate\n"
         )
         (tmp_path / "learnings.md").write_text("# Learnings\n")
@@ -275,7 +275,7 @@ class TestValidate:
     def test_duplicate_case_insensitive(self, tmp_path: Path) -> None:
         """Duplicate detection is case-insensitive."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n"
+            "# Session\n\n## In-tree Tasks\n\n"
             "- [ ] **Task One** — first\n"
             "- [ ] **task one** — dup\n"
         )
@@ -287,7 +287,7 @@ class TestValidate:
     def test_task_conflicts_with_learning_key(self, tmp_path: Path) -> None:
         """Task names conflicting with learning keys detected."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n- [ ] **Conflicting Task** — desc\n"
+            "# Session\n\n## In-tree Tasks\n\n- [ ] **Conflicting Task** — desc\n"
         )
         (tmp_path / "learnings.md").write_text(
             "# Learnings\n\n## Conflicting Task\nContent.\n"
@@ -299,7 +299,7 @@ class TestValidate:
     def test_task_conflict_case_insensitive(self, tmp_path: Path) -> None:
         """Conflict detection is case-insensitive."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n- [ ] **conflicting task** — desc\n"
+            "# Session\n\n## In-tree Tasks\n\n- [ ] **conflicting task** — desc\n"
         )
         (tmp_path / "learnings.md").write_text("# Learnings\n\n## Conflicting Task\n")
         errors = validate("session.md", "learnings.md", tmp_path)
@@ -316,7 +316,7 @@ class TestValidate:
     ) -> None:
         """New task found in history is flagged."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n- [ ] **New Task** — desc\n"
+            "# Session\n\n## In-tree Tasks\n\n- [ ] **New Task** — desc\n"
         )
         (tmp_path / "learnings.md").write_text("# Learnings\n")
         mock_new.return_value = ["New Task"]
@@ -332,7 +332,7 @@ class TestValidate:
     def test_missing_learnings_still_validates(self, tmp_path: Path) -> None:
         """Missing learnings file doesn't prevent task validation."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n"
+            "# Session\n\n## In-tree Tasks\n\n"
             "- [ ] **Task One** — desc\n- [ ] **Task One** — dup\n"
         )
         errors = validate("session.md", "nonexistent.md", tmp_path)
@@ -342,7 +342,7 @@ class TestValidate:
     def test_multiple_errors_all_reported(self, tmp_path: Path) -> None:
         """All errors reported, not just first."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n"
+            "# Session\n\n## In-tree Tasks\n\n"
             "- [ ] **Task One** — first\n- [ ] **task one** — dup\n"
             "- [ ] **Learning Key** — conflicts\n"
         )
@@ -357,7 +357,7 @@ class TestValidate:
     def test_line_numbers_reported(self, tmp_path: Path) -> None:
         """Line numbers reported correctly."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\nLine 3\nLine 4\n## Pending Tasks\n\nLine 7\n"
+            "# Session\n\nLine 3\nLine 4\n## In-tree Tasks\n\nLine 7\n"
             "- [ ] **Task One** — line 8\n- [ ] **Task Two** — line 9\n"
             "- [ ] **Task One** — line 10 (duplicate)\n"
         )

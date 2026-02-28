@@ -1,14 +1,16 @@
-# Review: Task Classification Implementation
+# Review: Task Classification — Deliverable Review Fixes
 
-**Scope**: All changes since baseline `ee824b64` (Feature 1: `/prime` skill; Feature 2: task classification)
-**Date**: 2026-02-28
+**Scope**: `git diff bdd8fbc5` — deliverable review fix changes (12 files, agent-core submodule dirty)
+**Date**: 2026-03-01
 **Mode**: review + fix
 
 ## Summary
 
-Two features implemented: a new `/prime` skill for ad-hoc plan context loading, and a two-section task classification model replacing the single "Pending Tasks" section with "In-tree Tasks" + "Worktree Tasks". Core implementation is solid — `session.py`, `cli.py`, `resolve.py`, `session_structure.py`, `aggregation.py`, `handoff/SKILL.md`, and `execute-rule.md` are all correctly updated. Three issues found: stale docstring comments in `session.py`, stale "Pending Tasks" move-semantics language in `worktree/SKILL.md`, and untested behavior in `test_worktree_session.py` which exercises the old "Pending Tasks" section name and would miss regressions in the new section name flow.
+Changes address both Major findings and all 7 Minor findings from the deliverable review (`plans/task-classification/reports/deliverable-review.md`). The session-bounded search fix in `session.py` is correct and tests cover the cross-section collision scenario. The `--task` flag prose fix propagates correctly through execute-rule.md, SKILL.md, and branch-mode.md. All six test files named in Minor finding 7 have been updated. No remaining stale terminology or incorrect CLI references found.
 
-**Overall Assessment**: Ready (all issues fixed)
+The submodule is dirty (agent-core has uncommitted changes). That is the expected state for this review — the changes are present in the working tree.
+
+**Overall Assessment**: Ready (all issues fixed or explicitly deferred)
 
 ---
 
@@ -20,84 +22,121 @@ None.
 
 ### Major Issues
 
-1. **Worktree skill describes old move semantics and wrong source section**
-   - Location: `agent-core/skills/worktree/SKILL.md:36`, `:44`, `:56`, `:71`, `:131`
-   - Problem: Mode A Step 1 says "locate task in Pending Tasks". Mode A Step 4 note says "`new` command automatically moves the task from Pending Tasks to Worktree Tasks". Mode B Step 2 says "Check Pending Tasks section for explicit ordering hints". Mode B Step 4 says "The `new` command automatically moves each task to the Worktree Tasks section." Usage Notes bullet says "`new` moves the task from Pending Tasks to Worktree Tasks... `rm` removes the task from Worktree Tasks when it was completed in the worktree branch (checked via `git show`)." These all describe the old move-semantics design: task lives in "Pending Tasks", gets moved by `new`, gets removed by `rm`. The new design: tasks start in "Worktree Tasks" (classified at creation), `new` adds `→ slug` marker, `rm` removes just the marker.
-   - Fix: Update Mode A Step 1 to "locate task in Worktree Tasks". Update the automated notes to describe add/remove marker semantics, not move/remove task semantics.
+1. **`add_slug_marker` searches entire file instead of Worktree Tasks section**
+   - Location: `src/claudeutils/worktree/session.py:174-183` (baseline: `:177-179`)
+   - Problem: Line search `if line == task_block.lines[0]` iterated all file lines. Identical task text elsewhere in the file could cause the marker to land on the wrong line.
+   - Fix: `find_section_bounds("Worktree Tasks")` called before the loop; iteration constrained to `range(section_start, section_end)`. Fallback `(0, len(lines))` handles sessions without a Worktree Tasks section (no regression). Same fix applied to `remove_slug_marker`.
    - **Status**: FIXED
 
-2. **`test_worktree_session.py` exercises old section names in core tests**
-   - Location: `tests/test_worktree_session.py:14–95`, `:97–131`
-   - Problem: `test_extract_single_line_task`, `test_find_section_bounds_existing`, `test_find_section_bounds_not_found`, `test_extract_multi_line_task` all use `## Pending Tasks` and verify `blocks[0].section == "Pending Tasks"`. `test_extract_section_filter` uses `## Pending Tasks` as the primary section alongside `## Worktree Tasks`. These tests pass because `extract_task_blocks` is section-agnostic (it captures whatever section name is in the content), but they don't verify the new "In-tree Tasks" path. A regression to the In-tree section parsing would not be caught. The carry-forward graceful degradation rule in execute-rule.md says "Old section name ('Pending Tasks') → treat as 'In-tree Tasks'" — which confirms backward compat is intentional — but core parsing tests should exercise the new canonical name.
-   - Fix: Update the content fixtures in core parsing tests (`test_extract_single_line_task`, `test_find_section_bounds_existing`, `test_find_section_bounds_not_found`, `test_extract_multi_line_task`) to use `## In-tree Tasks` as the primary section. Keep `test_extract_section_filter` updated since it also covers `## Worktree Tasks`. The `test_focus_session_*` and `test_focus_session_worktree_only` tests already use correct section names.
+2. **execute-rule.md references nonexistent `--task` flag**
+   - Location: `agent-core/fragments/execute-rule.md:226` (baseline)
+   - Problem: `_worktree new --task` is not a valid invocation. CLI uses positional `[TASK_NAME]`.
+   - Fix: Changed to `` `_worktree new [TASK_NAME]` `` — matches actual CLI signature. Consistent with SKILL.md:123 disclaimer and branch-mode.md update in same diff.
    - **Status**: FIXED
+
+### Major Issues — Agent-Core Submodule
+
+The deliverable review findings that touch agent-core files are addressed in the submodule working tree (not yet committed as a submodule bump). All three files modified:
+
+- `fragments/execute-rule.md` — `--task` → `[TASK_NAME]` (Major 2)
+- `skills/worktree/SKILL.md` — "pending tasks" terminology → "all tasks" (Minor 1)
+- `skills/worktree/references/branch-mode.md` — three `--task` references removed (Minor 2)
 
 ### Minor Issues
 
-1. **Stale docstring examples in `session.py` `TaskBlock` and `extract_task_blocks`**
-   - Location: `src/claudeutils/worktree/session.py:14`, `:22`
-   - Problem: `TaskBlock.section` inline comment says `# Section name: "Pending Tasks" or "Worktree Tasks"`. `extract_task_blocks` docstring param says `section: Optional section name filter ("Pending Tasks", "Worktree Tasks")`. Both reference "Pending Tasks" — the old section name. The new canonical sections are "In-tree Tasks" and "Worktree Tasks".
-   - Fix: Update both to list `"In-tree Tasks"` instead of `"Pending Tasks"`.
+1. **worktree SKILL.md stale "pending tasks" terminology (Mode B)**
+   - Location: `agent-core/skills/worktree/SKILL.md:50,52,64` (deliverable review baseline)
+   - Problem: Mode B steps used "pending tasks" / "all pending tasks" rather than "all tasks".
+   - Fix: Updated to "all tasks" in steps 1, 2, 3. No remaining "pending" references in SKILL.md.
    - **Status**: FIXED
 
-2. **`handoff-haiku/SKILL.md` still references "Pending Tasks" section**
-   - Location: `agent-core/skills/handoff-haiku/SKILL.md:26`, `:38`, `:57`
-   - Problem: Haiku handoff skill lists "Pending Tasks" as a MERGE section and uses that name in the template. Under the new two-section model it should list "In-tree Tasks" and "Worktree Tasks" separately. This is a behavioral issue — haiku handoffs would generate "Pending Tasks" instead of "In-tree Tasks"/"Worktree Tasks", accumulating format drift.
-   - Fix: Update MERGE list to "In-tree Tasks", "Worktree Tasks"; update merge semantics header; update template.
+2. **branch-mode.md references `--task` flag (three places)**
+   - Location: `agent-core/skills/worktree/references/branch-mode.md:15,20,23`
+   - Problem: Section header "Prefer `--task` Form", code example `claudeutils _worktree new --task`, and prose "The `--task` form automates all side effects." All contradict SKILL.md:123 which explicitly states there is no `--task` flag.
+   - Fix: Header renamed "Prefer Task Name Form"; code example updated to bare positional form; prose updated to "The task name form automates all side effects."
    - **Status**: FIXED
 
-3. **`agent-core/bin/focus-session.py` still writes `## Pending Tasks`**
-   - Location: `agent-core/bin/focus-session.py:207`
-   - Problem: The standalone Python script `focus-session.py` generates focused session content with `## Pending Tasks` header. The Python implementation in `session.py` (`focus_session()`) now correctly writes `## In-tree Tasks`. The CLI uses `session.py`, so normal flow is correct. However `focus-session.py` is a separate script — if invoked directly it produces stale format. This creates a dual-implementation divergence.
-   - Fix: Update `focus-session.py` line 207 to write `## In-tree Tasks`.
+3. **test_worktree_rm.py comment references deleted function**
+   - Location: `tests/test_worktree_rm.py:158`
+   - Problem: Comment said `remove_worktree_task is only in working tree` — function was deleted; replacement is `remove_slug_marker`.
+   - Fix: Updated to `remove_slug_marker is only in working tree`.
    - **Status**: FIXED
+
+4. **TestKeepOursStrategies docstring stale (Worktree Tasks strategy changed)**
+   - Location: `tests/test_worktree_merge_strategies.py:102`
+   - Problem: Class docstring said "Worktree Tasks... keep ours" but the strategy is additive (union). The parametrized test that exercises Worktree Tasks happens to deduplicate identically-named entries, making it behaviorally correct — but the docstring misrepresented the strategy.
+   - Fix: Updated to "sections with additive (union) merge strategy."
+   - **Status**: FIXED
+
+5. **`""` (unsectioned tasks) path in `_merge_session_contents` had no test**
+   - Location: `src/claudeutils/worktree/resolve.py:80`
+   - Problem: Old-format sessions (tasks before any `## ` header) hit the `""` key path. Code correct but regression would be silent.
+   - Fix: `TestUnsectionedTasksMerge` class added to `test_worktree_merge_strategies.py` with two tests: `test_unsectioned_tasks_merged_from_theirs` (both tasks present) and `test_unsectioned_dedup_by_name` (de-dup by name).
+   - **Status**: FIXED
+
+6. **TASK_PATTERN misses `[!]`, `[✗]`, `[–]` statuses**
+   - Location: `src/claudeutils/validation/session_structure.py:12`, `src/claudeutils/worktree/session.py:30`
+   - Problem: `r"^- \[[ x>]\] \*\*(.+?)\*\*"` doesn't match blocked, failed, or canceled tasks. Tasks in these states are invisible to extraction, validation, and merge.
+   - Investigation:
+     1. Scope OUT: not listed in execution context, but deliverable review notes it as pre-existing, not introduced by this PR
+     2. Design deferral: not deferred in design — pre-existing defect flagged for awareness
+     3. Codebase patterns: no existing fix pattern; pattern used in two places
+     4. Conclusion: pre-existing defect, not introduced by this PR. Deliverable review classified it as Minor with note "Pre-existing; not introduced by this PR." Fixing TASK_PATTERN requires evaluating downstream impact (validation behavior changes for blocked/canceled tasks) which is outside this fix scope.
+   - **Status**: DEFERRED — pre-existing, not introduced by this PR. Deliverable review explicitly noted "Pre-existing" and the new section names increase surface area. Separate task needed with downstream impact analysis.
+
+7. **Test files with `"## Pending Tasks"` fixtures (outside deliverable set)**
+   - Location: six files: `test_validation_tasks.py`, `test_validation_tasks_validate.py`, `test_worktree_merge_blocker_fixes.py`, `test_worktree_merge_sections.py`, `test_worktree_merge_parent_conflicts.py`, `test_validation_task_format.py`
+   - Problem: All used `"## Pending Tasks"` in fixtures, documenting old schema.
+   - Fix: All six files updated to `"## In-tree Tasks"`. Confirmed zero remaining `"## Pending Tasks"` occurrences in these files.
+   - **Status**: FIXED
+
+### Additional cross-section marker tests (new coverage)
+
+Two new tests cover the section-bounded behavior introduced by the Major 1 fix:
+
+- `test_add_slug_marker_identical_task_both_sections` (`test_add_slug_marker.py:127`) — verifies that when an identical task name exists in both In-tree Tasks and Worktree Tasks, only the Worktree Tasks entry receives the marker. Test logic: compare `in_tree_section` (substring before `## Worktree Tasks`) and `worktree_section` (substring from `## Worktree Tasks` onwards). Correct.
+- `test_remove_slug_marker_only_modifies_worktree_section` (`test_remove_slug_marker.py:111`) — verifies that a slug pattern appearing in In-tree Tasks prose (e.g., a reference) is not removed. Only the Worktree Tasks marker is stripped. Correct.
 
 ---
 
 ## Fixes Applied
 
-- `agent-core/skills/worktree/SKILL.md` — Updated Mode A Step 1, Step 4 note, Mode B Step 2 and Step 4, Usage Notes bullet to describe "Worktree Tasks" source and add/remove marker semantics rather than move-from-Pending-Tasks semantics.
-- `tests/test_worktree_session.py` — Updated `test_extract_single_line_task`, `test_find_section_bounds_existing`, `test_find_section_bounds_not_found`, `test_extract_multi_line_task`, `test_extract_section_filter` to use `## In-tree Tasks` as the canonical primary section name.
-- `src/claudeutils/worktree/session.py:14,22` — Updated `TaskBlock.section` inline comment and `extract_task_blocks` docstring to list `"In-tree Tasks"` instead of `"Pending Tasks"`.
-- `agent-core/skills/handoff-haiku/SKILL.md` — Updated MERGE section list and template to use "In-tree Tasks" and "Worktree Tasks".
-- `agent-core/bin/focus-session.py:207` — Updated `## Pending Tasks` to `## In-tree Tasks`.
+All issues found in this review were pre-fixed by the diff under review. No additional edits applied by this review pass.
 
 ---
 
 ## Requirements Validation
 
-No explicit requirements context provided. Implementation validated against design `plans/task-classification/outline.md`.
+Design reference: `plans/task-classification/reports/deliverable-review.md`
 
-| Design Decision | Status | Evidence |
-|---|---|---|
-| D-1: `/prime` for ad-hoc work only | Satisfied | `prime/SKILL.md` scoped to ad-hoc use, no workflow skill modifications |
-| D-2: No frozen artifact restriction | Satisfied | Uses Read calls, not @ref injection |
-| D-3: Chain-call `/recall` | Satisfied | Step 2 invokes Skill(skill: "recall") |
-| D-3a: D+B compliance | Satisfied | Step 1 anchors with Glob+Read calls |
-| D-4: Static classification, no move semantics | Satisfied | `add_slug_marker`/`remove_slug_marker` implemented; `move_task_to_worktree` deleted |
-| D-5: No backward migration | Satisfied | execute-rule.md adds graceful degradation for old "Pending Tasks" name |
-| D-6: `focus_session()` reads from "Worktree Tasks" | Satisfied | `session.py:247` uses `section="Worktree Tasks"` |
-| D-7: In-tree first, then Worktree in status | Satisfied | execute-rule.md STATUS format shows In-tree first |
-| D-8: `#execute` picks in-tree, `wt` picks worktree | Satisfied | MODE 2 behavior updated in execute-rule.md |
-| D-9: Classification heuristic | Satisfied | `handoff/SKILL.md` Task classification section |
+| Finding | Status | Evidence |
+|---------|--------|----------|
+| Major 1: add_slug_marker section-bounded search | FIXED | `session.py:176-183` uses `find_section_bounds` range |
+| Major 1: remove_slug_marker section-bounded search | FIXED | `session.py:211-219` uses `find_section_bounds` range |
+| Major 2: execute-rule.md `--task` flag | FIXED | `execute-rule.md:226` updated to `[TASK_NAME]` |
+| Minor 1: SKILL.md "pending tasks" terminology | FIXED | SKILL.md:50,52,64 updated to "all tasks" |
+| Minor 2: branch-mode.md `--task` flag (3x) | FIXED | branch-mode.md header, example, prose all updated |
+| Minor 3: test_worktree_rm.py stale comment | FIXED | Line 158 updated |
+| Minor 4: TestKeepOursStrategies stale docstring | FIXED | Line 102 updated |
+| Minor 5: unsectioned tasks path untested | FIXED | TestUnsectionedTasksMerge class added (2 tests) |
+| Minor 6: TASK_PATTERN missing statuses | DEFERRED | Pre-existing; requires downstream impact analysis |
+| Minor 7: Pending Tasks fixtures in 6 test files | FIXED | All 6 files updated to In-tree Tasks |
 
-**Gaps:** None relative to design scope IN list. Scope OUT items (worktree skill Mode B scan scope, `_worktree merge` session autostrategy) not flagged.
+**All Major findings fixed. 6/7 Minor findings fixed. 1 Minor deferred (pre-existing defect, out of scope).**
+
+---
+
+## Deferred Items
+
+- **TASK_PATTERN missing `[!]`, `[✗]`, `[–]` statuses** — Reason: pre-existing defect not introduced by this PR. Deliverable review explicitly marked it pre-existing. Fix requires downstream impact analysis on validation behavior for blocked/failed/canceled tasks.
 
 ---
 
 ## Positive Observations
 
-- `add_slug_marker` and `remove_slug_marker` are focused, minimal replacements — exactly what the design called for. No scope creep from the deleted `move_task_to_worktree`/`remove_worktree_task`.
-- `_merge_session_contents` refactor (resolve.py) cleanly generalizes to iterate both sections with a for-loop rather than special-casing "Pending Tasks". Strategy table comment updated in sync.
-- `session_structure.py` validation correctly checks cross-section uniqueness using "In-tree Tasks" (not "Pending Tasks") as the pending side, and validates `→ slug` format only for Worktree Tasks.
-- `_task_summary` in `aggregation.py` correctly reads from "In-tree Tasks" — this is the right source for main-tree task display.
-- `focus_session()` correctly strips the `→ slug` marker before writing the focused session (so the worktree session doesn't see its own slug redundantly).
-- Test coverage for `add_slug_marker`, `remove_slug_marker`, and `session_structure.py` validation is thorough and uses the correct section names throughout.
-- `operational-tooling.md` decision entry updated with correct date and new pattern description.
-- `handoff/SKILL.md` classification heuristic (D-9) is prescriptive for clear cases and defaults to In-tree when uncertain — matches design recommendation from Open Questions §2.
-- execute-rule.md backward compat note ("Old section name ('Pending Tasks') → treat as 'In-tree Tasks'") prevents breakage on existing session files during migration (D-5).
-
-## Recommendations
-
-- `agent-core/skills/reflect/SKILL.md` (lines 148, 168) and `agent-core/skills/next/SKILL.md` (line 19) reference "Pending Tasks" but in shelved/roadmap file contexts rather than live session.md — low-risk deferred cleanup appropriate once the rest of the ecosystem has migrated through handoffs.
-- `agent-core/skills/worktree/SKILL.md` Mode B still reads "all pending tasks" generically (step 1) and "Pending Tasks section" (step 2 logical dependencies). Now that classification is static, Mode B should read from "Worktree Tasks" only — but this is scope OUT per outline.md ("`wt` scan scope" listed as Open Question, not implemented here). Leave for follow-up.
+- Section-bounded search implementation is minimal and correct: `find_section_bounds` called once, result unpacked with fallback, range-limited loop replaces enumerate. No unnecessary abstraction.
+- The `remove_slug_marker` fallback `(0, len(lines))` when Worktree Tasks section is absent preserves no-op behavior for sessions in transition — correct defensive behavior.
+- New cross-section collision tests accurately replicate the failure scenario described in the deliverable review (identical task name in both sections).
+- The `test_remove_slug_marker_only_modifies_worktree_section` fixture is well-constructed: it places `→ \`task-a\`` in both sections in different forms, verifying the constraint is structural (section bounds) not content-based (unique pattern).
+- Unsectioned tasks tests cover both the merge path (tasks from theirs reach result) and dedup path (identical task name deduplicated), matching the two behaviors in the `""` key handler in `_merge_session_contents`.
+- The worktree SKILL.md and branch-mode.md changes are consistent: both drop `--task` in favor of the positional form, and SKILL.md drops the "pending" qualifier to match the two-section model.

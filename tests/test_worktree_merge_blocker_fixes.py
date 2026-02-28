@@ -11,7 +11,7 @@ class TestBlockerSectionPositioning:
         ours = (
             "# Session: Main\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -22,7 +22,7 @@ class TestBlockerSectionPositioning:
         theirs = (
             "# Session: Branch\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -40,7 +40,7 @@ class TestBlockerSectionPositioning:
         ours = (
             "# Session: Main\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -51,7 +51,7 @@ class TestBlockerSectionPositioning:
         theirs = (
             "# Session: Branch\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -69,7 +69,7 @@ class TestBlockerSectionPositioning:
         ours = (
             "# Session: Main\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -84,7 +84,7 @@ class TestBlockerSectionPositioning:
         theirs = (
             "# Session: Branch\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -102,12 +102,12 @@ class TestBlockerSectionPositioning:
     def test_blockers_at_eof_when_no_later_sections(self) -> None:
         """Blockers appended at EOF when no later sections exist."""
         ours = (
-            "# Session: Main\n\n## Pending Tasks\n\n- [ ] **Task A** — cmd | sonnet\n"
+            "# Session: Main\n\n## In-tree Tasks\n\n- [ ] **Task A** — cmd | sonnet\n"
         )
         theirs = (
             "# Session: Branch\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -128,7 +128,7 @@ class TestBlockerDeduplication:
         ours = (
             "# Session: Main\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -139,7 +139,7 @@ class TestBlockerDeduplication:
         theirs = (
             "# Session: Branch\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -190,7 +190,7 @@ class TestBlockerDeduplication:
         ours = (
             "# Session: Main\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"
@@ -201,7 +201,7 @@ class TestBlockerDeduplication:
         theirs = (
             "# Session: Branch\n"
             "\n"
-            "## Pending Tasks\n"
+            "## In-tree Tasks\n"
             "\n"
             "- [ ] **Task A** — cmd | sonnet\n"
             "\n"

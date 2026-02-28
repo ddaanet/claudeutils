@@ -64,7 +64,7 @@ class TestValidateTaskNameFormatIntegration:
         """Format validation is integrated into validate() function."""
         (tmp_path / "agents").mkdir()
         (tmp_path / "agents" / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n- [ ] **Fix_bug** — details\n"
+            "# Session\n\n## In-tree Tasks\n\n- [ ] **Fix_bug** — details\n"
         )
         (tmp_path / "agents" / "learnings.md").write_text("# Learnings\n")
 
@@ -74,7 +74,7 @@ class TestValidateTaskNameFormatIntegration:
 
         # Create session.md with 26-character task name
         (tmp_path / "agents" / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n"
+            "# Session\n\n## In-tree Tasks\n\n"
             "- [ ] **12345678901234567890ABCDEF** — details\n"
         )
         errors = validate("agents/session.md", "agents/learnings.md", tmp_path)

@@ -122,3 +122,31 @@ def test_add_slug_marker_multiline(tmp_path: Path) -> None:
     assert "  - Notes: Complex work" in result
     # Only one marker
     assert result.count("→") == 1
+
+
+def test_add_slug_marker_identical_task_both_sections(tmp_path: Path) -> None:
+    """Modify only Worktree Tasks entry when same task in both sections."""
+    session_content = """# Session
+
+## In-tree Tasks
+
+- [ ] **Deploy service** — `just deploy` | sonnet
+
+## Worktree Tasks
+
+- [ ] **Deploy service** — `just deploy` | sonnet
+"""
+    session_path = tmp_path / "session.md"
+    session_path.write_text(session_content)
+
+    add_slug_marker(session_path, "Deploy service", "deploy-svc")
+
+    result = session_path.read_text()
+    # In-tree Tasks entry should NOT have marker
+    it_idx = result.find("## In-tree Tasks")
+    wt_idx = result.find("## Worktree Tasks")
+    in_tree_section = result[it_idx:wt_idx]
+    assert "→" not in in_tree_section
+    # Worktree Tasks entry should have marker
+    worktree_section = result[wt_idx:]
+    assert "→ `deploy-svc`" in worktree_section

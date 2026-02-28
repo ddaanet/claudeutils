@@ -62,7 +62,7 @@ def test_parent_conflicts_auto_resolves_session_md(
     _commit_file(repo_with_submodule, "src/conflict.py", "branch\n", "Branch py")
     session_file = repo_with_submodule / "agents" / "session.md"
     session_file.write_text(
-        "# Session: Branch\n\n## Pending Tasks\n\n- [ ] **Branch task**\n"
+        "# Session: Branch\n\n## In-tree Tasks\n\n- [ ] **Branch task**\n"
     )
     _run(repo_with_submodule, "add", "agents/session.md")
     _run(repo_with_submodule, "commit", "-m", "Branch session")
@@ -72,7 +72,7 @@ def test_parent_conflicts_auto_resolves_session_md(
     (repo_with_submodule / "src").mkdir(parents=True, exist_ok=True)
     _commit_file(repo_with_submodule, "src/conflict.py", "main\n", "Main py")
     session_file.write_text(
-        "# Session: Main\n\n## Pending Tasks\n\n- [ ] **Main task**\n"
+        "# Session: Main\n\n## In-tree Tasks\n\n- [ ] **Main task**\n"
     )
     _run(repo_with_submodule, "add", "agents/session.md")
     _run(repo_with_submodule, "commit", "-m", "Main session")
@@ -113,7 +113,7 @@ def test_parent_conflicts_all_auto_resolved_exits_0(
     _run(repo_with_submodule, "checkout", "-b", "session-only-conflict")
     session_file = repo_with_submodule / "agents" / "session.md"
     session_file.write_text(
-        "# Session: Branch\n\n## Pending Tasks\n\n- [ ] **Branch task**\n"
+        "# Session: Branch\n\n## In-tree Tasks\n\n- [ ] **Branch task**\n"
     )
     _run(repo_with_submodule, "add", "agents/session.md")
     _run(repo_with_submodule, "commit", "-m", "Branch session only")
@@ -121,7 +121,7 @@ def test_parent_conflicts_all_auto_resolved_exits_0(
     # Main: different session.md changes only
     _run(repo_with_submodule, "checkout", "main")
     session_file.write_text(
-        "# Session: Main\n\n## Pending Tasks\n\n- [ ] **Main task**\n"
+        "# Session: Main\n\n## In-tree Tasks\n\n- [ ] **Main task**\n"
     )
     _run(repo_with_submodule, "add", "agents/session.md")
     _run(repo_with_submodule, "commit", "-m", "Main session only")

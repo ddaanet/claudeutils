@@ -155,7 +155,7 @@ def test_rm_does_not_amend_on_normal_commit(
         check=True,
     ).stdout
     # If no amend, HEAD:agents/session.md still contains the task
-    # (the modification from remove_worktree_task is only in working tree)
+    # (the modification from remove_slug_marker is only in working tree)
     assert "Worktree Tasks" in session_in_head
 
 

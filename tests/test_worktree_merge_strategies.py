@@ -99,7 +99,7 @@ class TestPendingTasksAdditiveStrategy:
 
 
 class TestKeepOursStrategies:
-    """Cycle 5.5: Worktree Tasks, Reference Files, Next Steps all keep ours."""
+    """Cycle 5.5: sections with additive (union) merge strategy."""
 
     @pytest.mark.parametrize(
         ("section_name", "ours_content", "theirs_content"),
@@ -150,6 +150,25 @@ class TestKeepOursStrategies:
         result = _merge_session_contents(ours, theirs)
         assert ours_content in result
         assert theirs_content not in result
+
+
+class TestUnsectionedTasksMerge:
+    """Regression: old-format sessions with tasks before any ## header."""
+
+    def test_unsectioned_tasks_merged_from_theirs(self) -> None:
+        """Tasks before any section header in theirs are appended to ours."""
+        ours = "# Session Handoff: 2026-02-16\n\n- [ ] **Task A** — cmd | sonnet\n"
+        theirs = "# Session Handoff: 2026-02-15\n\n- [ ] **Task B** — cmd | haiku\n"
+        result = _merge_session_contents(ours, theirs)
+        assert "**Task A**" in result
+        assert "**Task B**" in result
+
+    def test_unsectioned_dedup_by_name(self) -> None:
+        """Duplicate unsectioned tasks deduplicated by name."""
+        ours = "# Session\n\n- [ ] **Task A** — ours | sonnet\n"
+        theirs = "# Session\n\n- [ ] **Task A** — theirs | haiku\n"
+        result = _merge_session_contents(ours, theirs)
+        assert result.count("**Task A**") == 1
 
 
 class TestExtractBlockersFunction:

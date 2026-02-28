@@ -171,11 +171,14 @@ def add_slug_marker(session_path: Path, task_name: str, slug: str) -> None:
         msg = f"Task '{task_name}' not found in Worktree Tasks"
         raise ValueError(msg)
 
-    # Find task block in file content
+    # Find task block within Worktree Tasks section only
     lines = content.split("\n")
+    bounds = find_section_bounds(content, "Worktree Tasks")
+    section_start, section_end = bounds if bounds else (0, len(lines))
+
     task_start_idx = None
-    for i, line in enumerate(lines):
-        if line == task_block.lines[0]:
+    for i in range(section_start, section_end):
+        if lines[i] == task_block.lines[0]:
             task_start_idx = i
             break
 
@@ -203,13 +206,15 @@ def remove_slug_marker(session_path: Path, slug: str) -> None:
     content = session_path.read_text()
     lines = content.split("\n")
 
-    # Find line containing the slug marker and remove it
+    # Find line containing the slug marker within Worktree Tasks section only
     pattern = rf" → `{re.escape(slug)}`"
+    bounds = find_section_bounds(content, "Worktree Tasks")
+    section_start, section_end = bounds if bounds else (0, len(lines))
     modified = False
 
-    for i, line in enumerate(lines):
-        if re.search(pattern, line):
-            lines[i] = re.sub(pattern, "", line)
+    for i in range(section_start, section_end):
+        if re.search(pattern, lines[i]):
+            lines[i] = re.sub(pattern, "", lines[i])
             modified = True
             break
 

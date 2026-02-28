@@ -6,11 +6,11 @@ from claudeutils.worktree.session import find_section_bounds
 class TestSectionIdentification:
     """Tests for find_section_bounds() function."""
 
-    def test_pending_tasks_section(self) -> None:
-        """Pending Tasks section finds correct start and end."""
+    def test_in_tree_tasks_section(self) -> None:
+        """In-tree Tasks section finds correct start and end."""
         content = """# Session Handoff
 Some intro text
-## Pending Tasks
+## In-tree Tasks
 - Task 1
 - Task 2
 - Task 3
@@ -19,14 +19,14 @@ Some intro text
 ## Next Section
 More content
 """
-        result = find_section_bounds(content, "Pending Tasks")
+        result = find_section_bounds(content, "In-tree Tasks")
         assert result == (2, 8), f"Expected (2, 8), got {result}"
 
     def test_worktree_tasks_section(self) -> None:
         """Worktree Tasks section finds correct bounds."""
         content = """# Session Handoff
 Some intro
-## Pending Tasks
+## In-tree Tasks
 - Item 1
 - Item 2
 - Item 3
@@ -47,7 +47,7 @@ Text
         """Section with slash character in name works correctly."""
         content = """# Session Handoff
 Text
-## Pending Tasks
+## In-tree Tasks
 - Item
 ## Blockers / Gotchas
 Text line 1
@@ -65,7 +65,7 @@ More
         """Nonexistent section returns None."""
         content = """# Session Handoff
 Text
-## Pending Tasks
+## In-tree Tasks
 - Item
 """
         result = find_section_bounds(content, "Nonexistent")
@@ -75,7 +75,7 @@ Text
         """Section at end of file returns len(lines) as end index."""
         content = """# Session Handoff
 Text
-## Pending Tasks
+## In-tree Tasks
 - Item 1
 - Item 2
 - Item 3
