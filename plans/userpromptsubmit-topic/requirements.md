@@ -34,7 +34,7 @@ Acceptance criteria:
 Cache the parsed keyword table between hook invocations. Invalidate when `agents/memory-index.md` is modified (mtime check). Follow existing caching pattern from continuation registry in `userpromptsubmit-shortcuts.py`.
 
 Acceptance criteria:
-- Cache stored in `$TMPDIR` (sandbox-compatible)
+- Cache stored in project-local `tmp/` (per CLAUDE.md tmp rule)
 - Cache invalidated on source file modification (mtime comparison)
 - Cold build (cache miss) completes within hook timeout budget
 - Cache hit path avoids re-parsing and re-indexing
