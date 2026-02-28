@@ -15,7 +15,7 @@
 | FR-5: Integrate as parallel detector in hook | Phase 3 | 3.1, 3.2, 3.3 |
 | FR-6: Token budget control (entry count cap) | Phase 1 | 1.6 |
 | FR-7: User-visible match feedback via systemMessage | Phase 1 | 1.7 |
-| NFR-1: Hook execution within 5s timeout | Phase 2 | 2.1 (cache performance) |
+| NFR-1: Hook execution within 5s timeout | Phase 2 | 2.1, 2.2 (cache avoids reparse) |
 | NFR-2: No degradation of existing hook behavior | Phase 3 | 3.2, 3.3 |
 
 ## Key Decisions Reference
@@ -38,7 +38,7 @@ Builds `src/claudeutils/recall/topic_matcher.py` — the complete matching pipel
 - Cycle 1.1: promote `_extract_keywords` → `extract_keywords` in `index_parser.py` (needed for prompt tokenization)
 - Cycle 1.4: promote `_extract_section` → `extract_section` in `when/resolver.py` (needed for content extraction from decision files)
 
-**Heading reconstruction (D-5 implementation detail):** `IndexEntry` stores `key` (trigger text) but not the `/when` vs `/how` prefix. Two approaches: (a) add `prefix` field to `IndexEntry`, (b) try both heading forms (`## When {key}`, `## How to {key}`). Approach resolved in cycle 1.4 GREEN — prefer (a) for clean API if backward-compatible, fall back to (b).
+**Heading reconstruction (D-5 implementation detail):** `IndexEntry` stores `key` (trigger text) but not the `/when` vs `/how` prefix. Primary approach: try both heading forms (`## When {key}`, `## How to {key}`) — no model change needed, `_extract_section` returns empty string on miss so the fallback is free. If both miss, skip the entry (consistent with FR-3 silent-skip behavior).
 
 - **Cycle 1.1: Build inverted index from parsed entries** [FR-1, D-2]
   - RED: `test_build_inverted_index_maps_keywords_to_entries` — given 3 IndexEntry objects with known keywords, `build_inverted_index()` returns dict mapping each keyword to its containing entries. Assert keyword "recall" maps to 2 entries, keyword "hook" maps to 1.
@@ -55,7 +55,7 @@ Builds `src/claudeutils/recall/topic_matcher.py` — the complete matching pipel
 
 - **Cycle 1.4: Resolve matched entries to section content** [FR-3, D-5]
   - RED: `test_resolve_entries_extracts_decision_content` — given a matched entry referencing a decision file (created in tmp_path), `resolve_entries()` returns list of resolved content strings containing the section heading and body text. Assert content contains the heading text and at least one body line.
-  - GREEN: `resolve_entries(entries: list[tuple[IndexEntry, RelevanceScore]], project_dir: Path) -> list[ResolvedEntry]`. Promote `_extract_section` → `extract_section` in `when/resolver.py`. For each entry: construct heading from entry key (handle When/How prefix — see heading reconstruction note above), call `extract_section(file_path, heading)`.
+  - GREEN: `resolve_entries(entries: list[tuple[IndexEntry, RelevanceScore]], project_dir: Path) -> list[ResolvedEntry]`. Promote `_extract_section` → `extract_section` in `when/resolver.py` (update internal callers at lines 117, 225). For each entry: construct heading from entry key (try both `## When {key}` and `## How to {key}` — see heading reconstruction note above), call `extract_section(file_path, heading)`.
   - Depends on: 1.3
 
 - **Cycle 1.5: Handle missing files and sections gracefully** [FR-3]
@@ -104,7 +104,7 @@ Integrates topic matching into `agent-core/hooks/userpromptsubmit-shortcuts.py` 
 - **Cycle 3.1: Topic detector block in hook** [FR-5, D-3]
   - RED: `test_hook_topic_injection_produces_additional_context` — invoke hook `main()` with prompt matching known memory-index entries (fixture index + decision file in tmp_path). Assert JSON output contains `additionalContext` with resolved decision content AND `systemMessage` containing trigger line.
   - GREEN: Add topic injection detector block in `main()` between pattern guards and continuation parsing. Call `match_topics()` (new top-level entry point wrapping get_or_build_index + get_candidates + score_and_rank + resolve_entries + format_output). Append result to `context_parts` and `system_parts`.
-  - Depends on: Phase 1, Phase 2
+  - Depends on: Phase 1 (complete matching pipeline in topic_matcher.py), Phase 2 (cache layer via get_or_build_index)
 
 - **Cycle 3.2: Additive with existing features** [FR-5, NFR-2, D-3]
   - RED: `test_topic_injection_additive_with_commands` — invoke hook with prompt `"s\nhow does recall work"` (command "s" on first line + topic keywords on second line). Assert output contains BOTH command expansion in systemMessage AND topic content in additionalContext. Both features fire.
@@ -130,8 +130,25 @@ Integrates topic matching into `agent-core/hooks/userpromptsubmit-shortcuts.py` 
 
 ## Expansion Guidance
 
-- **Phase 1 cycles 1.1–1.3** share the same test file (`test_recall_topic_matcher.py`) and build incrementally. Each GREEN extends the module.
-- **Cycle 1.4** modifies `when/resolver.py` (API promotion). GREEN must update existing callers of `_extract_section` → `extract_section` within that module.
-- **Phase 3** tests need to invoke the hook subprocess or import `main()` with env/stdin mocking. Check existing hook integration test patterns in the test suite before writing fixtures.
-- **Recall entries for Common Context:** "when too many rules in context" (context budget), "when hook fragment alignment needed" (output quality), "when filter user prompt submit hooks" (architecture constraint).
-- **Phase-specific recall:** Phase 3 preamble should include "when mapping hook output channel audiences" and "when writing hook user-visible messages".
+The following recommendations should be incorporated during full runbook expansion:
+
+**Consolidation candidates:**
+- Cycle 1.5 (missing files/sections) tests `resolve_entries()` error paths — could be parametrized into cycle 1.4's test. Keep separate only if error handling warrants distinct setup/teardown.
+- Cycle 1.6 (entry cap) adds one parameter + slice to `score_and_rank()`. Thin cycle — collapse into cycle 1.3 if the runbook author prefers fewer cycles. The branch point (cap enforcement) is real but minimal.
+
+**Cycle expansion:**
+- **Phase 1 cycles 1.1-1.3** share `test_recall_topic_matcher.py` and build incrementally. Each GREEN extends `topic_matcher.py`.
+- **Cycle 1.4** modifies `when/resolver.py` (API promotion). GREEN must update internal callers at lines 117 and 225 of `resolver.py` (`_extract_section` → `extract_section`).
+- **Cycle 1.1** API promotion: `_extract_keywords` has internal callers at lines 113 and 138 of `index_parser.py` — update both.
+- **Heading reconstruction in 1.4:** Try both `## When {key}` and `## How to {key}` forms — `_extract_section` returns empty on miss, so the fallback is free. No `IndexEntry` model change needed.
+- **Cycle 1.7 systemMessage format:** Terminal constraint ~60 chars for content after "UserPromptSubmit says: " prefix. The `system_message` field in `TopicMatchResult` becomes one entry in `system_parts` — the hook joins system_parts with `" | "`. The topic block must be pre-formatted as one string with internal newlines. Refer to D-7 for format spec.
+
+**Checkpoint guidance:**
+- Phase 1 light checkpoint: `just dev` + verify `topic_matcher.py` exports `match_topics()` entry point
+- Phase 2 light checkpoint: `just dev` + verify cache file creation in `tmp/`
+- Phase 3 full checkpoint: `just dev` + run integration tests + verify dual-channel output
+
+**References to include:**
+- **Recall entries for Common Context:** "when too many rules in context" (context budget), "when hook fragment alignment needed" (output quality)
+- **Phase-specific recall:** Phase 3 preamble should resolve "when mapping hook output channel audiences" and "when writing hook user-visible messages"
+- **Phase 3 test patterns:** Check existing hook integration test patterns in the test suite before writing fixtures — may need subprocess invocation or `main()` import with env/stdin mocking
