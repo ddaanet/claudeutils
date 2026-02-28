@@ -353,3 +353,47 @@ class TestDirectiveWithContinuation:
         assert "CONTINUATION" in additional_context
         # systemMessage should include directive summary
         assert "pending" in result["systemMessage"].lower()
+
+
+class TestFeatureCombinations:
+    """Test pairwise and triple feature combinations (FR-7)."""
+
+    def test_command_plus_pattern_guard(self) -> None:
+        """Command on one line + CCG pattern keyword → both fire."""
+        result = call_hook("s\nhow do hooks work")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "[#status]" in additional_context
+        assert "claude-code-guide" in additional_context
+
+    def test_command_plus_continuation(self) -> None:
+        """Command on one line + continuation chain → both fire."""
+        fake_registry = {
+            "handoff": {"cooperative": True, "default-exit": []},
+            "commit": {"cooperative": True, "default-exit": []},
+        }
+        with patch.object(hook, "build_registry", return_value=fake_registry):
+            result = call_hook("s\n/handoff and /commit")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "[#status]" in additional_context
+        assert "CONTINUATION" in additional_context
+
+    def test_command_plus_directive_plus_guard(self) -> None:
+        """Command + directive + pattern guard triple → all three fire."""
+        result = call_hook("s\nd: how do hooks work")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        # Command
+        assert "[#status]" in additional_context
+        # Directive
+        assert (
+            "DISCUSS" in additional_context
+            or "Evaluate critically" in additional_context
+        )
+        # CCG guard (triggered by "hooks" keyword)
+        assert "claude-code-guide" in additional_context
+        # systemMessage should include directive and guard summaries
+        sys_msg = result["systemMessage"]
+        assert "discuss" in sys_msg.lower()
+        assert "claude-code-guide" in sys_msg.lower()
