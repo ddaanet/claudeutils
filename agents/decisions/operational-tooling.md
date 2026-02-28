@@ -52,11 +52,11 @@ Git workflow, platform constraints, code patterns, and naming conventions.
 
 **Decision Date:** 2026-02-12
 
-**Decision:** Stop on unexpected git lock error, report to user, wait for guidance. Never delete lock files.
+**Decision:** Never delete lock files. Retry the original git command — lock contention from concurrent worktree sessions is transient and self-resolves after model latency.
 
-**Anti-pattern:** Agent removes `.git/index.lock` after git error suggests manual removal.
+**Anti-pattern:** Agent removes `.git/index.lock` after git error suggests manual removal. Also: hook blocks rm but says "retry" without specifying what — agent retries the rm instead of the original git command.
 
-**Rationale:** Lock may indicate active process; removal bypasses "stop on unexpected results" rule.
+**Rationale:** Worktrees share the parent `.git` directory. Concurrent Claude sessions in different worktrees cause transient index.lock contention. The lock releases in milliseconds; model latency (3-10s) provides natural backoff. Deleting the lock risks corrupting the concurrent operation.
 
 ### When Tracking Worktree Tasks In Session.md
 

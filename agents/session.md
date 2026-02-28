@@ -119,6 +119,10 @@
   - Move continuation registry cache from TMPDIR to project-local tmp/
 - [ ] **Block cd-chaining in bash** — PreToolUse hook to block `cd * && *` and `cd *; *`, recommend `git -C` or subshell | sonnet
 - [ ] **Model directive pipeline** — Model guidance design → runbook → execution | opus
+- [ ] **Merge lock retry** — add lock-contention retry to `claudeutils _worktree merge` | sonnet
+  - Catch index.lock errors, retry after model latency (no explicit sleep)
+  - Bounded retries (3 attempts), report after exhaustion
+  - Concurrent worktree sessions cause transient lock contention on shared .git
 - [ ] **Design context gate** — `/design plans/design-context-gate/brief.md` | sonnet
   - Plan: design-context-gate | Status: brief
   - /design tail-call /inline only when context budget allows, otherwise handoff+commit
