@@ -15,7 +15,7 @@ def test_extract_single_line_task() -> None:
     """Extract single-line task from session.md content."""
     content = """# Session
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task A** — `/design` | sonnet
 - [ ] **Task B** — `/runbook` | haiku
@@ -26,17 +26,17 @@ def test_extract_single_line_task() -> None:
     assert len(blocks) == 2
     assert blocks[0].name == "Task A"
     assert blocks[0].lines == ["- [ ] **Task A** — `/design` | sonnet"]
-    assert blocks[0].section == "Pending Tasks"
+    assert blocks[0].section == "In-tree Tasks"
     assert blocks[1].name == "Task B"
     assert blocks[1].lines == ["- [ ] **Task B** — `/runbook` | haiku"]
-    assert blocks[1].section == "Pending Tasks"
+    assert blocks[1].section == "In-tree Tasks"
 
 
 def test_find_section_bounds_existing() -> None:
     """Find section bounds returns correct line numbers."""
     content = """# Session
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task A** — plan
 
@@ -44,12 +44,12 @@ def test_find_section_bounds_existing() -> None:
 
 - Blocker 1
 """
-    bounds = find_section_bounds(content, "Pending Tasks")
+    bounds = find_section_bounds(content, "In-tree Tasks")
     assert bounds is not None
     start, end = bounds
     lines = content.split("\n")
-    # start should be the line index of "## Pending Tasks"
-    assert lines[start] == "## Pending Tasks"
+    # start should be the line index of "## In-tree Tasks"
+    assert lines[start] == "## In-tree Tasks"
     # end should be before "## Blockers" or EOF
     # Lines between start and end should contain the task
     section_lines = lines[start:end]
@@ -60,7 +60,7 @@ def test_find_section_bounds_not_found() -> None:
     """Find section bounds returns None when section not found."""
     content = """# Session
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task A** — plan
 """
@@ -72,7 +72,7 @@ def test_extract_multi_line_task() -> None:
     """Extract multi-line task with continuation lines."""
     content = """# Session
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task A** — `/design plans/foo/design.md` | opus
   - Plan: foo | Status: designed
@@ -98,7 +98,7 @@ def test_extract_section_filter() -> None:
     """Extract tasks filtered by section name."""
     content = """# Session
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task A** — `/design` | sonnet
 - [ ] **Task B** — `/runbook` | haiku
@@ -110,13 +110,13 @@ def test_extract_section_filter() -> None:
 
 ## Blockers
 """
-    # Extract only Pending Tasks
-    pending = extract_task_blocks(content, section="Pending Tasks")
+    # Extract only In-tree Tasks
+    pending = extract_task_blocks(content, section="In-tree Tasks")
     assert len(pending) == 2
     assert pending[0].name == "Task A"
-    assert pending[0].section == "Pending Tasks"
+    assert pending[0].section == "In-tree Tasks"
     assert pending[1].name == "Task B"
-    assert pending[1].section == "Pending Tasks"
+    assert pending[1].section == "In-tree Tasks"
 
     # Extract only Worktree Tasks
     worktree = extract_task_blocks(content, section="Worktree Tasks")

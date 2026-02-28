@@ -11,7 +11,7 @@ class TaskBlock:
 
     name: str  # Task name extracted from markdown
     lines: list[str]  # All lines (task line + continuation lines)
-    section: str  # Section name: "Pending Tasks" or "Worktree Tasks"
+    section: str  # Section name: "In-tree Tasks" or "Worktree Tasks"
 
 
 def extract_task_blocks(content: str, section: str | None = None) -> list[TaskBlock]:
@@ -19,7 +19,7 @@ def extract_task_blocks(content: str, section: str | None = None) -> list[TaskBl
 
     Args:
         content: Session.md file content
-        section: Optional section name filter ("Pending Tasks", "Worktree Tasks")
+        section: Optional section name filter ("In-tree Tasks", "Worktree Tasks")
 
     Returns:
         List of TaskBlock instances
