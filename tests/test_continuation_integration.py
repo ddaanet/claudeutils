@@ -297,5 +297,98 @@ class TestChainCompletion:
         assert "Current: /design some-file-path.md" in context
 
 
+class TestContinuationPrepend:
+    """Tests for subroutine call pattern (prepend to continuation)."""
+
+    def test_prepend_preserves_original_chain(self) -> None:
+        """Prepending entries keeps original chain as immutable suffix."""
+        # Simulate: skill has [/handoff --commit, /commit]
+        # Needs /commit checkpoint first → prepend /commit
+        original = ["/handoff --commit", "/commit"]
+        prepended = ["/commit", *original]
+
+        assert prepended == ["/commit", "/handoff --commit", "/commit"]
+        # Original chain unchanged as suffix
+        assert prepended[1:] == original
+
+    def test_prepend_consume_resumes_chain(self) -> None:
+        """After consuming prepended entry, remainder is the original chain."""
+        original = ["/handoff --commit", "/commit"]
+        prepended = ["/commit", *original]
+
+        # Consume first (the prepended subroutine)
+        consumed = prepended[0]
+        remainder = prepended[1:]
+
+        assert consumed == "/commit"
+        assert remainder == ["/handoff --commit", "/commit"]
+
+    def test_multiple_prepends_consumed_in_order(self) -> None:
+        """Multiple prepended entries are consumed in prepend order."""
+        original = ["/handoff --commit", "/commit"]
+        # Skill needs /review then /commit before chain resumes
+        prepended = ["/review", "/commit", *original]
+
+        assert prepended == ["/review", "/commit", "/handoff --commit", "/commit"]
+
+        # Consume first: /review
+        first = prepended[0]
+        after_first = prepended[1:]
+        assert first == "/review"
+        assert after_first == ["/commit", "/handoff --commit", "/commit"]
+
+        # Consume second: /commit (the checkpoint)
+        second = after_first[0]
+        after_second = after_first[1:]
+        assert second == "/commit"
+        assert after_second == ["/handoff --commit", "/commit"]
+        # Original chain intact
+        assert after_second == original
+
+    def test_prepend_with_args_in_transport_format(self) -> None:
+        """Prepend works correctly when parsed from transport format."""
+        args = "myplan [CONTINUATION: /handoff --commit, /commit]"
+
+        cont_match = re.search(r"\[CONTINUATION:\s*(.+?)\]", args)
+        assert cont_match is not None
+
+        cont_str = cont_match.group(1)
+        entries = [e.strip() for e in cont_str.split(",")]
+        assert entries == ["/handoff --commit", "/commit"]
+
+        prepended = ["/commit", *entries]
+
+        new_cont = ", ".join(prepended)
+        assert new_cont == "/commit, /handoff --commit, /commit"
+
+        first = prepended[0]
+        remainder = prepended[1:]
+        remainder_str = ", ".join(remainder)
+        assert first == "/commit"
+        assert remainder_str == "/handoff --commit, /commit"
+
+    def test_no_prepend_skips_step(self) -> None:
+        """Skills that don't prepend behave identically to original protocol."""
+        entries = ["/handoff --commit", "/commit"]
+
+        # No prepend — consume directly (step 2 skipped)
+        first = entries[0]
+        remainder = entries[1:]
+
+        assert first == "/handoff --commit"
+        assert remainder == ["/commit"]
+
+    def test_prepend_empty_continuation_creates_chain(self) -> None:
+        """Prepending to empty continuation creates a new chain."""
+        original: list[str] = []
+        prepended = ["/commit", *original]
+
+        assert prepended == ["/commit"]
+        first = prepended[0]
+        remainder = prepended[1:]
+        assert first == "/commit"
+        assert remainder == []
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

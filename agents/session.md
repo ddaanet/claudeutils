@@ -220,7 +220,6 @@
   - `/prime` skill (ad-hoc plan context) + two-section task list (In-tree / Worktree Tasks)
   - Scope: `session.py`, `resolve.py`, `aggregation.py`, `session_structure.py`, handoff skill, execute-rule.md
 
-- [ ] **Continuation prepend** → `continuation-prepend` — `/design plans/continuation-prepend/problem.md` | sonnet
 
 - [ ] **Deliverable review: runbook-recall-expansion** → `runbook-recall-expansion` — `/deliverable-review plans/runbook-recall-expansion` | opus | restart
 
