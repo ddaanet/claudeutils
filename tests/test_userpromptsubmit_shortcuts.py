@@ -68,6 +68,14 @@ class TestTier1Commands:
         # systemMessage should include directive summary (not command multiline)
         assert "discuss" in result["systemMessage"].lower()
 
+    def test_discuss_expansion_includes_grounding(self) -> None:
+        """Discuss expansion includes grounding directives."""
+        result = call_hook("d: is this approach valid")
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        # Grounding directives must be present
+        assert "Read artifacts" in additional_context
+        assert "_recall resolve" in additional_context
+
     def test_h_expansion(self) -> None:
         """H command expands to handoff instruction."""
         result = call_hook("h")
