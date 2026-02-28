@@ -1,4 +1,4 @@
-# Session Handoff: 2026-02-28
+# Session Handoff: 2026-03-01
 
 **Status:** Planstate `outlined` status implemented and passing. Process deviation identified → requirements captured for execute-skill-dispatch.
 
@@ -17,6 +17,11 @@
 - Root cause: execute-rule MODE 2 says "start first pending task" without explicit skill invocation instruction
 - Pattern match: "When Execution Routing Preempts Skill Scanning" (structural fix needed, not prose)
 - Captured requirements: `plans/execute-skill-dispatch/requirements.md`
+
+**TDD discipline review:**
+- Batched all test changes in single RED phase, only verified one failure
+- `designed_with_outline` was never RED — characterization test added as if TDD
+- Learning captured: one acceptance criterion per RED→GREEN cycle
 
 ## Pending Tasks
 
