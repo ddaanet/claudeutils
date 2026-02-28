@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-28
 
-**Status:** Three worktrees created for parallel recall work. Review-recall-null merge pending.
+**Status:** Worktree operations (create, merge, rm) for 3 recall tasks. Pushback-grounding requirements captured. Discussion: remove `_worktree rm --force`.
 
 ## Completed This Session
 
@@ -42,6 +42,12 @@
   - `userpromptsubmit-topic` — prompt-submit recall injection (sonnet)
 - **Review recall-null** — deliverable review completed in worktree, merged back
   - Report: `plans/recall-null/reports/deliverable-review.md`
+- **Recall-null plan delivered** — lifecycle marked, worktree removed
+- **Recall-cli-integration merge** — merged empty worktree (focused session only, no work done). Data loss: uncommitted `plans/recall-cli-integration/` destroyed by `--force` rm. Worktree recreated with same slug for session recovery.
+- **Pushback-grounding requirements** — `/requirements pushback-grounding`
+  - 4 FRs: claim verification, discussion recall, protocol integration, hook expansion update
+  - Plan: pushback-grounding | Requirements: `plans/pushback-grounding/requirements.md`
+- **Task updates** — when-resolve bloat marked superseded (confirmed in recall-cli-integration wt). Stale recall artifact absorbed into Recall tool consolidation.
 
 ## Pending Tasks
 
@@ -53,16 +59,15 @@
   - Plan: recall-null | Status: delivered
   - Phase 1: null mode TDD (2 cycles, test-driver at sonnet). Phase 2: skill gate language (5 inline edits, opus direct)
   - Absorbs: when-resolve null mode + runbook post-explore gate
-- [ ] **Recall CLI integration** — `/design plans/recall-cli-integration/requirements.md` | sonnet
-  - Prototype delivered via recall-tool-anchoring worktree
 - [ ] **Runbook recall expansion** — `/design plans/runbook-recall-expansion/requirements.md` | sonnet
   - Plan: runbook-recall-expansion | Status: requirements
   - prepare-runbook.py recall injection, corrector.md self-loading, two-pattern docs (7 FRs)
-- [ ] **When-resolve bloat** — group resolved entries by source file when batch-resolving multiple queries | sonnet
+- [x] **When-resolve bloat** — superseded by recall-cli-integration FR-2
 - [ ] **Recall tool consolidation** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet
   - Recall simplification: remove sibling expansion (redundant with index scanning). Resolver = pure lookup (key in, section out).
   - Mode reduction: default (per-key, 2 passes), all (per-file, iterated), everything (full corpus). Drop `broad` and `deep` from formal mode set.
   - Grounding: `plans/reports/recall-lifecycle-grounding.md` (per-point mode assignments, lifecycle role contract)
+  - Absorbs: Stale recall artifact — diagnose /design producing old-style recall artifact instead of memory key list
 - [ ] **Artifact staleness gate** — sonnet
   - Mechanical checkpoint at /requirements, /design, /runbook exit points
   - `when-resolve.py` touches sentinel; skill compares sentinel mtime to recall-artifact.md AND primary skill artifact (requirements.md, outline.md, design.md, runbook.md)
@@ -76,7 +81,6 @@
   - Each decision/learning declares keywords for index. Index generated from declarations. Diff displayed after update for agent review. Supersedes manual append workflow in `/codify` step 4a.
 - [x] **Runbook post-explore gate** — absorbed into recall-null delivery (outline item 2.4)
 - [ ] **Delivery supercession** — `d:` memory-index pass at plan delivery for supercession | opus
-- [ ] **Stale recall artifact** — diagnose /design producing old-style recall artifact instead of memory key list | sonnet
 - [ ] **Recall deduplication** — integrate session context scraping into `when-resolve.py` to filter already-loaded entries | sonnet
   - Session scraper prototype: `plans/prototypes/session-scraper.py`
   - Dedup should be opt-in (`--new-only` flag or `null` mode), not default — explicit queries may resolve for sub-agent prompts
@@ -116,6 +120,12 @@
 - [ ] **Prose gate terminology** — Find proper name for D+B pattern, ground, update docs | opus
 - [ ] **Memory-index loading docs** — update references claiming memory-index is @-ref from CLAUDE.md | sonnet
 - [ ] **Decision drift audit** — audit decision files and learnings.md for stale operational assumptions (e.g., `uv run` references when sandbox-denied) | sonnet
+- [ ] **Pushback grounding** — `/design plans/pushback-grounding/requirements.md` | sonnet
+  - Plan: pushback-grounding | Status: requirements
+  - Add claim verification + recall to `d:` discussion protocol (pushback.md + hook expansion)
+- [ ] **Remove wt rm --force** — remove `--force` flag from `_worktree rm` CLI | sonnet
+  - Structural safety: `--force` bypasses the uncommitted-work check that exists to prevent data loss
+  - Emergency cleanup via raw `git worktree remove --force` + `rm -rf`
 
 ### Tier 3: Workflow non-prose
 
@@ -215,6 +225,9 @@
 
 ## Worktree Tasks
 
+- [ ] **Recall CLI integration** → `recall-cli-integration` — `/design plans/recall-cli-integration/requirements.md` | sonnet
+  - Prototype delivered via recall-tool-anchoring worktree
+
 - [ ] **UserPromptSubmit topic** → `userpromptsubmit-topic` — Phase 7 analysis recommends this as highest-impact recall improvement | sonnet
   - Seed keyword table from 200+ memory-index triggers
   - Inject matching decision content via additionalContext on prompt submit
@@ -270,7 +283,7 @@
 
 ## Next Steps
 
-Merge review-recall-null worktree, then rm. Two other worktrees active: recall-cli-integration, userpromptsubmit-topic.
+Two worktrees active: recall-cli-integration (recreated for session recovery), userpromptsubmit-topic. Next in-tree: Runbook recall expansion (`/design plans/runbook-recall-expansion/requirements.md`).
 
 ## Reference Files
 
@@ -291,3 +304,4 @@ Merge review-recall-null worktree, then rm. Two other worktrees active: recall-c
 - `plans/reports/recall-lifecycle-grounding.md` — Grounded recall artifact lifecycle (3 patterns, per-point mode assignments, mode reduction)
 - `plans/reports/recall-lifecycle-internal-codebase.md` — Internal inventory: recall-artifact handling across all pipeline skills
 - `plans/reports/recall-lifecycle-external-research.md` — External research: 10 frameworks (HL7 CRMI, PROV-DM, OpenLineage, ADK, LangGraph, etc.)
+- `plans/pushback-grounding/requirements.md` — Claim verification + recall for `d:` discussion mode
