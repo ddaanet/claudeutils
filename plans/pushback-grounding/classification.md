@@ -1,0 +1,7 @@
+- **Classification:** Simple
+- **Implementation certainty:** High — all mechanisms specified (tool-call verification, when-resolve.py, string constant edit), all target files identified
+- **Requirement stability:** High — four FRs with concrete acceptance criteria, bounded scope
+- **Behavioral code check:** No — edits are agentic prose (pushback.md) and a string constant (`_DISCUSS_EXPANSION`). No new functions, no changed logic paths, no conditional branches
+- **Work type:** Production (agentic-prose)
+- **Artifact destination:** agentic-prose (pushback.md, hook expansion string)
+- **Evidence:** All four FRs resolve to prose edits + string constant update. Recalled "when triaging behavioral code" — stress-tested: genuinely no behavioral code (no functions, no branching, no logic paths). Hook code control flow unchanged; only the content of a string literal changes.
