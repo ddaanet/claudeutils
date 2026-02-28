@@ -143,6 +143,33 @@ class TestTier1Commands:
         assert "shortcuts" in result["systemMessage"].lower()
         assert "skills" in result["systemMessage"].lower()
 
+    def test_multi_command_first_wins(self) -> None:
+        """Multiple commands → only first fires, warning in systemMessage."""
+        result = call_hook("s\nx")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        # First command (s) fires
+        assert "[#status]" in additional_context
+        # Second command (x) does NOT fire
+        assert "[#execute]" not in additional_context
+        # Warning in systemMessage
+        assert "s" in result["systemMessage"]
+        assert "x" in result["systemMessage"]
+
+    def test_multi_command_reverse_order(self) -> None:
+        """Verify first-wins is position-based, not alphabetical."""
+        result = call_hook("x\ns")
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "[#execute]" in additional_context
+        assert "[#status]" not in additional_context
+
+    def test_single_command_no_warning(self) -> None:
+        """Single command produces no multi-command warning."""
+        result = call_hook("s")
+        sys_msg = result["systemMessage"]
+        # systemMessage should contain expansion, not a warning about multiple commands
+        assert "Multiple" not in sys_msg
+
 
 class TestPatternGuards:
     """Test Tier 2.5 pattern guards."""
