@@ -1,6 +1,7 @@
 """Tests for _recall check subcommand."""
 
 from pathlib import Path
+from textwrap import dedent
 
 from click.testing import CliRunner
 
@@ -11,14 +12,14 @@ def test_check_valid_artifact() -> None:
     """Check exits 0 when artifact has valid Entry Keys section with entries."""
     runner = CliRunner()
     with runner.isolated_filesystem():
-        # Create artifact with valid Entry Keys section
-        artifact_content = """# Recall Artifact: Test Job
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
 
-## Entry Keys
+            ## Entry Keys
 
-when test entry one — some annotation
-when test entry two
-"""
+            when test entry one — some annotation
+            when test entry two
+        """)
         artifact_dir = Path("plans/test-job")
         artifact_dir.mkdir(parents=True)
         artifact_path = artifact_dir / "recall-artifact.md"
@@ -41,10 +42,11 @@ def test_check_no_entry_keys_section() -> None:
     """Check exits 1 when artifact has no Entry Keys section."""
     runner = CliRunner()
     with runner.isolated_filesystem():
-        artifact_content = """# Recall Artifact: Test Job
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
 
-Some other content without Entry Keys section.
-"""
+            Some other content without Entry Keys section.
+        """)
         artifact_dir = Path("plans/test-job")
         artifact_dir.mkdir(parents=True)
         artifact_path = artifact_dir / "recall-artifact.md"
@@ -61,11 +63,12 @@ def test_check_empty_section() -> None:
     """Check exits 1 when Entry Keys section has no entries."""
     runner = CliRunner()
     with runner.isolated_filesystem():
-        artifact_content = """# Recall Artifact: Test Job
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
 
-## Entry Keys
+            ## Entry Keys
 
-"""
+        """)
         artifact_dir = Path("plans/test-job")
         artifact_dir.mkdir(parents=True)
         artifact_path = artifact_dir / "recall-artifact.md"
@@ -83,12 +86,13 @@ def test_check_null_entry_valid() -> None:
     """
     runner = CliRunner()
     with runner.isolated_filesystem():
-        artifact_content = """# Recall Artifact: Test Job
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
 
-## Entry Keys
+            ## Entry Keys
 
-null — no relevant entries found
-"""
+            null — no relevant entries found
+        """)
         artifact_dir = Path("plans/test-job")
         artifact_dir.mkdir(parents=True)
         artifact_path = artifact_dir / "recall-artifact.md"

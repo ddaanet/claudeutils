@@ -1,6 +1,6 @@
 # Session Handoff: 2026-02-28
 
-**Status:** Recall CLI integration delivered. 13 TDD cycles + 3 general steps, corrector review clean, deliverable review pending on main.
+**Status:** Recall CLI integration reviewed, finding fixes applied, branch complete.
 
 ## Completed This Session
 
@@ -23,12 +23,23 @@
   - Post-step verification compound command fix: `git status --porcelain && just lint`
   - Inline skill updated: `agent-core/skills/inline/SKILL.md`
   - Pending task spawned: precommit session.md execute validation
+- **Deliverable review** — `/deliverable-review plans/recall-cli-integration` | opus
+  - 0 critical, 0 major, 3 minor (naming inconsistency, outline conformance, test gap)
+  - Report: `plans/recall-cli-integration/reports/deliverable-review.md`
+  - Lifecycle: `reviewed` (worktree — `delivered` deferred to main merge)
+  - Discussion: Python hook ordering fix spawned (python -c one-liner allowance, uv run redirect, SessionStart claudeutils check)
+  - Discussion: agent-core SessionStart can assume claudeutils available (all consumers have it; post-plugin-migration, edify package ships inside plugin)
+- **Finding fixes + dedent refactor**
+  - Fix 1: `resolve_cmd` → `resolve`, import aliased to `resolver_resolve`
+  - Fix 2: Argument mode uses `parse_trigger` per outline (was `_strip_operator`)
+  - Fix 3: Two tests added for resolve with invalid artifact
+  - Dedent: `textwrap.dedent` applied to 3 test files (check, resolve, diff)
 
 ## Pending Tasks
 
 - [x] **Recall CLI integration** — `/inline plans/recall-cli-integration` | sonnet
   - Plan: recall-cli-integration
-- [ ] **Recall CLI review** — `/deliverable-review plans/recall-cli-integration` | opus | restart
+- [x] **Recall CLI review** — `/deliverable-review plans/recall-cli-integration` | opus | restart
 - [ ] **Execute flag lint** — precommit lint gate for `/inline ... execute` in session.md | haiku
   - Scan session.md pending tasks for `/inline plans/.* execute` pattern
   - Flag as error: execute entry point in session.md bypasses Phase 2 recall (D+B anchor)
@@ -36,6 +47,19 @@
   - When requirements lack structural decisions (module layout, function decomposition, wiring), generate lightweight outline before routing to /runbook
   - Single data point so far — trigger condition needs sharper criteria before implementing
   - Self-modification risk: editing /design during active use
+- [ ] **Python hook ordering fix** — `/requirements` | haiku | restart
+  - `python -c` one-liner allowance evaluated before `uv run` redirect
+  - `uv run` redirect message mentions `uv sync` as dependency-change path
+  - SessionStart: verify `claudeutils` importable, emit `STOP:` if not
+  - agent-core SessionStart can assume claudeutils (all consumers have it; post-migration edify ships in plugin)
+
+## Blockers / Gotchas
+
+**pytest-markdown-report xfail noise:**
+- `test_markdown_fixtures.py::test_full_pipeline_remark` xfail renders full traceback in markdown report, visually identical to real failure
+- `just precommit` shows `✗ Precommit failed` when test sentinel invalidates (any test file change forces rerun)
+- All 30 recall tests pass. The `✗` is from xfail report formatting, not a real failure
+- Fix is in `pytest-markdown-report` (separate repo), not here
 
 ## Next Steps
 

@@ -4,6 +4,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
+from textwrap import dedent
 
 from click.testing import CliRunner
 
@@ -35,12 +36,13 @@ def test_diff_lists_changed_files(tmp_path: Path) -> None:
     artifact_dir = tmp_path / "plans" / "test-job"
     artifact_dir.mkdir(parents=True)
     artifact_path = artifact_dir / "recall-artifact.md"
-    artifact_content = """# Recall Artifact: Test Job
+    artifact_content = dedent("""\
+        # Recall Artifact: Test Job
 
-## Entry Keys
+        ## Entry Keys
 
-when test entry — annotation
-"""
+        when test entry — annotation
+    """)
     artifact_path.write_text(artifact_content)
 
     # Commit artifact
@@ -232,12 +234,13 @@ def test_diff_sorted_deduped(tmp_path: Path) -> None:
     artifact_dir = tmp_path / "plans" / "test-job"
     artifact_dir.mkdir(parents=True)
     artifact_path = artifact_dir / "recall-artifact.md"
-    artifact_content = """# Recall Artifact
+    artifact_content = dedent("""\
+        # Recall Artifact
 
-## Entry Keys
+        ## Entry Keys
 
-when test entry — annotation
-"""
+        when test entry — annotation
+    """)
     artifact_path.write_text(artifact_content)
 
     subprocess.run(

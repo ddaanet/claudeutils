@@ -8,7 +8,8 @@ from typing import Never
 
 import click
 
-from claudeutils.when.resolver import ResolveError, resolve
+from claudeutils.when.resolver import ResolveError
+from claudeutils.when.resolver import resolve as resolver_resolve
 
 from .artifact import parse_entry_keys_section, parse_trigger
 
@@ -85,7 +86,7 @@ def _format_resolve_error(error: Exception, trigger: str) -> str:
 
 @recall_cmd.command()
 @click.argument("args", nargs=-1, required=True)
-def resolve_cmd(args: tuple[str, ...]) -> None:
+def resolve(args: tuple[str, ...]) -> None:
     """Resolve artifact triggers to decision content.
 
     MODE DETECTION:
@@ -100,7 +101,11 @@ def resolve_cmd(args: tuple[str, ...]) -> None:
     decisions_dir = str(project_root / "agents" / "decisions")
 
     is_artifact_mode = bool(args and Path(args[0]).is_file())
-    triggers = _load_triggers_from_artifact(args[0]) if is_artifact_mode else list(args)
+    triggers = (
+        _load_triggers_from_artifact(args[0])
+        if is_artifact_mode
+        else [parse_trigger(arg) for arg in args]
+    )
 
     results: list[str] = []
     seen: set[str] = set()
@@ -112,7 +117,7 @@ def resolve_cmd(args: tuple[str, ...]) -> None:
             continue
 
         try:
-            result = resolve(query, index_path, decisions_dir)
+            result = resolver_resolve(query, index_path, decisions_dir)
             if result not in seen:
                 seen.add(result)
                 results.append(result)

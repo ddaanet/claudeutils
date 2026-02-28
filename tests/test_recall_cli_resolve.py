@@ -1,6 +1,7 @@
 """Tests for _recall resolve subcommand."""
 
 from pathlib import Path
+from textwrap import dedent
 from unittest.mock import patch
 
 from click.testing import CliRunner
@@ -13,21 +14,21 @@ def test_resolve_artifact_mode_happy_path() -> None:
     """Resolve artifact mode: read, parse, resolve, output results."""
     runner = CliRunner()
     with runner.isolated_filesystem():
-        # Create artifact with two entries
-        artifact_content = """# Recall Artifact: Test Job
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
 
-## Entry Keys
+            ## Entry Keys
 
-when first entry — annotation for first
-when second entry — annotation for second
-"""
+            when first entry — annotation for first
+            when second entry — annotation for second
+        """)
         artifact_dir = Path("plans/test-job")
         artifact_dir.mkdir(parents=True)
         artifact_path = artifact_dir / "recall-artifact.md"
         artifact_path.write_text(artifact_content)
 
         # Mock resolver to return distinct content for each trigger
-        with patch("claudeutils.recall_cli.cli.resolve") as mock_resolve:
+        with patch("claudeutils.recall_cli.cli.resolver_resolve") as mock_resolve:
             mock_resolve.side_effect = [
                 "# First Entry Resolved\nContent 1",
                 "# Second Entry Resolved\nContent 2",
@@ -57,7 +58,7 @@ def test_resolve_argument_mode_happy_path() -> None:
     runner = CliRunner()
     with (
         runner.isolated_filesystem(),
-        patch("claudeutils.recall_cli.cli.resolve") as mock_resolve,
+        patch("claudeutils.recall_cli.cli.resolver_resolve") as mock_resolve,
     ):
         mock_resolve.side_effect = [
             "Content for mock tests",
@@ -89,21 +90,21 @@ def test_resolve_artifact_mode_any_failure_exits_1() -> None:
     """Artifact mode: any resolution failure exits 1 (strict semantics)."""
     runner = CliRunner()
     with runner.isolated_filesystem():
-        # Create artifact with three entries
-        artifact_content = """# Recall Artifact: Test Job
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
 
-## Entry Keys
+            ## Entry Keys
 
-when first entry — annotation for first
-when second entry — annotation for second
-when third entry — annotation for third
-"""
+            when first entry — annotation for first
+            when second entry — annotation for second
+            when third entry — annotation for third
+        """)
         artifact_dir = Path("plans/test-job")
         artifact_dir.mkdir(parents=True)
         artifact_path = artifact_dir / "recall-artifact.md"
         artifact_path.write_text(artifact_content)
 
-        with patch("claudeutils.recall_cli.cli.resolve") as mock_resolve:
+        with patch("claudeutils.recall_cli.cli.resolver_resolve") as mock_resolve:
             # First resolves successfully, second raises error, third resolves
             mock_resolve.side_effect = [
                 "Content 1",
@@ -133,7 +134,7 @@ def test_resolve_argument_mode_partial_success_exits_0() -> None:
     runner = CliRunner()
     with (
         runner.isolated_filesystem(),
-        patch("claudeutils.recall_cli.cli.resolve") as mock_resolve,
+        patch("claudeutils.recall_cli.cli.resolver_resolve") as mock_resolve,
     ):
         # First succeeds, second fails, third succeeds
         mock_resolve.side_effect = [
@@ -172,7 +173,7 @@ def test_resolve_argument_mode_total_failure_exits_1() -> None:
     runner = CliRunner()
     with (
         runner.isolated_filesystem(),
-        patch("claudeutils.recall_cli.cli.resolve") as mock_resolve,
+        patch("claudeutils.recall_cli.cli.resolver_resolve") as mock_resolve,
     ):
         # All three fail
         mock_resolve.side_effect = [
@@ -208,20 +209,20 @@ def test_resolve_null_entries_silent() -> None:
     """Null entries are silently skipped, not resolved or failed."""
     runner = CliRunner()
     with runner.isolated_filesystem():
-        # Create artifact with one valid entry and one null entry
-        artifact_content = """# Recall Artifact: Test Job
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
 
-## Entry Keys
+            ## Entry Keys
 
-when real entry — has annotation
-null — no relevant entries found
-"""
+            when real entry — has annotation
+            null — no relevant entries found
+        """)
         artifact_dir = Path("plans/test-job")
         artifact_dir.mkdir(parents=True)
         artifact_path = artifact_dir / "recall-artifact.md"
         artifact_path.write_text(artifact_content)
 
-        with patch("claudeutils.recall_cli.cli.resolve") as mock_resolve:
+        with patch("claudeutils.recall_cli.cli.resolver_resolve") as mock_resolve:
             # Only the real entry should be resolved
             mock_resolve.side_effect = [
                 "Content for real entry",
@@ -243,20 +244,20 @@ def test_resolve_dedup_content() -> None:
     """Identical content from different triggers appears once (dedup)."""
     runner = CliRunner()
     with runner.isolated_filesystem():
-        # Create artifact with two entries
-        artifact_content = """# Recall Artifact: Test Job
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
 
-## Entry Keys
+            ## Entry Keys
 
-when first entry — annotation for first
-when second entry — annotation for second
-"""
+            when first entry — annotation for first
+            when second entry — annotation for second
+        """)
         artifact_dir = Path("plans/test-job")
         artifact_dir.mkdir(parents=True)
         artifact_path = artifact_dir / "recall-artifact.md"
         artifact_path.write_text(artifact_content)
 
-        with patch("claudeutils.recall_cli.cli.resolve") as mock_resolve:
+        with patch("claudeutils.recall_cli.cli.resolver_resolve") as mock_resolve:
             # Both resolve to the same content
             mock_resolve.side_effect = [
                 "Shared content for both",
@@ -275,3 +276,44 @@ when second entry — annotation for second
             output_content = result.output
             count = output_content.count("Shared content for both")
             assert count == 1
+
+
+def test_resolve_artifact_mode_no_entry_keys_exits_1() -> None:
+    """Artifact mode exits 1 when artifact has no Entry Keys section."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
+
+            Some content without Entry Keys section.
+        """)
+        artifact_dir = Path("plans/test-job")
+        artifact_dir.mkdir(parents=True)
+        artifact_path = artifact_dir / "recall-artifact.md"
+        artifact_path.write_text(artifact_content)
+
+        result = runner.invoke(cli, ["_recall", "resolve", str(artifact_path)])
+
+        assert result.exit_code == 1
+        assert "Artifact has no Entry Keys entries" in result.output
+
+
+def test_resolve_artifact_mode_empty_section_exits_1() -> None:
+    """Artifact mode exits 1 when Entry Keys section has no entries."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        artifact_content = dedent("""\
+            # Recall Artifact: Test Job
+
+            ## Entry Keys
+
+        """)
+        artifact_dir = Path("plans/test-job")
+        artifact_dir.mkdir(parents=True)
+        artifact_path = artifact_dir / "recall-artifact.md"
+        artifact_path.write_text(artifact_content)
+
+        result = runner.invoke(cli, ["_recall", "resolve", str(artifact_path)])
+
+        assert result.exit_code == 1
+        assert "Artifact has no Entry Keys entries" in result.output

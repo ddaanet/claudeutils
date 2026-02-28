@@ -50,3 +50,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Splitting post-step verification into separate tool calls. First check (git status) returns clean → exit momentum suppresses second check (just lint). The sub-agent "already linted" rationalization makes the skip feel safe.
 - Correct pattern: Single compound command (`git status --porcelain && just lint`). Compound commands can't be partially executed — both run or neither. Same principle as `_fail` consolidating display+exit.
 - Also applies: `execute` entry point in session.md. `execute` is a same-turn chaining flag (skill → skill within one conversation). session.md always crosses a context boundary — `execute` there bypasses Phase 2 recall (D+B anchor). Precommit lint catches this mechanically.
+## When writing multiline strings in indented code
+- Anti-pattern: Triple-quoted strings flush-left or with inconsistent indentation to avoid unwanted whitespace in the value. Breaks visual code structure.
+- Correct pattern: `from textwrap import dedent`, then `dedent("""\n    indented content\n    """)`. Keeps the string visually aligned with surrounding code while stripping common leading whitespace at runtime.
+- Scope: non-docstring multiline strings (test fixtures, template content, heredoc-style text). Docstrings have their own `inspect.cleandoc` handling.
+## When reading validation command output
+- Anti-pattern: `just precommit 2>&1 | tail -N` or similar truncation. Validation output is a diagnostic signal — truncation hides the pass/fail/xfail summary that distinguishes real failures from expected noise. Agent then draws wrong conclusions from incomplete data.
+- Correct pattern: Show full output from `just precommit`, `just test`, `just lint`. If output is too long, fix the recipe (add `--quiet`, `--tb=no`), not the consumption site.
+- Evidence: xfail traceback from `pytest-markdown-report` was visually identical to real failure. Agent tailed output, missed summary counts, ran `git stash` diagnostic cycle, still drew wrong conclusion. Full output would have shown "30 passed, 1 xfailed" immediately.
