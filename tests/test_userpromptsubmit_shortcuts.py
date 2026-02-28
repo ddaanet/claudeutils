@@ -99,6 +99,35 @@ class TestTier1Commands:
         assert call_hook("fix something") == {}
         assert call_hook("  s  trailing space") == {}
 
+    def test_h_expansion(self) -> None:
+        """H command expands to handoff instruction."""
+        result = call_hook("h")
+        assert "[/handoff]" in result["systemMessage"]
+        assert "Update session.md" in result["systemMessage"]
+
+    def test_ci_expansion(self) -> None:
+        """CI command expands to commit instruction."""
+        result = call_hook("ci")
+        assert "[/commit]" in result["systemMessage"]
+        assert "status display" in result["systemMessage"]
+
+    def test_c_expansion(self) -> None:
+        """C command expands to continue instruction."""
+        result = call_hook("c")
+        assert "Continue." in result["systemMessage"]
+
+    def test_y_expansion(self) -> None:
+        """Y command expands to proceed instruction."""
+        result = call_hook("y")
+        assert "Yes, proceed." in result["systemMessage"]
+
+    def test_question_expansion(self) -> None:
+        """? command expands to help instruction."""
+        result = call_hook("?")
+        assert "[#help]" in result["systemMessage"]
+        assert "shortcuts" in result["systemMessage"].lower()
+        assert "skills" in result["systemMessage"].lower()
+
 
 class TestPatternGuards:
     """Test Tier 2.5 pattern guards."""
@@ -238,3 +267,22 @@ discuss: after fence should match"""
         assert "systemMessage" in output_x
         assert "[#execute]" in output_x["systemMessage"]
         assert "[#execute]" in output_x["hookSpecificOutput"]["additionalContext"]
+
+
+class TestContinuationOnly:
+    """Test Tier 3 continuation parsing with no guards matching."""
+
+    def test_continuation_with_cooperative_skills(self) -> None:
+        """Continuation parsing detects multi-skill chains without guards."""
+        fake_registry = {
+            "handoff": {"cooperative": True, "default-exit": []},
+            "commit": {"cooperative": True, "default-exit": []},
+        }
+        with patch.object(hook, "build_registry", return_value=fake_registry):
+            result = call_hook("/handoff and /commit")
+        assert result != {}
+        additional_context = result["hookSpecificOutput"]["additionalContext"]
+        assert "CONTINUATION" in additional_context
+        assert "Current:" in additional_context
+        assert "handoff" in additional_context
+        assert "commit" in additional_context
