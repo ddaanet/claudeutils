@@ -242,7 +242,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when selecting model for discovery and audit | haiku sonnet minimum prose artifacts
 /when reviewing batch skill edits | parallel reviewers split relatedness invariance
 /when scoping corrector on TDD deliverables | full branch diff main HEAD not last cycle
-/when delegating TDD cycles to test-driver | piecemeal one per invocation resume context
+/when delegating TDD cycles to test-driver | piecemeal one per invocation resume context cycle-scoped prompt composition extraction
 /when implementation modifies pipeline skills | self-modification inline task sequence fresh loads
 
 ## agents/decisions/pipeline-contracts.md
