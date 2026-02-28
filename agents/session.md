@@ -1,31 +1,33 @@
 # Session Handoff: 2026-02-28
 
-**Status:** Requirements refined for recall CLI integration. FR-1/FR-2 strengthened, C-2/C-4 updated, Q-1 resolved.
+**Status:** Recall CLI integration: classified Moderate, outline + runbook written, Tier 2 execution next.
 
 ## Completed This Session
 
 - **Recall CLI integration requirements** — `/requirements` with full recall pass
-  - Recall pass: 3 decision files (cli.md, testing.md, workflow-advanced.md) + 4 individual entries loaded
-  - Codebase discovery: existing `recall` module (effectiveness analysis), `when` CLI (resolver), prototype scripts, worktree CLI patterns
-  - Read recall-tool-anchoring outline (git: `42526e00`) for design decisions D-1 through D-7
-  - FR-2 two-mode resolve from discussion: artifact mode (strict, exit 1 on any failure) vs argument mode (best-effort, exit 0 if ≥1 resolves). Mode detection by first-arg file existence
-  - Rejected stdin piping (`git show | _recall resolve -`) — not a real use case, worktrees have artifact locally at creation
-  - Updated dependencies: recall-null delivered, resolver handles null natively
   - Artifacts: `plans/recall-cli-integration/requirements.md`, `plans/recall-cli-integration/recall-artifact.md`
-- **Requirements refinement** — discussion-driven updates to FR-1, FR-2, C-2, C-4, Q-1
-  - FR-1: strengthened from existence check to structural validation (`## Entry Keys` section with parseable entries)
-  - FR-2: section-keyed parsing (terminal `## Entry Keys` to EOF), optional annotation (bare triggers for sub-agent flat-list format)
-  - C-2: changed from `Path.cwd()` to `CLAUDE_PROJECT_DIR` with `.` fallback (matches `when/cli.py:84`)
-  - C-4: new constraint — `## Entry Keys` must be terminal section (simplifies parser)
-  - Q-1: resolved — delete prototypes as part of deliverable, update referencing docs in same change
+- **Classification + outline + runbook** — `/design` triaged Moderate, produced structural outline, wrote Tier 2 runbook
+  - Classification: Moderate (both axes high, behavioral code). File: `plans/recall-cli-integration/classification.md`
+  - Broad recall: 5 decision files loaded (cli.md, testing.md, implementation-notes.md, data-processing.md, workflow-advanced.md)
+  - Outline resolves structural decisions: `recall_cli/` package separate from `recall/`, `artifact.py` shared parser, local `_fail`, per-subcommand test files. File: `plans/recall-cli-integration/outline.md`
+  - Runbook: 5 phases, 13 TDD cycles + 3 general steps, Tier 2 (lightweight delegation). File: `plans/recall-cli-integration/runbook.md`
+  - Discussion conclusions:
+    - Rejected "dedup after fuzzy matching" as missing requirement — FR-2 content-level dedup sufficient (resolver deterministic)
+    - Rejected "group output by file sections" — author curation order in artifact is intentional signal
+    - Accepted "outline needed for Moderate path" — requirements without structural decisions need lightweight outline before /runbook
+    - Deferred /design skill update — single data point, fix needs sharper trigger criteria
 
 ## Pending Tasks
 
-- [ ] **Recall CLI integration** — `/design plans/recall-cli-integration/requirements.md` | sonnet
-  - Plan: recall-cli-integration | Status: requirements
-  - 5 FRs, 4 constraints, 0 open questions
-  - Prototype scripts (`agent-core/bin/recall-{check,resolve,diff}.sh`) define behavioral spec — deletion part of deliverable
+- [ ] **Recall CLI integration** — `/inline plans/recall-cli-integration execute` | sonnet
+  - Plan: recall-cli-integration
+  - Tier 2 runbook ready, 13 TDD cycles + 3 general steps across 5 phases
+  - Recall artifact has 12 entries; broad recall loaded 5 decision files
+- [ ] **Moderate outline gate** — `/design` skill update | opus
+  - When requirements lack structural decisions (module layout, function decomposition, wiring), generate lightweight outline before routing to /runbook
+  - Single data point so far — trigger condition needs sharper criteria before implementing
+  - Self-modification risk: editing /design during active use
 
 ## Next Steps
 
-Branch work complete.
+Execute recall CLI integration via `/inline plans/recall-cli-integration execute`. Fresh session for context budget.

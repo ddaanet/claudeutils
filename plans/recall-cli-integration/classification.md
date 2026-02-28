@@ -1,0 +1,7 @@
+- **Classification:** Moderate
+- **Implementation certainty:** High — prototype scripts define exact behavioral spec, `_worktree` group provides registration pattern, `when` CLI provides resolver integration pattern, `_fail` pattern established
+- **Requirement stability:** High — 5 FRs with acceptance criteria, 4 constraints, 0 open questions
+- **Behavioral code check:** Yes — new CLI commands, new module, new parsing logic → Moderate minimum
+- **Work type:** Production — delivers capability (CLI commands replacing shell prototypes)
+- **Artifact destination:** production — `src/claudeutils/`
+- **Evidence:** Prototype scripts (`recall-{check,resolve,diff}.sh`) define exact behavior. `_worktree` group (`src/claudeutils/worktree/cli.py:95`) shows hidden group registration. `when/cli.py` shows resolver integration, operator stripping, null handling, `CLAUDE_PROJECT_DIR` usage. `_fail` pattern (`worktree/cli.py:38`) for LLM-native error output. CliRunner test patterns in `test_when_cli.py`, `test_when_null.py`. All axes high but behavioral code → Moderate.

@@ -41,3 +41,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: "Minor findings deferred — no pending task created." Deferral without a tracking mechanism is abandonment. The finding disappears from all active surfaces.
 - Correct pattern: Every finding must resolve to one of: (1) fix inline now, or (2) pending task as issue tracker entry. There is no third option. "Noted in report" is not a resolution — reports are not checked proactively.
 - Rationale: Session.md pending tasks are the issue tracker. If work isn't there, it doesn't exist.
+## When routing Moderate classification to runbook
+- Requirements can be behaviorally complete (every FR has testable acceptance criteria) but structurally incomplete (no module layout, function decomposition, wiring decisions). The /design Moderate route skips design entirely — "Route to /runbook." The /runbook Tier 3 has Phase 0.75 (runbook outline) but that's runbook structure, not implementation approach.
+- Anti-pattern: Letting structural decisions (package layout, shared components, error patterns, test organization) get made implicitly during runbook cycle planning or ad-hoc by the executing agent.
+- Correct pattern: When requirements lack structural decisions, generate a lightweight outline before /runbook. The outline materializes "how" decisions (module structure, component boundaries, wiring) alongside the "what" (behavioral spec). Skip only when requirements are functionally complete — behavioral + structural.
+- Single data point: recall-cli-integration. Trigger condition needs sharper criteria before modifying /design skill.
