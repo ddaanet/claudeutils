@@ -6,6 +6,7 @@ from unittest.mock import patch
 from click.testing import CliRunner
 
 from claudeutils.cli import cli
+from claudeutils.when.resolver import ResolveError
 
 
 def test_resolve_artifact_mode_happy_path() -> None:
@@ -82,3 +83,46 @@ def test_resolve_argument_mode_happy_path() -> None:
         assert "Content for mock tests" in result.output
         assert "Content for encode paths" in result.output
         assert "---" in result.output
+
+
+def test_resolve_artifact_mode_any_failure_exits_1() -> None:
+    """Artifact mode: any resolution failure exits 1 (strict semantics)."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create artifact with three entries
+        artifact_content = """# Recall Artifact: Test Job
+
+## Entry Keys
+
+when first entry — annotation for first
+when second entry — annotation for second
+when third entry — annotation for third
+"""
+        artifact_dir = Path("plans/test-job")
+        artifact_dir.mkdir(parents=True)
+        artifact_path = artifact_dir / "recall-artifact.md"
+        artifact_path.write_text(artifact_content)
+
+        with patch("claudeutils.recall_cli.cli.resolve") as mock_resolve:
+            # First resolves successfully, second raises error, third resolves
+            mock_resolve.side_effect = [
+                "Content 1",
+                ResolveError("second entry not found"),
+                "Content 3",
+            ]
+
+            result = runner.invoke(cli, ["_recall", "resolve", str(artifact_path)])
+
+            # Verify exit code 1 (any non-null failure in artifact mode)
+            assert result.exit_code == 1
+
+            # Verify resolver called for all three triggers
+            assert mock_resolve.call_count == 3
+
+            # Verify successful content is in output
+            assert "Content 1" in result.output
+            assert "Content 3" in result.output
+
+            # Verify error message in output
+            assert "second entry" in result.output
+            assert "error" in result.output.lower()
