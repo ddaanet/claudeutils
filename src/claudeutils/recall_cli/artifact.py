@@ -1,6 +1,24 @@
 """Artifact parser for recall Entry Keys section."""
 
 
+def parse_trigger(entry_line: str) -> str:
+    """Parse trigger string from entry line.
+
+    Strips annotation (text after em dash), then detects operator (when/how). If
+    entry lacks operator prefix, prepends "when".
+    """
+    # Strip annotation: split on first ' — ' and take left side
+    base = entry_line.split(" — ")[0].strip()
+
+    # Detect operator: check if first word (lowercased) is when/how
+    first_word = base.split()[0].lower() if base.split() else ""
+    if first_word in {"when", "how"}:
+        return base
+
+    # Bare trigger: prepend "when "
+    return f"when {base}"
+
+
 def parse_entry_keys_section(content: str) -> list[str] | None:
     """Parse Entry Keys section from artifact content.
 
