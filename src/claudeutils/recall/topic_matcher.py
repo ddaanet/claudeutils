@@ -196,6 +196,38 @@ def _get_cache_path(index_path: Path, project_dir: Path) -> Path:
     return project_dir / "tmp" / f"topic-index-{hash_digest}.json"
 
 
+def _json_to_entries(entries_json: list[dict[str, object]]) -> list[IndexEntry]:
+    """Reconstruct IndexEntry list from JSON-serializable format."""
+    entries = []
+    for entry_dict in entries_json:
+        keywords_data = entry_dict.get("keywords")
+        keywords = (
+            frozenset(str(k) for k in keywords_data)
+            if isinstance(keywords_data, list)
+            else frozenset()
+        )
+        entries.append(
+            IndexEntry(
+                key=str(entry_dict["key"]),
+                description=str(entry_dict["description"]),
+                referenced_file=str(entry_dict["referenced_file"]),
+                section=str(entry_dict["section"]),
+                keywords=keywords,
+            )
+        )
+    return entries
+
+
+def _json_to_inverted_index(
+    index_json: dict[str, list[dict[str, object]]],
+) -> dict[str, list[IndexEntry]]:
+    """Reconstruct inverted index from JSON-serializable format."""
+    index: dict[str, list[IndexEntry]] = {}
+    for keyword, entries_list in index_json.items():
+        index[keyword] = _json_to_entries(entries_list)
+    return index
+
+
 def _save_index_cache(
     entries: list[IndexEntry],
     inverted_index: dict[str, list[IndexEntry]],
@@ -226,6 +258,9 @@ def get_or_build_index(
 ) -> tuple[list[IndexEntry], dict[str, list[IndexEntry]]]:
     """Build inverted index from memory-index file and cache it.
 
+    Reads from cache if available and source file is unchanged (mtime check).
+    Cache miss or source file newer than cache triggers rebuild.
+
     Args:
         index_path: Path to memory-index.md file
         project_dir: Project root directory
@@ -233,11 +268,23 @@ def get_or_build_index(
     Returns:
         Tuple of (entries list, inverted index dict)
     """
-    entries = parse_memory_index(index_path)
-    inverted_index = build_inverted_index(entries)
-
     cache_path = _get_cache_path(index_path, project_dir)
     source_mtime = index_path.stat().st_mtime if index_path.exists() else 0.0
+
+    if cache_path.exists():
+        try:
+            cache_data = json.loads(cache_path.read_text(encoding="utf-8"))
+            cache_timestamp = cache_data.get("timestamp", 0.0)
+
+            if source_mtime <= cache_timestamp:
+                entries = _json_to_entries(cache_data["entries"])
+                inverted_index = _json_to_inverted_index(cache_data["inverted_index"])
+                return entries, inverted_index
+        except (OSError, json.JSONDecodeError, KeyError):
+            logger.debug("Failed to read cache from %s, rebuilding", cache_path)
+
+    entries = parse_memory_index(index_path)
+    inverted_index = build_inverted_index(entries)
     _save_index_cache(entries, inverted_index, cache_path, source_mtime)
 
     return entries, inverted_index

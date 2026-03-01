@@ -1,11 +1,13 @@
 """Tests for topic matching and inverted index construction."""
 
 import json
+import os
+import time
 from pathlib import Path
 
 import pytest
 
-from claudeutils.recall.index_parser import IndexEntry
+from claudeutils.recall.index_parser import IndexEntry, parse_memory_index
 from claudeutils.recall.relevance import RelevanceScore
 from claudeutils.recall.topic_matcher import (
     ResolvedEntry,
@@ -344,3 +346,52 @@ def test_cache_stores_index_to_project_tmp(tmp_path: Path) -> None:
     assert isinstance(cache_data["entries"], list)
     assert isinstance(cache_data["inverted_index"], dict)
     assert isinstance(cache_data["timestamp"], (int, float))
+
+
+@pytest.mark.parametrize("case", ["cache_hit", "cache_invalidation"])
+def test_cache_behavior(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, case: str
+) -> None:
+    """Cache hit avoids reparsing; mtime change invalidates cache."""
+    memory_index = tmp_path / "memory-index.md"
+    memory_index.write_text(
+        "# Memory Index\n\n"
+        "evaluating recall system effectiveness — 4.1% voluntary activation\n"
+        "  agents/decisions/operational-practices.md\n"
+    )
+
+    tmp_subdir = tmp_path / "tmp"
+    tmp_subdir.mkdir(parents=True, exist_ok=True)
+
+    parse_call_count: list[int] = [0]
+
+    def mock_parse_memory_index(path: Path) -> list[IndexEntry]:
+        parse_call_count[0] += 1
+        return parse_memory_index(path)
+
+    monkeypatch.setattr(
+        "claudeutils.recall.topic_matcher.parse_memory_index", mock_parse_memory_index
+    )
+
+    if case == "cache_hit":
+        get_or_build_index(memory_index, tmp_path)
+        assert parse_call_count[0] == 1
+
+        get_or_build_index(memory_index, tmp_path)
+        assert parse_call_count[0] == 1
+
+    elif case == "cache_invalidation":
+        get_or_build_index(memory_index, tmp_path)
+        assert parse_call_count[0] == 1
+
+        time.sleep(0.01)
+        memory_index.write_text(
+            "# Memory Index\n\n"
+            "evaluating recall system effectiveness — 4.1% voluntary activation\n"
+            "  agents/decisions/operational-practices.md\n"
+            "\n"
+        )
+        os.utime(memory_index, None)
+
+        get_or_build_index(memory_index, tmp_path)
+        assert parse_call_count[0] == 2
