@@ -247,7 +247,6 @@
   - Scope: `session.py`, `resolve.py`, `aggregation.py`, `session_structure.py`, handoff skill, execute-rule.md
 
 
-- [ ] **Deliverable review: runbook-recall-expansion** → `runbook-recall-expansion` — `/deliverable-review plans/runbook-recall-expansion` | opus | restart
 
 ## Blockers / Gotchas
 
