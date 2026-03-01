@@ -175,16 +175,7 @@ def _dict_to_index(
 ) -> dict[str, list[dict[str, object]]]:
     """Convert inverted index to JSON-serializable format."""
     return {
-        keyword: [
-            {
-                "key": e.key,
-                "description": e.description,
-                "referenced_file": e.referenced_file,
-                "section": e.section,
-                "keywords": sorted(e.keywords),
-            }
-            for e in entries
-        ]
+        keyword: _entries_to_json_serializable(entries)
         for keyword, entries in inverted_index.items()
     }
 
@@ -249,7 +240,7 @@ def _save_index_cache(
 
         with cache_path.open("w", encoding="utf-8") as f:
             json.dump(cache_data, f)
-    except (OSError, json.JSONDecodeError):
+    except (OSError, TypeError):
         logger.debug("Failed to cache index to %s", cache_path)
 
 
