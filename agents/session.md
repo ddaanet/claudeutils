@@ -229,9 +229,6 @@
 - [ ] **Dev integration branch** — `/design` persistent worktree for merge landing, async issue resolution | opus
 - [ ] **Wt ls session ordering** — `_worktree ls` prints plans in pending task order from session.md | sonnet
 
-- [x] **Fix recall-expansion** — `/design plans/runbook-recall-expansion/reports/deliverable-review.md` | opus
-- [x] **Review recall fixes** — `/deliverable-review plans/runbook-recall-expansion` | opus | restart
-
 ## Worktree Tasks
 
 - [ ] **Fix planstate detector** → `fix-planstate-detector` — `/design plans/fix-planstate-detector/requirements.md` | sonnet
@@ -247,6 +244,8 @@
   - Scope: `session.py`, `resolve.py`, `aggregation.py`, `session_structure.py`, handoff skill, execute-rule.md
 
 
+
+- [ ] **Diagnose wt rm dirty-state** → `wt-rm-dirty` — `plans/wt-rm-dirty/brief.md` | sonnet
 
 ## Blockers / Gotchas
 
