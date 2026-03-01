@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-01
 
-**Status:** All deliverable review findings fixed. Pending second deliverable review.
+**Status:** Re-review complete. 0 findings. Branch ready for merge.
 
 ## Completed This Session
 
@@ -15,10 +15,16 @@
 - Minor-2: Added FileNotFoundError handling in `resolve_recall_entries` with warning + soft failure
 - Corrector review clean — 0 fixes needed (file: plans/runbook-recall-expansion/reports/review.md)
 
+**Re-review (deliverable review):**
+- Re-reviewed 2 fix deliverables (130 lines) — all 3 prior findings resolved
+- 0 Critical, 0 Major, 0 Minor
+- 17/17 tests pass
+- Lifecycle: `reviewed` (re-review after fixes)
+
 ## Pending Tasks
 
 - [x] **Fix recall-expansion** — `/design plans/runbook-recall-expansion/reports/deliverable-review.md` | opus
-- [ ] **Review recall fixes** — `/deliverable-review plans/runbook-recall-expansion` | opus | restart
+- [x] **Review recall fixes** — `/deliverable-review plans/runbook-recall-expansion` | opus | restart
 
 ## Next Steps
 
@@ -26,6 +32,6 @@ Branch work complete.
 
 ## Reference Files
 
-- `plans/runbook-recall-expansion/reports/deliverable-review.md` — original review report
+- `plans/runbook-recall-expansion/reports/deliverable-review.md` — re-review report (overwrites original)
 - `plans/runbook-recall-expansion/reports/review.md` — corrector review of fixes
 - `plans/runbook-recall-expansion/lifecycle.md` — plan lifecycle state
