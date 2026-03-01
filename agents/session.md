@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-01
 
-**Status:** Execute-skill-dispatch implemented. UPS hook injects task commands for `x`, execute-rule prose aligned. Pending deliverable review.
+**Status:** Branch deliverable-reviewed. Execute-skill-dispatch: 0 critical, 1 major (private API import), 3 minor. Fix task pending.
 
 ## Completed This Session
 
@@ -38,16 +38,19 @@
 - Corrector review: 4 minor fixes (docstring accuracy, fixture character, assertion strength, C-3 backward-compat test)
 - Precommit green: 1373 passed, 1 xfail
 
+**Deliverable review (execute-skill-dispatch):**
+- Reviewed 7 files (+276/-35 lines) against requirements.md baseline
+- Layer 2 only (< 500 lines threshold)
+- Major: `_try_planstate_command` imports private `_determine_status`/`_derive_next_action` — should use public `infer_state()` API
+- Minor: `infer_state` docstring omits `lifecycle`, no `r` mode backward-compat test, fragile split assertion
+- Report: `plans/execute-skill-dispatch/reports/deliverable-review.md`
+- Lifecycle: `reviewed` (no critical findings)
+
 ## Pending Tasks
 
-- [x] **Fix planstate detector** — `/design plans/fix-planstate-detector/requirements.md` | sonnet
-  - Plan: fix-planstate-detector | Status: requirements
-  - Missing `outlined` status: outline.md grouped under `requirements` fallback
-- [x] **Execute skill dispatch** — `/runbook plans/execute-skill-dispatch/requirements.md` | sonnet
-  - Plan: execute-skill-dispatch | Status: requirements
-  - UPS hook injects task command for `#execute` mode; execute-rule prose alignment
-- [ ] **Review skill dispatch** — `/deliverable-review plans/execute-skill-dispatch` | opus | restart
+- [x] **Review skill dispatch** — `/deliverable-review plans/execute-skill-dispatch` | opus | restart
+- [ ] **Fix dispatch findings** — `/design plans/execute-skill-dispatch/reports/deliverable-review.md` | opus
 
 ## Next Steps
 
-Branch work complete.
+Fix task routes through `/design` for proportional triage. Branch work otherwise complete.
