@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-01
 
-**Status:** UPS topic deliverable review complete (0 Critical, 0 Major, 3 Minor). Fix task and TDD dispatch review pending.
+**Status:** Both remaining tasks branched to worktrees. Restart disqualification bug identified and briefed.
 
 ## Completed This Session
 
@@ -46,6 +46,11 @@
 - Lifecycle: reviewed (worktree — delivered deferred to merge)
 - Report: `plans/userpromptsubmit-topic/reports/deliverable-review.md`
 
+**Worktree setup + restart bug:**
+- Branched Fix UPS topic findings → `fix-ups-topic-findings` and Review TDD dispatch → `review-tdd-dispatch`
+- Identified worktree skill Mode B restart disqualification as false constraint — worktrees already guarantee fresh sessions
+- Brief: `plans/fix-wt-parallel-restart/brief.md`
+
 ## Pending Tasks
 
 - [x] **UPS matching pipeline** — `/inline plans/userpromptsubmit-topic` | sonnet
@@ -55,8 +60,14 @@
 - [x] **UPS hook integration** — `/inline plans/userpromptsubmit-topic` | sonnet
   - Plan: userpromptsubmit-topic | Phase 3: Cycles 3.1-3.3 + full checkpoint
 - [x] **Review UPS topic** — `/deliverable-review plans/userpromptsubmit-topic` | opus | restart
-- [ ] **Fix UPS topic findings** — `/design plans/userpromptsubmit-topic/reports/deliverable-review.md` | opus
-- [ ] **Review TDD dispatch** — `/deliverable-review plans/inline-tdd-dispatch` | opus | restart
+- [ ] **Fix wt parallel restart** — `/design plans/fix-wt-parallel-restart/brief.md` | haiku
+  - Remove restart disqualification from worktree skill Mode B parallel group detection
+
+## Worktree Tasks
+
+- [ ] **Fix UPS topic findings** → `fix-ups-topic-findings` — `/design plans/userpromptsubmit-topic/reports/deliverable-review.md` | opus
+
+- [ ] **Review TDD dispatch** → `review-tdd-dispatch` — `/deliverable-review plans/inline-tdd-dispatch` | opus | restart
 
 ## Blockers / Gotchas
 
@@ -65,12 +76,11 @@
 
 ## Next Steps
 
-Fix UPS topic findings (3 Minor) and review TDD dispatch deliverables. Both tasks are independent — parallelizable.
+Both tasks active in worktrees. After each completes (`hc`), merge back: `wt merge <slug>`.
 
 ## Reference Files
 
 - `plans/userpromptsubmit-topic/reports/deliverable-review.md` — deliverable review (3 Minor findings)
+- `plans/fix-wt-parallel-restart/brief.md` — restart disqualification bug reasoning
 - `plans/userpromptsubmit-topic/lifecycle.md` — plan lifecycle (reviewed)
-- `plans/userpromptsubmit-topic/runbook.md` — full runbook with 10 TDD cycles
-- `plans/userpromptsubmit-topic/recall-artifact.md` — recall context for sub-agent priming
 - `plans/inline-tdd-dispatch/requirements.md` — cycle-scoping requirements
