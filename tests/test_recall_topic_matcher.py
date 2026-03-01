@@ -7,7 +7,10 @@ import pytest
 from claudeutils.recall.index_parser import IndexEntry
 from claudeutils.recall.relevance import RelevanceScore
 from claudeutils.recall.topic_matcher import (
+    ResolvedEntry,
+    TopicMatchResult,
     build_inverted_index,
+    format_output,
     get_candidates,
     resolve_entries,
     score_and_rank,
@@ -265,3 +268,48 @@ def test_resolve_entries(tmp_path: Path, setup_case: str) -> None:
         result = resolve_entries([(entry, score)], tmp_path)
 
         assert len(result) == 0
+
+
+def test_format_output_produces_context_and_system_parts() -> None:
+    """format_output should produce dual-channel output with attribution."""
+    entry_1 = IndexEntry(
+        key="evaluating recall system effectiveness",
+        description="test",
+        referenced_file="agents/decisions/operational-practices.md",
+        section="Test",
+        keywords=frozenset({"recall", "effectiveness"}),
+    )
+    resolved_1 = ResolvedEntry(
+        content="## When Evaluating Recall System Effectiveness\n\n"
+        "Anti-pattern: Measuring without baseline",
+        source_file=Path("agents/decisions/operational-practices.md"),
+        entry=entry_1,
+    )
+
+    entry_2 = IndexEntry(
+        key="too many rules in context",
+        description="test",
+        referenced_file="agents/decisions/prompt-structure-research.md",
+        section="Test",
+        keywords=frozenset({"rules", "context"}),
+    )
+    resolved_2 = ResolvedEntry(
+        content="## When Too Many Rules In Context\n\n"
+        "LLM adherence degrades with rule count",
+        source_file=Path("agents/decisions/prompt-structure-research.md"),
+        entry=entry_2,
+    )
+
+    result = format_output([resolved_1, resolved_2])
+
+    assert isinstance(result, TopicMatchResult)
+    assert "When Evaluating Recall System Effectiveness" in result.context
+    assert "When Too Many Rules In Context" in result.context
+    assert "Source: agents/decisions/operational-practices.md" in result.context
+    assert result.system_message.startswith("topic")
+    assert "evaluating recall system effectiveness" in result.system_message
+    assert "too many rules in context" in result.system_message
+
+    empty_result = format_output([])
+    assert empty_result.context == ""
+    assert empty_result.system_message == ""

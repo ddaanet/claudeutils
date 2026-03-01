@@ -130,3 +130,43 @@ def resolve_entries(
             )
 
     return resolved
+
+
+@dataclass
+class TopicMatchResult:
+    """Dual-channel output from topic matching."""
+
+    context: str
+    system_message: str
+
+
+def format_output(resolved: list[ResolvedEntry]) -> TopicMatchResult:
+    """Format resolved entries as dual-channel output.
+
+    Produces agent context (full decision sections) and user-visible system
+    message (trigger list with line count).
+
+    Args:
+        resolved: List of ResolvedEntry objects
+
+    Returns:
+        TopicMatchResult with context and system_message fields
+    """
+    if not resolved:
+        return TopicMatchResult(context="", system_message="")
+
+    context_parts = []
+    trigger_list = []
+
+    for resolved_entry in resolved:
+        context_parts.append(
+            f"{resolved_entry.content}\n\nSource: {resolved_entry.source_file}"
+        )
+        trigger_list.append(resolved_entry.entry.key)
+
+    context = "\n\n".join(context_parts)
+    context_lines = len(context.split("\n"))
+
+    system_message = f"topic ({context_lines} lines):\n" + "\n".join(trigger_list)
+
+    return TopicMatchResult(context=context, system_message=system_message)
