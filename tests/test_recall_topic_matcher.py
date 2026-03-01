@@ -1,5 +1,6 @@
 """Tests for topic matching and inverted index construction."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,7 @@ from claudeutils.recall.topic_matcher import (
     build_inverted_index,
     format_output,
     get_candidates,
+    get_or_build_index,
     resolve_entries,
     score_and_rank,
 )
@@ -309,3 +311,36 @@ def test_format_output_produces_context_and_system_parts() -> None:
     empty_result = format_output([])
     assert empty_result.context == ""
     assert empty_result.system_message == ""
+
+
+def test_cache_stores_index_to_project_tmp(tmp_path: Path) -> None:
+    """get_or_build_index should build and cache index to project tmp."""
+    memory_index = tmp_path / "memory-index.md"
+    memory_index.write_text(
+        "# Memory Index\n\n"
+        "## agents/decisions/operational-practices.md\n\n"
+        "evaluating recall system effectiveness — 4.1% voluntary activation\n"
+    )
+
+    tmp_subdir = tmp_path / "tmp"
+    tmp_subdir.mkdir(parents=True, exist_ok=True)
+
+    entries, inverted_index = get_or_build_index(memory_index, tmp_path)
+
+    assert isinstance(entries, list)
+    assert len(entries) > 0
+    assert all(isinstance(entry, IndexEntry) for entry in entries)
+
+    assert isinstance(inverted_index, dict)
+    assert all(isinstance(k, str) for k in inverted_index)
+
+    cache_files = list(tmp_path.glob("tmp/topic-index-*.json"))
+    assert len(cache_files) == 1
+
+    cache_data = json.loads(cache_files[0].read_text())
+    assert "entries" in cache_data
+    assert "inverted_index" in cache_data
+    assert "timestamp" in cache_data
+    assert isinstance(cache_data["entries"], list)
+    assert isinstance(cache_data["inverted_index"], dict)
+    assert isinstance(cache_data["timestamp"], (int, float))

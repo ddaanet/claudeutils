@@ -1,12 +1,21 @@
 """Topic matching pipeline: index construction, matching, and output formatting."""
 
+import hashlib
+import json
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-from claudeutils.recall.index_parser import IndexEntry, extract_keywords
+from claudeutils.recall.index_parser import (
+    IndexEntry,
+    extract_keywords,
+    parse_memory_index,
+)
 from claudeutils.recall.relevance import RelevanceScore, score_relevance
 from claudeutils.when.resolver import extract_section
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -145,3 +154,90 @@ def format_output(resolved: list[ResolvedEntry]) -> TopicMatchResult:
     system_message = f"topic ({context_lines} lines):\n" + "\n".join(trigger_list)
 
     return TopicMatchResult(context=context, system_message=system_message)
+
+
+def _entries_to_json_serializable(entries: list[IndexEntry]) -> list[dict[str, object]]:
+    """Convert IndexEntry list to JSON-serializable format."""
+    return [
+        {
+            "key": entry.key,
+            "description": entry.description,
+            "referenced_file": entry.referenced_file,
+            "section": entry.section,
+            "keywords": sorted(entry.keywords),
+        }
+        for entry in entries
+    ]
+
+
+def _dict_to_index(
+    inverted_index: dict[str, list[IndexEntry]],
+) -> dict[str, list[dict[str, object]]]:
+    """Convert inverted index to JSON-serializable format."""
+    return {
+        keyword: [
+            {
+                "key": e.key,
+                "description": e.description,
+                "referenced_file": e.referenced_file,
+                "section": e.section,
+                "keywords": sorted(e.keywords),
+            }
+            for e in entries
+        ]
+        for keyword, entries in inverted_index.items()
+    }
+
+
+def _get_cache_path(index_path: Path, project_dir: Path) -> Path:
+    """Generate cache file path based on hash of index path and project dir."""
+    hash_input = str(index_path) + str(project_dir)
+    hash_digest = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()[:16]
+    return project_dir / "tmp" / f"topic-index-{hash_digest}.json"
+
+
+def _save_index_cache(
+    entries: list[IndexEntry],
+    inverted_index: dict[str, list[IndexEntry]],
+    cache_path: Path,
+    source_mtime: float,
+) -> None:
+    """Save index to cache file.
+
+    Silently fail on cache write error.
+    """
+    try:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+        cache_data = {
+            "entries": _entries_to_json_serializable(entries),
+            "inverted_index": _dict_to_index(inverted_index),
+            "timestamp": source_mtime,
+        }
+
+        with cache_path.open("w", encoding="utf-8") as f:
+            json.dump(cache_data, f)
+    except (OSError, json.JSONDecodeError):
+        logger.debug("Failed to cache index to %s", cache_path)
+
+
+def get_or_build_index(
+    index_path: Path, project_dir: Path
+) -> tuple[list[IndexEntry], dict[str, list[IndexEntry]]]:
+    """Build inverted index from memory-index file and cache it.
+
+    Args:
+        index_path: Path to memory-index.md file
+        project_dir: Project root directory
+
+    Returns:
+        Tuple of (entries list, inverted index dict)
+    """
+    entries = parse_memory_index(index_path)
+    inverted_index = build_inverted_index(entries)
+
+    cache_path = _get_cache_path(index_path, project_dir)
+    source_mtime = index_path.stat().st_mtime if index_path.exists() else 0.0
+    _save_index_cache(entries, inverted_index, cache_path, source_mtime)
+
+    return entries, inverted_index
