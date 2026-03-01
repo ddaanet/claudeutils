@@ -326,3 +326,4 @@
 - `plans/reports/recall-lifecycle-external-research.md` — External research: 10 frameworks (HL7 CRMI, PROV-DM, OpenLineage, ADK, LangGraph, etc.)
 - `plans/pushback-grounding/requirements.md` — Claim verification + recall for `d:` discussion mode
 - `plans/worktree-ad-hoc-task/requirements.md` — Add task to session.md before worktree creation when absent
+
