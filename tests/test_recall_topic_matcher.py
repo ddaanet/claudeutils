@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from claudeutils.recall.index_parser import IndexEntry
+from claudeutils.recall.index_parser import IndexEntry, extract_keywords
 from claudeutils.recall.relevance import RelevanceScore
 from claudeutils.recall.topic_matcher import (
     ResolvedEntry,
@@ -96,7 +96,9 @@ def test_match_prompt_returns_candidates_with_overlap() -> None:
 
     inverted_index = build_inverted_index([entry_a, entry_b, entry_c])
 
-    candidates = get_candidates("how does the recall system work", inverted_index)
+    candidates = get_candidates(
+        extract_keywords("how does the recall system work"), inverted_index
+    )
 
     assert isinstance(candidates, set)
     assert entry_a in candidates

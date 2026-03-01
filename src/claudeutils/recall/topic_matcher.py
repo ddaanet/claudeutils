@@ -37,14 +37,12 @@ def build_inverted_index(entries: list[IndexEntry]) -> dict[str, list[IndexEntry
 
 
 def get_candidates(
-    prompt_text: str, inverted_index: dict[str, list[IndexEntry]]
+    prompt_keywords: set[str], inverted_index: dict[str, list[IndexEntry]]
 ) -> set[IndexEntry]:
     """Get candidate entries matching prompt keywords.
 
-    Tokenizes prompt using the same rules as index entries, then returns the
-    union of all entries matching any prompt keyword.
+    Returns the union of all entries matching any prompt keyword.
     """
-    prompt_keywords = extract_keywords(prompt_text)
     candidates: set[IndexEntry] = set()
     for keyword in prompt_keywords:
         if keyword in inverted_index:
@@ -295,7 +293,7 @@ def match_topics(
     """
     _entries, inverted_index = get_or_build_index(index_path, project_dir)
     prompt_keywords = extract_keywords(prompt_text)
-    candidates = get_candidates(prompt_text, inverted_index)
+    candidates = get_candidates(prompt_keywords, inverted_index)
     ranked = score_and_rank(prompt_keywords, candidates, threshold, max_entries)
     resolved = resolve_entries(ranked, project_dir)
     return format_output(resolved)

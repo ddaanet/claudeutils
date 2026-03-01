@@ -42,43 +42,6 @@ recall system works — how recall system integrates
     return index_file
 
 
-def test_hook_topic_injection_produces_additional_context(
-    tmp_path: Path, monkeypatch: MonkeyPatch, tmp_memory_index: Path
-) -> None:
-    """Topic detector hook integration test.
-
-    Adds context and system message when keywords match.
-    """
-    # Setup
-    tmp_dir = tmp_memory_index.parent.parent
-    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(tmp_dir))
-
-    # Create tmp directory for cache
-    tmp_cache_dir = tmp_dir / "tmp"
-    tmp_cache_dir.mkdir(exist_ok=True)
-
-    # Call hook with prompt containing keywords that match memory-index entries
-    prompt = "how does the recall system work"
-    result = call_hook(prompt)
-
-    # Assertions
-    assert result != {}, "Hook should produce output for matching keywords"
-    assert "hookSpecificOutput" in result
-    assert "additionalContext" in result["hookSpecificOutput"]
-
-    additional_context = result["hookSpecificOutput"]["additionalContext"]
-
-    # Should contain resolved decision content
-    assert "recall system" in additional_context.lower()
-    assert "implementation notes" in additional_context.lower()
-
-    # systemMessage should contain topic marker and trigger info
-    assert "systemMessage" in result
-    system_message = result["systemMessage"]
-    assert "topic" in system_message.lower()
-    assert "recall" in system_message.lower()
-
-
 def test_hook_topic_injection_end_to_end(
     tmp_path: Path, monkeypatch: MonkeyPatch, tmp_memory_index: Path
 ) -> None:
@@ -178,37 +141,26 @@ def test_topic_injection_silent_on_no_match(
     """Hook passes through silently when no keywords match memory-index.
 
     Verifies no-match case: prompt with unrelated keywords produces no topic output.
+    Hook returns empty dict or output without topic content.
     """
-    # Setup
     tmp_dir = tmp_memory_index.parent.parent
     monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(tmp_dir))
 
-    # Create tmp directory for cache
     tmp_cache_dir = tmp_dir / "tmp"
     tmp_cache_dir.mkdir(exist_ok=True)
 
-    # Call hook with prompt containing no matching keywords
-    prompt = "hello world"
-    result = call_hook(prompt)
+    result = call_hook("hello world")
 
-    # Assertions: Either empty dict (complete pass-through) or no topic content
-    if result == {}:
-        # Complete pass-through — expected behavior
-        return
+    # No topic content in additionalContext
+    additional_context = result.get("hookSpecificOutput", {}).get(
+        "additionalContext", ""
+    )
+    assert "topic" not in additional_context.lower(), (
+        "additionalContext should not contain topic content on no-match"
+    )
 
-    # If output exists, verify no topic-related content injected
-    assert "hookSpecificOutput" in result or "systemMessage" in result
-
-    # Check additionalContext (if present) has no topic content
-    if "hookSpecificOutput" in result:
-        additional_context = result["hookSpecificOutput"].get("additionalContext", "")
-        assert "topic" not in additional_context.lower(), (
-            "additionalContext should not contain topic content on no-match"
-        )
-
-    # Check systemMessage (if present) has no topic marker
-    if "systemMessage" in result:
-        system_message = result["systemMessage"]
-        assert "topic" not in system_message.lower(), (
-            "systemMessage should not mention topic on no-match"
-        )
+    # No topic marker in systemMessage
+    system_message = result.get("systemMessage", "")
+    assert "topic" not in system_message.lower(), (
+        "systemMessage should not mention topic on no-match"
+    )
