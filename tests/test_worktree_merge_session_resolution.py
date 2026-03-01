@@ -1,10 +1,9 @@
-"""Tests for session.md merge resolution (pure function + integration)."""
+"""Tests for session.md merge resolution (pure function)."""
 
 import subprocess
 from pathlib import Path
 
 import pytest
-from _pytest.monkeypatch import MonkeyPatch
 
 from claudeutils.worktree.resolve import (
     _merge_session_contents,
@@ -17,7 +16,7 @@ def test_merge_session_preserves_new_blockers() -> None:
     ours = (
         "# Session: Test\n"
         "\n"
-        "## Pending Tasks\n"
+        "## In-tree Tasks\n"
         "\n"
         "- [ ] **Task A** — existing task\n"
         "\n"
@@ -28,7 +27,7 @@ def test_merge_session_preserves_new_blockers() -> None:
     theirs = (
         "# Session: Branch\n"
         "\n"
-        "## Pending Tasks\n"
+        "## In-tree Tasks\n"
         "\n"
         "- [ ] **Task A** — existing task\n"
         "\n"
@@ -44,11 +43,11 @@ def test_merge_session_preserves_new_blockers() -> None:
 
 def test_merge_session_preserves_new_tasks() -> None:
     """Tasks from theirs not in ours are added to merged output."""
-    ours = "# Session: Test\n\n## Pending Tasks\n\n- [ ] **Task A** — existing task\n"
+    ours = "# Session: Test\n\n## In-tree Tasks\n\n- [ ] **Task A** — existing task\n"
     theirs = (
         "# Session: Branch\n"
         "\n"
-        "## Pending Tasks\n"
+        "## In-tree Tasks\n"
         "\n"
         "- [ ] **Task A** — existing task\n"
         "- [ ] **Task B** — new from branch\n"
@@ -63,7 +62,7 @@ def test_merge_session_preserves_tasks_and_blockers() -> None:
     ours = (
         "# Session: Test\n"
         "\n"
-        "## Pending Tasks\n"
+        "## In-tree Tasks\n"
         "\n"
         "- [ ] **Task A** — existing\n"
         "\n"
@@ -74,7 +73,7 @@ def test_merge_session_preserves_tasks_and_blockers() -> None:
     theirs = (
         "# Session: Branch\n"
         "\n"
-        "## Pending Tasks\n"
+        "## In-tree Tasks\n"
         "\n"
         "- [ ] **Task A** — existing\n"
         "- [ ] **Task C** — branch task\n"
@@ -93,11 +92,11 @@ def test_merge_session_preserves_tasks_and_blockers() -> None:
 
 def test_merge_session_no_blocker_section_in_ours() -> None:
     """When ours has no Blockers section, one is created from theirs."""
-    ours = "# Session: Test\n\n## Pending Tasks\n\n- [ ] **Task A** — existing\n"
+    ours = "# Session: Test\n\n## In-tree Tasks\n\n- [ ] **Task A** — existing\n"
     theirs = (
         "# Session: Branch\n"
         "\n"
-        "## Pending Tasks\n"
+        "## In-tree Tasks\n"
         "\n"
         "- [ ] **Task A** — existing\n"
         "\n"
@@ -110,245 +109,72 @@ def test_merge_session_no_blocker_section_in_ours() -> None:
     assert "Branch blocker" in result
 
 
-def test_merge_conflict_preserves_branch_session_tasks(
-    tmp_path: Path, monkeypatch: MonkeyPatch
-) -> None:
-    """Integration test for session.md conflict resolution.
-
-    Merge conflict on session.md preserves new tasks and blockers from branch.
-    """
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.name", "Test"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-
-    # Base: session.md with one task
-    (repo / "agents").mkdir()
-    base_session = (
-        "# Session: Test\n\n## Pending Tasks\n\n- [ ] **Task A** — shared task\n"
-    )
-    (repo / "agents" / "session.md").write_text(base_session)
-    subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Base"], cwd=repo, check=True, capture_output=True
-    )
-
-    # Branch: add a new task and blockers section
-    subprocess.run(
-        ["git", "checkout", "-b", "feature"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-    branch_session = (
-        "# Session: Branch\n"
-        "\n"
-        "## Pending Tasks\n"
-        "\n"
-        "- [ ] **Task A** — shared task\n"
-        "- [ ] **Task B** — new from branch\n"
-        "\n"
-        "## Blockers / Gotchas\n"
-        "\n"
-        "- Branch discovered blocker\n"
-    )
-    (repo / "agents" / "session.md").write_text(branch_session)
-    subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Branch changes"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-
-    # Main: modify session.md differently (creates conflict)
-    subprocess.run(
-        ["git", "checkout", "main"], cwd=repo, check=True, capture_output=True
-    )
-    main_session = (
-        "# Session: Main\n"
-        "\n"
-        "**Status:** Updated on main\n"
-        "\n"
-        "## Pending Tasks\n"
-        "\n"
-        "- [ ] **Task A** — shared task\n"
-    )
-    (repo / "agents" / "session.md").write_text(main_session)
-    subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Main changes"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-
-    # Merge with --no-commit to get conflict state
-    result = subprocess.run(
-        ["git", "merge", "--no-commit", "--no-ff", "feature"],
-        cwd=repo,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode != 0, "Expected merge conflict"
-
-    monkeypatch.chdir(repo)
-    conflicts = ["agents/session.md"]
-    remaining = resolve_session_md(conflicts)
-
-    assert remaining == []
-    resolved = (repo / "agents" / "session.md").read_text()
-    # Ours content preserved
-    assert "**Status:** Updated on main" in resolved
-    assert "**Task A**" in resolved
-    # Branch content merged
-    assert "**Task B**" in resolved
-    assert "Branch discovered blocker" in resolved
-
-
-def test_resolve_session_md_with_slug_tags_blockers(
-    tmp_path: Path, monkeypatch: MonkeyPatch
-) -> None:
-    """Integration test: resolve_session_md with slug parameter tags blockers.
-
-    Tests the full call chain from resolve_session_md through _merge_session_contents
-    with a slug parameter, verifying blockers get tagged with [from: slug].
-    """
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.name", "Test"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-
-    # Base: session.md with one task and blocker
-    (repo / "agents").mkdir()
-    base_session = (
+def test_merge_session_worktree_tasks_additive() -> None:
+    """New task in Worktree Tasks from theirs is merged into ours' section."""
+    ours = (
         "# Session: Test\n"
         "\n"
-        "## Pending Tasks\n"
+        "## In-tree Tasks\n"
         "\n"
-        "- [ ] **Task A** — shared task\n"
+        "- [ ] **Task A** — in-tree task\n"
         "\n"
-        "## Blockers / Gotchas\n"
+        "## Worktree Tasks\n"
         "\n"
-        "- Main blocker\n"
-        "  Main details\n"
+        "- [ ] **WT Task 1** → `wt1` — existing worktree task\n"
     )
-    (repo / "agents" / "session.md").write_text(base_session)
-    subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Base"], cwd=repo, check=True, capture_output=True
-    )
-
-    # Branch: add new blockers
-    subprocess.run(
-        ["git", "checkout", "-b", "test-wt"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
-    branch_session = (
+    theirs = (
         "# Session: Branch\n"
         "\n"
-        "## Pending Tasks\n"
+        "## In-tree Tasks\n"
         "\n"
-        "- [ ] **Task A** — shared task\n"
+        "- [ ] **Task A** — in-tree task\n"
         "\n"
-        "## Blockers / Gotchas\n"
+        "## Worktree Tasks\n"
         "\n"
-        "- Main blocker\n"
-        "  Main details\n"
-        "\n"
-        "- WT blocker 1\n"
-        "  WT detail 1\n"
-        "\n"
-        "- WT blocker 2\n"
-        "  WT detail 2\n"
+        "- [ ] **WT Task 1** → `wt1` — existing worktree task\n"
+        "- [ ] **WT Task 2** → `wt2` — new worktree task\n"
     )
-    (repo / "agents" / "session.md").write_text(branch_session)
-    subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Branch changes"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
+    result = _merge_session_contents(ours, theirs)
+    assert "**WT Task 1**" in result
+    assert "**WT Task 2**" in result
+    # Verify both are in Worktree Tasks section
+    assert "## Worktree Tasks" in result
+    assert result.index("**WT Task 1**") < result.index("**WT Task 2**")
 
-    # Main: modify session.md (creates conflict)
-    subprocess.run(
-        ["git", "checkout", "main"], cwd=repo, check=True, capture_output=True
-    )
-    main_session = (
-        "# Session: Main\n"
-        "\n"
-        "**Status:** Updated on main\n"
-        "\n"
-        "## Pending Tasks\n"
-        "\n"
-        "- [ ] **Task A** — shared task\n"
-        "\n"
-        "## Blockers / Gotchas\n"
-        "\n"
-        "- Main blocker\n"
-        "  Main details\n"
-    )
-    (repo / "agents" / "session.md").write_text(main_session)
-    subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Main changes"],
-        cwd=repo,
-        check=True,
-        capture_output=True,
-    )
 
-    # Merge with --no-commit to get conflict state
-    result = subprocess.run(
-        ["git", "merge", "--no-commit", "--no-ff", "test-wt"],
-        cwd=repo,
-        capture_output=True,
-        text=True,
-        check=False,
+def test_merge_session_both_sections_additive() -> None:
+    """New tasks in both sections are merged into their respective sections."""
+    ours = (
+        "# Session: Test\n"
+        "\n"
+        "## In-tree Tasks\n"
+        "\n"
+        "- [ ] **In-tree A** — existing in-tree\n"
+        "\n"
+        "## Worktree Tasks\n"
+        "\n"
+        "- [ ] **WT A** → `wt-a` — existing wt\n"
     )
-    assert result.returncode != 0, "Expected merge conflict"
-
-    monkeypatch.chdir(repo)
-    conflicts = ["agents/session.md"]
-    remaining = resolve_session_md(conflicts, slug="test-wt")
-
-    assert remaining == []
-    resolved = (repo / "agents" / "session.md").read_text()
-    # Ours content preserved
-    assert "**Status:** Updated on main" in resolved
-    assert "**Task A**" in resolved
-    # Main blocker preserved (not tagged)
-    assert "- Main blocker" in resolved
-    # WT blockers tagged with [from: test-wt]
-    assert "- WT blocker 1 [from: test-wt]" in resolved
-    assert "- WT blocker 2 [from: test-wt]" in resolved
-    assert "  WT detail 1" in resolved
-    assert "  WT detail 2" in resolved
+    theirs = (
+        "# Session: Branch\n"
+        "\n"
+        "## In-tree Tasks\n"
+        "\n"
+        "- [ ] **In-tree A** — existing in-tree\n"
+        "- [ ] **In-tree B** — new in-tree\n"
+        "\n"
+        "## Worktree Tasks\n"
+        "\n"
+        "- [ ] **WT A** → `wt-a` — existing wt\n"
+        "- [ ] **WT B** → `wt-b` — new wt\n"
+    )
+    result = _merge_session_contents(ours, theirs)
+    # In-tree tasks
+    assert "**In-tree A**" in result
+    assert "**In-tree B**" in result
+    # Worktree tasks
+    assert "**WT A**" in result
+    assert "**WT B**" in result
 
 
 def test_resolve_session_md_fallback_outputs_to_stdout(

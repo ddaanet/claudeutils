@@ -2,14 +2,15 @@
 
 Checks:
 - Worktree Tasks entries have → slug format
-- No task appears in both Pending Tasks and Worktree Tasks
+- No task appears in both In-tree Tasks and Worktree Tasks
 - Reference Files entries point to existing versioned files
 """
 
 import re
 from pathlib import Path
 
-TASK_PATTERN = re.compile(r"^- \[[ x>]\] \*\*(.+?)\*\*")
+TASK_PATTERN = re.compile(r"^- \[[ x>!✗–]\] \*\*(.+?)\*\*")  # noqa: RUF001
+TERMINAL_STATUS_PATTERN = re.compile(r"^- \[[!✗–]\] ")  # noqa: RUF001
 SECTION_PATTERN = re.compile(r"^## (.+)$")
 REF_FILE_PATTERN = re.compile(r"^- `([^`]+)`")
 
@@ -70,7 +71,7 @@ def check_worktree_format(
     errors = []
     for lineno, line in section_lines:
         task_m = TASK_PATTERN.match(line)
-        if task_m and "\u2192" not in line:
+        if task_m and "\u2192" not in line and not TERMINAL_STATUS_PATTERN.match(line):
             errors.append(
                 f"  line {lineno}: worktree task missing \u2192 slug: "
                 f"**{task_m.group(1)}**"
@@ -82,10 +83,10 @@ def check_cross_section_uniqueness(
     pending_tasks: list[tuple[int, str]],
     worktree_tasks: list[tuple[int, str]],
 ) -> list[str]:
-    """Check no task appears in both Pending and Worktree sections.
+    """Check no task appears in both In-tree and Worktree sections.
 
     Args:
-        pending_tasks: Tasks from Pending Tasks section.
+        pending_tasks: Tasks from In-tree Tasks section.
         worktree_tasks: Tasks from Worktree Tasks section.
 
     Returns:
@@ -98,7 +99,7 @@ def check_cross_section_uniqueness(
         if key in pending_names:
             p_lineno, _ = pending_names[key]
             errors.append(
-                f"  line {lineno}: task in both Pending (line {p_lineno}) "
+                f"  line {lineno}: task in both In-tree (line {p_lineno}) "
                 f"and Worktree: **{name}**"
             )
     return errors
@@ -151,7 +152,7 @@ def validate(session_path: str, root: Path) -> list[str]:
         errors.extend(check_worktree_format(sections["Worktree Tasks"]))
 
     # Cross-section uniqueness
-    pending = extract_section_tasks(sections.get("Pending Tasks", []))
+    pending = extract_section_tasks(sections.get("In-tree Tasks", []))
     worktree = extract_section_tasks(sections.get("Worktree Tasks", []))
     errors.extend(check_cross_section_uniqueness(pending, worktree))
 

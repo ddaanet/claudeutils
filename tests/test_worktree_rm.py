@@ -60,10 +60,13 @@ def test_rm_branch_only(
     )
 
 
-def test_rm_amends_merge_commit_when_session_modified(
+def test_rm_removes_slug_marker_from_session(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
 ) -> None:
-    """When rm() is called on merge commit, amends session.md if modified."""
+    """Remove slug marker from session.md when worktree is removed.
+
+    Verifies that rm() calls remove_slug_marker to update Worktree Tasks.
+    """
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -82,7 +85,6 @@ def test_rm_amends_merge_commit_when_session_modified(
     )
 
     # Create test-feature branch with a commit, then merge it into main.
-    # This makes test-feature a parent of the merge commit — realistic workflow.
     subprocess.run(
         ["git", "checkout", "-b", "test-feature"], check=True, capture_output=True
     )
@@ -96,14 +98,6 @@ def test_rm_amends_merge_commit_when_session_modified(
         ["git", "merge", "--no-ff", "test-feature"], check=True, capture_output=True
     )
 
-    assert _is_merge_commit()
-    merge_msg = subprocess.run(
-        ["git", "log", "-1", "--format=%B"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.strip()
-
     # Create worktree (branch already exists, worktree add attaches to it)
     worktree_path = _create_worktree(repo_path, "test-feature", init_repo)
     assert worktree_path.exists()
@@ -113,26 +107,11 @@ def test_rm_amends_merge_commit_when_session_modified(
 
     assert result.exit_code == 0
 
-    # Verify still on a merge commit (2+ parents)
-    assert _is_merge_commit()
-
-    # Verify commit message unchanged (--no-edit preserves message)
-    current_msg = subprocess.run(
-        ["git", "log", "-1", "--format=%B"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.strip()
-    assert current_msg == merge_msg
-
-    # Verify session.md was amended into HEAD commit
-    session_content = subprocess.run(
-        ["git", "show", "HEAD:agents/session.md"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    assert "test-feature" not in session_content
+    # Verify slug marker was removed from session.md
+    session_content = session_file.read_text()
+    assert "→ `test-feature`" not in session_content
+    # Task should still be there without marker
+    assert "- [ ] **Task One** — description" in session_content
 
 
 def test_rm_does_not_amend_on_normal_commit(
@@ -176,77 +155,8 @@ def test_rm_does_not_amend_on_normal_commit(
         check=True,
     ).stdout
     # If no amend, HEAD:agents/session.md still contains the task
-    # (the modification from remove_worktree_task is only in working tree)
+    # (the modification from remove_slug_marker is only in working tree)
     assert "Worktree Tasks" in session_in_head
-
-
-def test_rm_output_indicates_amend(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
-) -> None:
-    """Output message indicates when merge commit was amended."""
-    repo_path = tmp_path / "repo"
-    repo_path.mkdir()
-    monkeypatch.chdir(repo_path)
-
-    init_repo(repo_path)
-
-    # Create session.md with worktree task
-    session_file = repo_path / "agents" / "session.md"
-    session_file.parent.mkdir(exist_ok=True)
-    session_file.write_text(
-        "## Worktree Tasks\n\n- [ ] **Task One** → `test-feature` — description\n"
-    )
-    subprocess.run(["git", "add", "agents/session.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Add session"], check=True, capture_output=True
-    )
-
-    # Create test-feature as the merged branch (parent of merge commit)
-    subprocess.run(
-        ["git", "checkout", "-b", "test-feature"], check=True, capture_output=True
-    )
-    (repo_path / "feature.txt").write_text("feature content")
-    subprocess.run(["git", "add", "feature.txt"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Feature commit"], check=True, capture_output=True
-    )
-    subprocess.run(["git", "checkout", "main"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "merge", "--no-ff", "test-feature"], check=True, capture_output=True
-    )
-
-    assert _is_merge_commit()
-
-    worktree_path = _create_worktree(repo_path, "test-feature", init_repo)
-    assert worktree_path.exists()
-
-    runner = CliRunner()
-    result = runner.invoke(worktree, ["rm", "test-feature"])
-
-    assert result.exit_code == 0
-    assert "merge commit amended" in result.output.lower()
-    assert "removed" in result.output.lower()
-    assert "test-feature" in result.output.lower()
-
-    # Now test non-merge case: create new worktree on normal commit
-    session_file.write_text(
-        "## Worktree Tasks\n\n- [ ] **Task Two** → `another-feature` — description\n"
-    )
-    subprocess.run(["git", "add", "agents/session.md"], check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "Add another task"], check=True, capture_output=True
-    )
-
-    assert not _is_merge_commit()
-
-    worktree_path2 = _create_worktree(repo_path, "another-feature", init_repo)
-    assert worktree_path2.exists()
-
-    result2 = runner.invoke(worktree, ["rm", "another-feature"])
-    assert result2.exit_code == 0
-    assert "amend" not in result2.output.lower()
-    assert "removed" in result2.output.lower()
-    assert "another-feature" in result2.output.lower()
 
 
 def test_rm_git_error_shows_message(

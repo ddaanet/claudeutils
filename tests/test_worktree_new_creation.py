@@ -139,7 +139,8 @@ def test_new_task_commits_session_md(
 
     (repo_path / "agents").mkdir()
     (repo_path / "agents" / "session.md").write_text(
-        "# Session\n\n## Pending Tasks\n\n- [ ] **My task** — `cmd` | sonnet\n"
+        "# Session\n\n## Pending Tasks\n\n- [ ] **Other task** — `cmd` | haiku\n"
+        "\n## Worktree Tasks\n\n- [ ] **My task** — `cmd` | sonnet\n"
     )
     subprocess.run(
         ["git", "add", "agents/session.md"],
@@ -158,7 +159,7 @@ def test_new_task_commits_session_md(
     result = runner.invoke(worktree, ["new", "My task"])
     assert result.exit_code == 0
 
-    # session.md should be tracked (move_task_to_worktree modifies it)
+    # session.md should be tracked and modified (add_slug_marker modifies it)
     status = subprocess.run(
         ["git", "status", "--porcelain", "agents/session.md"],
         cwd=repo_path,
@@ -198,6 +199,8 @@ def test_new_task_name_with_branch_override(
     (repo_path / "agents").mkdir()
     (repo_path / "agents" / "session.md").write_text(
         "# Session\n\n## Pending Tasks\n\n"
+        "- [ ] **Other task** — `cmd` | haiku\n"
+        "\n## Worktree Tasks\n\n"
         "- [ ] **Runbook quality gates Phase B** — `cmd` | sonnet\n"
     )
     subprocess.run(
@@ -213,10 +216,15 @@ def test_new_task_name_with_branch_override(
         capture_output=True,
     )
 
-    moved = []
+    marked = []
+
+    def mock_mark(path: Path, task: str, slug: str) -> None:
+        """Mock that tracks calls."""
+        marked.append((task, slug))
+
     monkeypatch.setattr(
-        "claudeutils.worktree.cli.move_task_to_worktree",
-        lambda path, task, slug: moved.append((task, slug)),
+        "claudeutils.worktree.cli.add_slug_marker",
+        mock_mark,
     )
 
     runner = CliRunner()
@@ -227,14 +235,14 @@ def test_new_task_name_with_branch_override(
 
     assert result.exit_code == 0
     assert (tmp_path / "repo-wt" / "runbook-quality-gates").exists()
-    assert len(moved) == 1
-    assert moved[0] == ("Runbook quality gates Phase B", "runbook-quality-gates")
+    assert len(marked) == 1
+    assert marked[0] == ("Runbook quality gates Phase B", "runbook-quality-gates")
 
 
 def test_new_positional_task_name_derives_slug_with_session(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
 ) -> None:
-    """Positional arg = task name: derives slug, calls move_task_to_worktree."""
+    """Positional arg = task name: derives slug, calls add_slug_marker."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -242,7 +250,10 @@ def test_new_positional_task_name_derives_slug_with_session(
 
     (repo_path / "agents").mkdir()
     (repo_path / "agents" / "session.md").write_text(
-        "# Session\n\n## Pending Tasks\n\n- [ ] **My task** — `cmd` | sonnet\n"
+        "# Session\n\n## Pending Tasks\n\n"
+        "- [ ] **Other task** — `cmd` | haiku\n"
+        "\n## Worktree Tasks\n\n"
+        "- [ ] **My task** — `cmd` | sonnet\n"
     )
     subprocess.run(
         ["git", "add", "agents/session.md"],
@@ -257,10 +268,15 @@ def test_new_positional_task_name_derives_slug_with_session(
         capture_output=True,
     )
 
-    moved = []
+    marked = []
+
+    def mock_mark(path: Path, task: str, slug: str) -> None:
+        """Mock that tracks calls."""
+        marked.append((task, slug))
+
     monkeypatch.setattr(
-        "claudeutils.worktree.cli.move_task_to_worktree",
-        lambda path, task, slug: moved.append((task, slug)),
+        "claudeutils.worktree.cli.add_slug_marker",
+        mock_mark,
     )
 
     runner = CliRunner()
@@ -268,8 +284,8 @@ def test_new_positional_task_name_derives_slug_with_session(
 
     assert result.exit_code == 0
     assert (tmp_path / "repo-wt" / "my-task").exists()
-    assert len(moved) == 1
-    assert moved[0] == ("My task", "my-task")
+    assert len(marked) == 1
+    assert marked[0] == ("My task", "my-task")
 
 
 def test_new_branch_creates_worktree_without_session_or_sandbox(

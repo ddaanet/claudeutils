@@ -238,10 +238,6 @@
 - [ ] **UPS topic injection** → `ups-topic-injection` — `/runbook plans/userpromptsubmit-topic/outline.md` | sonnet
   - Plan: userpromptsubmit-topic | Status: outlined (planstate detector shows `requirements` — fix-planstate-detector bug)
 
-- [ ] **Task classification** → `task-classification` — `/runbook plans/task-classification/outline.md` | sonnet
-  - Plan: task-classification | Status: designed (outline reviewed, ready for runbook)
-  - `/prime` skill (ad-hoc plan context) + two-section task list (In-tree / Worktree Tasks)
-  - Scope: `session.py`, `resolve.py`, `aggregation.py`, `session_structure.py`, handoff skill, execute-rule.md
 
 
 
@@ -330,3 +326,4 @@
 - `plans/reports/recall-lifecycle-external-research.md` — External research: 10 frameworks (HL7 CRMI, PROV-DM, OpenLineage, ADK, LangGraph, etc.)
 - `plans/pushback-grounding/requirements.md` — Claim verification + recall for `d:` discussion mode
 - `plans/worktree-ad-hoc-task/requirements.md` — Add task to session.md before worktree creation when absent
+

@@ -173,10 +173,10 @@ def test_focus_session_task_extraction(tmp_path: Path) -> None:
     session_file = tmp_path / "session.md"
     session_content = r"""# Session Handoff: 2026-02-12
 
-## Pending Tasks
+## Worktree Tasks
 
-- [ ] **Implement feature X** — `\`/plan-adhoc\`` | sonnet
-- [ ] **Fix bug Y** — `\`/design\`` | haiku
+- [ ] **Implement feature X** → `feature-x` — `\`/plan-adhoc\`` | sonnet
+- [ ] **Fix bug Y** → `bug-y` — `\`/design\`` | haiku
 """
     session_file.write_text(session_content)
     result = focus_session("Implement feature X", session_file)
@@ -191,9 +191,10 @@ def test_focus_session_section_filtering(tmp_path: Path) -> None:
     session_file = tmp_path / "session.md"
     session_content = r"""# Session Handoff: 2026-02-12
 
-## Pending Tasks
+## Worktree Tasks
 
-- [ ] **Implement feature X** — `\`/plan-adhoc\`` | sonnet | plan: plans/feature-x/
+- [ ] **Implement feature X** → `feature-x` — `\`/plan-adhoc\`` | sonnet
+  - Plan: plans/feature-x/
 
 ## Blockers / Gotchas
 
@@ -220,7 +221,9 @@ def test_focus_session_section_filtering(tmp_path: Path) -> None:
 def test_focus_session_missing_task(tmp_path: Path) -> None:
     """Raise clear error when task name doesn't exist in session.md."""
     session_file = tmp_path / "session.md"
-    session_file.write_text("## Pending Tasks\n\n- [ ] **Existing task** — `/plan`")
+    session_file.write_text(
+        "## Worktree Tasks\n\n- [ ] **Existing task** → `existing` — `/plan`"
+    )
 
     with pytest.raises(
         ValueError, match=r"Task 'nonexistent-task' not found in session\.md"

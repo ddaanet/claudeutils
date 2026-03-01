@@ -64,6 +64,8 @@ def test_new_positional_task_name(
     (repo_path / "agents" / "session.md").write_text(
         "# Session\n\n"
         "## Pending Tasks\n\n"
+        "- [ ] **Other task** — `command` | haiku\n\n"
+        "## Worktree Tasks\n\n"
         "- [ ] **Implement feature** — `command` | sonnet\n"
         "  - Plan: plans/test-plan\n"
     )

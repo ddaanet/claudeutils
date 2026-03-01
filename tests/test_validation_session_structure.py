@@ -17,16 +17,16 @@ class TestParseSections:
 
     def test_single_section(self) -> None:
         """Single section parsed correctly."""
-        lines = ["# Title\n", "## Pending Tasks\n", "- task 1\n", "- task 2\n"]
+        lines = ["# Title\n", "## In-tree Tasks\n", "- task 1\n", "- task 2\n"]
         sections = parse_sections(lines)
-        assert "Pending Tasks" in sections
-        assert len(sections["Pending Tasks"]) == 2
+        assert "In-tree Tasks" in sections
+        assert len(sections["In-tree Tasks"]) == 2
 
     def test_multiple_sections(self) -> None:
         """Multiple sections parsed into separate entries."""
         lines = [
             "# Session\n",
-            "## Pending Tasks\n",
+            "## In-tree Tasks\n",
             "- task\n",
             "## Worktree Tasks\n",
             "- wt task\n",
@@ -35,7 +35,7 @@ class TestParseSections:
         ]
         sections = parse_sections(lines)
         assert len(sections) == 3
-        assert "Pending Tasks" in sections
+        assert "In-tree Tasks" in sections
         assert "Worktree Tasks" in sections
         assert "Reference Files" in sections
 
@@ -69,6 +69,19 @@ class TestExtractSectionTasks:
         assert tasks[0] == (5, "Task One")
         assert tasks[1] == (7, "Task Two")
 
+    def test_blocked_failed_canceled_statuses(self) -> None:
+        """Tasks with [!], [\u2717], [\u2013] statuses extracted."""
+        section = [
+            (5, "- [!] **Blocked Task** \u2014 waiting"),
+            (6, "- [\u2717] **Failed Task** \u2014 terminal"),
+            (7, "- [\u2013] **Canceled Task** \u2014 canceled"),
+        ]
+        tasks = extract_section_tasks(section)
+        assert len(tasks) == 3
+        assert tasks[0] == (5, "Blocked Task")
+        assert tasks[1] == (6, "Failed Task")
+        assert tasks[2] == (7, "Canceled Task")
+
     def test_no_tasks(self) -> None:
         """Non-task lines produce empty result."""
         section = [(1, "Just text"), (2, "More text")]
@@ -94,6 +107,15 @@ class TestCheckWorktreeFormat:
     def test_non_task_lines_ignored(self) -> None:
         """Non-task lines in section not checked."""
         section = [(5, "Some regular text"), (6, "- Not a task format")]
+        assert check_worktree_format(section) == []
+
+    def test_terminal_status_exempt_from_slug(self) -> None:
+        """Blocked, failed, canceled tasks not required to have \u2192 slug."""
+        section = [
+            (5, "- [!] **Blocked Task** \u2014 waiting on signal"),
+            (6, "- [\u2717] **Failed Task** \u2014 terminal"),
+            (7, "- [\u2013] **Canceled Task** \u2014 canceled"),
+        ]
         assert check_worktree_format(section) == []
 
     def test_multiple_tasks_mixed(self) -> None:
@@ -122,7 +144,7 @@ class TestCheckCrossSectionUniqueness:
         worktree = [(10, "Task A")]
         errors = check_cross_section_uniqueness(pending, worktree)
         assert len(errors) == 1
-        assert "both Pending" in errors[0]
+        assert "both In-tree" in errors[0]
         assert "Worktree" in errors[0]
 
     def test_case_insensitive(self) -> None:
@@ -176,9 +198,9 @@ class TestValidate:
     """Tests for validate function."""
 
     def test_clean_session(self, tmp_path: Path) -> None:
-        """Valid session with pending tasks passes."""
+        """Valid session with in-tree tasks passes."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n- [ ] **Task One** \u2014 desc\n"
+            "# Session\n\n## In-tree Tasks\n\n- [ ] **Task One** \u2014 desc\n"
         )
         assert validate("session.md", tmp_path) == []
 
@@ -196,17 +218,17 @@ class TestValidate:
         assert "missing \u2192" in errors[0]
 
     def test_cross_section_duplicate(self, tmp_path: Path) -> None:
-        """Task in both Pending and Worktree detected."""
+        """Task in both In-tree and Worktree detected."""
         (tmp_path / "session.md").write_text(
             "# Session\n\n"
-            "## Pending Tasks\n\n"
-            "- [ ] **Dup Task** \u2014 in pending\n\n"
+            "## In-tree Tasks\n\n"
+            "- [ ] **Dup Task** \u2014 in in-tree\n\n"
             "## Worktree Tasks\n\n"
             "- [ ] **Dup Task** \u2192 `slug` \u2014 in worktree\n"
         )
         errors = validate("session.md", tmp_path)
         assert len(errors) == 1
-        assert "both Pending" in errors[0]
+        assert "both In-tree" in errors[0]
 
     def test_reference_file_missing(self, tmp_path: Path) -> None:
         """Missing reference file detected."""
@@ -232,7 +254,7 @@ class TestValidate:
     def test_no_worktree_section_ok(self, tmp_path: Path) -> None:
         """No Worktree Tasks section is valid."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Pending Tasks\n\n- [ ] **Task** \u2014 desc\n"
+            "# Session\n\n## In-tree Tasks\n\n- [ ] **Task** \u2014 desc\n"
         )
         assert validate("session.md", tmp_path) == []
 
@@ -240,8 +262,8 @@ class TestValidate:
         """All error types reported together."""
         (tmp_path / "session.md").write_text(
             "# Session\n\n"
-            "## Pending Tasks\n\n"
-            "- [ ] **Shared** \u2014 pending\n\n"
+            "## In-tree Tasks\n\n"
+            "- [ ] **Shared** \u2014 in-tree\n\n"
             "## Worktree Tasks\n\n"
             "- [ ] **No Arrow** \u2014 bad format\n"
             "- [ ] **Shared** \u2192 `slug` \u2014 duplicate\n\n"

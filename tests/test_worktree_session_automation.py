@@ -11,10 +11,10 @@ from claudeutils.worktree.cli import worktree
 from claudeutils.worktree.git_ops import wt_path
 
 
-def test_new_task_mode_moves_task_to_worktree(
+def test_new_task_mode_adds_slug_marker(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
 ) -> None:
-    """Task mode: after worktree created, moves task from Pending to Worktree Tasks."""
+    """Task mode: adds slug marker to task in Worktree Tasks."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -24,10 +24,13 @@ def test_new_task_mode_moves_task_to_worktree(
     session_file.parent.mkdir(parents=True, exist_ok=True)
     session_content = """# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
+
+- [ ] **Fix bug Y** — `/design` | haiku
+
+## Worktree Tasks
 
 - [ ] **Implement feature X** — `/runbook` | sonnet
-- [ ] **Fix bug Y** — `/design` | haiku
 
 ## Blockers / Gotchas
 
@@ -39,21 +42,20 @@ def test_new_task_mode_moves_task_to_worktree(
     assert result.exit_code == 0
 
     updated_session = session_file.read_text()
-    assert "## Pending Tasks" in updated_session
-    assert (
-        "Implement feature X"
-        not in updated_session.split("## Pending Tasks")[1].split("## ")[0]
-    )
+    assert "## In-tree Tasks" in updated_session
+    assert "- [ ] **Fix bug Y** — `/design` | haiku" in updated_session
     assert "## Worktree Tasks" in updated_session
-    assert "Implement feature X" in updated_session.split("## Worktree Tasks")[1]
     assert "→ `implement-feature-x`" in updated_session
-    assert "Fix bug Y" in updated_session
+    assert (
+        "- [ ] **Implement feature X** → `implement-feature-x` — `/runbook` | sonnet"
+        in updated_session
+    )
 
 
-def test_rm_calls_remove_worktree_task_before_branch_delete(
+def test_rm_removes_slug_marker(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
 ) -> None:
-    """Rm command calls remove_worktree_task before deleting branch."""
+    """Rm command removes slug marker from task in Worktree Tasks."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -63,7 +65,7 @@ def test_rm_calls_remove_worktree_task_before_branch_delete(
     session_file.parent.mkdir(parents=True, exist_ok=True)
     session_content = """# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Other task** — `/runbook` | sonnet
 
@@ -86,31 +88,20 @@ def test_rm_calls_remove_worktree_task_before_branch_delete(
         capture_output=True,
     )
 
+    # Create a branch for feature-a
+    subprocess.run(
+        ["git", "branch", "feature-a"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
     result = CliRunner().invoke(
         worktree, ["new", "--branch", "feature-a", "--session", str(session_file)]
     )
     assert result.exit_code == 0
 
-    worktree_path = wt_path("feature-a")
-    worktree_session = worktree_path / "agents" / "session.md"
-
-    worktree_session_content = """# Focused Session
-
-## Pending Tasks
-
-## Worktree Tasks
-"""
-    worktree_session.write_text(worktree_session_content)
-    subprocess.run(
-        ["git", "-C", str(worktree_path), "add", "agents/session.md"],
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "-C", str(worktree_path), "commit", "-m", "mark task complete"],
-        check=True,
-        capture_output=True,
-    )
+    wt_path("feature-a")
 
     # Merge branch so rm guard allows removal
     subprocess.run(
@@ -124,13 +115,16 @@ def test_rm_calls_remove_worktree_task_before_branch_delete(
     assert result.exit_code == 0
 
     final_session = session_file.read_text()
-    assert "Feature A" not in final_session
+    # Slug marker should be removed
+    assert "→ `feature-a`" not in final_session
+    # Task should still be in Worktree Tasks but without marker
+    assert "- [ ] **Feature A** — `/design` | haiku" in final_session
 
 
-def test_rm_e2e_removes_completed_task_from_worktree_tasks(
+def test_rm_e2e_slug_marker_removal(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init_repo: Callable[[Path], None]
 ) -> None:
-    """E2E: rm removes task from Worktree Tasks when task completed in branch."""
+    """E2E: rm removes slug marker from task in Worktree Tasks."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     monkeypatch.chdir(repo_path)
@@ -140,7 +134,7 @@ def test_rm_e2e_removes_completed_task_from_worktree_tasks(
     session_file.parent.mkdir(parents=True, exist_ok=True)
     session_content = """# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Other task** — `/design` | sonnet
 
@@ -163,58 +157,23 @@ def test_rm_e2e_removes_completed_task_from_worktree_tasks(
         capture_output=True,
     )
 
+    # Create a branch for the task
+    subprocess.run(
+        ["git", "branch", "complete-the-feature"],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+    )
+
     result = CliRunner().invoke(
         worktree,
         ["new", "--branch", "complete-the-feature", "--session", str(session_file)],
     )
     assert result.exit_code == 0
 
-    worktree_path = wt_path("complete-the-feature")
-    worktree_session = worktree_path / "agents" / "session.md"
-
-    worktree_content = worktree_session.read_text()
-    assert "## Pending Tasks" in worktree_content
-    assert "Complete the feature" in worktree_content
-
-    worktree_session_completed = """# Focused Session
-
-## Pending Tasks
-
-## Blockers / Gotchas
-"""
-    worktree_session.write_text(worktree_session_completed)
+    # Merge the branch (in this simple test case, nothing changes on branch)
     subprocess.run(
-        ["git", "-C", str(worktree_path), "add", "agents/session.md"],
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "-C", str(worktree_path), "commit", "-m", "complete task"],
-        check=True,
-        capture_output=True,
-    )
-
-    # Merge branch (--no-ff to preserve main's content in merge commit)
-    subprocess.run(
-        ["git", "merge", "complete-the-feature", "--no-ff", "--no-edit"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    # Restore main's session.md after merge (production merge command handles this;
-    # raw git merge does not)
-    task_line = (
-        "- [ ] **Complete the feature** → `complete-the-feature` — `/runbook` | haiku\n"
-    )
-    session_file.write_text(session_content.replace(task_line, ""))
-    subprocess.run(
-        ["git", "add", "agents/session.md"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "restore session after merge"],
+        ["git", "merge", "complete-the-feature", "--no-edit"],
         cwd=repo_path,
         check=True,
         capture_output=True,
@@ -226,5 +185,8 @@ def test_rm_e2e_removes_completed_task_from_worktree_tasks(
 
     final_session = session_file.read_text()
     assert "## Worktree Tasks" in final_session
-    assert "Complete the feature" not in final_session
+    # Slug marker should be removed
+    assert "→ `complete-the-feature`" not in final_session
+    # Task should still be there without marker
+    assert "- [ ] **Complete the feature** — `/runbook` | haiku" in final_session
     assert "Other task" in final_session

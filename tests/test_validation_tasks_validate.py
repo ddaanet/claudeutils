@@ -14,7 +14,7 @@ class TestValidate:
         session_file = tmp_path / "session.md"
         session_file.write_text("""# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task One** — description
 - [ ] **Task Two** — another task
@@ -32,7 +32,7 @@ class TestValidate:
         session_file = tmp_path / "session.md"
         session_file.write_text("""# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task One** — first
 - [ ] **Task Two** — second
@@ -50,7 +50,7 @@ class TestValidate:
         session_file = tmp_path / "session.md"
         session_file.write_text("""# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task One** — first
 - [ ] **task one** — duplicate
@@ -66,7 +66,7 @@ class TestValidate:
         session_file = tmp_path / "session.md"
         session_file.write_text("""# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Conflicting Task** — description
 """)
@@ -86,7 +86,7 @@ Content here.
         session_file = tmp_path / "session.md"
         session_file.write_text("""# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **conflicting task** — description
 """)
@@ -111,7 +111,7 @@ Content here.
         session_file = tmp_path / "session.md"
         session_file.write_text("""# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **New Task** — description
 """)
@@ -140,7 +140,7 @@ Content here.
         session_file = tmp_path / "session.md"
         session_file.write_text("""# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task One** — description
 - [ ] **Task One** — duplicate
@@ -154,7 +154,7 @@ Content here.
         session_file = tmp_path / "session.md"
         session_file.write_text("""# Session Handoff
 
-## Pending Tasks
+## In-tree Tasks
 
 - [ ] **Task One** — first
 - [ ] **task one** — duplicate
@@ -178,7 +178,7 @@ Content.
 
 Line 3
 Line 4
-## Pending Tasks
+## In-tree Tasks
 
 Line 7
 - [ ] **Task One** — line 8
