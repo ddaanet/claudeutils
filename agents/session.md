@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-01
 
-**Status:** UPS Phase 1 matching pipeline delivered (5 TDD cycles, corrector-reviewed). Phase 2 caching next.
+**Status:** UPS Phase 2 index caching delivered (2 TDD cycles, corrector-reviewed). Phase 3 hook integration next.
 
 ## Completed This Session
 
@@ -25,11 +25,18 @@
 - Triage: no-classification
 - Report: `plans/userpromptsubmit-topic/reports/review.md`
 
+**UPS Phase 2 — index caching (2 TDD cycles):**
+- 2.1: `get_or_build_index()` with cache-write to `tmp/topic-index-{hash}.json`
+- 2.2: Cache-read + mtime validation (cache hit avoids reparsing, mtime change triggers rebuild)
+- Corrector: 4 minor fixes (exception type, dedup serialization, test split, redundant mkdir)
+- Triage: no-classification
+- Report: `plans/userpromptsubmit-topic/reports/phase2-review.md`
+
 ## Pending Tasks
 
 - [x] **UPS matching pipeline** — `/inline plans/userpromptsubmit-topic` | sonnet
   - Plan: userpromptsubmit-topic | Phase 1: Cycles 1.1-1.5 + light checkpoint
-- [ ] **UPS index caching** — `/inline plans/userpromptsubmit-topic` | sonnet
+- [x] **UPS index caching** — `/inline plans/userpromptsubmit-topic` | sonnet
   - Plan: userpromptsubmit-topic | Phase 2: Cycles 2.1-2.2 + light checkpoint
 - [ ] **UPS hook integration** — `/inline plans/userpromptsubmit-topic` | sonnet
   - Plan: userpromptsubmit-topic | Phase 3: Cycles 3.1-3.3 + full checkpoint
@@ -42,7 +49,7 @@
 
 ## Next Steps
 
-Execute Phase 2 (index caching, Cycles 2.1-2.2).
+Execute Phase 3 (hook integration, Cycles 3.1-3.3).
 
 ## Reference Files
 
@@ -50,5 +57,6 @@ Execute Phase 2 (index caching, Cycles 2.1-2.2).
 - `plans/userpromptsubmit-topic/recall-artifact.md` — recall context for sub-agent priming
 - `plans/userpromptsubmit-topic/tdd-recall-artifact.md` — flat recall for sub-agent injection
 - `plans/userpromptsubmit-topic/reports/review.md` — Phase 1 corrector review
+- `plans/userpromptsubmit-topic/reports/phase2-review.md` — Phase 2 corrector review
 - `plans/inline-tdd-dispatch/requirements.md` — cycle-scoping requirements
 - `plans/inline-tdd-dispatch/reports/review.md` — inline TDD dispatch corrector review
