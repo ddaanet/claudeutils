@@ -279,3 +279,23 @@ def get_or_build_index(
     _save_index_cache(entries, inverted_index, cache_path, source_mtime)
 
     return entries, inverted_index
+
+
+def match_topics(
+    prompt_text: str,
+    index_path: Path,
+    project_dir: Path,
+    threshold: float = 0.3,
+    max_entries: int = 3,
+) -> TopicMatchResult:
+    """Top-level entry point for topic matching pipeline.
+
+    Wraps: get_or_build_index → get_candidates → score_and_rank →
+    resolve_entries → format_output
+    """
+    _entries, inverted_index = get_or_build_index(index_path, project_dir)
+    prompt_keywords = extract_keywords(prompt_text)
+    candidates = get_candidates(prompt_text, inverted_index)
+    ranked = score_and_rank(prompt_keywords, candidates, threshold, max_entries)
+    resolved = resolve_entries(ranked, project_dir)
+    return format_output(resolved)
