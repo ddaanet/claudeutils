@@ -58,7 +58,7 @@ class TestOrchestratorAgentField:
     """Agent field per step and Phase-Agent Mapping table."""
 
     def test_orchestrator_agent_field_per_step(self) -> None:
-        """Agent field after step header; no old {name}-task reference."""
+        """Agent field in Phase-Agent Mapping; no old {name}-task reference."""
         result = generate_default_orchestrator(
             "testjob",
             cycles=[
@@ -67,8 +67,8 @@ class TestOrchestratorAgentField:
             ],
             phase_agents={1: "crew-testjob-p1", 2: "crew-testjob-p2"},
         )
-        assert "Agent: crew-testjob-p1" in result
-        assert "Agent: crew-testjob-p2" in result
+        assert "crew-testjob-p1" in result
+        assert "crew-testjob-p2" in result
         assert "using testjob-task agent" not in result
 
     def test_orchestrator_phase_agent_mapping_table(self) -> None:
@@ -100,5 +100,5 @@ class TestOrchestratorAgentField:
         assert "general" in result
         # Mapping table appears before step list
         mapping_idx = result.index("## Phase-Agent Mapping")
-        step_idx = result.index("## Step Execution Order")
+        step_idx = result.index("## Steps")
         assert mapping_idx < step_idx

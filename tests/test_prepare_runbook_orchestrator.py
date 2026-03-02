@@ -198,3 +198,83 @@ Implement cleanup.
         assert "## Phase Models" not in content, (
             f"Phase Models section should be absent without model info.\n{content}"
         )
+
+    def test_orchestrator_plan_structured_format(self) -> None:
+        """Orchestrator plan uses structured header and step list."""
+        content = generate_default_orchestrator(
+            "test-job",
+            cycles=[
+                {
+                    "major": 1,
+                    "minor": 1,
+                    "number": "1.1",
+                    "title": "First",
+                    "content": "test 1",
+                },
+                {
+                    "major": 1,
+                    "minor": 2,
+                    "number": "1.2",
+                    "title": "Second",
+                    "content": "test 2",
+                },
+                {
+                    "major": 2,
+                    "minor": 1,
+                    "number": "2.1",
+                    "title": "Third",
+                    "content": "test 3",
+                },
+            ],
+            phase_models={1: "sonnet", 2: "opus"},
+        )
+
+        # Check structured header fields
+        assert "**Agent:** test-job-task" in content, (
+            f"Expected Agent field in header.\n{content}"
+        )
+        assert "**Corrector Agent:** test-job-corrector" in content, (
+            f"Expected multi-phase corrector agent in header.\n{content}"
+        )
+        assert "**Type:** tdd" in content, f"Expected Type field set to tdd.\n{content}"
+
+        # Check Steps section exists
+        assert "## Steps" in content, f"Expected Steps section.\n{content}"
+
+        # Check pipe-delimited step format
+        assert "- step-1-1.md | Phase 1 | sonnet | 30" in content, (
+            f"Expected pipe-delimited step entry for cycle 1.1.\n{content}"
+        )
+        assert "- step-1-2.md | Phase 1 | sonnet | 30 | PHASE_BOUNDARY" in content, (
+            f"Expected phase boundary marker for last phase 1 item.\n{content}"
+        )
+        assert "- step-2-1.md | Phase 2 | opus | 30" in content, (
+            f"Expected pipe-delimited step entry for cycle 2.1.\n{content}"
+        )
+
+        # Check no old-style H2 per step
+        assert "## step-1-1" not in content, (
+            f"Old format with H2 per step should not exist.\n{content}"
+        )
+        assert "## step-1-2" not in content, (
+            f"Old format with H2 per step should not exist.\n{content}"
+        )
+        assert "## step-2-1" not in content, (
+            f"Old format with H2 per step should not exist.\n{content}"
+        )
+
+    def test_orchestrator_plan_single_phase_corrector_agent(self) -> None:
+        """Single-phase runbook has 'none' for corrector agent."""
+        content = generate_default_orchestrator(
+            "single-phase-job",
+            steps={
+                "1.1": "first",
+                "1.2": "second",
+            },
+            step_phases={"1.1": 1, "1.2": 1},
+            phase_models={1: "haiku"},
+        )
+
+        assert "**Corrector Agent:** none" in content, (
+            f"Expected corrector agent as none for single-phase.\n{content}"
+        )
