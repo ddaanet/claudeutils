@@ -1,0 +1,32 @@
+# Recall Artifact: Active Recall System
+
+Resolve entries via `claudeutils _recall resolve` — do not use inline summaries.
+
+## Entry Keys
+
+when writing memory-index trigger phrases — trigger phrasing must align with heading text
+when naming memory index triggers — activity at decision point, broadest verb
+when embedding knowledge in context — ambient vs invoked tradeoff
+when memory-index amplifies thin user input — cross-reference amplification from sparse queries
+when evaluating recall system effectiveness — recognition vs retrieval, forced injection bypasses recognition
+when converting external documentation to recall entries — how vs when automation profiles
+when writing recall artifacts — keys only, no excerpts, downstream resolve
+when requirements capture needs recall — recall step between mode detection and extraction
+when recall loads new entries mid-artifact — re-evaluate decisions each pass
+when anchoring gates with tool calls — recall resolve as canonical gate anchor
+when loaded decisions miss error context — PreToolUse hook forces recall step
+when directives outgrow text expansions — promote to skill with tool gates
+when designing context preloading mechanisms — explicit skill invocation over implicit injection
+when assessing fragment demotion — behavioral vs procedural classification
+how to recall sub-agent memory — bash transport for agents without Skill tool
+how to augment agent context — two-tier always-inject vs index-and-recall
+how to manage memory index growth — append-only, no pruning, consolidation
+how to make skills discoverable — 4 discovery layers
+when ordering fragments in CLAUDE.md — primacy/recency bias, position optimization
+when formatting rules for adherence — bullets vs prose by content type
+when writing rules for different models — instruction density by model class
+when too many rules in context — adherence degrades >200 rules
+when loading context for LLM processing — explicit reading required
+when writing methodology — ground skill diverge-converge external research
+when grounding identifies gaps in existing structure — operational constraints vs external methodology
+when starting work on a task — requirements first, brief is not requirement-equivalent
