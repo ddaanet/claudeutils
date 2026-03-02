@@ -209,3 +209,23 @@ def test_resolve_session_md_fallback_outputs_to_stdout(
         f"Fallback message must go to stdout. out={captured.out!r} err={captured.err!r}"
     )
     assert "hash-object" not in captured.err
+
+
+def test_merge_session_filters_completed_tasks_from_theirs() -> None:
+    """Completed [x] and canceled [–] tasks from theirs are excluded."""  # noqa: RUF002
+    ours = "# Session: Main\n\n## In-tree Tasks\n\n- [ ] **Task A** — existing task\n"
+    theirs = (
+        "# Session: Branch\n"
+        "\n"
+        "## In-tree Tasks\n"
+        "\n"
+        "- [ ] **Task A** — existing task\n"
+        "- [x] **Done Task** — completed in branch\n"
+        "- [–] **Canceled Task** — canceled in branch\n"  # noqa: RUF001
+        "- [ ] **New Task** — genuinely new from branch\n"
+    )
+    result = _merge_session_contents(ours, theirs)
+    assert "**Task A**" in result
+    assert "**New Task**" in result
+    assert "**Done Task**" not in result
+    assert "**Canceled Task**" not in result

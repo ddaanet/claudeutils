@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** Orphan plan cleanup, learnings merge validation, tier removal + reprioritization.
+**Status:** Merge completed filter delivered. Prior: orphan plan cleanup, learnings merge validation, tier removal + reprioritization.
 
 ## Completed This Session
 
@@ -31,10 +31,14 @@
   - 6 new tasks scored: Directive skill promotion (1.6), Plan-completion ceremony (1.4), agent-core lint coverage (1.0), Worktree exit ceremony (1.6), Discuss-to-pending chain (1.6), Worktree merge resilience (2.2)
   - Tier headings (1-4) removed from session.md. Flat WSJF-ordered list with scores inline.
   - Score prototype parameterized: `tmp/score.py --new <file>` accepts JSON task data (file: `plans/reports/prioritization-2026-03-02b.md`)
+- **Merge completed filter (TDD):**
+  - Added `completed_re` filter in `_merge_session_contents` (`resolve.py:84`) — excludes `[x]` and `[–]` blocks from additive union
+  - Test: `test_merge_session_filters_completed_tasks_from_theirs` in `test_worktree_merge_session_resolution.py`
+  - 1430 tests pass, lint green
 
 ## In-tree Tasks
 
-- [ ] **Merge completed filter** — filter `[x]` and `[–]` tasks from merge additive union in `resolve.py` | sonnet | 4.0
+- [x] **Merge completed filter** — filter `[x]` and `[–]` tasks from merge additive union in `resolve.py` | sonnet | 4.0
   - Single-line fix: exclude blocks whose first line matches completed/canceled markers
   - Prevents branch-completed tasks from leaking into main's Pending Tasks
 - [ ] **Orchestrate evolution** — `/orchestrate orchestrate-evolution` | sonnet | restart | 6.0
@@ -309,7 +313,7 @@
 - Inline TDD after full codebase exploration produces test-after with ceremony. All 15 tests passed on first attempt — no behavioral RED. Must delegate to test-driver in fresh context when task is marked TDD and design session loaded implementation context. [from: runbook-recall-expansion]
 ## Next Steps
 
-Merge completed filter (4.0, ME=1) is first — single-line quick win. Learnings at 80 lines — at `/codify` threshold.
+Merge completed filter delivered. Orchestrate evolution (6.0, restart) is next highest priority. Learnings at 80 lines — at `/codify` threshold.
 
 ## Reference Files
 
