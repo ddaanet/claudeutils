@@ -120,3 +120,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Reporting "clean" when `git status --porcelain` shows modified files, rationalizing known-dirty files (`.claude/settings.json`) as "always dirty" and therefore ignorable.
 - Correct pattern: `git status --porcelain` non-empty means dirty. Report it as dirty. The user decides what's ignorable — the agent reports observable state without filtering.
 - Rationale: Filtering "expected" dirty files is a judgment call that suppresses signal. The user may want to know about the dirty file, or the file may be dirty for a different reason than assumed.
+## When merge precommit fails on main
+- Anti-pattern: Debugging and fixing on main after `_worktree merge` fails precommit. Main lacks branch context — fixes are guesswork. Amending the merge commit bakes in potentially wrong fixes.
+- Correct pattern: `git merge --abort`, fix in the branch worktree (where the developer/agent has full change knowledge), pass precommit there, re-merge. Main-side merge should be trivially clean.
+- Also: never `--force` remove a worktree without first listing the uncommitted files. Two uncommitted files lost permanently — could have been unreplicated work.

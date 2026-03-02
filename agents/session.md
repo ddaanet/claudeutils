@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** Active recall system plan created from architectural discussion.
+**Status:** Session-md-validator merged, orchestrate-evolution merge in progress.
 
 ## Completed This Session
 
@@ -80,6 +80,12 @@
   - Benchmark positioning: SWE-ContextBench sixth paradigm — recall-explore-recall pattern not covered by existing 5 paradigms
   - Plan created: `plans/active-recall/brief.md`
   - Refined `tmp/active-recall.md` — corrected RAG comparison (applicability conditions vs content similarity)
+- **Session-md-validator merge:**
+  - 3 validator bugs fixed on main during merge (anti-pattern — should have rolled back): worktree path pattern (`.claude/worktrees/` → sibling `-wt` container), bare skill commands (`/when`, `/how`) as absolute path false positives, worktree marker pattern matching `→` in rename descriptions
+  - Session.md fixes: section order (Reference Files before Next Steps), stale worktree markers removed, 3 task commands corrected (`requirements.md` → `brief.md`)
+  - Worktree recovery: force-removed without checking 2 uncommitted files (data loss), recreated at merge parent for other-session recovery, re-merged recovery commit
+  - 5 new tests covering validator false positives
+  - Worktree removed after second merge
 
 ## In-tree Tasks
 
@@ -300,6 +306,9 @@
 - [ ] **Ground state coverage** — State coverage validation research | opus | 0.5
 - [ ] **Workflow formal analysis** — Formal verification of agent workflow | opus | 0.5
 - [ ] **Behavioral design** — Nuanced conversational pattern intervention | opus | 0.4
+- [ ] **Wt new --base submodule** — `_worktree new --base` doesn't resolve agent-core to branch commit | sonnet
+  - Missing submodule resolution on `--base` code path in `cli.py`
+  - Requires TDD: write test, then fix
 
 ## Blockers / Gotchas
 
@@ -384,4 +393,4 @@
 
 ## Next Steps
 
-2 worktrees active: orchestrate-evolution, session-md-validator. execute-flag-lint worktree missing from `_worktree ls` — investigate. Active recall system plan created — needs `/requirements` then `/design`. Learnings at 112 lines — well past `/codify` threshold. 6 brief-only tasks need `/requirements` before `/design`.
+Merging orchestrate-evolution. execute-flag-lint worktree missing from `_worktree ls` — investigate. Learnings at 122 lines — well past `/codify` threshold.
