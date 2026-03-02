@@ -12,6 +12,26 @@ TASK_PATTERN = re.compile(r"^- \[.\] \*\*(.+?)\*\*")
 SECTION_PATTERN = re.compile(r"^## (.+)$")
 REF_FILE_PATTERN = re.compile(r"^- `([^`]+)`")
 
+ALLOWED_SECTIONS = [
+    "Completed This Session",
+    "In-tree Tasks",
+    "Pending Tasks",
+    "Worktree Tasks",
+    "Blockers / Gotchas",
+    "Reference Files",
+    "Next Steps",
+]
+
+SECTION_ORDER = [
+    "Completed This Session",
+    "In-tree Tasks",
+    "Pending Tasks",
+    "Worktree Tasks",
+    "Blockers / Gotchas",
+    "Reference Files",
+    "Next Steps",
+]
+
 
 def parse_sections(lines: list[str]) -> dict[str, list[tuple[int, str]]]:
     """Parse session.md into named sections.
@@ -103,6 +123,55 @@ def check_reference_files(
     return errors
 
 
+def check_section_schema(lines: list[str]) -> list[str]:
+    """Validate that session.md contains only allowed sections in correct order.
+
+    Args:
+        lines: File content as list of lines.
+
+    Returns:
+        List of error strings.
+    """
+    errors = []
+    seen_sections = []
+    seen_names = set()
+
+    for i, line in enumerate(lines, 1):
+        stripped = line.rstrip()
+        m = SECTION_PATTERN.match(stripped)
+        if not m:
+            continue
+
+        section_name = m.group(1)
+
+        if section_name not in ALLOWED_SECTIONS:
+            errors.append(f"  line {i}: unrecognized section: {section_name}")
+            continue
+
+        if section_name in seen_names:
+            errors.append(f"  line {i}: duplicate section: {section_name}")
+            continue
+
+        seen_names.add(section_name)
+        seen_sections.append((i, section_name))
+
+    for i, (lineno, name) in enumerate(seen_sections):
+        if i == 0:
+            continue
+
+        prev_name = seen_sections[i - 1][1]
+        prev_order = SECTION_ORDER.index(prev_name)
+        curr_order = SECTION_ORDER.index(name)
+
+        if curr_order < prev_order:
+            errors.append(
+                f"  line {lineno}: section out of order: {name} "
+                f"appears before {prev_name}"
+            )
+
+    return errors
+
+
 def validate(session_path: str, root: Path) -> list[str]:
     """Validate session.md structure.
 
@@ -120,8 +189,12 @@ def validate(session_path: str, root: Path) -> list[str]:
     with full_path.open() as f:
         lines = f.readlines()
 
-    sections = parse_sections(lines)
     errors = []
+
+    # Section schema validation
+    errors.extend(check_section_schema(lines))
+
+    sections = parse_sections(lines)
 
     # Cross-section uniqueness
     pending = extract_section_tasks(sections.get("In-tree Tasks", []))

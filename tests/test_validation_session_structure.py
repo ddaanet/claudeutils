@@ -5,6 +5,7 @@ from pathlib import Path
 from claudeutils.validation.session_structure import (
     check_cross_section_uniqueness,
     check_reference_files,
+    check_section_schema,
     extract_section_tasks,
     parse_sections,
     validate,
@@ -152,13 +153,251 @@ class TestCheckReferenceFiles:
         assert "missing.md" in errors[0]
 
 
+class TestCheckSectionSchema:
+    """Tests for check_section_schema."""
+
+    def test_valid_all_sections_in_order(self) -> None:
+        """All sections in correct order produces no errors."""
+        lines = [
+            "# Session\n",
+            "## Completed This Session\n",
+            "content\n",
+            "## In-tree Tasks\n",
+            "content\n",
+            "## Worktree Tasks\n",
+            "content\n",
+            "## Blockers / Gotchas\n",
+            "content\n",
+            "## Reference Files\n",
+            "content\n",
+            "## Next Steps\n",
+            "content\n",
+        ]
+        assert check_section_schema(lines) == []
+
+    def test_valid_subset_of_sections(self) -> None:
+        """Subset of allowed sections in correct order is valid."""
+        lines = [
+            "# Session\n",
+            "## In-tree Tasks\n",
+            "content\n",
+            "## Next Steps\n",
+            "content\n",
+        ]
+        assert check_section_schema(lines) == []
+
+    def test_valid_with_legacy_pending_tasks(self) -> None:
+        """Legacy 'Pending Tasks' alias accepted without error."""
+        lines = [
+            "# Session\n",
+            "## Pending Tasks\n",
+            "content\n",
+            "## Next Steps\n",
+            "content\n",
+        ]
+        assert check_section_schema(lines) == []
+
+    def test_unrecognized_section_error(self) -> None:
+        """Unrecognized section produces error with name and line number."""
+        lines = [
+            "# Session\n",
+            "## In-tree Tasks\n",
+            "content\n",
+            "## Learnings\n",
+            "some learnings\n",
+        ]
+        errors = check_section_schema(lines)
+        assert len(errors) == 1
+        assert "Learnings" in errors[0]
+        assert "4" in errors[0]
+
+    def test_sections_out_of_order_error(self) -> None:
+        """Sections out of order produce error naming the misordered section."""
+        lines = [
+            "# Session\n",
+            "## Next Steps\n",
+            "content\n",
+            "## In-tree Tasks\n",
+            "content\n",
+        ]
+        errors = check_section_schema(lines)
+        assert len(errors) == 1
+        assert "out of order" in errors[0].lower() or "before" in errors[0].lower()
+        assert "In-tree Tasks" in errors[0]
+
+    def test_multiple_unrecognized_sections(self) -> None:
+        """Multiple unrecognized sections produce multiple errors."""
+        lines = [
+            "# Session\n",
+            "## Invalid One\n",
+            "content\n",
+            "## In-tree Tasks\n",
+            "content\n",
+            "## Invalid Two\n",
+            "content\n",
+        ]
+        errors = check_section_schema(lines)
+        assert len(errors) == 2
+        assert any("Invalid One" in e for e in errors)
+        assert any("Invalid Two" in e for e in errors)
+
+    def test_duplicate_sections(self) -> None:
+        """Duplicate allowed section produces error."""
+        lines = [
+            "# Session\n",
+            "## In-tree Tasks\n",
+            "content\n",
+            "## In-tree Tasks\n",
+            "more content\n",
+        ]
+        errors = check_section_schema(lines)
+        assert len(errors) >= 1
+        assert any("In-tree Tasks" in e for e in errors)
+
+    def test_empty_file_no_errors(self) -> None:
+        """Empty file produces no section errors."""
+        lines: list[str] = []
+        assert check_section_schema(lines) == []
+
+
+class TestCheckStatusLine:
+    """Tests for check_status_line."""
+
+    def test_valid_h1_and_status(self) -> None:
+        """Valid H1 + blank line + status produces no errors."""
+        lines = [
+            "# Session Handoff: 2026-03-02\n",
+            "\n",
+            "**Status:** Session.md validator — shared parsing landed\n",
+        ]
+
+        assert check_status_line(lines) == []
+
+    def test_missing_h1(self) -> None:
+        """File starting without H1 produces error."""
+        lines = [
+            "Some content\n",
+            "\n",
+            "**Status:** Something\n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) == 1
+        assert "H1" in errors[0] or "Session Handoff" in errors[0]
+
+    def test_h1_wrong_format(self) -> None:
+        """H1 not matching 'Session Handoff: YYYY-MM-DD' produces error."""
+        lines = [
+            "# Session: 2026-03-02\n",
+            "\n",
+            "**Status:** Something\n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) == 1
+        assert "Session Handoff" in errors[0]
+
+    def test_h1_missing_date(self) -> None:
+        """H1 'Session Handoff:' without date produces error."""
+        lines = [
+            "# Session Handoff:\n",
+            "\n",
+            "**Status:** Something\n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) == 1
+        assert "YYYY-MM-DD" in errors[0] or "date" in errors[0].lower()
+
+    def test_h1_invalid_date_format(self) -> None:
+        """H1 with non-YYYY-MM-DD date produces error."""
+        lines = [
+            "# Session Handoff: 03-02-2026\n",
+            "\n",
+            "**Status:** Something\n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) == 1
+
+    def test_missing_blank_line_after_h1(self) -> None:
+        """Status line directly after H1 (no blank line 2) produces error."""
+        lines = [
+            "# Session Handoff: 2026-03-02\n",
+            "**Status:** Something\n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) >= 1
+        assert any("blank" in e.lower() for e in errors)
+
+    def test_missing_status_line(self) -> None:
+        """File without status line produces error."""
+        lines = [
+            "# Session Handoff: 2026-03-02\n",
+            "\n",
+            "Some content\n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) == 1
+        assert "Status" in errors[0]
+
+    def test_status_line_not_bold(self) -> None:
+        """Status line without bold formatting produces error."""
+        lines = [
+            "# Session Handoff: 2026-03-02\n",
+            "\n",
+            "Status: Something\n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) == 1
+        assert "bold" in errors[0].lower() or "**Status:**" in errors[0]
+
+    def test_empty_status_text(self) -> None:
+        """Status line with empty text after **Status:** produces error."""
+        lines = [
+            "# Session Handoff: 2026-03-02\n",
+            "\n",
+            "**Status:**\n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) == 1
+        assert "empty" in errors[0].lower()
+
+    def test_status_text_only_whitespace(self) -> None:
+        """Status line with only whitespace after **Status:** produces error."""
+        lines = [
+            "# Session Handoff: 2026-03-02\n",
+            "\n",
+            "**Status:**   \n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) == 1
+
+    def test_file_too_short(self) -> None:
+        """File with fewer than 3 lines produces errors."""
+        lines = [
+            "# Session Handoff: 2026-03-02\n",
+        ]
+
+        errors = check_status_line(lines)
+        assert len(errors) >= 1
+
+
 class TestValidate:
     """Tests for validate function."""
 
     def test_clean_session(self, tmp_path: Path) -> None:
         """Valid session with in-tree tasks passes."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## In-tree Tasks\n\n- [ ] **Task One** \u2014 desc\n"
+            "# Session Handoff: 2026-03-02\n\n"
+            "**Status:** Valid\n\n"
+            "## In-tree Tasks\n\n"
+            "- [ ] **Task One** \u2014 desc\n"
         )
         assert validate("session.md", tmp_path) == []
 
@@ -169,14 +408,17 @@ class TestValidate:
     def test_worktree_task_without_slug_ok(self, tmp_path: Path) -> None:
         """Worktree task without slug is valid (pre-dispatch classification)."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Worktree Tasks\n\n- [ ] **My Task** \u2014 pre-dispatch\n"
+            "# Session Handoff: 2026-03-02\n\n"
+            "**Status:** Valid\n\n"
+            "## Worktree Tasks\n\n"
+            "- [ ] **My Task** \u2014 pre-dispatch\n"
         )
         assert validate("session.md", tmp_path) == []
 
     def test_cross_section_duplicate(self, tmp_path: Path) -> None:
         """Task in both In-tree and Worktree detected."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n"
+            "# Session Handoff: 2026-03-02\n\n**Status:** Valid\n\n"
             "## In-tree Tasks\n\n"
             "- [ ] **Dup Task** \u2014 in in-tree\n\n"
             "## Worktree Tasks\n\n"
@@ -189,7 +431,7 @@ class TestValidate:
     def test_reference_file_missing(self, tmp_path: Path) -> None:
         """Missing reference file detected."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n"
+            "# Session Handoff: 2026-03-02\n\n**Status:** Valid\n\n"
             "## Reference Files\n\n"
             "- `plans/nonexistent.md` \u2014 missing\n"
         )
@@ -203,21 +445,27 @@ class TestValidate:
         plans.mkdir()
         (plans / "report.md").write_text("content")
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Reference Files\n\n- `plans/report.md` \u2014 exists\n"
+            "# Session Handoff: 2026-03-02\n\n"
+            "**Status:** Valid\n\n"
+            "## Reference Files\n\n"
+            "- `plans/report.md` \u2014 exists\n"
         )
         assert validate("session.md", tmp_path) == []
 
     def test_no_worktree_section_ok(self, tmp_path: Path) -> None:
         """No Worktree Tasks section is valid."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## In-tree Tasks\n\n- [ ] **Task** \u2014 desc\n"
+            "# Session Handoff: 2026-03-02\n\n"
+            "**Status:** Valid\n\n"
+            "## In-tree Tasks\n\n"
+            "- [ ] **Task** \u2014 desc\n"
         )
         assert validate("session.md", tmp_path) == []
 
     def test_multiple_error_types(self, tmp_path: Path) -> None:
         """All error types reported together."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n"
+            "# Session Handoff: 2026-03-02\n\n**Status:** Valid\n\n"
             "## In-tree Tasks\n\n"
             "- [ ] **Shared** \u2014 in-tree\n\n"
             "## Worktree Tasks\n\n"
