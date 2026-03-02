@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** Plan cleanup: 14 delivered/superseded plan directories deleted, plan-archive updated. userpromptsubmit-topic worktree removed.
+**Status:** Prioritization rescore completed. 73 tasks ranked, 10 new, 8 removed.
 
 ## Completed This Session
 
@@ -9,6 +9,10 @@
   - Superseded (3): merge-submodule-ordering (absorbed by merge-lifecycle-audit), fix-planstate-detector (all FRs implemented), cooperative-protocol-gaps (superseded by Retrofit skill pre-work)
   - Plan-archive updated with entries for all 14
 - **Worktree cleanup:** userpromptsubmit-topic worktree removed (was merged but registered)
+- **Prioritization rescore:** 73 tasks scored via `tmp/score.py` (file: `plans/reports/prioritization-2026-03-02.md`)
+  - 8 removed (5 delivered, 1 absorbed, 1 no-task, 1 canceled), 10 new tasks scored
+  - Top 5: Orchestrate evolution (6.0), Merge completed filter (4.0), Execute flag lint (3.0), Skill disclosure (2.6), Session.md validator (2.4)
+  - 12 unscheduled plans identified (plans with artifacts but no session.md task)
 
 ## In-tree Tasks
 
@@ -275,7 +279,7 @@
 - Inline TDD after full codebase exploration produces test-after with ceremony. All 15 tests passed on first attempt — no behavioral RED. Must delegate to test-driver in fresh context when task is marked TDD and design session loaded implementation context. [from: runbook-recall-expansion]
 ## Next Steps
 
-Run `/prioritize` with prototype script for scoring arithmetic. Mechanical tasks ready: merge completed filter (single-line fix), task notation migration (23 files), worktree CLI UX. Learnings at 80 lines — at `/codify` threshold.
+Merge completed filter is highest-priority quick win (4.0, ME=1). Recall tool consolidation next foundational task (1.9). Learnings at 80 lines — at `/codify` threshold.
 
 ## Reference Files
 
@@ -284,7 +288,7 @@ Run `/prioritize` with prototype script for scoring arithmetic. Mechanical tasks
 - `plans/handoff-cli-tool/outline.md` — Session CLI combined outline (reviewed 6 rounds)
 - `plans/codebase-sweep/requirements.md` — mechanical refactoring (_git_ok, _fail, exceptions)
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
-- `plans/reports/prioritization-2026-02-28.md` — WSJF scoring, 71 tasks ranked (supersedes 2026-02-27)
+- `plans/reports/prioritization-2026-03-02.md` — WSJF scoring, 73 tasks ranked (supersedes 2026-02-28)
 - `plans/skill-progressive-disclosure/brief.md` — Segment loading at gate boundaries (/design and /runbook)
 - `plans/reports/design-skill-grounding.md` — Design skill grounding (updated with session empirical data)
 - `plans/inline-execute/outline.md` — /inline skill design outline
