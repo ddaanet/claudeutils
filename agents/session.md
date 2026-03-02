@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** Merge completed filter delivered. Prior: orphan plan cleanup, learnings merge validation, tier removal + reprioritization.
+**Status:** Merge completed filter delivered, worktree skill model homogeneity removed, task absorptions (discuss-to-pending, delivery supercession), stale decision cleanup.
 
 ## Completed This Session
 
@@ -35,6 +35,20 @@
   - Added `completed_re` filter in `_merge_session_contents` (`resolve.py:84`) — excludes `[x]` and `[–]` blocks from additive union
   - Test: `test_merge_session_filters_completed_tasks_from_theirs` in `test_worktree_merge_session_resolution.py`
   - 1430 tests pass, lint green
+- **Worktree skill model homogeneity removed:**
+  - Removed model tier compatibility check from Mode B parallel group detection (worktree SKILL.md)
+  - Removed from execute-rule.md parallel task detection criteria
+  - Worktrees are filesystem isolation — each session sets its own model at launch
+- **Task absorptions:**
+  - Discuss-to-pending chain → absorbed into Directive skill promotion (brief: `plans/directive-skill-promotion/brief.md`)
+  - Delivery supercession → absorbed into Plan-completion ceremony (brief: `plans/plan-completion-ceremony/brief.md`)
+- **Stale decision cleanup:**
+  - Removed superseded single-section entry from `workflow-advanced.md` (2026-02-20) — contradicted two-section model in `operational-tooling.md` (2026-02-28)
+  - Removed corresponding memory-index trigger (`/when tracking worktree tasks in session`)
+- **RCA: worktree parallelization failure:**
+  - Root cause chain: D-9 classification not applied retroactively → all tasks In-tree → Worktree Tasks empty → `wt` can't dispatch
+  - Compounding: stale single-section decision entry loaded alongside current two-section model
+  - Learning recorded: "When reclassifying tasks after structural changes"
 
 ## In-tree Tasks
 
@@ -109,11 +123,12 @@
   - Front-load plugin-dev:skill-development with project-specific skill editing patterns via ad-hoc continuation passing
   - Content: description field rules, extraction safety, control flow verification, entry point naming, prose quality ref
   - Replace ambient `.claude/rules/skill-development.md` path trigger with explicit skill invocation
-- [ ] **Directive skill promotion** — `/design` | opus | 1.6
+- [ ] **Directive skill promotion** — `/design plans/directive-skill-promotion/` | opus | 1.6
+  - Plan: directive-skill-promotion
   - d:, p:, w directives have prose-gate failures (grounding skip, model misclassification)
   - Text expansions can't enforce multi-step protocols; need tool-gated skills
-  - Absorbs: wrap command (`w`), discuss protocol grounding, p: classification gap
-  - Evidence: 2× grounding skip, 3× model tier misclassification in single session
+  - Absorbs: wrap command (`w`), discuss protocol grounding, p: classification gap, discuss-to-pending chain (brief: `plans/directive-skill-promotion/brief.md`)
+  - Evidence: 2× grounding skip, 3× model tier misclassification, 3× d:→p: chain missed in single session
 - [ ] **Entry gate propagation** — `/design` | opus | 1.6
   - Add git-clean + precommit entry gates to /orchestrate, /deliverable-review, corrector agent
   - Cross-cutting pattern — needs /design to resolve: each skill body vs shared fragment vs hook, and per-consumer questions (corrector double-gating, orchestrate checkpoint overlap, deliverable-review session context)
@@ -128,10 +143,7 @@
   - Plan: wt-exit-ceremony | Status: requirements
   - Two UPS Tier 1 shortcuts (k/ok, g/go) + worktree lifecycle behavior codification
   - Dropped by autostrategy merge at d78d5fa5 (wt-rm-dirty), restored 2026-03-02
-- [ ] **Discuss-to-pending chain** — `/requirements plans/discuss-to-pending/brief.md` | sonnet | 1.6
-  - Plan: discuss-to-pending | Status: requirements
-  - When d: mode validates a change, chain to p: evaluation
-  - Dropped by autostrategy merge at d78d5fa5 (wt-rm-dirty), restored 2026-03-02
+- [–] **Discuss-to-pending chain** — absorbed into Directive skill promotion | sonnet | 1.6
 - [ ] **Tweakcc** — Remove redundant builtin prompts, inject custom | sonnet | 1.6
   - Plan: tweakcc
 - [ ] **Wt rm task cleanup** — `/design plans/wt-rm-task-cleanup/requirements.md` | sonnet | 1.6
@@ -151,10 +163,12 @@
   - /design tail-call /inline only when context budget allows, otherwise handoff+commit
   - Mechanism: UPS hook injects context percentage from statusline infrastructure
   - Threshold needs empirical calibration (no confabulated number)
-- [ ] **Plan-completion ceremony** — `/design` | opus | 1.4
+- [ ] **Plan-completion ceremony** — `/design plans/plan-completion-ceremony/` | opus | 1.4
+  - Plan: plan-completion-ceremony
   - Handoff trim removes task line but has no plan-completion side effects
   - Missing: delete plan dir, write plan-archive entry, update lifecycle.md, scan stale references
   - 7 of 12 orphaned plans traced to this gap
+  - Absorbs: Delivery supercession — memory-index pass for stale decision entries (brief: `plans/plan-completion-ceremony/brief.md`)
 - [ ] **Generate memory index** — `/design` | opus | 1.4
   - Each decision/learning declares keywords for index. Index generated from declarations. Diff displayed after update for agent review. Supersedes manual append workflow in `/codify` step 4a.
 - [ ] **Agent rule injection** — Distill sub-agent rules into agent templates | sonnet | 1.4
@@ -196,7 +210,7 @@
   - Per-entry assessment: referenced / informed / unused. Accumulates in `plans/<job>/recall-usage.md`
   - Parallel to triage-feedback.sh: compares pre-execution selection against post-execution usage
   - Grounding: `plans/reports/recall-lifecycle-grounding.md` §Revised Mode Assignment
-- [ ] **Delivery supercession** — `d:` memory-index pass at plan delivery for supercession | opus | 1.0
+- [–] **Delivery supercession** — absorbed into Plan-completion ceremony | opus | 1.0
 - [ ] **Compensate-continue skill** — `/ground` then `/design` | opus | 1.0
   - Activated after unexpected stop. Records compensation strategy. Applies trivial workarounds inline (e.g., rename heading to route around parser bug). Creates pending task for proper fix. Resumes interrupted work via continuation-prepend.
   - Needs grounding on failure recovery patterns, compensation strategies
@@ -313,7 +327,7 @@
 - Inline TDD after full codebase exploration produces test-after with ceremony. All 15 tests passed on first attempt — no behavioral RED. Must delegate to test-driver in fresh context when task is marked TDD and design session loaded implementation context. [from: runbook-recall-expansion]
 ## Next Steps
 
-Merge completed filter delivered. Orchestrate evolution (6.0, restart) is next highest priority. Learnings at 80 lines — at `/codify` threshold.
+Orchestrate evolution (6.0, restart) is next highest priority. Bulk reclassification of In-tree → Worktree Tasks needed (most tasks have plan dirs, qualify per D-9). Learnings at 91 lines — past `/codify` threshold.
 
 ## Reference Files
 

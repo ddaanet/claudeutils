@@ -355,7 +355,6 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when compressing session tasks | classify sub-items contextual vs artifact
 /when committing rca fixes
 /when running precommit validation
-/when tracking worktree tasks in session | two-section in-tree worktree static classification no move
 /when writing recall artifacts | keys only no excerpts downstream resolve
 /when requirements capture needs recall | requirements skill recall step infrastructure
 /when recall loads new entries mid-artifact | re-evaluate each pass invalidate extend requirements outline design

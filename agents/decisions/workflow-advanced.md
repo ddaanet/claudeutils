@@ -161,14 +161,6 @@ Requirements handling, knowledge management, and specialized workflow patterns.
 
 **Impact:** Clear separation between validation (precommit) and transformation (dev) workflows.
 
-### When Tracking Worktree Tasks In Session
-
-**Decision Date:** 2026-02-20
-
-**Anti-pattern:** Separate Worktree Tasks section with move semantics (Pending → Worktree on create, Worktree → Completed on rm). Creates merge-commit amend ceremony (`_update_session_and_amend`), drifts from filesystem state.
-
-**Correct pattern:** Tasks stay in Pending with inline `→ \`slug\`` marker. `#status` renders worktree section from `_worktree ls`, not from session.md section. Single source of truth is git worktree state.
-
 ## .Recall Workflow Patterns
 
 ### When Writing Recall Artifacts
