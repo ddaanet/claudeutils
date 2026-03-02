@@ -412,6 +412,10 @@ Submodule conflict check ordering bug in merge.py. Absorbed by merge-lifecycle-a
 
 Added `outlined` status to planstate inference. FR-1: outline.md without design.md → `outlined`. FR-2: next action `/runbook plans/{name}/outline.md`. FR-3: downstream enumeration sites updated. Affected: src/claudeutils/planstate/inference.py, agent-core/fragments/execute-rule.md.
 
+## pushback-grounding
+
+Claim verification + recall for `d:` discussion protocol. FRs 1-3 delivered to pushback.md (ground evaluation section with Read-before-assess pattern, topic-relevant recall resolution, integration before "Form your assessment"). FR-4 (hook expansion update) superseded by directive skill promotion task. Affected: agent-core/fragments/pushback.md.
+
 ## cooperative-protocol-gaps
 
 Continuation protocol compliance gaps in /design, /runbook, /worktree, /commit. Superseded by "Retrofit skill pre-work" task which covers same scope (continuation frontmatter + §Continuation sections).
