@@ -12,6 +12,11 @@ from pathlib import Path
 
 from claudeutils.validation.session_commands import check_command_semantics
 from claudeutils.validation.session_worktrees import check_worktree_markers
+from claudeutils.validation.task_parsing import (
+    VALID_CHECKBOXES,
+    VALID_MODELS,
+    parse_task_line,
+)
 
 TASK_PATTERN = re.compile(r"^- \[.\] \*\*(.+?)\*\*")
 SECTION_PATTERN = re.compile(r"^## (.+)$")
@@ -241,6 +246,95 @@ def check_section_schema(lines: list[str]) -> list[str]:
     return errors
 
 
+def check_task_section_lines(lines: list[str]) -> list[str]:
+    """Validate all lines in task sections parse as valid tasks.
+
+    Task sections: In-tree Tasks, Worktree Tasks, Pending Tasks (legacy).
+
+    For each non-blank, non-indented, non-HTML-comment line in these sections:
+    1. Must parse via parse_task_line() → error if not
+    2. Checkbox must be in VALID_CHECKBOXES → error if not
+    3. Model metadata must be in VALID_MODELS or absent → error if invalid
+
+    Args:
+        lines: Raw file content lines (preserves indentation).
+
+    Returns:
+        List of error strings.
+    """
+    errors = []
+    task_sections = {"In-tree Tasks", "Worktree Tasks", "Pending Tasks"}
+    current_section = ""
+
+    for lineno, raw_line in enumerate(lines, 1):
+        stripped = raw_line.rstrip()
+        m = SECTION_PATTERN.match(stripped)
+        if m:
+            current_section = m.group(1)
+            continue
+
+        if current_section not in task_sections:
+            continue
+
+        if not stripped:
+            continue
+
+        if stripped.startswith("  "):
+            continue
+
+        if stripped.startswith("<!--"):
+            continue
+
+        parsed = parse_task_line(stripped, lineno)
+        if parsed is None:
+            errors.append(
+                f"  line {lineno}: invalid task line format in "
+                f"{current_section}: {stripped}"
+            )
+            continue
+
+        if parsed.checkbox not in VALID_CHECKBOXES:
+            errors.append(
+                f"  line {lineno}: invalid checkbox '{parsed.checkbox}' in "
+                f"{current_section}: {stripped}"
+            )
+
+        _check_invalid_model_in_line(lineno, stripped, current_section, errors)
+
+    return errors
+
+
+def _check_invalid_model_in_line(
+    lineno: int, line: str, section_name: str, errors: list[str]
+) -> None:
+    """Check if line contains invalid model tier in pipe-separated metadata."""
+    if "—" not in line:
+        return
+
+    parts = line.split("—", 1)
+    if len(parts) < 2:
+        return
+
+    metadata = parts[1]
+    segments = [s.strip() for s in metadata.split("|")]
+
+    for seg in segments[1:]:
+        seg_lower = seg.lower().strip()
+        if not seg_lower:
+            continue
+
+        if seg_lower == "restart":
+            continue
+
+        if re.match(r"^\d+(\.\d+)?$", seg_lower):
+            continue
+
+        if seg_lower not in VALID_MODELS:
+            errors.append(
+                f"  line {lineno}: invalid model '{seg}' in {section_name}: {line}"
+            )
+
+
 def validate(
     session_path: str,
     root: Path,
@@ -274,6 +368,9 @@ def validate(
 
     # Command semantic validation
     errors.extend(check_command_semantics([line.rstrip() for line in lines]))
+
+    # Section-aware task line validation
+    errors.extend(check_task_section_lines(lines))
 
     sections = parse_sections(lines)
 
