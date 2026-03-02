@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-01
 
-**Status:** Both remaining tasks branched to worktrees. Restart disqualification bug identified and briefed.
+**Status:** Three tasks in worktrees. Merging fix-wt-parallel-restart next.
 
 ## Completed This Session
 
@@ -60,14 +60,15 @@
 - [x] **UPS hook integration** — `/inline plans/userpromptsubmit-topic` | sonnet
   - Plan: userpromptsubmit-topic | Phase 3: Cycles 3.1-3.3 + full checkpoint
 - [x] **Review UPS topic** — `/deliverable-review plans/userpromptsubmit-topic` | opus | restart
-- [ ] **Fix wt parallel restart** — `/design plans/fix-wt-parallel-restart/brief.md` | haiku
-  - Remove restart disqualification from worktree skill Mode B parallel group detection
 
 ## Worktree Tasks
 
 - [ ] **Fix UPS topic findings** → `fix-ups-topic-findings` — `/design plans/userpromptsubmit-topic/reports/deliverable-review.md` | opus
 
 - [ ] **Review TDD dispatch** → `review-tdd-dispatch` — `/deliverable-review plans/inline-tdd-dispatch` | opus | restart
+
+- [ ] **Fix wt parallel restart** → `fix-wt-parallel-restart` — `/design plans/fix-wt-parallel-restart/brief.md` | haiku
+  - Remove restart disqualification from worktree skill Mode B parallel group detection
 
 ## Blockers / Gotchas
 
@@ -76,7 +77,7 @@
 
 ## Next Steps
 
-Both tasks active in worktrees. After each completes (`hc`), merge back: `wt merge <slug>`.
+Three tasks in worktrees. Merge each as completed: `wt merge <slug>`.
 
 ## Reference Files
 
