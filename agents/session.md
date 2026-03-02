@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** Phase 3 of orchestrate-evolution complete (TDD agent generation + verify-red.sh). 1 phase remaining.
+**Status:** All 4 phases of orchestrate-evolution complete. Deliverable review pending.
 
 ## Completed This Session
 
@@ -39,6 +39,12 @@
 - Corrector review: 1 major (orchestrator plan referenced nonexistent task agent for pure TDD runbooks), 4 minor fixes (model upgrade haiku→sonnet for tester/implementer, vacuous assertion, fixture name mismatch, assertion tightening)
 - Review: `plans/orchestrate-evolution/reports/phase-3-implementation-review.md`
 
+**Orchestrate evolution — Phase 4 (skill and prose updates):**
+- Step 4.1: SKILL.md complete rewrite — 300→250 lines, sonnet orchestrator (D-1), file reference dispatch (D-2), remediation protocol (D-3), 2-level escalation (D-4), TDD orchestration loop (D-5), inline phase handling (D-6)
+- Step 4.2: refactor.md updates (deslop directives, factorization-before-splitting, resume pattern) + delegation.md updates (sonnet default, file reference dispatch, agent caching note)
+- Corrector review: 4 minor fixes (phase boundary clarification, recall restoration to checkpoint template, Example Execution slop removal, haiku reference in Pre-Delegation Checkpoint)
+- Review: `plans/orchestrate-evolution/reports/phase-4-implementation-review.md`
+
 ## In-tree Tasks
 
 - [x] **Orch-evo plan format** — `/inline plans/orchestrate-evolution` | sonnet
@@ -47,7 +53,7 @@
 - [x] **Orch-evo TDD agents** — `/inline plans/orchestrate-evolution` | sonnet
   - Phase 3: TDD agent generation + verify-red.sh (4 TDD cycles: steps 3-1 through 3-4)
   - Depends on Phase 2 (complete)
-- [ ] **Orch-evo skill rewrite** — `/inline plans/orchestrate-evolution` | opus | restart
+- [x] **Orch-evo skill rewrite** — `/inline plans/orchestrate-evolution` | opus | restart
   - Phase 4: SKILL.md rewrite + refactor.md/delegation.md updates (2 general steps: 4-1, 4-2)
   - Depends on Phase 3 (complete). Opus for architectural prose artifacts.
 - [ ] **Orch-evo review** — `/deliverable-review plans/orchestrate-evolution` | opus | restart
@@ -56,4 +62,4 @@
 
 ## Next Steps
 
-Continue with Phase 4 (SKILL.md rewrite + delegation.md updates) via `/inline plans/orchestrate-evolution`. Requires opus model and session restart.
+Run deliverable review for orchestrate-evolution (`/deliverable-review plans/orchestrate-evolution`). Requires opus model and session restart.
