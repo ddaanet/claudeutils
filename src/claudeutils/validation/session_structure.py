@@ -1,7 +1,6 @@
 """Validate session.md structural conventions.
 
 Checks:
-- Worktree Tasks entries have → slug format
 - No task appears in both In-tree Tasks and Worktree Tasks
 - Reference Files entries point to existing versioned files
 """
@@ -10,7 +9,6 @@ import re
 from pathlib import Path
 
 TASK_PATTERN = re.compile(r"^- \[[ x>!✗–]\] \*\*(.+?)\*\*")  # noqa: RUF001
-TERMINAL_STATUS_PATTERN = re.compile(r"^- \[[!✗–]\] ")  # noqa: RUF001
 SECTION_PATTERN = re.compile(r"^## (.+)$")
 REF_FILE_PATTERN = re.compile(r"^- `([^`]+)`")
 
@@ -55,28 +53,6 @@ def extract_section_tasks(
         if m:
             tasks.append((lineno, m.group(1)))
     return tasks
-
-
-def check_worktree_format(
-    section_lines: list[tuple[int, str]],
-) -> list[str]:
-    """Verify Worktree Tasks entries have → slug format.
-
-    Args:
-        section_lines: Lines from Worktree Tasks section.
-
-    Returns:
-        List of error strings.
-    """
-    errors = []
-    for lineno, line in section_lines:
-        task_m = TASK_PATTERN.match(line)
-        if task_m and "\u2192" not in line and not TERMINAL_STATUS_PATTERN.match(line):
-            errors.append(
-                f"  line {lineno}: worktree task missing \u2192 slug: "
-                f"**{task_m.group(1)}**"
-            )
-    return errors
 
 
 def check_cross_section_uniqueness(
@@ -146,10 +122,6 @@ def validate(session_path: str, root: Path) -> list[str]:
 
     sections = parse_sections(lines)
     errors = []
-
-    # Worktree task format
-    if "Worktree Tasks" in sections:
-        errors.extend(check_worktree_format(sections["Worktree Tasks"]))
 
     # Cross-section uniqueness
     pending = extract_section_tasks(sections.get("In-tree Tasks", []))

@@ -49,12 +49,30 @@
   - Root cause chain: D-9 classification not applied retroactively → all tasks In-tree → Worktree Tasks empty → `wt` can't dispatch
   - Compounding: stale single-section decision entry loaded alongside current two-section model
   - Learning recorded: "When reclassifying tasks after structural changes"
+- **Bulk reclassification:**
+  - All 63 pending `[ ]` tasks moved from In-tree to Worktree Tasks
+  - New rule: main is worktree-tasks-only except trivial fixes. Plan absence doesn't qualify for in-tree.
 
 ## In-tree Tasks
 
-- [x] **Merge completed filter** — filter `[x]` and `[–]` tasks from merge additive union in `resolve.py` | sonnet | 4.0
-  - Single-line fix: exclude blocks whose first line matches completed/canceled markers
-  - Prevents branch-completed tasks from leaking into main's Pending Tasks
+### Blocked / Terminal
+
+- [!] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet
+  - Plan: handoff-cli-tool | Status: outlined
+  - `_session` group (handoff, status, commit)
+  - Discussion conclusions baked into outline: amend, git passthrough, deviation-only output, submodule labeling
+- [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
+  - Plan: parallel-orchestration | Blocked on: orchestrate-evolution
+- [ ] **Python hook ordering fix** — `/design plans/precommit-python3-redirect/requirements.md` | haiku | restart
+  - `python -c` one-liner allowance evaluated before `uv run` redirect
+  - `uv run` redirect message mentions `uv sync` as dependency-change path
+  - SessionStart: verify `claudeutils` importable, emit `STOP:` if not
+  - agent-core SessionStart can assume claudeutils (all consumers have it; post-migration edify ships in plugin)
+- [ ] **Calibrate topic params** — extend session-scraper.py | sonnet
+  - Blocked by: UPS topic injection (needs production data first)
+
+## Worktree Tasks
+
 - [ ] **Orchestrate evolution** — `/orchestrate orchestrate-evolution` | sonnet | restart | 6.0
   - 14 steps: 12 TDD cycles (sonnet) + 2 general steps (opus)
   - Phase 1: agent caching model (4 cycles)
@@ -143,7 +161,6 @@
   - Plan: wt-exit-ceremony | Status: requirements
   - Two UPS Tier 1 shortcuts (k/ok, g/go) + worktree lifecycle behavior codification
   - Dropped by autostrategy merge at d78d5fa5 (wt-rm-dirty), restored 2026-03-02
-- [–] **Discuss-to-pending chain** — absorbed into Directive skill promotion | sonnet | 1.6
 - [ ] **Tweakcc** — Remove redundant builtin prompts, inject custom | sonnet | 1.6
   - Plan: tweakcc
 - [ ] **Wt rm task cleanup** — `/design plans/wt-rm-task-cleanup/requirements.md` | sonnet | 1.6
@@ -210,7 +227,6 @@
   - Per-entry assessment: referenced / informed / unused. Accumulates in `plans/<job>/recall-usage.md`
   - Parallel to triage-feedback.sh: compares pre-execution selection against post-execution usage
   - Grounding: `plans/reports/recall-lifecycle-grounding.md` §Revised Mode Assignment
-- [–] **Delivery supercession** — absorbed into Plan-completion ceremony | opus | 1.0
 - [ ] **Compensate-continue skill** — `/ground` then `/design` | opus | 1.0
   - Activated after unexpected stop. Records compensation strategy. Applies trivial workarounds inline (e.g., rename heading to route around parser bug). Creates pending task for proper fix. Resumes interrupted work via continuation-prepend.
   - Needs grounding on failure recovery patterns, compensation strategies
@@ -249,26 +265,6 @@
 - [ ] **Ground state coverage** — State coverage validation research | opus | 0.5
 - [ ] **Workflow formal analysis** — Formal verification of agent workflow | opus | 0.5
 - [ ] **Behavioral design** — Nuanced conversational pattern intervention | opus | 0.4
-
-### Blocked / Terminal
-
-- [–] **Handoff wt awareness** — superseded; /codify is now manual
-- [–] **Worktree fuzzy matching** — canceled; agent layer handles name resolution inherently
-- [!] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet
-  - Plan: handoff-cli-tool | Status: outlined
-  - `_session` group (handoff, status, commit)
-  - Discussion conclusions baked into outline: amend, git passthrough, deviation-only output, submodule labeling
-- [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
-  - Plan: parallel-orchestration | Blocked on: orchestrate-evolution
-- [ ] **Python hook ordering fix** — `/design plans/precommit-python3-redirect/requirements.md` | haiku | restart
-  - `python -c` one-liner allowance evaluated before `uv run` redirect
-  - `uv run` redirect message mentions `uv sync` as dependency-change path
-  - SessionStart: verify `claudeutils` importable, emit `STOP:` if not
-  - agent-core SessionStart can assume claudeutils (all consumers have it; post-migration edify ships in plugin)
-- [ ] **Calibrate topic params** — extend session-scraper.py | sonnet
-  - Blocked by: UPS topic injection (needs production data first)
-
-## Worktree Tasks
 
 ## Blockers / Gotchas
 
@@ -325,9 +321,13 @@
 - Non-reproducible after merge completes. On reoccurrence: capture `pytest -v` output to identify predecessor test
 - Root cause unknown — not CWD pollution (test uses monkeypatch.chdir), not UPS tests (verified), not worktree presence
 - Inline TDD after full codebase exploration produces test-after with ceremony. All 15 tests passed on first attempt — no behavioral RED. Must delegate to test-driver in fresh context when task is marked TDD and design session loaded implementation context. [from: runbook-recall-expansion]
+
+**Main is worktree-tasks-only:**
+- Only trivial fixes belong in In-tree. Plan absence doesn't qualify for in-tree.
+
 ## Next Steps
 
-Orchestrate evolution (6.0, restart) is next highest priority. Bulk reclassification of In-tree → Worktree Tasks needed (most tasks have plan dirs, qualify per D-9). Learnings at 91 lines — past `/codify` threshold.
+Orchestrate evolution (6.0, restart) is next highest priority. Learnings at 91 lines — past `/codify` threshold.
 
 ## Reference Files
 

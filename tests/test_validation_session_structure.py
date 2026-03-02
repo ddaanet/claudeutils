@@ -5,7 +5,6 @@ from pathlib import Path
 from claudeutils.validation.session_structure import (
     check_cross_section_uniqueness,
     check_reference_files,
-    check_worktree_format,
     extract_section_tasks,
     parse_sections,
     validate,
@@ -88,47 +87,6 @@ class TestExtractSectionTasks:
         assert extract_section_tasks(section) == []
 
 
-class TestCheckWorktreeFormat:
-    """Tests for check_worktree_format."""
-
-    def test_valid_worktree_task(self) -> None:
-        """Properly formatted worktree task passes."""
-        section = [(5, "- [ ] **My Task** \u2192 `my-slug` \u2014 desc")]
-        assert check_worktree_format(section) == []
-
-    def test_missing_arrow(self) -> None:
-        """Worktree task without \u2192 arrow flagged."""
-        section = [(5, "- [ ] **My Task** \u2014 missing arrow")]
-        errors = check_worktree_format(section)
-        assert len(errors) == 1
-        assert "missing \u2192 slug" in errors[0]
-        assert "My Task" in errors[0]
-
-    def test_non_task_lines_ignored(self) -> None:
-        """Non-task lines in section not checked."""
-        section = [(5, "Some regular text"), (6, "- Not a task format")]
-        assert check_worktree_format(section) == []
-
-    def test_terminal_status_exempt_from_slug(self) -> None:
-        """Blocked, failed, canceled tasks not required to have \u2192 slug."""
-        section = [
-            (5, "- [!] **Blocked Task** \u2014 waiting on signal"),
-            (6, "- [\u2717] **Failed Task** \u2014 terminal"),
-            (7, "- [\u2013] **Canceled Task** \u2014 canceled"),
-        ]
-        assert check_worktree_format(section) == []
-
-    def test_multiple_tasks_mixed(self) -> None:
-        """Only tasks missing arrow flagged."""
-        section = [
-            (5, "- [ ] **Good Task** \u2192 `slug` \u2014 ok"),
-            (6, "- [ ] **Bad Task** \u2014 no arrow"),
-        ]
-        errors = check_worktree_format(section)
-        assert len(errors) == 1
-        assert "Bad Task" in errors[0]
-
-
 class TestCheckCrossSectionUniqueness:
     """Tests for check_cross_section_uniqueness."""
 
@@ -208,14 +166,12 @@ class TestValidate:
         """Missing session file returns no errors."""
         assert validate("session.md", tmp_path) == []
 
-    def test_worktree_format_error(self, tmp_path: Path) -> None:
-        """Worktree task without arrow detected."""
+    def test_worktree_task_without_slug_ok(self, tmp_path: Path) -> None:
+        """Worktree task without slug is valid (pre-dispatch classification)."""
         (tmp_path / "session.md").write_text(
-            "# Session\n\n## Worktree Tasks\n\n- [ ] **My Task** \u2014 missing arrow\n"
+            "# Session\n\n## Worktree Tasks\n\n- [ ] **My Task** \u2014 pre-dispatch\n"
         )
-        errors = validate("session.md", tmp_path)
-        assert len(errors) == 1
-        assert "missing \u2192" in errors[0]
+        assert validate("session.md", tmp_path) == []
 
     def test_cross_section_duplicate(self, tmp_path: Path) -> None:
         """Task in both In-tree and Worktree detected."""
@@ -265,10 +221,10 @@ class TestValidate:
             "## In-tree Tasks\n\n"
             "- [ ] **Shared** \u2014 in-tree\n\n"
             "## Worktree Tasks\n\n"
-            "- [ ] **No Arrow** \u2014 bad format\n"
+            "- [ ] **No Arrow** \u2014 pre-dispatch\n"
             "- [ ] **Shared** \u2192 `slug` \u2014 duplicate\n\n"
             "## Reference Files\n\n"
             "- `missing.md` \u2014 gone\n"
         )
         errors = validate("session.md", tmp_path)
-        assert len(errors) == 3
+        assert len(errors) == 2  # cross-section duplicate + missing ref
