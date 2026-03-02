@@ -15,6 +15,7 @@ from claudeutils.worktree.merge import (
     _phase4_merge_commit_and_precommit,
     merge,
 )
+from claudeutils.worktree.resolve import resolve_session_md
 from tests.fixtures_worktree import _run_git
 
 
@@ -274,8 +275,6 @@ def test_resolve_session_md_from_main_keeps_ours_exactly(
     )
     monkeypatch.chdir(repo)
 
-    from claudeutils.worktree.resolve import resolve_session_md
-
     remaining = resolve_session_md(conflicts, slug="main", from_main=True)
 
     # session.md must be resolved (removed from conflicts)
@@ -313,8 +312,6 @@ def test_resolve_session_md_default_direction_still_merges(
         repo, init_repo, branch_session=branch_session, main_session=main_session
     )
     monkeypatch.chdir(repo)
-
-    from claudeutils.worktree.resolve import resolve_session_md
 
     remaining = resolve_session_md(conflicts, slug="main")
 
