@@ -357,7 +357,7 @@ def _phase4_merge_commit_and_precommit(slug: str) -> None:
             raise SystemExit(3)
 
 
-def merge(slug: str) -> None:
+def merge(slug: str, *, from_main: bool = False) -> None:  # noqa: ARG001
     """Merge worktree branch: validate, resolve submodule, merge parent."""
     state = _detect_merge_state(slug)
 
