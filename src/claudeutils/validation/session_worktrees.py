@@ -10,6 +10,27 @@ from pathlib import Path
 from claudeutils.validation.task_parsing import parse_task_line
 
 
+def parse_porcelain_slugs(porcelain_output: str) -> set[str]:
+    """Extract worktree slugs from git worktree list --porcelain output.
+
+    Only includes worktrees under .claude/worktrees/ (excludes main).
+
+    Args:
+        porcelain_output: Raw output from git worktree list --porcelain.
+
+    Returns:
+        Set of worktree slugs.
+    """
+    slugs = set()
+    for line in porcelain_output.splitlines():
+        if not line.startswith("worktree "):
+            continue
+        path = line[len("worktree ") :]
+        if ".claude/worktrees/" in path:
+            slugs.add(Path(path).name)
+    return slugs
+
+
 def get_worktree_slugs(worktree_slugs: set[str] | None = None) -> set[str]:
     """Get slugs from git worktree list, excluding main.
 
@@ -33,23 +54,7 @@ def get_worktree_slugs(worktree_slugs: set[str] | None = None) -> set[str]:
     except subprocess.CalledProcessError:
         return set()
 
-    slugs = set()
-    for line in result.stdout.splitlines():
-        if not line:
-            continue
-        parts = line.split()
-        if not parts:
-            continue
-        path = parts[0]
-        path = path.removesuffix("/.git")
-        if path.endswith(".git"):
-            continue
-
-        if ".claude/worktrees/" in path:
-            slug = Path(path).name
-            slugs.add(slug)
-
-    return slugs
+    return parse_porcelain_slugs(result.stdout)
 
 
 def check_worktree_markers(

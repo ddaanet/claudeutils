@@ -72,13 +72,18 @@ def _run_all_validators(root: Path) -> dict[str, list[str]]:
     _run_validator("decisions", validate_decision_files, all_errors, root)
     _run_validator("planstate", validate_planstate, all_errors, root)
     _run_validator("session-refs", validate_session_refs, all_errors, root)
-    _run_validator(
-        "session-structure",
-        validate_session_structure,
-        all_errors,
-        "agents/session.md",
-        root,
-    )
+    # session-structure returns (errors, warnings) — handle separately
+    try:
+        struct_errors, struct_warnings = validate_session_structure(
+            "agents/session.md", root
+        )
+        if struct_errors:
+            all_errors["session-structure"] = struct_errors
+        if struct_warnings:
+            for warning in struct_warnings:
+                click.echo(f"Warning (session-structure): {warning}", err=True)
+    except (ValueError, FileNotFoundError, OSError) as e:
+        all_errors["session-structure"] = [f"Error: {e}"]
     _run_validator("plan-archive", check_plan_archive_coverage, all_errors, root)
 
     return all_errors
@@ -175,7 +180,9 @@ def session_refs() -> None:
 def session_structure() -> None:
     """Validate session.md structure."""
     root = find_project_root(Path.cwd())
-    errors = validate_session_structure("agents/session.md", root)
+    errors, warnings = validate_session_structure("agents/session.md", root)
+    for warning in warnings:
+        click.echo(f"Warning: {warning}", err=True)
     if errors:
         for error in errors:
             click.echo(error, err=True)

@@ -251,8 +251,8 @@ class TestCheckSectionSchema:
             "more content\n",
         ]
         errors = check_section_schema(lines)
-        assert len(errors) >= 1
-        assert any("In-tree Tasks" in e for e in errors)
+        assert len(errors) == 1
+        assert "In-tree Tasks" in errors[0]
 
     def test_empty_file_no_errors(self) -> None:
         """Empty file produces no section errors."""
@@ -271,11 +271,13 @@ class TestValidate:
             "## In-tree Tasks\n\n"
             "- [ ] **Task One** \u2014 desc\n"
         )
-        assert validate("session.md", tmp_path) == []
+        errors, _warnings = validate("session.md", tmp_path)
+        assert errors == []
 
     def test_missing_session(self, tmp_path: Path) -> None:
         """Missing session file returns no errors."""
-        assert validate("session.md", tmp_path) == []
+        errors, _warnings = validate("session.md", tmp_path)
+        assert errors == []
 
     def test_worktree_task_without_slug_ok(self, tmp_path: Path) -> None:
         """Worktree task without slug is valid (pre-dispatch classification)."""
@@ -285,7 +287,8 @@ class TestValidate:
             "## Worktree Tasks\n\n"
             "- [ ] **My Task** \u2014 pre-dispatch\n"
         )
-        assert validate("session.md", tmp_path) == []
+        errors, _warnings = validate("session.md", tmp_path)
+        assert errors == []
 
     def test_cross_section_duplicate(self, tmp_path: Path) -> None:
         """Task in both In-tree and Worktree detected."""
@@ -296,7 +299,7 @@ class TestValidate:
             "## Worktree Tasks\n\n"
             "- [ ] **Dup Task** \u2192 `slug` \u2014 in worktree\n"
         )
-        errors = validate("session.md", tmp_path, worktree_slugs={"slug"})
+        errors, _warnings = validate("session.md", tmp_path, worktree_slugs={"slug"})
         assert len(errors) == 1
         assert "both In-tree" in errors[0]
 
@@ -307,7 +310,7 @@ class TestValidate:
             "## Reference Files\n\n"
             "- `plans/nonexistent.md` \u2014 missing\n"
         )
-        errors = validate("session.md", tmp_path)
+        errors, _warnings = validate("session.md", tmp_path)
         assert len(errors) == 1
         assert "not found" in errors[0]
 
@@ -322,7 +325,8 @@ class TestValidate:
             "## Reference Files\n\n"
             "- `plans/report.md` \u2014 exists\n"
         )
-        assert validate("session.md", tmp_path) == []
+        errors, _warnings = validate("session.md", tmp_path)
+        assert errors == []
 
     def test_no_worktree_section_ok(self, tmp_path: Path) -> None:
         """No Worktree Tasks section is valid."""
@@ -332,7 +336,8 @@ class TestValidate:
             "## In-tree Tasks\n\n"
             "- [ ] **Task** \u2014 desc\n"
         )
-        assert validate("session.md", tmp_path) == []
+        errors, _warnings = validate("session.md", tmp_path)
+        assert errors == []
 
     def test_multiple_error_types(self, tmp_path: Path) -> None:
         """All error types reported together."""
@@ -346,7 +351,22 @@ class TestValidate:
             "## Reference Files\n\n"
             "- `missing.md` \u2014 gone\n"
         )
-        errors = validate("session.md", tmp_path, worktree_slugs=set())
+        errors, _warnings = validate("session.md", tmp_path, worktree_slugs=set())
         assert (
             len(errors) == 3
         )  # cross-section duplicate + missing ref + missing worktree
+
+    def test_orphaned_worktree_produces_warning(self, tmp_path: Path) -> None:
+        """Worktree not referenced by any task produces warning, not error."""
+        (tmp_path / "session.md").write_text(
+            "# Session Handoff: 2026-03-02\n\n"
+            "**Status:** Valid\n\n"
+            "## In-tree Tasks\n\n"
+            "- [ ] **Task** — desc\n"
+        )
+        errors, warnings = validate(
+            "session.md", tmp_path, worktree_slugs={"orphan-slug"}
+        )
+        assert errors == []
+        assert len(warnings) == 1
+        assert "orphan-slug" in warnings[0]

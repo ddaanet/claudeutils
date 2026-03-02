@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** Session.md validator — all FRs implemented, precommit green, branch ready for merge.
+**Status:** Session.md validator — all FRs implemented + deliverable review fixes applied, precommit green.
 
 ## Completed This Session
 
@@ -60,12 +60,28 @@
 - `plan_archive` validator added to `_run_all_validators()` and as `plan-archive` subcommand
 - All other new validators integrated via `session_structure.validate()` internally
 
+**Deliverable review:**
+- Two-layer review (code + test opus agents) produced 2 Critical, 4 Major, 15 Minor findings
+- Reports: `plans/session-validator/reports/deliverable-review.md` (cross-cutting), `-code.md`, `-test.md`
+- Classification: `plans/session-validator/classification-fixes.md`
+
+**Deliverable review fixes (inline execution):**
+- C-1: Fixed `get_worktree_slugs()` porcelain parser — extracted `parse_porcelain_slugs()`, `worktree ` prefix parsing
+- C-2: `check_task_section_lines()` now allows H3 subsection headings (`### Blocked / Terminal`)
+- M-4: `_check_invalid_model_in_line()` skips multi-word segments (free-text descriptions with pipes)
+- M-1: `validate()` returns `(errors, warnings)`, CLI prints warnings to stderr per NFR-1
+- M-2: New `session_paths.py` — extracts paths from skill commands + standalone backticks, rejects tmp/, plans/claude, absolute, missing paths (21 tests)
+- NFR-4 consolidation complete: 3 remaining `TASK_PATTERN` consumers migrated to shared import (`tasks.py`, `session_structure.py`, `worktree/session.py`)
+- Minor fixes: dedup `ALLOWED_SECTIONS`/`SECTION_ORDER`, fix ordering error message, remove `break` in `session_commands.py`, tighten `>=` assertions to `==`
+- M-3 (NFR-2 `--fix` flag): deferred as separate task
+- 1548/1549 tests pass (1 pre-existing xfail)
+
 ## In-tree Tasks
 
 - [x] **Session.md validator** — Scripted precommit check | sonnet | 2.4
   - Plan: session-validator
-  - All FRs implemented: FR-1, FR-4, FR-5, FR-6, FR-7, section-aware, CLI wiring
-  - 1520/1521 tests pass (1 pre-existing xfail)
+  - All FRs implemented + deliverable review fixes applied
+  - 1548/1549 tests pass (1 pre-existing xfail)
 - [-] **Execute flag lint** — absorbed into session-validator FR-7
 
 ## Next Steps

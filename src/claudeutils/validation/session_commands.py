@@ -33,11 +33,9 @@ def check_command_semantics(lines: list[str]) -> list[str]:
 
         for pattern, description in COMMAND_ANTI_PATTERNS:
             if pattern.search(parsed.command):
-                msg = (
+                errors.append(
                     f"  line {i}: command anti-pattern in **{parsed.name}**: "
                     f"{description}"
                 )
-                errors.append(msg)
-                break
 
     return errors

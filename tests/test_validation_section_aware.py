@@ -70,6 +70,18 @@ class TestCheckTaskSectionLines:
         errors = check_task_section_lines(lines)
         assert errors == []
 
+    def test_h3_subsection_headings_in_task_section_allowed(self) -> None:
+        """H3 subsection headings within task sections are allowed."""
+        lines = [
+            "## In-tree Tasks",
+            "- [ ] **Task One** — description",
+            "### Blocked / Terminal",
+            "- [!] **Blocked Task** — waiting on signal",
+            "- [†] **Failed Task** — needs user decision",
+        ]
+        errors = check_task_section_lines(lines)
+        assert errors == []
+
     def test_unparseable_line_in_task_section_error(self) -> None:
         """Non-task lines that don't parse produce errors."""
         lines = [
@@ -78,7 +90,7 @@ class TestCheckTaskSectionLines:
             "Some random text",
         ]
         errors = check_task_section_lines(lines)
-        assert len(errors) >= 2
+        assert len(errors) == 2
         assert any("line 2" in e for e in errors)
         assert any("line 3" in e for e in errors)
 
@@ -90,7 +102,7 @@ class TestCheckTaskSectionLines:
             "- [X] **Task** — description",
         ]
         errors = check_task_section_lines(lines)
-        assert len(errors) >= 2
+        assert len(errors) == 2
         assert any("line 2" in e for e in errors)
         assert any("line 3" in e for e in errors)
 
@@ -102,7 +114,7 @@ class TestCheckTaskSectionLines:
             "- [ ] **Task** — description | claude",
         ]
         errors = check_task_section_lines(lines)
-        assert len(errors) >= 2
+        assert len(errors) == 2
         assert any("line 2" in e for e in errors)
         assert any("line 3" in e for e in errors)
 
@@ -184,6 +196,27 @@ class TestCheckTaskSectionLines:
             "## In-tree Tasks",
             "- [ ] **Task** — description",
             "- [x] **Done** — `/cmd`",
+        ]
+        errors = check_task_section_lines(lines)
+        assert errors == []
+
+    def test_free_text_with_pipes_not_flagged_as_invalid_model(self) -> None:
+        """Free-text descriptions with pipes not treated as metadata."""
+        lines = [
+            "## In-tree Tasks",
+            "- [ ] **Test diamond migration** — Needs scoping"
+            " | depends on runbook evolution (delivered) | sonnet | 0.9",
+        ]
+        errors = check_task_section_lines(lines)
+        assert errors == []
+
+    def test_capitalized_model_names_accepted(self) -> None:
+        """Model names are case-insensitive (Sonnet, OPUS accepted)."""
+        lines = [
+            "## In-tree Tasks",
+            "- [ ] **Task A** — desc | Sonnet",
+            "- [ ] **Task B** — desc | OPUS",
+            "- [ ] **Task C** — desc | Haiku",
         ]
         errors = check_task_section_lines(lines)
         assert errors == []

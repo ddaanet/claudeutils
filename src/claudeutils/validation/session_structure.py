@@ -11,26 +11,17 @@ import re
 from pathlib import Path
 
 from claudeutils.validation.session_commands import check_command_semantics
+from claudeutils.validation.session_paths import check_task_paths
 from claudeutils.validation.session_worktrees import check_worktree_markers
 from claudeutils.validation.task_parsing import (
+    TASK_PATTERN,
     VALID_CHECKBOXES,
     VALID_MODELS,
     parse_task_line,
 )
 
-TASK_PATTERN = re.compile(r"^- \[.\] \*\*(.+?)\*\*")
 SECTION_PATTERN = re.compile(r"^## (.+)$")
 REF_FILE_PATTERN = re.compile(r"^- `([^`]+)`")
-
-ALLOWED_SECTIONS = [
-    "Completed This Session",
-    "In-tree Tasks",
-    "Pending Tasks",
-    "Worktree Tasks",
-    "Blockers / Gotchas",
-    "Reference Files",
-    "Next Steps",
-]
 
 SECTION_ORDER = [
     "Completed This Session",
@@ -41,6 +32,7 @@ SECTION_ORDER = [
     "Reference Files",
     "Next Steps",
 ]
+ALLOWED_SECTIONS = set(SECTION_ORDER)
 
 
 def check_status_line(lines: list[str]) -> list[str]:
@@ -145,7 +137,7 @@ def extract_section_tasks(
     for lineno, line in section_lines:
         m = TASK_PATTERN.match(line)
         if m:
-            tasks.append((lineno, m.group(1)))
+            tasks.append((lineno, m.group("name")))
     return tasks
 
 
@@ -240,7 +232,7 @@ def check_section_schema(lines: list[str]) -> list[str]:
         if curr_order < prev_order:
             errors.append(
                 f"  line {lineno}: section out of order: {name} "
-                f"appears before {prev_name}"
+                f"should appear before {prev_name}"
             )
 
     return errors
@@ -285,6 +277,9 @@ def check_task_section_lines(lines: list[str]) -> list[str]:
         if stripped.startswith("<!--"):
             continue
 
+        if stripped.startswith("#"):
+            continue
+
         parsed = parse_task_line(stripped, lineno)
         if parsed is None:
             errors.append(
@@ -323,6 +318,10 @@ def _check_invalid_model_in_line(
         if not seg_lower:
             continue
 
+        # Multi-word segments are free-text description, not metadata
+        if " " in seg_lower:
+            continue
+
         if seg_lower == "restart":
             continue
 
@@ -339,7 +338,7 @@ def validate(
     session_path: str,
     root: Path,
     worktree_slugs: set[str] | None = None,
-) -> list[str]:
+) -> tuple[list[str], list[str]]:
     """Validate session.md structure.
 
     Args:
@@ -349,16 +348,18 @@ def validate(
                        If None, queries git worktree list.
 
     Returns:
-        List of error strings. Empty if no errors.
+        Tuple of (errors, warnings). Errors fail the check; warnings
+        are informational (orphaned worktrees).
     """
     full_path = root / session_path
     if not full_path.exists():
-        return []
+        return [], []
 
     with full_path.open() as f:
         lines = f.readlines()
 
-    errors = []
+    errors: list[str] = []
+    warnings: list[str] = []
 
     # H1 header and status line validation
     errors.extend(check_status_line(lines))
@@ -383,10 +384,14 @@ def validate(
     if "Reference Files" in sections:
         errors.extend(check_reference_files(sections["Reference Files"], root))
 
+    # Backtick path validation in task metadata
+    errors.extend(check_task_paths([line.rstrip() for line in lines], root))
+
     # Worktree marker validation
-    marker_errors, _ = check_worktree_markers(
+    marker_errors, marker_warnings = check_worktree_markers(
         [line.rstrip() for line in lines], worktree_slugs=worktree_slugs
     )
     errors.extend(marker_errors)
+    warnings.extend(marker_warnings)
 
-    return errors
+    return errors, warnings

@@ -1,33 +1,88 @@
 """Tests for worktree marker validation in session.md."""
 
+from textwrap import dedent
+
 from claudeutils.validation.session_worktrees import (
     check_worktree_markers,
     get_worktree_slugs,
+    parse_porcelain_slugs,
 )
 
 
-class TestGetWorktreeslugs:
-    """Tests for get_worktree_slugs."""
+class TestParsePorcelainSlugs:
+    """Tests for parse_porcelain_slugs (production path parser)."""
+
+    def test_empty_output(self) -> None:
+        """Empty porcelain output returns empty set."""
+        assert parse_porcelain_slugs("") == set()
+
+    def test_main_worktree_excluded(self) -> None:
+        """Main worktree (not under .claude/worktrees/) excluded."""
+        output = dedent("""\
+            worktree /home/user/project
+            HEAD abc123
+            branch refs/heads/main
+
+            """)
+        assert parse_porcelain_slugs(output) == set()
+
+    def test_single_worktree_slug_extracted(self) -> None:
+        """Worktree under .claude/worktrees/ has slug extracted."""
+        output = dedent("""\
+            worktree /home/user/project
+            HEAD abc123
+            branch refs/heads/main
+
+            worktree /home/user/project/.claude/worktrees/my-feature
+            HEAD def456
+            branch refs/heads/my-feature
+
+            """)
+        assert parse_porcelain_slugs(output) == {"my-feature"}
+
+    def test_multiple_slugs(self) -> None:
+        """Multiple worktrees all have slugs extracted."""
+        output = dedent("""\
+            worktree /home/user/project
+            HEAD abc123
+            branch refs/heads/main
+
+            worktree /home/user/project/.claude/worktrees/feat-a
+            HEAD def456
+            branch refs/heads/feat-a
+
+            worktree /home/user/project/.claude/worktrees/feat-b
+            HEAD 789abc
+            branch refs/heads/feat-b
+
+            """)
+        assert parse_porcelain_slugs(output) == {"feat-a", "feat-b"}
+
+    def test_non_worktree_lines_ignored(self) -> None:
+        """HEAD, branch, and blank lines don't produce slugs."""
+        output = dedent("""\
+            worktree /home/user/project/.claude/worktrees/slug-1
+            HEAD abc123
+            branch refs/heads/slug-1
+
+            """)
+        result = parse_porcelain_slugs(output)
+        assert result == {"slug-1"}
+        assert "abc123" not in result
+
+
+class TestGetWorktreeSlugs:
+    """Tests for get_worktree_slugs passthrough."""
 
     def test_no_worktrees_empty_set(self) -> None:
         """No worktrees returns empty set."""
         result = get_worktree_slugs(worktree_slugs=set())
         assert result == set()
 
-    def test_single_worktree(self) -> None:
-        """Single worktree slug extracted."""
-        result = get_worktree_slugs(worktree_slugs={"my-slug"})
-        assert result == {"my-slug"}
-
-    def test_multiple_worktrees(self) -> None:
-        """Multiple worktree slugs extracted."""
-        result = get_worktree_slugs(worktree_slugs={"slug-1", "slug-2", "slug-3"})
-        assert result == {"slug-1", "slug-2", "slug-3"}
-
-    def test_main_worktree_excluded(self) -> None:
-        """Main worktree not included in result."""
-        result = get_worktree_slugs(worktree_slugs={"slug-1", "main"})
-        assert "main" in result or result == {"slug-1"}
+    def test_passthrough_returns_provided_slugs(self) -> None:
+        """Provided slugs returned without modification."""
+        result = get_worktree_slugs(worktree_slugs={"slug-1", "slug-2"})
+        assert result == {"slug-1", "slug-2"}
 
 
 class TestCheckWorktreeMarkers:
@@ -132,4 +187,4 @@ class TestCheckWorktreeMarkers:
         ]
         errors, _warnings = check_worktree_markers(lines, worktree_slugs=set())
         assert len(errors) == 1
-        assert "line" in errors[0].lower() or "2" in errors[0]
+        assert "line 2" in errors[0].lower()
