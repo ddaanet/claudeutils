@@ -1,33 +1,16 @@
 # Session Handoff: 2026-03-02
 
-**Status:** 5 worktrees merged+removed. RCA: task-classification regression + merge lifecycle audit. userpromptsubmit-topic worktree stale (merged, needs manual rm).
+**Status:** Plan cleanup: 14 delivered/superseded plan directories deleted, plan-archive updated. userpromptsubmit-topic worktree removed.
 
 ## Completed This Session
 
-- **Worktree merges (4):**
-  - runbook-recall-expansion — clean merge+rm
-  - task-classification — leaked `[x]` tasks (autostrategy bug), regressed `_update_session_and_amend` → `_update_session` in cli.py
-  - wt-rm-dirty — restored amend logic, fixed lifecycle.md dirty-state bug (merge.py stages lifecycle before commit)
-  - fix-planstate-detector — conflict in lifecycle.md, stale wt-rm-dirty entry leaked from branch
-  - ups-topic-injection — submodule conflict (worktree SKILL.md), exposed merge-submodule-ordering bug (extra 1-parent commit)
-- **RCA: task-classification regression** — design D-4 conflated move semantics with post-merge hygiene
-  - `_update_session_and_amend` served two purposes: (1) move-related session changes, (2) post-merge rm cleanup
-  - Design only identified purpose (1), removed function. Every downstream stage trusted the claim.
-  - Outline review caught incomplete failure mode analysis (Major #1) but accepted "eliminated" as sufficient
-  - Intervention: design-corrector purpose audit on removal claims
-  - Evidence: `plans/task-classification/outline.md` D-4, `reports/outline-review.md` Major #1, `runbook.md` Cycle 7 line 109
-- **Discussion conclusions:**
-  - Autostrategy only applies to session files, other files use standard three-way merge
-  - `_worktree rm` should remove completed task entries when branch session.md has `[x]` — completion signal is branch status, not merge state
-  - Design-corrector gets removal verification rule, not /design skill (corrector independently verifies, avoids prose gate)
-  - Merge→rm lifecycle needs systematic audit, not point fixes (3 bugs at phase boundaries in one session)
-- **Briefs written:**
-  - `plans/wt-rm-task-cleanup/brief.md` — rm removes completed task entry via branch `[x]` check
-  - `plans/merge-submodule-ordering/brief.md` — submodule check after parent commit (absorbed by lifecycle audit)
-  - `plans/merge-lifecycle-audit/brief.md` — state machine audit + integration tests
-- **Learning removed:** "When worktree rm reports uncommitted files" — replaced by pending task (Worktree CLI UX)
+- **Plan cleanup (14 directories deleted):**
+  - Delivered (11): execute-skill-dispatch, flatten-hook-tiers, inline-tdd-dispatch, recall-cli-integration, recall-null, runbook-recall-expansion, task-classification, task-pattern-statuses, userpromptsubmit-topic, when-resolve-fix, wt-rm-dirty
+  - Superseded (3): merge-submodule-ordering (absorbed by merge-lifecycle-audit), fix-planstate-detector (all FRs implemented), cooperative-protocol-gaps (superseded by Retrofit skill pre-work)
+  - Plan-archive updated with entries for all 14
+- **Worktree cleanup:** userpromptsubmit-topic worktree removed (was merged but registered)
 
-## Pending Tasks
+## In-tree Tasks
 
 ### Tier 1: Recall/when-resolve (foundational)
 
@@ -61,7 +44,7 @@
 
 ### Tier 2: Workflow prose (load bearing)
 
-- [ ] **Skill disclosure** — `/design plans/skill-progressive-disclosure/brief.md` | opus
+- [ ] **Skill disclosure** — `/design plans/skill-progressive-disclosure/requirements.md` | opus
   - Plan: skill-progressive-disclosure | Status: requirements
   - Segment loading at gate boundaries: initial load → write-outline → write-design (/design); tier assessment → tier3-planning → expansion (/runbook)
   - Complementary with skills-quality-pass FR-3 extractions
@@ -137,16 +120,16 @@
   - 23 files reference ✗; active files: execute-rule.md, task-failure-lifecycle.md, error-classification.md, handoff skill, session.md, validators, justfiles
   - Update `extract_task_blocks` regex, session-structure validator
   - Plans/reports are historical — update only active behavioral files
-- [ ] **Wt rm task cleanup** — `/design plans/wt-rm-task-cleanup/brief.md` | sonnet
-  - Plan: wt-rm-task-cleanup | Status: brief
+- [ ] **Wt rm task cleanup** — `/design plans/wt-rm-task-cleanup/requirements.md` | sonnet
+  - Plan: wt-rm-task-cleanup | Status: requirements
   - rm removes completed task entry (branch `[x]` check), strips marker only if not completed
-- [ ] **Design context gate** — `/design plans/design-context-gate/brief.md` | sonnet
-  - Plan: design-context-gate | Status: brief
+- [ ] **Design context gate** — `/design plans/design-context-gate/requirements.md` | sonnet
+  - Plan: design-context-gate | Status: requirements
   - /design tail-call /inline only when context budget allows, otherwise handoff+commit
   - Mechanism: UPS hook injects context percentage from statusline infrastructure
   - Threshold needs empirical calibration (no confabulated number)
-- [ ] **Merge lifecycle audit** — `/design plans/merge-lifecycle-audit/brief.md` | sonnet
-  - Plan: merge-lifecycle-audit | Status: brief
+- [ ] **Merge lifecycle audit** — `/design plans/merge-lifecycle-audit/requirements.md` | sonnet
+  - Plan: merge-lifecycle-audit | Status: requirements
   - State machine audit + integration tests for merge→rm lifecycle. Absorbs merge-submodule-ordering.
 - [ ] **Worktree CLI UX** — sonnet
   - `_worktree new`: stdout-only, exit status for success, user-friendly errors instead of tracebacks (task not in session.md, slug length)
@@ -158,8 +141,8 @@
 
 ### Tier 4: Rest
 
-- [ ] **Session scraping** — `/design plans/session-scraping/requirements.md` | sonnet
-  - Requirements captured, ready for design
+- [ ] **Session scraping** — `/runbook plans/session-scraping/outline.md` | sonnet
+  - Plan: session-scraping | Status: outlined
   - Key decisions: all ~/.claude/projects/ (not just claudeutils), agent files are first-class sources, many-to-many session↔commit, tool I/O noise by default
 - [ ] **Worktree merge from main** — `/design plans/worktree-merge-from-main/` | sonnet
 - [ ] **Explore Anthropic plugins** — Install all 28 official plugins | sonnet | restart
@@ -194,7 +177,7 @@
 - [ ] **Session.md validator** — Scripted precommit check | sonnet
   - Plan: session-validator
   - Includes plan-archive coverage check (deleted plans must have archive entry)
-- [ ] **Update prioritize skill** — use `claudeutils _worktree ls` instead of `list_plans()` ad-hoc Python | sonnet
+- [ ] **Update prioritize skill** — use `claudeutils _worktree ls` instead of `list_plans()` ad-hoc Python; use prototype script for scoring arithmetic | sonnet
 - [ ] **Upstream skills field** — PR/issue for missing skills frontmatter | sonnet
 - [ ] **Compensate-continue skill** — `/ground` then `/design` | opus
   - Activated after unexpected stop. Records compensation strategy. Applies trivial workarounds inline (e.g., rename heading to route around parser bug). Creates pending task for proper fix. Resumes interrupted work via continuation-prepend.
@@ -216,8 +199,8 @@
 ### Blocked / Terminal
 
 - [–] **Handoff wt awareness** — superseded; /codify is now manual
-- [!] **Session CLI tool** — `/design plans/handoff-cli-tool/requirements.md` | sonnet
-  - Plan: handoff-cli-tool | Status: requirements
+- [!] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet
+  - Plan: handoff-cli-tool | Status: outlined
   - `_session` group (handoff, status, commit)
   - Discussion conclusions baked into outline: amend, git passthrough, deviation-only output, submodule labeling
 - [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
@@ -268,9 +251,6 @@
 **`_worktree rm` amend restored but task entry persists:**
 - `_update_session_and_amend` restored after task-classification regression. Amend works but `remove_slug_marker` only strips marker — doesn't remove completed task entry. Pending: wt-rm-task-cleanup (check branch `[x]` status).
 
-**Orphaned remember-skill-update directory:**
-- `/Users/david/code/claudeutils-wt/remember-skill-update` — git deregistered but directory remains. Needs manual removal.
-
 **Worktree merge drops session.md Worktree Tasks entries:**
 - Focused session in branch lacks main's full Worktree Tasks section. Autostrategy resolves in favor of branch, dropping main-only entries. Manual post-merge validation required until merge.py fixed.
 
@@ -293,10 +273,9 @@
 - Non-reproducible after merge completes. On reoccurrence: capture `pytest -v` output to identify predecessor test
 - Root cause unknown — not CWD pollution (test uses monkeypatch.chdir), not UPS tests (verified), not worktree presence
 - Inline TDD after full codebase exploration produces test-after with ceremony. All 15 tests passed on first attempt — no behavioral RED. Must delegate to test-driver in fresh context when task is marked TDD and design session loaded implementation context. [from: runbook-recall-expansion]
-- `claudeutils _worktree ls` shows userpromptsubmit-topic as `[requirements]` despite runbook existing. Separate fix-planstate-detector plan exists. Non-blocking for inline execution. [from: ups-topic-injection]
 ## Next Steps
 
-No active worktrees. userpromptsubmit-topic still registered (merged, needs manual `git worktree remove`). Mechanical tasks ready: merge completed filter (single-line fix), task notation migration (23 files), worktree CLI UX. Merge lifecycle audit covers 3 bugs found this session. Learnings at 75 lines — approaching `/codify` threshold.
+Run `/prioritize` with prototype script for scoring arithmetic. Mechanical tasks ready: merge completed filter (single-line fix), task notation migration (23 files), worktree CLI UX. Learnings at 80 lines — at `/codify` threshold.
 
 ## Reference Files
 
@@ -306,20 +285,15 @@ No active worktrees. userpromptsubmit-topic still registered (merged, needs manu
 - `plans/codebase-sweep/requirements.md` — mechanical refactoring (_git_ok, _fail, exceptions)
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
 - `plans/reports/prioritization-2026-02-28.md` — WSJF scoring, 71 tasks ranked (supersedes 2026-02-27)
-- `plans/task-classification/outline.md` — `/prime` skill + two-section task list design
-- `plans/runbook-recall-expansion/requirements.md` — Step agent + corrector recall during full orchestration (7 FRs)
 - `plans/skill-progressive-disclosure/brief.md` — Segment loading at gate boundaries (/design and /runbook)
 - `plans/reports/design-skill-grounding.md` — Design skill grounding (updated with session empirical data)
 - `plans/inline-execute/outline.md` — /inline skill design outline
 - `plans/inline-execute/reports/cross-skill-review.md` — Cross-skill review (continuation frontmatter gaps)
 - `agents/decisions/pipeline-contracts.md` — Pipeline contract decision file (new)
-- `plans/recall-null/outline.md` — Recall-null execution outline with Execution Model (Tier 2, ready for /inline)
 - `plans/reports/recall-lifecycle-grounding.md` — Grounded recall artifact lifecycle (3 patterns, per-point mode assignments, mode reduction)
 - `plans/reports/recall-lifecycle-internal-codebase.md` — Internal inventory: recall-artifact handling across all pipeline skills
 - `plans/reports/recall-lifecycle-external-research.md` — External research: 10 frameworks (HL7 CRMI, PROV-DM, OpenLineage, ADK, LangGraph, etc.)
 - `plans/pushback-grounding/requirements.md` — Claim verification + recall for `d:` discussion mode
 - `plans/worktree-ad-hoc-task/requirements.md` — Add task to session.md before worktree creation when absent
 - `plans/wt-rm-task-cleanup/brief.md` — rm removes completed task entry (branch `[x]` check)
-- `plans/task-classification/reports/outline-review.md` — Outline review that caught but insufficiently fixed failure mode analysis
 - `plans/merge-lifecycle-audit/brief.md` — State machine audit for merge→rm lifecycle (absorbs merge-submodule-ordering)
-- `plans/merge-submodule-ordering/brief.md` — Submodule conflict check ordering bug (absorbed by lifecycle audit)

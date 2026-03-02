@@ -359,3 +359,59 @@ Runbook validation reports (lifecycle, model-tags, red-plausibility, test-counts
 ## continuation-prepend
 
 Continuation passing protocol gaps: cooperative protocol compliance for skills receiving continuation chains. Deliverables: `plans/continuation-prepend/plan.md` (continuation prepend design), `plans/cooperative-protocol-gaps/` (protocol gap classification), integration tests for continuation passing. Reviewed via deliverable-review with fix cycle.
+
+## execute-skill-dispatch
+
+Skill dispatch routing for inline execution. Classification and requirements for how skills are invoked during task execution. Affected: agent-core/skills/.
+
+## flatten-hook-tiers
+
+Hook tier simplification. Flattened hook tier structure for cleaner matching. Affected: agent-core/hooks/.
+
+## inline-tdd-dispatch
+
+TDD delegation for inline tasks. When inline execution encounters TDD work, delegate to test-driver agent in fresh context to preserve RED/GREEN discipline. Affected: agent-core/skills/.
+
+## recall-cli-integration
+
+CLI integration for recall system. 30 tests, recall resolver wired into `claudeutils _recall` CLI. Outline, runbook, full execution. Affected: src/claudeutils/when/, tests/.
+
+## recall-null
+
+Null mode for recall — skip recall pass when no recall-artifact exists. Tier 2 execution with outline. Affected: agent-core/skills/.
+
+## runbook-recall-expansion
+
+Step agent and corrector recall during full orchestration. 7 FRs expanding recall passes to orchestrated execution contexts. Affected: agent-core/skills/orchestrate/, agent-core/agents/.
+
+## task-classification
+
+Two-section task list (In-tree Tasks / Worktree Tasks) with D-9 classification heuristic. Runbook with 7+ cycles. Regression: design D-4 conflated move semantics with post-merge hygiene, removing `_update_session_and_amend`. Affected: agent-core/fragments/execute-rule.md, agent-core/skills/handoff/.
+
+## task-pattern-statuses
+
+Task status notation patterns: `[!]` blocked, `[✗]` failed, `[–]` canceled markers for session.md task tracking. Affected: agent-core/fragments/execute-rule.md.
+
+## userpromptsubmit-topic
+
+UPS topic injection for contextual hook responses. Topic detection from user prompt, injected as additionalContext for agent-relevant decision recall. Outline, runbook, full execution. Affected: agent-core/hooks/userpromptsubmit-shortcuts.py.
+
+## when-resolve-fix
+
+Fix for when-resolve.py behavior. Brief-scoped bugfix. Affected: src/claudeutils/when/.
+
+## wt-rm-dirty
+
+Dirty tree handling during worktree rm. Restored `_update_session_and_amend` after task-classification regression, fixed lifecycle.md dirty-state bug (merge.py stages lifecycle before commit). Affected: src/claudeutils/worktree/cli.py, src/claudeutils/worktree/merge.py.
+
+## merge-submodule-ordering
+
+Submodule conflict check ordering bug in merge.py. Absorbed by merge-lifecycle-audit plan (state machine audit covers this as one of 3 phase-boundary bugs).
+
+## fix-planstate-detector
+
+Added `outlined` status to planstate inference. FR-1: outline.md without design.md → `outlined`. FR-2: next action `/runbook plans/{name}/outline.md`. FR-3: downstream enumeration sites updated. Affected: src/claudeutils/planstate/inference.py, agent-core/fragments/execute-rule.md.
+
+## cooperative-protocol-gaps
+
+Continuation protocol compliance gaps in /design, /runbook, /worktree, /commit. Superseded by "Retrofit skill pre-work" task which covers same scope (continuation frontmatter + §Continuation sections).
