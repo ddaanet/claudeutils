@@ -67,8 +67,6 @@
 
 - [ ] **Review TDD dispatch** → `review-tdd-dispatch` — `/deliverable-review plans/inline-tdd-dispatch` | opus | restart
 
-- [ ] **Fix wt parallel restart** → `fix-wt-parallel-restart` — `/design plans/fix-wt-parallel-restart/brief.md` | haiku
-  - Remove restart disqualification from worktree skill Mode B parallel group detection
 
 ## Blockers / Gotchas
 
