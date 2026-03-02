@@ -61,11 +61,12 @@
   - Plan: userpromptsubmit-topic | Phase 3: Cycles 3.1-3.3 + full checkpoint
 - [x] **Review UPS topic** — `/deliverable-review plans/userpromptsubmit-topic` | opus | restart
 
+- [x] **Review TDD dispatch** — `/deliverable-review plans/inline-tdd-dispatch` | opus | restart
+
 ## Worktree Tasks
 
 - [ ] **Fix UPS topic findings** → `fix-ups-topic-findings` — `/design plans/userpromptsubmit-topic/reports/deliverable-review.md` | opus
 
-- [ ] **Review TDD dispatch** → `review-tdd-dispatch` — `/deliverable-review plans/inline-tdd-dispatch` | opus | restart
 
 
 ## Blockers / Gotchas
