@@ -65,7 +65,6 @@
 
 ## Worktree Tasks
 
-- [ ] **Fix UPS topic findings** → `fix-ups-topic-findings` — `/design plans/userpromptsubmit-topic/reports/deliverable-review.md` | opus
 
 
 
