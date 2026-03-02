@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** Merge completed filter delivered, worktree skill model homogeneity removed, task absorptions (discuss-to-pending, delivery supercession), stale decision cleanup.
+**Status:** Bulk reclassification (63 tasks → Worktree), validator slug requirement removed, 4 worktrees created.
 
 ## Completed This Session
 
@@ -49,9 +49,14 @@
   - Root cause chain: D-9 classification not applied retroactively → all tasks In-tree → Worktree Tasks empty → `wt` can't dispatch
   - Compounding: stale single-section decision entry loaded alongside current two-section model
   - Learning recorded: "When reclassifying tasks after structural changes"
-- **Bulk reclassification:**
+- **Bulk reclassification + validator fix:**
   - All 63 pending `[ ]` tasks moved from In-tree to Worktree Tasks
   - New rule: main is worktree-tasks-only except trivial fixes. Plan absence doesn't qualify for in-tree.
+  - Removed `check_worktree_format` from `session_structure.py` — slug requirement invalid for pre-dispatch classification
+  - Deleted `TestCheckWorktreeFormat` class, updated `test_multiple_error_types` (3→2 errors)
+- **Worktree setup (4 parallel):**
+  - orchestrate-evolution, execute-flag-lint, skill-disclosure, session-md-validator
+  - Blast zone assessed: validator removal contained, merge asymmetry amplified (pre-existing bug, larger surface)
 
 ## In-tree Tasks
 
@@ -73,21 +78,21 @@
 
 ## Worktree Tasks
 
-- [ ] **Orchestrate evolution** — `/orchestrate orchestrate-evolution` | sonnet | restart | 6.0
+- [ ] **Orchestrate evolution** → `orchestrate-evolution` — `/orchestrate orchestrate-evolution` | sonnet | restart | 6.0
   - 14 steps: 12 TDD cycles (sonnet) + 2 general steps (opus)
   - Phase 1: agent caching model (4 cycles)
   - Phase 2: orchestrator plan format + verify-step.sh (4 cycles)
   - Phase 3: TDD agent generation + verify-red.sh (4 cycles)
   - Phase 4: SKILL.md rewrite + refactor.md/delegation.md updates (2 steps, opus)
   - Checkpoints: light at phase boundaries, full at Phase 4 (final)
-- [ ] **Execute flag lint** — precommit lint gate for `/inline ... execute` in session.md | haiku | 3.0
+- [ ] **Execute flag lint** → `execute-flag-lint` — precommit lint gate for `/inline ... execute` in session.md | haiku | 3.0
   - Scan session.md pending tasks for `/inline plans/.* execute` pattern
   - Flag as error: execute entry point in session.md bypasses Phase 2 recall (D+B anchor)
-- [ ] **Skill disclosure** — `/design plans/skill-progressive-disclosure/requirements.md` | opus | 2.6
+- [ ] **Skill disclosure** → `skill-disclosure` — `/design plans/skill-progressive-disclosure/requirements.md` | opus | 2.6
   - Plan: skill-progressive-disclosure | Status: requirements
   - Segment loading at gate boundaries: initial load → write-outline → write-design (/design); tier assessment → tier3-planning → expansion (/runbook)
   - Complementary with skills-quality-pass FR-3 extractions
-- [ ] **Session.md validator** — Scripted precommit check | sonnet | 2.4
+- [ ] **Session.md validator** → `session-md-validator` — Scripted precommit check | sonnet | 2.4
   - Plan: session-validator
   - Includes plan-archive coverage check (deleted plans must have archive entry)
 - [ ] **Worktree merge resilience** — `/runbook plans/worktree-merge-resilience/outline.md` | sonnet | 2.2
@@ -327,7 +332,7 @@
 
 ## Next Steps
 
-Orchestrate evolution (6.0, restart) is next highest priority. Learnings at 91 lines — past `/codify` threshold.
+4 worktrees active: orchestrate-evolution, execute-flag-lint, skill-disclosure, session-md-validator. Launch sessions, `hc` when done, merge back from main. Learnings at 91 lines — past `/codify` threshold.
 
 ## Reference Files
 
