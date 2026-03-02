@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** Skill-disclosure merged, discussion insights on merge ceremony and requirements-first workflow.
+**Status:** Active recall system plan created from architectural discussion.
 
 ## Completed This Session
 
@@ -71,6 +71,15 @@
 - **`w` (wrap) command definition recovered via session scraper:**
   - Tier 1 command (no colon), sequence: findings → takeaways → submit (handoff+commit)
   - Absorbed into directive-skill-promotion task
+- **Active recall system architecture discussion:**
+  - Recall vs RAG: keyed recall retrieves by applicability condition (when/where entry applies), not content similarity. Precision improves with model reasoning capability, not embedding quality.
+  - Hierarchical index: root index → child indices → triggers. O(log_k(N)) lookup via existing tail-recursion primitive. Required for scaling beyond ~200 entries.
+  - Two trigger classes: `when` (situational, project decisions, hand-curation) vs `how` (task-descriptive, reference documentation, automation-safe)
+  - Three learning categories: internal decisions (user-invalidated), external environment facts (version-invalidated), hybrid (version-triggers re-evaluation, decision may survive)
+  - Automated documentation conversion: sonnet + corrector pipeline for `how` entries from reference docs (Python stdlib, pytest, pydantic, click, ruff, mypy)
+  - Benchmark positioning: SWE-ContextBench sixth paradigm — recall-explore-recall pattern not covered by existing 5 paradigms
+  - Plan created: `plans/active-recall/brief.md`
+  - Refined `tmp/active-recall.md` — corrected RAG comparison (applicability conditions vs content similarity)
 
 ## In-tree Tasks
 
@@ -92,6 +101,10 @@
 
 ## Worktree Tasks
 
+- [ ] **Active recall system** — `/requirements plans/active-recall/brief.md` | opus
+  - Plan: active-recall
+  - Hierarchical index, automated documentation conversion, memory format grounding
+  - Relates to: recall tool consolidation, generate memory index, recall dedup, recall pipeline, recall learnings design
 - [ ] **Orchestrate evolution** → `orchestrate-evolution` — `/orchestrate orchestrate-evolution` | sonnet | restart | 6.0
   - 14 steps: 12 TDD cycles (sonnet) + 2 general steps (opus)
   - Phase 1: agent caching model (4 cycles)
@@ -349,7 +362,7 @@
 
 ## Next Steps
 
-3 worktrees active: orchestrate-evolution, execute-flag-lint, session-md-validator. Learnings at 108 lines — well past `/codify` threshold. 5 brief-only tasks need `/requirements` before `/design`.
+2 worktrees active: orchestrate-evolution, session-md-validator. execute-flag-lint worktree missing from `_worktree ls` — investigate. Active recall system plan created — needs `/requirements` then `/design`. Learnings at 112 lines — well past `/codify` threshold. 6 brief-only tasks need `/requirements` before `/design`.
 
 ## Reference Files
 
@@ -370,3 +383,5 @@
 - `plans/worktree-ad-hoc-task/requirements.md` — Add task to session.md before worktree creation when absent
 - `plans/wt-rm-task-cleanup/brief.md` — rm removes completed task entry (branch `[x]` check)
 - `plans/merge-lifecycle-audit/brief.md` — State machine audit for merge→rm lifecycle (absorbs merge-submodule-ordering)
+- `plans/active-recall/brief.md` — Active recall system: hierarchical index, documentation conversion, trigger classes, invalidation
+- `tmp/active-recall.md` — Discussion decisions: recall-explore-recall, tree navigation, benchmark landscape

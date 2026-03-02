@@ -107,3 +107,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - **Submit:** `/handoff --commit` (or `hc`).
 - Trigger: user says `wrap` or `w` at any point during or after discussion. The command crystallizes conversation context into persistent artifacts before context rotates out.
 - Pending: absorbed into directive-skill-promotion task. This learning bridges the gap until the UPS expansion is implemented.
+## When converting external documentation to recall entries
+- Two trigger classes have different automation profiles: `how` entries (task-descriptive: "how to encode URL in Python") can be extracted mechanically from documentation headings — sonnet automation with corrector pass. `when` entries (situational: "when classifying composite tasks") require operational experience to author — hand-curation from incidents and failures.
+- Anti-pattern: Treating all trigger extraction as equivalent quality risk. Applying corrector-heavy workflows to `how` entries (unnecessary) or batch-automating `when` entries (insufficient).
+- Correct pattern: Batch-automate `how` extraction from reference documentation. Reserve `when` for experiential curation. Corrector validates trigger specificity and dedup against existing index.
+- Structural insight: training provides reasoning capability; recall provides authoritative inputs. For operational methodology, explicit recall entries override ambiguous training-data patterns. Interaction structure (skills, tool gates, PreToolUse hooks) enforces application at the right moment — sidesteps the "skill recall baseline" problem (context displacement over long sessions).
