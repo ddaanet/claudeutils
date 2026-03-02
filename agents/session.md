@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** 4 worktrees merged+removed (runbook-recall-expansion, task-classification, wt-rm-dirty, fix-planstate-detector). RCA: task-classification regression. 2 worktrees remain (ups-topic-injection, userpromptsubmit-topic stale).
+**Status:** 5 worktrees merged+removed. RCA: task-classification regression + merge lifecycle audit. userpromptsubmit-topic worktree stale (merged, needs manual rm).
 
 ## Completed This Session
 
@@ -9,6 +9,7 @@
   - task-classification — leaked `[x]` tasks (autostrategy bug), regressed `_update_session_and_amend` → `_update_session` in cli.py
   - wt-rm-dirty — restored amend logic, fixed lifecycle.md dirty-state bug (merge.py stages lifecycle before commit)
   - fix-planstate-detector — conflict in lifecycle.md, stale wt-rm-dirty entry leaked from branch
+  - ups-topic-injection — submodule conflict (worktree SKILL.md), exposed merge-submodule-ordering bug (extra 1-parent commit)
 - **RCA: task-classification regression** — design D-4 conflated move semantics with post-merge hygiene
   - `_update_session_and_amend` served two purposes: (1) move-related session changes, (2) post-merge rm cleanup
   - Design only identified purpose (1), removed function. Every downstream stage trusted the claim.
@@ -19,7 +20,11 @@
   - Autostrategy only applies to session files, other files use standard three-way merge
   - `_worktree rm` should remove completed task entries when branch session.md has `[x]` — completion signal is branch status, not merge state
   - Design-corrector gets removal verification rule, not /design skill (corrector independently verifies, avoids prose gate)
-- **Wt rm task cleanup brief** — `plans/wt-rm-task-cleanup/brief.md`
+  - Merge→rm lifecycle needs systematic audit, not point fixes (3 bugs at phase boundaries in one session)
+- **Briefs written:**
+  - `plans/wt-rm-task-cleanup/brief.md` — rm removes completed task entry via branch `[x]` check
+  - `plans/merge-submodule-ordering/brief.md` — submodule check after parent commit (absorbed by lifecycle audit)
+  - `plans/merge-lifecycle-audit/brief.md` — state machine audit + integration tests
 - **Learning removed:** "When worktree rm reports uncommitted files" — replaced by pending task (Worktree CLI UX)
 
 ## Pending Tasks
@@ -140,6 +145,9 @@
   - /design tail-call /inline only when context budget allows, otherwise handoff+commit
   - Mechanism: UPS hook injects context percentage from statusline infrastructure
   - Threshold needs empirical calibration (no confabulated number)
+- [ ] **Merge lifecycle audit** — `/design plans/merge-lifecycle-audit/brief.md` | sonnet
+  - Plan: merge-lifecycle-audit | Status: brief
+  - State machine audit + integration tests for merge→rm lifecycle. Absorbs merge-submodule-ordering.
 - [ ] **Worktree CLI UX** — sonnet
   - `_worktree new`: stdout-only, exit status for success, user-friendly errors instead of tracebacks (task not in session.md, slug length)
   - `_worktree rm` dirty message: "Run hc in the worktree session, or claude -c to restart it"
@@ -227,12 +235,6 @@
 
 ## Worktree Tasks
 
-- [ ] **UPS topic injection** — `/runbook plans/userpromptsubmit-topic/outline.md` | sonnet
-  - Plan: userpromptsubmit-topic | Status: outlined (planstate detector shows `requirements` — fix-planstate-detector bug)
-
-
-
-
 ## Blockers / Gotchas
 
 **Never run `git merge` without sandbox bypass:**
@@ -294,7 +296,7 @@
 - `claudeutils _worktree ls` shows userpromptsubmit-topic as `[requirements]` despite runbook existing. Separate fix-planstate-detector plan exists. Non-blocking for inline execution. [from: ups-topic-injection]
 ## Next Steps
 
-1 active worktree (ups-topic-injection). userpromptsubmit-topic still registered (merged, needs `wt-rm`). Mechanical tasks ready: merge completed filter (single-line fix), task notation migration (23 files), worktree CLI UX. Learnings at 75 lines — approaching `/codify` threshold.
+No active worktrees. userpromptsubmit-topic still registered (merged, needs manual `git worktree remove`). Mechanical tasks ready: merge completed filter (single-line fix), task notation migration (23 files), worktree CLI UX. Merge lifecycle audit covers 3 bugs found this session. Learnings at 75 lines — approaching `/codify` threshold.
 
 ## Reference Files
 
@@ -319,3 +321,5 @@
 - `plans/worktree-ad-hoc-task/requirements.md` — Add task to session.md before worktree creation when absent
 - `plans/wt-rm-task-cleanup/brief.md` — rm removes completed task entry (branch `[x]` check)
 - `plans/task-classification/reports/outline-review.md` — Outline review that caught but insufficiently fixed failure mode analysis
+- `plans/merge-lifecycle-audit/brief.md` — State machine audit for merge→rm lifecycle (absorbs merge-submodule-ordering)
+- `plans/merge-submodule-ordering/brief.md` — Submodule conflict check ordering bug (absorbed by lifecycle audit)
