@@ -116,3 +116,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Showing a worktree task's execution command (e.g., `/requirements plans/X/brief.md`) as the "Next" action. Worktree tasks can't be executed directly — `x` doesn't pick them up. The displayed command is unreachable without `wt` setup first.
 - Correct pattern: When all in-tree tasks are blocked and the first actionable work is a worktree task, "Next" should point to worktree setup: `wt <task-name>` or `wt` for parallel group. The execution command belongs inside the worktree session, not in main's STATUS.
 - Rationale: STATUS guides the user's next action. An unreachable command creates a false affordance — user tries `x`, gets nothing because worktree tasks are excluded from execute pickup.
+## When filtering observable state from status output
+- Anti-pattern: Reporting "clean" when `git status --porcelain` shows modified files, rationalizing known-dirty files (`.claude/settings.json`) as "always dirty" and therefore ignorable.
+- Correct pattern: `git status --porcelain` non-empty means dirty. Report it as dirty. The user decides what's ignorable — the agent reports observable state without filtering.
+- Rationale: Filtering "expected" dirty files is a judgment call that suppresses signal. The user may want to know about the dirty file, or the file may be dirty for a different reason than assumed.
