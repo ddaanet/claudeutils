@@ -156,7 +156,7 @@ Implement it.
         )
 
         assert result is True
-        step_file = steps_dir / "step-1-1.md"
+        step_file = steps_dir / "step-1-1-test.md"
         assert step_file.exists()
         content = step_file.read_text()
         assert "**Execution Model**: sonnet" in content, (
@@ -195,7 +195,7 @@ Implement it.
         )
 
         assert result is True
-        step_file = steps_dir / "step-1-1.md"
+        step_file = steps_dir / "step-1-1-test.md"
         assert step_file.exists()
         content = step_file.read_text()
         assert "**Execution Model**: opus" in content, (

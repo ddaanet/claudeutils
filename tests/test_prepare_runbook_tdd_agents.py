@@ -294,10 +294,9 @@ class TestStepFileSplitting:
     def test_tdd_cycle_splits_into_test_and_impl_files(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Each TDD cycle produces step-N-test.md and step-N-impl.md, not
-        step-N.md."""
+        """TDD cycle splits into test and impl step files."""
         monkeypatch.chdir(tmp_path)
-        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
+        _, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
 
         assert result is True
         steps_dir = tmp_path / "plans" / "testplan" / "steps"
@@ -338,9 +337,10 @@ class TestStepFileSplitting:
     ) -> None:
         """General runbook steps produce single step-N-M.md (no splitting)."""
         monkeypatch.chdir(tmp_path)
+        # Use testplan dir (hardcoded in _run_validate helper)
         _run_validate(tmp_path, _RUNBOOK_PURE_GENERAL)
 
-        steps_dir = tmp_path / "plans" / "testgeneral" / "steps"
+        steps_dir = tmp_path / "plans" / "testplan" / "steps"
         step_files = {f.name for f in steps_dir.glob("*.md")}
 
         assert "step-1-1.md" in step_files
