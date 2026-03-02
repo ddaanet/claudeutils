@@ -33,6 +33,70 @@ SECTION_ORDER = [
 ]
 
 
+def check_status_line(lines: list[str]) -> list[str]:
+    """Validate H1 header and status line format.
+
+    Expected format:
+    - Line 1: H1 header matching '# Session Handoff: YYYY-MM-DD'
+    - Line 2: Blank line
+    - Line 3: Bold status line '**Status:** <non-empty text>'
+
+    Args:
+        lines: File content as list of lines.
+
+    Returns:
+        List of error strings.
+    """
+    errors = []
+
+    if len(lines) < 1:
+        errors.append("  line 1: file too short, missing H1 header")
+        return errors
+
+    h1_pattern = re.compile(r"^# Session Handoff: \d{4}-\d{2}-\d{2}$")
+    h1_line = lines[0].rstrip()
+
+    if not h1_pattern.match(h1_line):
+        if not h1_line.startswith("# Session Handoff:"):
+            errors.append(
+                "  line 1: H1 header must match '# Session Handoff: YYYY-MM-DD'"
+            )
+        else:
+            errors.append("  line 1: H1 header date must be in YYYY-MM-DD format")
+
+    if len(lines) < 2:
+        errors.append("  line 2: expected blank line between H1 and status")
+        return errors
+
+    blank_line = lines[1].strip()
+    if blank_line:
+        errors.append("  line 2: expected blank line between H1 and status")
+
+    if len(lines) < 3:
+        errors.append("  line 3: expected status line with format '**Status:** <text>'")
+        return errors
+
+    status_line = lines[2].rstrip()
+    status_pattern = re.compile(r"^\*\*Status:\*\*\s*(.*)$")
+    status_match = status_pattern.match(status_line)
+
+    if not status_match:
+        if "Status:" in status_line and not status_line.startswith("**Status:**"):
+            errors.append(
+                "  line 3: status line must use bold formatting: **Status:** <text>"
+            )
+        else:
+            errors.append(
+                "  line 3: expected status line with format '**Status:** <text>'"
+            )
+    else:
+        status_text = status_match.group(1).strip()
+        if not status_text:
+            errors.append("  line 3: status text cannot be empty")
+
+    return errors
+
+
 def parse_sections(lines: list[str]) -> dict[str, list[tuple[int, str]]]:
     """Parse session.md into named sections.
 
@@ -190,6 +254,9 @@ def validate(session_path: str, root: Path) -> list[str]:
         lines = f.readlines()
 
     errors = []
+
+    # H1 header and status line validation
+    errors.extend(check_status_line(lines))
 
     # Section schema validation
     errors.extend(check_section_schema(lines))
