@@ -90,3 +90,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Shipping a new classification model (two-section In-tree/Worktree Tasks) without reclassifying existing tasks. Handoff perpetuates defaults — all 60+ tasks stayed In-tree despite D-9 heuristic qualifying most for Worktree Tasks. On main (parent of worktrees), this left the Worktree Tasks section empty, making `wt` unable to dispatch.
 - Correct pattern: Structural changes to task organization require a bulk reclassification pass on existing data. Classification heuristics apply retroactively, not just to new tasks.
 - Compounding factor: Stale decision entry in `workflow-advanced.md` (2026-02-20, single-section model) contradicts the superseding entry in `operational-tooling.md` (2026-02-28, two-section model). Stale entry never cleaned up on delivery — the "Delivery supercession" task exists for exactly this gap.
+## When filtering observable state from status output
+- Anti-pattern: Reporting "clean" when `git status --porcelain` shows modified files, rationalizing known-dirty files (`.claude/settings.json`) as "always dirty" and therefore ignorable.
+- Correct pattern: `git status --porcelain` non-empty means dirty. Report it as dirty. The user decides what's ignorable — the agent reports observable state without filtering.
+- Rationale: Filtering "expected" dirty files is a judgment call that suppresses signal. The user may want to know about the dirty file, or the file may be dirty for a different reason than assumed.
