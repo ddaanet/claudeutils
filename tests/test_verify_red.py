@@ -31,8 +31,9 @@ def test_verify_red_confirms_failing_test(tmp_path: Path) -> None:
         f"Expected exit 0 for failing test, got {result.returncode}\n"
         f"stdout: {result.stdout}"
     )
-    assert "RED" in result.stdout or "CONFIRMED" in result.stdout, (
-        f"Expected 'RED' or 'CONFIRMED' in stdout, got: {result.stdout!r}"
+    assert "RED" in result.stdout, f"Expected 'RED' in stdout: {result.stdout!r}"
+    assert "CONFIRMED" in result.stdout, (
+        f"Expected 'CONFIRMED' in stdout: {result.stdout!r}"
     )
 
 

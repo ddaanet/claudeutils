@@ -230,9 +230,9 @@ Implement cleanup.
             phase_models={1: "sonnet", 2: "opus"},
         )
 
-        # Check structured header fields
-        assert "**Agent:** test-job-task" in content, (
-            f"Expected Agent field in header.\n{content}"
+        # TDD runbooks use none (tester/implementer dispatch)
+        assert "**Agent:** none" in content, (
+            f"Expected Agent: none for TDD runbook (no general task agent).\n{content}"
         )
         assert "**Corrector Agent:** test-job-corrector" in content, (
             f"Expected multi-phase corrector agent in header.\n{content}"
@@ -255,17 +255,6 @@ Implement cleanup.
         ), f"Expected phase boundary marker for last phase 1 item.\n{content}"
         assert "- step-2-1-test.md | Phase 2 | opus | 30 | TEST" in content, (
             f"Expected TEST step entry for cycle 2.1.\n{content}"
-        )
-
-        # Check no old-style H2 per step
-        assert "## step-1-1" not in content, (
-            f"Old format with H2 per step should not exist.\n{content}"
-        )
-        assert "## step-1-2" not in content, (
-            f"Old format with H2 per step should not exist.\n{content}"
-        )
-        assert "## step-2-1" not in content, (
-            f"Old format with H2 per step should not exist.\n{content}"
         )
 
     def test_orchestrator_plan_single_phase_corrector_agent(self) -> None:

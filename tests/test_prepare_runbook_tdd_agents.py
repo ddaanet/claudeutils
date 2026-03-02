@@ -59,7 +59,7 @@ _RUNBOOK_PURE_GENERAL = """\
 ---
 type: general
 model: sonnet
-name: testgeneral
+name: testplan
 ---
 
 ## Common Context
@@ -219,9 +219,7 @@ class TestTDDAgentsGenerated:
 
         assert result is True
         impl_content = (agents_dir / "testplan-implementer.md").read_text()
-        assert (
-            "implementation" in impl_content.lower() or "coding" in impl_content.lower()
-        )
+        assert "Role: Implementer" in impl_content
 
 
 class TestNoTDDAgentsForGeneralRunbook:
@@ -237,56 +235,21 @@ class TestNoTDDAgentsForGeneralRunbook:
         assert result is True
         agent_files = {f.name for f in agents_dir.glob("*.md")}
 
-        assert "testgeneral-tester.md" not in agent_files
-        assert "testgeneral-implementer.md" not in agent_files
-        assert "testgeneral-test-corrector.md" not in agent_files
-        assert "testgeneral-impl-corrector.md" not in agent_files
+        assert "testplan-tester.md" not in agent_files
+        assert "testplan-implementer.md" not in agent_files
+        assert "testplan-test-corrector.md" not in agent_files
+        assert "testplan-impl-corrector.md" not in agent_files
 
     def test_general_runbook_still_creates_task_agent(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """General runbook still creates the task agent (Phase 1 preserved)."""
         monkeypatch.chdir(tmp_path)
-        setup_git_repo(tmp_path)
-        setup_baseline_agents(tmp_path)
-
-        plan_dir = tmp_path / "plans" / "testgeneral"
-        plan_dir.mkdir(parents=True)
-        runbook_path = plan_dir / "runbook.md"
-        runbook_path.write_text(_RUNBOOK_PURE_GENERAL)
-
-        agents_dir = tmp_path / ".claude" / "agents"
-        steps_dir = plan_dir / "steps"
-        orchestrator_path = plan_dir / "orchestrator-plan.md"
-
-        _, body = parse_frontmatter(_RUNBOOK_PURE_GENERAL)
-        sections = extract_sections(body)
-        cycles = extract_cycles(body)
-        phase_models = extract_phase_models(body)
-        phase_preambles = extract_phase_preambles(body)
-        frontmatter, _ = parse_frontmatter(_RUNBOOK_PURE_GENERAL)
-
-        old_stdout = sys.stdout
-        sys.stdout = io.StringIO()
-        try:
-            result = validate_and_create(
-                str(runbook_path),
-                sections,
-                "testgeneral",
-                agents_dir,
-                steps_dir,
-                orchestrator_path,
-                frontmatter,
-                cycles=cycles,
-                phase_models=phase_models,
-                phase_preambles=phase_preambles,
-            )
-        finally:
-            sys.stdout = old_stdout
+        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_GENERAL)
 
         assert result is True
         agent_files = {f.name for f in agents_dir.glob("*.md")}
-        assert "testgeneral-task.md" in agent_files
+        assert "testplan-task.md" in agent_files
 
 
 class TestStepFileSplitting:
@@ -338,7 +301,6 @@ class TestStepFileSplitting:
     ) -> None:
         """General runbook steps produce single step-N-M.md (no splitting)."""
         monkeypatch.chdir(tmp_path)
-        # Use testplan dir (hardcoded in _run_validate helper)
         _run_validate(tmp_path, _RUNBOOK_PURE_GENERAL)
 
         steps_dir = tmp_path / "plans" / "testplan" / "steps"
