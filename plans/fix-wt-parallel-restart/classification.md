@@ -1,7 +1,0 @@
-- **Classification:** Simple
-- **Implementation certainty:** High — exact lines to edit identified in both files
-- **Requirement stability:** High — both FRs mechanism-specified with acceptance criteria
-- **Behavioral code check:** No — two prose instruction files (SKILL.md, execute-rule.md), no functions, logic paths, or conditional branches
-- **Work type:** Production — delivers capability change to agents
-- **Artifact destination:** agentic-prose
-- **Evidence:** Brief specifies exact edits. Requirements confirmed two source files via Grep. No architectural decisions — removing a false constraint from two locations.

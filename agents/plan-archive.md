@@ -415,3 +415,31 @@ Added `outlined` status to planstate inference. FR-1: outline.md without design.
 ## cooperative-protocol-gaps
 
 Continuation protocol compliance gaps in /design, /runbook, /worktree, /commit. Superseded by "Retrofit skill pre-work" task which covers same scope (continuation frontmatter + §Continuation sections).
+
+## complexity-routing
+
+Grounding research on complexity classification model. 7 fix points identified, execution strategy decision file written, routing model applied to /design and /runbook skills. Inline execution. Affected: agents/decisions/execution-strategy.md, agent-core/skills/design/, agent-core/skills/runbook/.
+
+## fix-wt-parallel-restart
+
+Remove restart disqualification from worktree skill parallel grouping (Mode B) and execute-rule.md. Prose edit. Affected: agent-core/skills/worktree/SKILL.md, agent-core/fragments/execute-rule.md.
+
+## phase-scoped-agents
+
+Per-phase agent generation with crew-<plan>-p<N> naming scheme. Concrete approach for phase-scoped baselines in orchestration. Outline, runbook, full execution. Affected: agent-core/skills/orchestrate/, agent-core/bin/prepare-runbook.py.
+
+## runbook-generation-fixes
+
+3 root causes in prepare-runbook.py producing 10 defects. Absorbed into parsing-fixes-batch execution. Affected: agent-core/bin/prepare-runbook.py.
+
+## task-lifecycle
+
+Task lifecycle awareness for STATUS and handoff. Unified task command source (planstate vs session.md), session-level continuation guidance. Inline execution. Affected: agent-core/fragments/execute-rule.md, agent-core/skills/handoff/SKILL.md.
+
+## update-grounding-skill
+
+Ground skill redesign: unified brainstorm/explore modes, parallelize branch agents via scout, remove conditional delete logic. Affected: agent-core/skills/ground/SKILL.md, agent-core/skills/ground/references/.
+
+## worktree-rm-error-ux
+
+Remove --confirm gate from worktree rm, improve git error messaging. Two phases (TDD + general). Affected: src/claudeutils/worktree/cli.py.

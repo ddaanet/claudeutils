@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-02
 
-**Status:** Prioritization rescore completed. 73 tasks ranked, 10 new, 8 removed.
+**Status:** Orphan plan cleanup, RCA on 12 unscheduled plans, UPS hook error-handling fix. 4 new pending tasks.
 
 ## Completed This Session
 
@@ -13,6 +13,16 @@
   - 8 removed (5 delivered, 1 absorbed, 1 no-task, 1 canceled), 10 new tasks scored
   - Top 5: Orchestrate evolution (6.0), Merge completed filter (4.0), Execute flag lint (3.0), Skill disclosure (2.6), Session.md validator (2.4)
   - 12 unscheduled plans identified (plans with artifacts but no session.md task)
+- **Orphan plan RCA + cleanup (7+3+2):**
+  - 7 delivered plan directories deleted + plan-archive entries: complexity-routing, fix-wt-parallel-restart, phase-scoped-agents, runbook-generation-fixes, task-lifecycle, update-grounding-skill, worktree-rm-error-ux
+  - 3 stuck plans fixed: inline-execute lifecycle.md → delivered, stale worktree-merge-resilience Blocker reference removed, pushback-grounding kept (active reference)
+  - 2 dropped tasks restored: discuss-to-pending, wt-exit-ceremony (lost by autostrategy merge at wt-rm-dirty)
+  - Root causes: (1) handoff trim lacks plan-completion ceremony (7 plans), (2) autostrategy merge drops branch-only Pending Tasks (2 tasks), (3) lifecycle.md not updated on rework completion (1 plan)
+- **UPS hook error handling fix:**
+  - Added stderr diagnostic on `ImportError` for `match_topics` (line 38)
+  - Narrowed bare `except Exception: pass` to report error via stderr (line 1047)
+  - Topic injection confirmed working — silent fallback was the bug pattern, not a runtime failure
+- **agent-core lint gap identified:** ruff excludes agent-core (pyproject.toml line 44), mypy scoped to src/tests only, docformatter scoped to src/tests. Hook scripts have zero mechanical quality enforcement.
 
 ## In-tree Tasks
 
@@ -61,6 +71,19 @@
   - Front-load plugin-dev:skill-development with project-specific skill editing patterns via ad-hoc continuation passing
   - Content: description field rules, extraction safety, control flow verification, entry point naming, prose quality ref
   - Replace ambient `.claude/rules/skill-development.md` path trigger with explicit skill invocation
+- [ ] **Directive skill promotion** — `/design` | opus
+  - d:, p:, w directives have prose-gate failures (grounding skip, model misclassification)
+  - Text expansions can't enforce multi-step protocols; need tool-gated skills
+  - Absorbs: wrap command (Tier 1 `w`), discuss protocol grounding, p: classification gap
+  - Evidence: 2× grounding skip, 3× model tier misclassification in single session
+- [ ] **Plan-completion ceremony** — `/design` | opus
+  - Handoff trim removes task line but has no plan-completion side effects
+  - Missing: delete plan dir, write plan-archive entry, update lifecycle.md, scan stale references
+  - 7 of 12 orphaned plans traced to this gap
+- [ ] **agent-core lint coverage** — `/design` | opus
+  - ruff excludes agent-core (pyproject.toml), mypy/docformatter scoped to src/tests only
+  - Hook scripts are load-bearing production code with zero mechanical quality enforcement
+  - Design questions: which ruff rules, mypy strict mode, agent-core justfile real precommit
 - [ ] **Agentic prose terminology** — replace "LLM prose"/"LLM-consumed prose" variants across codebase | sonnet
   - Search: "llm prose", "llm-prose", "LLM-prose", "LLM-consumed prose", "LLM generated prose" (with/without hyphens)
   - Replace with "agentic prose" / "agentic-prose" as appropriate per context
@@ -142,6 +165,14 @@
   - When design proposes removing functions, corrector reads implementation and callers, verifies removal justification covers all purposes
   - Decision entry with task-classification incident as evidence
 - [ ] **Wt merge-rm shorthand** — update worktree skill: `wt merge rm <slug>` as `merge <slug>` then `rm <slug>` | sonnet
+- [ ] **Worktree exit ceremony** — `/requirements plans/wt-exit-ceremony/brief.md` | sonnet
+  - Plan: wt-exit-ceremony | Status: requirements
+  - Two UPS Tier 1 shortcuts (k/ok, g/go) + worktree lifecycle behavior codification
+  - Dropped by autostrategy merge at d78d5fa5 (wt-rm-dirty), restored 2026-03-02
+- [ ] **Discuss-to-pending chain** — `/requirements plans/discuss-to-pending/brief.md` | sonnet
+  - Plan: discuss-to-pending | Status: requirements
+  - When d: mode validates a change, chain to p: evaluation
+  - Dropped by autostrategy merge at d78d5fa5 (wt-rm-dirty), restored 2026-03-02
 
 ### Tier 4: Rest
 
@@ -230,7 +261,7 @@
 **Post-merge validation (permanent):**
 - After every worktree merge, validate session.md (pending tasks from branch carried over) AND learnings.md (no entries lost from either side)
 - Known failure modes: autostrategy drops branch pending tasks, orphaned duplicate lines in append-only files, branch overwrites main-only learnings entries
-- Not automated — manual check required until worktree-merge-resilience delivered
+- Not automated — manual check required
 
 **Validator autofix handles placement:**
 - `claudeutils validate memory-index` autofixes placement (file section) and ordering issues
@@ -279,7 +310,7 @@
 - Inline TDD after full codebase exploration produces test-after with ceremony. All 15 tests passed on first attempt — no behavioral RED. Must delegate to test-driver in fresh context when task is marked TDD and design session loaded implementation context. [from: runbook-recall-expansion]
 ## Next Steps
 
-Merge completed filter is highest-priority quick win (4.0, ME=1). Recall tool consolidation next foundational task (1.9). Learnings at 80 lines — at `/codify` threshold.
+Merge completed filter (4.0, ME=1) is top quick win. Three new opus design tasks: directive skill promotion, plan-completion ceremony, agent-core lint coverage. Learnings at 80 lines — at `/codify` threshold.
 
 ## Reference Files
 

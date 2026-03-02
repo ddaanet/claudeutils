@@ -78,3 +78,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Decompose before classifying. If the input artifact contains N discrete work items, produce a per-item behavioral code check. Any item that adds conditional branches, functions, or logic paths elevates that item to Moderate minimum.
 - Distinct from companion tasks (explicit user bundling in session notes). Composite tasks are implicitly bundled by the task's nature — decomposition requires reading the input artifact.
 - Evidence: M-1 (precondition guard adding conditional branch) batch-classified as Simple alongside M-2 (comment) and M-3 (assertion tightening). Third instance of "behavioral code as Simple" pattern.
+## When classifying pending task model tier
+- Anti-pattern: Defaulting to sonnet for tasks involving agentic prose (skill expansions, directive definitions, architectural documents). The "prose edits to architectural artifacts require opus" rule exists but isn't applied during p: classification.
+- Correct pattern: Before stating model tier, check artifact type. Agentic prose (behavioral directives, skill content, fragment edits) → opus. Code implementation → model by complexity. The decision "when selecting model for prose artifact edits" (pipeline-contracts.md) applies to p: classification, not just runbook planning.
+- Evidence: `w` command classified as sonnet 3×, `agent-core lint coverage` classified as sonnet 1×, both corrected to opus. Same rule available in context via topic injection but not applied.
+## When directives outgrow text expansions
+- Anti-pattern: Keeping complex multi-step protocols as UPS text expansions (Tier 2 directives). The d: directive has ground→assess→stress-test→verdict sequence, but text expansions are instructions with no structural enforcement. Steps get skipped under momentum.
+- Correct pattern: When a directive develops a protocol with ordered steps where skipping a step produces observable failure, promote to a skill with tool gates. D+B gates (Read, recall resolve) make steps non-skippable. Text expansions remain appropriate for simple behavioral framing (b:, q:, learn:).
+- Evidence: d: grounding step skipped 2× in one session, p: model classification wrong 3× in one session. Both have loaded rules that weren't applied — the prose-gate failure mode.
