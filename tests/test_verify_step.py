@@ -61,6 +61,22 @@ def _create_justfile(repo_path: Path) -> None:
     )
 
 
+def _make_dirty_state(repo_path: Path, scenario: str) -> None:
+    """Create a dirty git state for the given scenario."""
+    if scenario == "uncommitted":
+        dirty_file = repo_path / "test.txt"
+        dirty_file.write_text("uncommitted content")
+        subprocess.run(
+            ["git", "add", "test.txt"],
+            cwd=repo_path,
+            capture_output=True,
+            check=True,
+        )
+    elif scenario == "untracked":
+        untracked_file = repo_path / "untracked.txt"
+        untracked_file.write_text("untracked content")
+
+
 def test_verify_step_clean_state(tmp_path: Path) -> None:
     """verify-step.sh exits with 0 and prints CLEAN on clean repo."""
     _setup_git_repo(tmp_path)
@@ -89,56 +105,23 @@ def test_verify_step_clean_state(tmp_path: Path) -> None:
 )
 def test_verify_step_dirty_states(tmp_path: Path, scenario: str) -> None:
     """verify-step.sh detects dirty states and non-zero exit."""
-    if scenario == "uncommitted":
-        _setup_git_repo(tmp_path)
-        _create_justfile(tmp_path)
+    _setup_git_repo(tmp_path)
+    _create_justfile(tmp_path)
+    _make_dirty_state(tmp_path, scenario)
 
-        test_file = tmp_path / "test.txt"
-        test_file.write_text("uncommitted content")
-        subprocess.run(
-            ["git", "add", "test.txt"],
-            cwd=tmp_path,
-            capture_output=True,
-            check=True,
-        )
+    result = subprocess.run(
+        [str(SCRIPT)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
-        result = subprocess.run(
-            [str(SCRIPT)],
-            cwd=tmp_path,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-
-        assert result.returncode != 0, (
-            f"Expected non-zero exit, got {result.returncode}. "
-            f"stdout: {result.stdout}\nstderr: {result.stderr}"
-        )
-        assert "DIRTY" in result.stdout or "DIRTY" in result.stderr, (
-            f"Expected 'DIRTY' in output. "
-            f"stdout: {result.stdout}\nstderr: {result.stderr}"
-        )
-
-    elif scenario == "untracked":
-        _setup_git_repo(tmp_path)
-        _create_justfile(tmp_path)
-
-        test_file = tmp_path / "untracked.txt"
-        test_file.write_text("untracked content")
-
-        result = subprocess.run(
-            [str(SCRIPT)],
-            cwd=tmp_path,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-
-        assert result.returncode != 0, (
-            f"Expected non-zero exit, got {result.returncode}. "
-            f"stdout: {result.stdout}\nstderr: {result.stderr}"
-        )
-        assert "DIRTY" in result.stdout or "DIRTY" in result.stderr, (
-            f"Expected 'DIRTY' in output. "
-            f"stdout: {result.stdout}\nstderr: {result.stderr}"
-        )
+    assert result.returncode != 0, (
+        f"Expected non-zero exit for {scenario!r}, got {result.returncode}. "
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )
+    assert "DIRTY" in result.stdout or "DIRTY" in result.stderr, (
+        f"Expected 'DIRTY' in output for {scenario!r}. "
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )
