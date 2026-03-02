@@ -323,6 +323,123 @@ def test_resolve_session_md_default_direction_still_merges(
     assert "Main task" in result_content
 
 
+# ── Cycle 2.2 tests ──────────────────────────────────────────────────────
+
+
+def _setup_remerge_session_md_conflict(
+    repo: Path,
+    init_repo: Callable[[Path], None],
+    *,
+    branch_session: str,
+    main_session: str,
+) -> None:
+    """Set up MERGE_HEAD state on feature branch with divergent session.md.
+
+    Feature branch has branch_session; main has main_session. Initiates merge of
+    main into feature (no-commit) leaving MERGE_HEAD set.
+    """
+    repo.mkdir(exist_ok=True)
+    init_repo(repo)
+
+    agents_dir = repo / "agents"
+    agents_dir.mkdir()
+    (agents_dir / "session.md").write_text("# Session\n\nInitial content\n")
+    _run_git(repo, "add", "agents/session.md")
+    _run_git(repo, "commit", "-m", "add session.md")
+
+    # Write main's diverging content
+    (agents_dir / "session.md").write_text(main_session)
+    _run_git(repo, "add", "agents/session.md")
+    _run_git(repo, "commit", "-m", "main session")
+
+    # Branch off, write branch content (diverges from main)
+    _run_git(repo, "checkout", "-b", "feature")
+    (agents_dir / "session.md").write_text(branch_session)
+    _run_git(repo, "add", "agents/session.md")
+    _run_git(repo, "commit", "-m", "branch session")
+
+    # Merge main into feature (no-commit) → MERGE_HEAD set, conflict present
+    subprocess.run(
+        ["git", "merge", "--no-commit", "--no-ff", "main"],
+        cwd=repo,
+        check=False,
+    )
+
+
+def test_remerge_session_md_from_main_keeps_ours_exactly(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    init_repo: Callable[[Path], None],
+) -> None:
+    """remerge_session_md with from_main=True keeps branch session exactly.
+
+    When merging main into a feature branch (from_main=True), the branch's
+    session.md must be kept as-is — main's tasks must not be injected.
+    """
+    branch_session = (
+        "# Session Handoff: 2026-03-02\n\n"
+        "## In-tree Tasks\n\n"
+        "- [ ] **Branch task only** — `just test` | sonnet\n"
+    )
+    main_session = (
+        "# Session Handoff: 2026-03-01\n\n"
+        "## In-tree Tasks\n\n"
+        "- [ ] **Main task A** — `just lint` | sonnet\n"
+        "- [ ] **Main task B** — `just precommit` | sonnet\n"
+    )
+
+    repo = tmp_path / "repo"
+    _setup_remerge_session_md_conflict(
+        repo, init_repo, branch_session=branch_session, main_session=main_session
+    )
+    monkeypatch.chdir(repo)
+
+    from claudeutils.worktree.remerge import remerge_session_md
+
+    remerge_session_md(slug="main", from_main=True)
+
+    result_content = (repo / "agents" / "session.md").read_text()
+    assert "Main task A" not in result_content
+    assert "Main task B" not in result_content
+    assert "Branch task only" in result_content
+
+
+def test_remerge_session_md_default_direction_still_merges(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    init_repo: Callable[[Path], None],
+) -> None:
+    """remerge_session_md default (from_main=False) still does additive merge.
+
+    Regression: existing behavior must not regress when from_main is omitted.
+    """
+    branch_session = (
+        "# Session Handoff: 2026-03-02\n\n"
+        "## In-tree Tasks\n\n"
+        "- [ ] **Branch task** — `just test` | sonnet\n"
+    )
+    main_session = (
+        "# Session Handoff: 2026-03-01\n\n"
+        "## In-tree Tasks\n\n"
+        "- [ ] **Main task** — `just lint` | sonnet\n"
+    )
+
+    repo = tmp_path / "repo"
+    _setup_remerge_session_md_conflict(
+        repo, init_repo, branch_session=branch_session, main_session=main_session
+    )
+    monkeypatch.chdir(repo)
+
+    from claudeutils.worktree.remerge import remerge_session_md
+
+    remerge_session_md(slug="main")
+
+    result_content = (repo / "agents" / "session.md").read_text()
+    # Additive merge: both tasks should appear
+    assert "Branch task" in result_content
+    assert "Main task" in result_content
+
+
 def test_phase3_passes_from_main_to_auto_resolve(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
