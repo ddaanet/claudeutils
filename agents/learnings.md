@@ -107,3 +107,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Do not codify on feature branches. Decision file changes create merge conflicts with main's decisions/. Defer codification to main.
 - The soft-limit age calculation should account for branch context — learnings on feature branches are younger in main-branch terms.
 - Pending: Codify branch awareness task (sonnet, no restart).
+## When lint-gated recall needs error categorization
+- Tuick (user's project, `~/code/tuick/`) has reusable errorformat parsing: `ErrorformatEntry` (filename, lnum, text, type), `tool_registry.py` (tool detection, custom patterns for ruff/pytest/mypy), `group_entries_by_location`, `group_pytest_entries`. Direct code reuse — not a dependency.
+- For lint-gated recall hook: parse `just precommit` output → structured error entries → extract error codes/categories from `text` field → map to recall domain keywords → inject matching memory-index entries.
+- Only new piece: error category → recall keyword mapping table. Parsing infrastructure already solved.
+- Per-error-type gating (not just first-red-after-green): each novel error category triggers fresh recall injection. Hook tracks seen categories, fires on new ones.

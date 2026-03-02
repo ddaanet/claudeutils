@@ -118,108 +118,98 @@ def _run_validate(tmp_path: Path, runbook_text: str) -> tuple[Path, bool]:
     return agents_dir, result
 
 
+@pytest.fixture
+def tdd_agents_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Run validate_and_create for TDD runbook, return agents_dir."""
+    monkeypatch.chdir(tmp_path)
+    agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
+    assert result is True
+    return agents_dir
+
+
 class TestTDDAgentsGenerated:
     """4 TDD-specific agent files generated for TDD runbooks."""
 
-    def test_tdd_agents_generated_for_tdd_runbook(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_tdd_agents_generated_for_tdd_runbook(self, tdd_agents_dir: Path) -> None:
         """Pure-TDD runbook produces exactly 4 TDD agent files."""
-        monkeypatch.chdir(tmp_path)
-        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
-
-        assert result is True
-        agent_files = {f.name for f in agents_dir.glob("*.md")}
-
+        agent_files = {f.name for f in tdd_agents_dir.glob("*.md")}
         assert "testplan-tester.md" in agent_files
         assert "testplan-implementer.md" in agent_files
         assert "testplan-test-corrector.md" in agent_files
         assert "testplan-impl-corrector.md" in agent_files
         assert len(agent_files) == 4
 
-    def test_tester_uses_test_driver_baseline(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_tester_uses_test_driver_baseline(self, tdd_agents_dir: Path) -> None:
         """Tester agent body contains test-driver.md baseline content."""
-        monkeypatch.chdir(tmp_path)
-        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
+        content = (tdd_agents_dir / "testplan-tester.md").read_text()
+        assert "TDD Task Agent - Baseline Template" in content
 
-        assert result is True
-        tester_content = (agents_dir / "testplan-tester.md").read_text()
-        assert "TDD Task Agent - Baseline Template" in tester_content
-
-    def test_implementer_uses_test_driver_baseline(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_implementer_uses_test_driver_baseline(self, tdd_agents_dir: Path) -> None:
         """Implementer agent body contains test-driver.md baseline content."""
-        monkeypatch.chdir(tmp_path)
-        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
+        content = (tdd_agents_dir / "testplan-implementer.md").read_text()
+        assert "TDD Task Agent - Baseline Template" in content
 
-        assert result is True
-        impl_content = (agents_dir / "testplan-implementer.md").read_text()
-        assert "TDD Task Agent - Baseline Template" in impl_content
-
-    def test_test_corrector_uses_corrector_baseline(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_test_corrector_uses_corrector_baseline(self, tdd_agents_dir: Path) -> None:
         """Test-corrector agent body contains corrector.md baseline content."""
-        monkeypatch.chdir(tmp_path)
-        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
+        content = (tdd_agents_dir / "testplan-test-corrector.md").read_text()
+        assert "# Corrector" in content
 
-        assert result is True
-        tc_content = (agents_dir / "testplan-test-corrector.md").read_text()
-        assert "# Corrector" in tc_content
-
-    def test_impl_corrector_uses_corrector_baseline(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_impl_corrector_uses_corrector_baseline(self, tdd_agents_dir: Path) -> None:
         """Impl-corrector agent body contains corrector.md baseline content."""
-        monkeypatch.chdir(tmp_path)
-        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
+        content = (tdd_agents_dir / "testplan-impl-corrector.md").read_text()
+        assert "# Corrector" in content
 
-        assert result is True
-        ic_content = (agents_dir / "testplan-impl-corrector.md").read_text()
-        assert "# Corrector" in ic_content
-
-    def test_all_four_agents_contain_plan_context(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_all_four_agents_contain_plan_context(self, tdd_agents_dir: Path) -> None:
         """All 4 TDD agents embed # Plan Context with ## Design subsection."""
-        monkeypatch.chdir(tmp_path)
-        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
-
-        assert result is True
         for agent_name in [
             "testplan-tester.md",
             "testplan-implementer.md",
             "testplan-test-corrector.md",
             "testplan-impl-corrector.md",
         ]:
-            content = (agents_dir / agent_name).read_text()
+            content = (tdd_agents_dir / agent_name).read_text()
             assert "# Plan Context" in content, f"{agent_name} missing # Plan Context"
             assert "## Design" in content, f"{agent_name} missing ## Design"
 
-    def test_tester_contains_test_quality_directive(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Tester agent contains role-specific test quality directive."""
-        monkeypatch.chdir(tmp_path)
-        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
+    def test_tester_role_and_scope(self, tdd_agents_dir: Path) -> None:
+        """Tester agent has role directive and scope enforcement."""
+        content = (tdd_agents_dir / "testplan-tester.md").read_text()
+        assert "Role: Tester" in content
+        assert "test quality" in content.lower()
 
-        assert result is True
-        tester_content = (agents_dir / "testplan-tester.md").read_text()
-        assert "test quality" in tester_content.lower()
+    def test_implementer_role_and_scope(self, tdd_agents_dir: Path) -> None:
+        """Implementer agent has role directive and scope enforcement."""
+        content = (tdd_agents_dir / "testplan-implementer.md").read_text()
+        assert "Role: Implementer" in content
+        assert "minimal code" in content.lower()
 
-    def test_implementer_contains_implementation_directive(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Implementer agent contains role-specific implementation directive."""
-        monkeypatch.chdir(tmp_path)
-        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
+    def test_test_corrector_scope_enforcement(self, tdd_agents_dir: Path) -> None:
+        """Test-corrector restricts review scope to test files only."""
+        content = (tdd_agents_dir / "testplan-test-corrector.md").read_text()
+        assert "Scope enforcement" in content
+        assert "test files" in content.lower()
 
-        assert result is True
-        impl_content = (agents_dir / "testplan-implementer.md").read_text()
-        assert "Role: Implementer" in impl_content
+    def test_impl_corrector_scope_enforcement(self, tdd_agents_dir: Path) -> None:
+        """Impl-corrector restricts review scope to implementation files."""
+        content = (tdd_agents_dir / "testplan-impl-corrector.md").read_text()
+        assert "Scope enforcement" in content
+        assert "implementation files" in content.lower()
+
+
+class TestTDDCorrectorModel:
+    """TDD corrector agents have model: sonnet in frontmatter."""
+
+    def test_test_corrector_has_sonnet_model(self, tdd_agents_dir: Path) -> None:
+        """test-corrector agent frontmatter specifies model: sonnet."""
+        content = (tdd_agents_dir / "testplan-test-corrector.md").read_text()
+        frontmatter, _ = parse_frontmatter(content)
+        assert frontmatter.get("model") == "sonnet"
+
+    def test_impl_corrector_has_sonnet_model(self, tdd_agents_dir: Path) -> None:
+        """impl-corrector agent frontmatter specifies model: sonnet."""
+        content = (tdd_agents_dir / "testplan-impl-corrector.md").read_text()
+        frontmatter, _ = parse_frontmatter(content)
+        assert frontmatter.get("model") == "sonnet"
 
 
 class TestNoTDDAgentsForGeneralRunbook:
@@ -231,10 +221,8 @@ class TestNoTDDAgentsForGeneralRunbook:
         """General runbook produces no TDD-specific agent files."""
         monkeypatch.chdir(tmp_path)
         agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_GENERAL)
-
         assert result is True
         agent_files = {f.name for f in agents_dir.glob("*.md")}
-
         assert "testplan-tester.md" not in agent_files
         assert "testplan-implementer.md" not in agent_files
         assert "testplan-test-corrector.md" not in agent_files
@@ -246,7 +234,6 @@ class TestNoTDDAgentsForGeneralRunbook:
         """General runbook still creates the task agent (Phase 1 preserved)."""
         monkeypatch.chdir(tmp_path)
         agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_GENERAL)
-
         assert result is True
         agent_files = {f.name for f in agents_dir.glob("*.md")}
         assert "testplan-task.md" in agent_files

@@ -125,3 +125,40 @@ def test_verify_step_dirty_states(tmp_path: Path, scenario: str) -> None:
         f"Expected 'DIRTY' in output for {scenario!r}. "
         f"stdout: {result.stdout}\nstderr: {result.stderr}"
     )
+
+
+def test_verify_step_precommit_failure(tmp_path: Path) -> None:
+    """verify-step.sh exits 1 with PRECOMMIT when precommit fails."""
+    _setup_git_repo(tmp_path)
+    # Create a justfile with a failing precommit recipe
+    justfile = tmp_path / "justfile"
+    justfile.write_text("precommit:\n\t@echo 'lint failed' && exit 1\n")
+    subprocess.run(
+        ["git", "add", "justfile"],
+        cwd=tmp_path,
+        capture_output=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "add justfile"],
+        cwd=tmp_path,
+        capture_output=True,
+        check=True,
+    )
+
+    result = subprocess.run(
+        [str(SCRIPT)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0, (
+        f"Expected non-zero exit for precommit failure, got {result.returncode}. "
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )
+    assert "PRECOMMIT" in result.stdout or "PRECOMMIT" in result.stderr, (
+        f"Expected 'PRECOMMIT' in output. "
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )

@@ -46,6 +46,13 @@ def _run_validate(tmp_path: Path, runbook_content: str, name: str) -> tuple[bool
     return result, steps_dir
 
 
+_THREE_PHASE_CYCLES = [
+    {"major": 1, "minor": 1, "number": "1.1", "title": "First", "content": "test 1"},
+    {"major": 1, "minor": 2, "number": "1.2", "title": "Second", "content": "test 2"},
+    {"major": 2, "minor": 1, "number": "2.1", "title": "Third", "content": "test 3"},
+]
+
+
 class TestOrchestratorPlan:
     """Orchestrator plan generation: phase file paths and model table."""
 
@@ -204,29 +211,7 @@ Implement cleanup.
         """Orchestrator plan uses structured header and step list."""
         content = generate_default_orchestrator(
             "test-job",
-            cycles=[
-                {
-                    "major": 1,
-                    "minor": 1,
-                    "number": "1.1",
-                    "title": "First",
-                    "content": "test 1",
-                },
-                {
-                    "major": 1,
-                    "minor": 2,
-                    "number": "1.2",
-                    "title": "Second",
-                    "content": "test 2",
-                },
-                {
-                    "major": 2,
-                    "minor": 1,
-                    "number": "2.1",
-                    "title": "Third",
-                    "content": "test 3",
-                },
-            ],
+            cycles=_THREE_PHASE_CYCLES,
             phase_models={1: "sonnet", 2: "opus"},
         )
 
@@ -277,63 +262,26 @@ Implement cleanup.
         """Orchestrator plan marks phase boundaries and phase summaries."""
         content = generate_default_orchestrator(
             "test-job",
-            cycles=[
-                {
-                    "major": 1,
-                    "minor": 1,
-                    "number": "1.1",
-                    "title": "First",
-                    "content": "test 1",
-                },
-                {
-                    "major": 1,
-                    "minor": 2,
-                    "number": "1.2",
-                    "title": "Second",
-                    "content": "test 2",
-                },
-                {
-                    "major": 2,
-                    "minor": 1,
-                    "number": "2.1",
-                    "title": "Third",
-                    "content": "test 3",
-                },
-            ],
+            cycles=_THREE_PHASE_CYCLES,
             inline_phases={3: "inline phase 3 content"},
             phase_models={1: "sonnet", 2: "opus", 3: "haiku"},
         )
 
-        # Check PHASE_BOUNDARY markers on last step of each phase (impl is last in TDD)
+        # PHASE_BOUNDARY markers on last step of each phase (impl is last in TDD)
         assert (
-            "- step-1-2-impl.md | Phase 1 | sonnet | 30 | IMPLEMENT | PHASE_BOUNDARY"
+            "step-1-2-impl.md | Phase 1 | sonnet | 30 | IMPLEMENT | PHASE_BOUNDARY"
             in content
-        ), f"Expected PHASE_BOUNDARY marker for last phase 1 step.\n{content}"
+        )
         assert (
-            "- step-2-1-impl.md | Phase 2 | opus | 30 | IMPLEMENT | PHASE_BOUNDARY"
+            "step-2-1-impl.md | Phase 2 | opus | 30 | IMPLEMENT | PHASE_BOUNDARY"
             in content
-        ), f"Expected PHASE_BOUNDARY marker for last phase 2 step.\n{content}"
-
-        # Check inline phase format: - INLINE | Phase N | —
-        assert "- INLINE | Phase 3 | —" in content, (
-            f"Expected inline phase format.\n{content}"
         )
-
-        # Check Phase Summaries section exists
-        assert "## Phase Summaries" in content, (
-            f"Expected Phase Summaries section.\n{content}"
-        )
-
-        # Check phase summary structure: ### Phase N: title
-        assert "### Phase 1:" in content, (
-            f"Expected Phase 1 summary subsection.\n{content}"
-        )
-        assert "### Phase 2:" in content, (
-            f"Expected Phase 2 summary subsection.\n{content}"
-        )
-        assert "### Phase 3:" in content, (
-            f"Expected Phase 3 summary subsection.\n{content}"
-        )
+        assert "- INLINE | Phase 3 | —" in content
+        # Phase Summaries with per-phase subsections
+        assert "## Phase Summaries" in content
+        assert "### Phase 1:" in content
+        assert "### Phase 2:" in content
+        assert "### Phase 3:" in content
 
         # Check IN:/OUT: bullet items in summaries
         assert "- IN:" in content, f"Expected IN: bullets in summaries.\n{content}"
@@ -396,3 +344,53 @@ Implement cleanup.
             "- step-1-2-impl.md | Phase 1 | sonnet | 30 | IMPLEMENT | PHASE_BOUNDARY"
             in content
         ), f"Expected max_turns=30 in IMPLEMENT step entry.\n{content}"
+
+
+class TestPhaseSummariesFromPreambles:
+    """Phase Summaries section uses preamble text instead of placeholders."""
+
+    def test_preambles_populate_in_scope(self) -> None:
+        """Phase preambles appear as IN scope in Phase Summaries."""
+        content = generate_default_orchestrator(
+            "testjob",
+            steps={"1.1": "Work here.", "2.1": "More work."},
+            step_phases={"1.1": 1, "2.1": 2},
+            default_model="sonnet",
+            phase_preambles={1: "Core data model", 2: "API layer"},
+        )
+        assert "- IN: Core data model" in content
+        assert "- IN: API layer" in content
+
+    def test_missing_preamble_shows_not_specified(self) -> None:
+        """Phases without preamble text show '(not specified)'."""
+        content = generate_default_orchestrator(
+            "testjob",
+            steps={"1.1": "Work here."},
+            default_model="sonnet",
+        )
+        assert "- IN: (not specified)" in content
+
+    def test_out_scope_references_other_phases(self) -> None:
+        """OUT scope lists other phase numbers."""
+        content = generate_default_orchestrator(
+            "testjob",
+            steps={"1.1": "Work.", "2.1": "More.", "3.1": "Final."},
+            step_phases={"1.1": 1, "2.1": 2, "3.1": 3},
+            default_model="sonnet",
+            phase_preambles={1: "Core", 2: "API", 3: "Docs"},
+        )
+        # Phase 1 OUT should reference phases 2 and 3
+        p1_section = content.split("### Phase 1:")[1].split("### Phase 2:")[0]
+        out_line = next(x for x in p1_section.splitlines() if x.startswith("- OUT:"))
+        assert "Phase 2" in out_line
+        assert "Phase 3" in out_line
+
+    def test_single_phase_out_scope(self) -> None:
+        """Single-phase plan shows '(single phase)' for OUT."""
+        content = generate_default_orchestrator(
+            "testjob",
+            steps={"1.1": "Work here."},
+            default_model="sonnet",
+            phase_preambles={1: "Everything"},
+        )
+        assert "- OUT: (single phase)" in content

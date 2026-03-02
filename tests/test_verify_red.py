@@ -74,3 +74,21 @@ def test_verify_red_rejects_missing_test_file(tmp_path: Path) -> None:
         f"stdout: {result.stdout}"
     )
     assert result.stdout.strip(), "Expected error message in stdout, got empty output"
+
+
+def test_verify_red_rejects_zero_arguments() -> None:
+    """Script exits 1 with error when invoked without arguments."""
+    result = subprocess.run(
+        [str(SCRIPT)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 1, (
+        f"Expected exit 1 for zero arguments, got {result.returncode}\n"
+        f"stdout: {result.stdout}"
+    )
+    assert "ERROR" in result.stdout, (
+        f"Expected 'ERROR' in stdout for missing argument: {result.stdout!r}"
+    )
