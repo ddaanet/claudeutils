@@ -227,7 +227,7 @@
 
 ## Worktree Tasks
 
-- [ ] **UPS topic injection** → `ups-topic-injection` — `/runbook plans/userpromptsubmit-topic/outline.md` | sonnet
+- [ ] **UPS topic injection** — `/runbook plans/userpromptsubmit-topic/outline.md` | sonnet
   - Plan: userpromptsubmit-topic | Status: outlined (planstate detector shows `requirements` — fix-planstate-detector bug)
 
 
