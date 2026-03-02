@@ -231,7 +231,7 @@
 
 ## Worktree Tasks
 
-- [ ] **Fix planstate detector** → `fix-planstate-detector` — `/design plans/fix-planstate-detector/requirements.md` | sonnet
+- [ ] **Fix planstate detector** — `/design plans/fix-planstate-detector/requirements.md` | sonnet
   - Plan: fix-planstate-detector | Status: requirements
   - Missing `outlined` status: outline.md grouped under `requirements` fallback
 
@@ -240,8 +240,6 @@
 
 
 
-
-- [ ] **Diagnose wt rm dirty-state** — `plans/wt-rm-dirty/brief.md` | sonnet
 
 ## Blockers / Gotchas
 
