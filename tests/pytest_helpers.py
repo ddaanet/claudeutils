@@ -73,6 +73,11 @@ def setup_baseline_agents(tmp_path: Path) -> None:
         "---\nname: test-driver\n---\n# Test Driver\nBaseline TDD agent."
     )
 
+    corrector = agents_dir / "corrector.md"
+    corrector.write_text(
+        "---\nname: corrector\nmodel: sonnet\n---\n# Corrector\nBaseline corrector."
+    )
+
 
 def assert_json_output(
     capsys: pytest.CaptureFixture[str], expected_length: int | None = None

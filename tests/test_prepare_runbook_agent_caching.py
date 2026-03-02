@@ -85,6 +85,26 @@ Stop on error.
 Do some cleanup work.
 """
 
+_RUNBOOK_1PHASE_GENERAL = """\
+---
+type: general
+model: sonnet
+name: testsingle
+---
+
+## Common Context
+
+Shared info.
+
+### Phase 1: Work (type: general)
+
+## Step 1.1: Do work
+
+**Execution Model**: sonnet
+
+Work content here.
+"""
+
 _RUNBOOK_3PHASE_INLINE = """\
 ---
 type: mixed
@@ -162,21 +182,16 @@ class TestSingleTaskAgent:
 
         assert result is True
 
-        # Exactly 1 agent file created (not per-phase)
-        created_agents = list(agents_dir.glob("*.md"))
-        assert len(created_agents) == 1, (
-            f"Expected 1 agent, got: {[a.name for a in created_agents]}"
-        )
+        # No per-phase crew- agents — replaced by role-based agents
+        assert not (agents_dir / "crew-testgeneral-p1.md").exists()
+        assert not (agents_dir / "crew-testgeneral-p2.md").exists()
 
         # Agent filename is {name}-task.md
         task_agent = agents_dir / "testgeneral-task.md"
+        created_agents = list(agents_dir.glob("*.md"))
         assert task_agent.exists(), (
             f"testgeneral-task.md not found, got: {[a.name for a in created_agents]}"
         )
-
-        # No per-phase crew- agents
-        assert not (agents_dir / "crew-testgeneral-p1.md").exists()
-        assert not (agents_dir / "crew-testgeneral-p2.md").exists()
 
         content = task_agent.read_text()
 
@@ -283,3 +298,92 @@ class TestValidateCreatesTaskAgent:
         # Orchestrator plan contains "(orchestrator-direct)" for phase 2
         orch_content = orchestrator_path.read_text()
         assert "(orchestrator-direct)" in orch_content
+
+
+def test_corrector_agent_generated_for_multi_phase(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Multi-phase plan generates corrector agent alongside task agent."""
+    setup_git_repo(tmp_path)
+    setup_baseline_agents(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    agents_dir = tmp_path / ".claude" / "agents"
+    steps_dir = tmp_path / "plans" / "testgeneral" / "steps"
+    orchestrator_path = tmp_path / "plans" / "testgeneral" / "orchestrator-plan.md"
+    runbook_path = tmp_path / "plans" / "testgeneral" / "runbook.md"
+
+    metadata, body = parse_frontmatter(_RUNBOOK_2PHASE_GENERAL)
+    sections = extract_sections(body)
+    cycles = extract_cycles(body)
+    phase_models = extract_phase_models(body)
+    phase_preambles = extract_phase_preambles(body)
+
+    result = validate_and_create(
+        runbook_path,
+        sections,
+        "testgeneral",
+        agents_dir=agents_dir,
+        steps_dir=steps_dir,
+        orchestrator_path=orchestrator_path,
+        metadata=metadata,
+        cycles=cycles,
+        phase_models=phase_models,
+        phase_preambles=phase_preambles,
+    )
+
+    assert result is True
+
+    # Corrector agent created alongside task agent
+    corrector = agents_dir / "testgeneral-corrector.md"
+    assert corrector.exists(), "testgeneral-corrector.md not found"
+
+    content = corrector.read_text()
+
+    # Uses corrector baseline body
+    assert "Corrector" in content
+
+    # Always model: sonnet
+    assert "model: sonnet" in content
+
+    # Contains Plan Context (design + outline)
+    assert "# Plan Context" in content
+
+    # Corrector-specific scope footer
+    assert "Review ONLY the phase checkpoint" in content
+
+
+def test_corrector_agent_skipped_for_single_phase(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Single non-inline phase runbook: no corrector agent created."""
+    setup_git_repo(tmp_path)
+    setup_baseline_agents(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    agents_dir = tmp_path / ".claude" / "agents"
+    steps_dir = tmp_path / "plans" / "testsingle" / "steps"
+    orchestrator_path = tmp_path / "plans" / "testsingle" / "orchestrator-plan.md"
+    runbook_path = tmp_path / "plans" / "testsingle" / "runbook.md"
+
+    metadata, body = parse_frontmatter(_RUNBOOK_1PHASE_GENERAL)
+    sections = extract_sections(body)
+    cycles = extract_cycles(body)
+    phase_models = extract_phase_models(body)
+    phase_preambles = extract_phase_preambles(body)
+
+    result = validate_and_create(
+        runbook_path,
+        sections,
+        "testsingle",
+        agents_dir=agents_dir,
+        steps_dir=steps_dir,
+        orchestrator_path=orchestrator_path,
+        metadata=metadata,
+        cycles=cycles,
+        phase_models=phase_models,
+        phase_preambles=phase_preambles,
+    )
+
+    assert result is True
+    assert not (agents_dir / "testsingle-corrector.md").exists()
