@@ -19,3 +19,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Proposing workaround branches for codify because "main doesn't allow work." The rule governs where pending tasks live, not what skills can execute.
 - Correct pattern: Run `/codify` on main directly. Dispatch worktrees for implementation tasks after. Sequential, not parallel — worktrees benefit from updated decisions/ anyway.
 - The codify-in-a-branch proposal fails on merge ordering: codify touches decisions/, fragments/, memory-index.md — shared infrastructure with no deterministic merge-first guarantee.
+## When parsing Claude Code JSONL message content
+- Anti-pattern: Assuming `type: "user"` entries with interrupt text (`[Request interrupted by user]`) always use string content format. In practice, interrupt messages appear as list content `[{"type": "text", "text": "[Request interrupted by user]"}]`.
+- Correct pattern: Extract text from both string and list formats before checking for content markers (interrupts, system-reminders, command tags). The content format is not predictable from the entry type — both formats occur for the same semantic content.
+- Evidence: Parser missed all interrupt entries in real sessions until list-format branch was fixed.

@@ -16,6 +16,7 @@ import json
 import re
 import subprocess
 import sys
+from collections import defaultdict
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, Literal
@@ -24,22 +25,12 @@ import click
 from pydantic import BaseModel
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-from claudeutils.parsing import extract_content_text  # noqa: E402
 from claudeutils.paths import encode_project_path, get_project_history_dir  # noqa: E402
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
 
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 COMMIT_RE = re.compile(r"\[(?:[^\[\]]*?\s+)?([0-9a-f]{7,12})\]")
 INTERACTIVE_TOOLS = frozenset({"ExitPlanMode", "AskUserQuestion"})
 GIT_COMMIT_MARKERS = frozenset({"file changed", "files changed", "create mode"})
-
-
-# ---------------------------------------------------------------------------
-# Data models
-# ---------------------------------------------------------------------------
 
 
 class EntryType(StrEnum):
@@ -82,20 +73,31 @@ class CommitInfo(BaseModel):
     branch: str | None = None
 
 
+class SessionFile(BaseModel):
+    path: Path
+    project_dir: str
+    file_type: Literal["uuid", "agent"]
+    session_id: str
+
+    model_config = {"arbitrary_types_allowed": True}
+
+
 class CorrelationResult(BaseModel):
     session_commits: dict[str, list[CommitInfo]]  # session_id → commits
     commit_sessions: dict[str, list[str]]  # commit_hash → session_ids
     unattributed: list[CommitInfo]  # commits with no session match
 
 
-# ---------------------------------------------------------------------------
-# Stage 1: Scanner
-# ---------------------------------------------------------------------------
+def _decode_project_path(encoded: str) -> str:
+    """Best-effort decode of encoded project path (lossy — dashes are
+    ambiguous)."""
+    if encoded == "-":
+        return "/"
+    return encoded.replace("-", "/")
 
 
-def scan_projects(prefix: str | None = None) -> list[tuple[Path, str, int, int]]:
-    """Return (history_dir, encoded_name, uuid_count, agent_count) per
-    project."""
+def scan_projects(prefix: str | None = None) -> list[SessionFile]:
+    """Return one SessionFile per UUID session file across all projects."""
     projects_dir = Path.home() / ".claude" / "projects"
     if not projects_dir.exists():
         return []
@@ -107,28 +109,32 @@ def scan_projects(prefix: str | None = None) -> list[tuple[Path, str, int, int]]
         except ValueError:
             pass
 
-    results = []
+    results: list[SessionFile] = []
     for history_dir in sorted(projects_dir.iterdir()):
         if not history_dir.is_dir():
             continue
         if encoded_prefix and not history_dir.name.startswith(encoded_prefix):
             continue
-        uuid_count = sum(
-            1 for f in history_dir.glob("*.jsonl") if UUID_RE.match(f.stem)
-        )
-        # Agents stored at: <history_dir>/<session-uuid>/subagents/agent-*.jsonl
-        agent_count = sum(1 for _ in history_dir.glob("*/subagents/agent-*.jsonl"))
-        results.append((history_dir, history_dir.name, uuid_count, agent_count))
+        decoded = _decode_project_path(history_dir.name)
+        for f in sorted(history_dir.glob("*.jsonl")):
+            if UUID_RE.match(f.stem):
+                results.append(
+                    SessionFile(
+                        path=f,
+                        project_dir=decoded,
+                        file_type="uuid",
+                        session_id=f.stem,
+                    )
+                )
     return results
 
 
-# ---------------------------------------------------------------------------
-# Stage 2: Parser
-# ---------------------------------------------------------------------------
-
-
 def _text_from(content: Any) -> str:
-    """Extract text string from string or list content."""
+    """Extract text from string or list content, joining all text blocks.
+
+    Differs from claudeutils.parsing.extract_content_text which returns only the
+    first text block — here we join all blocks for multi-block prompts.
+    """
     if isinstance(content, str):
         return content
     if isinstance(content, list):
@@ -286,9 +292,24 @@ def parse_session_file(path: Path, file_type: str = "uuid") -> list[TimelineEntr
                     )
 
             elif isinstance(msg_content, list):
-                # Non-tool-result list: skill body injection or list-format prompt
+                # Non-tool-result list: skill body injection or list-format prompt.
+                # Interrupt signals may appear as plain strings in the list, not
+                # typed {type: "text"} blocks, so check raw items first.
+                raw_strings = [item for item in msg_content if isinstance(item, str)]
                 first_text = _text_from(msg_content)
-                if (
+                interrupt_text = first_text + "\n".join(raw_strings)
+                if "[Request interrupted by user]" in interrupt_text:
+                    entries.append(
+                        TimelineEntry(
+                            timestamp=timestamp,
+                            entry_type=EntryType.INTERRUPT,
+                            session_id=session_id,
+                            agent_source=cur_agent,
+                            content="[Request interrupted by user]",
+                        )
+                    )
+                    pending_skill = None
+                elif (
                     first_text.startswith("Base directory for this skill")
                     and pending_skill
                 ):
@@ -359,11 +380,6 @@ def parse_session_file(path: Path, file_type: str = "uuid") -> list[TimelineEntr
     return entries
 
 
-# ---------------------------------------------------------------------------
-# Stage 3: Aggregator
-# ---------------------------------------------------------------------------
-
-
 def build_session_tree(root_session_id: str, project_dir: str) -> SessionTree:
     """Aggregate main session + direct sub-agents into a SessionTree."""
     history_dir = get_project_history_dir(project_dir)
@@ -408,11 +424,6 @@ def build_session_tree(root_session_id: str, project_dir: str) -> SessionTree:
     )
 
 
-# ---------------------------------------------------------------------------
-# Stage 4: Correlator
-# ---------------------------------------------------------------------------
-
-
 def _git_commit_info(commit_hash: str, git_dir: str) -> CommitInfo | None:
     try:
         r = subprocess.run(
@@ -431,6 +442,7 @@ def _git_commit_info(commit_hash: str, git_dir: str) -> CommitInfo | None:
             check=True,
         )
     except subprocess.CalledProcessError:
+        print(f"warning: unknown commit {commit_hash}", file=sys.stderr)
         return None
     lines = r.stdout.strip().splitlines()
     if not lines:
@@ -483,7 +495,9 @@ def correlate_session_tree(tree: SessionTree, git_dir: str) -> CorrelationResult
             session_commits.setdefault(sid, []).append(info)
         commit_sessions[h] = sessions
 
-    # Find recent unattributed commits (not matched to any session)
+    # Find recent unattributed commits (not matched to any session).
+    # Normalize extracted hashes to 7-char prefixes for comparison against full
+    # hashes returned by git log.
     try:
         r = subprocess.run(
             ["git", "-C", git_dir, "log", "--format=%H", "--max-count=50"],
@@ -491,10 +505,10 @@ def correlate_session_tree(tree: SessionTree, git_dir: str) -> CorrelationResult
             text=True,
             check=True,
         )
-        known = set(hash_to_sessions.keys())
+        known_prefixes = {h[:7] for h in hash_to_sessions}
         for line in r.stdout.strip().splitlines():
             h = line.strip()
-            if h and h[:7] not in known and h not in known:
+            if h and h[:7] not in known_prefixes:
                 info = _git_commit_info(h, git_dir)
                 if info:
                     unattributed.append(info)
@@ -506,11 +520,6 @@ def correlate_session_tree(tree: SessionTree, git_dir: str) -> CorrelationResult
         commit_sessions=commit_sessions,
         unattributed=unattributed,
     )
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
 
 
 @click.group()
@@ -526,17 +535,15 @@ def scan(prefix: str | None, fmt: str) -> None:
     results = scan_projects(prefix)
     if fmt == "json":
         click.echo(
-            json.dumps(
-                [
-                    {"encoded": enc, "uuid_sessions": u, "agent_files": a}
-                    for _, enc, u, a in results
-                ],
-                indent=2,
-            )
+            json.dumps([sf.model_dump() for sf in results], indent=2, default=str)
         )
     else:
-        for _, enc, u, a in results:
-            click.echo(f"{enc}: {u} sessions, {a} agent files")
+        # Group by project_dir for summary display
+        by_project: dict[str, int] = defaultdict(int)
+        for sf in results:
+            by_project[sf.project_dir] += 1
+        for project_dir, count in sorted(by_project.items()):
+            click.echo(f"{project_dir}: {count} sessions")
 
 
 @cli.command()
