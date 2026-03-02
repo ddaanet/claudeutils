@@ -441,3 +441,91 @@ class TestValidateCreatesTaskAgent:
         # Orchestrator plan contains "(orchestrator-direct)" for phase 2
         orch_content = orchestrator_path.read_text()
         assert "(orchestrator-direct)" in orch_content
+
+
+def test_task_agent_embeds_design_document(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Task agent body embeds design.md under # Plan Context / ## Design."""
+    setup_git_repo(tmp_path)
+    setup_baseline_agents(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    # Write a design.md in the plan directory
+    plan_dir = tmp_path / "plans" / "testgeneral"
+    plan_dir.mkdir(parents=True, exist_ok=True)
+    design_content = "# Design\n\nThis is the architecture.\n\nKey decisions here."
+    (plan_dir / "design.md").write_text(design_content)
+
+    agents_dir = tmp_path / ".claude" / "agents"
+    steps_dir = plan_dir / "steps"
+    orchestrator_path = plan_dir / "orchestrator-plan.md"
+    runbook_path = plan_dir / "runbook.md"
+
+    metadata, body = parse_frontmatter(_RUNBOOK_2PHASE_GENERAL)
+    sections = extract_sections(body)
+    cycles = extract_cycles(body)
+    phase_models = extract_phase_models(body)
+    phase_preambles = extract_phase_preambles(body)
+
+    result = validate_and_create(
+        runbook_path,
+        sections,
+        "testgeneral",
+        agents_dir=agents_dir,
+        steps_dir=steps_dir,
+        orchestrator_path=orchestrator_path,
+        metadata=metadata,
+        cycles=cycles,
+        phase_models=phase_models,
+        phase_preambles=phase_preambles,
+    )
+
+    assert result is True
+    content = (agents_dir / "testgeneral-task.md").read_text()
+
+    # Plan Context section with Design subsection
+    assert "# Plan Context" in content
+    assert "## Design" in content
+
+    # Design section contains full design.md text
+    assert "This is the architecture." in content
+    assert "Key decisions here." in content
+
+
+def test_task_agent_design_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When design.md absent, agent still generated with fallback note."""
+    setup_git_repo(tmp_path)
+    setup_baseline_agents(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    # No design.md written
+    agents_dir = tmp_path / ".claude" / "agents"
+    steps_dir = tmp_path / "plans" / "testgeneral" / "steps"
+    orchestrator_path = tmp_path / "plans" / "testgeneral" / "orchestrator-plan.md"
+    runbook_path = tmp_path / "plans" / "testgeneral" / "runbook.md"
+
+    metadata, body = parse_frontmatter(_RUNBOOK_2PHASE_GENERAL)
+    sections = extract_sections(body)
+    cycles = extract_cycles(body)
+    phase_models = extract_phase_models(body)
+    phase_preambles = extract_phase_preambles(body)
+
+    result = validate_and_create(
+        runbook_path,
+        sections,
+        "testgeneral",
+        agents_dir=agents_dir,
+        steps_dir=steps_dir,
+        orchestrator_path=orchestrator_path,
+        metadata=metadata,
+        cycles=cycles,
+        phase_models=phase_models,
+        phase_preambles=phase_preambles,
+    )
+
+    assert result is True
+    content = (agents_dir / "testgeneral-task.md").read_text()
+    assert "No design document found" in content
