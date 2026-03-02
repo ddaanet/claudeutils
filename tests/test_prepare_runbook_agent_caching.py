@@ -1,0 +1,373 @@
+"""Tests for agent caching model (single {name}-task agent)."""
+
+import importlib.util
+from pathlib import Path
+
+import pytest
+
+from tests.pytest_helpers import setup_baseline_agents, setup_git_repo
+
+SCRIPT = Path(__file__).parent.parent / "agent-core" / "bin" / "prepare-runbook.py"
+
+_spec = importlib.util.spec_from_file_location("prepare_runbook", SCRIPT)
+_mod = importlib.util.module_from_spec(_spec)  # type: ignore[arg-type]
+_spec.loader.exec_module(_mod)  # type: ignore[union-attr]
+
+validate_and_create = _mod.validate_and_create
+parse_frontmatter = _mod.parse_frontmatter
+extract_sections = _mod.extract_sections
+extract_cycles = _mod.extract_cycles
+extract_phase_models = _mod.extract_phase_models
+extract_phase_preambles = _mod.extract_phase_preambles
+
+
+_RUNBOOK_2PHASE_GENERAL = """\
+---
+type: general
+model: sonnet
+name: testgeneral
+---
+
+## Common Context
+
+Shared info about the project.
+
+### Phase 1: Setup (type: general)
+
+## Step 1.1: Do setup
+
+**Execution Model**: sonnet
+
+Do some setup work.
+
+### Phase 2: Cleanup (type: general)
+
+## Step 2.1: Do cleanup
+
+**Execution Model**: sonnet
+
+Do some cleanup work.
+"""
+
+
+_RUNBOOK_2PHASE = """\
+---
+type: mixed
+model: sonnet
+name: testmixed
+---
+
+## Common Context
+
+Shared info about the project.
+
+### Phase 1: Core (type: tdd)
+
+## Cycle 1.1: First cycle
+
+**Execution Model**: sonnet
+
+**RED Phase:**
+Write a test.
+
+**GREEN Phase:**
+Implement it.
+
+**Stop Conditions:**
+Stop on error.
+
+### Phase 2: Cleanup (type: general)
+
+## Step 2.1: Do cleanup
+
+**Execution Model**: sonnet
+
+Do some cleanup work.
+"""
+
+_RUNBOOK_3PHASE_INLINE = """\
+---
+type: mixed
+model: sonnet
+name: testinline
+---
+
+## Common Context
+
+Shared info about the project.
+
+### Phase 1: Core (type: tdd)
+
+## Cycle 1.1: First cycle
+
+**Execution Model**: sonnet
+
+**RED Phase:**
+Write a test.
+
+**GREEN Phase:**
+Implement it.
+
+**Stop Conditions:**
+Stop on error.
+
+### Phase 2: Infrastructure (type: inline)
+
+Inline orchestration work done by orchestrator directly.
+
+### Phase 3: Cleanup (type: general)
+
+## Step 3.1: Do cleanup
+
+**Execution Model**: sonnet
+
+Do some cleanup work.
+"""
+
+
+class TestSingleTaskAgent:
+    """Single {name}-task agent replaces per-phase crew- agents."""
+
+    def test_single_task_agent_replaces_per_phase(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """2-phase general runbook creates exactly 1 agent: {name}-task.md."""
+        setup_git_repo(tmp_path)
+        setup_baseline_agents(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        agents_dir = tmp_path / ".claude" / "agents"
+        steps_dir = tmp_path / "plans" / "testgeneral" / "steps"
+        orchestrator_path = tmp_path / "plans" / "testgeneral" / "orchestrator-plan.md"
+        runbook_path = tmp_path / "plans" / "testgeneral" / "runbook.md"
+
+        metadata, body = parse_frontmatter(_RUNBOOK_2PHASE_GENERAL)
+        sections = extract_sections(body)
+        cycles = extract_cycles(body)
+        phase_models = extract_phase_models(body)
+        phase_preambles = extract_phase_preambles(body)
+
+        result = validate_and_create(
+            runbook_path,
+            sections,
+            "testgeneral",
+            agents_dir=agents_dir,
+            steps_dir=steps_dir,
+            orchestrator_path=orchestrator_path,
+            metadata=metadata,
+            cycles=cycles,
+            phase_models=phase_models,
+            phase_preambles=phase_preambles,
+        )
+
+        assert result is True
+
+        # Exactly 1 agent file created (not per-phase)
+        created_agents = list(agents_dir.glob("*.md"))
+        assert len(created_agents) == 1, (
+            f"Expected 1 agent, got: {[a.name for a in created_agents]}"
+        )
+
+        # Agent filename is {name}-task.md
+        task_agent = agents_dir / "testgeneral-task.md"
+        assert task_agent.exists(), (
+            f"testgeneral-task.md not found, got: {[a.name for a in created_agents]}"
+        )
+
+        # No per-phase crew- agents
+        assert not (agents_dir / "crew-testgeneral-p1.md").exists()
+        assert not (agents_dir / "crew-testgeneral-p2.md").exists()
+
+        content = task_agent.read_text()
+
+        # Frontmatter name field is {name}-task
+        assert "name: testgeneral-task" in content
+
+        # Scope enforcement footer
+        assert "Execute ONLY the step file" in content
+
+        # Clean tree footer
+        assert "Commit all changes before reporting success" in content
+
+        # Artisan baseline content (general runbook)
+        assert "Artisan" in content
+
+
+class TestValidateCreatesTaskAgent:
+    """validate_and_create() creates a single {name}-task agent file."""
+
+    def test_validate_creates_single_task_agent_mixed(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """2-phase mixed runbook creates single testmixed-task.md agent."""
+        setup_git_repo(tmp_path)
+        setup_baseline_agents(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        agents_dir = tmp_path / ".claude" / "agents"
+        steps_dir = tmp_path / "plans" / "testmixed" / "steps"
+        orchestrator_path = tmp_path / "plans" / "testmixed" / "orchestrator-plan.md"
+        runbook_path = tmp_path / "plans" / "testmixed" / "runbook.md"
+
+        metadata, body = parse_frontmatter(_RUNBOOK_2PHASE)
+        sections = extract_sections(body)
+        cycles = extract_cycles(body)
+        phase_models = extract_phase_models(body)
+        phase_preambles = extract_phase_preambles(body)
+
+        result = validate_and_create(
+            runbook_path,
+            sections,
+            "testmixed",
+            agents_dir=agents_dir,
+            steps_dir=steps_dir,
+            orchestrator_path=orchestrator_path,
+            metadata=metadata,
+            cycles=cycles,
+            phase_models=phase_models,
+            phase_preambles=phase_preambles,
+        )
+
+        assert result is True
+        # Single task agent created, no per-phase agents
+        assert (agents_dir / "testmixed-task.md").exists()
+        assert not (agents_dir / "crew-testmixed-p1.md").exists()
+        assert not (agents_dir / "crew-testmixed-p2.md").exists()
+        # Mixed runbook uses artisan baseline
+        content = (agents_dir / "testmixed-task.md").read_text()
+        assert "Artisan" in content
+        # Agent contains plan context
+        assert "Shared info" in content
+        # Orchestrator references task agent
+        orch_content = orchestrator_path.read_text()
+        assert "testmixed-task" in orch_content
+
+    def test_validate_inline_phase_no_extra_agent(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """3-phase runbook with inline phase: still produces 1 task agent."""
+        setup_git_repo(tmp_path)
+        setup_baseline_agents(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        agents_dir = tmp_path / ".claude" / "agents"
+        steps_dir = tmp_path / "plans" / "testinline" / "steps"
+        orchestrator_path = tmp_path / "plans" / "testinline" / "orchestrator-plan.md"
+        runbook_path = tmp_path / "plans" / "testinline" / "runbook.md"
+
+        metadata, body = parse_frontmatter(_RUNBOOK_3PHASE_INLINE)
+        sections = extract_sections(body)
+        cycles = extract_cycles(body)
+        phase_models = extract_phase_models(body)
+        phase_preambles = extract_phase_preambles(body)
+
+        result = validate_and_create(
+            runbook_path,
+            sections,
+            "testinline",
+            agents_dir=agents_dir,
+            steps_dir=steps_dir,
+            orchestrator_path=orchestrator_path,
+            metadata=metadata,
+            cycles=cycles,
+            phase_models=phase_models,
+            phase_preambles=phase_preambles,
+        )
+
+        assert result is True
+        # Single task agent, no per-phase agents
+        assert (agents_dir / "testinline-task.md").exists()
+        assert not (agents_dir / "crew-testinline-p1.md").exists()
+        assert not (agents_dir / "crew-testinline-p2.md").exists()
+        assert not (agents_dir / "crew-testinline-p3.md").exists()
+        # Orchestrator plan contains "(orchestrator-direct)" for phase 2
+        orch_content = orchestrator_path.read_text()
+        assert "(orchestrator-direct)" in orch_content
+
+
+def test_task_agent_embeds_design_document(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Task agent body embeds design.md under # Plan Context / ## Design."""
+    setup_git_repo(tmp_path)
+    setup_baseline_agents(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    # Write a design.md in the plan directory
+    plan_dir = tmp_path / "plans" / "testgeneral"
+    plan_dir.mkdir(parents=True, exist_ok=True)
+    design_content = "# Design\n\nThis is the architecture.\n\nKey decisions here."
+    (plan_dir / "design.md").write_text(design_content)
+
+    agents_dir = tmp_path / ".claude" / "agents"
+    steps_dir = plan_dir / "steps"
+    orchestrator_path = plan_dir / "orchestrator-plan.md"
+    runbook_path = plan_dir / "runbook.md"
+
+    metadata, body = parse_frontmatter(_RUNBOOK_2PHASE_GENERAL)
+    sections = extract_sections(body)
+    cycles = extract_cycles(body)
+    phase_models = extract_phase_models(body)
+    phase_preambles = extract_phase_preambles(body)
+
+    result = validate_and_create(
+        runbook_path,
+        sections,
+        "testgeneral",
+        agents_dir=agents_dir,
+        steps_dir=steps_dir,
+        orchestrator_path=orchestrator_path,
+        metadata=metadata,
+        cycles=cycles,
+        phase_models=phase_models,
+        phase_preambles=phase_preambles,
+    )
+
+    assert result is True
+    content = (agents_dir / "testgeneral-task.md").read_text()
+
+    # Plan Context section with Design subsection
+    assert "# Plan Context" in content
+    assert "## Design" in content
+
+    # Design section contains full design.md text
+    assert "This is the architecture." in content
+    assert "Key decisions here." in content
+
+
+def test_task_agent_design_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When design.md absent, agent still generated with fallback note."""
+    setup_git_repo(tmp_path)
+    setup_baseline_agents(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    # No design.md written
+    agents_dir = tmp_path / ".claude" / "agents"
+    steps_dir = tmp_path / "plans" / "testgeneral" / "steps"
+    orchestrator_path = tmp_path / "plans" / "testgeneral" / "orchestrator-plan.md"
+    runbook_path = tmp_path / "plans" / "testgeneral" / "runbook.md"
+
+    metadata, body = parse_frontmatter(_RUNBOOK_2PHASE_GENERAL)
+    sections = extract_sections(body)
+    cycles = extract_cycles(body)
+    phase_models = extract_phase_models(body)
+    phase_preambles = extract_phase_preambles(body)
+
+    result = validate_and_create(
+        runbook_path,
+        sections,
+        "testgeneral",
+        agents_dir=agents_dir,
+        steps_dir=steps_dir,
+        orchestrator_path=orchestrator_path,
+        metadata=metadata,
+        cycles=cycles,
+        phase_models=phase_models,
+        phase_preambles=phase_preambles,
+    )
+
+    assert result is True
+    content = (agents_dir / "testgeneral-task.md").read_text()
+    assert "No design document found" in content
