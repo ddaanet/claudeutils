@@ -286,3 +286,63 @@ class TestNoTDDAgentsForGeneralRunbook:
         assert result is True
         agent_files = {f.name for f in agents_dir.glob("*.md")}
         assert "testgeneral-task.md" in agent_files
+
+
+class TestStepFileSplitting:
+    """TDD cycles produce split step-N-test.md + step-N-impl.md files."""
+
+    def test_tdd_cycle_splits_into_test_and_impl_files(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Each TDD cycle produces step-N-test.md and step-N-impl.md, not
+        step-N.md."""
+        monkeypatch.chdir(tmp_path)
+        agents_dir, result = _run_validate(tmp_path, _RUNBOOK_PURE_TDD)
+
+        assert result is True
+        steps_dir = tmp_path / "plans" / "testplan" / "steps"
+        step_files = {f.name for f in steps_dir.glob("*.md")}
+
+        # Two files produced per cycle, not one
+        assert "step-1-1-test.md" in step_files, "test file missing"
+        assert "step-1-1-impl.md" in step_files, "impl file missing"
+        assert "step-1-1.md" not in step_files, "unsplit file should not exist"
+
+        test_content = (steps_dir / "step-1-1-test.md").read_text()
+        impl_content = (steps_dir / "step-1-1-impl.md").read_text()
+
+        # Test file contains RED phase content
+        assert "RED Phase" in test_content
+        assert "Write a failing test." in test_content
+
+        # Test file does NOT contain GREEN phase content
+        assert "GREEN Phase" not in test_content
+        assert "Make the test pass." not in test_content
+
+        # Impl file contains GREEN phase content
+        assert "GREEN Phase" in impl_content
+        assert "Make the test pass." in impl_content
+
+        # Impl file does NOT contain RED phase content
+        assert "RED Phase" not in impl_content
+        assert "Write a failing test." not in impl_content
+
+        # Both files have metadata headers
+        for content in (test_content, impl_content):
+            assert "**Plan**:" in content
+            assert "**Phase**:" in content
+            assert "**Execution Model**:" in content
+
+    def test_general_step_not_split(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """General runbook steps produce single step-N-M.md (no splitting)."""
+        monkeypatch.chdir(tmp_path)
+        _run_validate(tmp_path, _RUNBOOK_PURE_GENERAL)
+
+        steps_dir = tmp_path / "plans" / "testgeneral" / "steps"
+        step_files = {f.name for f in steps_dir.glob("*.md")}
+
+        assert "step-1-1.md" in step_files
+        assert "step-1-1-test.md" not in step_files
+        assert "step-1-1-impl.md" not in step_files
