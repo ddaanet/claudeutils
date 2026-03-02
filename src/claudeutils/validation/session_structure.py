@@ -8,7 +8,7 @@ Checks:
 import re
 from pathlib import Path
 
-TASK_PATTERN = re.compile(r"^- \[[ x>!✗–]\] \*\*(.+?)\*\*")  # noqa: RUF001
+TASK_PATTERN = re.compile(r"^- \[.\] \*\*(.+?)\*\*")
 SECTION_PATTERN = re.compile(r"^## (.+)$")
 REF_FILE_PATTERN = re.compile(r"^- `([^`]+)`")
 

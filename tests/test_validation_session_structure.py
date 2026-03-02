@@ -69,11 +69,11 @@ class TestExtractSectionTasks:
         assert tasks[1] == (7, "Task Two")
 
     def test_blocked_failed_canceled_statuses(self) -> None:
-        """Tasks with [!], [\u2717], [\u2013] statuses extracted."""
+        """Tasks with [!], [\u2020], [-] statuses extracted."""
         section = [
             (5, "- [!] **Blocked Task** \u2014 waiting"),
-            (6, "- [\u2717] **Failed Task** \u2014 terminal"),
-            (7, "- [\u2013] **Canceled Task** \u2014 canceled"),
+            (6, "- [\u2020] **Failed Task** \u2014 terminal"),
+            (7, "- [-] **Canceled Task** \u2014 canceled"),
         ]
         tasks = extract_section_tasks(section)
         assert len(tasks) == 3

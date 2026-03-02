@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-TASK_PATTERN = re.compile(r"^- \[[ x>!✗–]\] \*\*(.+?)\*\* —")  # noqa: RUF001
+TASK_PATTERN = re.compile(r"^- \[.\] \*\*(.+?)\*\* —")
 LEARNING_PATTERN = re.compile(r"^## (.+)$")
 H1_PATTERN = re.compile(r"^# ")
 
