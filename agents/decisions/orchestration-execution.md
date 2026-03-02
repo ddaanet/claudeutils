@@ -371,6 +371,10 @@ FR-17 documents the three-tier escalation requirement. Concrete detection mechan
 
 **Context priming:** Sub-agents don't share parent context. Each NEW agent must self-prime by running `claudeutils _recall resolve` on relevant recall-artifact entries. Resumed agents already have this context.
 
+**Prompt composition anti-pattern:** Passing the full runbook (or multiple cycles) to the test-driver. Visible future cycles cause GREEN phases to over-implement, breaking minimal-passing-implementation discipline.
+
+**Correct pattern:** Executing session extracts the current cycle and composes the test-driver prompt from cycle spec + Common Context + recall entries. Test-driver receives only its cycle's scope. Enforcement is structural — context absence, not prose instruction (see "When Limiting Agent Scope"). Persistent context is stronger signal than per-step instruction at haiku capability (see "When Agent Context Has Conflicting Signals").
+
 ### When Implementation Modifies Pipeline Skills
 
 **Decision Date:** 2026-02-27

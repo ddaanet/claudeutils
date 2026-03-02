@@ -291,6 +291,7 @@
 - Non-reproducible after merge completes. On reoccurrence: capture `pytest -v` output to identify predecessor test
 - Root cause unknown — not CWD pollution (test uses monkeypatch.chdir), not UPS tests (verified), not worktree presence
 - Inline TDD after full codebase exploration produces test-after with ceremony. All 15 tests passed on first attempt — no behavioral RED. Must delegate to test-driver in fresh context when task is marked TDD and design session loaded implementation context. [from: runbook-recall-expansion]
+- `claudeutils _worktree ls` shows userpromptsubmit-topic as `[requirements]` despite runbook existing. Separate fix-planstate-detector plan exists. Non-blocking for inline execution. [from: ups-topic-injection]
 ## Next Steps
 
 1 active worktree (ups-topic-injection). userpromptsubmit-topic still registered (merged, needs `wt-rm`). Mechanical tasks ready: merge completed filter (single-line fix), task notation migration (23 files), worktree CLI UX. Learnings at 75 lines — approaching `/codify` threshold.

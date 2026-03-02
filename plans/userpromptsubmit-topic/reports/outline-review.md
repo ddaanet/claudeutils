@@ -1,114 +1,150 @@
-# Outline Review: UserPromptSubmit Topic Injection
+# Runbook Outline Review: userpromptsubmit-topic
 
-**Artifact**: plans/userpromptsubmit-topic/outline.md
+**Artifact**: plans/userpromptsubmit-topic/runbook-outline.md
+**Design**: plans/userpromptsubmit-topic/outline.md
+**Requirements**: plans/userpromptsubmit-topic/requirements.md
 **Date**: 2026-02-28
-**Mode**: review + fix-all (PDR criteria)
+**Mode**: review + fix-all
 
 ## Summary
 
-The outline is well-structured with 10 explicit decisions, each with clear rationale. All functional requirements trace to outline sections with complete coverage. Three issues required correction: a cache location contradiction with FR-4, an overstated hook refactor claim that misrepresented the existing control flow, and missing explicit traceability tags.
+The outline is well-structured with clean phase progression (matching pipeline -> caching -> hook integration), complete requirements coverage, and no vacuous cycles. All 13 TDD cycles test real branch points. Fixes applied: resolved a deferred implementation decision (heading reconstruction), improved dependency declarations with post-phase state awareness, and added internal caller specificity for API promotions.
 
 **Overall Assessment**: Ready
 
-## Requirements Traceability
+## Requirements Coverage
 
-| Requirement | Outline Section | Coverage | Notes |
-|-------------|-----------------|----------|-------|
-| FR-1 | D-2 (inverted index) | Complete | Keyword table from memory-index via parsed entries |
-| FR-2 | D-1 (scoring formula) | Complete | Entry coverage formula with threshold |
-| FR-3 | D-5 (resolution), D-7 (dual-channel) | Complete | Resolve via resolver, inject via additionalContext |
-| FR-4 | D-4 (cache strategy), D-2 | Complete | $TMPDIR cache with mtime invalidation |
-| FR-5 | D-3 (tier placement) | Complete | Insert into existing accumulate pattern |
-| FR-6 | D-6 (token budget) | Complete | Entry count cap, highest-scored wins |
-| FR-7 | D-7 (dual-channel) | Complete | systemMessage with trigger lines + line count |
-| NFR-1 | D-4 (cache strategy) | Complete | 5s timeout referenced, cache avoids re-parsing |
-| NFR-2 | D-3 (tier placement), Risks | Complete | Integration tests before/after; no existing behavior changed |
-| C-1 | D-3, Architecture | Complete | Single hook script, new tier in existing file |
-| C-2 | D-7 | Complete | additionalContext + systemMessage channels |
-| C-3 | D-6, D-10 | Complete | Threshold deferred to calibration, declared-ungrounded |
+| Requirement | Phase | Cycles | Coverage | Notes |
+|-------------|-------|--------|----------|-------|
+| FR-1 | 1 | 1.1 | Complete | Inverted index from parsed entries |
+| FR-2 | 1 | 1.2, 1.3 | Complete | Candidate matching + scoring |
+| FR-3 | 1 | 1.4, 1.5 | Complete | Resolution + error handling |
+| FR-4 | 2 | 2.1, 2.2, 2.3 | Complete | Cache build, hit, invalidation |
+| FR-5 | 3 | 3.1, 3.2, 3.3 | Complete | Hook integration, additive, passthrough |
+| FR-6 | 1 | 1.6 | Complete | Entry count cap |
+| FR-7 | 1 | 1.7 | Complete | Dual-channel output format |
+| NFR-1 | 2 | 2.1, 2.2 | Partial | Cache avoids reparse; no explicit timeout test (deployment constraint) |
+| NFR-2 | 3 | 3.2, 3.3 | Complete | Additive + passthrough verification |
 
-**Traceability Assessment**: All requirements covered. Tags added to decision headings for explicit traceability.
+**Coverage Assessment**: All functional requirements fully covered. NFR-1 partial — timeout is a deployment constraint better validated by profiling than unit tests.
+
+## Phase Structure Analysis
+
+### Phase Balance
+
+| Phase | Cycles | Complexity | Percentage | Assessment |
+|-------|--------|------------|------------|------------|
+| 1 | 7 | Medium | 54% | Acceptable — new module with 7 distinct functions |
+| 2 | 3 | Low | 23% | Balanced |
+| 3 | 3 | Medium | 23% | Balanced |
+
+**Balance Assessment**: Phase 1 at 54% exceeds the 40% guideline but is justified — it builds the entire matching pipeline (7 functions with distinct responsibilities). Splitting would create artificial phase boundaries within tightly coupled build-up. Each cycle adds a real function.
+
+### Complexity Distribution
+
+- Low complexity phases: 1 (Phase 2)
+- Medium complexity phases: 2 (Phases 1, 3)
+- High complexity phases: 0
+
+**Distribution Assessment**: Appropriate. No high-complexity phases; Phase 2 reuses established caching patterns.
 
 ## Review Findings
 
 ### Critical Issues
 
-1. **Cache location contradicts FR-4**
-   - Location: D-4 heading and first bullet
-   - Problem: D-4 specified `tmp/topic-index-{hash}.json` (project-local), but FR-4 acceptance criteria requires "$TMPDIR (sandbox-compatible)." The existing continuation registry also uses `$TMPDIR`. Project-local `tmp/` is for ephemeral dev artifacts, not hook runtime caches.
-   - Fix: Changed cache path to `$TMPDIR/topic-index-{hash}.json`, added note about consistency with continuation registry pattern, referenced `get_cache_path()`/`get_cached_registry()`.
-   - **Status**: FIXED
+None.
 
 ### Major Issues
 
-1. **Overstated hook control flow refactor**
-   - Location: D-3 "implementation consequence" and Risks last bullet
-   - Problem: D-3 claimed "hook control flow refactored from early-return to accumulate-and-return" and "no tier blocks topic injection." Verified against actual hook code: Tier 1 already early-returns (correct — `s`, `x` need no context). Tier 2/2.5 already use `context_parts`/`system_parts` accumulate pattern. The claimed refactor overstates the change and could mislead implementation into unnecessarily restructuring the hook.
-   - Fix: Rewrote D-3 to accurately describe insertion into existing accumulate pattern. Clarified Tier 1 early-return is preserved. Changed Risks bullet to reflect actual integration scope.
-   - **Status**: FIXED
-
-2. **D-3 "additive with ALL tiers" misleading**
-   - Location: D-3 heading
-   - Problem: Claiming additivity with Tier 1 is technically vacuous (stopwords remove all keywords) but architecturally misleading — Tier 1 early-returns before topic code runs. The design must be clear about what "additive" means in context of existing control flow.
-   - Fix: Changed heading to "additive with Tier 2, 2.5, and 3." Added explicit note that Tier 1 early-returns before topic injection and this is correct behavior.
+1. **Heading reconstruction decision deferred to implementation**
+   - Location: Phase 1 preamble, heading reconstruction note
+   - Problem: Original text said "prefer (a) for clean API if backward-compatible, fall back to (b)" — deferring a design decision to cycle 1.4 GREEN. Two approaches named without commitment.
+   - Fix: Resolved to approach (b): try both heading forms (`## When {key}`, `## How to {key}`). `_extract_section` returns empty on miss, making fallback free. No `IndexEntry` model change needed. Simpler, no backward compatibility concern.
    - **Status**: FIXED
 
 ### Minor Issues
 
-1. **Missing explicit requirement tags on decisions**
-   - Location: D-1 through D-7 headings
-   - Problem: Decisions referenced requirements implicitly but lacked FR-N/NFR-N/C-N tags. PDR traceability requires explicit mapping.
-   - Fix: Added bracketed tags to each decision heading (e.g., `[FR-2]`, `[FR-5, NFR-2, C-1]`).
+1. **NFR-1 mapping too narrow**
+   - Location: Requirements Mapping table
+   - Problem: NFR-1 mapped only to "2.1 (cache performance)" — but cache hit (2.2) also contributes to timeout compliance
+   - Fix: Updated to "2.1, 2.2 (cache avoids reparse)"
    - **Status**: FIXED
 
-2. **NFR-2 not explicitly addressed**
-   - Location: D-3
-   - Problem: NFR-2 ("no degradation of existing hook behavior") was addressed implicitly through integration test mention in Risks, but not tagged or explicitly called out in D-3 where it most applies.
-   - Fix: Added NFR-2 tag to D-3 heading.
+2. **Missing internal callers for `_extract_section` promotion**
+   - Location: Cycle 1.4 GREEN description
+   - Problem: Promotion note didn't list internal callers (resolver.py lines 117, 225) that need updating
+   - Fix: Added explicit line references for internal callers
    - **Status**: FIXED
 
-3. **Missing context budget risk from recall entries**
-   - Location: Risks section
-   - Problem: Recall artifact entry "too many rules in context — adherence degrades >200 rules, ~150 budget" directly relates to FR-6 rationale but wasn't surfaced as a risk. D-6 caps entry count but resolved sections vary in length — the token-level impact is uncontrolled.
-   - Fix: Added "Context budget pressure" risk with recall reference and monitoring mitigation.
+3. **Post-phase state missing from Phase 3 dependency**
+   - Location: Cycle 3.1 dependency declaration
+   - Problem: "Depends on: Phase 1, Phase 2" without noting expected state of those phases' outputs
+   - Fix: Added state context: "Phase 1 (complete matching pipeline in topic_matcher.py), Phase 2 (cache layer via get_or_build_index)"
    - **Status**: FIXED
 
-4. **Scope boundary FR-5 description stale**
-   - Location: Scope Boundaries, IN list, FR-5 line
-   - Problem: Referenced "accumulate-and-return refactor" which no longer reflects the corrected D-3 approach.
-   - Fix: Changed to "insert into existing accumulate pattern."
+4. **Collapsible cycle candidates not noted**
+   - Location: Expansion Guidance section
+   - Problem: Cycles 1.5 and 1.6 are thin (1 branch point each) but not flagged for potential consolidation
+   - Fix: Added consolidation candidates to Expansion Guidance
    - **Status**: FIXED
 
 ## Fixes Applied
 
-- D-1 heading — added `[FR-2]` tag
-- D-2 heading — added `[FR-1, FR-4]` tag; removed hardcoded "347" count
-- D-3 heading — changed to "additive with Tier 2, 2.5, and 3 [FR-5, NFR-2, C-1]"
-- D-3 body — rewrote to describe insertion into existing accumulate pattern, not a full refactor; clarified Tier 1 early-return preserved
-- D-4 heading — changed to "$TMPDIR" from "project-local tmp"; added `[FR-4, NFR-1]`
-- D-4 cache path — changed to `$TMPDIR/topic-index-{hash}.json`; added consistency note with continuation registry
-- D-5 heading — added `[FR-3]`
-- D-6 heading — added `[FR-6, C-3]`
-- D-7 heading — added `[FR-3, FR-7, C-2]`
-- Scope Boundaries IN, FR-5 line — corrected description
-- Risks — added "Context budget pressure" risk with recall reference
-- Risks — corrected last bullet from "refactor across all tiers" to "inserting into existing accumulate pattern"
+- Requirements Mapping: NFR-1 broadened to cover cycles 2.1 and 2.2
+- Phase 1 preamble: Heading reconstruction resolved to try-both-forms approach (no model change needed)
+- Cycle 1.4 GREEN: Added internal caller line references for `_extract_section` promotion (lines 117, 225)
+- Cycle 3.1: Added post-phase state context to dependency declaration
+- Expansion Guidance: Restructured with consolidation candidates, cycle expansion details, checkpoint guidance, and reference sections
+
+## Design Alignment
+
+- **Architecture**: Aligned — outline builds `topic_matcher.py` as specified, integrates as parallel detector block per D-3
+- **Module structure**: Aligned — all affected files from design covered (new: topic_matcher.py, test files; modified: hook, index_parser, resolver)
+- **Key decisions**: All 10 design decisions (D-1 through D-10) referenced appropriately in Key Decisions Reference section. D-8 (dropped), D-10 (calibration — out of scope) correctly excluded from cycle mapping.
+
+## Growth Projection
+
+| File | Current Lines | Estimated Growth | Projected | Status |
+|------|--------------|-----------------|-----------|--------|
+| topic_matcher.py (new) | 0 | ~210 (7 cycles) | ~210 | OK |
+| test_recall_topic_matcher.py (new) | 0 | ~175 (7 cycles) | ~175 | OK |
+| test_ups_topic_integration.py (new) | 0 | ~90 (3 cycles) | ~90 | OK |
+| userpromptsubmit-shortcuts.py | 958 | ~40 (1 detector block) | ~998 | Already >350, additive only |
+| index_parser.py | 186 | ~2 (rename) | ~188 | OK |
+| resolver.py | 339 | ~2 (rename) | ~341 | OK |
+
+No new files approach the 350-line threshold. Hook file is already large but receives only a small additive block — no structural split needed.
+
+## Vacuity Assessment
+
+All 13 cycles test real branch points:
+- 1.1: Data structure construction (inverted index)
+- 1.2: Set membership filtering (candidates)
+- 1.3: Numerical ranking + threshold filtering
+- 1.4: File I/O + section extraction
+- 1.5: Error path handling (2 failure modes)
+- 1.6: Collection slicing with ordering preservation
+- 1.7: Dual-format output assembly
+- 2.1-2.3: Cache lifecycle (create, hit, invalidate)
+- 3.1-3.3: Integration behaviors (inject, combine, passthrough)
 
 ## Positive Observations
 
-- All 10 decisions include clear rationale with trade-off documentation
-- Q-1 and Q-2 from requirements resolved with explicit DROPPED/additive decisions (D-8, D-9)
-- Scoring algorithm grounded via separate report rather than assumed (D-1 + grounding reference)
-- D-10 calibration approach is honest about ungrounded parameters and provides a concrete calibration method
-- Scope boundaries enumerate IN and OUT with FR-N tags and parenthetical justifications for OUT items
-- Affected Files section cleanly separates new, modified, and read-only dependencies
+- Clean dependency chain with no circular references
+- API promotions handled as side effects of GREEN phases (not separate cycles)
+- Recall entries specified per-phase for context priming
+- xfail integration test pattern in Phase 3 preamble provides early regression detection
+- Complexity assessment is realistic and well-justified
+- Key Decisions Reference section provides quick lookup for expanding agents
 
-## Recommendations
+## Recall Context Applied
 
-- During design elaboration, specify the exact insertion point in the hook (line-level) — between Tier 2.5 guards and the `if directive_matches and context_parts:` output assembly
-- Consider whether `score_relevance()` should be called directly (coupling to session_id parameter) or whether the formula should be extracted into a shared utility
-- The `resolve()` function uses fuzzy matching which adds latency — measure per-call cost during implementation to validate the 5s budget with 3 sequential resolve calls
+Resolved 4 recall entries; all consistent with outline approach:
+- "when too many rules in context" — D-6 cap (max 3) addresses the ~150 rule budget
+- "when hook fragment alignment needed" — additionalContext reinforces, doesn't contradict fragment content
+- "when mapping hook output channel audiences" — D-7 correctly maps additionalContext (agent-only) and systemMessage (user-only)
+- "when writing hook user-visible messages" — ~60 char terminal constraint noted in Expansion Guidance for cycle 1.7
 
 ---
 
-**Ready for user presentation**: Yes
+**Ready for full expansion**: Yes

@@ -73,3 +73,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: `d:` evaluation concludes with affirmative verdict ("agree, this should be done"), then stops. The validated change exists only in conversation context. No pending task created, no brief written. Change is lost on context rotation.
 - Correct pattern: When `d:` verdict is "agree, this change should be made" (or equivalent), chain to `p:` evaluation — task name, model tier, restart flag. Create brief if discussion produced design context worth preserving. Three consecutive misses in one session (wt-rm-dirty review, 2026-03-01) confirm this is systematic, not incidental.
 - Scope: applies when the discussion conclusion implies future work. Pure analysis ("is X true?") or rejected proposals ("disagree") don't trigger the chain.
+## When classifying composite tasks
+- Anti-pattern: Batch-classifying a task containing multiple discrete work items (deliverable review findings, PR comments, multi-FR list). Group reasoning averages heterogeneous items — a behavioral code change gets masked by non-behavioral siblings.
+- Correct pattern: Decompose before classifying. If the input artifact contains N discrete work items, produce a per-item behavioral code check. Any item that adds conditional branches, functions, or logic paths elevates that item to Moderate minimum.
+- Distinct from companion tasks (explicit user bundling in session notes). Composite tasks are implicitly bundled by the task's nature — decomposition requires reading the input artifact.
+- Evidence: M-1 (precondition guard adding conditional branch) batch-classified as Simple alongside M-2 (comment) and M-3 (assertion tightening). Third instance of "behavioral code as Simple" pattern.
