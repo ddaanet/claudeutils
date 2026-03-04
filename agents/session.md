@@ -1,6 +1,6 @@
-# Session Handoff: 2026-03-02
+# Session Handoff: 2026-03-04
 
-**Status:** Codify flush — 33 learnings consolidated to permanent docs, learnings.md 157→23 lines.
+**Status:** Worktree batch dispatch — 7 worktrees created for parallel execution.
 
 ## Completed This Session
 
@@ -99,6 +99,9 @@
   - 3 learnings retained for continuity (codify branch, recovery context, worktree-tasks-only)
   - learnings.md: 157 → 23 lines
   - User correction applied: lint-gated recall entry in defense-in-depth.md updated to PreToolUse-hook-blocks-until-agent-recalls model (agent does semantic matching)
+- **Worktree batch dispatch (7 parallel):**
+  - session-scraping, worktree-merge-from-main, handoff-commit-removal, explore-anthropic-plugins, wt-ls-session-ordering, recall-tool-consolidation, active-recall-system
+  - Skill caching confirmed: loaded worktree SKILL.md had stale model-tier filter (already removed on disk), caused sonnet-only batch excluding opus tasks
 
 ## In-tree Tasks
 
@@ -124,7 +127,7 @@
 
 ## Worktree Tasks
 
-- [ ] **Active recall system** — `/requirements plans/active-recall/brief.md` | opus
+- [ ] **Active recall system** → `active-recall-system` — `/requirements plans/active-recall/brief.md` | opus
   - Plan: active-recall
   - Hierarchical index, automated documentation conversion, memory format grounding
   - Relates to: recall tool consolidation, generate memory index, recall dedup, recall pipeline, recall learnings design
@@ -146,18 +149,18 @@
 - [ ] **Worktree merge resilience** — `/runbook plans/worktree-merge-resilience/outline.md` | sonnet | 2.2
   - Plan: worktree-merge-resilience | Status: outlined
   - Segment-level diff3 merge for learnings.md, precommit structural validation
-- [ ] **Session scraping** — `/runbook plans/session-scraping/outline.md` | sonnet | 2.2
+- [ ] **Session scraping** → `session-scraping` — `/runbook plans/session-scraping/outline.md` | sonnet | 2.2
   - Plan: session-scraping | Status: outlined
   - Key decisions: all ~/.claude/projects/ (not just claudeutils), agent files are first-class sources, many-to-many session↔commit, tool I/O noise by default
-- [ ] **Worktree merge from main** — `/design plans/worktree-merge-from-main/requirements.md` | sonnet | 2.2
+- [ ] **Worktree merge from main** → `worktree-merge-from-main` — `/design plans/worktree-merge-from-main/requirements.md` | sonnet | 2.2
   - Plan: worktree-merge-from-main | Status: requirements
   - Branch self-updates before merge to main; main rollbacks on failure instead of fixing on main
   - Prerequisite for merge resilience — eliminates most merge failures at source
-- [ ] **Handoff --commit removal** — remove --commit from /handoff, expand standalone to chain, deduplicate [handoff, commit] | sonnet | 2.2
+- [ ] **Handoff --commit removal** → `handoff-commit-removal` — remove --commit from /handoff, expand standalone to chain, deduplicate [handoff, commit] | sonnet | 2.2
   - ~60 occurrences: skills, fragments, tests, continuation infrastructure, decision files
   - Motivation: decouple handoff from commit-ready state (handoff should work on dirty tree)
-- [ ] **Explore Anthropic plugins** — Install all 28 official plugins | sonnet | restart | 2.0
-- [ ] **Wt ls session ordering** — `_worktree ls` prints plans in pending task order from session.md | sonnet | 2.0
+- [ ] **Explore Anthropic plugins** → `explore-anthropic-plugins` — Install all 28 official plugins | sonnet | restart | 2.0
+- [ ] **Wt ls session ordering** → `wt-ls-session-ordering` — `_worktree ls` prints plans in pending task order from session.md | sonnet | 2.0
 - [ ] **Tool deviation hook** — PostToolUse hook: agents declare expected Bash outcome, hook validates actual vs declared | sonnet | 1.9
   - General framework: agent declares expected exit code + output pattern before Bash call
   - PostToolUse hook compares actual result, stops or redirects to diagnose-and-compensate on mismatch
@@ -169,7 +172,7 @@
   - Two drift vectors: stale recall-artifact (entries loaded not persisted) and stale skill artifacts (decisions loaded after artifact written)
 - [ ] **Lint-gated recall** — PostToolUse hook: inject memory-index on first lint/precommit red after green (state-transition gated) | sonnet | 1.9
 - [ ] **Lint recall gate** — PreToolUse recall pass before lint fix attempt; depends on when-resolve null mode | sonnet | 1.9
-- [ ] **Recall tool consolidation** — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet | 1.9
+- [ ] **Recall tool consolidation** → `recall-tool-consolidation` — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet | 1.9
   - Recall simplification: remove sibling expansion (redundant with index scanning). Resolver = pure lookup (key in, section out).
   - Mode reduction: default (per-key, 2 passes), all (per-file, iterated), everything (full corpus). Drop `broad` and `deep` from formal mode set.
   - Grounding: `plans/reports/recall-lifecycle-grounding.md` (per-point mode assignments, lifecycle role contract)
@@ -408,4 +411,4 @@
 
 ## Next Steps
 
-Codify complete. All pending work is in Worktree Tasks — use `wt` to dispatch.
+7 worktrees dispatched. Launch sessions via `cd <path> && claude`. After each completes: `hc` in worktree, then `wt merge <slug>` from main.
