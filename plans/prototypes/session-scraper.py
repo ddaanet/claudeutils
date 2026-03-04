@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from claudeutils.paths import encode_project_path, get_project_history_dir  # noqa: E402
 
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+AGENT_RE = re.compile(r"^agent-")
 COMMIT_RE = re.compile(r"\[(?:[^\[\]]*?\s+)?([0-9a-f]{7,12})\]")
 INTERACTIVE_TOOLS = frozenset({"ExitPlanMode", "AskUserQuestion"})
 GIT_COMMIT_MARKERS = frozenset({"file changed", "files changed", "create mode"})
@@ -86,6 +87,7 @@ class CorrelationResult(BaseModel):
     session_commits: dict[str, list[CommitInfo]]  # session_id → commits
     commit_sessions: dict[str, list[str]]  # commit_hash → session_ids
     unattributed: list[CommitInfo]  # commits with no session match
+    merge_parents: dict[str, list[str]]  # merge_hash → worktree session dirs
 
 
 def _decode_project_path(encoded: str) -> str:
@@ -512,13 +514,72 @@ def correlate_session_tree(tree: SessionTree, git_dir: str) -> CorrelationResult
                 info = _git_commit_info(h, git_dir)
                 if info:
                     unattributed.append(info)
-    except subprocess.CalledProcessError:
-        pass
+    except subprocess.CalledProcessError as exc:
+        print(f"warning: git log failed for {git_dir}: {exc}", file=sys.stderr)
+
+    # Merge commit parent tracing (FR-4): identify constituent worktree branches
+    merge_parents: dict[str, list[str]] = {}  # merge_hash → [parent_session_dir, ...]
+    try:
+        r = subprocess.run(
+            ["git", "-C", git_dir, "log", "--merges", "--format=%H", "--max-count=50"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        projects_dir = Path.home() / ".claude" / "projects"
+        for line in r.stdout.strip().splitlines():
+            merge_hash = line.strip()
+            if not merge_hash:
+                continue
+            # Get parent commits (parent 2+ are merged branches)
+            try:
+                pr = subprocess.run(
+                    ["git", "-C", git_dir, "rev-parse", f"{merge_hash}^2"],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
+                parent_hash = pr.stdout.strip()
+                # Find branch(es) containing the parent commit
+                br = subprocess.run(
+                    [
+                        "git",
+                        "-C",
+                        git_dir,
+                        "branch",
+                        "--contains",
+                        parent_hash,
+                        "--format=%(refname:short)",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
+                branches = [
+                    b.strip() for b in br.stdout.strip().splitlines() if b.strip()
+                ]
+                # Map branch slugs to worktree session directories
+                session_dirs: list[str] = []
+                if projects_dir.exists():
+                    for branch in branches:
+                        # Worktree paths encode as project-dir-branch-slug in projects/
+                        for pdir in projects_dir.iterdir():
+                            if pdir.is_dir() and branch in pdir.name:
+                                session_dirs.append(str(pdir))
+                if session_dirs:
+                    merge_parents[merge_hash] = session_dirs
+            except subprocess.CalledProcessError:
+                continue  # parent lookup failed for this merge
+    except subprocess.CalledProcessError as exc:
+        print(
+            f"warning: merge commit scan failed for {git_dir}: {exc}", file=sys.stderr
+        )
 
     return CorrelationResult(
         session_commits=session_commits,
         commit_sessions=commit_sessions,
         unattributed=unattributed,
+        merge_parents=merge_parents,
     )
 
 

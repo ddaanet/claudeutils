@@ -1,6 +1,6 @@
-# Session Handoff: 2026-03-03
+# Session Handoff: 2026-03-04
 
-**Status:** Deliverable review complete. 1 Critical, 2 Major, 2 Minor findings. Fix task pending.
+**Status:** Fix task in progress — 3 of 5 findings partially applied, interrupted. Uncommitted changes in prototype.
 
 ## Completed This Session
 
@@ -19,11 +19,20 @@
 - Minor: JSON decode errors unlogged; subtype field check uses content structure instead
 - Lifecycle: `rework` (`plans/session-scraping/lifecycle.md`)
 
+**Fix scraping findings (partial, interrupted):**
+- /design triage: composite task, 5 items classified per-item. Recall decision "When Routing Prototype Work Through Pipeline" → direct implementation, no runbook needed (exploration artifact destination)
+- Applied: Item 1 (Critical) — merge commit parent tracing added to `correlate_session_tree()` with `merge_parents` field on `CorrelationResult`. Scans `git log --merges`, inspects parent^2, maps branches to worktree session dirs
+- Applied: Item 2 (Major, partial) — `AGENT_RE` regex added but scan loop not yet updated to enumerate agent files
+- Applied: Item 3 (Major) — silent `CalledProcessError: pass` replaced with stderr warning (matching existing pattern)
+- NOT applied: Item 4 (Minor) — JSON decode error logging
+- NOT applied: Item 5 (Minor) — subtype field explicit check
+
 ## In-tree Tasks
 
 - [x] **Session scraping** — `/runbook plans/session-scraping/outline.md` | sonnet
 - [x] **Review scraping** — `/deliverable-review plans/session-scraping` | opus | restart
-- [ ] **Fix scraping findings** — `/design plans/session-scraping/reports/deliverable-review.md` | opus
+- [>] **Fix scraping findings** — `/inline plans/session-scraping` | sonnet
+  - 3/5 findings applied (uncommitted). Remaining: agent file scan loop (Item 2), JSON decode logging (Item 4), subtype field check (Item 5)
 
 ## Blockers / Gotchas
 
@@ -39,4 +48,4 @@
 
 ## Next Steps
 
-Fix deliverable-review findings: 1 Critical (merge commit tracing), 2 Major (scanner agent files, silent error suppression), 2 Minor.
+Resume fix task: complete remaining 3 items (agent file scan loop, JSON decode logging, subtype field check), then corrector review per /inline Phase 4.
