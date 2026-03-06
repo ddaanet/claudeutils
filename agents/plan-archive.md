@@ -3,6 +3,14 @@
 Completed plans with summaries. Loaded on demand during design research (Phase A.1)
 and diagnostic/RCA sessions.
 
+## inline-execute
+
+/inline skill for lightweight execution of Tier 1/2 work within active sessions. Pre-work (recall, brief check), execute with corrector dispatch, post-work (triage feedback, deliverable-review chaining). Cross-skill review identified continuation frontmatter gaps in /design and /runbook. Affected: agent-core/skills/inline/, agent-core/skills/orchestrate/.
+
+## orchestrate-evolution
+
+Orchestrator evolution: agent caching model (reuse across steps), plan format with verify-step.sh, TDD agent generation with verify-red.sh, SKILL.md rewrite. 14 steps: 12 TDD cycles + 2 general (opus). Affected: agent-core/skills/orchestrate/, agent-core/bin/, agent-core/agents/.
+
 ## worktree-merge-from-main
 
 Added `--from-main` direction parameter to `_worktree merge` CLI. Branch merges main into itself first, resolves conflicts in branch context, passes precommit, then main retries cleanly. 10 TDD cycles covering direction param, session.md ours strategy, learnings inversion, delete/modify handling, CLI integration, and E2E tests. Mode D added to worktree SKILL.md.

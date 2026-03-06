@@ -132,7 +132,7 @@
   - `_session` group (handoff, status, commit)
   - Discussion conclusions baked into outline: amend, git passthrough, deviation-only output, submodule labeling
 - [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
-  - Plan: parallel-orchestration | Blocked on: orchestrate-evolution
+  - Plan: parallel-orchestration
 - [ ] **Python hook ordering fix** — `/design plans/precommit-python3-redirect/requirements.md` | haiku | restart
   - `python -c` one-liner allowance evaluated before `uv run` redirect
   - `uv run` redirect message mentions `uv sync` as dependency-change path
@@ -328,6 +328,7 @@
 - [ ] **Recall learnings design** — `d:` whether learnings.md entries should be resolvable via `claudeutils _recall resolve` | opus | 0.9
   - Implies memory-index format changes (new source type), resolver changes — genuine design uncertainty
 - [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet | 0.9
+  - Plan: prototypes
 - [ ] **Diagnostic opus review** — Post-vet RCA methodology | opus | 0.8
 - [ ] **Task notation migration** — replace `[✗]` → `[†]` across codebase | sonnet | 0.8
   - 23 files reference ✗; active files: execute-rule.md, task-failure-lifecycle.md, error-classification.md, handoff skill, session.md, validators, justfiles
@@ -357,6 +358,15 @@
   - Methodology validated on real case — codification unblocked
   - Behavioral change to `/design` skill — shared infrastructure, merges to main
 - [ ] **Remove UPS topics** → `rm-ups-topic` — Delete UPS topic injection hook (noisy, low relevance) | haiku | restart
+- [ ] **Standardize task creation** — `/design plans/standardize-task-creation/requirements.md` | sonnet
+  - Plan: standardize-task-creation
+  - Skills write follow-up tasks to session.md with skill invocation commands
+- [ ] **Settings triage protocol** — `/design plans/settings-triage-protocol/brief.md` | sonnet
+  - Plan: settings-triage-protocol
+  - Commit skill triage step for settings.local.json entries
+- [ ] **Discuss divergent step** — `/design plans/discuss-divergent-thinking/brief.md` | sonnet
+  - Plan: discuss-divergent-thinking
+  - Add alternative-framing step to d: directive before assessment
 
 ## Blockers / Gotchas
 
@@ -421,15 +431,12 @@
 ## Reference Files
 
 - `plans/reports/workflow-grounding-audit.md` — Grounding provenance for all workflow skills/agents
-- `plans/orchestrate-evolution/design.md` — Orchestration evolution design (ready for runbook)
 - `plans/handoff-cli-tool/outline.md` — Session CLI combined outline (reviewed 6 rounds)
 - `plans/codebase-sweep/requirements.md` — mechanical refactoring (_git_ok, _fail, exceptions)
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
 - `plans/reports/prioritization-2026-03-02b.md` — WSJF scoring, 79 tasks ranked, flat ordering (supersedes 2026-03-02)
 - `plans/skill-progressive-disclosure/brief.md` — Segment loading at gate boundaries (/design and /runbook)
 - `plans/reports/design-skill-grounding.md` — Design skill grounding (updated with session empirical data)
-- `plans/inline-execute/outline.md` — /inline skill design outline
-- `plans/inline-execute/reports/cross-skill-review.md` — Cross-skill review (continuation frontmatter gaps)
 - `agents/decisions/pipeline-contracts.md` — Pipeline contract decision file (new)
 - `plans/reports/recall-lifecycle-grounding.md` — Grounded recall artifact lifecycle (3 patterns, per-point mode assignments, mode reduction)
 - `plans/reports/recall-lifecycle-internal-codebase.md` — Internal inventory: recall-artifact handling across all pipeline skills
