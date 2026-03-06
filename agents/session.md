@@ -136,7 +136,7 @@
 - [x] **Discuss divergent step** — `/design plans/discuss-divergent-thinking/brief.md` | sonnet
   - Plan: discuss-divergent-thinking
   - Add alternative-framing step to d: directive before assessment
-- [ ] **Settings triage protocol** → `settings-triage-protocol` — `/design plans/settings-triage-protocol/brief.md` | sonnet
+- [ ] **Settings triage protocol** — `/design plans/settings-triage-protocol/brief.md` | sonnet
   - Plan: settings-triage-protocol
   - Commit skill triage step for settings.local.json entries
 - [ ] **Standardize task creation** → `standardize-task-creation` — `/design plans/standardize-task-creation/requirements.md` | sonnet
@@ -284,6 +284,8 @@
 - [x] **Handoff --commit removal** — sonnet | 2.2
 - [x] **Explore Anthropic plugins** — sonnet | restart | 2.0
 - [x] **Wt ls session ordering** — sonnet | 2.0
+
+- [ ] **Pre-inline plan commit** — process gap: pipeline planning artifacts dirty tree before inline entry gate | sonnet
 
 ## Blockers / Gotchas
 
