@@ -32,7 +32,8 @@
   - Phase 1: assess + extend session-scraper prototype (exploration-weight, C-1 process)
   - Phase 2: 5 parallel topic evidence gathering (memory system, pushback, deliverable-review, ground skill, structural enforcement)
   - Phase 3: cross-topic connection mapping
-- [ ] **Review retrospective** — `/deliverable-review plans/retrospective` | opus | restart
+- [x] **Review retrospective** — `/deliverable-review plans/retrospective` | opus | restart
+- [ ] **Fix retro findings** — `/design plans/retrospective/reports/deliverable-review.md` | opus
 
 ## Blockers / Gotchas
 
