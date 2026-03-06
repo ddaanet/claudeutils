@@ -31,6 +31,9 @@
 - [x] **Settings triage protocol** — `/design plans/settings-triage-protocol/brief.md` | sonnet
   - Plan: settings-triage-protocol
 - [x] **Review triage deliverable** — `/deliverable-review plans/settings-triage-protocol` | opus | restart
+
+## Worktree Tasks
+
 - [ ] **Pre-inline plan commit** — process gap: pipeline planning artifacts dirty tree before inline entry gate | sonnet
 
 ## Next Steps
