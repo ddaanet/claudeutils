@@ -62,6 +62,7 @@ corrector.md is currently 527 lines. Keep additions concise — each category sh
 - `agents/decisions/pipeline-contracts.md` — Vet escalation calibration, out-of-scope flagging, execution context
 - `agents/decisions/orchestration-execution.md` — Vet flags unused code (test callers ≠ dead code)
 - `agents/decisions/operational-practices.md` — Validate-runbook flags pre-existing files
+- `agents/decisions/execution-strategy.md` — Corrector/lint division of responsibility (semantic vs mechanical)
 - `plans/reports/anthropic-plugin-exploration.md` — code-review plugin confidence scoring (0-100, threshold ≥80)
 
 ### Skill Dependencies (for /design)
