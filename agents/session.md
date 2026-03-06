@@ -341,7 +341,7 @@
 - [ ] **Wt new --base submodule** — `_worktree new --base` doesn't resolve agent-core to branch commit | sonnet
   - Missing submodule resolution on `--base` code path in `cli.py`
   - Requires TDD: write test, then fix
-- [ ] **Agentic programming retrospective** — Scrape session logs and git history for evolution of memory system (remember rule → active-recall), pushback protocol design process, deliverable-review and ground skill origins. Produce raw materials for blog post series on ddaa.net | opus
+- [ ] **Agentic programming retrospective** → `retrospective` — Scrape session logs and git history for evolution of memory system (remember rule → active-recall), pushback protocol design process, deliverable-review and ground skill origins. Produce raw materials for blog post series on ddaa.net | opus
 
 ## Blockers / Gotchas
 
