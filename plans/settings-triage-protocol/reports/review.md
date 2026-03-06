@@ -1,12 +1,12 @@
 # Review: Settings triage protocol — SKILL.md implementation
 
-**Scope**: `agent-core/skills/commit/SKILL.md` — step 1c addition + frontmatter Edit tool
+**Scope**: `agent-core/skills/commit/SKILL.md` — step 1c addition + frontmatter Edit tool; follow-up pass addressing deliverable-review minor findings (absent-vs-empty control flow, staging command gitignore constraint)
 **Date**: 2026-03-06
 **Mode**: review + fix
 
 ## Summary
 
-The implementation adds step 1c (settings triage) to the commit skill and correctly adds `Edit` to the allowed-tools frontmatter. The classification table covers all three categories (permanent/session/job-specific) with adequate examples and actions. However, the step violates the D+B hybrid pattern it claims to implement — the `Read` tool call is named in the heading label but never actually instructed as an executable step directive, leaving the step as prose judgment (the structural anti-pattern the design explicitly prohibits).
+Initial corrector pass fixed the D+B anchor (explicit Read directive), allowlist staging instruction, and misleading permanent examples. This follow-up pass addresses two remaining deliverable-review minor findings: absent-vs-empty control flow collapsed into implicit `or` instead of explicit if/then branches, and staging command previously including `settings.local.json` (gitignored, cannot be staged). The staging command is already correct in current state — only `settings.json` is staged. The absent-vs-empty distinction remains collapsed.
 
 **Overall Assessment**: Ready (all issues fixed)
 
@@ -38,13 +38,28 @@ The implementation adds step 1c (settings triage) to the commit skill and correc
    - Fix: Replace `echo`, `printf` with more representative examples (`open`, `osascript`, or similar macOS tools that require explicit grants).
    - **Status**: FIXED
 
+2. **Absent-vs-empty control flow collapsed into implicit `or`**
+   - Location: `agent-core/skills/commit/SKILL.md` — step 1c, line 138
+   - Problem: `- **Read error** (file absent) or **content is `{}`** → skip to step 2` collapses two distinct cases into one branch. D+B convention requires explicit if/then branches — per deliverable review and recall "how prevent skill steps from being skipped." A Read error (file not found) and empty-content `{}` are semantically different outcomes from a Read call; collapsing them with `or` is an implicit control flow that a less attentive agent may read as prose rather than an explicit branch directive.
+   - Fix: Separate into two explicit bullet branches: `- **File absent** (Read returns error) → skip to step 2` and `- **Content is `{}`** → skip to step 2`, so both cases are explicit conditional paths.
+   - **Status**: FIXED
+
+3. **Staging command correction (settings.local.json is gitignored)**
+   - Location: `agent-core/skills/commit/SKILL.md` — step 1c, staging instruction
+   - Problem: Prior corrector pass (Major Issue 1 fix) documented adding `git add .claude/settings.local.json .claude/settings.json`. However, `settings.local.json` is gitignored and cannot be staged. Current SKILL.md shows only `git add .claude/settings.json` — this is already correct.
+   - **Status**: OUT-OF-SCOPE — current state is correct; no fix needed. The deliverable review finding about "combining two files" was addressed when the prior corrector produced the correct single-file staging instruction.
+
 ---
 
 ## Fixes Applied
 
+**Initial corrector pass:**
 - `agent-core/skills/commit/SKILL.md:132-134` — Added explicit `Read` tool call directive before conditional branch, converting prose judgment to D+B anchor
 - `agent-core/skills/commit/SKILL.md:144` — Added explicit `git add` staging instruction with allowlist constraint note
 - `agent-core/skills/commit/SKILL.md:140` — Replaced `echo`, `printf` with `open`, `osascript` as more accurate permanent-entry examples
+
+**Deliverable-review follow-up:**
+- `agent-core/skills/commit/SKILL.md:138` — Split `Read error or content {}` into two explicit bullet branches (file absent / content is `{}`), making absent-vs-empty control flow explicit per D+B convention
 
 ---
 

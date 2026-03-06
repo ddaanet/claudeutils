@@ -27,6 +27,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Assuming `type: "user"` entries with interrupt text (`[Request interrupted by user]`) always use string content format. In practice, interrupt messages appear as list content `[{"type": "text", "text": "[Request interrupted by user]"}]`.
 - Correct pattern: Extract text from both string and list formats before checking for content markers (interrupts, system-reminders, command tags). The content format is not predictable from the entry type — both formats occur for the same semantic content.
 - Evidence: Parser missed all interrupt entries in real sessions until list-format branch was fixed.
+## When classifying settings.local.json entries during triage
+- Anti-pattern: Conflating skill `allowed-tools` (scope declaration — what tools a skill CAN invoke) with `settings.json` `permissions.allow` (friction elimination — what's pre-approved without user prompt). Concluding an entry is "session-specific" because the skill's allowed-tools already covers it.
+- Correct pattern: Check `settings.json` permissions.allow for the specific command pattern. If the script runs on every invocation of a workflow step (e.g., triage-feedback.sh in /inline Phase 4b), it needs a permanent `settings.json` entry regardless of skill allowed-tools. The two systems are independent.
+- Evidence: Classified `Bash(agent-core/bin/triage-feedback.sh:*)` as session-specific because inline skill had unrestricted `Bash` in allowed-tools. User pointed out the permission prompt would recur every session.
 ## When Edit tool fails repeatedly
 - Anti-pattern: Switching to `sed -i` after Edit tool errors. sed presents opaque commands in permission prompts — user sees syntax, not content diff. Degrades the human review gate that Edit provides (old/new content visible).
 - Correct pattern: Stop and report the Edit failure after the second identical error. The stop-on-unexpected rule exists precisely for this case. Edit's permission UX is part of human oversight design — bypassing it with sed is not a neutral tool substitution.
