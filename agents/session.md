@@ -149,7 +149,7 @@
 
 ## Worktree Tasks
 
-- [ ] **Active recall system** → `active-recall-system` — `/requirements plans/active-recall/brief.md` | opus
+- [ ] **Active recall system** — `/requirements plans/active-recall/brief.md` | opus
   - Plan: active-recall
   - Hierarchical index, automated documentation conversion, memory format grounding
   - Relates to: recall tool consolidation, generate memory index, recall dedup, recall pipeline, recall learnings design
@@ -351,6 +351,11 @@
   - Pattern: vet-false-positives "Do NOT Flag" (categorical, evidence-grounded per NFR-1)
 - [ ] **Cross-tree test sentinel** — replace mtime sentinel with content-hash in user-global cache database, skip suite on hash hit across worktrees | sonnet
   - Hash: `src/**/*.py tests/**/*.py pyproject.toml`. Key: `(repo-identity, content-hash)`
+
+- [ ] **Design decomposition tier** — Encode decomposition methodology (DSM banding, readiness scale, zigzag) into `/design` as new workflow tier above Tier 3 | opus | restart
+  - Consumes: validated methodology from outline redraft + grounding report
+  - Methodology validated on real case — codification unblocked
+  - Behavioral change to `/design` skill — shared infrastructure, merges to main
 
 ## Blockers / Gotchas
 

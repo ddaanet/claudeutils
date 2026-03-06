@@ -31,3 +31,15 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Switching to `sed -i` after Edit tool errors. sed presents opaque commands in permission prompts — user sees syntax, not content diff. Degrades the human review gate that Edit provides (old/new content visible).
 - Correct pattern: Stop and report the Edit failure after the second identical error. The stop-on-unexpected rule exists precisely for this case. Edit's permission UX is part of human oversight design — bypassing it with sed is not a neutral tool substitution.
 - Evidence: 6 identical `replace_all` type errors without diagnosis, escaped to sed, user rejected an opaque sed command they couldn't verify.
+## When choosing storage for persistent caches
+- Anti-pattern: Using JSON file as a key-value store because the codebase has an existing JSON cache (models_cache.json). The existing cache is a special case (bounded, ~50 entries, refreshed on TTL). Extending the pattern to unbounded append-heavy caches cargo-cults the storage choice.
+- Correct pattern: sqlite via sqlalchemy for persistent caches. stdlib sqlite3 handles concurrent access (parallel worktrees), sqlalchemy mapped classes match project's Pydantic-model convention, growth path for future caches without hand-written SQL proliferation.
+- The "JSON is fine at this scale" argument is technically correct but sets a convention. Each future cache copies the pattern, and nobody will detect when aggregate load matters.
+## When designing hierarchical index structures
+- Anti-pattern: Mixed indices containing both entries and child references. Creates discoverability imbalance — inline entries are immediately visible and individually selectable, while child-referenced entries require an extra navigation step. The split is a capacity decision but has an unintended discoverability side effect.
+- Correct pattern: Clean separation — branch indices (index-of-indices only) vs leaf indices (entries only). Uniform discovery paths: root → branch(es) → leaf → entry. Simplifies parser (no mixed-mode detection).
+## When outlines conflate decomposition with sequencing
+- Anti-pattern: Design outlines that use "phases" to mean both "logical sub-problems" and "execution order." This forces premature ordering and defers design-time activities (grounding, research) into execution phases.
+- Evidence: Active recall outline placed grounding (Phase 5) after metadata model commitment (Phase 4). The outline acknowledged the risk but accepted it — weak mitigation hiding a structural flaw.
+- Correct pattern: Decomposition (breaking into sub-problems with dependency graph) is a separate activity from sequencing (ordering for implementation). Sub-problems get tagged with design readiness — some are ready for runbook, others need more design. Sequencing happens at runbook time, not decomposition time.
+- Design inputs (grounding, research) belong in the design process, not as execution phases.
