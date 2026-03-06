@@ -1,0 +1,7 @@
+- **Classification:** Simple
+- **Implementation certainty:** High — all files identified, all changes are deletions or line removals, no new code
+- **Requirement stability:** High — 4 FRs fully mechanism-specified, scope bounded by dead-code audit
+- **Behavioral code check:** No. All changes are deletions (removing import, removing code block, deleting files). No new functions, no changed logic paths, no conditional branches.
+- **Work type:** Production — removes a feature from the hook infrastructure
+- **Artifact destination:** production (`agent-core/hooks/`, `src/claudeutils/`)
+- **Evidence:** Single hook file edit (delete ~15 lines), 4 file deletions, grep audit. No architectural decisions. Dead-code audit already completed during requirements (single production caller confirmed).

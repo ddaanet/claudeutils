@@ -360,7 +360,7 @@
   - Consumes: validated methodology from outline redraft + grounding report
   - Methodology validated on real case — codification unblocked
   - Behavioral change to `/design` skill — shared infrastructure, merges to main
-- [ ] **Remove UPS topics** → `rm-ups-topic` — Delete UPS topic injection hook (noisy, low relevance) | haiku | restart
+- [x] **Remove UPS topics** — Delete UPS topic injection hook (noisy, low relevance) | haiku | restart
 - [ ] **Standardize task creation** — `/design plans/standardize-task-creation/requirements.md` | sonnet
   - Plan: standardize-task-creation
   - Skills write follow-up tasks to session.md with skill invocation commands
@@ -431,6 +431,8 @@
 - Only trivial fixes belong in In-tree. Plan absence doesn't qualify for in-tree.
 
 - Encoded project paths use `-` for `/`, but real dashes in directory names are indistinguishable. Acceptable for prototype; production would need a different approach. [from: session-scraping]
+- Task name "Remove UPS topic injection" exceeds 25-char limit (26 chars) — from worktree setup [from: rm-ups-topic]
+- session.md H1 header format mismatch — now fixed by this handoff [from: rm-ups-topic]
 ## Reference Files
 
 - `plans/reports/workflow-grounding-audit.md` — Grounding provenance for all workflow skills/agents
