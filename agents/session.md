@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-06
 
-**Status:** Infrastructure fixes — justfile shebang, docformatter install, hook TMPDIR.
+**Status:** Infrastructure fixes + handoff-commit-removal merge.
 
 ## Completed This Session
 
@@ -9,6 +9,12 @@
   - Fixed in main justfile, agent-core `justfile-base.just`, and all 7 active worktrees
 - **docformatter install:** `uv tool install docformatter --python 3.13` (untokenize dependency incompatible with Python 3.14)
 - **Stop hook TMPDIR fix:** `stop-health-fallback.sh` failed under `set -u` when `TMPDIR` unset — added `TMPDIR="${TMPDIR:-/tmp}"` fallback
+- **Handoff --commit removal merged + worktree removed:**
+  - Removed `--commit` flag from `/handoff`, expanded `hc` to chain `/handoff, /commit`
+  - Decoupled handoff from commit-ready state
+  - Worktree justfile discarded (already on main), worktree removed
+- **Recall tool consolidation absorbed:** Scope covered by Active recall system FR-7 (mode simplification) and C-3 (infrastructure consolidation). Worktree force-removed (no deliverables).
+- **skill-description-evals worktree removed:** Canceled sub-worktree of explore-anthropic-plugins. No deliverables.
 
 - **Plan cleanup (14 directories deleted):**
   - Delivered (11): execute-skill-dispatch, flatten-hook-tiers, inline-tdd-dispatch, recall-cli-integration, recall-null, runbook-recall-expansion, task-classification, task-pattern-statuses, userpromptsubmit-topic, when-resolve-fix, wt-rm-dirty
@@ -178,11 +184,7 @@
   - Two drift vectors: stale recall-artifact (entries loaded not persisted) and stale skill artifacts (decisions loaded after artifact written)
 - [ ] **Lint-gated recall** — PostToolUse hook: inject memory-index on first lint/precommit red after green (state-transition gated) | sonnet | 1.9
 - [ ] **Lint recall gate** — PreToolUse recall pass before lint fix attempt; depends on when-resolve null mode | sonnet | 1.9
-- [ ] **Recall tool consolidation** → `recall-tool-consolidation` — rename `when-resolve.py` → `claudeutils _recall`, remove `..file` syntax; phase out `/when` and `/how` as separate skills, ensure `/recall` covers reactive single-entry lookups; memory-index entry format changes from `/when`+`/how` prefixes → new format; update `src/claudeutils/validation/memory_index_checks.py` and `when` module accordingly | sonnet | 1.9
-  - Recall simplification: remove sibling expansion (redundant with index scanning). Resolver = pure lookup (key in, section out).
-  - Mode reduction: default (per-key, 2 passes), all (per-file, iterated), everything (full corpus). Drop `broad` and `deep` from formal mode set.
-  - Grounding: `plans/reports/recall-lifecycle-grounding.md` (per-point mode assignments, lifecycle role contract)
-  - Absorbs: Stale recall artifact — diagnose /design producing old-style recall artifact instead of memory key list
+- [-] **Recall tool consolidation** — absorbed into Active recall system (FR-7 mode simplification, C-3 infrastructure consolidation) | sonnet | 1.9
 - [ ] **Ground workflow skills** — `/ground` each per audit | opus | 1.9
   - Audit: `plans/reports/workflow-grounding-audit.md`
   - Priority: /runbook → review agents (corrector + design-corrector batch) → /orchestrate → /handoff
@@ -417,4 +419,4 @@
 
 ## Next Steps
 
-7 worktrees active (all now have justfile shebang fix). Merge handoff-commit-removal next, then continue worktree sessions.
+6 worktrees active (all have justfile shebang fix). Continue worktree sessions, merge each as completed.
