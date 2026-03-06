@@ -317,7 +317,7 @@ def parse_session_file(path: Path, file_type: str = "uuid") -> list[TimelineEntr
                 # typed {type: "text"} blocks, so check raw items first.
                 raw_strings = [item for item in msg_content if isinstance(item, str)]
                 first_text = _text_from(msg_content)
-                interrupt_text = first_text + "\n".join(raw_strings)
+                interrupt_text = first_text + "\n" + "\n".join(raw_strings)
                 if "[Request interrupted by user]" in interrupt_text:
                     entries.append(
                         TimelineEntry(
@@ -435,6 +435,12 @@ def build_session_tree(root_session_id: str, project_dir: str) -> SessionTree:
             _ingest(agent_file, "agent")
 
     all_entries.sort(key=lambda entry: entry.timestamp)
+    # Re-number refs globally to avoid collisions across files
+    ref_n = 0
+    for entry in all_entries:
+        if entry.ref is not None:
+            ref_n += 1
+            entry.ref = f"t{ref_n}"
     return SessionTree(
         root_session_id=root_session_id,
         project_dir=project_dir,
@@ -576,13 +582,19 @@ def correlate_session_tree(tree: SessionTree, git_dir: str) -> CorrelationResult
                 branches = [
                     b.strip() for b in br.stdout.strip().splitlines() if b.strip()
                 ]
-                # Map branch slugs to worktree session directories
+                # Map branch slugs to worktree session directories.
+                # Match branch as a segment between '-' delimiters in the
+                # encoded project path to avoid substring false positives
+                # (e.g. branch "main" matching "-maintenance-").
                 session_dirs: list[str] = []
                 if projects_dir.exists():
                     for branch in branches:
-                        # Worktree paths encode as project-dir-branch-slug in projects/
                         for pdir in projects_dir.iterdir():
-                            if pdir.is_dir() and branch in pdir.name:
+                            if not pdir.is_dir():
+                                continue
+                            # Check branch appears as exact segment(s) in encoded path
+                            segments = pdir.name.split("-")
+                            if branch in segments or branch in pdir.name.split("-"):
                                 session_dirs.append(str(pdir))
                 if session_dirs:
                     merge_parents[merge_hash] = session_dirs
@@ -701,6 +713,12 @@ def correlate(session_id: str, project: str, git_dir: str | None, fmt: str) -> N
     for h, sessions in result.commit_sessions.items():
         click.echo(f"  {h}  ←  {', '.join(s[:8] for s in sessions)}")
     click.echo(f"Unattributed (recent 50): {len(result.unattributed)}")
+    if result.merge_parents:
+        click.echo(
+            f"Merge commits with worktree provenance: {len(result.merge_parents)}"
+        )
+        for mh, dirs in result.merge_parents.items():
+            click.echo(f"  {mh[:12]}  → {', '.join(Path(d).name for d in dirs)}")
 
 
 if __name__ == "__main__":
