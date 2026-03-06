@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-06
 
-**Status:** Workflow quick wins branch — 4 worktrees dispatched, merging back.
+**Status:** All 4 worktree tasks merged. Branch complete.
 
 ## Completed This Session
 
@@ -126,12 +126,18 @@
   - Moved batch tasks from main Worktree Tasks into this branch's session
   - Created batch execute task for 8 prose-only tasks + 3 individual design tasks
   - Dispatched 4 worktrees: prose-quick-wins (batch), discuss-divergent-step, settings-triage-protocol, standardize-task-creation
+- **4 worktree merges completed:**
+  - discuss-divergent-step: added "Diverge before assessing" step to `pushback.md` discussion evaluation protocol
+  - settings-triage-protocol: design session delivered, new task "Pre-inline plan commit" added
+  - standardize-task-creation: design session delivered
+  - prose-quick-wins: 8 prose tasks batch executed (agentic prose terminology, memory-index loading docs, wt merge-rm shorthand, corrector removal audit, runbook outline review, review auto-commit, task notation migration, command lint gate)
+- **Missing command fixes:** Added backtick commands to ~30 tasks from main's session.md that lacked them (precommit validation failure during prose-quick-wins merge)
 
 ## In-tree Tasks
 
 ## Worktree Tasks
 
-- [ ] **Prose quick wins** — `x` implement 8 ready tasks sequentially | haiku
+- [x] **Prose quick wins** — `x` implement 8 ready tasks sequentially | haiku
   - Agentic prose terminology, Memory-index loading docs, Wt merge-rm shorthand, Corrector removal audit, Runbook outline review, Review auto-commit, Task notation migration, Command lint gate
 - [x] **Discuss divergent step** — `/design plans/discuss-divergent-thinking/brief.md` | sonnet
   - Plan: discuss-divergent-thinking
@@ -372,4 +378,4 @@
 
 ## Next Steps
 
-4 worktrees dispatched from this branch. Merge each as completed: `wt merge <slug>`.
+Branch work complete.
