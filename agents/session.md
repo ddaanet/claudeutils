@@ -1,8 +1,14 @@
-# Session Handoff: 2026-03-04
+# Session Handoff: 2026-03-06
 
-**Status:** Worktree batch dispatch — 7 worktrees created for parallel execution.
+**Status:** Infrastructure fixes — justfile shebang, docformatter install, hook TMPDIR.
 
 ## Completed This Session
+
+- **Justfile bash prolog fix:**
+  - `/usr/bin/env bash -euo pipefail` → shebang + `set` on separate line (env doesn't pass flags portably)
+  - Fixed in main justfile, agent-core `justfile-base.just`, and all 7 active worktrees
+- **docformatter install:** `uv tool install docformatter --python 3.13` (untokenize dependency incompatible with Python 3.14)
+- **Stop hook TMPDIR fix:** `stop-health-fallback.sh` failed under `set -u` when `TMPDIR` unset — added `TMPDIR="${TMPDIR:-/tmp}"` fallback
 
 - **Plan cleanup (14 directories deleted):**
   - Delivered (11): execute-skill-dispatch, flatten-hook-tiers, inline-tdd-dispatch, recall-cli-integration, recall-null, runbook-recall-expansion, task-classification, task-pattern-statuses, userpromptsubmit-topic, when-resolve-fix, wt-rm-dirty
@@ -411,4 +417,4 @@
 
 ## Next Steps
 
-7 worktrees dispatched. Launch sessions via `cd <path> && claude`. After each completes: `hc` in worktree, then `wt merge <slug>` from main.
+7 worktrees active (all now have justfile shebang fix). Merge handoff-commit-removal next, then continue worktree sessions.
