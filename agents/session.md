@@ -162,7 +162,7 @@
   - Plan: worktree-merge-from-main | Status: requirements
   - Branch self-updates before merge to main; main rollbacks on failure instead of fixing on main
   - Prerequisite for merge resilience — eliminates most merge failures at source
-- [ ] **Handoff --commit removal** → `handoff-commit-removal` — remove --commit from /handoff, expand standalone to chain, deduplicate [handoff, commit] | sonnet | 2.2
+- [x] **Handoff --commit removal** — remove --commit from /handoff, expand standalone to chain, deduplicate [handoff, commit] | sonnet | 2.2
   - ~60 occurrences: skills, fragments, tests, continuation infrastructure, decision files
   - Motivation: decouple handoff from commit-ready state (handoff should work on dirty tree)
 - [ ] **Explore Anthropic plugins** → `explore-anthropic-plugins` — Install all 28 official plugins | sonnet | restart | 2.0
