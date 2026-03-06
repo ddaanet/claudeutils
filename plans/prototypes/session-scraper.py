@@ -128,6 +128,16 @@ def scan_projects(prefix: str | None = None) -> list[SessionFile]:
                         session_id=f.stem,
                     )
                 )
+            elif AGENT_RE.match(f.stem):
+                # Agent files: strip "agent-" prefix for session_id
+                results.append(
+                    SessionFile(
+                        path=f,
+                        project_dir=decoded,
+                        file_type="agent",
+                        session_id=f.stem.removeprefix("agent-"),
+                    )
+                )
     return results
 
 
@@ -183,7 +193,8 @@ def parse_session_file(path: Path, file_type: str = "uuid") -> list[TimelineEntr
             continue
         try:
             e = json.loads(line)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as exc:
+            print(f"warning: malformed JSONL in {path}: {exc}", file=sys.stderr)
             continue
 
         etype = e.get("type")
@@ -230,7 +241,14 @@ def parse_session_file(path: Path, file_type: str = "uuid") -> list[TimelineEntr
                 )
 
         elif etype == "user":
-            if isinstance(msg_content, list) and _has_tool_results(msg_content):
+            # Key Decision 1: check subtype field first, fall back to content inspection
+            msg_subtype = e.get("message", {}).get("subtype", "")
+            has_tools = msg_subtype == "tool_result" or (
+                isinstance(msg_content, list) and _has_tool_results(msg_content)
+            )
+            if has_tools and not isinstance(msg_content, list):
+                pass  # tool_result with non-list content — suppress
+            elif has_tools:
                 # Resolve tool results → emit tool_call / tool_interactive entries
                 for block in msg_content:
                     if (
