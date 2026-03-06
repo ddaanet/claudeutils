@@ -23,3 +23,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Investing in skill description optimization (eval loops, train/test splits) when the workflow is fully structured — all skill invocations are explicit (shortcuts, backtick commands, chaining, frontmatter injection).
 - Correct pattern: Skill description optimization matters only when automatic triggering operates — i.e., unstructured user input where Claude autonomously decides which skill to invoke. In structured workflows with explicit invocation rails, descriptions serve as documentation only.
 - Evidence: 32 project skills, zero relying on automatic triggering. Entry points (`d:` directive, `/requirements`) are both explicit. Skill-creator eval infrastructure exists for marketplace plugins where auto-triggering does matter.
+## When parsing Claude Code JSONL message content
+- Anti-pattern: Assuming `type: "user"` entries with interrupt text (`[Request interrupted by user]`) always use string content format. In practice, interrupt messages appear as list content `[{"type": "text", "text": "[Request interrupted by user]"}]`.
+- Correct pattern: Extract text from both string and list formats before checking for content markers (interrupts, system-reminders, command tags). The content format is not predictable from the entry type — both formats occur for the same semantic content.
+- Evidence: Parser missed all interrupt entries in real sessions until list-format branch was fixed.

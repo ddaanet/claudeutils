@@ -395,6 +395,7 @@
 **Main is worktree-tasks-only:**
 - Only trivial fixes belong in In-tree. Plan absence doesn't qualify for in-tree.
 
+- Encoded project paths use `-` for `/`, but real dashes in directory names are indistinguishable. Acceptable for prototype; production would need a different approach. [from: session-scraping]
 ## Reference Files
 
 - `plans/reports/workflow-grounding-audit.md` — Grounding provenance for all workflow skills/agents
