@@ -43,7 +43,8 @@
       "WebFetch(domain:gitmoji.dev)",
       "Bash(agent-core/bin/validate-memory-index.py:*)",
       "Bash(agent-core/bin/learning-ages.py agents/learnings.md)",
-      "Bash(uv sync:*)"
+      "Bash(uv sync:*)",
+      "Bash(agent-core/bin/triage-feedback.sh:*)"
     ],
     "deny": [
       "Write(.claude/skills/*)",
