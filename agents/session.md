@@ -171,7 +171,7 @@
 - [x] **Handoff --commit removal** — remove --commit from /handoff, expand standalone to chain, deduplicate [handoff, commit] | sonnet | 2.2
   - ~60 occurrences: skills, fragments, tests, continuation infrastructure, decision files
   - Motivation: decouple handoff from commit-ready state (handoff should work on dirty tree)
-- [ ] **Explore Anthropic plugins** → `explore-anthropic-plugins` — Install all 28 official plugins | sonnet | restart | 2.0
+- [ ] **Explore Anthropic plugins** — Install all 28 official plugins | sonnet | restart | 2.0
 - [ ] **Wt ls session ordering** → `wt-ls-session-ordering` — `_worktree ls` prints plans in pending task order from session.md | sonnet | 2.0
 - [ ] **Tool deviation hook** — PostToolUse hook: agents declare expected Bash outcome, hook validates actual vs declared | sonnet | 1.9
   - General framework: agent declares expected exit code + output pattern before Bash call
