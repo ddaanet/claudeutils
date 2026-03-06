@@ -384,7 +384,6 @@
 - `plans/codebase-sweep/requirements.md` — mechanical refactoring (_git_ok, _fail, exceptions)
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
 - `plans/reports/prioritization-2026-03-06.md` — WSJF scoring, 73 tasks ranked (supersedes 2026-03-02b)
-- `plans/skill-progressive-disclosure/brief.md` — Segment loading at gate boundaries (/design and /runbook)
 - `plans/reports/design-skill-grounding.md` — Design skill grounding (updated with session empirical data)
 - `agents/decisions/pipeline-contracts.md` — Pipeline contract decision file (new)
 - `plans/reports/recall-lifecycle-grounding.md` — Grounded recall artifact lifecycle (3 patterns, per-point mode assignments, mode reduction)

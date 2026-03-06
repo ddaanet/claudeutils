@@ -483,3 +483,15 @@ Session.md command-lint validator: precommit gate scanning task entries for miss
 ## standardize-task-creation
 
 Standardized task creation across skills. Skills write follow-up tasks to session.md with skill invocation commands and consistent metadata format. Delivered via workflow-quick-wins worktree. Affected: agent-core/skills/inline/SKILL.md, agent-core/skills/handoff/SKILL.md.
+
+## rm-ups-topic
+
+Removed UPS topic injection hook. Topic detection and contextual recall injection via UserPromptSubmit removed after analysis showed zero automatic triggering in structured workflow. Affected: agent-core/hooks/userpromptsubmit-shortcuts.py.
+
+## session-validator
+
+Session.md structural validator with precommit integration. Validates section ordering, task format, worktree markers, absolute path detection, command presence. Includes autofix for memory-index placement/ordering. Affected: src/claudeutils/validation/session_structure.py, src/claudeutils/validation/session_commands.py, src/claudeutils/validation/session_paths.py.
+
+## skill-progressive-disclosure
+
+Segment loading at gate boundaries (/design and /runbook). Skills load reference segments progressively rather than all at once, reducing context overhead. Brief and requirements captured. Affected: agent-core/skills/design/, agent-core/skills/runbook/.
