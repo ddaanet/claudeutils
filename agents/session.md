@@ -149,7 +149,7 @@
 
 ## Worktree Tasks
 
-- [ ] **Active Recall** → `active-recall-system` — `/requirements plans/active-recall/brief.md` | opus
+- [ ] **Active Recall** — `/requirements plans/active-recall/brief.md` | opus
   - Plan: active-recall
   - Hierarchical index, automated documentation conversion, memory format grounding
   - Relates to: recall tool consolidation, generate memory index, recall dedup, recall pipeline, recall learnings design
