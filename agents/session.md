@@ -285,7 +285,7 @@
 - [ ] **Behavioral design** — Nuanced conversational pattern intervention | opus | 0.4
 - [ ] **Wt new --base submodule** — `_worktree new --base` doesn't resolve agent-core to branch commit | sonnet
   - Requires TDD: write test, then fix
-- [ ] **Retrospective materials** → `retrospective-materials` — `/design plans/retrospective/requirements.md` | opus
+- [ ] **Retrospective materials** — `/design plans/retrospective/requirements.md` | opus
   - Plan: retrospective
   - Scrape session logs + git history for blog post raw materials on ddaa.net
 - [ ] **Corrector audit** — audit 5 review-class agents for false positive evidence, add "Do NOT Flag" sections | sonnet
@@ -378,6 +378,9 @@
 - Retrospective needs to scan across ~90 worktree project directories (each gets its own `~/.claude/projects/` entry) [from: retrospective]
 - Prototype's `scan --prefix` filters by prefix but retrospective needs multiple prefixes per topic [from: retrospective]
 - May need prototype extension (requires separate `/requirements` per C-1) [from: retrospective]
+- Scraper `scan` decoded paths are lossy (dashes → slashes) — both real and decoded paths work with search/excerpt commands [from: retrospective-materials]
+- `plans/prototypes/recall-artifact.md` created as stub to satisfy pretooluse recall gate (hook infers plan from changed file path, not from actual plan context) [from: retrospective-materials]
+- Topic agents used general-purpose subagent type (no plan-specific agents created) — worked for investigation but wouldn't scale for implementation tasks [from: retrospective-materials]
 ## Reference Files
 
 - `plans/reports/workflow-grounding-audit.md` — Grounding provenance for all workflow skills/agents
