@@ -143,6 +143,9 @@
   - Completed/terminal tasks compressed
 - **Discussion: JSON vs markdown for prioritize input** — JSON chosen (agent-produced, unambiguous parsing)
 - **New worktrees created:** active-recall, retrospective-materials, workflow-quick-wins
+- **Reprioritization:** 73 tasks rescored (file: `plans/reports/prioritization-2026-03-06.md`)
+  - Top 5: Runbook outline review (4.0), Active Recall (3.6), Worktree merge resilience (2.8), Standardize task creation (2.6), Plugin migration (2.6)
+  - Active Recall rose (outline exists, ME 5→2); Plugin migration DP increased to 8 (4 weeks stale)
 
 ## In-tree Tasks
 
@@ -381,7 +384,7 @@
 - `plans/handoff-cli-tool/outline.md` — Session CLI combined outline (reviewed 6 rounds)
 - `plans/codebase-sweep/requirements.md` — mechanical refactoring (_git_ok, _fail, exceptions)
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
-- `plans/reports/prioritization-2026-03-02b.md` — WSJF scoring, 79 tasks ranked, flat ordering (supersedes 2026-03-02)
+- `plans/reports/prioritization-2026-03-06.md` — WSJF scoring, 73 tasks ranked (supersedes 2026-03-02b)
 - `plans/skill-progressive-disclosure/brief.md` — Segment loading at gate boundaries (/design and /runbook)
 - `plans/reports/design-skill-grounding.md` — Design skill grounding (updated with session empirical data)
 - `agents/decisions/pipeline-contracts.md` — Pipeline contract decision file (new)
