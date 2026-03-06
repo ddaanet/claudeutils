@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-06
 
-**Status:** Infrastructure fixes + worktree batch merge cleanup.
+**Status:** Workflow quick wins branch — 4 worktrees dispatched, merging back.
 
 ## Completed This Session
 
@@ -122,30 +122,26 @@
 - **Worktree batch dispatch (7 parallel):**
   - session-scraping, worktree-merge-from-main, handoff-commit-removal, explore-anthropic-plugins, wt-ls-session-ordering, recall-tool-consolidation, active-recall-system
   - Skill caching confirmed: loaded worktree SKILL.md had stale model-tier filter (already removed on disk), caused sonnet-only batch excluding opus tasks
+- **Workflow quick wins restructure:**
+  - Moved batch tasks from main Worktree Tasks into this branch's session
+  - Created batch execute task for 8 prose-only tasks + 3 individual design tasks
+  - Dispatched 4 worktrees: prose-quick-wins (batch), discuss-divergent-step, settings-triage-protocol, standardize-task-creation
 
 ## In-tree Tasks
 
 ## Worktree Tasks
 
-### Batch: workflow quick wins (prose-only / low code, parallelizable)
-
-- [ ] **Agentic prose terminology** — find/replace "LLM prose" variants → "agentic prose" across codebase | haiku | 1.3
-- [ ] **Memory-index loading docs** — update stale refs claiming memory-index is @-ref from CLAUDE.md | haiku | 1.2
-- [ ] **Wt merge-rm shorthand** — prose edit: `wt merge rm <slug>` shorthand in worktree SKILL.md | haiku | 1.2
-- [ ] **Corrector removal audit** — decision entry: corrector must verify removal covers all callers | sonnet | 1.2
-- [ ] **Runbook outline review** — prose edit: user review gate after outline correction in runbook SKILL.md | haiku | 1.1
-- [ ] **Review auto-commit** — prose edit: auto handoff+commit after deliverable-review fixes | haiku | 1.1
-- [ ] **Task notation migration** — replace `[✗]` → `[†]` across active behavioral files + validators | haiku | 0.8
-- [ ] **Discuss divergent step** — `/design plans/discuss-divergent-thinking/brief.md` | sonnet
+- [ ] **Prose quick wins** → `prose-quick-wins` — implement 8 ready tasks sequentially | haiku
+  - Agentic prose terminology, Memory-index loading docs, Wt merge-rm shorthand, Corrector removal audit, Runbook outline review, Review auto-commit, Task notation migration, Command lint gate
+- [ ] **Discuss divergent step** → `discuss-divergent-step` — `/design plans/discuss-divergent-thinking/brief.md` | sonnet
   - Plan: discuss-divergent-thinking
   - Add alternative-framing step to d: directive before assessment
-- [ ] **Settings triage protocol** — `/design plans/settings-triage-protocol/brief.md` | sonnet
+- [ ] **Settings triage protocol** → `settings-triage-protocol` — `/design plans/settings-triage-protocol/brief.md` | sonnet
   - Plan: settings-triage-protocol
   - Commit skill triage step for settings.local.json entries
-- [ ] **Standardize task creation** — `/design plans/standardize-task-creation/requirements.md` | sonnet
+- [ ] **Standardize task creation** → `standardize-task-creation` — `/design plans/standardize-task-creation/requirements.md` | sonnet
   - Plan: standardize-task-creation
   - Skills write follow-up tasks to session.md with skill invocation commands
-- [ ] **Command lint gate** — precommit lint: scan backtick commands in task entries for executability | haiku
 
 ### Active / ready
 
@@ -371,8 +367,7 @@
 - `plans/wt-rm-task-cleanup/brief.md` — rm removes completed task entry (branch `[x]` check)
 - `plans/merge-lifecycle-audit/brief.md` — State machine audit for merge→rm lifecycle (absorbs merge-submodule-ordering)
 - `plans/active-recall/brief.md` — Active recall system: hierarchical index, documentation conversion, trigger classes, invalidation
-- `tmp/active-recall.md` — Discussion decisions: recall-explore-recall, tree navigation, benchmark landscape
 
 ## Next Steps
 
-3 worktrees active: active-recall-system, discuss, retrospective. Continue worktree sessions.
+4 worktrees dispatched from this branch. Merge each as completed: `wt merge <slug>`.
