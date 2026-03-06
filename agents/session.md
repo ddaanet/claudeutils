@@ -146,6 +146,18 @@
 - **Reprioritization:** 73 tasks rescored (file: `plans/reports/prioritization-2026-03-06.md`)
   - Top 5: Runbook outline review (4.0), Active Recall (3.6), Worktree merge resilience (2.8), Standardize task creation (2.6), Plugin migration (2.6)
   - Active Recall rose (outline exists, ME 5→2); Plugin migration DP increased to 8 (4 weeks stale)
+- **Worktree merges + cleanup (3):**
+  - Merged retrospective-materials: 1 new learning (recall gate misidentifies plan), 3 blockers carried
+  - Merged workflow-quick-wins: 38 tasks needed backtick commands added (branch introduced command-lint validator), 1 plan path corrected (parallel-orchestration: `requirements.md` → `problem.md`), 1 new learning
+  - Merged active-recall: duplicate task resolved (branch In-tree → Worktree per main-is-worktree-tasks-only), outline Rev 2 context carried
+  - All 3 worktrees removed after merge
+- **Task completion evaluation:** 11 tasks from workflow-quick-wins marked `[x]` after codebase verification
+  - Verified against live artifacts: pushback.md divergent step, commit SKILL.md triage table, session_commands.py validator, worktree SKILL.md Mode D, etc.
+  - Standardize task creation confirmed completed by user
+- **Plan cleanup (7 directories deleted):**
+  - Delivered (4 from workflow-quick-wins): discuss-divergent-thinking, settings-triage-protocol, command-lint-gate, standardize-task-creation
+  - Delivered (3 additional): rm-ups-topic, session-validator, skill-progressive-disclosure
+  - Plan-archive entries written for all 7, stale reference file removed
 
 ## In-tree Tasks
 
@@ -298,15 +310,6 @@
   - Was blocked by UPS topic injection — now removed. Task may be moot.
 - [-] **Recall tool consolidation** — absorbed into Active Recall | sonnet | 1.9
 - [-] **Execute flag lint** — superseded by session validator | haiku | 3.0
-- [x] **Remove UPS topics** — haiku | restart
-- [x] **Orchestrate evolution** — sonnet | restart | 6.0
-- [x] **Skill disclosure** — opus | 2.6
-- [x] **Session.md validator** — sonnet | 2.4
-- [x] **Session scraping** — sonnet | 2.2
-- [x] **Worktree merge from main** — sonnet | 2.2
-- [x] **Handoff --commit removal** — sonnet | 2.2
-- [x] **Explore Anthropic plugins** — sonnet | restart | 2.0
-- [x] **Wt ls session ordering** — sonnet | 2.0
 
 - [ ] **Pre-inline plan commit** — `/design` process gap: pipeline planning artifacts dirty tree before inline entry gate | sonnet
 
@@ -398,4 +401,4 @@
 
 ## Next Steps
 
-3 worktrees active: active-recall, retrospective-materials, workflow-quick-wins. Continue worktree sessions.
+No active worktrees. Next: dispatch worktrees for top-priority tasks — Active Recall (opus), Worktree merge resilience (sonnet), Plugin migration (opus).
