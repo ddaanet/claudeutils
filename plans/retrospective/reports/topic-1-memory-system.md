@@ -76,9 +76,7 @@ Commit `c4b1e043` body: "801 sessions scanned across 71 project dirs: 22 /when c
 
 ### Excerpt 1: The 4.1% Discovery — Recognition Bottleneck Diagnosed
 
-**Session:** `f9e199ea-312e-4fa8-aec0-3316312f5c1b`
-**Project:** when-recall-evaluation
-**Date:** 2026-02-20
+**Session:** `f9e199ea` | **Project:** when-recall-evaluation | **Date:** 2026-02-20
 
 The pivotal moment where measurement data revealed the fundamental failure of agent-initiated recall.
 
@@ -110,8 +108,7 @@ The pivotal moment where measurement data revealed the fundamental failure of ag
 
 ### Excerpt 2: Metacognitive vs Procedural Recognition
 
-**Session:** `f9e199ea-312e-4fa8-aec0-3316312f5c1b` (continued)
-**Date:** 2026-02-20
+**Session:** `f9e199ea` (continued) | **Date:** 2026-02-20
 
 User challenges the agent to evaluate its own diagnosis.
 
@@ -130,8 +127,7 @@ User challenges the agent to evaluate its own diagnosis.
 
 ### Excerpt 3: From Agent-Invoked to Script-Invoked Resolution
 
-**Session:** `f9e199ea-312e-4fa8-aec0-3316312f5c1b` (continued)
-**Date:** 2026-02-20
+**Session:** `f9e199ea` (continued) | **Date:** 2026-02-20
 
 The conceptual pivot from agent recall to forced injection.
 
@@ -141,9 +137,7 @@ The conceptual pivot from agent recall to forced injection.
 
 ### Excerpt 4: Recall Gate Inventory — 61% Prose-Only Gates
 
-**Session:** `3a299440-3acb-4de4-91fb-5f88466327fc`
-**Project:** recall-tool-anchoring
-**Date:** 2026-02-24
+**Session:** `3a299440` | **Project:** recall-tool-anchoring | **Date:** 2026-02-24
 
 Design session that grounded the enforcement problem.
 
@@ -156,9 +150,7 @@ From the outline itself (commit `7ee9d0c0`): "31 recall gates across 13 files. 6
 
 ### Excerpt 5: TDD Execution of /when Fuzzy Matching
 
-**Session:** `d2a626b7-44dc-49b7-93ca-6ba82e7a12a1`
-**Project:** when-recall
-**Date:** 2026-02-12–13
+**Session:** `d2a626b7` | **Project:** when-recall | **Date:** 2026-02-12–13
 
 Orchestrated TDD execution building the recall matching engine.
 
@@ -173,9 +165,7 @@ Orchestrated TDD execution building the recall matching engine.
 
 ### Excerpt 6: Recall Fix — Path Normalization Bug
 
-**Session:** `7304d4b5-c924-4565-8e5c-52b1b2b8460e`
-**Project:** recall-fix
-**Date:** 2026-02-13
+**Session:** `7304d4b5` | **Project:** recall-fix | **Date:** 2026-02-13
 
 Post-deliverable-review fix that revealed systematic zero recall from path mismatches.
 
@@ -189,9 +179,7 @@ This bug (commit `8df92e27`) caused the recall analysis to show 0% recall for en
 
 ### Excerpt 7: Active Recall Architecture — Forced Injection as Core Design
 
-**Session:** `ae5d319e-c0ca-4769-ab4e-1e70b863a50e`
-**Project:** active-recall-system
-**Date:** 2026-03-06
+**Session:** `ae5d319e` | **Project:** active-recall-system | **Date:** 2026-03-06
 
 Requirements capture session that defined the active recall system vision.
 
@@ -205,9 +193,7 @@ The requirements document (commit `60de1237`) formalized:
 
 ### Excerpt 8: Context7 as Query-Keyed Cache, Not Bulk Import
 
-**Session:** `cff6fd79-3377-4f84-a030-86e08a49c6d5`
-**Project:** active-recall-system
-**Date:** 2026-03-03
+**Session:** `cff6fd79` | **Project:** active-recall-system | **Date:** 2026-03-03
 
 Design discussion that refined how external knowledge enters the system.
 

@@ -606,7 +606,7 @@ def correlate_session_tree(tree: SessionTree, git_dir: str) -> CorrelationResult
                                 continue
                             # Check branch appears as exact segment(s) in encoded path
                             segments = pdir.name.split("-")
-                            if branch in segments or branch in pdir.name.split("-"):
+                            if branch in segments:
                                 session_dirs.append(str(pdir))
                 if session_dirs:
                     merge_parents[merge_hash] = session_dirs

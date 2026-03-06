@@ -47,7 +47,7 @@ Evidence bundle for retrospective blog post on ddaa.net.
 
 ## Session Excerpts
 
-### Excerpt 1: The Failure Cascade Discovery (RCA document, retrieved via `bccf08a1`)
+### Evidence 1: The Failure Cascade Discovery (RCA document @ `bccf08a1`)
 
 From `plans/reflect-rca-parity-iterations/rca.md` (commit `bccf08a1`):
 
@@ -178,9 +178,9 @@ The same defense-in-depth principle discovered through the parity failure cascad
 | Parity RCA | `plans/reflect-rca-parity-iterations/rca.md` @ `bccf08a1` | Git blob |
 | Defense-in-depth decision | `agents/decisions/defense-in-depth.md` @ `e3d26b1e` | Git blob |
 | Deliverable review methodology | `agents/decisions/deliverable-review.md` @ `e39b2eb2` | Git blob |
-| Statusline-parity completion | Session `402efacf` in `/Users/david/code/claudeutils` | Session log |
-| RCA gap analysis discussion | Session `1fb0b59c` in `/Users/david/code/claudeutils/parity/failures` | Session log |
-| Methodology design (ISO/IEEE grounding) | Session `90557acc` in `/Users/david/code/claudeutils/wt/worktree` | Session log |
-| Two-layer review evolution | Session `c5b45184` in `/Users/david/code/claudeutils` | Session log |
+| Statusline-parity completion | Session `402efacf` | **Project:** main (claudeutils) |
+| RCA gap analysis discussion | Session `1fb0b59c` | **Project:** parity-failures |
+| Methodology design (ISO/IEEE grounding) | Session `90557acc` | **Project:** worktree |
+| Two-layer review evolution | Session `c5b45184` | **Project:** main (claudeutils) |
 | First deliverable review (27 findings) | Commit `4dbcd52d` | Git commit |
-| Quality-infra-reform review | Session `420c2dec` in `/Users/david/code/claudeutils/wt/quality/infra/reform` | Session log |
+| Quality-infra-reform review | Session `420c2dec` | **Project:** quality-infra-reform |

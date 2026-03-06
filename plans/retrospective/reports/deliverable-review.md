@@ -85,9 +85,14 @@ All 5 topic reports reference decision files by path+commit and quote relevant p
 ## Summary
 
 - **Critical:** 0
-- **Major:** 2
-- **Minor:** 6
+- **Major:** 1 (M-2 reclassified to Minor after discussion — redundant code in pre-existing prototype, no functional impact)
+- **Minor:** 7
 
-M-1 (T4 excerpt sourcing) is the most substantive finding — Topic 4's evidence bundle relies on document quotes where the requirements specify session excerpts. The ground skill's pivotal moments may have occurred more in commit-message-documented design work than in interactive sessions, but the gap against FR-2 is real. M-2 (redundant code) is low-impact for a prototype.
-
-Minor findings are consistency issues (session ID format, section naming, path formats) that matter for the reports functioning as a unified set of blog raw materials, plus one design interpretation (inline quotes vs full snapshots) that serves the purpose better than the literal requirement.
+M-1 (T4 excerpt sourcing) was the most substantive finding. All findings resolved in fix pass:
+- M-1: T4 Excerpts 1-4 replaced with genuine session dialogue from sessions `bcab8b4c`, `dfd23c89`, `5a2724f6`
+- M-2 → m-7: Redundant `or` clause removed from correlate function
+- m-1: Session IDs normalized to 8-char format across T1 and T5
+- m-2: T2 "Artifact Inventory" renamed to "Source Index"
+- m-3: T3 Source Index paths normalized to project shortnames
+- m-5: T3 Excerpt 1 relabeled as "Evidence 1" (from RCA document, not session)
+- m-4, m-6: No action — design choices documented in review

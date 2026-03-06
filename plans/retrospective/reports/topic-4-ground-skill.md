@@ -26,74 +26,55 @@ Evidence bundle for the "external research mandate" topic of the retrospective b
 
 ## 2. Session Excerpts
 
-### Excerpt 1: The confabulated scoring discovery and WSJF fix
+### Excerpt 1: The User Catches Confabulated Scoring
 
-**Source:** Decision file `agents/decisions/workflow-optimization.md`, codified `25d797d6` (2026-02-18), evidence from `ab4813a4` (2026-02-16)
+**Session:** `bcab8b4c` | **Project:** main (claudeutils) | **Date:** 2026-02-16
 
-```
-### When Writing Methodology
+The user asked to "Establish grounded methodology to order and batch pending tasks." The agent produced a task prioritization document with subjective weights and no external anchoring. The user opened the output file, saw the problem, and interrupted:
 
-**Anti-pattern:** Producing scoring frameworks, evaluation axes, or "best practice"
-documents from internal reasoning alone -- yields confabulated methodologies with
-subjective weights and ungrounded criteria.
+> **User:** That's nice, re-read each word of the first line of my first prompt.
 
-**Correct pattern:** Invoke `/ground` skill. Diverge-converge with parallel branches:
-internal (brainstorm for project-specific dimensions) + external (web search for
-established frameworks). Synthesize by mapping internal dimensions onto external skeleton.
+> **Agent:** "Grounded" — the methodology needs observable evidence and reproducible criteria, not subjective weights and gut-feel scores. Let me rewrite it.
 
-**Evidence:** First prioritization attempt produced subjective weights ("Highest/High/Medium")
-and 0-3 scores without defined criteria. After grounding in WSJF research, methodology
-used Fibonacci scoring with observable evidence sources.
-```
+> *[Request interrupted by user]*
 
-### Excerpt 2: WSJF research synthesis — why WSJF over alternatives
+> **User:** "Establish grounded methodology" meant: "search web for research and best practices, synthetize a reference document adapted to the project context." I have found that anchoring was essential to prev—
 
-**Source:** `plans/reports/task-prioritization-methodology.md`, commit `ab4813a4` (2026-02-16)
+> **Agent:** The failure mode is real and demonstrated: I produced a methodology with subjective weights, vague scoring rubrics, and no external anchoring. A "grounded" document should cite or synthesize from established prioritization frameworks (WSJF, RICE, dependency-based scheduling, critical path analysis) and adapt them — not invent from scratch.
 
-```
-This methodology adapts **WSJF (Weighted Shortest Job First)** -- Reinertsen's
-prioritization framework -- to an internal tooling and agent orchestration context
-where "cost" is measured in developer friction, agent reliability, and token budget
-rather than revenue.
+The agent immediately diagnosed the need for a standalone skill and proposed the diverge-converge structure that became /ground.
 
-**Why WSJF over RICE/ICE:**
-- RICE requires "Reach" (user count) -- irrelevant for single-developer internal tooling
-- ICE is too subjective ("low/medium/high" without decomposition)
-- WSJF decomposes Cost of Delay into measurable components and naturally prioritizes
-  high-value small work
-```
+### Excerpt 2: Parallel Diverge-Converge — The User's Design
 
-### Excerpt 3: Ground skill design outline — the diverge-converge core
+**Session:** `bcab8b4c` (continued) | **Date:** 2026-02-16
 
-**Source:** `plans/grounding-skill/outline.md`, commit `cae5ef11` (2026-02-16)
+> **User:** d: start in parallel brainstorm agent to identify axes to consider in evaluation of current backlog, and web search for existing skills
 
-```
-## Approach
+> **Agent:** **Verdict: Agree with one refinement on scoping.** The diverge-then-converge pattern is sound: brainstorm generates project-specific axes (what matters for THIS backlog given agent workflows, model costs, design artifact state), web search surfaces established frameworks (WSJF, RICE, MoSCoW, critical path). Neither contaminates the other during generation, and synthesis benefits from both perspectives.
 
-Create a skill that encodes the diverge-converge research methodology proven during
-prioritization skill creation. Prevents ungrounded confabulation when producing
-methodologies, frameworks, scoring systems, or best-practice documents.
+> **User:** run both
 
-**D-5: Two-branch diverge is the core innovation.**
-Internal branch (brainstorm OR explore) captures project-specific dimensions.
-External branch (web search) provides established framework skeleton. Neither alone
-suffices -- internal-only confabulates, external-only is generic.
-```
+Two parallel agents dispatched — internal brainstorm + external web search. This became the core of the /ground skill: parallel diverge-converge where internal-only confabulates and external-only is generic. The WSJF framework emerged from the external branch (commit `ab4813a4`).
 
-### Excerpt 4: Ground skill SKILL.md description — the mandate
+### Excerpt 3: Naming the Trigger — LLMs Can't Self-Assess "Ungrounded"
 
-**Source:** Session `820a3daa` (2026-02-26), design-grounding-update worktree, reading skill frontmatter
+**Session:** `dfd23c89` | **Project:** main (claudeutils) | **Date:** 2026-02-16
 
-```
----
-name: ground
-description: >-
-  Ground claims with external research before asserting methodology. Triggers on
-  "ground", "create a scoring system", "design a methodology", "build a framework",
-  or "synthesize best practices". Parallel diverge-converge research preventing
-  confabulated structures.
----
-```
+During the ground skill outline review, the user challenged the trigger wording:
+
+> **User:** "When synthesizing ungrounded methodology" is over specific, LLM defaulting to confabulation means they cannot self assess "ungrounded". Besides, the trigger verb is too specific too, maybe should be—
+
+> **Agent:** That's a sharper version of the principle. Two failures in one trigger: 1. **LLMs can't self-assess "ungrounded"** — if they could, they wouldn't confabulate. The trigger must fire on the *activity*, not a quality judgment the agent can't make.
+
+This insight shaped the skill description: triggering on observable activities ("create a scoring system", "design a methodology") rather than quality assessments ("synthesize ungrounded methodology") that the agent cannot reliably make about its own output.
+
+### Excerpt 4: Ground Skill Update — Both Branches as Agents
+
+**Session:** `5a2724f6` | **Project:** update-grounding-skill | **Date:** 2026-02-23
+
+> **Agent:** **Current state of SKILL.md:** Branch A (Internal) — already an agent. Branch B (External) — inline execution by the skill runner. They execute sequentially. Making both agents enables a single message with two Task calls — true concurrent divergence.
+
+> **Agent:** **Stress-testing my agreement:** The strongest counterargument: agent overhead for web searches adds unnecessary ceremony. [...] **Why this doesn't hold:** The overhead is a few seconds of prompt construction vs. minutes of web search latency. And the actual gain isn't capability — it's structural. Parallel execution cuts wall time roughly in half for the diverge phase.
 
 ### Excerpt 5: Research foundations — Double Diamond + Rapid Review + RAG
 

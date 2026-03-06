@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-06
 
-**Status:** All retrospective evidence gathered. Deliverable review pending.
+**Status:** All retrospective work complete. Reviewed and findings fixed.
 
 ## Completed This Session
 
@@ -24,6 +24,11 @@
   - Topic 5 (Structural enforcement): 207 lines, 8 excerpts, 5 inflection points (file: `plans/retrospective/reports/topic-5-structural-enforcement.md`)
 - Phase 3: Cross-topic connections — 6 shared commits, 4 recurring failure patterns, unified timeline, meta-pattern validation (file: `plans/retrospective/reports/cross-topic-connections.md`)
 
+**Deliverable review + fix pass:**
+- Review: 0C/1M/7m — M-1 (T4 excerpts were document quotes, not session transcripts), M-2 reclassified Minor after discussion (file: `plans/retrospective/reports/deliverable-review.md`)
+- Fix: T4 Excerpts 1-4 replaced with genuine session dialogue from `bcab8b4c`, `dfd23c89`, `5a2724f6`
+- Consistency fixes: session ID format normalized to 8-char, T2 section renamed, T3 source index paths normalized, T3 Evidence 1 relabeled, redundant code in correlate removed
+
 ## In-tree Tasks
 
 - [x] **Retrospective materials** — `/inline plans/retrospective` | sonnet
@@ -33,7 +38,7 @@
   - Phase 2: 5 parallel topic evidence gathering (memory system, pushback, deliverable-review, ground skill, structural enforcement)
   - Phase 3: cross-topic connection mapping
 - [x] **Review retrospective** — `/deliverable-review plans/retrospective` | opus | restart
-- [ ] **Fix retro findings** — `/design plans/retrospective/reports/deliverable-review.md` | opus
+- [x] **Fix retro findings** — `/design plans/retrospective/reports/deliverable-review.md` | opus
 
 ## Blockers / Gotchas
 
@@ -47,7 +52,7 @@
 - `plans/retrospective/recall-artifact.md` — recall entries for agent injection
 - `plans/retrospective/requirements.md` — FR-1 through FR-4, NFR-1/NFR-2, constraints
 - `plans/retrospective/classification.md` — composite classification with evidence
-- `plans/retrospective/reports/` — 8 reports: assessment, validation, review, 5 topics, cross-topic connections
+- `plans/retrospective/reports/` — 9 reports: assessment, validation, review, deliverable-review, 5 topics, cross-topic connections
 - `plans/prototypes/session-scraper.py` — 6-stage prototype (scan/parse/tree/correlate/search/excerpt)
 
 ## Next Steps

@@ -42,8 +42,7 @@ The progression from prose instructions to structural enforcement spans ~4 weeks
 
 ### Excerpt 1: The Discovery — Prose Gates Get Skipped
 
-**Session:** `21fea8cf-b76b-46c6-9fbe-8fc2d5971f52`
-**Project:** recall-tool-anchoring
+**Session:** `21fea8cf` | **Project:** recall-tool-anchoring
 **Context:** Agent ran /reflect after skipping a recall step during /runbook execution
 
 > **Phase 3: Root Cause Analysis**
@@ -58,8 +57,7 @@ This is the inflection point: a prose-only instruction was skipped not because t
 
 ### Excerpt 2: D+B Pattern Named and Classified
 
-**Session:** `21fea8cf-b76b-46c6-9fbe-8fc2d5971f52`
-**Project:** recall-tool-anchoring
+**Session:** `21fea8cf` | **Project:** recall-tool-anchoring
 
 > **Rule gap analysis:**
 > - The rule is clear but skippable — it's prose without a D+B anchor. Same pattern class as "When Preventing Skill Steps From Being Skipped" (implementation-notes.md: "Every skill step must open with a concrete tool call (Read/Bash/Glob)"). The recall step doesn't open with a concrete Read — it opens with a conditional skip.
@@ -88,8 +86,7 @@ The audit quantified the vulnerability: 19 of 31 recall gates existed only as pr
 
 ### Excerpt 4: Structural Enforcement Named Explicitly
 
-**Session:** `4d31c984-ff58-486d-9c8c-3bca2e272a39`
-**Project:** fix-ups-topic-findings
+**Session:** `4d31c984` | **Project:** fix-ups-topic-findings
 **Context:** Agent misclassified a behavioral code change as Simple during triage, skipping TDD
 
 > **This is the second recurrence** of this pattern (first was codified to `agents/decisions/workflow-planning.md`). The learning and decision entry exist but didn't prevent the deviation. Language strengthening won't help — this needs structural enforcement.
@@ -98,8 +95,7 @@ The phrase "language strengthening won't help — this needs structural enforcem
 
 ### Excerpt 5: D+B Anchor Firing But With Wrong Arguments
 
-**Session:** `4d31c984-ff58-486d-9c8c-3bca2e272a39`
-**Project:** fix-ups-topic-findings
+**Session:** `4d31c984` | **Project:** fix-ups-topic-findings
 
 > The D+B anchor fired (tool call happened) but with wrong arguments. [...] conditional gates ("skip Read if no /design ran") reintroduce prose-gate failure modes. The D+B principle applies: unconditional Read, file absence is the signal.
 
@@ -107,8 +103,7 @@ This reveals a subtlety: even after adding tool-call anchoring, conditional gate
 
 ### Excerpt 6: PreToolUse Hook Evolution
 
-**Session:** `eaeb3710-d761-477b-a94b-86d91adce5ed`
-**Project:** userpromptsubmit-topic
+**Session:** `eaeb3710` | **Project:** userpromptsubmit-topic
 
 From defense-in-depth document read during session:
 > 1. **Layer 1 — Outer defense (Execution Flow):** D+B hybrid (merge prose gates with adjacent action steps, anchored by tool call)
@@ -127,8 +122,7 @@ PreToolUse hooks represent the next escalation: from in-skill D+B anchoring (age
 
 ### Excerpt 7: Topic Injection — The Keyword Matching Attempt
 
-**Session:** `cc1c5f34-ec22-40b6-825f-5a93e76cd197`
-**Project:** rm-ups-topic
+**Session:** `cc1c5f34` | **Project:** rm-ups-topic
 
 > That last recall entry is particularly telling — it documents the *motivation* for building the UPS topic injection in the first place: agents self-retrieve at ~4% rate, so forced injection via hooks was designed to bypass the recognition gap. The task now is to remove it because in practice it's "noisy, low relevance" — the cure was worse than the disease.
 
@@ -138,8 +132,7 @@ The topic injection attempted structural enforcement of recall by injecting rele
 
 ### Excerpt 8: The Recall Gate Anchoring Implementation
 
-**Session:** `20545bb6-a493-4665-8e97-67f7d88a6b2e`
-**Project:** recall-tool-anchoring
+**Session:** `20545bb6` | **Project:** recall-tool-anchoring
 
 From the session handoff (commit `3bf1e59a`):
 > **RCA: skipped recall in /design -> /runbook Moderate path:**

@@ -184,7 +184,7 @@ Agreement momentum detection (S3) failed across two improvement cycles. The prag
 
 ---
 
-## 4. Artifact Inventory
+## 4. Source Index
 
 | Artifact | Path/Ref | Role |
 |----------|----------|------|
