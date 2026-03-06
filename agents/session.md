@@ -131,7 +131,7 @@
 
 ## Worktree Tasks
 
-- [ ] **Prose quick wins** → `prose-quick-wins` — implement 8 ready tasks sequentially | haiku
+- [ ] **Prose quick wins** — `x` implement 8 ready tasks sequentially | haiku
   - Agentic prose terminology, Memory-index loading docs, Wt merge-rm shorthand, Corrector removal audit, Runbook outline review, Review auto-commit, Task notation migration, Command lint gate
 - [x] **Discuss divergent step** — `/design plans/discuss-divergent-thinking/brief.md` | sonnet
   - Plan: discuss-divergent-thinking
@@ -152,15 +152,15 @@
 - [ ] **Worktree merge resilience** — `/runbook plans/worktree-merge-resilience/outline.md` | sonnet | 2.2
   - Plan: worktree-merge-resilience | Status: outlined
   - Segment-level diff3 merge for learnings.md, precommit structural validation
-- [ ] **Tool deviation hook** — PostToolUse hook: agents declare expected Bash outcome, hook validates actual vs declared | sonnet | 1.9
+- [ ] **Tool deviation hook** — `/design` PostToolUse hook: agents declare expected Bash outcome, hook validates actual vs declared | sonnet | 1.9
   - General framework: agent declares expected exit code + output pattern before Bash call
   - PostToolUse hook compares actual result, stops or redirects to diagnose-and-compensate on mismatch
-- [ ] **Artifact staleness gate** — sonnet | 1.9
+- [ ] **Artifact staleness gate** — `/design` | sonnet | 1.9
   - Mechanical checkpoint at /requirements, /design, /runbook exit points
   - `claudeutils _recall resolve` touches sentinel; skill compares sentinel mtime to recall-artifact.md AND primary skill artifact
   - Two drift vectors: stale recall-artifact and stale skill artifacts
-- [ ] **Lint-gated recall** — PostToolUse hook: inject memory-index on first lint/precommit red after green (state-transition gated) | sonnet | 1.9
-- [ ] **Lint recall gate** — PreToolUse recall pass before lint fix attempt; depends on when-resolve null mode | sonnet | 1.9
+- [ ] **Lint-gated recall** — `/design` PostToolUse hook: inject memory-index on first lint/precommit red after green (state-transition gated) | sonnet | 1.9
+- [ ] **Lint recall gate** — `/design` PreToolUse recall pass before lint fix attempt; depends on when-resolve null mode | sonnet | 1.9
 - [ ] **Ground workflow skills** — `/ground` each per audit | opus | 1.9
   - Audit: `plans/reports/workflow-grounding-audit.md`
   - Priority: /runbook → review agents → /orchestrate → /handoff
@@ -175,7 +175,7 @@
   - Plan: codebase-sweep | Status: requirements
   - _git_ok, _fail, exception cleanup — mechanical refactoring
 - [ ] **Block cd-chaining in bash** — PreToolUse hook to block `cd * && *` and `cd *; *`, recommend `git -C` or subshell | sonnet | 1.8
-- [ ] **Fix task-context bloat** — Filter/trim output | sonnet | 1.7
+- [ ] **Fix task-context bloat** — `/design` Filter/trim output | sonnet | 1.7
 - [ ] **Skill-dev skill** — `/design` | sonnet | 1.6
   - Front-load plugin-dev:skill-development with project-specific skill editing patterns
   - Replace ambient `.claude/rules/skill-development.md` path trigger with explicit skill invocation
@@ -192,7 +192,7 @@
 - [ ] **Worktree exit ceremony** — `/requirements plans/wt-exit-ceremony/brief.md` | sonnet | 1.6
   - Plan: wt-exit-ceremony | Status: requirements
   - Two UPS Tier 1 shortcuts (k/ok, g/go) + worktree lifecycle behavior codification
-- [ ] **Tweakcc** — Remove redundant builtin prompts, inject custom | sonnet | 1.6
+- [ ] **Tweakcc** — `/design` Remove redundant builtin prompts, inject custom | sonnet | 1.6
   - Plan: tweakcc
 - [ ] **Wt rm task cleanup** — `/design plans/wt-rm-task-cleanup/brief.md` | sonnet | 1.6
   - Plan: wt-rm-task-cleanup | Status: requirements
@@ -200,7 +200,7 @@
 - [ ] **Worktree ad-hoc task** — `/design plans/worktree-ad-hoc-task/requirements.md` | sonnet | 1.6
   - Plan: worktree-ad-hoc-task | Status: requirements
   - Add task to session.md before `_worktree new` when task not yet present
-- [ ] **Plugin migration** — Refresh outline then orchestrate | opus | 1.6
+- [ ] **Plugin migration** — `/orchestrate plugin-migration` Refresh outline then orchestrate | opus | 1.6
   - Plan: plugin-migration | Status: ready (stale — Feb 9)
 - [ ] **Remove wt rm --force** — remove `--force` flag from `_worktree rm` CLI | sonnet | 1.5
 - [ ] **Design context gate** — `/design plans/design-context-gate/brief.md` | sonnet | 1.5
@@ -212,10 +212,10 @@
   - Absorbs: Delivery supercession
 - [ ] **Generate memory index** — `/design` | opus | 1.4
   - Each decision/learning declares keywords for index. Generated from declarations.
-- [ ] **Agent rule injection** — Distill sub-agent rules into agent templates | sonnet | 1.4
-- [ ] **Tier threshold grounding** — calibrate Tier 1/2/3 file-count thresholds against empirical data | opus | 1.4
-- [ ] **Handoff insertion policy** — Insert at priority position instead of append | sonnet | 1.3
-- [ ] **Test diagnostic helper** — Replace subprocess.run check=True with stderr surfacing | sonnet | 1.3
+- [ ] **Agent rule injection** — `/design` Distill sub-agent rules into agent templates | sonnet | 1.4
+- [ ] **Tier threshold grounding** — `/design` calibrate Tier 1/2/3 file-count thresholds against empirical data | opus | 1.4
+- [ ] **Handoff insertion policy** — `/design` Insert at priority position instead of append | sonnet | 1.3
+- [ ] **Test diagnostic helper** — `/design` Replace subprocess.run check=True with stderr surfacing | sonnet | 1.3
 - [ ] **Cross-tree requirements** — `/requirements` skill writes to main from worktree | sonnet | 1.3
   - Transport solved: `git show <branch>:<path>` from main (no sandbox needed)
   - Absorbs: Revert cross-tree sandbox access
@@ -225,50 +225,50 @@
   - Phase 1 complete: prototype rewritten (JSON stdin, validation), SKILL.md updated
   - Phase 2: Click group, pyproject.toml wiring, tests, replace prototype path in SKILL.md
   - JSON input for scores, markdown output for reports. Absorbs: Prioritize script (0.7)
-- [ ] **Worktree CLI UX** — sonnet | 1.0
+- [ ] **Worktree CLI UX** — `/design` | sonnet | 1.0
   - `_worktree new`: stdout-only, user-friendly errors instead of tracebacks
   - `_worktree rm` dirty message improvement
 - [ ] **Recall deduplication** — integrate session context scraping into `claudeutils _recall resolve` | sonnet | 1.0
 - [ ] **Recall pipeline** — `d:` recall-artifact stdin format parsing, session log dedup | opus | 1.0
-- [ ] **Recall usage scoring** — Post-resolve relevance scoring at skill transitions | sonnet | 1.0
+- [ ] **Recall usage scoring** — `/design` Post-resolve relevance scoring at skill transitions | sonnet | 1.0
 - [ ] **Compensate-continue skill** — `/ground` then `/design` | opus | 1.0
-- [ ] **Skill prompt-composer** — migrate skill authoring to use prompt-composer pattern | sonnet | 1.0
-- [ ] **Model directive pipeline** — Model guidance design → runbook → execution | opus | 1.0
-- [ ] **Decision drift audit** — audit decision files for stale operational assumptions | sonnet | 1.0
+- [ ] **Skill prompt-composer** — `/design` migrate skill authoring to use prompt-composer pattern | sonnet | 1.0
+- [ ] **Model directive pipeline** — `/design` Model guidance design → runbook → execution | opus | 1.0
+- [ ] **Decision drift audit** — `/design` audit decision files for stale operational assumptions | sonnet | 1.0
 - [ ] **agent-core lint coverage** — `/design` | opus | 1.0
   - ruff excludes agent-core, mypy/docformatter scoped to src/tests only
-- [ ] **Upstream skills field** — PR/issue for missing skills frontmatter | sonnet | 1.0
-- [ ] **Registry cache to tmp** — inline | sonnet | 1.0
+- [ ] **Upstream skills field** — `/design` PR/issue for missing skills frontmatter | sonnet | 1.0
+- [ ] **Registry cache to tmp** — `/design` inline | sonnet | 1.0
   - Move continuation registry cache from TMPDIR to project-local tmp/
 - [ ] **Merge lock retry** — add lock-contention retry to `claudeutils _worktree merge` | sonnet | 0.9
 - [ ] **Diagnose compression loss** — RCA against commit `0418cedb` | sonnet | 0.9
-- [ ] **Test diamond migration** — Needs scoping | sonnet | 0.9
-- [ ] **Safety review expansion** — Pipeline changes from grounding research | opus | 0.9
+- [ ] **Test diamond migration** — `/design` Needs scoping | sonnet | 0.9
+- [ ] **Safety review expansion** — `/design` Pipeline changes from grounding research | opus | 0.9
 - [ ] **Recall learnings design** — `d:` whether learnings.md entries should be resolvable via recall | opus | 0.9
-- [ ] **Feature prototypes** — Markdown preprocessor, session extraction, last-output | sonnet | 0.9
+- [ ] **Feature prototypes** — `/design plans/prototypes/requirements.md` Markdown preprocessor, session extraction, last-output | sonnet | 0.9
   - Plan: prototypes
-- [ ] **Diagnostic opus review** — Post-vet RCA methodology | opus | 0.8
-- [ ] **Infrastructure scripts** — History tooling + agent-core script rewrites | sonnet | 0.7
-- [ ] **Cache expiration** — Debug log token metrics, measure TTL | sonnet | 0.7
-- [ ] **Design-to-deliverable** — tmux-like session automation | opus | restart | 0.6
-- [ ] **Prose gate terminology** — Find proper name for D+B pattern, ground, update docs | opus | 0.5
-- [ ] **Ground state coverage** — State coverage validation research | opus | 0.5
-- [ ] **Workflow formal analysis** — Formal verification of agent workflow | opus | 0.5
-- [ ] **Behavioral design** — Nuanced conversational pattern intervention | opus | 0.4
+- [ ] **Diagnostic opus review** — `/design` Post-vet RCA methodology | opus | 0.8
+- [ ] **Infrastructure scripts** — `/design` History tooling + agent-core script rewrites | sonnet | 0.7
+- [ ] **Cache expiration** — `/design` Debug log token metrics, measure TTL | sonnet | 0.7
+- [ ] **Design-to-deliverable** — `/design` tmux-like session automation | opus | restart | 0.6
+- [ ] **Prose gate terminology** — `/design` Find proper name for D+B pattern, ground, update docs | opus | 0.5
+- [ ] **Ground state coverage** — `/design` State coverage validation research | opus | 0.5
+- [ ] **Workflow formal analysis** — `/design` Formal verification of agent workflow | opus | 0.5
+- [ ] **Behavioral design** — `/design` Nuanced conversational pattern intervention | opus | 0.4
 - [ ] **Wt new --base submodule** — `_worktree new --base` doesn't resolve agent-core to branch commit | sonnet
   - Requires TDD: write test, then fix
 - [ ] **Retrospective materials** — `/design plans/retrospective/requirements.md` | opus
   - Plan: retrospective
   - Scrape session logs + git history for blog post raw materials on ddaa.net
-- [ ] **Corrector audit** — audit 5 review-class agents for false positive evidence, add "Do NOT Flag" sections | sonnet
-- [ ] **Cross-tree test sentinel** — replace mtime sentinel with content-hash in user-global cache database | sonnet
-- [ ] **Design decomposition tier** — Encode decomposition methodology into `/design` as new tier | opus | restart
+- [ ] **Corrector audit** — `/design` audit 5 review-class agents for false positive evidence, add "Do NOT Flag" sections | sonnet
+- [ ] **Cross-tree test sentinel** — `/design` replace mtime sentinel with content-hash in user-global cache database | sonnet
+- [ ] **Design decomposition tier** — `/design` Encode decomposition methodology into `/design` as new tier | opus | restart
 
 ### Blocked / terminal
 
 - [!] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet
   - Plan: handoff-cli-tool | Status: outlined
-- [ ] **Parallel orchestration** — Parallel dispatch via worktree isolation | sonnet
+- [ ] **Parallel orchestration** — `/design plans/parallel-orchestration/problem.md` Parallel dispatch via worktree isolation | sonnet
   - Plan: parallel-orchestration
 - [ ] **Python hook ordering fix** — `/design plans/precommit-python3-redirect/requirements.md` | haiku | restart
 - [-] **Calibrate topic params** — extend session-scraper.py | sonnet
@@ -285,7 +285,7 @@
 - [x] **Explore Anthropic plugins** — sonnet | restart | 2.0
 - [x] **Wt ls session ordering** — sonnet | 2.0
 
-- [ ] **Pre-inline plan commit** — process gap: pipeline planning artifacts dirty tree before inline entry gate | sonnet
+- [ ] **Pre-inline plan commit** — `/design` process gap: pipeline planning artifacts dirty tree before inline entry gate | sonnet
 
 ## Blockers / Gotchas
 
