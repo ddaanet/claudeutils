@@ -346,6 +346,12 @@
   - Requires TDD: write test, then fix
 - [ ] **Agentic retrospective** → `retrospective` — Scrape session logs and git history for evolution of memory system (remember rule → active-recall), pushback protocol design process, deliverable-review and ground skill origins. Produce raw materials for blog post series on ddaa.net | opus
 
+- [ ] **Corrector audit** — audit 5 review-class agents for false positive evidence, add "Do NOT Flag" sections where warranted, update agent-development guidance | sonnet
+  - Agents: outline-corrector, design-corrector, runbook-outline-corrector, tdd-auditor, runbook-simplifier
+  - Pattern: vet-false-positives "Do NOT Flag" (categorical, evidence-grounded per NFR-1)
+- [ ] **Cross-tree test sentinel** — replace mtime sentinel with content-hash in user-global cache database, skip suite on hash hit across worktrees | sonnet
+  - Hash: `src/**/*.py tests/**/*.py pyproject.toml`. Key: `(repo-identity, content-hash)`
+
 ## Blockers / Gotchas
 
 **Never run `git merge` without sandbox bypass:**
