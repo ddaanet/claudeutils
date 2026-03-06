@@ -49,6 +49,13 @@
 - 5 dependency types identified: data, structural, knowledge, merge, validation
 - Grounding quality: Strong (3 established frameworks with direct applicability)
 
+**Design discussion — skill update sequencing:**
+- Agreed: decomposition methodology should eventually be encoded into `/design` skill
+- But not before validation — use methodology manually on outline redraft first, then codify
+- Rationale: encoding untested methodology is same class of error as confabulating one (just with citations)
+- Branch scope: skill updates are shared infrastructure, belong on main after merge
+- New worktree task captured: "Design skill decomposition tier"
+
 ## In-tree Tasks
 
 - [x] **Decomposition grounding** — `/ground` | opus
@@ -70,6 +77,10 @@
   - 7 design decisions captured, outline diagnosed as needing redraft
   - Grounding tasks gate the outline redraft (see in-tree tasks above)
   - Relates to: recall tool consolidation, generate memory index, recall dedup, recall pipeline, recall learnings design
+- [ ] **Design decomposition tier** — Encode decomposition methodology (DSM banding, readiness scale, zigzag) into `/design` as new workflow tier above Tier 3 | opus | restart
+  - Consumes: validated methodology from outline redraft + grounding report
+  - Blocked on: outline redraft (validates methodology on real case first)
+  - Behavioral change to `/design` skill — shared infrastructure, merges to main
 
 ## Reference Files
 
