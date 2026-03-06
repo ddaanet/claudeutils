@@ -122,6 +122,27 @@
 - **Worktree batch dispatch (7 parallel):**
   - session-scraping, worktree-merge-from-main, handoff-commit-removal, explore-anthropic-plugins, wt-ls-session-ordering, recall-tool-consolidation, active-recall-system
   - Skill caching confirmed: loaded worktree SKILL.md had stale model-tier filter (already removed on disk), caused sonnet-only batch excluding opus tasks
+- **Worktree batch merges + cleanup:**
+  - Merged discuss (1 commit: active-recall brief update, 2 new tasks, 1 learning)
+  - Merged active-recall-system twice (first: 10 design commits, second: focused session only), re-created fresh from main
+  - Merged rm-ups-topic (UPS topic injection hook removed), worktree removed
+  - Merged retrospective (requirements captured), worktree removed
+  - Merged update-prioritize-skill (Phase 1: score.py rewritten as JSON stdin, SKILL.md updated), worktree removed
+  - All merges validated (session.md tasks carried, learnings preserved)
+- **Delivered plan cleanup:**
+  - inline-execute + orchestrate-evolution: plan-archive entries written, 85 files deleted
+  - Parallel orchestration unblocked (was blocked on orchestrate-evolution)
+- **Unscheduled plans scheduled (3):** standardize-task-creation, settings-triage-protocol, discuss-divergent-thinking
+- **Score prototype moved:** `tmp/score.py` → `plans/prototypes/score.py` (in-tree)
+- **Task restructuring:**
+  - All tasks moved to Worktree Tasks (In-tree empty — main is worktree-tasks-only)
+  - 11 workflow quick wins batched (prose-only/low code, parallelizable)
+  - Prioritize script absorbed into Update prioritize skill
+  - Calibrate topic params marked moot (UPS topic injection removed)
+  - Active recall system renamed to "Active Recall"
+  - Completed/terminal tasks compressed
+- **Discussion: JSON vs markdown for prioritize input** — JSON chosen (agent-produced, unambiguous parsing)
+- **New worktrees created:** active-recall, retrospective-materials, workflow-quick-wins
 
 ## In-tree Tasks
 
@@ -149,7 +170,7 @@
 
 ### Active / ready
 
-- [ ] **Active Recall** — `/requirements plans/active-recall/brief.md` | opus
+- [ ] **Active Recall** → `active-recall` — `/requirements plans/active-recall/brief.md` | opus
   - Plan: active-recall
   - Hierarchical index, automated documentation conversion, memory format grounding
   - Relates to: recall tool consolidation, generate memory index, recall dedup, recall pipeline, recall learnings design
@@ -261,7 +282,7 @@
 - [ ] **Behavioral design** — Nuanced conversational pattern intervention | opus | 0.4
 - [ ] **Wt new --base submodule** — `_worktree new --base` doesn't resolve agent-core to branch commit | sonnet
   - Requires TDD: write test, then fix
-- [ ] **Retrospective materials** — `/design plans/retrospective/requirements.md` | opus
+- [ ] **Retrospective materials** → `retrospective-materials` — `/design plans/retrospective/requirements.md` | opus
   - Plan: retrospective
   - Scrape session logs + git history for blog post raw materials on ddaa.net
 - [ ] **Corrector audit** — audit 5 review-class agents for false positive evidence, add "Do NOT Flag" sections | sonnet
@@ -375,4 +396,4 @@
 
 ## Next Steps
 
-3 worktrees active: active-recall-system, discuss, retrospective. Continue worktree sessions.
+3 worktrees active: active-recall, retrospective-materials, workflow-quick-wins. Continue worktree sessions.
