@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-07
 
-**Status:** Pipeline review protocol design started — outline written, pending user validation.
+**Status:** Pipeline review protocol — Phase B complete, outline validated with 7 decisions, sufficiency gate passed, ready for /runbook.
 
 ## Completed This Session
 
@@ -14,41 +14,53 @@
 **RCA: lack of structured feedback gating (/reflect):**
 - 4 deviations identified: executed without checkpoint, validator-instead-of-corrector, no inter-stage gates, loaded skill ignored
 - Root cause: no structured review loop at pipeline review stages; ad-hoc edits bypass corrector
-- Discussion (5 rounds) refined the problem:
-  - "Review" is lifecycle-derived (automatic), not user-invoked
-  - Entry point is "discuss" — reword-validate-accumulate loop on plan artifacts
-  - Protocol already occurs in /requirements, /design, /runbook at known stages — just unstructured
-  - Outcomes: user clarification, learning, skill update (suspends to /design)
-  - Author-corrector coupling: /design must ensure corrector updated when author skill updated
 - Routed to /design — systemic, spans 3 skills + corrector infrastructure
 
-**Pipeline review protocol design (Phase A):**
+**Pipeline review protocol design (Phase A + B):**
 - Classification: Complex (agentic-prose, low implementation certainty, spans 3 skills)
-- Recall artifact: 14 entries (self-modification, corrector coupling, review gates, discussion patterns)
-- Outline written: 5 components (review loop protocol, integration points, suspension semantics, author-corrector coupling, automatic corrector dispatch)
-- 3 open questions: continuation push/pop support, shared vs duplicated protocol, post-design review stage
-- Execution constraint: inline task sequence per "When implementation modifies pipeline skills"
+- Recall artifact: 14 entries
+- Outline written: 4 components (C1: /proof skill, C2: integration points, C3: author-corrector coupling, C4: automatic corrector after proof)
+- Phase B discussion resolved all 3 open questions via 7 decisions:
+  - D-1: Skill not reference file — enforcement requires tool-call gates
+  - D-2: Inline execution (no context:fork) — needs hosting skill's context
+  - D-4: No continuation push/pop — existing prepend + design-context-gate suffice
+  - D-5: Post-expansion is a review integration point — earliest systemic defect detection
+  - D-6: /requirements is prevention layer, post-expansion is detection layer — complementary
+  - D-7: Name "proof" — transparent validation semantics, edify-thematic
+- Sufficiency gate passed — outline is the design, routes to /runbook
+- Grounded context:fork behavior via Claude Code docs (skills page + sub-agents page)
 
 ## In-tree Tasks
 
-- [>] **Pipeline review protocol** — `/design plans/pipeline-review-protocol/` | opus
+- [x] **Pipeline review protocol** — `/design plans/pipeline-review-protocol/` | opus
   - Plan: pipeline-review-protocol | Status: outlined
-  - Note: Outline written, pending user validation via review loop (Phase B). Then /design Phase C or sufficiency gate.
+- [ ] **Proof skill runbook** — `/runbook plans/pipeline-review-protocol/outline.md` | opus
+  - Plan: pipeline-review-protocol | Status: outlined
+  - Note: Outline validated, all questions resolved. Agentic-prose artifact — inline task sequence execution, not Tier 3
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
   - Note: runbook.md + step files stale — need regeneration via `agent-core/bin/prepare-runbook.py plans/handoff-cli-tool/` after adding Stop/Error Conditions sections to phase files. Bootstrap now separate step — prepare-runbook.py needs BOOTSTRAP tag support for 3-step TDD cycles
 
+## Worktree Tasks
+
+- [ ] **Test context-fork model** — create minimal skill with `context: fork` + `AskUserQuestion`, observe interaction behavior | haiku
+
+## Blockers / Gotchas
+
+**Learnings at soft limit:** learnings.md at 78 lines (soft limit 80). Next session should `/codify` before appending new learnings.
+
 ## Reference Files
 
-- `plans/pipeline-review-protocol/outline.md` — Design outline (5 components, 3 open questions)
+- `plans/pipeline-review-protocol/outline.md` — Design outline (4 components, 7 decisions, no open questions)
 - `plans/pipeline-review-protocol/recall-artifact.md` — 14 recall entries
 - `plans/pipeline-review-protocol/classification.md` — Complex, agentic-prose, inline execution
 - `plans/handoff-cli-tool/outline.md` — Design outline (reviewed 7 rounds)
-- `plans/handoff-cli-tool/runbook.md` — Assembled runbook (stale — phase files updated, not yet reassembled)
+- `plans/handoff-cli-tool/runbook.md` — Assembled runbook (stale)
 - `plans/handoff-cli-tool/orchestrator-plan.md` — Orchestrator execution plan
 - `plans/handoff-cli-tool/recall-artifact.md` — 15 recall entries for step agents
+- `plans/design-context-gate/brief.md` — Context budget gate for /design tail-call decisions
 
 ## Next Steps
 
-Resume pipeline review protocol: validate outline (Phase B), then design or execute based on sufficiency gate.
+Pipeline review protocol runbook generation: `/runbook plans/pipeline-review-protocol/outline.md` (opus). Then /codify to clear learnings backlog.

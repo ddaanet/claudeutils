@@ -73,3 +73,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Scoring tasks individually without checking for absorptions, merges, or thematic overlap. Produces accurate priority scores on a bloated list — 65 tasks with redundant scope boundaries.
 - Correct pattern: After scoring, run a consolidation pass: absorptions (task is subset of another's plan/outline), merges (overlapping scope, same design session), thematic clusters (shared infrastructure/API, batchable), stale checks (plan delivered but task pending). Multiple passes until no further reductions.
 - Evidence: 65 → 25 tasks in 3 rounds. Model tier is not a batching constraint — worktrees set their own model at launch.
+## When brainstorm-name needs more candidates
+- Anti-pattern: Launching a new brainstorm-name agent with "do NOT repeat" constraints. Creates a fresh context that wastes the prior agent's reasoning and anchor-avoidance work.
+- Correct pattern: Resume the prior agent (`resume` parameter with agent ID) and ask for more candidates. The agent retains its full context — existing candidates, conceptual space explored, metaphor domains considered. Resumption produces genuinely novel names; fresh launch risks adjacent-to-excluded names.
+- Evidence: Agent tool supports `resume` parameter for exactly this case.
