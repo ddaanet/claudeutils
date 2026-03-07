@@ -65,6 +65,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Bootstrap is a **separate step** — own section in the phase file (`**Bootstrap:** ...` before `---` before `**RED Phase:**`), generating its own step file dispatched to a separate agent. Three steps per TDD cycle: Bootstrap → RED → GREEN.
 - When Bootstrap is not needed: cycles extending existing function behavior (function already importable, test fails on behavior naturally) and CLI wiring cycles (Click returns "No such command").
 - Codified in: tdd-cycle-planning.md (template + prose), anti-patterns.md (expanded ImportError-as-RED row).
+## When multi-item instructions contain review steps
+- Anti-pattern: Treating "run correctors" as a checkbox item in a sequential list. Agent executes all items (edit → validate → skill update → commit) without stopping after the review step. Substitutes mechanical validator for corrector sub-agent.
+- Correct pattern: Items invoking review/corrector are gates — stop, present findings, wait for user decision before proceeding. Review is lifecycle-derived (artifact type + edits applied → corrector fires), not user-invoked. Corrector means sub-agent with clean context, not self-review.
+- Root cause: No structured review loop protocol at pipeline review stages (/requirements, /design, /runbook). Review stages use ad-hoc conversation. Routed to /design as systemic issue — plan: pipeline-review-protocol.
 ## When prioritizing produces a large task list
 - Anti-pattern: Scoring tasks individually without checking for absorptions, merges, or thematic overlap. Produces accurate priority scores on a bloated list — 65 tasks with redundant scope boundaries.
 - Correct pattern: After scoring, run a consolidation pass: absorptions (task is subset of another's plan/outline), merges (overlapping scope, same design session), thematic clusters (shared infrastructure/API, batchable), stale checks (plan delivered but task pending). Multiple passes until no further reductions.

@@ -1,31 +1,8 @@
 # Session Handoff: 2026-03-07
 
-**Status:** Bootstrap separated to own step in phase files + skill — ready for step regeneration.
+**Status:** Pipeline review protocol design started — outline written, pending user validation.
 
 ## Completed This Session
-
-**Runbook planning (full Tier 3 pipeline):**
-- Phase 0.5: Codebase discovery — verified existing session.py, task_parsing.py, git_ops.py, cli.py patterns
-- Phase 0.5: Recall artifact generated with 15 planning-relevant entries
-- Phase 0.75: Runbook outline (7 phases, 38 items) with requirements mapping
-- Phase 0.85-0.86: Review + simplification (38 → 29 items, 4 consolidation patterns)
-- Phase 0.9-0.95: Complexity check passed, sufficiency check — needs full expansion
-- Phase 1: All 7 phases expanded (1 general + 6 TDD), per-phase review (4 parallel agents)
-- Phase 2: Assembly validation — 29 items, 55 step files
-- Phase 3: Holistic cross-phase review — Ready, no issues
-- Phase 3.5: Pre-execution validation — all 4 checks pass (model-tags, lifecycle, test-counts, red-plausibility)
-- Phase 4: prepare-runbook.py generated 6 agents, 55 step files, orchestrator plan
-
-**TDD Bootstrap pattern (runbook + skill update):**
-- Discussion: ImportError-as-RED is structural, not behavioral — strong assertions never exercised
-- Discussion: Ping-pong TDD changes dynamics — bootstrap cycle is the clean solution
-- Discussion: Sunk-cost check caught "no pipeline change needed" rationalization
-- Updated 5 runbook phase files (14 instances): ImportError → Bootstrap + AssertionError
-- Updated /runbook skill: tdd-cycle-planning.md (mandatory Bootstrap pattern), anti-patterns.md (ImportError-as-RED row)
-- Updated /review-plan skill: 11.1 vacuity check (ImportError RED detection), review-examples.md (Section 4 contradiction fixed)
-- Updated validate-runbook.py: first-cycle ImportError enforcement (flags missing Bootstrap)
-- Skill-reviewer vet: fixed critical (review-examples.md contradicted new pattern) + major (Tier 2 TDD discoverability)
-- Note: assembled runbook.md not regenerated — prepare-runbook.py blocked by pre-existing Stop/Error Conditions gap in all phase files
 
 **Bootstrap as separate step (iteration 2):**
 - Separated Bootstrap from RED phase into own section in 5 phase files (phases 2-6)
@@ -34,8 +11,29 @@
 - Updated /runbook skill: tdd-cycle-planning.md template shows Bootstrap as separate step file, anti-patterns.md expanded ImportError-as-RED row
 - All 4 validate-runbook.py checks pass on updated phase files
 
+**RCA: lack of structured feedback gating (/reflect):**
+- 4 deviations identified: executed without checkpoint, validator-instead-of-corrector, no inter-stage gates, loaded skill ignored
+- Root cause: no structured review loop at pipeline review stages; ad-hoc edits bypass corrector
+- Discussion (5 rounds) refined the problem:
+  - "Review" is lifecycle-derived (automatic), not user-invoked
+  - Entry point is "discuss" — reword-validate-accumulate loop on plan artifacts
+  - Protocol already occurs in /requirements, /design, /runbook at known stages — just unstructured
+  - Outcomes: user clarification, learning, skill update (suspends to /design)
+  - Author-corrector coupling: /design must ensure corrector updated when author skill updated
+- Routed to /design — systemic, spans 3 skills + corrector infrastructure
+
+**Pipeline review protocol design (Phase A):**
+- Classification: Complex (agentic-prose, low implementation certainty, spans 3 skills)
+- Recall artifact: 14 entries (self-modification, corrector coupling, review gates, discussion patterns)
+- Outline written: 5 components (review loop protocol, integration points, suspension semantics, author-corrector coupling, automatic corrector dispatch)
+- 3 open questions: continuation push/pop support, shared vs duplicated protocol, post-design review stage
+- Execution constraint: inline task sequence per "When implementation modifies pipeline skills"
+
 ## In-tree Tasks
 
+- [>] **Pipeline review protocol** — `/design plans/pipeline-review-protocol/` | opus
+  - Plan: pipeline-review-protocol | Status: outlined
+  - Note: Outline written, pending user validation via review loop (Phase B). Then /design Phase C or sufficiency gate.
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
@@ -43,6 +41,9 @@
 
 ## Reference Files
 
+- `plans/pipeline-review-protocol/outline.md` — Design outline (5 components, 3 open questions)
+- `plans/pipeline-review-protocol/recall-artifact.md` — 14 recall entries
+- `plans/pipeline-review-protocol/classification.md` — Complex, agentic-prose, inline execution
 - `plans/handoff-cli-tool/outline.md` — Design outline (reviewed 7 rounds)
 - `plans/handoff-cli-tool/runbook.md` — Assembled runbook (stale — phase files updated, not yet reassembled)
 - `plans/handoff-cli-tool/orchestrator-plan.md` — Orchestrator execution plan
@@ -50,4 +51,4 @@
 
 ## Next Steps
 
-Regenerate step files (add Stop/Error Conditions to phase files first), then restart session and `/orchestrate handoff-cli-tool`.
+Resume pipeline review protocol: validate outline (Phase B), then design or execute based on sufficiency gate.
