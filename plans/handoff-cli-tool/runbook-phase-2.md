@@ -49,9 +49,11 @@ Shared parser for session.md consumed by both status and handoff subcommands. Ex
 - [ ] **Future work** → `wt` — `/design plans/future/problem.md` | sonnet
 ```
 
-**Expected failure:** `ImportError` or `AttributeError` — functions don't exist yet
+**Bootstrap:** Create `src/claudeutils/session/parse.py` with stubs: `parse_status_line` returning `None`, `parse_completed_section` returning `[]`, `parse_tasks` returning `[]`. Do not commit.
 
-**Why it fails:** No `session/parse.py` module with these functions
+**Expected failure:** `AssertionError` — `parse_status_line` returns `None` instead of status text; `parse_tasks` returns `[]` instead of populated `ParsedTask` list
+
+**Why it fails:** Stubs return empty defaults, tests assert on parsed content
 
 **Verify RED:** `pytest tests/test_session_parser.py -v`
 
@@ -98,9 +100,11 @@ Shared parser for session.md consumed by both status and handoff subcommands. Ex
 - `test_parse_session_missing_file` — `parse_session(Path("nonexistent.md"))` raises `SessionFileError` (custom exception, not generic FileNotFoundError) — ST-2 fatal error
 - `test_parse_session_old_format` — session.md with tasks lacking pipe-separated metadata → `ParsedTask` objects with `model=None`, `restart=False` (defaults, not error)
 
-**Expected failure:** `ImportError` — `SessionData` class doesn't exist
+**Bootstrap:** Add to `session/parse.py`: `SessionData` dataclass with default fields, `parse_session()` returning `SessionData()` with empty defaults. Do not commit.
 
-**Why it fails:** No `SessionData` dataclass or `parse_session()` function
+**Expected failure:** `AssertionError` — `data.in_tree_tasks` is `[]` instead of populated list; `data.date` is `None` instead of `"2026-03-07"`
+
+**Why it fails:** Stub returns empty `SessionData` without parsing file content
 
 **Verify RED:** `pytest tests/test_session_parser.py::test_parse_session -v`
 

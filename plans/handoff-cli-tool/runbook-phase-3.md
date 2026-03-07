@@ -22,9 +22,11 @@ Pure data transformation: session.md + filesystem state → STATUS output. No mu
 - `render_next([])` returns `""` (empty string, no Next section)
 - Tasks with checkbox `"x"`, `"!"`, `"†"`, `"-"` are all skipped (only `" "` without marker is eligible)
 
-**Expected failure:** `ImportError` — `render_next` doesn't exist
+**Bootstrap:** Create `src/claudeutils/session/status/render.py` with stub: `render_next` returning `""`. Do not commit.
 
-**Why it fails:** No `session/status/render.py` module
+**Expected failure:** `AssertionError` — `render_next(tasks)` returns `""` instead of formatted `Next:` block with task name and command
+
+**Why it fails:** Stub returns empty string, test asserts on formatted output content
 
 **Verify RED:** `pytest tests/test_session_status.py::test_render_next_task -v`
 
@@ -90,9 +92,11 @@ Pure data transformation: session.md + filesystem state → STATUS output. No mu
 **Empty section assertions (all three):**
 - Each render function returns `""` when input list is empty
 
-**Expected failure:** `ImportError` — render functions don't exist
+**Bootstrap:** Add to `session/status/render.py`: stubs `render_pending` returning `""`, `render_worktree` returning `""`, `render_unscheduled` returning `""`. Do not commit.
 
-**Why it fails:** No rendering functions for these sections
+**Expected failure:** `AssertionError` — `render_pending(tasks, plan_states)` returns `""` instead of formatted section with task names and plan status
+
+**Why it fails:** Stubs return empty strings, tests assert on formatted section content
 
 **Verify RED:** `pytest tests/test_session_status.py -k "render_section or render_empty" -v`
 
@@ -133,9 +137,11 @@ Pure data transformation: session.md + filesystem state → STATUS output. No mu
 - `detect_parallel(tasks, blockers)` with 4 tasks where 2 share a plan returns group of 2 independent tasks (largest independent subset)
 - Blocker text mentioning task name creates dependency (excluded from group)
 
-**Expected failure:** `ImportError` — `detect_parallel` doesn't exist
+**Bootstrap:** Add to `session/status/render.py`: stub `detect_parallel` returning `None`. Do not commit.
 
-**Why it fails:** No parallel detection function
+**Expected failure:** `AssertionError` — `detect_parallel(tasks, blockers)` returns `None` instead of list of 3 independent task names
+
+**Why it fails:** Stub returns `None`, test asserts on group membership
 
 **Verify RED:** `pytest tests/test_session_status.py::test_detect_parallel_group -v`
 

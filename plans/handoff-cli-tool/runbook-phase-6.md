@@ -25,9 +25,11 @@ Tests use real git repos via `tmp_path`.
   - Files staged but NOT committed
   - Exit code 1
 
-**Expected failure:** `ImportError` — no commit pipeline
+**Bootstrap:** Create `src/claudeutils/session/commit/pipeline.py` with stubs: `CommitResult` dataclass, `commit_pipeline` returning `CommitResult(success=False, output="")`. Do not commit.
 
-**Why it fails:** No `session/commit/pipeline.py`
+**Expected failure:** `AssertionError` — `commit_pipeline(input)` returns `success=False` with empty output instead of `success=True` with git commit output
+
+**Why it fails:** Stub returns failure, test asserts on successful commit with git output
 
 **Verify RED:** `pytest tests/test_session_commit_pipeline.py::test_commit_parent_only -v`
 

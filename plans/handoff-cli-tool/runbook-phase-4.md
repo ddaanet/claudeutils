@@ -29,9 +29,11 @@ Stdin parsing, session.md writes, committed detection, state caching, diagnostic
 - Review by outline-review-agent
 ```
 
-**Expected failure:** `ImportError` — no `parse_handoff_input` function
+**Bootstrap:** Create `src/claudeutils/session/handoff/parse.py` with stubs: `HandoffInput` dataclass, `HandoffInputError` exception, `parse_handoff_input` returning `HandoffInput(status_line="", completed_lines=[])`. Do not commit.
 
-**Why it fails:** No `session/handoff/` module with parsing
+**Expected failure:** `AssertionError` — `result.status_line` is `""` instead of `"Design Phase A complete — outline reviewed."`
+
+**Why it fails:** Stub returns empty `HandoffInput`, test asserts on parsed content
 
 **Verify RED:** `pytest tests/test_session_handoff.py::test_parse_handoff_input -v`
 
@@ -69,9 +71,11 @@ Stdin parsing, session.md writes, committed detection, state caching, diagnostic
 - Other sections of session.md unchanged
 - When status text has multiple lines, each line preserved between heading and first `##`
 
-**Expected failure:** `AttributeError` — `overwrite_status` doesn't exist
+**Bootstrap:** Create `src/claudeutils/session/handoff/pipeline.py` with stub: `overwrite_status(session_path, status_text)` as no-op. Do not commit.
 
-**Why it fails:** No status overwrite function
+**Expected failure:** `AssertionError` — session.md status line unchanged after `overwrite_status()` call
+
+**Why it fails:** Stub is no-op, test asserts file content was modified
 
 **Verify RED:** `pytest tests/test_session_handoff.py::test_overwrite_status_line -v`
 
@@ -164,9 +168,11 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
 - `step_reached` values: `"write_session"`, `"precommit"`, `"diagnostics"`
 - State file survives across function calls (not deleted on load)
 
-**Expected failure:** `ImportError` — state caching functions don't exist
+**Bootstrap:** Add to `session/handoff/pipeline.py`: stubs `HandoffState` dataclass, `save_state` as no-op, `load_state` returning `None`, `clear_state` as no-op. Do not commit.
 
-**Why it fails:** No state management module
+**Expected failure:** `AssertionError` — `tmp/.handoff-state.json` not created after `save_state()` call
+
+**Why it fails:** Stub is no-op, test asserts state file exists with expected fields
 
 **Verify RED:** `pytest tests/test_session_handoff.py::test_state_cache_create -v`
 
@@ -208,9 +214,11 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
 - On failure: `success == False`, `output` contains the precommit failure text
 - On success: `success == True`, `output` contains passing summary
 
-**Expected failure:** `ImportError` — `run_precommit` doesn't exist
+**Bootstrap:** Add to `session/handoff/pipeline.py`: stub `PrecommitResult` dataclass, `run_precommit` returning `PrecommitResult(success=False, output="")`. Do not commit.
 
-**Why it fails:** No precommit integration
+**Expected failure:** `AssertionError` — `result.success` is `False` with empty output instead of `True` with passing summary
+
+**Why it fails:** Stub returns failure with empty output, test asserts on success with precommit output
 
 **Verify RED:** `pytest tests/test_session_handoff.py::test_handoff_precommit_pass -v`
 
@@ -253,9 +261,11 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
 - When learnings have entries ≥ 7 active days:
   - Output contains `**Learnings:** N entries ≥7 days — consider /codify`
 
-**Expected failure:** `ImportError`
+**Bootstrap:** Create `src/claudeutils/session/handoff/context.py` with stub: `format_diagnostics` returning `""`. Do not commit.
 
-**Why it fails:** No diagnostics formatting function
+**Expected failure:** `AssertionError` — `format_diagnostics(...)` returns `""` instead of markdown containing precommit output
+
+**Why it fails:** Stub returns empty string, test asserts on formatted diagnostic content
 
 **Verify RED:** `pytest tests/test_session_handoff.py::test_diagnostics_precommit_pass -v`
 

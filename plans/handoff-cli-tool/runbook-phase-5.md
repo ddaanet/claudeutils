@@ -54,9 +54,11 @@ Markdown stdin parser (commit-specific format) and scripted vet check.
 - Missing `## Message` → `CommitInputError`
 - Missing `## Files` → `CommitInputError`
 
-**Expected failure:** `ImportError` — no commit parser module
+**Bootstrap:** Create `src/claudeutils/session/commit/parse.py` with stubs: `CommitInput` dataclass with empty defaults, `CommitInputError` exception, `parse_commit_input` returning `CommitInput(files=[], options=set(), submodules={}, message="")`. Do not commit.
 
-**Why it fails:** No `session/commit/parse.py`
+**Expected failure:** `AssertionError` — `result.files` is `[]` instead of `["src/commit/cli.py", "src/commit/gate.py", ...]`
+
+**Why it fails:** Stub returns empty `CommitInput`, test asserts on parsed section content
 
 **Verify RED:** `pytest tests/test_session_commit.py -k "parse_commit" -v`
 
@@ -104,9 +106,11 @@ Tests use real git repos via `tmp_path`.
 - `validate_files(files, amend=True)` with a file that's clean in working tree but present in HEAD commit (via `git diff-tree`) → returns normally (amend allows HEAD-committed files)
 - `validate_files(files, amend=True)` with a file in neither working tree changes nor HEAD commit → raises `CleanFileError`
 
-**Expected failure:** `ImportError`
+**Bootstrap:** Create `src/claudeutils/session/commit/gate.py` with stubs: `CleanFileError` exception, `validate_files` as no-op (returns `None`). Do not commit.
 
-**Why it fails:** No validation function
+**Expected failure:** `AssertionError` — `validate_files(files)` with clean file does not raise `CleanFileError`
+
+**Why it fails:** Stub is no-op, test asserts `CleanFileError` raised for clean files
 
 **Verify RED:** `pytest tests/test_session_commit.py::test_validate_files_dirty -v`
 
@@ -150,9 +154,11 @@ Tests use `tmp_path` with pyproject.toml and plan report directories.
 - `vet_check(files)` with report older than newest matching file → fails with `VetResult(passed=False, reason="stale", stale_info=...)`
 - Files not matching any pattern are not checked (non-production files pass freely)
 
-**Expected failure:** `ImportError`
+**Bootstrap:** Add to `session/commit/gate.py`: stub `VetResult` dataclass, `vet_check` returning `VetResult(passed=True)`. Do not commit.
 
-**Why it fails:** No vet check function
+**Expected failure:** `AssertionError` — `vet_check(files)` with unreviewed file returns `passed=True` instead of `VetResult(passed=False, reason="unreviewed")`
+
+**Why it fails:** Stub always passes, test asserts failure for unreviewed files
 
 **Verify RED:** `pytest tests/test_session_commit.py::test_vet_check_no_config -v`
 

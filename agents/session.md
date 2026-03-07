@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-07
 
-**Status:** Runbook generated, execution artifacts prepared — ready for `/orchestrate`.
+**Status:** Bootstrap pattern applied to runbook + codified in /runbook skill — ready for `/orchestrate`.
 
 ## Completed This Session
 
@@ -16,19 +16,31 @@
 - Phase 3.5: Pre-execution validation — all 4 checks pass (model-tags, lifecycle, test-counts, red-plausibility)
 - Phase 4: prepare-runbook.py generated 6 agents, 55 step files, orchestrator plan
 
+**TDD Bootstrap pattern (runbook + skill update):**
+- Discussion: ImportError-as-RED is structural, not behavioral — strong assertions never exercised
+- Discussion: Ping-pong TDD changes dynamics — bootstrap cycle is the clean solution
+- Discussion: Sunk-cost check caught "no pipeline change needed" rationalization
+- Updated 5 runbook phase files (14 instances): ImportError → Bootstrap + AssertionError
+- Updated /runbook skill: tdd-cycle-planning.md (mandatory Bootstrap pattern), anti-patterns.md (ImportError-as-RED row)
+- Updated /review-plan skill: 11.1 vacuity check (ImportError RED detection), review-examples.md (Section 4 contradiction fixed)
+- Updated validate-runbook.py: first-cycle ImportError enforcement (flags missing Bootstrap)
+- Skill-reviewer vet: fixed critical (review-examples.md contradicted new pattern) + major (Tier 2 TDD discoverability)
+- Note: assembled runbook.md not regenerated — prepare-runbook.py blocked by pre-existing Stop/Error Conditions gap in all phase files
+
 ## In-tree Tasks
 
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
+  - Note: runbook.md + step files stale — need regeneration via `agent-core/bin/prepare-runbook.py plans/handoff-cli-tool/` after adding Stop/Error Conditions sections to phase files
 
 ## Reference Files
 
 - `plans/handoff-cli-tool/outline.md` — Design outline (reviewed 7 rounds)
-- `plans/handoff-cli-tool/runbook.md` — Assembled runbook (1620 lines, 29 items)
+- `plans/handoff-cli-tool/runbook.md` — Assembled runbook (stale — phase files updated, not yet reassembled)
 - `plans/handoff-cli-tool/orchestrator-plan.md` — Orchestrator execution plan
 - `plans/handoff-cli-tool/recall-artifact.md` — 15 recall entries for step agents
 
 ## Next Steps
 
-Branch work continues — restart session, then `/orchestrate handoff-cli-tool`.
+Regenerate step files (add Stop/Error Conditions to phase files first), then restart session and `/orchestrate handoff-cli-tool`.
