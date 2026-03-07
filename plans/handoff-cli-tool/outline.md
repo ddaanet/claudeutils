@@ -12,7 +12,7 @@ Three subcommands under `_session`: `handoff` (session.md writes + diagnostics),
 
 ```
 src/claudeutils/
-  git.py              NEW — shared git helpers (_git, _is_submodule_dirty)
+  git.py              NEW — shared git helpers (_git, submodule discovery, status/diff)
   session/
     __init__.py
     cli.py            Click group registered as `_session` in parent cli.py
@@ -35,9 +35,13 @@ src/claudeutils/
 
 Registration: `cli.add_command(session_group)` in main `cli.py`, same pattern as worktree.
 
-### S-2: `_git()` extraction
+### S-2: `_git()` extraction + submodule discovery
 
-Move `_git()` and `_is_submodule_dirty()` from `worktree/utils.py` to `claudeutils/git.py`. Update worktree imports. Submodule operations: `"-C", "agent-core"` as leading args (existing codebase pattern).
+Move `_git()` and `_is_submodule_dirty()` from `worktree/utils.py` to `claudeutils/git.py`. Update worktree imports. Submodule discovery via `git submodule status` / `.gitmodules` — no hardcoded submodule names. Replaces `"-C", "agent-core"` literals with iteration over discovered submodules.
+
+### S-5: Git status/diff utility
+
+`claudeutils _git status` and `claudeutils _git diff` — unified parent + submodule view. Discovers submodules via git, iterates each for status/diff, returns structured markdown. Consumers: commit skill (input construction for `## Files` and `## Submodule` sections), commit CLI (C-2/C-3 validation), handoff CLI (H-3 diagnostics). No LLM judgment — mechanical git queries only.
 
 ### S-3: Output and error conventions
 
@@ -151,7 +155,7 @@ Pipeline: validate → vet check → precommit → stage → submodule commit �
 - no-vet
 - amend
 
-## Submodule Message
+## Submodule agent-core
 > 🤖 Update vet-requirement fragment
 >
 > - Add scripted gate classification reference
@@ -166,7 +170,7 @@ Pipeline: validate → vet check → precommit → stage → submodule commit �
 **Sections:**
 - `## Files` — required, first. Bulleted paths to stage (modifications, additions, deletions — `git add` handles all).
 - `## Options` — optional. `no-vet` (skip vet check), `just-lint` (lint only), `amend` (amend previous commit). Unknown options → error (fail-fast).
-- `## Submodule Message` — conditionally required (see C-2). Blockquoted.
+- `## Submodule <path>` — repeatable, one per dirty submodule. Conditionally required (see C-2). Blockquoted. Path matches submodule directory name from `git submodule status`.
 - `## Message` — required, last. Blockquoted. Everything from `## Message` to EOF is message body — safe for content containing `## ` lines.
 
 Parsing: `## ` prefix matched against known section names. Unknown `## ` within blockquotes treated as message body.
@@ -191,7 +195,7 @@ agent-core:
  4 files changed, 142 insertions(+), 8 deletions(-)
 ```
 
-Submodule output labeled with `agent-core:` prefix. Parent output unlabeled (default context). Distinguishes repos when branch names are identical.
+Submodule output labeled with `<path>:` prefix. Parent output unlabeled (default context). Distinguishes repos when branch names are identical.
 
 Amend success (exit 0):
 ```markdown
@@ -232,7 +236,7 @@ STOP: Do not remove files and retry.
 
 Warning + success (exit 0):
 ```markdown
-**Warning:** Submodule message provided but no agent-core changes found. Ignored.
+**Warning:** Submodule message provided but no changes found for: agent-core. Ignored.
 
 [session-cli-tool a7f38c2] ✨ Add commit CLI with scripted vet check
  3 files changed, 142 insertions(+), 8 deletions(-)
@@ -259,14 +263,18 @@ No patterns → check passes (opt-in). Report discovery: `plans/*/reports/` matc
 
 ### C-2: Submodule coordination
 
-| agent-core in Files OR staged | Submodule Message present | Result |
+Per-submodule, discovered via `git submodule status`:
+
+| Submodule files in Files | `## Submodule <path>` present | Result |
 |---|---|---|
 | Yes | Yes | Commit submodule first |
 | Yes | No | **Stop** — needs message |
 | No | Yes | **Warning** — ignored |
 | No | No | Parent-only commit |
 
-Sequence: partition files → stage + commit submodule → stage pointer → commit parent.
+Files partitioned by submodule path prefix. Each dirty submodule requires its own `## Submodule <path>` section. Multiple submodules committed in discovery order, each staged before parent commit.
+
+Sequence per submodule: partition files by path prefix → stage + commit submodule → stage pointer. After all submodules: commit parent.
 
 ### C-3: Input validation
 
@@ -351,7 +359,8 @@ Old format (no metadata) → defaults. Empty sections omitted.
 **IN:**
 - `_session` command group (handoff, commit, status)
 - Shared session.md parser
-- `_git()` extraction to `claudeutils/git.py`
+- `_git()` extraction to `claudeutils/git.py` with submodule discovery
+- Git status/diff utility (`claudeutils _git status/diff`) with submodule-aware output
 - Handoff: stdin parsing, session.md writes, committed detection, diagnostics, state caching
 - Commit: stdin parsing, scripted vet check (pyproject.toml), input validation, submodule pipeline, structured output
 - Status: session.md parsing, plan cross-referencing, parallel detection, STATUS rendering
@@ -365,11 +374,11 @@ Old format (no metadata) → defaults. Empty sections omitted.
 - Pending task mutations, learnings, blockers, reference files — agent Edit
 - Consolidation delegation — existing skill
 
-**Skill integration (future):** After CLI exists, `/commit` skill simplifies to: Gate A (LLM) → discovery (`git status -vv`) → draft message + gitmoji → pipe to `_session commit`. Current skill steps collapse into one CLI call.
+**Skill integration (future):** After CLI exists, `/commit` skill simplifies to: Gate A (LLM) → discovery (`claudeutils _git status`) → draft message + gitmoji → pipe to `_session commit`. Current skill steps collapse into one CLI call.
 
 ## Phase Notes
 
-- Phase 1: `_git()` extraction + session.md parser — **general**
+- Phase 1: `_git()` extraction + submodule discovery + git status/diff utility + session.md parser — **general**
 - Phase 2: Status subcommand — **TDD** (pure function: session.md + filesystem → formatted output)
 - Phase 3: Handoff pipeline — **TDD** (stdin parsing, session.md writes, committed detection, state caching, diagnostics)
 - Phase 4: Commit parser + input validation — **TDD** (markdown parsing, file status check, submodule message consistency)
