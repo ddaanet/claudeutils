@@ -83,7 +83,7 @@
 - [ ] **Diagnose compression loss** — RCA against commit `0418cedb` | sonnet | 0.8
 - [ ] **Feature prototypes** — `/design plans/prototypes/requirements.md` | sonnet | 0.6
 - [ ] **Upstream skills field** — `/design` PR/issue for missing skills frontmatter | sonnet | 0.5
-- [ ] **Planstate brief inference** → `planstate-brief-inference` — `/inline` | sonnet
+- [ ] **Planstate brief inference** — `/inline` | sonnet
   - Fix planstate to infer correct next-action for brief-only plans (currently uses requirements.md template)
 - [ ] **Research backlog** — `/design` | opus | 0.5
   - Ground state coverage, Workflow formal analysis, Design-to-deliverable (restart), Behavioral design, Compensate-continue skill

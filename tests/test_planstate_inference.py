@@ -44,6 +44,25 @@ def test_empty_directory_not_a_plan(tmp_path: Path) -> None:
             {"problem.md"},
             id="requirements-problem-only",
         ),
+        pytest.param(["brief.md"], "briefed", {"brief.md"}, id="briefed-brief-only"),
+        pytest.param(
+            ["brief.md", "classification.md"],
+            "briefed",
+            {"brief.md", "classification.md"},
+            id="briefed-with-classification",
+        ),
+        pytest.param(
+            ["brief.md", "requirements.md"],
+            "requirements",
+            {"brief.md", "requirements.md"},
+            id="requirements-brief-plus-requirements",
+        ),
+        pytest.param(
+            ["brief.md", "problem.md"],
+            "requirements",
+            {"brief.md", "problem.md"},
+            id="requirements-brief-plus-problem",
+        ),
         (
             ["requirements.md", "design.md"],
             "designed",
@@ -96,6 +115,7 @@ def test_status_priority_detection(
 @pytest.mark.parametrize(
     ("create_artifacts", "expected_next_action"),
     [
+        (["brief.md"], "/design plans/test-plan/brief.md"),
         (["requirements.md"], "/design plans/test-plan/requirements.md"),
         (["requirements.md", "outline.md"], "/runbook plans/test-plan/outline.md"),
         (["requirements.md", "design.md"], "/runbook plans/test-plan/design.md"),
@@ -238,20 +258,9 @@ def test_gate_attachment_with_mock(tmp_path: Path) -> None:
     assert result.gate is None
 
     mock_vet_status = Mock()
-    mock_vet_status.chains = [
-        Mock(
-            source="design.md",
-            report="reports/design-review.md",
-            stale=True,
-            source_mtime=200.0,
-            report_mtime=100.0,
-        )
-    ]
+    mock_vet_status.chains = [Mock(source="design.md", stale=True)]
 
-    def mock_get_vet_status(p: Path) -> object:
-        return mock_vet_status
-
-    result = infer_state(plan_dir, vet_status_func=mock_get_vet_status)
+    result = infer_state(plan_dir, vet_status_func=lambda _: mock_vet_status)
     assert result is not None
     assert result.gate == "design vet stale — re-vet before planning"
 

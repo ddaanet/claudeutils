@@ -82,10 +82,15 @@ def _determine_status(plan_dir: Path) -> str:
         return "designed"
     if (plan_dir / "outline.md").exists():
         return "outlined"
-    return "requirements"
+    # Brief-only plans (no requirements.md/problem.md) get distinct status
+    has_brief_only = (plan_dir / "brief.md").exists() and not (
+        (plan_dir / "requirements.md").exists() or (plan_dir / "problem.md").exists()
+    )
+    return "briefed" if has_brief_only else "requirements"
 
 
 _NEXT_ACTION_TEMPLATES: dict[str, str | None] = {
+    "briefed": "/design plans/{plan_name}/brief.md",
     "requirements": "/design plans/{plan_name}/requirements.md",
     "outlined": "/runbook plans/{plan_name}/outline.md",
     "designed": "/runbook plans/{plan_name}/design.md",
