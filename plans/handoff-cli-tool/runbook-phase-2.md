@@ -6,6 +6,10 @@ Shared parser for session.md consumed by both status and handoff subcommands. Ex
 
 ## Cycle 2.1: Parse all session.md sections with parametrized tests
 
+**Bootstrap:** Create `src/claudeutils/session/parse.py` with stubs: `parse_status_line` returning `None`, `parse_completed_section` returning `[]`, `parse_tasks` returning `[]`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_parse_session_sections[status_line]`, `test_parse_session_sections[completed]`, `test_parse_session_sections[in_tree_tasks]`, `test_parse_session_sections[worktree_tasks]`
@@ -49,8 +53,6 @@ Shared parser for session.md consumed by both status and handoff subcommands. Ex
 - [ ] **Future work** → `wt` — `/design plans/future/problem.md` | sonnet
 ```
 
-**Bootstrap:** Create `src/claudeutils/session/parse.py` with stubs: `parse_status_line` returning `None`, `parse_completed_section` returning `[]`, `parse_tasks` returning `[]`. Do not commit.
-
 **Expected failure:** `AssertionError` — `parse_status_line` returns `None` instead of status text; `parse_tasks` returns `[]` instead of populated `ParsedTask` list
 
 **Why it fails:** Stubs return empty defaults, tests assert on parsed content
@@ -84,6 +86,10 @@ Shared parser for session.md consumed by both status and handoff subcommands. Ex
 
 ## Cycle 2.2: Full session.md parse — SessionData dataclass
 
+**Bootstrap:** Add to `session/parse.py`: `SessionData` dataclass with default fields, `parse_session()` returning `SessionData()` with empty defaults. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_parse_session`, `test_parse_session_missing_file`, `test_parse_session_old_format`
@@ -99,8 +105,6 @@ Shared parser for session.md consumed by both status and handoff subcommands. Ex
 **Error handling tests:**
 - `test_parse_session_missing_file` — `parse_session(Path("nonexistent.md"))` raises `SessionFileError` (custom exception, not generic FileNotFoundError) — ST-2 fatal error
 - `test_parse_session_old_format` — session.md with tasks lacking pipe-separated metadata → `ParsedTask` objects with `model=None`, `restart=False` (defaults, not error)
-
-**Bootstrap:** Add to `session/parse.py`: `SessionData` dataclass with default fields, `parse_session()` returning `SessionData()` with empty defaults. Do not commit.
 
 **Expected failure:** `AssertionError` — `data.in_tree_tasks` is `[]` instead of populated list; `data.date` is `None` instead of `"2026-03-07"`
 

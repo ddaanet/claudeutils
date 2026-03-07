@@ -6,6 +6,10 @@ Staging, submodule coordination, amend semantics, structured output.
 
 ## Cycle 6.1: Parent-only commit pipeline
 
+**Bootstrap:** Create `src/claudeutils/session/commit/pipeline.py` with stubs: `CommitResult` dataclass, `commit_pipeline` returning `CommitResult(success=False, output="")`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_commit_parent_only`, `test_commit_precommit_failure`
@@ -24,8 +28,6 @@ Tests use real git repos via `tmp_path`.
   - Returns `CommitResult(success=False, output="**Precommit:** failed\n\n<error output>")`
   - Files staged but NOT committed
   - Exit code 1
-
-**Bootstrap:** Create `src/claudeutils/session/commit/pipeline.py` with stubs: `CommitResult` dataclass, `commit_pipeline` returning `CommitResult(success=False, output="")`. Do not commit.
 
 **Expected failure:** `AssertionError` — `commit_pipeline(input)` returns `success=False` with empty output instead of `success=True` with git commit output
 
@@ -210,6 +212,10 @@ Tests use real git repos via `tmp_path`.
 
 ## Cycle 6.5: Output formatting
 
+**Bootstrap:** Add to `session/commit/pipeline.py`: stub `format_commit_output` returning `""`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_format_success_parent`, `test_format_success_submodule`, `test_format_warning`, `test_format_failure`
@@ -240,9 +246,9 @@ Tests use real git repos via `tmp_path`.
   Warning prepended to git output
 - Failure: gate-specific diagnostic (vet, precommit, clean-files) — format varies by gate
 
-**Expected failure:** No dedicated formatting function
+**Expected failure:** `AssertionError` — `format_commit_output(result)` returns `""` instead of formatted git output with `[branch hash]` line
 
-**Why it fails:** Output formatting inline in pipeline, not testable in isolation
+**Why it fails:** Stub returns empty string, test asserts on formatted output content
 
 **Verify RED:** `pytest tests/test_session_commit_pipeline.py::test_format_success_parent -v`
 

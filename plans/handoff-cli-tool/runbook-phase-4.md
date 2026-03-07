@@ -6,6 +6,10 @@ Stdin parsing, session.md writes, committed detection, state caching, diagnostic
 
 ## Cycle 4.1: Parse handoff stdin
 
+**Bootstrap:** Create `src/claudeutils/session/handoff/parse.py` with stubs: `HandoffInput` dataclass, `HandoffInputError` exception, `parse_handoff_input` returning `HandoffInput(status_line="", completed_lines=[])`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_parse_handoff_input`, `test_parse_handoff_missing_status`, `test_parse_handoff_missing_completed`
@@ -28,8 +32,6 @@ Stdin parsing, session.md writes, committed detection, state caching, diagnostic
 - Produced outline
 - Review by outline-review-agent
 ```
-
-**Bootstrap:** Create `src/claudeutils/session/handoff/parse.py` with stubs: `HandoffInput` dataclass, `HandoffInputError` exception, `parse_handoff_input` returning `HandoffInput(status_line="", completed_lines=[])`. Do not commit.
 
 **Expected failure:** `AssertionError` — `result.status_line` is `""` instead of `"Design Phase A complete — outline reviewed."`
 
@@ -60,6 +62,10 @@ Stdin parsing, session.md writes, committed detection, state caching, diagnostic
 
 ## Cycle 4.2: Status line overwrite in session.md
 
+**Bootstrap:** Create `src/claudeutils/session/handoff/pipeline.py` with stub: `overwrite_status(session_path, status_text)` as no-op. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_overwrite_status_line`, `test_overwrite_status_line_multiline`
@@ -70,8 +76,6 @@ Stdin parsing, session.md writes, committed detection, state caching, diagnostic
 - Subsequent call with different text overwrites again (not append)
 - Other sections of session.md unchanged
 - When status text has multiple lines, each line preserved between heading and first `##`
-
-**Bootstrap:** Create `src/claudeutils/session/handoff/pipeline.py` with stub: `overwrite_status(session_path, status_text)` as no-op. Do not commit.
 
 **Expected failure:** `AssertionError` — session.md status line unchanged after `overwrite_status()` call
 
@@ -103,6 +107,10 @@ Stdin parsing, session.md writes, committed detection, state caching, diagnostic
 
 ## Cycle 4.3: Completed section write with committed detection (H-2)
 
+**Bootstrap:** Add to `session/handoff/pipeline.py`: stub `write_completed(session_path, new_lines)` as no-op. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_write_completed_overwrite`, `test_write_completed_append`, `test_write_completed_auto_strip`
@@ -125,9 +133,9 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
 - If diff shows old lines removed → append
 - If diff shows old lines preserved + new lines → auto-strip committed
 
-**Expected failure:** Function doesn't exist
+**Expected failure:** `AssertionError` — session.md completed section unchanged after `write_completed()` call
 
-**Why it fails:** No committed detection logic
+**Why it fails:** Stub is no-op, test asserts file content was modified
 
 **Verify RED:** `pytest tests/test_session_handoff.py::test_write_completed_overwrite -v`
 
@@ -156,6 +164,10 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
 
 ## Cycle 4.4: State caching (H-4)
 
+**Bootstrap:** Add to `session/handoff/pipeline.py`: stubs `HandoffState` dataclass, `save_state` as no-op, `load_state` returning `None`, `clear_state` as no-op. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_state_cache_create`, `test_state_cache_resume`, `test_state_cache_cleanup`
@@ -167,8 +179,6 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
 - `clear_state()` removes the state file
 - `step_reached` values: `"write_session"`, `"precommit"`, `"diagnostics"`
 - State file survives across function calls (not deleted on load)
-
-**Bootstrap:** Add to `session/handoff/pipeline.py`: stubs `HandoffState` dataclass, `save_state` as no-op, `load_state` returning `None`, `clear_state` as no-op. Do not commit.
 
 **Expected failure:** `AssertionError` — `tmp/.handoff-state.json` not created after `save_state()` call
 
@@ -204,6 +214,10 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
 
 ## Cycle 4.5: Precommit integration
 
+**Bootstrap:** Add to `session/handoff/pipeline.py`: stub `PrecommitResult` dataclass, `run_precommit` returning `PrecommitResult(success=False, output="")`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_handoff_precommit_pass`, `test_handoff_precommit_fail`
@@ -213,8 +227,6 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
 - `run_precommit()` calls `just precommit` subprocess, returns `PrecommitResult` with `success: bool`, `output: str`
 - On failure: `success == False`, `output` contains the precommit failure text
 - On success: `success == True`, `output` contains passing summary
-
-**Bootstrap:** Add to `session/handoff/pipeline.py`: stub `PrecommitResult` dataclass, `run_precommit` returning `PrecommitResult(success=False, output="")`. Do not commit.
 
 **Expected failure:** `AssertionError` — `result.success` is `False` with empty output instead of `True` with passing summary
 
@@ -244,6 +256,10 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
 
 ## Cycle 4.6: Diagnostic output (H-3)
 
+**Bootstrap:** Create `src/claudeutils/session/handoff/context.py` with stub: `format_diagnostics` returning `""`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_diagnostics_precommit_pass`, `test_diagnostics_precommit_fail`, `test_diagnostics_learnings_age`
@@ -260,8 +276,6 @@ Tests use real git repos via `tmp_path` — committed detection requires `git di
   - Contains learnings age summary if any ≥ 7 days
 - When learnings have entries ≥ 7 active days:
   - Output contains `**Learnings:** N entries ≥7 days — consider /codify`
-
-**Bootstrap:** Create `src/claudeutils/session/handoff/context.py` with stub: `format_diagnostics` returning `""`. Do not commit.
 
 **Expected failure:** `AssertionError` — `format_diagnostics(...)` returns `""` instead of markdown containing precommit output
 

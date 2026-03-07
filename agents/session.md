@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-07
 
-**Status:** Bootstrap pattern applied to runbook + codified in /runbook skill — ready for `/orchestrate`.
+**Status:** Bootstrap separated to own step in phase files + skill — ready for step regeneration.
 
 ## Completed This Session
 
@@ -27,12 +27,19 @@
 - Skill-reviewer vet: fixed critical (review-examples.md contradicted new pattern) + major (Tier 2 TDD discoverability)
 - Note: assembled runbook.md not regenerated — prepare-runbook.py blocked by pre-existing Stop/Error Conditions gap in all phase files
 
+**Bootstrap as separate step (iteration 2):**
+- Separated Bootstrap from RED phase into own section in 5 phase files (phases 2-6)
+- Python script transformed 17 cycles: moved `**Bootstrap:**` from inside RED to before RED with `---` separator
+- Added missing Bootstrap + fixed expected failure for cycles 4.3 (write_completed) and 6.5 (format_commit_output) — were ImportError-class
+- Updated /runbook skill: tdd-cycle-planning.md template shows Bootstrap as separate step file, anti-patterns.md expanded ImportError-as-RED row
+- All 4 validate-runbook.py checks pass on updated phase files
+
 ## In-tree Tasks
 
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
-  - Note: runbook.md + step files stale — need regeneration via `agent-core/bin/prepare-runbook.py plans/handoff-cli-tool/` after adding Stop/Error Conditions sections to phase files
+  - Note: runbook.md + step files stale — need regeneration via `agent-core/bin/prepare-runbook.py plans/handoff-cli-tool/` after adding Stop/Error Conditions sections to phase files. Bootstrap now separate step — prepare-runbook.py needs BOOTSTRAP tag support for 3-step TDD cycles
 
 ## Reference Files
 

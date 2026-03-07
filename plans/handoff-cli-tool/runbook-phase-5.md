@@ -6,6 +6,10 @@ Markdown stdin parser (commit-specific format) and scripted vet check.
 
 ## Cycle 5.1: Parse commit markdown stdin — all sections with parametrized tests
 
+**Bootstrap:** Create `src/claudeutils/session/commit/parse.py` with stubs: `CommitInput` dataclass with empty defaults, `CommitInputError` exception, `parse_commit_input` returning `CommitInput(files=[], options=set(), submodules={}, message="")`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_parse_commit_input[files]`, `test_parse_commit_input[options]`, `test_parse_commit_input[submodule]`, `test_parse_commit_input[message]`, `test_parse_commit_input_edge_cases`
@@ -54,8 +58,6 @@ Markdown stdin parser (commit-specific format) and scripted vet check.
 - Missing `## Message` → `CommitInputError`
 - Missing `## Files` → `CommitInputError`
 
-**Bootstrap:** Create `src/claudeutils/session/commit/parse.py` with stubs: `CommitInput` dataclass with empty defaults, `CommitInputError` exception, `parse_commit_input` returning `CommitInput(files=[], options=set(), submodules={}, message="")`. Do not commit.
-
 **Expected failure:** `AssertionError` — `result.files` is `[]` instead of `["src/commit/cli.py", "src/commit/gate.py", ...]`
 
 **Why it fails:** Stub returns empty `CommitInput`, test asserts on parsed section content
@@ -91,6 +93,10 @@ Markdown stdin parser (commit-specific format) and scripted vet check.
 
 ## Cycle 5.2: Input validation — clean files check (C-3)
 
+**Bootstrap:** Create `src/claudeutils/session/commit/gate.py` with stubs: `CleanFileError` exception, `validate_files` as no-op (returns `None`). Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_validate_files_dirty`, `test_validate_files_clean_error`, `test_validate_files_amend`
@@ -105,8 +111,6 @@ Tests use real git repos via `tmp_path`.
   - String representation matching exact format: `**Error:** Listed files have no uncommitted changes\n- <path>\n\nSTOP: Do not remove files and retry.`
 - `validate_files(files, amend=True)` with a file that's clean in working tree but present in HEAD commit (via `git diff-tree`) → returns normally (amend allows HEAD-committed files)
 - `validate_files(files, amend=True)` with a file in neither working tree changes nor HEAD commit → raises `CleanFileError`
-
-**Bootstrap:** Create `src/claudeutils/session/commit/gate.py` with stubs: `CleanFileError` exception, `validate_files` as no-op (returns `None`). Do not commit.
 
 **Expected failure:** `AssertionError` — `validate_files(files)` with clean file does not raise `CleanFileError`
 
@@ -140,6 +144,10 @@ Tests use real git repos via `tmp_path`.
 
 ## Cycle 5.3: Scripted vet check (C-1)
 
+**Bootstrap:** Add to `session/commit/gate.py`: stub `VetResult` dataclass, `vet_check` returning `VetResult(passed=True)`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_vet_check_no_config`, `test_vet_check_pass`, `test_vet_check_unreviewed`, `test_vet_check_stale`
@@ -153,8 +161,6 @@ Tests use `tmp_path` with pyproject.toml and plan report directories.
 - `vet_check(files)` with matching pattern but no report file → fails with `VetResult(passed=False, reason="unreviewed", unreviewed_files=["src/foo.py"])`
 - `vet_check(files)` with report older than newest matching file → fails with `VetResult(passed=False, reason="stale", stale_info=...)`
 - Files not matching any pattern are not checked (non-production files pass freely)
-
-**Bootstrap:** Add to `session/commit/gate.py`: stub `VetResult` dataclass, `vet_check` returning `VetResult(passed=True)`. Do not commit.
 
 **Expected failure:** `AssertionError` — `vet_check(files)` with unreviewed file returns `passed=True` instead of `VetResult(passed=False, reason="unreviewed")`
 

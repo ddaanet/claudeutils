@@ -60,6 +60,11 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Bootstrap step creates stub module/function (return `None`/`""`/`[]`/no-op) before test execution. RED then fails on behavioral `AssertionError`, proving assertions catch trivial implementations. Bootstrap is uncommitted scaffolding — GREEN replaces it.
 - In ping-pong TDD (separate test/impl agents), the bootstrap is test-agent responsibility or orchestrator-injected setup. The test agent can't verify behavioral RED without production stubs existing.
 - Codified in: tdd-cycle-planning.md (mandatory pattern), anti-patterns.md (ImportError-as-RED row), review-plan 11.1 (vacuity detection), validate-runbook.py (enforcement).
+## When Bootstrap is embedded in RED
+- Anti-pattern: Bootstrap instructions (create stubs, do not commit) embedded inside the RED phase description. The test agent receives both stub-creation and test-writing instructions in one invocation. Conflates mechanical scaffolding with behavioral test design.
+- Correct pattern: Bootstrap is a **separate step** — own section in the phase file (`**Bootstrap:** ...` before `---` before `**RED Phase:**`), generating its own step file dispatched to a separate agent. Three steps per TDD cycle: Bootstrap → RED → GREEN.
+- When Bootstrap is not needed: cycles extending existing function behavior (function already importable, test fails on behavior naturally) and CLI wiring cycles (Click returns "No such command").
+- Codified in: tdd-cycle-planning.md (template + prose), anti-patterns.md (expanded ImportError-as-RED row).
 ## When prioritizing produces a large task list
 - Anti-pattern: Scoring tasks individually without checking for absorptions, merges, or thematic overlap. Produces accurate priority scores on a bloated list — 65 tasks with redundant scope boundaries.
 - Correct pattern: After scoring, run a consolidation pass: absorptions (task is subset of another's plan/outline), merges (overlapping scope, same design session), thematic clusters (shared infrastructure/API, batchable), stale checks (plan delivered but task pending). Multiple passes until no further reductions.

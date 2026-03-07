@@ -6,6 +6,10 @@ Pure data transformation: session.md + filesystem state → STATUS output. No mu
 
 ## Cycle 3.1: Render Next task
 
+**Bootstrap:** Create `src/claudeutils/session/status/render.py` with stub: `render_next` returning `""`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_render_next_task`, `test_render_next_skips_worktree_markers`, `test_render_next_no_pending`
@@ -21,8 +25,6 @@ Pure data transformation: session.md + filesystem state → STATUS output. No mu
 - `render_next(tasks)` where first task has `worktree_marker="my-slug"` and second has `worktree_marker="wt"` and third is plain pending → returns third task's info
 - `render_next([])` returns `""` (empty string, no Next section)
 - Tasks with checkbox `"x"`, `"!"`, `"†"`, `"-"` are all skipped (only `" "` without marker is eligible)
-
-**Bootstrap:** Create `src/claudeutils/session/status/render.py` with stub: `render_next` returning `""`. Do not commit.
 
 **Expected failure:** `AssertionError` — `render_next(tasks)` returns `""` instead of formatted `Next:` block with task name and command
 
@@ -52,6 +54,10 @@ Pure data transformation: session.md + filesystem state → STATUS output. No mu
 ---
 
 ## Cycle 3.2: Render list sections with parametrized tests
+
+**Bootstrap:** Add to `session/status/render.py`: stubs `render_pending` returning `""`, `render_worktree` returning `""`, `render_unscheduled` returning `""`. Do not commit.
+
+---
 
 **RED Phase:**
 
@@ -92,8 +98,6 @@ Pure data transformation: session.md + filesystem state → STATUS output. No mu
 **Empty section assertions (all three):**
 - Each render function returns `""` when input list is empty
 
-**Bootstrap:** Add to `session/status/render.py`: stubs `render_pending` returning `""`, `render_worktree` returning `""`, `render_unscheduled` returning `""`. Do not commit.
-
 **Expected failure:** `AssertionError` — `render_pending(tasks, plan_states)` returns `""` instead of formatted section with task names and plan status
 
 **Why it fails:** Stubs return empty strings, tests assert on formatted section content
@@ -125,6 +129,10 @@ Pure data transformation: session.md + filesystem state → STATUS output. No mu
 
 ## Cycle 3.3: Parallel group detection
 
+**Bootstrap:** Add to `session/status/render.py`: stub `detect_parallel` returning `None`. Do not commit.
+
+---
+
 **RED Phase:**
 
 **Test:** `test_detect_parallel_group`, `test_detect_parallel_no_group`, `test_detect_parallel_shared_plan`
@@ -136,8 +144,6 @@ Pure data transformation: session.md + filesystem state → STATUS output. No mu
 - `detect_parallel(tasks, blockers)` with 2 tasks sharing `plan_dir="parser"` returns `None` (shared plan = dependent)
 - `detect_parallel(tasks, blockers)` with 4 tasks where 2 share a plan returns group of 2 independent tasks (largest independent subset)
 - Blocker text mentioning task name creates dependency (excluded from group)
-
-**Bootstrap:** Add to `session/status/render.py`: stub `detect_parallel` returning `None`. Do not commit.
 
 **Expected failure:** `AssertionError` — `detect_parallel(tasks, blockers)` returns `None` instead of list of 3 independent task names
 
