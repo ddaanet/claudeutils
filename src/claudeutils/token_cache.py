@@ -1,10 +1,15 @@
 """Token cache database management using SQLAlchemy."""
 
+import hashlib
 from datetime import UTC, datetime
+from pathlib import Path
 
+from anthropic import Anthropic
 from sqlalchemy import Integer, String, create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
+
+from claudeutils.tokens import ModelId, count_tokens_for_file
 
 
 class Base(DeclarativeBase):
@@ -75,3 +80,37 @@ def create_cache_engine(db_path: str) -> Engine:
     )
     Base.metadata.create_all(engine)
     return engine
+
+
+def cached_count_tokens_for_file(
+    path: Path,
+    model: ModelId,
+    client: Anthropic,
+    cache: TokenCache,
+) -> int:
+    """Count tokens with cache lookup and storage.
+
+    Reads file content, computes md5, checks cache, falls back to API.
+
+    Args:
+        path: Path to file to count tokens for
+        model: Model ID for token counting
+        client: Anthropic API client
+        cache: TokenCache instance for storing/retrieving counts
+
+    Returns:
+        Number of tokens in the file
+    """
+    content = path.read_text()
+    if not content:
+        return 0
+
+    md5_hex = hashlib.md5(content.encode()).hexdigest()  # noqa: S324
+
+    cached = cache.get(md5_hex, model)
+    if cached is not None:
+        return cached
+
+    count = count_tokens_for_file(path, model, client)
+    cache.put(md5_hex, model, count)
+    return count

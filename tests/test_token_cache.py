@@ -1,11 +1,21 @@
 """Tests for token cache database functionality."""
 
+import hashlib
 from datetime import timedelta
+from pathlib import Path
+from unittest.mock import Mock
 
+from pytest_mock import MockerFixture
 from sqlalchemy import inspect
 from sqlalchemy.orm import sessionmaker
 
-from claudeutils.token_cache import TokenCache, TokenCacheEntry, create_cache_engine
+from claudeutils.token_cache import (
+    TokenCache,
+    TokenCacheEntry,
+    cached_count_tokens_for_file,
+    create_cache_engine,
+)
+from claudeutils.tokens import ModelId
 
 
 class TestTokenCacheModel:
@@ -152,3 +162,94 @@ class TestTokenCacheOperations:
         result = cache.get("abc123", "model-1")
 
         assert result == 99
+
+
+class TestCachedCountTokens:
+    """Tests for cached_count_tokens_for_file wrapper function."""
+
+    def test_cache_miss_calls_api_and_stores(
+        self, tmp_path: Path, mocker: MockerFixture
+    ) -> None:
+        """API called on cache miss, result stored.
+
+        Given: Empty cache and test file with known content.
+        When: Calling cached_count_tokens_for_file with mocked count_tokens_for_file.
+        Then: API is called once, result is cached, and count is returned.
+        """
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("hello world")
+        content_md5 = hashlib.md5(b"hello world").hexdigest()  # noqa: S324
+
+        engine = create_cache_engine(":memory:")
+        cache = TokenCache(engine)
+
+        mock_count = Mock(return_value=42)
+        mocker.patch("claudeutils.token_cache.count_tokens_for_file", mock_count)
+        mock_client = Mock()
+
+        result = cached_count_tokens_for_file(
+            test_file, ModelId("test-model"), mock_client, cache
+        )
+
+        assert result == 42
+        assert mock_count.call_count == 1
+        assert cache.get(content_md5, "test-model") == 42
+
+    def test_cache_hit_skips_api(self, tmp_path: Path, mocker: MockerFixture) -> None:
+        """cached_count_tokens_for_file uses cache and skips API on hit.
+
+        Given: Cache with stored (md5, model) -> count.
+        When: Calling cached_count_tokens_for_file with matching file.
+        Then: API is not called, cached count is returned.
+        """
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("hello world")
+        content_md5 = hashlib.md5(b"hello world").hexdigest()  # noqa: S324
+
+        engine = create_cache_engine(":memory:")
+        cache = TokenCache(engine)
+        cache.put(content_md5, "test-model", 42)
+
+        mock_count = Mock()
+        mocker.patch("claudeutils.token_cache.count_tokens_for_file", mock_count)
+        mock_client = Mock()
+
+        result = cached_count_tokens_for_file(
+            test_file, ModelId("test-model"), mock_client, cache
+        )
+
+        assert result == 42
+        assert mock_count.call_count == 0
+
+    def test_cache_key_uses_content_md5_not_path(
+        self, tmp_path: Path, mocker: MockerFixture
+    ) -> None:
+        """cached_count_tokens_for_file uses content md5 as key, not file path.
+
+        Given: Two files with identical content at different paths.
+        When: Calling cached_count_tokens_for_file for file 1, then file 2.
+        Then: API is called once (file 1), second call is cache hit.
+        """
+        file1 = tmp_path / "file1.txt"
+        file2 = tmp_path / "file2.txt"
+        content = "identical content"
+        file1.write_text(content)
+        file2.write_text(content)
+
+        engine = create_cache_engine(":memory:")
+        cache = TokenCache(engine)
+
+        mock_count = Mock(return_value=42)
+        mocker.patch("claudeutils.token_cache.count_tokens_for_file", mock_count)
+        mock_client = Mock()
+
+        result1 = cached_count_tokens_for_file(
+            file1, ModelId("test-model"), mock_client, cache
+        )
+        result2 = cached_count_tokens_for_file(
+            file2, ModelId("test-model"), mock_client, cache
+        )
+
+        assert result1 == 42
+        assert result2 == 42
+        assert mock_count.call_count == 1
