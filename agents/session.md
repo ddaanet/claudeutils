@@ -33,7 +33,7 @@
   - Precommit step: review report timestamp >= production artifact edit timestamp, no triviality exception
   - Implements defense-in-depth.md decision ("gate at chokepoint")
   - Evidence: JIT expansion commit skipped vet checkpoint
-- [ ] **AR Token Cache** → `ar-token-cache` — `/runbook plans/active-recall/outline.md` | sonnet
+- [ ] **AR Token Cache** — `/runbook plans/active-recall/outline.md` | sonnet
   - S-A: sqlite cache via sqlalchemy for count_tokens_for_file(). Band 0 — ready now
 - [ ] **AR Recall Consolidate** → `ar-recall-consolidate` — `/runbook plans/active-recall/outline.md` | sonnet
   - S-B: merge recall/ + recall_cli/ + when/ into unified recall module. Band 0 — ready now
