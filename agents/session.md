@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-07
 
-**Status:** Task classification session — two new hook tasks pending, no execution.
+**Status:** Fixed command derivation override, classified hook tasks, corrected Proof skill routing.
 
 ## Completed This Session
 
@@ -36,13 +36,18 @@
 - Confirmed: /runbook skill prose and /review-plan corrector prose already shipped (agent-core 7add2e2 + 945fb7f)
 - Remaining blocker narrowed to: prepare-runbook.py BOOTSTRAP tag + Stop/Error Conditions in phase files
 
+**Command derivation note-override:**
+- Added note-override clause to handoff skill's command derivation rule (`.claude/skills/handoff/SKILL.md:83`)
+- When existing command differs from derived AND task Note explains routing, preserve existing command
+- Fixed Proof skill execution command: `/runbook` → `/inline` per task note
+
 ## In-tree Tasks
 
 - [x] **Pipeline review protocol** — `/design plans/pipeline-review-protocol/` | opus
   - Plan: pipeline-review-protocol | Status: outlined
-- [ ] **Proof skill execution** — `/runbook plans/pipeline-review-protocol/outline.md` | opus
+- [ ] **Proof skill execution** — `/inline plans/pipeline-review-protocol` | opus
   - Plan: pipeline-review-protocol | Status: outlined
-  - Note: Sufficiency gate passed — all prose edits, no implementation loops. Route to /inline not /runbook (see brief.md). Validator requires /runbook command for outlined status
+  - Note: Sufficiency gate passed — all prose edits, no implementation loops. Task note overrides plan-status-derived command
 - [ ] **Bootstrap tag support** — `/design` | sonnet
   - Note: Blocker for Session CLI tool. Two sub-tasks: (1) add Stop/Error Conditions sections to handoff-cli-tool phase files (pre-existing gap), (2) add BOOTSTRAP tag support to prepare-runbook.py for 3-step cycle generation. Skill prose (/runbook tdd-cycle-planning.md) and corrector prose (/review-plan 11.1 vacuity check) already shipped in agent-core commits 7add2e2 + 945fb7f
 - [!] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet | restart
@@ -78,4 +83,4 @@
 
 ## Next Steps
 
-Two hook tasks queued (diagnose + fix). Bootstrap tag support and Proof skill execution remain pending. `/codify` needed — learnings at soft limit.
+Proof skill execution next (opus, `/inline`). `/codify` needed — learnings at soft limit.
