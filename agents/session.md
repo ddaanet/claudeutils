@@ -1,31 +1,51 @@
 # Session Handoff: 2026-03-09
 
-**Status:** Original grounding scrapped after review. Corrected problem statement captured, ready for restart.
+**Status:** Grounding complete for both questions. Discuss protocol updated (stress-test → research claims). Next: run A/B test.
 
 ## Completed This Session
 
-**Grounding review (discussion):**
-- Scrapped `plans/reports/how-verb-form-grounding.md` — answered wrong questions
-- Original report measured fuzzy self-matching (tautological) and query distribution (contaminated by index-driven retrieval)
-- Identified two actual questions the grounding must answer (see pending task)
+**Grounding (verb form):**
+- Q1 (fuzzy matcher): Prefix mismatch causes 0.0 scores — well-characterized deficiency of character-level matching. Fix belongs in matcher, not entry format. (file: plans/reports/how-verb-form-grounding.md)
+- Q2 (agent recognition): External research can't answer — requires empirical A/B test. Forced selection design (TREC/Cranfield) makes silent failures observable.
+- A/B methodology grounded: FormatSpread (ICLR 2024), ProSA (EMNLP 2024), McNemar's test for paired binary outcomes. (file: plans/reports/how-verb-form-ab-methodology.md)
+
+**Discuss protocol revision:**
+- Mined 9 "I was wrong" sessions + 29 pushback worktree sessions for protocol effectiveness data
+- Found: stress-test has zero observed perspective-change value. All changes triggered by new facts, reframing, or exposed research gaps
+- Removed stress-test, replaced with "research your own claims" step in pushback.md and hook expansion
+- Framings marked as internal reasoning (think block), not output
+- (file: plans/reports/discuss-protocol-mining.md)
+
+**Previous session (carried forward):**
+- Scrapped original grounding — answered wrong questions (fuzzy self-matching, index-driven query distribution)
 
 ## In-tree Tasks
 
-- [-] **Ground how verb form** — `/design plans/ar-how-verb-form/problem.md` | sonnet
-  - Scrapped: report answered wrong questions (fuzzy self-matching, index-driven query distribution)
-- [ ] **Restart grounding** — `/ground` | sonnet
-  - Two questions:
-    1. **Fuzzy matcher robustness**: prefix mismatch ("to" token) causes total match failure (0.0 scores). Matcher exists to recover from imperfect recall — failing on one-token prefix noise is a deficiency. `removeprefix` is a band-aid.
-    2. **Agent recognition A/B**: does `how to <verb>` improve agent recognition of relevant entries during index scanning vs `how <verb>`? One token per entry (~70 tokens) cost. Test by varying index format and observing agent resolve success on real tasks.
-  - Dead branches: fuzzy self-matching (tautological), query distribution (contaminated by index-driven retrieval), heading alignment (trivially true)
-  - Prototypes in `plans/prototypes/` have reuse value for extraction
+- [x] **Restart grounding** — `/ground` | sonnet
+  - Both questions grounded. Q1: matcher deficiency confirmed. Q2: requires A/B test (methodology grounded).
+- [ ] **Verb form AB test** — `/ground` | sonnet
+  - Forced selection design: 15-20 task contexts, paired comparison, McNemar's test
+  - Infrastructure: index variant generator, task selector, prompt harness, analysis script
+  - Methodology: plans/reports/how-verb-form-ab-methodology.md
+
+## Worktree Tasks
+
+- [ ] **Fix prefix tolerance** — `src/claudeutils/when/fuzzy.py` | sonnet
+  - Zero tolerance for prefix noise (0.0 scores on one-token mismatch). Separate from format decision.
 
 ## Reference Files
 
-- `plans/prototypes/` — extraction scripts, reusable for corrected analysis
-- `src/claudeutils/when/fuzzy.py` — production fuzzy matcher (question 1)
+- `plans/reports/how-verb-form-grounding.md` — synthesis report (Moderate grounding)
+- `plans/reports/how-verb-form-ab-methodology.md` — A/B test methodology (Strong grounding)
+- `plans/reports/discuss-protocol-mining.md` — discuss protocol effectiveness analysis
+- `plans/reports/how-verb-form-internal-codebase.md` — matcher algorithm, removeprefix band-aid, index format
+- `plans/reports/how-verb-form-external-research.md` — fuzzy matching + LLM sensitivity literature
+- `plans/reports/how-verb-form-ab-methodology-internal.md` — existing test infrastructure
+- `plans/reports/how-verb-form-ab-methodology-external.md` — methodology literature
+- `plans/prototypes/` — extraction scripts, reusable for A/B test infrastructure
+- `src/claudeutils/when/fuzzy.py` — production fuzzy matcher
 - `src/claudeutils/when/resolver.py` — `removeprefix("to ")` band-aid at line 196
 
 ## Next Steps
 
-Branch work continues — restart grounding with corrected problem statement.
+Run A/B test using forced selection design from methodology report.

@@ -61,6 +61,13 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Evidence: 65 → 25 tasks in 3 rounds. Model tier is not a batching constraint — worktrees set their own model at launch.
 ## When grounding recall system behavior
 - Anti-pattern: Measuring fuzzy matcher round-trip fidelity (query self-matches stored entry) and query distribution from session logs. Both answer "does the plumbing work?" — tautological and contaminated respectively.
-- Index-driven retrieval contaminates query distribution: agents copy triggers they just read from the index, so output query form reflects input format, not natural behavior.
-- Correct framing: (1) Does the fuzzy matcher tolerate prefix noise? (one-token mismatch causing 0.0 scores = matcher failing its purpose). (2) Does the index entry format affect agent recognition during scanning? (behavioral A/B test, not a script test).
-- The distinction between index-driven retrieval (agent copies a key it saw) and spontaneous retrieval (agent generates query from understanding) determines which data is meaningful.
+- Correct framing: (1) Does the fuzzy matcher tolerate prefix noise? (one-token mismatch causing 0.0 scores = matcher failing its purpose). (2) Does the index entry format affect agent recognition during scanning? (behavioral A/B test via forced selection design).
+- Index-driven retrieval is the mechanism under test, not a confound — the agent reading the index format and being affected by it is exactly what FormatSpread/ProSA measure. Forced selection (TREC/Cranfield) makes silent recognition failures observable.
+## When claiming infeasibility in discussion
+- Anti-pattern: Asserting something is infeasible based on reasoning alone, then defending that position through self-rebuttal (stress-test). Three rounds of "A/B testing is infeasible" — one web search found established methodologies (FormatSpread, ProSA, TREC/Cranfield) addressing every objection.
+- Correct pattern: Before asserting infeasibility, search for evidence. Feasibility claims feel like logical deductions but are empirical questions. The discuss protocol now includes "research your own claims" step.
+- Evidence: Objections were (1) silent failures unobservable → forced selection solves this, (2) contamination → it IS the signal, (3) low stakes → instance-level analysis reveals per-entry effects. All answered by existing methodology.
+## When stress-testing in discuss protocol
+- Stress-test was introduced (2026-02-15) to fix AGAINST-first contrarianism. It solved contrarianism but degraded into confirmation theater — agent controls both sides, defense always wins.
+- Zero observed perspective changes from stress-test across 9 "I was wrong" sessions. All actual mind-changes came from: new facts (4/9), conceptual reframing (3/9), or exposed research gaps (2/9).
+- Replaced with "research your own claims" — search (web + codebase) before asserting, flag ungrounded claims.
