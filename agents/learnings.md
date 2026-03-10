@@ -77,3 +77,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Launching a new brainstorm-name agent with "do NOT repeat" constraints. Creates a fresh context that wastes the prior agent's reasoning and anchor-avoidance work.
 - Correct pattern: Resume the prior agent (`resume` parameter with agent ID) and ask for more candidates. The agent retains its full context — existing candidates, conceptual space explored, metaphor domains considered. Resumption produces genuinely novel names; fresh launch risks adjacent-to-excluded names.
 - Evidence: Agent tool supports `resume` parameter for exactly this case.
+## When Simple routing bypasses inline lifecycle
+- Anti-pattern: Simple classification routes to "direct execution" — recall, explore, edit, done. Bypasses /inline lifecycle: no integration-test gate, no review dispatch, no triage feedback, no deliverable-review chain.
+- Correct pattern: Simple routes through `/inline plans/<job> execute` like Moderate and Complex. /inline provides the review gating and workflow continuation that "direct execution" lacks. The classification determines design ceremony, not execution ceremony.
+- Same class as: Moderate prose bypassing /runbook. The fix is routing to /inline, not removing quality gates.
+## When corrector template inlines recall content
+- Anti-pattern: Corrector dispatch template says "include resolved recall entries in prompt." Caller pre-resolves entries and pastes content into the reviewer's prompt. Token-wasteful (content duplicated across parent and child context) and potentially stale.
+- Correct pattern: Reference the recall artifact file path. Reviewer resolves entries itself via `claudeutils _recall resolve`. Token economy: reference, never repeat. Same delegation principle as sub-agent recall: parent curates artifact, child resolves.
