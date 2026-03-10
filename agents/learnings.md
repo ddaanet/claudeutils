@@ -84,3 +84,9 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 ## When corrector template inlines recall content
 - Anti-pattern: Corrector dispatch template says "include resolved recall entries in prompt." Caller pre-resolves entries and pastes content into the reviewer's prompt. Token-wasteful (content duplicated across parent and child context) and potentially stale.
 - Correct pattern: Reference the recall artifact file path. Reviewer resolves entries itself via `claudeutils _recall resolve`. Token economy: reference, never repeat. Same delegation principle as sub-agent recall: parent curates artifact, child resolves.
+## When correctors miss scope items
+- Anti-pattern: Corrector structures validation around named components (C1-C4) and decisions (D-1 through D-7). Standalone Scope IN items not mapped to any component have no checklist slot — they pass unreviewed. Deliverable review catches them later, but the gap survives to the second gate.
+- Correct pattern: Add scope-completeness as a named review criterion: mechanically diff every Scope IN item against deliverables. Component+decision validation is necessary but insufficient — standalone scope items are the blind spot.
+- Evidence: Planstate specified in Scope IN but not part of any C1-C4 component — missed by corrector at `3d226bb3`, caught by deliverable review. Same pattern for glob/single-artifact mismatch.
+- Fix: `review-dispatch-template.md` now includes scope-completeness criterion and field rule.
+- Prevention: `outline-corrector.md` now checks scope-to-component traceability (orphan detection) and cross-component interface compatibility. Catches drift at outline review (gate 2), not deliverable review (gate 5).
