@@ -80,10 +80,16 @@
   - Plan: pipeline-review-protocol
   - Note: 2 major (planstate gap, glob/single-artifact ambiguity), 4 minor. All findings in deliverable-review.md.
 
+- [ ] **Design review protocol** — `/design` | opus | restart
+  - Note: Two features — (1) runbook reuses corrector across phases, (2) orchestration ping-pong FIX/PASS. From fix-prose-routing-bias worktree.
+- [ ] **Fix session search** — `claudeutils _session` | sonnet
+  - Note: Make --project optional in session-scraper.py, support project globbing
+
 ## Blockers / Gotchas
 
 **Learnings at soft limit:** learnings.md at 78 lines (soft limit 80). Next session should `/codify` before appending new learnings.
 
+- `session.py:307` produces `# Session: Worktree — {name}` but validator expects `# Session Handoff: YYYY-MM-DD`. Data-fixed this session. Code fix (validator or session.py) is separate behavioral change — not in scope here. [from: fix-prose-routing-bias]
 ## Reference Files
 
 - `plans/pipeline-review-protocol/outline.md` — Design outline (4 components, 7 decisions, no open questions)
