@@ -22,9 +22,13 @@
 
 - [x] **AR Format Grounding** — `/ground` | opus
 
+- [!] **Verb form AB test** — see `plans/reports/ab-test/README.md` | sonnet
+  - Infrastructure built. Blocked on human: curate task-contexts.json, annotate ground-truth.md
+  - After human steps: run harness then analysis (commands in README)
+
 ## Worktree Tasks
 
-- [ ] **Ground how verb form** → `ar-how-verb-form` — `/design` | sonnet
+- [ ] **Ground how verb form** — `/design` | sonnet
   - Measure fuzzy match scores ("how format X" vs "how to format X"), extract agent query patterns via session scraper, observe retrieval accuracy
   - Tools: `fuzzy.py` score_match, `session-scraper.py`, 366-entry index
   - Retrieval accuracy requires agent behavior observation, not just script execution
@@ -32,6 +36,9 @@
   - Measure distributions for all 5 thresholds against 366-entry dataset, set at natural breakpoints, implement user-configurable defaults with feedback pipeline
   - Thresholds: keyword overlap %, specificity range, keyword count, content words, discriminating count
   - Human judgment needed for "is this a true duplicate" / "is this over-specific" labeling
+
+- [ ] **Fix prefix tolerance** — `src/claudeutils/when/fuzzy.py` | sonnet
+  - Zero tolerance for prefix noise (0.0 scores on one-token mismatch). Separate from format decision.
 
 ## Reference Files
 
