@@ -1,6 +1,6 @@
-# Session Handoff: 2026-03-09
+# Session Handoff: 2026-03-10
 
-**Status:** Deliverable review of pipeline-review-protocol completed — reviewed (0 critical, 2 major). Fix task created.
+**Status:** Deliverable review done, 4 worktrees created. Merging runbook-quality-fixes.
 
 ## Completed This Session
 
@@ -44,6 +44,9 @@
 - Report: `plans/pipeline-review-protocol/reports/deliverable-review.md`
 - Lifecycle: `reviewed` (plans/pipeline-review-protocol/lifecycle.md)
 
+**Worktree setup:**
+- Created 4 worktrees: fix-prose-routing-bias, runbook-quality-fixes, inline-lifecycle-gate, fix-proof-review-findings
+
 ## In-tree Tasks
 
 - [ ] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet | restart
@@ -62,18 +65,18 @@
 ## Worktree Tasks
 
 - [ ] **Test context-fork model** — create minimal skill with `context: fork` + `AskUserQuestion`, observe interaction behavior | haiku
-- [ ] **Fix prose routing bias** — `/design` | opus
+- [ ] **Fix prose routing bias** → `fix-prose-routing-bias` — `/design` | opus
   - Note: Agent routes prose-only work to /runbook when cross-file scope feels large, despite sufficiency gate. Same class as "design ceremony continues after uncertainty resolves." Brief: `plans/pipeline-review-protocol/brief.md` (Recurrent Failure Mode section). Schedule after session-cli-tool merges to main
-- [ ] **Runbook quality fixes** — `/design plans/runbook-quality-directives/brief.md` | opus
+- [ ] **Runbook quality fixes** → `runbook-quality-fixes` — `/design plans/runbook-quality-directives/brief.md` | opus
   - Plan: runbook-quality-directives
   - Note: Verify GREEN collapse, Bootstrap omission, Tier 2 consolidation, corrector noise rules, `just green` recipe. Author-corrector coupling — all edits must ship together.
-- [ ] **Inline lifecycle gate** — `/design plans/inline-lifecycle-gate/brief.md` | opus
+- [ ] **Inline lifecycle gate** → `inline-lifecycle-gate` — `/design plans/inline-lifecycle-gate/brief.md` | opus
   - Plan: inline-lifecycle-gate
   - Note: Corrector gate D+B anchor (Write-gated skip), triage-feedback.sh review.md check. Independent of runbook-quality-directives.
 - [ ] **Markdown AST parser** — `/design plans/markdown-ast-parser/brief.md` | opus
   - Plan: markdown-ast-parser
   - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
-- [ ] **Fix proof review findings** — `/design plans/pipeline-review-protocol/reports/deliverable-review.md` | opus
+- [ ] **Fix proof review findings** → `fix-proof-review-findings` — `/design plans/pipeline-review-protocol/reports/deliverable-review.md` | opus
   - Plan: pipeline-review-protocol
   - Note: 2 major (planstate gap, glob/single-artifact ambiguity), 4 minor. All findings in deliverable-review.md.
 
@@ -107,4 +110,4 @@
 
 ## Next Steps
 
-Session CLI tool unblocked — regenerate step files next. `/codify` still needed — learnings at soft limit.
+Merge runbook-quality-fixes, then continue merging remaining worktrees. `/codify` still needed — learnings at soft limit.
