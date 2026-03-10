@@ -495,3 +495,7 @@ Session.md structural validator with precommit integration. Validates section or
 ## skill-progressive-disclosure
 
 Segment loading at gate boundaries (/design and /runbook). Skills load reference segments progressively rather than all at once, reducing context overhead. Brief and requirements captured. Affected: agent-core/skills/design/, agent-core/skills/runbook/.
+
+## pipeline-review-protocol
+
+/proof skill replacing ad-hoc single-turn validation with reword-accumulate-sync protocol. 5 integration points across /requirements, /design, /runbook. Author-corrector coupling check in /design. Automatic corrector dispatch after proof "apply" terminal action. Planstate lifecycle integration (review-pending/reviewed). Deliverable review found 2 major + 4 minor, all resolved in fix cycle. Affected: agent-core/skills/proof/, agent-core/skills/design/, agent-core/skills/requirements/, agent-core/skills/runbook/.

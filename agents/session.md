@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-10
 
-**Status:** Deliverable review done, 4 worktrees created. Merging runbook-quality-fixes.
+**Status:** Merged 3 worktrees (runbook-quality-fixes, inline-lifecycle-gate, fix-prose-routing-bias). Consolidated pipeline quality tasks.
 
 ## Completed This Session
 
@@ -47,13 +47,21 @@
 **Worktree setup:**
 - Created 4 worktrees: fix-prose-routing-bias, runbook-quality-fixes, inline-lifecycle-gate, fix-proof-review-findings
 
+**Worktree merges:**
+- Merged runbook-quality-fixes (empty — no work done, removed)
+- Merged inline-lifecycle-gate (empty — no work done, removed)
+- Merged fix-prose-routing-bias (6 commits): proof skill fixes (all 5 deliverable-review findings resolved), inline/SKILL.md review dispatch routing table, resumed-review-protocol brief, 3 new learnings, 2 new tasks
+  - Conflict resolved: inline/SKILL.md — combined D+B anchor gate (inline-lifecycle-gate merge) with routing table dispatch (prose-routing-bias)
+  - Missing commit recovered: `plans/resumed-review-protocol/brief.md` added from branch tip
+- Consolidated runbook-quality-directives + inline-lifecycle-gate → single "Pipeline quality fixes" task (user decision: inline execution next session)
+
 ## In-tree Tasks
 
 - [ ] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet | restart
   - Plan: handoff-cli-tool | Status: outlined
   - Absorbs: Fix task-context bloat
   - Note: Blocker resolved (Bootstrap tag support). Regenerate step files via `prepare-runbook.py plans/handoff-cli-tool/`, then `/orchestrate handoff-cli-tool`
-- [x] **Review proof deliverable** — `/deliverable-review plans/pipeline-review-protocol` | opus | restart
+- [x] **Review proof deliverable** — `/deliverable-review` | opus | restart
 - [ ] **Hook error after clear** — `/design` | sonnet
   - Note: Diagnose "SessionStart:clear hook error" after /clear
 - [ ] **Health check UPS fallback** — `/design` | sonnet
@@ -65,43 +73,39 @@
 ## Worktree Tasks
 
 - [ ] **Test context-fork model** — create minimal skill with `context: fork` + `AskUserQuestion`, observe interaction behavior | haiku
-- [ ] **Fix prose routing bias** → `fix-prose-routing-bias` — `/design` | opus
-  - Note: Agent routes prose-only work to /runbook when cross-file scope feels large, despite sufficiency gate. Same class as "design ceremony continues after uncertainty resolves." Brief: `plans/pipeline-review-protocol/brief.md` (Recurrent Failure Mode section). Schedule after session-cli-tool merges to main
-- [ ] **Runbook quality fixes** — `/design plans/runbook-quality-directives/brief.md` | opus
+- [x] **Fix prose routing bias** → `fix-prose-routing-bias` — `/design` | opus
+  - Note: Agent routes prose-only work to /runbook when cross-file scope feels large, despite sufficiency gate. Same class as "design ceremony continues after uncertainty resolves." Recurrent failure mode documented in plan-archive.md. Schedule after session-cli-tool merges to main
+- [x] **Runbook quality fixes** — `/design plans/runbook-quality-directives/brief.md` | opus
   - Plan: runbook-quality-directives
   - Note: Verify GREEN collapse, Bootstrap omission, Tier 2 consolidation, corrector noise rules, `just green` recipe. Author-corrector coupling — all edits must ship together.
-- [ ] **Inline lifecycle gate** — `/design plans/inline-lifecycle-gate/brief.md` | opus
+- [x] **Inline lifecycle gate** — `/design plans/inline-lifecycle-gate/brief.md` | opus
   - Plan: inline-lifecycle-gate
   - Note: Corrector gate D+B anchor (Write-gated skip), triage-feedback.sh review.md check. Independent of runbook-quality-directives.
 - [ ] **Markdown AST parser** — `/design plans/markdown-ast-parser/brief.md` | opus
   - Plan: markdown-ast-parser
   - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
-- [ ] **Fix proof review findings** → `fix-proof-review-findings` — `/design plans/pipeline-review-protocol/reports/deliverable-review.md` | opus
-  - Plan: pipeline-review-protocol
-  - Note: 2 major (planstate gap, glob/single-artifact ambiguity), 4 minor. All findings in deliverable-review.md.
-
-- [ ] **Design review protocol** — `/design` | opus | restart
-  - Note: Two features — (1) runbook reuses corrector across phases, (2) orchestration ping-pong FIX/PASS. From fix-prose-routing-bias worktree.
+- [x] **Fix proof review findings** → `fix-proof-review-findings` — `/design` | opus
+  - Note: All 5 findings resolved. Merged via fix-prose-routing-bias. Worktree still exists (not yet removed).
+- [ ] **Pipeline quality fixes** — `/design` | opus
+  - Note: Combined runbook-quality-directives + inline-lifecycle-gate scope. Inline execution. Briefs: `plans/runbook-quality-directives/brief.md`, `plans/inline-lifecycle-gate/brief.md`
+- [ ] **Design review protocol** — `/design plans/resumed-review-protocol/brief.md` | opus | restart
+  - Plan: resumed-review-protocol
+  - Note: Two features — (1) runbook reuses corrector across phases, (2) orchestration ping-pong FIX/PASS. Brief: `plans/resumed-review-protocol/brief.md`
 - [ ] **Fix session search** — `claudeutils _session` | sonnet
   - Note: Make --project optional in session-scraper.py, support project globbing
 
 ## Blockers / Gotchas
 
-**Learnings at soft limit:** learnings.md at 78 lines (soft limit 80). Next session should `/codify` before appending new learnings.
+**Learnings over soft limit:** learnings.md at 91 lines (soft limit 80). `/codify` required before appending new learnings.
 
 - `session.py:307` produces `# Session: Worktree — {name}` but validator expects `# Session Handoff: YYYY-MM-DD`. Data-fixed this session. Code fix (validator or session.py) is separate behavioral change — not in scope here. [from: fix-prose-routing-bias]
 ## Reference Files
 
-- `plans/pipeline-review-protocol/outline.md` — Design outline (4 components, 7 decisions, no open questions)
-- `plans/pipeline-review-protocol/recall-artifact.md` — 14 recall entries
-- `plans/pipeline-review-protocol/classification.md` — Complex, agentic-prose, inline execution
 - `plans/handoff-cli-tool/outline.md` — Design outline (reviewed 7 rounds)
 - `plans/handoff-cli-tool/runbook.md` — Assembled runbook (stale)
 - `plans/handoff-cli-tool/orchestrator-plan.md` — Orchestrator execution plan
 - `plans/handoff-cli-tool/recall-artifact.md` — 15 recall entries for step agents
 - `plans/design-context-gate/brief.md` — Context budget gate for /design tail-call decisions
-- `plans/pipeline-review-protocol/brief.md` — Routing rationale + recurrent prose routing bias failure mode
-- `plans/pipeline-review-protocol/reports/review.md` — Corrector review of /proof implementation
 - `plans/bootstrap-tag-support/classification.md` — Moderate, production, prepare-runbook.py
 - `plans/bootstrap-tag-support/runbook.md` — TDD runbook (2 phases, 5 cycles)
 - `plans/bootstrap-tag-support/brief.md` — Post-execution context, TDD context scoping follow-up
@@ -111,9 +115,9 @@
 - `plans/markdown-ast-parser/brief.md` — Cross-cutting parser infrastructure
 - `plans/codebase-sweep/brief.md` — Updated: structural design quality axis proposal
 - `plans/handoff-cli-tool/brief.md` — Updated: AST parser ordering decision for S-4
-- `plans/pipeline-review-protocol/reports/deliverable-review.md` — Deliverable review (0 critical, 2 major, 4 minor)
-- `plans/pipeline-review-protocol/lifecycle.md` — Plan status: reviewed
+- `plans/resumed-review-protocol/brief.md` — Ping-pong review model (from fix-prose-routing-bias)
+- `plans/resumed-review-protocol/brief.md` — Ping-pong review model (from fix-prose-routing-bias)
 
 ## Next Steps
 
-Merge runbook-quality-fixes, then continue merging remaining worktrees. `/codify` still needed — learnings at soft limit.
+`/codify` urgently needed (learnings at 91/80). Then pipeline quality directives (inline, combined scope). fix-proof-review-findings worktree can be removed (`wt-rm`).
