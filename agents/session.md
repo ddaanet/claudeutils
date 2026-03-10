@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-10
 
-**Status:** All review work complete. Fix pipeline-review-protocol findings remains.
+**Status:** Proof findings fixed. Deliverable review pending.
 
 ## Completed This Session
 
@@ -54,7 +54,7 @@
 - Both findings now include drift origin tracing to outline-corrector gap
 - Drift occurred at outline (scope item without component mapping), detected late at deliverable review. Prevention point: outline-corrector (earliest gate with scope+component access)
 
-**Files changed (all in agent-core submodule):**
+**Files changed (prior sessions, all in agent-core submodule):**
 - `skills/design/SKILL.md` — routing + continuation
 - `skills/design/references/write-outline.md` — sufficiency gate
 - `skills/inline/SKILL.md` — Phase 4a review dispatch
@@ -63,13 +63,22 @@
 - `skills/runbook/references/examples.md` — routing reference
 - `agents/outline-corrector.md` — scope-to-component traceability + cross-component interface checks
 
+**Fix proof findings (this session):**
+- MA1 (planstate): Added lifecycle management to proof/SKILL.md — `review-pending` on entry, `reviewed` on completion. Uses existing valid_states recognized by inference engine.
+- MA2 (multi-file): Entry section now handles glob patterns via Glob expansion, treats collection as single composite review target. Runbook = one artifact composed of phase files.
+- MI1 (stale filename): Already fixed in prior commit.
+- MI2 (table duplication): Replaced 16-line duplicate Author-Corrector Coupling table in proof/SKILL.md with single-line reference to /design SKILL.md section.
+- MI3 (subagent_type): Changed `corrector` → `runbook-corrector` in Corrector Dispatch table for consistency.
+- Skill-reviewer found: planstate values must use existing valid_states (`review-pending`/`reviewed`) not novel values; terminology mismatch in prose vs code block; all fixed.
+
 ## In-tree Tasks
 
 - [x] **Fix prose routing bias** — `/design` | opus
   - Note: Agent routes prose-only work to /runbook when cross-file scope feels large, despite sufficiency gate. Same class as "design ceremony continues after uncertainty resolves." Brief: `plans/pipeline-review-protocol/brief.md` (Recurrent Failure Mode section). Schedule after session-cli-tool merges to main
 - [x] **Review prose routing** — `/deliverable-review plans/pipeline-review-protocol` | opus | restart
-- [ ] **Fix proof findings** — `/design plans/pipeline-review-protocol/reports/deliverable-review.md` | opus
+- [x] **Fix proof findings** — `/design plans/pipeline-review-protocol/reports/deliverable-review.md` | opus
   - Note: 2 Major (planstate — implement for cross-session visibility; /proof multi-file artifact support — runbook is one artifact composed of phase files), 3 Minor (1 new stale filename in example, 2 carried: table duplication, subagent_type naming). Drift prevention applied to outline-corrector + review-dispatch-template.
+- [ ] **Review proof fixes** — `/deliverable-review plans/pipeline-review-protocol` | opus | restart
 
 ## Worktree Tasks
 
@@ -86,4 +95,4 @@
 
 ## Next Steps
 
-Branch work complete. Fix pipeline-review-protocol findings remains as in-tree task (2 Major, 3 Minor).
+Deliverable review pending for proof findings fix. Then branch work complete.
