@@ -67,7 +67,7 @@
 - [ ] **Test context-fork model** — create minimal skill with `context: fork` + `AskUserQuestion`, observe interaction behavior | haiku
 - [ ] **Fix prose routing bias** → `fix-prose-routing-bias` — `/design` | opus
   - Note: Agent routes prose-only work to /runbook when cross-file scope feels large, despite sufficiency gate. Same class as "design ceremony continues after uncertainty resolves." Brief: `plans/pipeline-review-protocol/brief.md` (Recurrent Failure Mode section). Schedule after session-cli-tool merges to main
-- [ ] **Runbook quality fixes** → `runbook-quality-fixes` — `/design plans/runbook-quality-directives/brief.md` | opus
+- [ ] **Runbook quality fixes** — `/design plans/runbook-quality-directives/brief.md` | opus
   - Plan: runbook-quality-directives
   - Note: Verify GREEN collapse, Bootstrap omission, Tier 2 consolidation, corrector noise rules, `just green` recipe. Author-corrector coupling — all edits must ship together.
 - [ ] **Inline lifecycle gate** → `inline-lifecycle-gate` — `/design plans/inline-lifecycle-gate/brief.md` | opus
