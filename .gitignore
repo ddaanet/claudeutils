@@ -16,3 +16,20 @@ list/
 # IDE cruft
 /.vscode/
 /.mypy_cache/
+/.idea
+
+# Claude Code sandboxing artifacts
+/.bash_profile
+/.bashrc
+/.gitconfig
+/.mcp.json
+/.profile
+/.ripgreprc
+/.zprofile
+/.zshrc
+/.claude/commands
+/HEAD
+/config
+/hooks
+/objects
+/refs

@@ -56,7 +56,7 @@
   - Infrastructure built. Blocked on human: curate task-contexts.json, annotate ground-truth.md
   - After human steps: run harness then analysis (commands in README)
 
-- [ ] **Fix TDD context scoping** — `/design` | sonnet
+- [ ] **Fix TDD context scoping** — `/design plans/bootstrap-tag-support/brief.md` | sonnet
   - Note: DEFAULT_TDD_COMMON_CONTEXT injected at runbook level, should be phase-scoped. Brief: `plans/bootstrap-tag-support/brief.md`
 - [ ] **Health check UPS fallback** — `/design plans/health-check-ups-fallback/requirements.md` | sonnet
   - Plan: health-check-ups-fallback | Status: requirements
@@ -86,7 +86,7 @@
   - Plan: gate-batch | Status: requirements
 - [ ] **Skill agent bootstrap** — `/design plans/skill-agent-bootstrap/problem.md` | opus | 1.6
   - Plan: skill-agent-bootstrap | Status: requirements
-- [ ] **Worktree lifecycle CLI** — `/design` | sonnet | 1.6
+- [ ] **Worktree lifecycle CLI** — `/design plans/worktree-lifecycle-cli/problem.md` | sonnet | 1.6
   - Exit ceremony + Wt rm task cleanup + Worktree ad-hoc task + CLI UX + --base submodule bug
   - Plans: wt-exit-ceremony, wt-rm-task-cleanup, worktree-ad-hoc-task (all requirements)
 - [ ] **Registry cache to tmp** — `/design plans/registry-cache-to-tmp/requirements.md` | sonnet | 1.5
@@ -125,7 +125,7 @@
 - [ ] **Prose infra batch** — `/runbook plans/prose-infra-batch/outline.md` | opus | restart
   - Plan: prose-infra-batch | Status: outlined (Tier 2 runbook in `runbook.md`)
   - Note: Runbook written (Tier 2). `/runbook` will detect existing runbook.md → route to `/inline plans/prose-infra-batch execute`. Phase 1 inline opus, Phase 2 TDD sonnet.
-- [ ] **Design backlog review** — `/design` | opus | restart
+- [ ] **Design backlog review** — `/design plans/design-backlog-review/problem.md` | opus | restart
   - Process for batch-reviewing 16 UNREVIEWED plan files. Triage by type (requirements vs problem), bulk approval, kill criteria.
 
 ### Terminal

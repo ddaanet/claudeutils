@@ -44,7 +44,8 @@
       "Bash(agent-core/bin/validate-memory-index.py:*)",
       "Bash(agent-core/bin/learning-ages.py agents/learnings.md)",
       "Bash(uv sync:*)",
-      "Bash(agent-core/bin/triage-feedback.sh:*)"
+      "Bash(agent-core/bin/triage-feedback.sh:*)",
+      "Bash(agent-core/bin/magic-query-log:*)"
     ],
     "deny": [
       "Write(.claude/skills/*)",

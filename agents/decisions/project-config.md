@@ -105,7 +105,7 @@ Project-level configuration decisions for Claude Code, models, skills, and devel
 
 **Rationale:** Agents only see skill listing descriptions and always-loaded context. Internal skill docs are invisible until invoked.
 
-**Example:** opus-design-question skill had 248-line docs but zero external visibility — agents asked user instead of consulting it. Fixed with 4-layer approach.
+**Example:** A skill with 248-line docs but zero external visibility — agents asked user instead of consulting it. Fixed with 4-layer approach.
 
 **Impact:** Ensures skills are discoverable and used appropriately.
 
