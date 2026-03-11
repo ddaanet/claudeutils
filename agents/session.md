@@ -1,8 +1,19 @@
-# Session: Worktree — Pipeline quality fixes
+# Session Handoff: 2026-03-11
 
-**Status:** Focused worktree for parallel execution.
+**Status:** Branch complete — both plans delivered.
+
+## Completed This Session
+
+**Pipeline quality fixes:**
+- /design triage discovered runbook-quality-directives already implemented (agent-core `3ac858b`)
+- Updated planstate: `plans/runbook-quality-directives/lifecycle.md` → delivered
+- inline-lifecycle-gate was already delivered from prior session
 
 ## In-tree Tasks
 
-- [ ] **Pipeline quality fixes** — `/design` | opus
-  - Note: Combined runbook-quality-directives + inline-lifecycle-gate scope. Inline execution. Briefs: `plans/runbook-quality-directives/brief.md`, `plans/inline-lifecycle-gate/brief.md`
+- [x] **Pipeline quality fixes** — `/design` | opus
+  - Note: Both plans delivered. inline-lifecycle-gate delivered prior session. runbook-quality-directives work pre-committed in agent-core 3ac858b, discovered during /design triage.
+
+## Next Steps
+
+Branch work complete.
