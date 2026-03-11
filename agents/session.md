@@ -73,7 +73,7 @@
 ## Worktree Tasks
 
 - [ ] **Test context-fork model** — create minimal skill with `context: fork` + `AskUserQuestion`, observe interaction behavior | haiku
-- [x] **Fix prose routing bias** → `fix-prose-routing-bias` — `/design` | opus
+- [x] **Fix prose routing bias** — `/design` | opus
   - Note: Agent routes prose-only work to /runbook when cross-file scope feels large, despite sufficiency gate. Same class as "design ceremony continues after uncertainty resolves." Recurrent failure mode documented in plan-archive.md. Schedule after session-cli-tool merges to main
 - [x] **Runbook quality fixes** — `/design plans/runbook-quality-directives/brief.md` | opus
   - Plan: runbook-quality-directives
@@ -84,9 +84,9 @@
 - [ ] **Markdown AST parser** — `/design plans/markdown-ast-parser/brief.md` | opus
   - Plan: markdown-ast-parser
   - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
-- [x] **Fix proof review findings** → `fix-proof-review-findings` — `/design` | opus
+- [x] **Fix proof review findings** — `/design` | opus
   - Note: All 5 findings resolved. Merged via fix-prose-routing-bias. Worktree still exists (not yet removed).
-- [ ] **Pipeline quality fixes** — `/design` | opus
+- [ ] **Pipeline quality fixes** → `runbook-quality-directives` — `/design` | opus
   - Note: Combined runbook-quality-directives + inline-lifecycle-gate scope. Inline execution. Briefs: `plans/runbook-quality-directives/brief.md`, `plans/inline-lifecycle-gate/brief.md`
 - [ ] **Design review protocol** — `/design plans/resumed-review-protocol/brief.md` | opus | restart
   - Plan: resumed-review-protocol

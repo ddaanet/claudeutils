@@ -29,7 +29,7 @@ def remerge_learnings_md() -> None:
     if not Path("agents/learnings.md").exists():
         return
 
-    merge_base = _git("merge-base", "HEAD", "MERGE_HEAD", check=False)
+    merge_base = _git("merge-base", "HEAD", "MERGE_HEAD", "--", check=False)
     base_content = _git("show", f"{merge_base}:agents/learnings.md", check=False)
     ours_content = _git("show", "HEAD:agents/learnings.md", check=False)
     theirs_content = _git("show", "MERGE_HEAD:agents/learnings.md", check=False)

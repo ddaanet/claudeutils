@@ -43,7 +43,7 @@ def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,
 def _is_branch_merged(slug: str) -> bool:
     """Return True if slug is an ancestor of HEAD (merge-base --is-ancestor)."""
     result = subprocess.run(
-        ["git", "merge-base", "--is-ancestor", slug, "HEAD"],
+        ["git", "merge-base", "--is-ancestor", slug, "HEAD", "--"],
         check=False,
         capture_output=True,
     )
@@ -60,7 +60,7 @@ def _classify_branch(slug: str) -> tuple[int, bool]:
     For orphan branches (no merge-base): returns (0, False)
     """
     try:
-        merge_base = _git("merge-base", "HEAD", slug, check=True)
+        merge_base = _git("merge-base", "HEAD", slug, "--", check=True)
     except subprocess.CalledProcessError:
         return (0, False)
 
@@ -177,13 +177,13 @@ def _remove_worktrees(
 
 def _is_merge_commit() -> bool:
     """Return True if HEAD has 2+ parents."""
-    parts = _git("rev-list", "--parents", "-n", "1", "HEAD").split()
+    parts = _git("rev-list", "--parents", "-n", "1", "HEAD", "--").split()
     return len(parts) >= 3
 
 
 def _is_merge_of(slug: str) -> bool:
     """Return True if HEAD is a merge commit with slug's branch as a parent."""
-    parts = _git("rev-list", "--parents", "-n", "1", "HEAD").split()
+    parts = _git("rev-list", "--parents", "-n", "1", "HEAD", "--").split()
     if len(parts) < 3:
         return False
     branch_sha = _git(
