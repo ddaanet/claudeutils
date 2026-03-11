@@ -1,23 +1,20 @@
 # Session Handoff: 2026-03-11
 
-**Status:** Fixed 5 test regressions (2 in test_cli_tokens, 3 in test_continuation_registry). Session scraper investigation traced both to autonomous agent commits without full test suite verification. Briefed skill-gated-session-edits plan.
+**Status:** Discussion session. Defined system property tracing concept (invariants + pipeline traceability). Created plan brief.
 
 ## Completed This Session
 
-**Test regression investigation and fix:**
-- 5 test failures: 2 in `test_cli_tokens.py` (API key validation), 3 in `test_continuation_registry.py` (cache path mkdir)
-- Session scraper traced both regressions to originating sessions:
-  - `test_cli_tokens.py`: Session `68963394` (ar-token-cache worktree). Agent extracted `_count_tokens_for_content`, did `replace_all` on mock targets. API key tests mocked count function but real issue was `get_api_key()` config file fallback not mocked. Agent ran scoped tests (29 pass), dismissed full-suite failures as "pre-existing"
-  - `test_continuation_registry.py`: Session `63af67bf` (main). User said "jfdi" for cache path fix. Agent changed `get_cache_path` to use `project_dir/tmp/` but `TestCachePath` tests used fake `"/project"` path → `mkdir` on read-only filesystem
-- Fix: mock `get_api_key` in API key tests, use `tmp_path` fixture in cache path tests
-- Full suite green: 1651/1652 passed, 1 xfail
-
-**Skill-gated session edits brief:**
-- Created `plans/skill-gated-session-edits/brief.md` with causal chain from investigation
-- Core finding: bare directive → no Skill tool → no `/inline` lifecycle → no corrector → agent judgment only → regression committed
-- New pending task (opus, behavioral design)
+**System property tracing plan:**
+- Discussion identified two levels: (1) system invariants as formal requirements, (2) pipeline traceability ensuring FRs survive workflow stages
+- Key insight: traceability matrix (property → enforcement → verification) makes "which properties lack enforcement?" answerable
+- Created `plans/system-property-tracing/brief.md` with full discussion context
+- Partially absorbs quality-grounding and review-gate plans
 
 ## In-tree Tasks
+
+- [>] **Problem.md migration** — `/runbook plans/problem-md-migration` | sonnet
+  - Plan: problem-md-migration | Status: briefed
+  - Rename 13 problem.md → brief.md with git history recovery, fix planstate `_derive_next_action`, add precommit gate
 
 ## Worktree Tasks
 
@@ -52,6 +49,10 @@
 - [ ] **Directive skill promotion** — `/design plans/directive-skill-promotion/brief.md` | opus | 2.2
   - Plan: directive-skill-promotion | Status: briefed
   - Absorbs: Handoff insertion policy, wrap command, discuss protocol grounding, p: classification gap, discuss-to-pending chain
+- [ ] **System property tracing** — `/design plans/system-property-tracing/brief.md` | opus
+  - Plan: system-property-tracing | Status: briefed
+  - Two phases: (1) system invariants as formal requirements, (2) pipeline traceability for FR survival across workflow stages
+  - Partially absorbs: quality-grounding, review-gate
 - [ ] **Skill-gated session edits** — `/design plans/skill-gated-session-edits/brief.md` | opus
   - Plan: skill-gated-session-edits | Status: briefed
   - Default read-only sessions, skill required for production edits. Motivated by regression investigation.
@@ -150,6 +151,9 @@
 **Main is worktree-tasks-only:**
 - Only trivial fixes belong in In-tree. Plan absence doesn't qualify for in-tree.
 
+**Planstate CLI bug for briefed plans:**
+- `_worktree ls` displays `requirements.md` path for plans at `briefed` status. Use the status field `[briefed]` as source of truth, not the displayed path.
+
 - `plans/prototypes/recall-artifact.md` created as stub to satisfy pretooluse recall gate (hook infers plan from file path, not actual plan context)
 - `test_markdown_fixtures.py::test_full_pipeline_remark` xfail renders full traceback in markdown report, visually identical to real failure. Fix is in `pytest-markdown-report` (separate repo).
 
@@ -169,7 +173,8 @@
 - `tmp/active-recall.md` — Discussion decisions: recall-explore-recall, tree navigation, benchmark landscape
 - `plans/prose-infra-batch/reports/deliverable-review.md` — Deliverable review report (0 critical, 0 major, 4 minor)
 - `plans/skill-gated-session-edits/brief.md` — Causal chain: bare directive → no skill gates → regression committed
+- `plans/system-property-tracing/brief.md` — System invariants + pipeline traceability concept
 
 ## Next Steps
 
-Fix the two regressions committed. Then skill-gated-session-edits design (opus).
+System property tracing design (opus). Or skill-gated-session-edits design (opus).
