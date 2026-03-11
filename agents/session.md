@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-11
 
-**Status:** Git config cleanup — fixed author attribution, removed stale branch and config.
+**Status:** Git config cleanup — fixed author attribution, removed stale branch and config. Session.md restructured (all tasks to worktree, AR nesting, unscheduled plans scheduled).
 
 ## Completed This Session
 
@@ -10,6 +10,12 @@
   - Removed stale `vscode-merge-base = origin/tmp` from `.git/config` (caused incorrect "Main branch: tmp" in gitStatus)
   - Deleted merged `devddaanet` branch
   - Force-pushed `main` to origin
+- **Session.md restructure:**
+  - All tasks moved to Worktree Tasks (main is worktree-tasks-only)
+  - AR sub-tasks nested under Active Recall
+  - Fixed active-recall lifecycle: `delivered` → `outlined` (worktree merge set delivered prematurely)
+  - Created `plans/tdd-context-scoping/brief.md` — extracted from bootstrap-tag-support follow-up
+  - Scheduled all previously unscheduled plans
 
 **Prior session (carried forward):**
 - Deliverable review: prose-infra-batch (0 critical, 0 major, 4 minor)
@@ -20,27 +26,10 @@
 
 ## In-tree Tasks
 
-- [ ] **AR Integration** — `/runbook plans/active-recall/outline.md` | sonnet
-  - S-H: end-to-end verification of recall-explore-recall pattern, cross-worktree memory visibility, capture-time write path
-  - Blocked: S-D, S-F, S-J, S-L (terminal — runs after all other AR sub-problems)
-- [!] **AR Recall Consolidate** — `/runbook plans/active-recall/outline.md` | sonnet
-  - S-B: merge recall/ + recall_cli/ + when/ into unified recall module. Band 0 — ready now
-  - Blocked: runbook skill improvements needed before re-attempting
-- [!] **AR Submodule Refactor** — `/runbook plans/active-recall/outline.md` | sonnet
-  - S-I: extract 42 hardcoded agent-core refs into configurable submodule registry. Band 0 — ready now
-  - Blocked: outline exists but `/runbook` skill on this branch is behind main. Waiting for main's runbook pipeline updates to land, then merge.
-- [!] **Verb form AB test** — see `plans/reports/ab-test/README.md` | sonnet
-  - Infrastructure built. Blocked on human: curate task-contexts.json, annotate ground-truth.md
-  - After human steps: run harness then analysis (commands in README)
-
-- [ ] **Fix TDD context scoping** — `/design plans/bootstrap-tag-support/brief.md` | sonnet
-  - Note: DEFAULT_TDD_COMMON_CONTEXT injected at runbook level, should be phase-scoped. Brief: `plans/bootstrap-tag-support/brief.md`
-- [ ] **Health check UPS fallback** — `/design plans/health-check-ups-fallback/requirements.md` | sonnet
-  - Plan: health-check-ups-fallback | Status: requirements
-- [ ] **Review bootstrap work** — `/deliverable-review plans/bootstrap-tag-support` | opus | restart
-
 ## Worktree Tasks
 
+- [ ] **Design backlog review** — `/design plans/design-backlog-review/problem.md` | opus | restart
+  - Process for batch-reviewing UNREVIEWED plan files. Triage by type (requirements vs problem), bulk approval, kill criteria.
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart | 3.2
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
@@ -50,10 +39,23 @@
 - [ ] **Worktree merge lifecycle** — `/runbook plans/worktree-merge-resilience/outline.md` | sonnet | 2.8
   - Plan: worktree-merge-resilience | Status: outlined
   - Absorbs: Merge lifecycle audit, Plan-completion ceremony (merge-point side effects), Merge lock retry
-- [ ] **Active Recall** — `/design plans/active-recall/requirements.md` | opus | 2.6
+- [ ] **Active Recall** — `/design plans/active-recall/outline.md` | opus | 2.6
   - Plan: active-recall | Status: outlined
   - Outline Rev 2 reviewed. Next: Phase B (user discussion) → sufficiency gate → design or /runbook
   - Absorbs: Generate memory index (S-D), Recall learnings design (S-L), Codify branch awareness (S-L removes /codify)
+  - S-B: **AR Recall Consolidate** [!] — merge recall/ + recall_cli/ + when/ into unified recall module. Blocked: runbook skill improvements
+  - S-D: **AR Hierarchy Index** — migrate flat index to tree structure, parser updates, migration tooling. Blocked: S-A, S-B (design), S-J (impl)
+  - S-E: **AR Trigger Metadata** — formalize trigger_class and category as IndexEntry metadata. Blocked: S-C, S-D
+  - S-F: **AR Mode Simplify** — reduce 5 modes to 2, update 10 pipeline recall points. Blocked: S-D
+  - S-G: **AR Doc Pipeline** — source docs to extraction agent to corrector to index regen. Blocked: S-C, S-D, S-K
+  - S-H: **AR Integration** — end-to-end verification of recall-explore-recall pattern, cross-worktree memory visibility. Blocked: S-D, S-F, S-J, S-L (terminal)
+  - S-I: **AR Submodule Refactor** [!] — extract 42 hardcoded agent-core refs into configurable submodule registry. Blocked: runbook pipeline updates
+  - S-J: **AR Submodule Setup** — create memory submodule with shared branch, configure propagation. Blocked: S-I
+  - S-K: **AR Memory Corrector** — agent definition with quality criteria, suppression taxonomy. Blocked: S-C
+  - S-L: **AR Capture Writes** — /remember skill, eliminate learnings.md + /codify. Blocked: S-J, S-K, S-D, S-E
+  - **AR How Verb Form** — Plan: ar-how-verb-form | Status: requirements
+  - **AR IDF Weighting** — Plan: ar-idf-weighting | Status: requirements
+  - **AR Threshold Calibration** — Plan: ar-threshold-calibration | Status: planned
 - [ ] **Directive skill promotion** — `/design plans/directive-skill-promotion/brief.md` | opus | 2.2
   - Plan: directive-skill-promotion | Status: briefed
   - Absorbs: Handoff insertion policy, wrap command, discuss protocol grounding, p: classification gap, discuss-to-pending chain
@@ -65,7 +67,7 @@
   - Plan: skill-agent-bootstrap | Status: requirements
 - [ ] **Worktree lifecycle CLI** — `/design plans/worktree-lifecycle-cli/problem.md` | sonnet | 1.6
   - Exit ceremony + Wt rm task cleanup + Worktree ad-hoc task + CLI UX + --base submodule bug
-  - Plans: wt-exit-ceremony, wt-rm-task-cleanup, worktree-ad-hoc-task (all requirements)
+  - Absorbs plans: wt-exit-ceremony, wt-rm-task-cleanup, worktree-ad-hoc-task
 - [ ] **Registry cache to tmp** — `/design plans/registry-cache-to-tmp/requirements.md` | sonnet | 1.5
   - Plan: registry-cache-to-tmp | Status: requirements
 - [ ] **Code quality** — `/design plans/codebase-sweep/requirements.md` | sonnet | 1.4
@@ -73,12 +75,12 @@
   - Codebase sweep + agent-core lint coverage + Test diamond migration + Infrastructure scripts + Test diagnostic helper
 - [ ] **Hook batch** — `/design plans/hook-batch-2/requirements.md` | sonnet | 1.3
   - Plan: hook-batch-2 | Status: requirements
-- [ ] **Update prioritize skill** — Phase 2: `claudeutils _prioritize score` CLI | sonnet | 1.2
+- [ ] **Update prioritize skill** — `/design plans/update-prioritize-skill/requirements.md` | sonnet | 1.2
   - Plan: update-prioritize-skill | Status: requirements
 - [ ] **Recall pipeline** — `/design plans/recall-pipeline/requirements.md` | opus | 1.1
   - Plan: recall-pipeline | Status: requirements
-- [ ] **Quality grounding** — `/ground` each per audit | opus | 1.0
-  - Plan: quality-grounding | Status: problem
+- [ ] **Quality grounding** — `/design plans/quality-grounding/problem.md` | opus | 1.0
+  - Plan: quality-grounding | Status: requirements
 - [ ] **Cross-tree operations** — `/design plans/cross-tree-operations/requirements.md` | sonnet | 1.0
   - Plan: cross-tree-operations | Status: requirements
 - [ ] **Review agent quality** — `/design plans/review-agent-quality/problem.md` | sonnet | 1.0
@@ -87,52 +89,48 @@
   - Plan: design-pipeline-evolution | Status: requirements
 - [ ] **Tweakcc** — `/design plans/tweakcc/requirements.md` | sonnet | 1.0
   - Plan: tweakcc | Status: requirements
+- [ ] **Design review protocol** — `/design plans/resumed-review-protocol/brief.md` | opus | restart
+  - Plan: resumed-review-protocol | Status: briefed
+  - Note: Two features — (1) runbook reuses corrector across phases, (2) orchestration ping-pong FIX/PASS
+- [ ] **Markdown AST parser** — `/design plans/markdown-ast-parser/brief.md` | opus
+  - Plan: markdown-ast-parser | Status: briefed
+  - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
+- [ ] **Design context gate** — `/design plans/design-context-gate/brief.md` | sonnet
+  - Plan: design-context-gate | Status: briefed
+- [ ] **Design JIT expansion** — `/design plans/design-jit-expansion/brief.md` | sonnet
+  - Plan: design-jit-expansion | Status: briefed
 - [ ] **Markdown migration** — `/design plans/markdown-migration/problem.md` | opus | 0.8
   - Plan: markdown-migration | Status: requirements
 - [ ] **Python hook ordering fix** — `/design plans/precommit-python3-redirect/requirements.md` | haiku | restart | 0.8
+  - Plan: precommit-python3-redirect | Status: requirements
 - [ ] **Diagnose compression loss** — `/design plans/diagnose-compression-loss/problem.md` | sonnet | 0.8
   - Plan: diagnose-compression-loss | Status: requirements
+- [ ] **Fix TDD context scoping** — `/design plans/tdd-context-scoping/brief.md` | sonnet
+  - Plan: tdd-context-scoping | Status: briefed
+- [ ] **Health check UPS fallback** — `/design plans/health-check-ups-fallback/requirements.md` | sonnet
+  - Plan: health-check-ups-fallback | Status: requirements
+- [ ] **Review gate** — `/design plans/review-gate/requirements.md` | sonnet
+  - Plan: review-gate | Status: requirements
 - [ ] **Feature prototypes** — `/design plans/prototypes/requirements.md` | sonnet | 0.6
+  - Plan: prototypes | Status: requirements
 - [ ] **Planstate brief inference** — `/design plans/planstate-brief-inference/requirements.md` | sonnet
   - Plan: planstate-brief-inference | Status: requirements
 - [ ] **Research backlog** — `/design plans/research-backlog/problem.md` | opus | 0.5
   - Plan: research-backlog | Status: requirements
 - [ ] **Small fixes batch** — `/design plans/small-fixes-batch/requirements.md` | sonnet
   - Plan: small-fixes-batch | Status: requirements
-- [x] **Review prose-infra** — `/deliverable-review plans/prose-infra-batch` | opus | restart
-- [ ] **Design backlog review** — `/design plans/design-backlog-review/problem.md` | opus | restart
-  - Process for batch-reviewing 16 UNREVIEWED plan files. Triage by type (requirements vs problem), bulk approval, kill criteria.
+- [!] **Verb form AB test** — see `plans/reports/ab-test/README.md` | sonnet
+  - Infrastructure built. Blocked on human: curate task-contexts.json, annotate ground-truth.md
+  - After human steps: run harness then analysis (commands in README)
 
 ### Terminal
 
 - [x] **Retrospective materials** — plan delivered
+- [x] **Review prose-infra** — `/deliverable-review plans/prose-infra-batch` | opus | restart
+- [x] **Review bootstrap work** — `/deliverable-review plans/bootstrap-tag-support` | opus | restart
 - [-] **Calibrate topic params** — UPS topic injection removed, moot
 - [-] **Recall tool consolidation** — absorbed into Active Recall
 - [-] **Execute flag lint** — superseded by session validator
-
-- [ ] **AR Capture Writes** — `/design plans/active-recall/outline.md` | opus
-  - S-L: /remember skill, eliminate learnings.md + /codify. Band 3 — blocked: S-J, S-K, S-D, S-E
-- [ ] **AR Doc Pipeline** — `/design plans/active-recall/outline.md` | sonnet
-  - S-G: source docs to extraction agent to corrector to index regen. Band 2 — blocked: S-C, S-D, S-K
-- [ ] **AR Hierarchy Index** — `/design plans/active-recall/outline.md` | sonnet
-  - S-D: migrate flat index to tree structure, parser updates, migration tooling, index generation. Band 1 — design blocked: S-A, S-B; impl blocked: S-J
-- [ ] **AR Memory Corrector** — `/design plans/active-recall/outline.md` | opus
-  - S-K: agent definition with quality criteria, suppression taxonomy. Band 2 — blocked: S-C
-- [ ] **AR Mode Simplify** — `/runbook plans/active-recall/outline.md` | sonnet
-  - S-F: reduce 5 modes to 2, update 10 pipeline recall points. Band 2 — blocked: S-D
-- [ ] **AR Submodule Setup** — `/design plans/active-recall/outline.md` | sonnet
-  - S-J: create memory submodule with shared branch, configure propagation, update resolver paths. Band 1 — blocked: S-I
-- [ ] **AR Trigger Metadata** — `/runbook plans/active-recall/outline.md` | sonnet
-  - S-E: formalize trigger_class and category as IndexEntry metadata. Band 2 — blocked: S-C, S-D
-- [ ] **Review gate** — `/design plans/review-gate/requirements.md` | sonnet
-  - Plan: review-gate | Status: requirements
-
-- [ ] **Design review protocol** — `/design plans/resumed-review-protocol/brief.md` | opus | restart
-  - Plan: resumed-review-protocol
-  - Note: Two features — (1) runbook reuses corrector across phases, (2) orchestration ping-pong FIX/PASS. Brief: `plans/resumed-review-protocol/brief.md`
-- [ ] **Markdown AST parser** — `/design plans/markdown-ast-parser/brief.md` | opus
-  - Plan: markdown-ast-parser
-  - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
 
 ## Blockers / Gotchas
 
@@ -173,4 +171,4 @@
 
 ## Next Steps
 
-Design backlog review to validate/kill the 16 UNREVIEWED plan files.
+Design backlog review to validate/kill UNREVIEWED plan files.
