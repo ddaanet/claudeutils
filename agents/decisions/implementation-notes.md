@@ -343,6 +343,24 @@ Detailed implementation decisions for claudeutils codebase. Consult this documen
 
 **Prose quality:** `plans/reports/skill-optimization-grounding.md` — Segment → Attribute → Compress framework.
 
+## When Parsing Claude Code JSONL Message Content
+
+**Decision Date:** 2026-03-06
+
+**Anti-pattern:** Assuming `type: "user"` entries with interrupt text (`[Request interrupted by user]`) always use string content format. In practice, interrupt messages appear as list content `[{"type": "text", "text": "[Request interrupted by user]"}]`.
+
+**Correct pattern:** Extract text from both string and list formats before checking for content markers (interrupts, system-reminders, command tags). The content format is not predictable from the entry type — both formats occur for the same semantic content.
+
+**Evidence:** Parser missed all interrupt entries in real sessions until list-format branch was fixed.
+
+## When Choosing Storage For Persistent Caches
+
+**Decision Date:** 2026-03-06
+
+**Anti-pattern:** Using JSON file as a key-value store because the codebase has an existing JSON cache (models_cache.json). That cache is a special case (bounded, ~50 entries, refreshed on TTL). Extending the pattern to unbounded append-heavy caches cargo-cults the storage choice.
+
+**Correct pattern:** sqlite via sqlalchemy for persistent caches. stdlib sqlite3 handles concurrent access (parallel worktrees), sqlalchemy mapped classes match project's Pydantic-model convention, growth path for future caches without hand-written SQL proliferation.
+
 ## When Lint-Gated Recall Needs Error Categorization
 
 **Decision Date:** 2026-03-02

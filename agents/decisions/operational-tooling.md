@@ -125,6 +125,28 @@ Git workflow, platform constraints, code patterns, and naming conventions.
 
 **Rationale:** Symbols that carry meaning through visual form (`!`, `-`, `>`, `†`) beat letters requiring convention lookup (`B`, `C`, `W`, `F`). Only `[ ]` and `[x]` are valid GFM checkboxes (per spec §5.3); all others are text conventions parsed by project tooling. Changed `[✗]` → `[†]` because `✗` (U+2717) is visually confusable with `x` (U+0078) — different codepoints but near-identical in many fonts. `†` (U+2020 dagger) is unmistakable and transparently means "dead." Changed `[–]` → `[-]` because `–` (U+2013 en dash) is visually confusable with `-` (U+002D hyphen-minus) — and `-` is what humans type. Same confusability class as `✗`/`x`.
 
+### When Codify Triggers On A Feature Branch
+
+**Decision Date:** 2026-03-02
+
+**Do not codify on feature branches.** Decision file changes create merge conflicts with main's decisions/. Defer codification to main. The soft-limit age calculation should account for branch context — learnings on feature branches are younger in main-branch terms.
+
+### When Designing Hierarchical Index Structures
+
+**Decision Date:** 2026-03-06
+
+**Anti-pattern:** Mixed indices containing both entries and child references. Creates discoverability imbalance — inline entries are immediately visible and individually selectable, while child-referenced entries require an extra navigation step.
+
+**Correct pattern:** Clean separation — branch indices (index-of-indices only) vs leaf indices (entries only). Uniform discovery paths: root → branch(es) → leaf → entry. Simplifies parser (no mixed-mode detection).
+
+### When Classifying Settings.local.json Entries During Triage
+
+**Decision Date:** 2026-03-06
+
+**Anti-pattern:** Conflating skill `allowed-tools` (scope declaration — what tools a skill CAN invoke) with `settings.json` `permissions.allow` (friction elimination — what's pre-approved without user prompt). Concluding an entry is "session-specific" because the skill's allowed-tools already covers it.
+
+**Correct pattern:** Check `settings.json` permissions.allow for the specific command pattern. If the script runs on every invocation of a workflow step, it needs a permanent `settings.json` entry regardless of skill allowed-tools. The two systems are independent.
+
 ## .Known Issues
 
 ### When CLI Command Fails And Raw Commands Are Denied

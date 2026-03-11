@@ -72,6 +72,8 @@ Agent reliability patterns, artifact management, and implementation practices.
 
 **Rationale:** Stopped agents may have completed expensive operations (file reads, web searches). Resuming preserves that work; relaunching repeats it.
 
+**Specific case — brainstorm-name:** Do not launch a new brainstorm-name agent with "do NOT repeat" constraints. Resume the prior agent. It retains its full context — existing candidates, conceptual space explored, metaphor domains considered. Resumption produces genuinely novel names; fresh launch risks adjacent-to-excluded names.
+
 ### When Exploration Agents Report False Findings
 
 **Decision Date:** 2026-02-12

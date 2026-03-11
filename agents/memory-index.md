@@ -23,6 +23,11 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 
 
 
+
+
+
+
+
 ## agents/decisions/cli.md
 
 /when getting current working directory
@@ -104,6 +109,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when writing hook redirect messages | rationale why not just what agent adherence
 /when mapping hook output channel audiences | additionalContext systemMessage permissionDecisionReason stderr
 /when writing hook user-visible messages | terminal constraint 60 chars tier injection
+/when recall gate misidentifies plan | path inference wrong plan pretooluse hook context
 /when hook messages conflict with behavioral rules | retry guidance alignment lock contention
 
 ## agents/decisions/implementation-notes.md
@@ -128,6 +134,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when phase files contain h2 headers in code blocks | extract_sections code fence boundary
 /when writing multiline strings in indented code | dedent triple-quote flush-left whitespace
 /when editing skill files | description dual-purpose extraction safety control flow D+B entry points
+/when parsing claude code jsonl message content | string list format interrupt system-reminder
+/when choosing storage for persistent caches | sqlite sqlalchemy json bounded unbounded concurrent
 /when lint-gated recall needs error categorization | errorformat parsing reuse tuick per-error-type
 
 ## agents/decisions/markdown-tooling.md
@@ -155,7 +163,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when background agents crash | check output files recovery
 /when refactoring agents need quality directives | deslop factorization
 /when triaging external diagnostic suggestions | routing superseded annotate inline
-/when relaunching similar task | resume prior agent id preserve context
+/when relaunching similar task | resume prior agent id preserve context brainstorm-name
 /when exploration agents report false findings | verify file existence
 /when scrubbing learnings before design input | validate against evidence
 /when diagnosing review agent quality gaps | 2x2 experiment model tier input content controlled test
@@ -190,6 +198,9 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when validating worktree merges | session.md merge autostrategy remerge
 /when merging completed tasks from branch | filter completed canceled additive union
 /when choosing task status markers | notation checkbox dagger failed blocked canceled
+/when codify triggers on a feature branch | merge conflicts defer main decisions
+/when designing hierarchical index structures | mixed indices branch leaf separation discoverability
+/when classifying settings.local.json entries during triage | allowed-tools permissions.allow independent
 /when cli command fails and raw commands are denied | routing signal wrapper force retry
 /when classifyHandoffIfNeeded bug occurs | foreground Task calls fail background works
 /when sub-agents cannot spawn sub-agents | Task MCP hooks unavailable
@@ -270,6 +281,15 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when reviewing expanded phases | expansion reintroduces defects regression LLM failure modes
 /when outline review produces ungrounded corrections | confabulated operation sequence fabricated fix-all sonnet opus
 /when simplifying runbook outlines | pattern consolidation identical-pattern batching
+/when using inline execution lifecycle | Tier 1 Tier 2 entry gate corrector triage feedback
+/how dispatch corrector from inline skill | standardized template baseline diff recall report
+/when triage feedback shows divergence | classification comparison heuristics calibration log
+/when proximal requirements reveal lifecycle gaps | structural gap inline execution pipeline stage
+/when classifying composite tasks | decompose before classify per-item behavioral check moderate
+/when routing moderate classification to runbook | structural incomplete outline lightweight
+
+## agents/decisions/pipeline-review.md
+
 /when selecting model for prose artifact edits | opus skills fragments agents design
 /when selecting model for TDD execution | complexity type pattern state-machine synthesis
 /when reviewing skill deliverable | cross-project context skill-reviewer interactive
@@ -285,12 +305,8 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when corrector agents lack recall mechanism | design-corrector outline-corrector recall loading
 /when treating recall-artifact summary as recall pass | batch-resolve full content when-resolve
 /when batch changes span multiple artifact types | proportionality per-file routing artifact-type
-/when using inline execution lifecycle | Tier 1 Tier 2 entry gate corrector triage feedback
-/how dispatch corrector from inline skill | standardized template baseline diff recall report
-/when triage feedback shows divergence | classification comparison heuristics calibration log
-/when proximal requirements reveal lifecycle gaps | structural gap inline execution pipeline stage
-/when classifying composite tasks | decompose before classify per-item behavioral check moderate
-/when routing moderate classification to runbook | structural incomplete outline lightweight
+/when multi-item instructions contain review steps | gate stop corrector sub-agent checkpoint
+/when simple routing bypasses inline lifecycle | classification design ceremony execution ceremony
 
 ## agents/decisions/project-config.md
 
@@ -372,7 +388,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when recall loads new entries mid-artifact | re-evaluate each pass invalidate extend requirements outline design
 /when d: mode validates a proposed change | chain p: evaluation task pending brief
 /when starting work on a task | requirements first requirement-equivalent recall grounding
-/when pending tasks lack recovery context | backtick command handoff task-context
+/when pending tasks lack recovery context | backtick command handoff task-context discussion conclusions session boundary
 /how wrap a discussion session | findings takeaways submit wrap w
 /when converting external documentation to recall entries | how entries mechanical when experiential automation
 
@@ -420,6 +436,9 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when design ceremony continues after uncertainty resolves | two gates entry mid-stream re-check
 /when design resolves to simple execution | execution readiness gate exit ramp prose inline
 /when writing methodology | ground skill diverge converge external research general-first framing parallel agents
+/when skill description triggering appears important | structured workflow explicit invocation documentation
+/when prioritizing produces a large task list | consolidation absorptions merges thematic stale
+/when grounding recall system behavior | fuzzy matcher prefix noise format A/B forced selection
 /when companion tasks bundled into design invocation | phase 0 gates triage recall routing
 /when redesigning a process skill | circular dependency ground external first
 /when grounding identifies gaps in existing structure | operational environment constraints methodology
@@ -438,6 +457,7 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when requirements mention agent or skill creation | scanning requirements
 /when crossing phase boundaries
 /when bootstrapping self-referential improvements | dependency graph ordering
+/when outlines conflate decomposition with sequencing | phases ordering design readiness dependency graph
 /when requirements added after review | re-check traceability FRs
 /when deleting agent artifacts | audit trail value vs redundant restate
 /how write green phase descriptions
@@ -448,3 +468,6 @@ Active knowledge retrieval. Invoke `/when` or `/how` to recall decisions.
 /when step file inventory misses codebase references | discovery grep propagation rename
 /when triaging behavioral code changes as simple | structural criteria functions logic-paths moderate
 /when design proposes removing functions | corrector removal verification callers purposes
+
+## agents/decisions/pipeline-contracts-2.md
+

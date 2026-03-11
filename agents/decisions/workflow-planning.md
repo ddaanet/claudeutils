@@ -219,6 +219,16 @@ This is not full test code — it is precise prose that preserves the specificat
 
 **Rationale:** Unimproved agents reviewing their own improvements creates a bootstrapping problem.
 
+### When Outlines Conflate Decomposition With Sequencing
+
+**Decision Date:** 2026-03-06
+
+**Anti-pattern:** Design outlines that use "phases" to mean both "logical sub-problems" and "execution order." Forces premature ordering and defers design-time activities (grounding, research) into execution phases.
+
+**Correct pattern:** Decomposition (breaking into sub-problems with dependency graph) is separate from sequencing (ordering for implementation). Sub-problems get tagged with design readiness — some are ready for runbook, others need more design. Sequencing happens at runbook time, not decomposition time. Design inputs (grounding, research) belong in the design process, not as execution phases.
+
+**Evidence:** Active recall outline placed grounding (Phase 5) after metadata model commitment (Phase 4).
+
 ### When Requirements Added After Review
 
 **Decision Date:** 2026-02-15

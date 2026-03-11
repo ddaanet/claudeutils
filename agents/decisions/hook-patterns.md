@@ -123,6 +123,16 @@ Terminal constraint: "UserPromptSubmit says: " prefix = ~29 chars; ~90 char term
 - Tier 2.5 guards (1-line injections): authored human summary, not verbatim content
 - Terse commands (c, y): same brief text for both audiences — instruction IS the summary
 
+### When Recall Gate Misidentifies Plan
+
+**Decision Date:** 2026-03-06
+
+**Anti-pattern:** `pretooluse-recall-check.py` infers plan directory from the changed file's path (`plans/prototypes/session-scraper.py` → `plans/prototypes/`). When execution modifies files outside the actual plan directory, the gate demands a recall artifact for the wrong plan.
+
+**Correct fix:** Pass the active plan context to the hook, not infer from file paths. Current workaround: stub `recall-artifact.md` in the inferred directory.
+
+**Evidence:** Corrector dispatch blocked twice by "No recall-artifact.md for plans/prototypes/" despite real recall artifact existing in the actual plan directory.
+
 ### When Hook Messages Conflict With Behavioral Rules
 
 **Decision Date:** 2026-03-02

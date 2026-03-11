@@ -1,28 +1,25 @@
 # Session Handoff: 2026-03-11
 
-**Status:** Git config cleanup — fixed author attribution, removed stale branch and config. Session.md restructured (all tasks to worktree, AR nesting, unscheduled plans scheduled).
+**Status:** Force-codified all 20 learnings — 15 consolidated into decision files + fragments, 5 dropped (already codified). Split pipeline-contracts.md. Learnings.md cleared to header.
 
 ## Completed This Session
 
-- **Git config cleanup:**
-  - Removed local git user override (`Test User <test@example.com>`) — now falls through to global (`David Allouche <david@ddaa.net>`)
-  - Rewrote 231 commits via `filter-branch` to correct author/committer on `main` and `feature` branches
-  - Removed stale `vscode-merge-base = origin/tmp` from `.git/config` (caused incorrect "Main branch: tmp" in gitStatus)
-  - Deleted merged `devddaanet` branch
-  - Force-pushed `main` to origin
-- **Session.md restructure:**
-  - All tasks moved to Worktree Tasks (main is worktree-tasks-only)
-  - AR sub-tasks nested under Active Recall
-  - Fixed active-recall lifecycle: `delivered` → `outlined` (worktree merge set delivered prematurely)
-  - Created `plans/tdd-context-scoping/brief.md` — extracted from bootstrap-tag-support follow-up
-  - Scheduled all previously unscheduled plans
+**Codify (force-flush all learnings):**
+- Consolidated 15 entries into 10 target files:
+  - Fragments: error-handling.md (Edit tool), communication.md (output-style plugins), delegation.md (recall content in prompts)
+  - Decisions: implementation-notes.md (JSONL parsing, persistent caches), operational-tooling.md (codify branch, hierarchical index, settings.local.json), workflow-planning.md (decomposition vs sequencing), workflow-optimization.md (skill description, prioritizing, grounding recall), hook-patterns.md (recall gate), pipeline-review.md (multi-item review steps, Simple routing), operational-practices.md (brainstorm-name resume)
+- Dropped 5 already-codified entries (pushback.md, tdd-cycle-planning.md, review-dispatch-template.md)
+- Split pipeline-contracts.md (406 lines) → pipeline-contracts.md (220) + pipeline-review.md (190)
+- Deleted stale pipeline-contracts-2.md
+- Added 12 new memory-index entries, updated 1 existing
+- Configured `~/.config/claudeutils/config.toml` with Anthropic API key for `claudeutils tokens`
+- learnings.md: 95 → 7 lines
 
 **Prior session (carried forward):**
-- Deliverable review: prose-infra-batch (0 critical, 0 major, 4 minor)
-- Reprioritization (65 tasks → 25 after consolidation)
-- Prose-infra-batch executed (Phase 1 inline + Phase 2 TDD)
-- 4 worktree merges (active-recall, session-cli-tool, worktree-merge-lifecycle, plugin-migration)
-- 16 plan artifacts created for previously inline tasks
+- Git config cleanup (author rewrite, stale branch/config removal)
+- Session.md restructured (all tasks to worktree, AR nesting)
+- Deliverable review: prose-infra-batch
+- Reprioritization (65 → 25 tasks)
 
 ## In-tree Tasks
 
@@ -165,6 +162,7 @@
 - `agents/decisions/cli.md` — LLM-native output decision (from session-cli-tool)
 - `plans/reports/design-skill-grounding.md` — Design skill grounding
 - `agents/decisions/pipeline-contracts.md` — Pipeline contract decision file
+- `agents/decisions/pipeline-review.md` — Pipeline review patterns (split from pipeline-contracts.md)
 - `plans/active-recall/brief.md` — Active recall system: hierarchical index, documentation conversion, trigger classes
 - `tmp/active-recall.md` — Discussion decisions: recall-explore-recall, tree navigation, benchmark landscape
 - `plans/prose-infra-batch/reports/deliverable-review.md` — Deliverable review report (0 critical, 0 major, 4 minor)

@@ -150,6 +150,34 @@ File count is a proxy — 7 files with independent additive changes can be simpl
 
 **Evidence:** First prioritization attempt produced subjective weights ("Highest/High/Medium") and 0-3 scores without defined criteria. After grounding in WSJF research, methodology used Fibonacci scoring with observable evidence sources. Code-density grounding produced project-specific entries ("Git state queries return booleans — `_git_ok()`") that should have been general principles with project instances.
 
+### When Skill Description Triggering Appears Important
+
+**Decision Date:** 2026-03-06
+
+**Anti-pattern:** Investing in skill description optimization (eval loops, train/test splits) when the workflow is fully structured — all skill invocations are explicit (shortcuts, backtick commands, chaining, frontmatter injection).
+
+**Correct pattern:** Skill description optimization matters only when automatic triggering operates — unstructured user input where Claude autonomously decides which skill to invoke. In structured workflows with explicit invocation rails, descriptions serve as documentation only.
+
+**Evidence:** 32 project skills, zero relying on automatic triggering.
+
+### When Prioritizing Produces A Large Task List
+
+**Decision Date:** 2026-03-07
+
+**Anti-pattern:** Scoring tasks individually without checking for absorptions, merges, or thematic overlap. Produces accurate priority scores on a bloated list.
+
+**Correct pattern:** After scoring, run a consolidation pass: absorptions (task is subset of another's plan/outline), merges (overlapping scope, same design session), thematic clusters (shared infrastructure/API, batchable), stale checks (plan delivered but task pending). Multiple passes until no further reductions.
+
+**Evidence:** 65 → 25 tasks in 3 rounds.
+
+### When Grounding Recall System Behavior
+
+**Decision Date:** 2026-03-11
+
+**Anti-pattern:** Measuring fuzzy matcher round-trip fidelity (query self-matches stored entry) and query distribution from session logs. Both answer "does the plumbing work?" — tautological and contaminated respectively.
+
+**Correct framing:** (1) Does the fuzzy matcher tolerate prefix noise? (one-token mismatch causing 0.0 scores = matcher failing its purpose). (2) Does the index entry format affect agent recognition during scanning? (behavioral A/B test via forced selection design — FormatSpread/ProSA methodology, TREC/Cranfield for silent recognition failures).
+
 ### When Companion Tasks Bundled Into Design Invocation
 
 **Decision Date:** 2026-02-25
