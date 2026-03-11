@@ -86,7 +86,7 @@
   - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
 - [x] **Fix proof review findings** — `/design` | opus
   - Note: All 5 findings resolved. Merged via fix-prose-routing-bias. Worktree still exists (not yet removed).
-- [ ] **Pipeline quality fixes** → `runbook-quality-directives` — `/design` | opus
+- [ ] **Pipeline quality fixes** — `/design` | opus
   - Note: Combined runbook-quality-directives + inline-lifecycle-gate scope. Inline execution. Briefs: `plans/runbook-quality-directives/brief.md`, `plans/inline-lifecycle-gate/brief.md`
 - [ ] **Design review protocol** — `/design plans/resumed-review-protocol/brief.md` | opus | restart
   - Plan: resumed-review-protocol
