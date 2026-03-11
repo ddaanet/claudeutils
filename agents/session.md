@@ -1,6 +1,6 @@
-# Session Handoff: 2026-03-09
+# Session Handoff: 2026-03-11
 
-**Status:** Format grounding spec refined. Blocked on two subtree deliveries (ar-how-verb-form, ar-threshold-calibration).
+**Status:** Format grounding spec refined. Both subtrees merged. Blocked on human: AB test curation + prefix tolerance fix.
 
 ## Completed This Session
 
@@ -18,6 +18,10 @@
 - D-5 (applied): LLM conditional knowledge deficit stated as motivating problem in §1. Internal evidence: 304/367 when-class entries, ~3% spontaneous recall, structured pipelines compensate.
 - D-6 (applied): All thresholds user-configurable with feedback pipeline. Five thresholds identified for calibration against 366-entry dataset.
 
+**Subtree Merges:**
+- Merged ar-threshold-calibration and ar-how-verb-form back to branch
+- Both worktrees removed
+
 ## In-tree Tasks
 
 - [x] **AR Format Grounding** — `/ground` | opus
@@ -28,11 +32,11 @@
 
 ## Worktree Tasks
 
-- [ ] **Ground how verb form** — `/design` | sonnet
+- [x] **Ground how verb form** — `/design` | sonnet
   - Measure fuzzy match scores ("how format X" vs "how to format X"), extract agent query patterns via session scraper, observe retrieval accuracy
   - Tools: `fuzzy.py` score_match, `session-scraper.py`, 366-entry index
   - Retrieval accuracy requires agent behavior observation, not just script execution
-- [ ] **Calibrate thresholds** — `/orchestrate` | sonnet
+- [x] **Calibrate thresholds** — `/orchestrate` | sonnet
   - Measure distributions for all 5 thresholds against 366-entry dataset, set at natural breakpoints, implement user-configurable defaults with feedback pipeline
   - Thresholds: keyword overlap %, specificity range, keyword count, content words, discriminating count
   - Human judgment needed for "is this a true duplicate" / "is this over-specific" labeling
