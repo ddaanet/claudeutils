@@ -1,10 +1,21 @@
-# Session Handoff: 2026-03-10
+# Session Handoff: 2026-03-11
 
-**Status:** Merged 3 worktrees (runbook-quality-fixes, inline-lifecycle-gate, fix-prose-routing-bias). Consolidated pipeline quality tasks.
+**Status:** Worktree cleanup session. Fixed HEAD ambiguity bug, merged and removed 3 worktrees, marked Pipeline quality fixes complete.
 
 ## Completed This Session
 
-**Proof skill execution (/inline plans/pipeline-review-protocol):**
+**Worktree cleanup:**
+- Merged fix-prose-routing-bias (28 commits) into session-cli-tool, removed worktree
+- Removed fix-proof-review-findings worktree (stale — submodule edits already on main, force-removed)
+- Created runbook-quality-directives worktree, merged lifecycle-mark commit, removed worktree
+- Marked Pipeline quality fixes complete (both inline-lifecycle-gate and runbook-quality-directives delivered)
+
+**HEAD ambiguity bug fix:**
+- Sandbox creates device node at `./HEAD` (`denyWithinAllow`), making bare `HEAD` ambiguous to git
+- Fixed 7 call sites: `git_ops.py` (4), `merge.py` (2), `remerge.py` (1) — appended `--` or used `HEAD^{commit}`
+- Committed as `2f45228a`
+
+**Prior session — Proof skill execution (/inline plans/pipeline-review-protocol):**
 - Created `agent-core/skills/proof/SKILL.md` — reword-accumulate-sync loop, corrector dispatch table (5 artifact patterns), author-corrector coupling, layered defect model
 - Deleted `agent-core/skills/design/references/discussion-protocol.md` — replaced by /proof skill
 - Integrated 5 review points across 3 hosting skills:
@@ -85,9 +96,9 @@
   - Plan: markdown-ast-parser
   - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
 - [x] **Fix proof review findings** — `/design` | opus
-  - Note: All 5 findings resolved. Merged via fix-prose-routing-bias. Worktree still exists (not yet removed).
-- [ ] **Pipeline quality fixes** — `/design` | opus
-  - Note: Combined runbook-quality-directives + inline-lifecycle-gate scope. Inline execution. Briefs: `plans/runbook-quality-directives/brief.md`, `plans/inline-lifecycle-gate/brief.md`
+  - Note: All 5 findings resolved. Merged via fix-prose-routing-bias. Worktree removed.
+- [x] **Pipeline quality fixes** — `/design` | opus
+  - Note: Both plans delivered (inline-lifecycle-gate, runbook-quality-directives)
 - [ ] **Design review protocol** — `/design plans/resumed-review-protocol/brief.md` | opus | restart
   - Plan: resumed-review-protocol
   - Note: Two features — (1) runbook reuses corrector across phases, (2) orchestration ping-pong FIX/PASS. Brief: `plans/resumed-review-protocol/brief.md`
@@ -120,4 +131,4 @@
 
 ## Next Steps
 
-`/codify` urgently needed (learnings at 91/80). Then pipeline quality directives (inline, combined scope). fix-proof-review-findings worktree can be removed (`wt-rm`).
+`/codify` urgently needed (learnings at 91/80). Session CLI tool is next in-tree task (regenerate step files, orchestrate).
