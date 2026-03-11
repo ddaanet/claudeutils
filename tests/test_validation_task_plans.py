@@ -32,3 +32,23 @@ def test_valid_plan_passes_invalid_fails(tmp_path: Path) -> None:
     # Should have exactly 1 error mentioning "Bad task"
     assert len(errors) == 1
     assert "Bad task" in errors[0]
+
+
+def test_terminal_tasks_exempt(tmp_path: Path) -> None:
+    """Terminal tasks are exempt from plan reference validation."""
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir(parents=True)
+
+    session_content = """# Session Handoff: 2026-03-11
+
+## In-tree Tasks
+
+- [x] **Done task** — `\x60/design\x60 | sonnet
+- [-] **Canceled task** — `\x60/design\x60 | sonnet
+- [†] **Failed task** — `\x60/design\x60 | sonnet
+"""
+    (agents_dir / "session.md").write_text(session_content)
+
+    errors = validate("agents/session.md", tmp_path)
+
+    assert errors == []
