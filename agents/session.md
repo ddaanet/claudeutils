@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-11
 
-**Status:** Merged 4 worktrees, enforced documented-tasks rule across backlog, prose-infra-batch ready.
+**Status:** Prose-infra-batch designed (Tier 2 runbook), ready for execution.
 
 ## Completed This Session
 
@@ -38,6 +38,8 @@
   - Renamed hook-batch → hook-batch-2 (archive collision with delivered plan)
   - Canceled 5 too-small tasks → restored as Small fixes batch
 - **Created prose-infra-batch plan:** 4 FRs (remove opus-design-question, magic-query skill, handoff merge-incremental fix, forbid undocumented tasks rule+validator)
+- **Designed prose-infra-batch:** Classification (composite: 2 simple + 3 moderate), outline (2 phases), Tier 2 runbook (Phase 1 inline opus 5 steps, Phase 2 TDD sonnet 6 cycles), corrector review applied
+  - Key decisions: magic-query is agent decoy (`user-invocable: false`), non-biasing description, `~/.claude/` log via sandbox-allowlisted script, plan path required in task commands (no bare `/design`), no `Plan:` note fallback
 
 ## In-tree Tasks
 
@@ -120,8 +122,9 @@
   - Plan: research-backlog | Status: requirements
 - [ ] **Small fixes batch** — `/design plans/small-fixes-batch/requirements.md` | sonnet
   - Plan: small-fixes-batch | Status: requirements
-- [ ] **Prose infra batch** — `/design plans/prose-infra-batch/requirements.md` | opus | restart
-  - Plan: prose-infra-batch | Status: requirements
+- [ ] **Prose infra batch** — `/runbook plans/prose-infra-batch/outline.md` | opus | restart
+  - Plan: prose-infra-batch | Status: outlined (Tier 2 runbook in `runbook.md`)
+  - Note: Runbook written (Tier 2). `/runbook` will detect existing runbook.md → route to `/inline plans/prose-infra-batch execute`. Phase 1 inline opus, Phase 2 TDD sonnet.
 - [ ] **Design backlog review** — `/design` | opus | restart
   - Process for batch-reviewing 16 UNREVIEWED plan files. Triage by type (requirements vs problem), bulk approval, kill criteria.
 
@@ -192,4 +195,4 @@
 
 ## Next Steps
 
-Prose infra batch first (opus, restart — 4 FRs in `plans/prose-infra-batch/requirements.md`). Then design backlog review to validate/kill the 16 UNREVIEWED plan files before further work.
+Execute prose-infra-batch (opus, restart). Then design backlog review to validate/kill the 16 UNREVIEWED plan files before further work.
