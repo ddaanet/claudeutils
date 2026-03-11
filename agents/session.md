@@ -35,6 +35,10 @@
   - S-B: merge recall/ + recall_cli/ + when/ into unified recall module. Band 0 — ready now
   - Blocked: runbook skill improvements needed before re-attempting
 
+- [!] **AR Submodule Refactor** — `/runbook plans/active-recall/outline.md` | sonnet
+  - S-I: extract 42 hardcoded agent-core refs into configurable submodule registry. Band 0 — ready now
+  - Blocked: outline exists but `/runbook` skill on this branch is behind main. Waiting for main's runbook pipeline updates to land, then merge.
+
 ## Worktree Tasks
 
 - [ ] **Review gate** — `/design` | sonnet
@@ -46,8 +50,6 @@
 - [ ] **AR Format Grounding** — `/ground` | opus
   - S-C: research trigger format, when/how distinction, index hierarchy validation. Band 0 — ready now
   - Input: plans/active-recall/outline.md
-- [ ] **AR Submodule Refactor** → `ar-submodule-refactor` — `/runbook plans/active-recall/outline.md` | sonnet
-  - S-I: extract 42 hardcoded agent-core refs into configurable submodule registry. Band 0 — ready now
 - [ ] **AR Submodule Setup** — `/design plans/active-recall/outline.md` | sonnet
   - S-J: create memory submodule with shared branch, configure propagation, update resolver paths. Band 1 — blocked: S-I
 - [ ] **AR Hierarchy Index** — `/design plans/active-recall/outline.md` | sonnet
