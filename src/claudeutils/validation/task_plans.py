@@ -8,6 +8,7 @@ from claudeutils.validation.task_parsing import parse_task_line
 _RECOGNIZED_ARTIFACTS = {"requirements.md", "problem.md", "brief.md", "design.md"}
 _PENDING_STATUSES = {" ", ">", "!"}
 _PLAN_PATTERN = re.compile(r"plans/([^/]+)/")
+_SLUG_PATTERN = re.compile(r"/orchestrate\s+(\S+)")
 
 
 def validate(session_path: str, root: Path) -> list[str]:
@@ -44,10 +45,14 @@ def validate(session_path: str, root: Path) -> list[str]:
         # Extract plan slug from command
         match = _PLAN_PATTERN.search(parsed.command)
         if not match:
-            errors.append(f"task '{parsed.name}': no plan reference in command")
-            continue
-
-        plan_slug = match.group(1)
+            # Try slug-only pattern: /orchestrate my-plan
+            slug_match = _SLUG_PATTERN.search(parsed.command)
+            if not slug_match:
+                errors.append(f"task '{parsed.name}': no plan reference in command")
+                continue
+            plan_slug = slug_match.group(1)
+        else:
+            plan_slug = match.group(1)
         plan_dir = root / "plans" / plan_slug
 
         # Check if plan directory exists and has a recognized artifact
