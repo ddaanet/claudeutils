@@ -14,24 +14,24 @@
 
 ## Cycle 2.5: Slug-only command extraction (2026-03-11)
 
-- Status: RED_VERIFIED
+- Status: GREEN_VERIFIED
 - Test command: `just test tests/test_validation_task_plans.py::test_slug_only_command`
 - RED result: FAIL as expected (AssertionError: regex doesn't match `/orchestrate my-plan` pattern)
-- GREEN result: [in progress]
-- Regression check: [pending]
-- Refactoring: [pending]
-- Files modified: [pending]
+- GREEN result: PASS (added fallback regex pattern for `/orchestrate <slug>` extraction)
+- Regression check: 1648/1649 passed
+- Refactoring: Docstring formatting fix
+- Files modified: tests/test_validation_task_plans.py, src/claudeutils/validation/task_plans.py
 - Stop condition: none
-- Decision made: [pending]
+- Decision made: Secondary regex `_SLUG_PATTERN = re.compile(r"/orchestrate\s+(\S+)")` added to extract slug-only commands. Fallback logic tries slug pattern when primary `plans/` pattern fails.
 
 ## Cycle 2.6: CLI integration (2026-03-11)
 
-- Status: [pending]
-- Test command: [pending]
-- RED result: [pending]
-- GREEN result: [pending]
-- Regression check: [pending]
-- Refactoring: [pending]
-- Files modified: [pending]
+- Status: GREEN_VERIFIED
+- Test command: `just test tests/test_validation_task_plans.py::test_cli_task_plans_command`
+- RED result: FAIL as expected (exit code 2: "No such command 'task-plans'")
+- GREEN result: PASS (added `task_plans` subcommand to CLI)
+- Regression check: 1649/1650 passed
+- Refactoring: None needed (lint passed)
+- Files modified: tests/test_validation_task_plans.py, src/claudeutils/validation/cli.py
 - Stop condition: none
-- Decision made: [pending]
+- Decision made: Added `task_plans()` command function and wired validator into `_run_all_validators()` via `_run_validator()`. Test simplified to verify command existence and help text (actual validation tested via `validate_task_plans()` unit tests).
