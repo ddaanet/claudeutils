@@ -1,51 +1,21 @@
 # Session Handoff: 2026-03-11
 
-**Status:** Prose-infra-batch executed (Phase 1 inline + Phase 2 TDD), pending deliverable review.
+**Status:** Deliverable review for prose-infra-batch complete — reviewed + delivered. No critical or major findings.
 
 ## Completed This Session
 
-- **Reprioritization:** 65 tasks scored (file: `plans/reports/prioritization-2026-03-06b.md`)
-  - Top 5: Session CLI tool (3.2), Plugin migration (3.2), Worktree merge lifecycle (2.8), Active Recall (2.6), Directive skill promotion (2.2)
-- **Task consolidation (65 → 25):**
-  - 3 rounds of absorption, merge, and thematic clustering
-  - Absorptions (15): Generate memory index → Active Recall (S-D), Recall learnings design → Active Recall (S-L), Codify branch awareness → Active Recall (S-L removes /codify), Remove wt rm --force → Worktree lifecycle CLI, Pre-inline plan commit → Gate batch, Prose gate terminology → Quality grounding, Merge lock retry → Worktree merge lifecycle, Worktree CLI UX → split into Worktree lifecycle CLI, Handoff insertion policy → Directive skill promotion, Test diamond migration → Code quality, Infrastructure scripts → Code quality, Test diagnostic helper → Code quality, Wt new --base submodule → Worktree lifecycle CLI, Fix task-context bloat → Session CLI tool, Plan-completion ceremony → Worktree merge lifecycle, Decision drift audit → Quality grounding
-  - Merges: Lint-gated recall + Lint recall gate + Tool deviation hook + Block cd-chaining → Hook batch; Recall dedup + Recall pipeline + Recall usage scoring → Recall pipeline; Skill-dev + Skill prompt-composer + Retrofit + Agent rule injection → Skill agent bootstrap; Merge resilience + Lifecycle audit → Worktree merge lifecycle; Corrector audit + Diagnostic opus review → Review agent quality; Model directive pipeline + Design decomposition tier → Design pipeline evolution; Ground workflow skills + Safety review + Decision drift + Prose gate → Quality grounding; Cross-tree requirements + Cross-tree test sentinel → Cross-tree operations
-  - Collapsed: 5 low-priority opus research tasks → Research backlog umbrella
-  - Stale: Retrospective materials → [x] (plan delivered)
-  - Unblocked: Session CLI tool ([!] → [ ], no documented blocker found)
-- **Prioritize skill updated:**
-  - Added Step 4 "Consolidation Pass" with absorption, merge, thematic cluster, and stale check patterns
-  - Removed model tier cohort from scheduling modifiers and parallel batch criteria (SKILL.md + scoring-tables.md)
-- **Worktree dispatch:** Created 5 worktrees: session-cli-tool, plugin-migration, worktree-merge-lifecycle, active-recall, planstate-brief-inference
-- **Blocker cleanup:** Removed 7 blockers:
-  - git merge sandbox bypass — superseded by `_worktree merge` CLI
-  - `_worktree new` sandbox bypass — documented in worktree skill Usage Notes
-  - SessionStart hook #10373 — Stop hook fallback deployed, not blocking any task
-  - Custom agents not discoverable — root cause was missing session restart
-  - Claude Code skill caching — root cause was missing session restart
-  - `test_merge_learnings` ordering dep — non-reproducible, no recurrence
-  - brief.md in planstate inference — converted to Planstate brief inference task
-- **Worktree merges (4):**
-  - active-recall: merged+removed. Fixed 4 test failures (3× stress-test → diverge in d: directive tests, 1× token cache mock bypass)
-  - session-cli-tool: merged+removed. Fixed session.md duplicate (task in both In-tree and Worktree)
-  - worktree-merge-lifecycle: merged+removed. Fixed session.md duplicate
-  - plugin-migration: merged+removed. Fixed session.md duplicate
-- **Removed 4 orphaned worktrees:** fix-prose-routing-bias, ar-threshold-calibration, ar-how-verb-form, fix-proof-review-findings (laptop syncing artifacts)
-- **Enforced documented-tasks rule across backlog:**
-  - Created 16 plan artifacts for previously inline-described tasks (9 requirements.md, 7 problem.md)
-  - Upgraded all from stubs to proper format (FRs with acceptance criteria, or problem statements with investigation scope)
-  - Marked all 16 with `⚠ UNREVIEWED` banner — agent-drafted, not user-validated
-  - Renamed hook-batch → hook-batch-2 (archive collision with delivered plan)
-  - Canceled 5 too-small tasks → restored as Small fixes batch
-- **Created prose-infra-batch plan:** 4 FRs (remove opus-design-question, magic-query skill, handoff merge-incremental fix, forbid undocumented tasks rule+validator)
-- **Designed prose-infra-batch:** Classification (composite: 2 simple + 3 moderate), outline (2 phases), Tier 2 runbook (Phase 1 inline opus 5 steps, Phase 2 TDD sonnet 6 cycles), corrector review applied
-  - Key decisions: magic-query is agent decoy (`user-invocable: false`), non-biasing description, `~/.claude/` log via sandbox-allowlisted script, plan path required in task commands (no bare `/design`), no `Plan:` note fallback
-- **Executed prose-infra-batch:**
-  - Phase 1 (inline, opus): Removed opus-design-question skill + all references (7 files), created magic-query skill + logging script, fixed handoff merge-incremental detection (date→git-dirty), added plan-backed tasks rule to execute-rule.md, normalized 3 bare `/design` commands, created umbrella plans (worktree-lifecycle-cli, design-backlog-review)
-  - Phase 2 (TDD, sonnet): 6 cycles → 4 executed (2.2/2.3 pre-covered by 2.1 GREEN). New validator `src/claudeutils/validation/task_plans.py` with CLI integration. Corrector found+fixed 2 false positives: nested `plans/reports/` path extraction, non-backtick-wrapped commands
-  - Skill-reviewer fixes: removed sandbox leak from SKILL.md, hardened JSON escaping (jq preferred, sed fallback)
-  - .gitignore: added 14 sandboxing artifacts
-  - Tests: 1651 passed, 1 xfail. Review: `plans/prose-infra-batch/reports/review.md`
+- **Deliverable review: prose-infra-batch:**
+  - Layer 2 full-artifact review (< 500 lines total)
+  - 0 critical, 0 major, 4 minor findings (D-5 cross-FR test gap, theoretical regex edge case, sed fallback coverage, SKILL.md placeholder clarity)
+  - All FRs satisfied, corrector fixes verified, precommit passes
+  - Report: `plans/prose-infra-batch/reports/deliverable-review.md`
+  - Lifecycle: reviewed → delivered (on main, no critical findings)
+
+**Prior session (carried forward):**
+- Reprioritization (65 tasks → 25 after consolidation)
+- Prose-infra-batch executed (Phase 1 inline + Phase 2 TDD)
+- 4 worktree merges (active-recall, session-cli-tool, worktree-merge-lifecycle, plugin-migration)
+- 16 plan artifacts created for previously inline tasks
 
 ## In-tree Tasks
 
@@ -128,7 +98,7 @@
   - Plan: research-backlog | Status: requirements
 - [ ] **Small fixes batch** — `/design plans/small-fixes-batch/requirements.md` | sonnet
   - Plan: small-fixes-batch | Status: requirements
-- [ ] **Review prose-infra** — `/deliverable-review plans/prose-infra-batch` | opus | restart
+- [x] **Review prose-infra** — `/deliverable-review plans/prose-infra-batch` | opus | restart
 - [ ] **Design backlog review** — `/design plans/design-backlog-review/problem.md` | opus | restart
   - Process for batch-reviewing 16 UNREVIEWED plan files. Triage by type (requirements vs problem), bulk approval, kill criteria.
 
@@ -162,6 +132,7 @@
 - [ ] **Markdown AST parser** — `/design plans/markdown-ast-parser/brief.md` | opus
   - Plan: markdown-ast-parser
   - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
+
 ## Blockers / Gotchas
 
 **Post-merge validation (permanent):**
@@ -185,6 +156,7 @@
 - `test_markdown_fixtures.py::test_full_pipeline_remark` xfail renders full traceback in markdown report, visually identical to real failure. Fix is in `pytest-markdown-report` (separate repo).
 
 - `session.py:307` produces `# Session: Worktree — {name}` but validator expects `# Session Handoff: YYYY-MM-DD`. Data-fixed this session. Code fix (validator or session.py) is separate behavioral change — not in scope here. [from: fix-prose-routing-bias] [from: session-cli-tool]
+
 ## Reference Files
 
 - `plans/reports/prioritization-2026-03-06b.md` — WSJF scoring, 65 tasks ranked + consolidation analysis
@@ -196,7 +168,8 @@
 - `agents/decisions/pipeline-contracts.md` — Pipeline contract decision file
 - `plans/active-recall/brief.md` — Active recall system: hierarchical index, documentation conversion, trigger classes
 - `tmp/active-recall.md` — Discussion decisions: recall-explore-recall, tree navigation, benchmark landscape
+- `plans/prose-infra-batch/reports/deliverable-review.md` — Deliverable review report (0 critical, 0 major, 4 minor)
 
 ## Next Steps
 
-Deliverable review for prose-infra-batch (opus, restart). Then design backlog review to validate/kill the 16 UNREVIEWED plan files.
+Design backlog review to validate/kill the 16 UNREVIEWED plan files.
