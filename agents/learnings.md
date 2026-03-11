@@ -71,3 +71,34 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Stress-test was introduced (2026-02-15) to fix AGAINST-first contrarianism. It solved contrarianism but degraded into confirmation theater — agent controls both sides, defense always wins.
 - Zero observed perspective changes from stress-test across 9 "I was wrong" sessions. All actual mind-changes came from: new facts (4/9), conceptual reframing (3/9), or exposed research gaps (2/9).
 - Replaced with "research your own claims" — search (web + codebase) before asserting, flag ungrounded claims.
+## When RED expects ImportError instead of AssertionError
+- Anti-pattern: RED phase expects `ImportError` or `AttributeError` as expected failure. Test has strong behavioral assertions but they never execute because import fails first. RED "passes" (fails as expected) but for the wrong reason — assertion strength is untested.
+- Correct pattern: Bootstrap step creates stub module/function (return `None`/`""`/`[]`/no-op) before test execution. RED then fails on behavioral `AssertionError`, proving assertions catch trivial implementations. Bootstrap is uncommitted scaffolding — GREEN replaces it.
+- In ping-pong TDD (separate test/impl agents), the bootstrap is test-agent responsibility or orchestrator-injected setup. The test agent can't verify behavioral RED without production stubs existing.
+- Codified in: tdd-cycle-planning.md (mandatory pattern), anti-patterns.md (ImportError-as-RED row), review-plan 11.1 (vacuity detection), validate-runbook.py (enforcement).
+## When Bootstrap is embedded in RED
+- Anti-pattern: Bootstrap instructions (create stubs, do not commit) embedded inside the RED phase description. The test agent receives both stub-creation and test-writing instructions in one invocation. Conflates mechanical scaffolding with behavioral test design.
+- Correct pattern: Bootstrap is a **separate step** — own section in the phase file (`**Bootstrap:** ...` before `---` before `**RED Phase:**`), generating its own step file dispatched to a separate agent. Three steps per TDD cycle: Bootstrap → RED → GREEN.
+- When Bootstrap is not needed: cycles extending existing function behavior (function already importable, test fails on behavior naturally) and CLI wiring cycles (Click returns "No such command").
+- Codified in: tdd-cycle-planning.md (template + prose), anti-patterns.md (expanded ImportError-as-RED row).
+## When multi-item instructions contain review steps
+- Anti-pattern: Treating "run correctors" as a checkbox item in a sequential list. Agent executes all items (edit → validate → skill update → commit) without stopping after the review step. Substitutes mechanical validator for corrector sub-agent.
+- Correct pattern: Items invoking review/corrector are gates — stop, present findings, wait for user decision before proceeding. Review is lifecycle-derived (artifact type + edits applied → corrector fires), not user-invoked. Corrector means sub-agent with clean context, not self-review.
+- Root cause: No structured review loop protocol at pipeline review stages (/requirements, /design, /runbook). Review stages use ad-hoc conversation. Routed to /design as systemic issue — plan: pipeline-review-protocol.
+## When brainstorm-name needs more candidates
+- Anti-pattern: Launching a new brainstorm-name agent with "do NOT repeat" constraints. Creates a fresh context that wastes the prior agent's reasoning and anchor-avoidance work.
+- Correct pattern: Resume the prior agent (`resume` parameter with agent ID) and ask for more candidates. The agent retains its full context — existing candidates, conceptual space explored, metaphor domains considered. Resumption produces genuinely novel names; fresh launch risks adjacent-to-excluded names.
+- Evidence: Agent tool supports `resume` parameter for exactly this case.
+## When Simple routing bypasses inline lifecycle
+- Anti-pattern: Simple classification routes to "direct execution" — recall, explore, edit, done. Bypasses /inline lifecycle: no integration-test gate, no review dispatch, no triage feedback, no deliverable-review chain.
+- Correct pattern: Simple routes through `/inline plans/<job> execute` like Moderate and Complex. /inline provides the review gating and workflow continuation that "direct execution" lacks. The classification determines design ceremony, not execution ceremony.
+- Same class as: Moderate prose bypassing /runbook. The fix is routing to /inline, not removing quality gates.
+## When corrector template inlines recall content
+- Anti-pattern: Corrector dispatch template says "include resolved recall entries in prompt." Caller pre-resolves entries and pastes content into the reviewer's prompt. Token-wasteful (content duplicated across parent and child context) and potentially stale.
+- Correct pattern: Reference the recall artifact file path. Reviewer resolves entries itself via `claudeutils _recall resolve`. Token economy: reference, never repeat. Same delegation principle as sub-agent recall: parent curates artifact, child resolves.
+## When correctors miss scope items
+- Anti-pattern: Corrector structures validation around named components (C1-C4) and decisions (D-1 through D-7). Standalone Scope IN items not mapped to any component have no checklist slot — they pass unreviewed. Deliverable review catches them later, but the gap survives to the second gate.
+- Correct pattern: Add scope-completeness as a named review criterion: mechanically diff every Scope IN item against deliverables. Component+decision validation is necessary but insufficient — standalone scope items are the blind spot.
+- Evidence: Planstate specified in Scope IN but not part of any C1-C4 component — missed by corrector at `3d226bb3`, caught by deliverable review. Same pattern for glob/single-artifact mismatch.
+- Fix: `review-dispatch-template.md` now includes scope-completeness criterion and field rule.
+- Prevention: `outline-corrector.md` now checks scope-to-component traceability (orphan detection) and cross-component interface compatibility. Catches drift at outline review (gate 2), not deliverable review (gate 5).

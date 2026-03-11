@@ -275,7 +275,7 @@ def _validate_merge_result(slug: str) -> None:
     Also emits diagnostic warning if HEAD has fewer than 2 parents.
     """
     result = subprocess.run(
-        ["git", "merge-base", "--is-ancestor", slug, "HEAD"],
+        ["git", "merge-base", "--is-ancestor", slug, "HEAD", "--"],
         check=False,
     )
 
@@ -284,7 +284,7 @@ def _validate_merge_result(slug: str) -> None:
         raise SystemExit(2)
 
     parent_output = subprocess.run(
-        ["git", "cat-file", "-p", "HEAD"],
+        ["git", "cat-file", "-p", "HEAD^{commit}"],
         capture_output=True,
         text=True,
         check=True,

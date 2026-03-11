@@ -41,11 +41,20 @@
   - Infrastructure built. Blocked on human: curate task-contexts.json, annotate ground-truth.md
   - After human steps: run harness then analysis (commands in README)
 
+- [ ] **Fix TDD context scoping** — `/design` | sonnet
+  - Note: DEFAULT_TDD_COMMON_CONTEXT injected at runbook level, should be phase-scoped. Brief: `plans/bootstrap-tag-support/brief.md`
+- [ ] **Health check UPS fallback** — `/design` | sonnet
+  - Note: Modify session health check to use UserPromptSubmit instead of Stop as fallback when SessionStart hook did not run
+- [ ] **Hook error after clear** — `/design` | sonnet
+  - Note: Diagnose "SessionStart:clear hook error" after /clear
+- [ ] **Review bootstrap work** — `/deliverable-review plans/bootstrap-tag-support` | opus | restart
+
 ## Worktree Tasks
 
-- [ ] **Session CLI tool** → `session-cli-tool` — `/runbook plans/handoff-cli-tool/outline.md` | sonnet | 3.2
+- [ ] **Session CLI tool** — `/runbook plans/handoff-cli-tool/outline.md` | sonnet | restart | 3.2
   - Plan: handoff-cli-tool | Status: outlined (6 review rounds)
   - Absorbs: Fix task-context bloat
+  - Note: Blocker resolved (Bootstrap tag support). Regenerate step files via `prepare-runbook.py plans/handoff-cli-tool/`, then `/orchestrate handoff-cli-tool`
 - [ ] **Plugin migration** → `plugin-migration` — `/orchestrate plugin-migration` (refresh outline first) | opus | 3.2
   - Plan: plugin-migration | Status: ready (stale — Feb 9)
 - [ ] **Worktree merge lifecycle** → `worktree-merge-lifecycle` — `/runbook plans/worktree-merge-resilience/outline.md` | sonnet | 2.8
@@ -129,6 +138,16 @@
   - Implements defense-in-depth.md decision ("gate at chokepoint")
   - Evidence: JIT expansion commit skipped vet checkpoint
 
+- [ ] **Design review protocol** — `/design plans/resumed-review-protocol/brief.md` | opus | restart
+  - Plan: resumed-review-protocol
+  - Note: Two features — (1) runbook reuses corrector across phases, (2) orchestration ping-pong FIX/PASS. Brief: `plans/resumed-review-protocol/brief.md`
+- [ ] **Fix session search** — `claudeutils _session` | sonnet
+  - Note: Make --project optional in session-scraper.py, support project globbing
+- [ ] **Markdown AST parser** — `/design plans/markdown-ast-parser/brief.md` | opus
+  - Plan: markdown-ast-parser
+  - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
+- [ ] **Test context-fork model** — create minimal skill with `context: fork` + `AskUserQuestion`, observe interaction behavior | haiku
+
 ## Blockers / Gotchas
 
 **Post-merge validation (permanent):**
@@ -151,6 +170,7 @@
 - `plans/prototypes/recall-artifact.md` created as stub to satisfy pretooluse recall gate (hook infers plan from file path, not actual plan context)
 - `test_markdown_fixtures.py::test_full_pipeline_remark` xfail renders full traceback in markdown report, visually identical to real failure. Fix is in `pytest-markdown-report` (separate repo).
 
+- `session.py:307` produces `# Session: Worktree — {name}` but validator expects `# Session Handoff: YYYY-MM-DD`. Data-fixed this session. Code fix (validator or session.py) is separate behavioral change — not in scope here. [from: fix-prose-routing-bias] [from: session-cli-tool]
 ## Reference Files
 
 - `plans/reports/prioritization-2026-03-06b.md` — WSJF scoring, 65 tasks ranked + consolidation analysis
