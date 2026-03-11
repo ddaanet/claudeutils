@@ -1,6 +1,6 @@
-# Session Handoff: 2026-03-07
+# Session Handoff: 2026-03-11
 
-**Status:** Worktree dispatch (5 trees) + blocker cleanup.
+**Status:** Merged 4 worktrees, enforced documented-tasks rule across backlog, prose-infra-batch ready.
 
 ## Completed This Session
 
@@ -25,6 +25,19 @@
   - Claude Code skill caching — root cause was missing session restart
   - `test_merge_learnings` ordering dep — non-reproducible, no recurrence
   - brief.md in planstate inference — converted to Planstate brief inference task
+- **Worktree merges (4):**
+  - active-recall: merged+removed. Fixed 4 test failures (3× stress-test → diverge in d: directive tests, 1× token cache mock bypass)
+  - session-cli-tool: merged+removed. Fixed session.md duplicate (task in both In-tree and Worktree)
+  - worktree-merge-lifecycle: merged+removed. Fixed session.md duplicate
+  - plugin-migration: merged+removed. Fixed session.md duplicate
+- **Removed 4 orphaned worktrees:** fix-prose-routing-bias, ar-threshold-calibration, ar-how-verb-form, fix-proof-review-findings (laptop syncing artifacts)
+- **Enforced documented-tasks rule across backlog:**
+  - Created 16 plan artifacts for previously inline-described tasks (9 requirements.md, 7 problem.md)
+  - Upgraded all from stubs to proper format (FRs with acceptance criteria, or problem statements with investigation scope)
+  - Marked all 16 with `⚠ UNREVIEWED` banner — agent-drafted, not user-validated
+  - Renamed hook-batch → hook-batch-2 (archive collision with delivered plan)
+  - Canceled 5 too-small tasks → restored as Small fixes batch
+- **Created prose-infra-batch plan:** 4 FRs (remove opus-design-question, magic-query skill, handoff merge-incremental fix, forbid undocumented tasks rule+validator)
 
 ## In-tree Tasks
 
@@ -43,10 +56,8 @@
 
 - [ ] **Fix TDD context scoping** — `/design` | sonnet
   - Note: DEFAULT_TDD_COMMON_CONTEXT injected at runbook level, should be phase-scoped. Brief: `plans/bootstrap-tag-support/brief.md`
-- [ ] **Health check UPS fallback** — `/design` | sonnet
-  - Note: Modify session health check to use UserPromptSubmit instead of Stop as fallback when SessionStart hook did not run
-- [ ] **Hook error after clear** — `/design` | sonnet
-  - Note: Diagnose "SessionStart:clear hook error" after /clear
+- [ ] **Health check UPS fallback** — `/design plans/health-check-ups-fallback/requirements.md` | sonnet
+  - Plan: health-check-ups-fallback | Status: requirements
 - [ ] **Review bootstrap work** — `/deliverable-review plans/bootstrap-tag-support` | opus | restart
 
 ## Worktree Tasks
@@ -69,46 +80,50 @@
   - Absorbs: Handoff insertion policy, wrap command, discuss protocol grounding, p: classification gap, discuss-to-pending chain
 - [ ] **Parallel orchestration** — `/design plans/parallel-orchestration/problem.md` | sonnet | 1.8
   - Plan: parallel-orchestration | Status: requirements
-- [ ] **Gate batch** — `/design` | sonnet | 1.7
-  - Artifact staleness gate + Entry gate propagation + Design context gate + Pre-inline plan commit
-  - Mechanical checkpoints at skill entry/exit/transition points
-- [ ] **Skill agent bootstrap** — `/design` | opus | 1.6
-  - Retrofit skill pre-work + Agent rule injection + Skill-dev skill + Skill prompt-composer
+- [ ] **Gate batch** — `/design plans/gate-batch/requirements.md` | sonnet | 1.7
+  - Plan: gate-batch | Status: requirements
+- [ ] **Skill agent bootstrap** — `/design plans/skill-agent-bootstrap/problem.md` | opus | 1.6
+  - Plan: skill-agent-bootstrap | Status: requirements
 - [ ] **Worktree lifecycle CLI** — `/design` | sonnet | 1.6
   - Exit ceremony + Wt rm task cleanup + Worktree ad-hoc task + CLI UX + --base submodule bug
   - Plans: wt-exit-ceremony, wt-rm-task-cleanup, worktree-ad-hoc-task (all requirements)
-- [ ] **Registry cache to tmp** — `/inline` | sonnet | 1.5
-  - Move continuation registry cache from TMPDIR to project-local tmp/
+- [ ] **Registry cache to tmp** — `/design plans/registry-cache-to-tmp/requirements.md` | sonnet | 1.5
+  - Plan: registry-cache-to-tmp | Status: requirements
 - [ ] **Code quality** — `/design plans/codebase-sweep/requirements.md` | sonnet | 1.4
   - Plan: codebase-sweep | Status: requirements
   - Codebase sweep + agent-core lint coverage + Test diamond migration + Infrastructure scripts + Test diagnostic helper
-- [ ] **Hook batch** — `/design` | sonnet | 1.3
-  - Tool deviation hook (PostToolUse) + Block cd-chaining (PreToolUse) + Lint recall integration (Pre+PostToolUse)
+- [ ] **Hook batch** — `/design plans/hook-batch-2/requirements.md` | sonnet | 1.3
+  - Plan: hook-batch-2 | Status: requirements
 - [ ] **Update prioritize skill** — Phase 2: `claudeutils _prioritize score` CLI | sonnet | 1.2
   - Plan: update-prioritize-skill | Status: requirements
-- [ ] **Recall pipeline** — `/design` | opus | 1.1
-  - Recall deduplication + stdin format parsing + usage scoring
+- [ ] **Recall pipeline** — `/design plans/recall-pipeline/requirements.md` | opus | 1.1
+  - Plan: recall-pipeline | Status: requirements
 - [ ] **Quality grounding** — `/ground` each per audit | opus | 1.0
-  - Ground workflow skills + Safety review expansion + Decision drift audit + Prose gate terminology
-  - Audit: `plans/reports/workflow-grounding-audit.md`
-- [ ] **Cross-tree operations** — `/design` | sonnet | 1.0
-  - Cross-tree requirements (git show transport) + Cross-tree test sentinel (content-hash cache)
-- [ ] **Review agent quality** — `/design` | sonnet | 1.0
-  - Corrector audit (false positive evidence) + Diagnostic opus review (post-vet RCA)
-- [ ] **Design pipeline evolution** — `/design` | opus | 1.0
-  - Design decomposition tier + Model directive pipeline — both modify /design skill
+  - Plan: quality-grounding | Status: problem
+- [ ] **Cross-tree operations** — `/design plans/cross-tree-operations/requirements.md` | sonnet | 1.0
+  - Plan: cross-tree-operations | Status: requirements
+- [ ] **Review agent quality** — `/design plans/review-agent-quality/problem.md` | sonnet | 1.0
+  - Plan: review-agent-quality | Status: requirements
+- [ ] **Design pipeline evolution** — `/design plans/design-pipeline-evolution/problem.md` | opus | 1.0
+  - Plan: design-pipeline-evolution | Status: requirements
 - [ ] **Tweakcc** — `/design plans/tweakcc/requirements.md` | sonnet | 1.0
   - Plan: tweakcc | Status: requirements
-- [ ] **Markdown migration** — `/design` | opus | 0.8
-  - Lenient markdown parser, token counting API + sqlite cache, threshold migration
+- [ ] **Markdown migration** — `/design plans/markdown-migration/problem.md` | opus | 0.8
+  - Plan: markdown-migration | Status: requirements
 - [ ] **Python hook ordering fix** — `/design plans/precommit-python3-redirect/requirements.md` | haiku | restart | 0.8
-- [ ] **Diagnose compression loss** — RCA against commit `0418cedb` | sonnet | 0.8
+- [ ] **Diagnose compression loss** — `/design plans/diagnose-compression-loss/problem.md` | sonnet | 0.8
+  - Plan: diagnose-compression-loss | Status: requirements
 - [ ] **Feature prototypes** — `/design plans/prototypes/requirements.md` | sonnet | 0.6
-- [ ] **Upstream skills field** — `/design` PR/issue for missing skills frontmatter | sonnet | 0.5
-- [ ] **Planstate brief inference** — `/inline` | sonnet
-  - Fix planstate to infer correct next-action for brief-only plans (currently uses requirements.md template)
-- [ ] **Research backlog** — `/design` | opus | 0.5
-  - Ground state coverage, Workflow formal analysis, Design-to-deliverable (restart), Behavioral design, Compensate-continue skill
+- [ ] **Planstate brief inference** — `/design plans/planstate-brief-inference/requirements.md` | sonnet
+  - Plan: planstate-brief-inference | Status: requirements
+- [ ] **Research backlog** — `/design plans/research-backlog/problem.md` | opus | 0.5
+  - Plan: research-backlog | Status: requirements
+- [ ] **Small fixes batch** — `/design plans/small-fixes-batch/requirements.md` | sonnet
+  - Plan: small-fixes-batch | Status: requirements
+- [ ] **Prose infra batch** — `/design plans/prose-infra-batch/requirements.md` | opus | restart
+  - Plan: prose-infra-batch | Status: requirements
+- [ ] **Design backlog review** — `/design` | opus | restart
+  - Process for batch-reviewing 16 UNREVIEWED plan files. Triage by type (requirements vs problem), bulk approval, kill criteria.
 
 ### Terminal
 
@@ -131,23 +146,15 @@
   - S-J: create memory submodule with shared branch, configure propagation, update resolver paths. Band 1 — blocked: S-I
 - [ ] **AR Trigger Metadata** — `/runbook plans/active-recall/outline.md` | sonnet
   - S-E: formalize trigger_class and category as IndexEntry metadata. Band 2 — blocked: S-C, S-D
-- [ ] **Fix prefix tolerance** — `src/claudeutils/when/fuzzy.py` | sonnet
-  - Zero tolerance for prefix noise (0.0 scores on one-token mismatch). Separate from format decision.
-- [ ] **Review gate** — `/design` | sonnet
-  - Precommit step: review report timestamp >= production artifact edit timestamp, no triviality exception
-  - Implements defense-in-depth.md decision ("gate at chokepoint")
-  - Evidence: JIT expansion commit skipped vet checkpoint
+- [ ] **Review gate** — `/design plans/review-gate/requirements.md` | sonnet
+  - Plan: review-gate | Status: requirements
 
 - [ ] **Design review protocol** — `/design plans/resumed-review-protocol/brief.md` | opus | restart
   - Plan: resumed-review-protocol
   - Note: Two features — (1) runbook reuses corrector across phases, (2) orchestration ping-pong FIX/PASS. Brief: `plans/resumed-review-protocol/brief.md`
-- [ ] **Fix session search** — `claudeutils _session` | sonnet
-  - Note: Make --project optional in session-scraper.py, support project globbing
 - [ ] **Markdown AST parser** — `/design plans/markdown-ast-parser/brief.md` | opus
   - Plan: markdown-ast-parser
   - Note: Preprocessor → standard parser → AST. Blocks handoff-cli-tool S-4 if AST-first ordering chosen. Complex — new dependency, cross-cutting migration.
-- [ ] **Test context-fork model** — create minimal skill with `context: fork` + `AskUserQuestion`, observe interaction behavior | haiku
-
 ## Blockers / Gotchas
 
 **Post-merge validation (permanent):**
@@ -185,4 +192,4 @@
 
 ## Next Steps
 
-5 active worktrees dispatched. Merge planstate-brief-inference first (smallest scope), then proceed with top-4 priority tasks in their worktrees.
+Prose infra batch first (opus, restart — 4 FRs in `plans/prose-infra-batch/requirements.md`). Then design backlog review to validate/kill the 16 UNREVIEWED plan files before further work.
