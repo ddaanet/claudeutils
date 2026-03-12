@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-12
 
-**Status:** Problem.md migration complete — 12 files renamed, planstate/validation/prose updated, precommit passes.
+**Status:** Problem.md migration + recall gate improvement — both executed inline, RCA-driven fix applied to 3 skill files.
 
 ## Completed This Session
 
@@ -13,6 +13,15 @@
 - Review skipped with justification (mechanical grep-replace, verified by grep + precommit): `plans/problem-md-migration/reports/review-skip.md`
 - Runbook: `plans/problem-md-migration/runbook.md`
 - 13th plan (design-backlog-review) from brief no longer exists — 12 actual renames
+
+**Recall gate improvement (RCA-driven):**
+- `/reflect` on /runbook skipping mandatory recall gate when chained from /design
+- RCA: 3 layers — gate compliance (tool call not made), scope conflation (triage recall ≠ implementation recall), artifact-branching creates skip rationalization (primary path framed as fallback)
+- Discussion deepened: continuation mechanism not involved — single-conversation context visibility is the actual cause. Gate doesn't distinguish "entries in context from different scope" from "implementation recall done"
+- Discussion: artifact-existence branching is Tier 3 concern (cross-session persistence) leaking into Tier 1/2 (same-session)
+- Fix: rewrote recall gates in runbook/SKILL.md (Tier 1, Tier 2) and inline/SKILL.md (Phase 2.3) — memory-index scan is constant action, artifact is additive supplement, explicit scope signal ("patterns for building, not classifying")
+- Learning appended: "When chained skills share recall context" (`agents/learnings.md`)
+- Brief: `plans/recall-gate/brief.md`, review-skip: `plans/recall-gate/reports/review-skip.md`
 
 **Interactive review (prior session, carried forward):**
 - Full `/ground` pass: Fagan inspection, IEEE 1028, GitHub/Gerrit/Phabricator review UX, cognitive load research (Cisco/SmartBear, Microsoft)
@@ -48,6 +57,7 @@
   - Rename 13 problem.md → brief.md with git history recovery, fix planstate `_derive_next_action`, add precommit gate
 ## Worktree Tasks
 
+- [ ] **Review recall gate** — `/deliverable-review plans/recall-gate` | opus | restart
 - [ ] **Interactive review** — `/deliverable-review plans/interactive-review` | opus | restart
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart | 3.2
   - Plan: handoff-cli-tool | Status: ready
@@ -224,4 +234,4 @@
 
 ## Next Steps
 
-Pending: `/reflect` on recall gap — /runbook skill didn't read memory-index despite mandatory recall gate.
+Deliverable reviews pending for recall-gate and interactive-review (opus, restart, worktree).
