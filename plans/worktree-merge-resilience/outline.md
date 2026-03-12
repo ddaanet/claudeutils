@@ -155,3 +155,68 @@ Memory index triggers (load via `/when` if needed during planning):
 ## Open questions
 
 None — approach decided, misplaced-content heuristic explicitly deferred.
+
+---
+
+## Absorbed: merge-lifecycle-audit
+
+Source: `plans/merge-lifecycle-audit/brief.md` (2026-03-02)
+
+### Context
+
+5 worktree merges in one session exposed 3 distinct bugs at phase boundaries. All fixed individually, but the pattern indicates the merge→rm lifecycle needs systematic audit, not more point fixes.
+
+### Bugs found
+
+1. **Lifecycle.md dirty-state** (wt-rm-dirty, delivered): `_append_lifecycle_delivered` ran after merge commit, left lifecycle.md unstaged. Fix: moved into phase 4 before commit, return `list[Path]` for staging.
+2. **Submodule conflict ordering** (merge-submodule-ordering, brief): Submodule MERGE_HEAD check runs after parent merge commit. On re-run, creates 1-parent fixup commit instead of amending the merge. Fix: move check before commit.
+3. **Amend regression** (task-classification): `_update_session_and_amend` replaced with `_update_session` by task-classification design (D-4 conflated move semantics with post-merge hygiene). Fix: restored amend logic.
+
+### Audit approach
+
+1. Map the actual state machine: merge phases (validate → submodule → parent merge → commit → precommit → submodule check) and rm phases (dirty check → session update → amend → remove → prune → branch delete). Document assumptions each phase makes about prior phase output.
+2. Enumerate integration seams — every phase boundary is a potential bug site.
+3. Write integration tests for full merge→rm lifecycle sequences: merge-with-submodule-conflict→resolve→resume→rm, merge-with-lifecycle→rm→amend, merge-with-session-conflicts→rm.
+4. Fix phase ordering issues found during audit.
+
+### Key files
+
+- `src/claudeutils/worktree/merge.py` — merge phases, `_phase4_merge_commit_and_precommit`
+- `src/claudeutils/worktree/cli.py` — `_update_session_and_amend`, `rm()`
+- `src/claudeutils/worktree/remerge.py` — session.md/learnings.md structural merge
+- `tests/test_worktree_rm_after_merge.py` — existing integration tests (from wt-rm-dirty)
+
+---
+
+## Absorbed: plan-completion-ceremony (delivery-supercession)
+
+Source: `plans/plan-completion-ceremony/brief.md`
+
+### Problem
+
+When a plan delivers and its directory is deleted, superseded decision entries in other files persist. Agents load both the old and new entry, get contradictory guidance.
+
+The delivery workflow (`/handoff` → `/commit` → plan-archive → trim) has no supercession check. It updates the target decision file but never scans for entries the new decision contradicts.
+
+### Evidence
+
+**task-classification delivery (2026-02-28):**
+- Delivered two-section model (In-tree / Worktree Tasks) to `operational-tooling.md`
+- Left stale single-section entry in `workflow-advanced.md` (2026-02-20)
+- Agent running `wt` loaded both entries, got conflicting section model
+- Downstream: `wt` Mode B couldn't dispatch — all tasks In-tree, stale model said single section was correct
+
+### Proposed solution
+
+Memory-index supercession pass at plan delivery. After writing/updating the primary decision entry:
+1. Scan `agents/memory-index.md` for entries whose trigger phrases overlap with the new entry's domain
+2. Resolve candidates via `claudeutils _recall resolve`
+3. Compare against new entry — contradictory entries get deleted, partially overlapping entries get updated
+4. Remove stale memory-index triggers pointing to deleted entries
+
+### Scope questions (for /design)
+
+- **Automated vs agent-judged:** Keyword overlap detection (mechanical) or read-both-and-assess (judgment)?
+- **Trigger point:** At `/codify` consolidation, at plan-archive write, or both?
+- **Partial overlap:** Old entry partially superseded — update retained content or split?
+- **Self-referential check:** Scan must exclude the plan's own new entry from the candidate set

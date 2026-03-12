@@ -1,25 +1,33 @@
-# Session Handoff: 2026-03-11
+# Session Handoff: 2026-03-12
 
-**Status:** Discussion session. Defined system property tracing concept (invariants + pipeline traceability). Created plan brief.
+**Status:** Unscheduled plan cleanup + interactive review design attempt. Absorbed 5 child plans into parents, created 3 orphan tasks, dogfooded interactive review on its own outline — surfaced presentation and research gaps, reset to briefed.
 
 ## Completed This Session
 
-**System property tracing plan:**
-- Discussion identified two levels: (1) system invariants as formal requirements, (2) pipeline traceability ensuring FRs survive workflow stages
-- Key insight: traceability matrix (property → enforcement → verification) makes "which properties lack enforcement?" answerable
-- Created `plans/system-property-tracing/brief.md` with full discussion context
-- Partially absorbs quality-grounding and review-gate plans
+**Unscheduled plan cleanup:**
+- Analyzed 12 unscheduled plans: 6 absorbed, 2 completed/canceled, 4 orphaned
+- Migrated 5 absorbed plan contents into parents before deletion:
+  - merge-lifecycle-audit + plan-completion-ceremony → `plans/worktree-merge-resilience/outline.md` (Absorbed sections)
+  - wt-exit-ceremony + wt-rm-task-cleanup + worktree-ad-hoc-task → `plans/worktree-lifecycle-cli/problem.md` (Absorbed sections)
+- ar-threshold-calibration left alone (Active Recall sub-task with separate plan dir)
+- Deleted completed/canceled plan dirs: bootstrap-tag-support, design-backlog-review, registry-cache-to-tmp
+- Created 3 tasks for orphaned plans: interactive-review, recall-pipeline, skill-exit-commit
+
+**Interactive review design (partial):**
+- Classified Complex (low implementation certainty, high requirement stability, agentic-prose)
+- Wrote outline, corrector found 0 critical / 3 major / 4 minor — all fixed
+- Dogfooded item-by-item review on the outline itself — surfaced 4 presentation/ergonomics gaps and missing research phase
+- Deleted ungrounded outline + classification, wrote `plans/interactive-review/brief.md` capturing user feedback
+- Next design attempt needs A.3-4 research (Fagan inspection, GitHub/Gerrit/Phabricator UX) before outlining
 
 ## In-tree Tasks
 
-- [>] **Problem.md migration** — `/runbook plans/problem-md-migration` | sonnet
+- [>] **Problem.md migration** — `/design plans/problem-md-migration/brief.md` | sonnet
   - Plan: problem-md-migration | Status: briefed
   - Rename 13 problem.md → brief.md with git history recovery, fix planstate `_derive_next_action`, add precommit gate
 
 ## Worktree Tasks
 
-- [ ] **Design backlog review** — `/design plans/design-backlog-review/problem.md` | opus | restart
-  - Process for batch-reviewing UNREVIEWED plan files. Triage by type (requirements vs problem), bulk approval, kill criteria.
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart | 3.2
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
@@ -28,7 +36,7 @@
   - Plan: plugin-migration | Status: ready (stale — Feb 9)
 - [ ] **Worktree merge lifecycle** — `/runbook plans/worktree-merge-resilience/outline.md` | sonnet | 2.8
   - Plan: worktree-merge-resilience | Status: outlined
-  - Absorbs: Merge lifecycle audit, Plan-completion ceremony (merge-point side effects), Merge lock retry
+  - Absorbs: Merge lifecycle audit, Plan-completion ceremony (content migrated this session)
 - [ ] **Active Recall** — `/design plans/active-recall/outline.md` | opus | 2.6
   - Plan: active-recall | Status: outlined
   - Outline Rev 2 reviewed. Next: Phase B (user discussion) → sufficiency gate → design or /runbook
@@ -63,8 +71,9 @@
 - [ ] **Skill agent bootstrap** — `/design plans/skill-agent-bootstrap/problem.md` | opus | 1.6
   - Plan: skill-agent-bootstrap | Status: requirements
 - [ ] **Worktree lifecycle CLI** — `/design plans/worktree-lifecycle-cli/problem.md` | sonnet | 1.6
+  - Plan: worktree-lifecycle-cli | Status: requirements
   - Exit ceremony + Wt rm task cleanup + Worktree ad-hoc task + CLI UX + --base submodule bug
-  - Absorbs plans: wt-exit-ceremony, wt-rm-task-cleanup, worktree-ad-hoc-task
+  - Absorbed plan content migrated this session (wt-exit-ceremony, wt-rm-task-cleanup, worktree-ad-hoc-task)
 - [ ] **Code quality** — `/design plans/codebase-sweep/requirements.md` | sonnet | 1.4
   - Plan: codebase-sweep | Status: requirements
   - Codebase sweep + agent-core lint coverage + Test diamond migration + Infrastructure scripts + Test diagnostic helper
@@ -118,6 +127,15 @@
 - [ ] **Retro repo expansion** → `retro-repo-expansion` — `/design plans/retrospective-repo-expansion/brief.md` | sonnet
   - Plan: retrospective-repo-expansion | Status: briefed
   - Extend retrospective evidence base with 16 additional git repos (pre-claudeutils evolution + parallel projects)
+- [ ] **Interactive review** — `/design plans/interactive-review/brief.md` | opus | restart
+  - Plan: interactive-review | Status: briefed
+  - Item-by-item review mode for /proof. Needs research (Fagan, GitHub/Gerrit UX) before outline. User feedback captured in brief.
+- [ ] **Recall pipeline** — `/design` | sonnet
+  - Deduplication, stdin parsing, usage scoring for recall entries
+  - Note: plan dir only exists in retro-repo-expansion worktree, not on main. Create plan dir before design.
+- [ ] **Skill exit commit** — `/design plans/skill-exit-commit/requirements.md` | sonnet
+  - Plan: skill-exit-commit | Status: requirements
+  - /design and /runbook commit dirty tree before routing to /inline
 - [!] **Verb form AB test** — see `plans/reports/ab-test/README.md` | sonnet
   - Infrastructure built. Blocked on human: curate task-contexts.json, annotate ground-truth.md
   - After human steps: run harness then analysis (commands in README)
@@ -126,7 +144,8 @@
 
 - [x] **Retrospective materials** — plan delivered
 - [x] **Review prose-infra** — `/deliverable-review plans/prose-infra-batch` | opus | restart
-- [x] **Review bootstrap work** — `/deliverable-review plans/bootstrap-tag-support` | opus | restart
+- [x] **Review bootstrap work** — plan delivered
+- [x] **Design backlog review** — completed two sessions ago
 - [-] **Calibrate topic params** — UPS topic injection removed, moot
 - [-] **Recall tool consolidation** — absorbed into Active Recall
 - [-] **Execute flag lint** — superseded by session validator
@@ -174,7 +193,8 @@
 - `plans/prose-infra-batch/reports/deliverable-review.md` — Deliverable review report (0 critical, 0 major, 4 minor)
 - `plans/skill-gated-session-edits/brief.md` — Causal chain: bare directive → no skill gates → regression committed
 - `plans/system-property-tracing/brief.md` — System invariants + pipeline traceability concept
+- `plans/interactive-review/brief.md` — Dogfooding feedback: presentation ergonomics, research gap, checkpoint-after-TOC
 
 ## Next Steps
 
-System property tracing design (opus). Or skill-gated-session-edits design (opus).
+Interactive review design (opus, restart) — needs research phase before outlining. Or system property tracing / skill-gated-session-edits design (opus).
