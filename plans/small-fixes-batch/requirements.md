@@ -19,6 +19,10 @@ Make `--project` optional in `plans/prototypes/session-scraper.py`, support proj
 Investigate the `context` parameter on the Skill tool (e.g., `context: fork`). Create a minimal test skill, invoke it with different `context` values, observe and document behavior differences.
 - Acceptance: Behavior documented — what does `context: fork` do vs default? Does AskUserQuestion work? What context is visible to the skill?
 
+**FR-4: Remove bottom-to-top edit ordering references**
+Grep and remove all references to "bottom-to-top" edit ordering from documents. The concept is unfounded — the Edit tool is not line-number dependent.
+- Acceptance: `grep -ri "bottom.to.top" agent-core/ agents/ plans/` returns no matches
+
 ### Out of Scope
 
 - Architectural changes — each fix is self-contained

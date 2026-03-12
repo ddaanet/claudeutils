@@ -2,11 +2,11 @@
 
 **Artifact**: plans/interactive-review/outline.md
 **Date**: 2026-03-12
-**Mode**: review + fix-all
+**Mode**: review + fix-all (PDR — post-research rewrite)
 
 ## Summary
 
-Solid outline with clear outer/inner loop architecture, well-structured extraction table, and explicit key decisions. Main gaps were missing FR-7 dedicated section, contradictory extraction table vs Scope OUT for diff hunks, and no interruption/resume discussion despite FR-5 acceptance criteria depending on it. All fixed.
+Well-grounded outline with clear decision rationale traced to Fagan, Phabricator, and cognitive load research. All requirements covered with explicit traceability. Key design decisions (batch-apply, 5 verdicts, orientation phase) are selected with rationale, not left as "explore options." Two major clarity issues (planstate ambiguity, scope IN/OUT revisit contradiction) and three minor issues fixed.
 
 **Overall Assessment**: Ready
 
@@ -14,31 +14,35 @@ Solid outline with clear outer/inner loop architecture, well-structured extracti
 
 | Requirement | Outline Section | Coverage | Notes |
 |-------------|-----------------|----------|-------|
-| FR-1 | Review Loop Structure, Mode Selection | Complete | Item-by-item iteration with auto-detect and explicit flags |
-| FR-2 | Item Extraction | Complete | 6 artifact types with detection rules |
-| FR-3 | Per-Item Recall | Complete | Gate-anchored with caching |
-| FR-4 | Review Loop Structure (verdict list) | Complete | 5 verdicts + "skip" addition |
-| FR-5 | Verdict Application | Complete | Immediate edits, bottom-to-top principle |
-| FR-6 | Cross-Item Outputs | Complete | Uses existing directives |
-| FR-7 | Review Summary | Complete | **Was partial** — added dedicated section with format spec |
-| C-1 | Mode Selection | Complete | Auto-detect + explicit flags + fallback |
-| C-2 | Integration with Existing /proof | Complete | Inner loop reuse documented |
+| FR-1 | D-5 (Linear Iteration), D-9 (Mode Selection) | Complete | Item-by-item with auto-detect and explicit flag |
+| FR-2 | D-7 (Granularity Detection) | Complete | 6 artifact types with detection patterns + user override |
+| FR-3 | D-4 (Per-Item Presentation) | Complete | Domain-relevant recall per item, null recall silent |
+| FR-4 | D-1 (Verdict Vocabulary) | Complete | 5 verdicts; `absorb` folded into kill sub-action (grounded in convergence range) |
+| FR-5 | D-2 (Batch-Apply) | N/A — Lifted | Batch-apply replaces immediate edits per user direction |
+| FR-6 | D-6 (Discuss Sub-Loop) | Complete | Learnings, tasks, artifacts via existing proof mechanics |
+| FR-7 | D-8 (Terminal Actions), step 1 | Complete | Summary format: N approved/revised/killed/skipped + cross-item outputs |
+| C-1 | Approach, D-9 | Complete | Extension within /proof, not separate skill |
+| C-2 | D-6 | Complete | Discuss sub-loop reuses reword-accumulate-sync scoped to one item |
 
-**Traceability Assessment**: All requirements covered. FR-7 gap identified and fixed.
+**Traceability Assessment**: All active requirements covered. FR-5 correctly treated as lifted.
 
 ## Scope-to-Component Traceability
 
-Single-component design (SKILL.md prose edits only). All scope items trace to one artifact.
+Single-component design (SKILL.md + reference file). All scope items trace to affected files.
 
 | Scope IN Item | Component | Notes |
 |---------------|-----------|-------|
-| Item extraction procedure for 6 artifact types | SKILL.md - Item Extraction section | Direct match |
-| Item-by-item outer loop | SKILL.md - Item-by-Item Loop section | Direct match |
-| 6 verdict types with immediate edit | SKILL.md - Verdict Vocabulary section | Direct match |
-| Per-item recall with caching | SKILL.md - Per-Item Recall section | Direct match |
-| Cross-item output handling | SKILL.md - Cross-Item Outputs section | Direct match |
-| Post-review summary | SKILL.md - Summary section | Direct match |
-| Mode selection | SKILL.md - Mode Selection section | Direct match |
+| Item-by-item iteration mode | SKILL.md | D-5 |
+| Verdict vocabulary (5 + kill sub-actions) | SKILL.md | D-1 |
+| Orientation phase | SKILL.md | D-3 |
+| Batch-apply with accumulation | SKILL.md + references/item-review.md | D-2, accumulation format in reference |
+| Per-item recall context | SKILL.md | D-4 |
+| Granularity detection + override | references/item-review.md | D-7, pattern table |
+| Discuss sub-loop | SKILL.md | D-6, reuses existing mechanics |
+| Cross-item outputs | SKILL.md | D-6, FR-6 |
+| Review summary | SKILL.md | D-8 step 1 |
+| Mode selection | SKILL.md | D-9 |
+| Linear iteration with revisit | SKILL.md | D-5 |
 
 **Scope Assessment**: All items assigned. No orphans.
 
@@ -50,74 +54,59 @@ None.
 
 ### Major Issues
 
-1. **Extraction table contradicts Scope OUT for diff hunks**
-   - Location: Item Extraction table, row "Diff output"
-   - Problem: Table lists diff hunk extraction with `@@` markers as if implemented, but Scope OUT explicitly defers diff hunk review. Reader gets contradictory signals.
-   - Fix: Added "**deferred** (listed for completeness; see Scope OUT)" annotation to the diff row
+1. **Planstate update ambiguity in D-8**
+   - Location: D-8, step 6
+   - Problem: "Update planstate" was ambiguous — could imply a new planstate mechanism. Interactive review runs within /proof, which already manages planstate transitions (review-pending on entry, reviewed on exit per SKILL.md lines 33-34 and 72). A separate planstate step suggests duplicated or conflicting state management.
+   - Fix: Replaced with explicit statement that interactive review reuses /proof's existing entry/exit transitions
    - **Status**: FIXED
 
-2. **FR-7 has no dedicated section**
-   - Location: Missing — only mentioned as bullet in loop diagram and Scope IN
-   - Problem: FR-7 specifies summary format (N approved, N revised, N killed, N absorbed + cross-item outputs). Outline had no section specifying this. Coverage was implicit, not explicit.
-   - Fix: Added "Review Summary (FR-7)" section with format spec matching acceptance criteria
-   - **Status**: FIXED
-
-3. **No interruption/resume mechanism documented**
-   - Location: Missing — FR-5 acceptance criteria require interruption safety
-   - Problem: FR-5 says "interruption at item 4 preserves items 1-3 verdicts" and the immediate-edit approach achieves this, but the outline didn't discuss what happens on resume. Killed/revised items are naturally handled but approved items are indistinguishable from unreviewed.
-   - Fix: Added "Interruption and Resume" section documenting the mechanism and its limitation (matches Out of Scope constraint)
+2. **Scope IN/OUT revisit contradiction**
+   - Location: Scope IN "Linear iteration with revisit" vs Scope OUT "Random-access navigation"
+   - Problem: Revisit IS a form of random access (user says "revisit 3" to jump to item 3). A reader seeing both listings gets contradictory signals. D-5 explains the distinction (no preview of upcoming items, revisit only after completion), but scope lists don't carry that nuance.
+   - Fix: Scope IN clarified to "Linear iteration with post-completion revisit (revisit completed items by number, no preview of upcoming)." Scope OUT clarified to "Random-access navigation during iteration (deliberate exclusion per cognitive load research; post-completion revisit is in-scope)."
    - **Status**: FIXED
 
 ### Minor Issues
 
-1. **Source file extraction row missing Python-only limitation**
-   - Location: Item Extraction table, row "Source files"
-   - Problem: Scope OUT says "Source file parsing beyond Python" but the table row didn't note this. Reader of the table alone would assume multi-language support.
-   - Fix: Added "Python only" annotation and "(other languages deferred)" to the table row
+1. **"Open Questions: None" overconfident**
+   - Location: Open Questions section
+   - Problem: Two implementation-relevant questions exist: (a) batch-apply edit ordering must be bottom-to-top to avoid line-shift (flagged in prior corrector review), (b) grounding report section 4 describes immediate-apply as default, contradicting the outline's batch-only approach. These aren't design-blocking but deserve documentation.
+   - Fix: Added two open questions with context: edit ordering as implementation detail, grounding report divergence as documentation note
    - **Status**: FIXED
 
-2. **"skip" verdict addition not marked as validated**
-   - Location: Review Loop Structure, after diagram
-   - Problem: Skip is a design addition beyond FR-4. Per recall entry "when requirements added after review," post-requirements additions should note validation status.
-   - Fix: Added "(Design addition validated during outline review — not in original requirements.)" annotation
+2. **TOC generation method unspecified**
+   - Location: D-3, step 2
+   - Problem: "Numbered list with per-item title + one-line summary" — who generates the summary? The agent summarizes each extracted item, but this wasn't explicit. Could be misread as expecting pre-existing summaries in the artifact.
+   - Fix: Added "agent-generated" qualifier to TOC summary description
    - **Status**: FIXED
 
-3. **Missing FR references on section headings**
-   - Location: Multiple sections (Item Extraction, Review Loop Structure, Mode Selection, Integration)
-   - Problem: Traceability requires explicit FR references. Several sections addressed requirements without naming them in headings.
-   - Fix: Added FR/C references to section headings: Item Extraction (FR-2), Review Loop Structure (FR-1, FR-4), Mode Selection (C-1, FR-1), Integration (C-2)
-   - **Status**: FIXED
-
-4. **No discoverability discussion**
-   - Location: Missing
-   - Problem: Recall entry "how make skills discoverable" flags that new capabilities need discovery paths. The outline adds 6 sections to SKILL.md but doesn't discuss how hosting skills discover the new mode.
-   - Fix: Added "Discoverability" section noting auto-detection makes this transparent to hosting skills (no changes needed)
-   - **Status**: FIXED
+3. **D-7 granularity table includes all 6 artifact types without implementation priority**
+   - Location: D-7 table
+   - Problem: Source files (function/class) and diff output (hunk markers) represent significantly more parsing complexity than markdown-based types. Table presents all 6 as equivalent implementation targets. Requirements don't exclude them, but implementation ordering matters.
+   - Assessment: Not fixed — the table is design-accurate (FR-2 says "adapt item granularity to artifact type" with these types listed). Implementation ordering is a runbook concern, not an outline concern. Noted for runbook planning.
+   - **Status**: NOTED (not a fix target — implementation sequencing)
 
 ## Fixes Applied
 
-- Item Extraction table, "Source files" row — added "Python only" limitation annotation
-- Item Extraction table, "Diff output" row — added "deferred" annotation reconciling with Scope OUT
-- Review Loop Structure, skip verdict note — added validation provenance
-- New section "Review Summary (FR-7)" — format spec for post-review summary
-- New section "Interruption and Resume" — mechanism and limitation documentation
-- New section "Discoverability" — hosting skill transparency analysis
-- Section headings — added FR/C references: Item Extraction (FR-2), Review Loop Structure (FR-1, FR-4), Mode Selection (C-1, FR-1), Integration (C-2)
+- D-8 step 6 — replaced "Update planstate" with explicit reuse of /proof's existing entry/exit transitions
+- Scope IN — clarified "Linear iteration with revisit" to specify post-completion revisit semantics
+- Scope OUT — clarified "Random-access navigation" to specify "during iteration" boundary with post-completion revisit carve-out
+- Open Questions — replaced "None" with two implementation-relevant questions (edit ordering, grounding report divergence)
+- D-3 step 2 — added "agent-generated" qualifier to TOC summary description
 
 ## Positive Observations
 
-- **Outer/inner loop architecture** is clean and reuses existing proof mechanics without modification — strong adherence to C-2
-- **Immediate edit, not accumulate** is a well-reasoned departure from whole-artifact mode, with clear rationale (interruption safety)
-- **Gate-anchored recall** per item correctly applies the "When Anchoring Gates With Tool Calls" principle
-- **"Prose procedure, not code"** decision is well-justified — avoids parser infrastructure for something the agent handles naturally
-- **Key Decisions section** makes all non-obvious choices explicit with rationale
-- **Bottom-to-top edit principle** shows awareness of practical Edit tool constraints
+- **Grounding quality is strong.** Every key decision cites specific frameworks with rationale for adaptation. The grounding report is thorough and the outline references it correctly.
+- **FR-5 lift handled cleanly.** D-2 explains the lift, provides rationale (draft-then-submit universality, structural prevention of agent failure pattern), and the accumulation format is explicit and machine-readable.
+- **Dogfooding feedback incorporated.** Plain text not blockquote, numbered list not table, orientation phase with checkpoint — all traced to brief.md observations.
+- **C-2 satisfaction is elegant.** Discuss sub-loop reuses existing /proof mechanics scoped to one item, rather than inventing new loop structures.
+- **Kill sub-actions preserve verdict count.** Folding `absorb` into kill's sub-action flow keeps the vocabulary within the 3-5 convergence range while preserving the capability.
 
 ## Recommendations
 
-- During user discussion: confirm "skip" verdict is desired (it's a scope addition beyond FR-4)
-- The extraction table covers 6 artifact types but 2 are deferred (diff, non-Python source). Consider whether the table should only show implemented types, or keep as-is for future reference
-- Cost control note about recall caching is good — during design, specify whether cache is keyed on exact trigger string or normalized keywords
+- During user discussion: confirm `skip` verdict is desired — it's a design addition beyond FR-4 (grounding-justified but not in original requirements)
+- Runbook planning should sequence artifact types by implementation complexity: markdown-based types (requirements, outline, design, runbook) first, source files and diffs later
+- The `references/item-review.md` file boundary (what goes in SKILL.md vs reference) should be defined during design — the outline correctly identifies the split need but doesn't specify the boundary
 
 ---
 

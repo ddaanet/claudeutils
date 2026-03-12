@@ -1,31 +1,30 @@
 # Session Handoff: 2026-03-12
 
-**Status:** Unscheduled plan cleanup + interactive review design attempt. Absorbed 5 child plans into parents, created 3 orphan tasks, dogfooded interactive review on its own outline — surfaced presentation and research gaps, reset to briefed.
+**Status:** Interactive review design — grounding complete, outline written and reviewed via dogfooded item-by-item process. Supplementary grounding needed before design generation (4 domain-specific research gaps surfaced during review).
 
 ## Completed This Session
 
-**Unscheduled plan cleanup:**
-- Analyzed 12 unscheduled plans: 6 absorbed, 2 completed/canceled, 4 orphaned
-- Migrated 5 absorbed plan contents into parents before deletion:
-  - merge-lifecycle-audit + plan-completion-ceremony → `plans/worktree-merge-resilience/outline.md` (Absorbed sections)
-  - wt-exit-ceremony + wt-rm-task-cleanup + worktree-ad-hoc-task → `plans/worktree-lifecycle-cli/problem.md` (Absorbed sections)
-- ar-threshold-calibration left alone (Active Recall sub-task with separate plan dir)
-- Deleted completed/canceled plan dirs: bootstrap-tag-support, design-backlog-review, registry-cache-to-tmp
-- Created 3 tasks for orphaned plans: interactive-review, recall-pipeline, skill-exit-commit
+**Interactive review grounding + outline:**
+- Full `/ground` pass: Fagan inspection, IEEE 1028, GitHub/Gerrit/Phabricator review UX, cognitive load research (Cisco/SmartBear, Microsoft)
+- Grounding report: `plans/reports/interactive-review-grounding.md` (Strong label — 4 frameworks + empirical research)
+- Branch reports: `plans/reports/interactive-review-internal-codebase.md`, `plans/reports/interactive-review-external-research.md`
+- Outline written, corrector-reviewed (2 rounds), user-reviewed via dogfooded item-by-item process
+- 14 items reviewed: 4 approved, 8 revised, 2 skipped
+- Key design changes from review: verdict vocabulary is artifact-type-dependent (needs supplementary grounding), discuss is implicit (non-verdict input), no mode selection (single loop path — degenerate single iteration for whole artifacts), iteration guards (no direct edits, refuse execution chaining), `suspend → /design` removed (use pending instead)
+- FR-5 lifted by user (batch-apply only, session resume handles interruption)
+- Classification: Complex, agentic-prose destination
 
-**Interactive review design (partial):**
-- Classified Complex (low implementation certainty, high requirement stability, agentic-prose)
-- Wrote outline, corrector found 0 critical / 3 major / 4 minor — all fixed
-- Dogfooded item-by-item review on the outline itself — surfaced 4 presentation/ergonomics gaps and missing research phase
-- Deleted ungrounded outline + classification, wrote `plans/interactive-review/brief.md` capturing user feedback
-- Next design attempt needs A.3-4 research (Fagan inspection, GitHub/Gerrit/Phabricator UX) before outlining
+**Review findings that need supplementary grounding (4 gaps):**
+- D-1: Per-domain verdict vocabularies (backlog refinement, architecture review, process review, defect triage)
+- D-2: Batch vs immediate by review domain
+- D-7: Per-item cognitive load threshold (Cisco data is per-session, not per-segment)
+- D-8: Skip/deferred item outcome semantics
 
 ## In-tree Tasks
 
 - [>] **Problem.md migration** — `/design plans/problem-md-migration/brief.md` | sonnet
   - Plan: problem-md-migration | Status: briefed
   - Rename 13 problem.md → brief.md with git history recovery, fix planstate `_derive_next_action`, add precommit gate
-
 ## Worktree Tasks
 
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart | 3.2
@@ -121,15 +120,16 @@
   - Plan: research-backlog | Status: requirements
 - [ ] **Small fixes batch** — `/design plans/small-fixes-batch/requirements.md` | sonnet
   - Plan: small-fixes-batch | Status: requirements
+  - FR-4 added: remove bottom-to-top edit ordering refs
 - [ ] **Incident counting** — `/design plans/incident-counting/brief.md` | opus
   - Plan: incident-counting | Status: briefed
   - Fix codify's incident-specific rejection, ground methodology for recurrence tracking
 - [ ] **Retro repo expansion** → `retro-repo-expansion` — `/design plans/retrospective-repo-expansion/brief.md` | sonnet
   - Plan: retrospective-repo-expansion | Status: briefed
   - Extend retrospective evidence base with 16 additional git repos (pre-claudeutils evolution + parallel projects)
-- [ ] **Interactive review** — `/design plans/interactive-review/brief.md` | opus | restart
-  - Plan: interactive-review | Status: briefed
-  - Item-by-item review mode for /proof. Needs research (Fagan, GitHub/Gerrit UX) before outline. User feedback captured in brief.
+- [ ] **Interactive review** — `/ground` then `/design plans/interactive-review/outline.md` | opus | restart
+  - Plan: interactive-review | Status: reviewed
+  - Outline reviewed. Needs supplementary grounding (4 domain gaps: per-domain verdicts, batch-by-domain, per-item size threshold, skip outcome). Then resume design from outline.
 - [ ] **Recall pipeline** — `/design` | sonnet
   - Deduplication, stdin parsing, usage scoring for recall entries
   - Note: plan dir only exists in retro-repo-expansion worktree, not on main. Create plan dir before design.
@@ -194,7 +194,9 @@
 - `plans/skill-gated-session-edits/brief.md` — Causal chain: bare directive → no skill gates → regression committed
 - `plans/system-property-tracing/brief.md` — System invariants + pipeline traceability concept
 - `plans/interactive-review/brief.md` — Dogfooding feedback: presentation ergonomics, research gap, checkpoint-after-TOC
+- `plans/reports/interactive-review-grounding.md` — Grounding report: Fagan, Gerrit, Phabricator, cognitive load (Strong)
+- `plans/interactive-review/outline.md` — Reviewed outline with 4 grounding gaps marked
 
 ## Next Steps
 
-Interactive review design (opus, restart) — needs research phase before outlining. Or system property tracing / skill-gated-session-edits design (opus).
+Interactive review supplementary grounding (opus, restart) — resolve 4 domain-specific research gaps in outline, then resume design. Or bottom-to-top edit cleanup (sonnet, in-tree).
