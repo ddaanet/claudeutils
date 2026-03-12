@@ -4,71 +4,19 @@
 
 ## Completed This Session
 
-**Problem.md migration:**
-- Renamed 12 `problem.md` → `brief.md` via `git mv` (ar-how-verb-form, ar-idf-weighting, ar-threshold-calibration, design-pipeline-evolution, diagnose-compression-loss, markdown-migration, parallel-orchestration, quality-grounding, research-backlog, review-agent-quality, skill-agent-bootstrap, worktree-lifecycle-cli)
-- Removed `problem.md` from planstate recognition: `_collect_artifacts`, `_determine_status` (inference.py), `_RECOGNIZED_ARTIFACTS` (task_plans.py), `focus-session.py` doc_types
-- Updated 5 agentic-prose files: execute-rule.md artifact list, design/SKILL.md requirements source, reflect/SKILL.md example, write-outline.md and research-protocol.md escape hatches
-- Added `test_problem_md_not_recognized` test, updated 2 parametrized cases (removed problem-only, updated brief+problem)
-- Updated 9 session.md task paths and statuses (requirements → briefed)
-- Review skipped with justification (mechanical grep-replace, verified by grep + precommit): `plans/problem-md-migration/reports/review-skip.md`
-- Runbook: `plans/problem-md-migration/runbook.md`
-- 13th plan (design-backlog-review) from brief no longer exists — 12 actual renames
-
-**Recall gate improvement (RCA-driven):**
-- `/reflect` on /runbook skipping mandatory recall gate when chained from /design
-- RCA: 3 layers — gate compliance (tool call not made), scope conflation (triage recall ≠ implementation recall), artifact-branching creates skip rationalization (primary path framed as fallback)
-- Discussion deepened: continuation mechanism not involved — single-conversation context visibility is the actual cause. Gate doesn't distinguish "entries in context from different scope" from "implementation recall done"
-- Discussion: artifact-existence branching is Tier 3 concern (cross-session persistence) leaking into Tier 1/2 (same-session)
-- Fix: rewrote recall gates in runbook/SKILL.md (Tier 1, Tier 2) and inline/SKILL.md (Phase 2.3) — memory-index scan is constant action, artifact is additive supplement, explicit scope signal ("patterns for building, not classifying")
-- Learning appended: "When chained skills share recall context" (`agents/learnings.md`)
-- Brief: `plans/recall-gate/brief.md`, review-skip: `plans/recall-gate/reports/review-skip.md`
-
-**Interactive review (prior session, carried forward):**
-- Full `/ground` pass: Fagan inspection, IEEE 1028, GitHub/Gerrit/Phabricator review UX, cognitive load research (Cisco/SmartBear, Microsoft)
-- Grounding report: `plans/reports/interactive-review-grounding.md` (Strong label — 4 frameworks + empirical research)
-- Branch reports: `plans/reports/interactive-review-internal-codebase.md`, `plans/reports/interactive-review-external-research.md`
-- Outline written, corrector-reviewed (2 rounds), user-reviewed via dogfooded item-by-item process
-- 14 items reviewed: 4 approved, 8 revised, 2 skipped
-- Key design changes from review: verdict vocabulary uniform (not artifact-type-dependent), discuss is implicit (non-verdict input), no mode selection (single loop path), iteration guards, `suspend → /design` removed
-- FR-5 lifted by user (batch-apply only, session resume handles interruption)
-- Classification: Complex, agentic-prose destination
-
-**Supplementary grounding (prior session):**
-- 4 domain gaps resolved via parallel internal/external research branches
-- D-1: Verdict vocabulary is uniform — variation is in review criteria (corrector dispatch), not verdict actions
-- D-2: Batch-apply confirmed for content-modifying review (formal review pattern, not triage)
-- D-7: Per-item size threshold ungrounded across all literature — judgment-based splitting indicators instead
-- D-8: Skip = explicit deferral, non-blocking, visible in summary, no tracking obligation
-- Reports: `plans/reports/interactive-review-supplementary-grounding.md` (Strong), `plans/reports/interactive-review-supplementary-internal.md`, `plans/reports/interactive-review-supplementary-external.md`
-- Grounding reviewed via dogfooded item-by-item process (4 items, all approved)
-- Outline updated with all grounding findings, all open questions resolved
-
-**Interactive review implementation (prior session):**
-- Outline sufficiency gate passed — outline IS the design (no design.md generation)
-- /proof SKILL.md restructured: item-by-item review as primary loop, existing reword-accumulate-sync becomes discussion sub-loop
-- New reference: `agent-core/skills/proof/references/item-review.md` (granularity detection, accumulation format, batch-apply)
-- Skill-reviewer found 6 issues (1 critical, 3 major, 2 minor), all applied
-- SKILL.md: 135 → 164 lines (progressive disclosure working — detail in reference file)
-
-**Recall-gate deliverable review:**
-- 0 critical, 0 major, 2 minor findings
-- M1: tier3-planning-process.md retains old "mandatory tool call on both paths" naming
-- M2: review-dispatch-template.md retains artifact-first branching pattern (out of brief scope but same structural vulnerability)
-- Report: `plans/recall-gate/reports/deliverable-review.md`
-- Lifecycle: reviewed → delivered (on main, no critical findings)
-- Fix task created in Worktree Tasks
-- Minor fixes applied inline: renamed "mandatory tool call on both paths" → "tool call required" across 4 files (tier3-planning-process.md, review-dispatch-template.md, requirements/SKILL.md, design/write-outline.md)
-- review-dispatch-template.md restructured from artifact-first to memory-index-first pattern
-
 **Interactive-review deliverable review:**
 - 0 critical, 0 major, 2 minor findings
-- M1: D-8 skip semantics omits "no tracking obligation" property (3 of 4 grounding properties covered)
-- M2: "Skip corrector when" condition precedes Corrector Dispatch section (organizational)
 - Report: `plans/interactive-review/reports/deliverable-review.md`
-- Lifecycle: reviewed → delivered (on main, no critical findings)
+- Plan lifecycle: reviewed → delivered, plan directory removed, archive entry written
 - M-1 fixed inline: appended "no tracking obligation" to skip semantics (`agent-core/skills/proof/SKILL.md:103`)
-- M-2 dropped: current placement defensible (condition within apply flow, 8 lines from Corrector Dispatch)
-- Discussion: fix task disproportionate for 2 minor prose tweaks — inline fix + drop
+- M-2 dropped: current placement defensible (condition within apply flow)
+- Discussion: fix task disproportionate — inline fix + drop
+
+**RCA: Completed This Session accumulation:**
+- `/reflect` on repeated failure to trim prior-session content from Completed section
+- Root cause: rule gap — handoff protocol's fresh-write path didn't specify Completed resets; carry-forward instruction for tasks bled into narrative section
+- Fix: added "Fresh write resets Completed" instruction at generation point (Step 1), not trim point (Step 6)
+- User refinement: append-then-trim is structurally weak — same class as generate-then-validate
 
 ## In-tree Tasks
 
