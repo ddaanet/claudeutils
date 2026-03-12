@@ -1,35 +1,48 @@
 # Session Handoff: 2026-03-12
 
-**Status:** Interactive review design — grounding complete, outline written and reviewed via dogfooded item-by-item process. Supplementary grounding needed before design generation (4 domain-specific research gaps surfaced during review).
+**Status:** Interactive review implemented — /proof skill restructured with item-by-item review loop, skill-reviewed (6 fixes applied), deliverable review pending.
 
 ## Completed This Session
 
-**Interactive review grounding + outline:**
+**Interactive review grounding + outline (prior session, carried forward):**
 - Full `/ground` pass: Fagan inspection, IEEE 1028, GitHub/Gerrit/Phabricator review UX, cognitive load research (Cisco/SmartBear, Microsoft)
 - Grounding report: `plans/reports/interactive-review-grounding.md` (Strong label — 4 frameworks + empirical research)
 - Branch reports: `plans/reports/interactive-review-internal-codebase.md`, `plans/reports/interactive-review-external-research.md`
 - Outline written, corrector-reviewed (2 rounds), user-reviewed via dogfooded item-by-item process
 - 14 items reviewed: 4 approved, 8 revised, 2 skipped
-- Key design changes from review: verdict vocabulary is artifact-type-dependent (needs supplementary grounding), discuss is implicit (non-verdict input), no mode selection (single loop path — degenerate single iteration for whole artifacts), iteration guards (no direct edits, refuse execution chaining), `suspend → /design` removed (use pending instead)
+- Key design changes from review: verdict vocabulary uniform (not artifact-type-dependent), discuss is implicit (non-verdict input), no mode selection (single loop path), iteration guards, `suspend → /design` removed
 - FR-5 lifted by user (batch-apply only, session resume handles interruption)
 - Classification: Complex, agentic-prose destination
 
-**Review findings that need supplementary grounding (4 gaps):**
-- D-1: Per-domain verdict vocabularies (backlog refinement, architecture review, process review, defect triage)
-- D-2: Batch vs immediate by review domain
-- D-7: Per-item cognitive load threshold (Cisco data is per-session, not per-segment)
-- D-8: Skip/deferred item outcome semantics
+**Supplementary grounding (this session):**
+- 4 domain gaps resolved via parallel internal/external research branches
+- D-1: Verdict vocabulary is uniform — variation is in review criteria (corrector dispatch), not verdict actions
+- D-2: Batch-apply confirmed for content-modifying review (formal review pattern, not triage)
+- D-7: Per-item size threshold ungrounded across all literature — judgment-based splitting indicators instead
+- D-8: Skip = explicit deferral, non-blocking, visible in summary, no tracking obligation
+- Reports: `plans/reports/interactive-review-supplementary-grounding.md` (Strong), `plans/reports/interactive-review-supplementary-internal.md`, `plans/reports/interactive-review-supplementary-external.md`
+- Grounding reviewed via dogfooded item-by-item process (4 items, all approved)
+- Outline updated with all grounding findings, all open questions resolved
+
+**Interactive review implementation (this session):**
+- Outline sufficiency gate passed — outline IS the design (no design.md generation)
+- /proof SKILL.md restructured: item-by-item review as primary loop, existing reword-accumulate-sync becomes discussion sub-loop
+- New reference: `agent-core/skills/proof/references/item-review.md` (granularity detection, accumulation format, batch-apply)
+- Skill-reviewer found 6 issues (1 critical, 3 major, 2 minor), all applied:
+  - Critical: suspend removed (contradicts outline D-6)
+  - Major: discard planstate transition added (review-abandoned), Terminal Actions restructured, duplicate learn removed
+  - Minor: Skill removed from allowed-tools, revisit wording clarified, UNFIXABLE path specified
+- SKILL.md: 135 → 164 lines (progressive disclosure working — detail in reference file)
+- Process learning from dogfooding: remove "TOC" label from orientation (noise)
 
 ## In-tree Tasks
 
-- [ ] **Interactive review** — `/ground` then `/design plans/interactive-review/outline.md` | opus | restart
-  - Plan: interactive-review | Status: reviewed
-  - Outline reviewed. Needs supplementary grounding (4 domain gaps: per-domain verdicts, batch-by-domain, per-item size threshold, skip outcome). Then resume design from outline.
 - [ ] **Problem.md migration** — `/design plans/problem-md-migration/brief.md` | sonnet
   - Plan: problem-md-migration | Status: briefed
   - Rename 13 problem.md → brief.md with git history recovery, fix planstate `_derive_next_action`, add precommit gate
 ## Worktree Tasks
 
+- [ ] **Interactive review** — `/deliverable-review plans/interactive-review` | opus | restart
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart | 3.2
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
@@ -178,6 +191,9 @@
 
 - `session.py:307` produces `# Session: Worktree — {name}` but validator expects `# Session Handoff: YYYY-MM-DD`. Data-fixed this session. Code fix (validator or session.py) is separate behavioral change — not in scope here. [from: fix-prose-routing-bias] [from: session-cli-tool]
 
+**`git stash` on `.claude/settings.local.json` requires sandbox bypass:**
+- File locked by running process. Sandbox can't write to locked file but unsandboxed git can. Use `dangerouslyDisableSandbox: true` for git stash on this file.
+
 ## Reference Files
 
 - `plans/reports/prioritization-2026-03-06b.md` — WSJF scoring, 65 tasks ranked + consolidation analysis
@@ -195,8 +211,10 @@
 - `plans/system-property-tracing/brief.md` — System invariants + pipeline traceability concept
 - `plans/interactive-review/brief.md` — Dogfooding feedback: presentation ergonomics, research gap, checkpoint-after-TOC
 - `plans/reports/interactive-review-grounding.md` — Grounding report: Fagan, Gerrit, Phabricator, cognitive load (Strong)
-- `plans/interactive-review/outline.md` — Reviewed outline with 4 grounding gaps marked
+- `plans/interactive-review/outline.md` — Reviewed outline (all grounding gaps resolved)
+- `plans/reports/interactive-review-supplementary-grounding.md` — Supplementary grounding: 4 domain gaps (Strong)
+- `plans/interactive-review/reports/skill-review.md` — Skill reviewer report (1 critical, 3 major, 2 minor — all applied)
 
 ## Next Steps
 
-Interactive review supplementary grounding (opus, restart, in-tree) — resolve 4 domain-specific research gaps in outline, then resume design.
+Deliverable review for interactive-review (opus, restart, worktree) — review /proof skill changes and grounding artifacts.
