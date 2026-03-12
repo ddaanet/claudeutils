@@ -66,7 +66,9 @@
 - M2: "Skip corrector when" condition precedes Corrector Dispatch section (organizational)
 - Report: `plans/interactive-review/reports/deliverable-review.md`
 - Lifecycle: reviewed → delivered (on main, no critical findings)
-- Fix task created in Worktree Tasks
+- M-1 fixed inline: appended "no tracking obligation" to skip semantics (`agent-core/skills/proof/SKILL.md:103`)
+- M-2 dropped: current placement defensible (condition within apply flow, 8 lines from Corrector Dispatch)
+- Discussion: fix task disproportionate for 2 minor prose tweaks — inline fix + drop
 
 ## In-tree Tasks
 
@@ -77,8 +79,8 @@
 
 - [x] **Review recall gate** — `/deliverable-review plans/recall-gate` | opus | restart
 - [x] **Fix recall-gate findings** — applied inline (naming + structural fixes across 4 skill files)
-- [x] **Interactive review** — `/deliverable-review plans/interactive-review` | opus | restart
-- [ ] **Fix proof review findings** — `/design plans/interactive-review/reports/deliverable-review.md` | opus
+- [x] **Interactive review** — delivered, plan archived
+- [x] **Fix proof review findings** — applied inline (M-1 skip semantics, M-2 dropped as defensible)
 - [ ] **Session CLI tool** — `/orchestrate handoff-cli-tool` | sonnet | restart | 3.2
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
@@ -245,14 +247,10 @@
 - `plans/prose-infra-batch/reports/deliverable-review.md` — Deliverable review report (0 critical, 0 major, 4 minor)
 - `plans/skill-gated-session-edits/brief.md` — Causal chain: bare directive → no skill gates → regression committed
 - `plans/system-property-tracing/brief.md` — System invariants + pipeline traceability concept
-- `plans/interactive-review/brief.md` — Dogfooding feedback: presentation ergonomics, research gap, checkpoint-after-TOC
 - `plans/reports/interactive-review-grounding.md` — Grounding report: Fagan, Gerrit, Phabricator, cognitive load (Strong)
-- `plans/interactive-review/outline.md` — Reviewed outline (all grounding gaps resolved)
 - `plans/reports/interactive-review-supplementary-grounding.md` — Supplementary grounding: 4 domain gaps (Strong)
-- `plans/interactive-review/reports/skill-review.md` — Skill reviewer report (1 critical, 3 major, 2 minor — all applied)
 - `plans/problem-md-migration/runbook.md` — Migration runbook (Tier 2)
 - `plans/recall-gate/reports/deliverable-review.md` — Recall gate review (0 critical, 0 major, 2 minor)
-- `plans/interactive-review/reports/deliverable-review.md` — Interactive review deliverable review (0 critical, 0 major, 2 minor)
 
 ## Next Steps
 

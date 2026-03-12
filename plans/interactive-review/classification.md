@@ -1,7 +1,0 @@
-- **Classification:** Complex
-- **Implementation certainty:** Moderate — approach grounded in external research, but no prior item-by-item implementation exists in codebase
-- **Requirement stability:** High — FRs stable (FR-5 lifted by user, rest unchanged)
-- **Behavioral code check:** Yes — new mode with loop mechanics, verdict dispatch, accumulation logic
-- **Work type:** Production — delivers capability to users (interactive review mode)
-- **Artifact destination:** agentic-prose — modifying /proof skill (SKILL.md + references)
-- **Evidence:** Classified Complex in prior session (2026-03-12). Grounding research completed this session confirms approach. Low implementation certainty (no existing item-by-item pattern) + agentic-prose destination.

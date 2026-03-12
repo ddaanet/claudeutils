@@ -499,3 +499,7 @@ Segment loading at gate boundaries (/design and /runbook). Skills load reference
 ## pipeline-review-protocol
 
 /proof skill replacing ad-hoc single-turn validation with reword-accumulate-sync protocol. 5 integration points across /requirements, /design, /runbook. Author-corrector coupling check in /design. Automatic corrector dispatch after proof "apply" terminal action. Planstate lifecycle integration (review-pending/reviewed). Deliverable review found 2 major + 4 minor, all resolved in fix cycle. Affected: agent-core/skills/proof/, agent-core/skills/design/, agent-core/skills/requirements/, agent-core/skills/runbook/.
+
+## interactive-review
+
+Extended /proof with item-by-item review mode grounded in Fagan inspection, Phabricator draft-then-submit, and cognitive load research. 4 uniform verdicts (approve/revise/kill/skip), orientation phase, batch-apply with structured accumulation, per-item recall context, artifact-type granularity detection, iteration guards. Outline served as design (sufficiency gate). Supplementary grounding resolved 4 domain gaps. Deliverable review: 0 critical, 0 major, 2 minor (1 fixed inline, 1 dropped). Affected: agent-core/skills/proof/SKILL.md, agent-core/skills/proof/references/item-review.md.
