@@ -10,25 +10,21 @@ Extend /proof with an item-by-item review mode. The current /proof validates art
 
 ## Key Decisions
 
-### D-1: Verdict Vocabulary — artifact-type-dependent (NEEDS GROUNDING)
+### D-1: Verdict Vocabulary — Uniform
 
 **FR-4 deviation:** FR-4 specifies 5 verdicts (approve, revise, kill, discuss, absorb). This design reduces to 4 explicit verdicts (a/r/k/s): `discuss` becomes implicit (D-4), `absorb` becomes a kill sub-action, and `skip` is added. Justified by user review session decisions and Fagan/Phabricator convergence research.
 
-Initial grounding covered code review tools (GitHub, Gerrit, Phabricator) and formal inspection (Fagan, IEEE 1028). But /proof primarily reviews planning artifacts — requirements, outlines, designs — which belong to different review domains:
+**Supplementary grounding resolved:** Initially hypothesized artifact-type-dependent verdict vocabularies. Research across 4 non-code domains (backlog refinement, architecture review, process inspection, defect triage) showed the variation across domains is in *review criteria* (what to evaluate), not in *verdict actions* (what to do). The codebase already handles criteria variation through per-artifact corrector dispatch (outline-corrector evaluates soundness, design-corrector evaluates architectural fitness). Verdict vocabulary is orthogonal — it describes the reviewer's routing decision, which is the same regardless of artifact type.
 
-| Artifact type | Review domain | Examples |
-|--------------|--------------|---------|
-| requirements.md | Backlog refinement / issue triage | RICE, WSJF, grooming ceremonies |
-| outline.md / design.md | Architecture / design review | ADRs, design critiques |
-| runbook-phase-*.md | Process review / checklist inspection | Fagan, IEEE 1028 |
-| Deliverable review findings | QA / defect triage | Bug triage meetings |
-| Source files / diffs | Code review (future) | GitHub, Gerrit, Phabricator |
+**Verdict model:** 4 explicit verdicts, uniform across all artifact types:
+- **approve** (a) — item correct, no changes
+- **revise** (r) — user states fix, recorded for batch-apply
+- **kill** (k) — item removed; sub-action prompt for absorb (planning artifacts only)
+- **skip** (s) — explicit deferral, item persists unchanged (D-8)
 
-**Design direction:** Verdict vocabulary varies by artifact type. D-7 already varies granularity by type — verdict vocabulary is a second axis of artifact-type adaptation. `absorb` is natural for requirements/backlog review but meaningless for code review.
+**Kill sub-actions:** After `k`, prompt: "Delete only, or absorb into another artifact?" If absorb: user names target, content transferred before deletion. Absorb is grounded in backlog refinement merge and defect triage duplicate patterns. Present for planning artifacts; absent for code/diff review (no meaningful absorption target).
 
-**Supplementary grounding required:** Research review patterns in each domain before finalizing per-type verdict vocabularies. The initial grounding's convergence finding (3-5 per-item states) may hold across domains, but the specific verdicts may differ.
-
-**Kill sub-actions:** After `k`, prompt: "Delete only, or absorb into another artifact?" If absorb: user names target, content transferred before deletion. (Absorb availability is artifact-type-dependent — present for planning artifacts, absent for code review.)
+**Split excluded:** Present in backlog refinement (decompose large stories) but excluded here. Review disposes existing items, doesn't create new ones. If an item needs splitting, `revise` with "split this into X and Y" captures the intent; the rework phase handles creation. Consistent with Fagan detection-not-resolution principle.
 
 ### D-2: Batch-Apply (not immediate)
 
@@ -111,19 +107,28 @@ Automatic granularity detection (FR-2):
 | Source files | Function/class definitions | Function or class |
 | Diff output | Hunk markers (`@@`) | Individual hunk |
 
-**Hierarchical granularity:** Items above a size threshold auto-split into sub-items (large classes → methods, large diffs → per-function hunks). Per-item size threshold requires grounding — add to supplementary research scope (cognitive load per review segment, not per session).
+**Hierarchical granularity:** Large items auto-split into sub-items (large classes → methods, large diffs → per-function hunks). No metric-based threshold — supplementary grounding confirmed no per-item size threshold exists in literature for planning artifacts. Judgment-based splitting indicators instead:
+- Item contains multiple independent concerns (working memory overload — Cowan's ~4 concurrent items)
+- Item requires scrolling past a single screen (visual context loss)
+- Item has internal structure (sub-headings, enumerated sub-items) suggesting natural decomposition points
 
 **User override (FR-2):** Natural conversation handles granularity changes — no explicit override mechanism needed.
 
 ### D-8: Terminal Actions
 
 **"apply":**
-1. Display full verdict summary (FR-7): N approved, N revised, N killed, N skipped, cross-item outputs
+1. Display full verdict summary (FR-7): N approved, N revised, N killed, **N skipped (unchanged)**, cross-item outputs
 2. User confirms
 3. Apply all verdicts as batch edits to artifact (revise edits, kill deletions, absorb transfers)
 4. Dispatch lifecycle-appropriate corrector (reuse /proof's existing corrector dispatch table)
 5. Present corrector findings
 6. Planstate: reuses /proof's existing entry/exit transitions (review-pending on entry, reviewed on exit) — no separate planstate logic needed
+
+**Skip semantics (supplementary grounding — Fagan, IEEE 1028, federal audit convergence):**
+- Explicit deferral — skip is an affirmative decision to accept item as-is without evaluation, not silent omission
+- Non-blocking — skipped items do not prevent apply (lighter-weight than IEEE 1028's all-closed requirement)
+- Summary visibility — skipped items listed prominently with distinct count ("N skipped (unchanged)")
+- No tracking obligation — unlike audit findings, skipped items don't carry forward as open items or auto-generate pending tasks. Reviewer sees summary count and decides whether to revisit or accept as-is
 
 **"discard":** Abandon all verdicts. Artifact unchanged.
 
@@ -138,11 +143,11 @@ There is no separate "whole-artifact mode." The item-by-item loop is the only pa
 ### IN
 
 - Item-by-item iteration mode in /proof skill
-- Artifact-type-dependent verdict vocabulary (+ kill sub-actions)
+- Uniform verdict vocabulary (+ kill sub-actions for planning artifacts)
 - Orientation phase (preamble + TOC + checkpoint)
 - Batch-apply with accumulation
 - Per-item recall context (FR-3)
-- Artifact-type granularity detection (hierarchical — large items auto-split)
+- Artifact-type granularity detection (hierarchical — large items auto-split via judgment-based indicators)
 - Implicit discussion via non-verdict input, using existing /proof mechanics
 - Iteration guards (no direct edits, no execution-oriented chaining) — behavioral instruction in SKILL.md (same enforcement pattern as existing /proof anti-patterns section)
 - Normal loop actions during iteration (learn, pending, brief)
@@ -172,9 +177,7 @@ There is no separate "whole-artifact mode." The item-by-item loop is the only pa
 
 ## Open Questions
 
-**Grounding report divergence:** The grounding report (sections 1, 4) reflects pre-review analysis. This outline incorporates review findings that expand the grounding scope: artifact-type-dependent verdict vocabularies (D-1), skip outcome semantics (D-8), per-item cognitive load threshold (D-7), batch-apply by domain (D-2). Outline is authoritative; supplementary grounding will update the report.
-
-**Skip outcome:** What happens to skipped items after apply? Persist unchanged and list in summary? Become pending tasks? Block apply? Needs grounding — established review processes handle deferred/unreviewed items differently by domain.
+*All open questions resolved by supplementary grounding. See `plans/reports/interactive-review-supplementary-grounding.md`.*
 
 ## Risk
 
@@ -190,3 +193,6 @@ There is no separate "whole-artifact mode." The item-by-item loop is the only pa
 - `plans/interactive-review/requirements.md` — FR-1 through FR-7 (FR-5 lifted)
 - `plans/interactive-review/brief.md` — dogfooding feedback
 - `agent-core/skills/proof/SKILL.md` — current /proof skill (extension target)
+- `plans/reports/interactive-review-supplementary-grounding.md` — supplementary grounding (4 domain gaps resolved)
+- `plans/reports/interactive-review-supplementary-internal.md` — supplementary internal branch
+- `plans/reports/interactive-review-supplementary-external.md` — supplementary external branch
