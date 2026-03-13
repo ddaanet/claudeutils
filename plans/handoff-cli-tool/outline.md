@@ -1,10 +1,10 @@
 # Session CLI Tool — Design Outline
 
-**Task:** `claudeutils _session` command group — mechanical CLI for handoff, commit, and status operations. Internal (underscore prefix, hidden from `--help`). Skills remain the user interface; CLI handles writes, validation, subprocess orchestration.
+**Task:** `claudeutils _handoff`, `_commit`, `_status` — mechanical CLI commands for handoff, commit, and status operations. Internal (underscore prefix, hidden from `--help`). Skills remain the user interface; CLI handles writes, validation, subprocess orchestration.
 
 ## Approach
 
-Three subcommands under `_session`: `handoff` (session.md writes + diagnostics), `commit` (sole commit path, sandbox-blacklisted alternatives), `status` (pure data transformation for STATUS display). Each reads structured markdown, performs mechanical operations, returns markdown output. LLM judgment stays in skills.
+Three top-level commands: `_handoff` (session.md writes + diagnostics), `_commit` (sole commit path, sandbox-blacklisted alternatives), `_status` (pure data transformation for STATUS display). Each reads structured markdown, performs mechanical operations, returns markdown output. LLM judgment stays in skills. Flat is better than nested.
 
 ## Shared Infrastructure
 
@@ -15,33 +15,23 @@ src/claudeutils/
   git.py              NEW — shared git helpers (_git, submodule discovery, status/diff)
   session/
     __init__.py
-    cli.py            Click group registered as `_session` in parent cli.py
+    cli.py            Click commands registered as _handoff, _commit, _status in parent cli.py
     parse.py          Session.md parser (shared: handoff writes, status reads)
-    handoff/
-      __init__.py
-      cli.py          Subcommand
-      pipeline.py     Pipeline + state caching
-      context.py      Diagnostic gathering
-    commit/
-      __init__.py
-      cli.py          Subcommand
-      gate.py         Scripted vet check (pyproject.toml patterns + report discovery)
-      parse.py        Markdown stdin parser (commit-specific format)
-    status/
-      __init__.py
-      cli.py          Subcommand
-      render.py       STATUS output formatting
+    handoff.py        Pipeline + state caching + diagnostics
+    commit.py         Parser + validation + pipeline
+    commit_gate.py    Scripted vet check (pyproject.toml patterns + report discovery)
+    status.py         STATUS output rendering
 ```
 
-Registration: `cli.add_command(session_group)` in main `cli.py`, same pattern as worktree.
+Registration: `cli.add_command()` for `_handoff`, `_commit`, `_status` in main `cli.py`, same pattern as worktree. `_git changes` registered as a sub-command of a `_git` Click group, also added to main `cli.py`.
 
 ### S-2: `_git()` extraction + submodule discovery
 
 Move `_git()` and `_is_submodule_dirty()` from `worktree/utils.py` to `claudeutils/git.py`. Update worktree imports. Submodule discovery via `git submodule status` / `.gitmodules` — no hardcoded submodule names. Replaces `"-C", "agent-core"` literals with iteration over discovered submodules.
 
-### S-5: Git status/diff utility
+### S-5: Git changes utility
 
-`claudeutils _git status` and `claudeutils _git diff` — unified parent + submodule view. Discovers submodules via git, iterates each for status/diff, returns structured markdown. Consumers: commit skill (input construction for `## Files` and `## Submodule` sections), commit CLI (C-2/C-3 validation), handoff CLI (H-3 diagnostics). No LLM judgment — mechanical git queries only.
+`claudeutils _git changes` — unified parent + submodule view returning both status and diff in one call. Discovers submodules via git, iterates each for status/diff, returns structured markdown. If tree is clean, output says so. If dirty, output includes both the file list and the diff. Consumers: commit skill (input construction for `## Files` and `## Submodule` sections), handoff CLI (H-3 diagnostics). Internal Python functions (`git_status()`, `git_diff()` in `git.py`) serve commit CLI validation (C-2/C-3) separately. No LLM judgment — mechanical git queries only.
 
 ### S-3: Output and error conventions
 
@@ -66,7 +56,7 @@ Used by handoff (locate write targets) and status (read + format).
 
 ---
 
-## `_session handoff`
+## `_handoff`
 
 Two modes — fresh (stdin has content) and resume (no stdin, reads state file).
 
@@ -77,12 +67,12 @@ Two modes — fresh (stdin has content) and resume (no stdin, reads state file).
 
 ## Completed This Session
 
-**Handoff CLI tool design (Phase A):**
+### Handoff CLI tool design (Phase A)
 - Produced outline
 - Review by outline-review-agent
 ```
 
-Required: `**Status:**` line marker and `## Completed This Session` heading.
+Required: `**Status:**` line marker and `## Completed This Session` heading. Completed entries use `### ` headings (standard markdown nesting), not bold-colon format.
 
 ### Pipeline
 
@@ -96,7 +86,7 @@ Required: `**Status:**` line marker and `## Completed This Session` heading.
 6. Output diagnostics (conditional — see H-3)
 7. Delete state file
 
-**Resume** (no stdin): load from state file, re-execute from `step_reached`. Agent calls `claudeutils _session handoff` directly on retry.
+**Resume** (no stdin): load from state file, re-execute from `step_reached`. Agent calls `claudeutils _handoff` directly on retry.
 
 ### H-1: Domain boundaries
 
@@ -122,11 +112,14 @@ Session.md write targets: status line and completed section only. All other sect
 
 ### H-3: Diagnostic output
 
-| Diagnostic | Condition |
-|-----------|-----------|
-| Precommit result | Always |
-| Git status/diff | Precommit passed |
-| Learnings age | Any entries ≥7 active days (summary line only) |
+Output is emitted in two paths: (a) **failure path** at step 5 (precommit fail → exit 1), (b) **success path** at step 6 (after precommit passes).
+
+| Diagnostic | Path | Condition |
+|-----------|------|-----------|
+| Precommit result | Both | Always (failure: full output; success: summary) |
+| Learnings age | Both | Failure: always emitted; Success: any entries ≥7 active days (summary line only) |
+| Learnings token weight | Success only | Token count of `agents/learnings.md`, severity warning above 5k tokens |
+| Git status/diff | Success only | Always after precommit passes |
 
 ### H-4: State caching
 
@@ -137,7 +130,7 @@ Session.md write targets: status line and completed section only. All other sect
 
 ---
 
-## `_session commit`
+## `_commit`
 
 Sole commit path. Reads structured markdown on stdin, produces structured markdown on stdout.
 
@@ -169,9 +162,9 @@ Pipeline: validate → vet check → precommit → stage → submodule commit �
 
 **Sections:**
 - `## Files` — required, first. Bulleted paths to stage (modifications, additions, deletions — `git add` handles all).
-- `## Options` — optional. `no-vet` (skip vet check), `just-lint` (lint only), `amend` (amend previous commit). Unknown options → error (fail-fast).
+- `## Options` — optional. `no-vet` (skip vet check), `just-lint` (lint only), `amend` (amend previous commit), `no-edit` (keep existing message, requires `amend`). Unknown options → error (fail-fast).
 - `## Submodule <path>` — repeatable, one per dirty submodule. Conditionally required (see C-2). Blockquoted. Path matches submodule directory name from `git submodule status`.
-- `## Message` — required, last. Blockquoted. Everything from `## Message` to EOF is message body — safe for content containing `## ` lines.
+- `## Message` — required unless `amend` + `no-edit` in Options. Blockquoted. Everything from `## Message` to EOF is message body — safe for content containing `## ` lines.
 
 Parsing: `## ` prefix matched against known section names. Unknown `## ` within blockquotes treated as message body.
 
@@ -242,7 +235,7 @@ Warning + success (exit 0):
  3 files changed, 142 insertions(+), 8 deletions(-)
 ```
 
-**Output principle:** Report deviations only. Success = git output verbatim (agent extracts short hash from `[branch hash]` line). Failure = gate-specific diagnostic. Warnings prepended to git output. No CLI-side parsing of git output — passthrough preserves diagnostic value, especially for `amend` where the output reveals which commit was modified.
+**Output principle:** Report deviations only. Success = git commit summary lines (`[branch hash]` + file stats) — agent extracts short hash. Failure = gate-specific diagnostic. Warnings prepended to git output. Strip git `hint:` and advice lines — LLM agents interpret these as instructions (e.g., "remove index.lock" → agent deletes the file).
 
 Error taxonomy: **stop** (non-zero, no commit) for clean-files, missing submodule message, vet check failure, precommit failure. **Warning + proceed** (zero exit) for orphaned submodule message.
 
@@ -260,6 +253,8 @@ require-review = [
 ```
 
 No patterns → check passes (opt-in). Report discovery: `plans/*/reports/` matching `*vet*` or `*review*` (not `tmp/`). Freshness: mtime of newest production artifact vs newest report. Stale → fail.
+
+Vet check must also cover agent-core scripts (`agent-core/bin/**`, `agent-core/skills/**/*.sh`). Config model for submodule patterns (unified parent config vs per-repo `pyproject.toml`) deferred — requires external grounding.
 
 ### C-2: Submodule coordination
 
@@ -289,18 +284,19 @@ Each path in Files must appear in `git status --porcelain`. Clean files → erro
 | Pre-review (initial implementation, no vet report yet) | Skip vet check only | `no-vet` |
 | Combined | `just lint` + skip vet check | `just-lint` + `no-vet` |
 
-Options are orthogonal: `amend` combines with any validation level above. `amend` alone = full validation + amend. `amend` + `just-lint` = lint + amend. `amend` + `no-vet` = precommit + amend without vet check. No option to skip validation entirely.
+Options are orthogonal. No option to skip validation entirely.
 
 ### C-5: Amend semantics
 
 `amend` option passes `--amend` to `git commit`. Interactions:
 - **C-3 (input validation):** When amending, listed files may already be committed (in HEAD) with no further changes. Validation checks `git status --porcelain` (uncommitted changes) OR `git diff-tree --no-commit-id --name-only HEAD` (file is part of HEAD commit). Clean-file error only fires when a file appears in neither.
 - **C-2 (submodule):** Amend propagation is directional — submodule amend implies parent amend (pointer hash changes), but parent-only amend is independent. When submodule files are in the amend set: amend submodule → re-stage pointer → amend parent. When only parent files: amend parent only.
-- **Message:** Required even with `amend` — no `--no-edit` implicit behavior. The caller provides the full (potentially updated) message.
+- **Message:** Required unless `no-edit` option is also present. `no-edit` keeps existing commit message — `## Message` section omitted. `no-edit` without `amend` → error.
+- **Validation state:** Amend inherits no validation state from the original commit. Caller must re-specify options (`just-lint`, `no-vet`, etc.).
 
 ---
 
-## `_session status`
+## `_status`
 
 Pure data transformation. Reads session.md + filesystem state, produces formatted STATUS output. No mutations, no stdin.
 
@@ -314,16 +310,25 @@ Pure data transformation. Reads session.md + filesystem state, produces formatte
 
 ### Output
 
-Matches execute-rule.md MODE 1 format. `Next:` selection skips tasks with any `→` marker (`→ slug` = branched, `→ wt` = destined for worktree but not yet branched).
+ANSI-colored structured text. Designed for two display paths:
+1. **Stop hook integration:** Agent outputs trigger string, Stop hook runs `_status`, `systemMessage` displays result directly to user (zero agent token waste)
+2. **Direct invocation:** User runs `claudeutils _status` in terminal
+
+Matches execute-rule.md MODE 1 format with display improvements:
+- **Session continuation header:** When git tree is dirty, prepend `Session: uncommitted changes — `/handoff`, `/commit``. If any plan-associated task has status `review-pending`, append `` `/deliverable-review plans/<name>` ``. Omit entirely when tree is clean.
+- Suppress `Next:` section when it duplicates the first in-tree task (single-task case)
+- Next-task metadata (command, model, restart) merged into the in-tree item with `▶` marker
+- Tasks with any `→` marker skipped for `Next:` selection
 
 ```
-Next: <first pending task>
-  `<command>`
-  Model: <model> | Restart: <yes/no>
+Session: uncommitted changes — `/handoff`, `/commit`
 
-Pending:
-- <task> (<model if non-default>)
-  - Plan: <dir> | Status: <status>
+In-tree:
+▶ <first task> (<model>) | Restart: <yes/no>
+  `<command>`
+  Plan: <dir> | Status: <status>
+- <other task> (<model>)
+  Plan: <dir> | Status: <status>
 
 Worktree:
 - <task> → <slug>
@@ -344,23 +349,23 @@ Tasks marked `→ wt` in session.md are destined for worktree execution but not 
 
 ### ST-1: Parallel group detection
 
-Independent when: no shared plan directory, no logical dependency (Blockers/Gotchas). Largest group only. Omit section if none. Model tier and restart are per-session concerns — worktree parallelism eliminates both constraints.
+Independent when: no shared plan directory, no logical dependency (Blockers/Gotchas). Constrained by task ordering in session.md — only consecutive independent tasks form a group. Cap at 5 concurrent sessions. First eligible group in document order. Omit section if none.
 
 ### ST-2: Preconditions and degradation
 
 Missing session.md → **fatal error** (exit 2). Session.md is the load-bearing file for task tracking — absence signals wrong cwd, corruption, or accidental deletion. Silent degradation to empty state masks data loss. Exit 2 per S-3: this is input validation (expected file missing), not a runtime pipeline failure.
 
-Old format (no metadata) → defaults. Empty sections omitted.
+Old format (no metadata) → **fatal error** (exit 2). Mandatory metadata (command, plan reference) enforces plan-backed task rule — no silent defaults. Empty sections omitted.
 
 ---
 
 ## Scope
 
 **IN:**
-- `_session` command group (handoff, commit, status)
+- `_handoff`, `_commit`, `_status` top-level commands
 - Shared session.md parser
 - `_git()` extraction to `claudeutils/git.py` with submodule discovery
-- Git status/diff utility (`claudeutils _git status/diff`) with submodule-aware output
+- Git changes utility (`claudeutils _git changes`) with submodule-aware output
 - Handoff: stdin parsing, session.md writes, committed detection, diagnostics, state caching
 - Commit: stdin parsing, scripted vet check (pyproject.toml), input validation, submodule pipeline, structured output
 - Status: session.md parsing, plan cross-referencing, parallel detection, STATUS rendering
@@ -374,11 +379,11 @@ Old format (no metadata) → defaults. Empty sections omitted.
 - Pending task mutations, learnings, blockers, reference files — agent Edit
 - Consolidation delegation — existing skill
 
-**Skill integration (future):** After CLI exists, `/commit` skill simplifies to: Gate A (LLM) → discovery (`claudeutils _git status`) → draft message + gitmoji → pipe to `_session commit`. Current skill steps collapse into one CLI call.
+**Skill integration (future):** After CLI exists, `/commit` skill simplifies to: Gate A (LLM) → discovery (`claudeutils _git changes`) → draft message + gitmoji → pipe to `claudeutils _commit`. Current skill steps collapse into one CLI call.
 
 ## Phase Notes
 
-- Phase 1: `_git()` extraction + submodule discovery + git status/diff utility + session.md parser — **general**
+- Phase 1: `_git()` extraction + submodule discovery + git changes utility + session.md parser — **general**
 - Phase 2: Status subcommand — **TDD** (pure function: session.md + filesystem → formatted output)
 - Phase 3: Handoff pipeline — **TDD** (stdin parsing, session.md writes, committed detection, state caching, diagnostics)
 - Phase 4: Commit parser + input validation — **TDD** (markdown parsing, file status check, submodule message consistency)
@@ -386,25 +391,3 @@ Old format (no metadata) → defaults. Empty sections omitted.
 - Phase 6: Commit pipeline + output — **TDD** (staging, submodule coordination, amend, structured output with git passthrough)
 - Phase 7: Integration tests — **TDD** (end-to-end across subcommands, real git repos)
 
-## Decision References
-
-Decisions and learnings that inform implementation:
-
-**CLI conventions** (`agents/decisions/cli.md`):
-- S-3 output/error: all output to stdout, exit code carries signal — `/when writing CLI output` (no destructive suggestions)
-- Error routing: `/how output errors to stderr` → overridden by S-3 (stdout-only for LLM callers)
-- Exit codes: `/when writing error exit code` (consolidate display+exit, `_fail()` pattern)
-- Error layers: `/when adding error handling to call chain` (context at failure site, display at top level)
-- State queries: `/when checking expected program state` (`_git_ok()` boolean pattern)
-
-**LLM-caller design** (`agents/learnings.md`):
-- Structured markdown on stdin/stdout — no quoting issues, natural multiline (`When designing CLI tools for LLM callers`)
-- CLI output consumed by agents: facts only, no recovery suggestions (`When CLI outputs errors consumed by LLM agents`)
-- Git output passthrough: agent extracts short hash from `[branch hash]` line, full output enables amend correctness diagnosis (design decision, this outline)
-
-**Testing** (`agents/decisions/testing.md`):
-- `/when testing CLI tools` — Click CliRunner, in-process, isolated filesystem
-- Real git repos via `tmp_path` for commit/submodule integration tests
-
-**Output format** (`agents/decisions/cli.md`):
-- `/when choosing feedback output format` — text default, json optional (future extension point)
