@@ -29,7 +29,7 @@ Extracted: 2026-03-11
   - `b0c0d64` 2025-11-28 Initial commit
 - **Notes:** Gemini agent project. AGENTS.md titled "Agent Memory" with retrospective-driven rule updates. Added "LLM Limitation Awareness" section — earliest known metacognitive rules.
 
-### scratch/box-api
+### box-api
 - **Path:** `~/code/claudeutils/scratch/box-api`
 - **Commits:** 46 (expected ~46)
 - **Date range:** 2025-11-14 to 2025-12-08
@@ -42,7 +42,7 @@ Extracted: 2026-03-11
   - `331f5ce` 2025-12-08 Add real worker integration tests with optimized teardown
 - **Notes:** Most AGENTS.md-heavy of the scratch repos. Shows cross-pollination from tuick project. Agent-specific `just` recipes pattern established here.
 
-### scratch/emojipack
+### emojipack
 - **Path:** `~/code/claudeutils/scratch/emojipack`
 - **Commits:** 70 (expected ~70)
 - **Date range:** 2025-10-12 to 2026-01-08
@@ -53,7 +53,7 @@ Extracted: 2026-03-11
   - `4d6a333` 2025-10-18 Overhaul AGENTS.md
 - **Notes:** Earliest structured TDD rules. "Red-Green does not apply when removing code" — first exception-based refinement.
 
-### scratch/home
+### home
 - **Path:** `~/code/claudeutils/scratch/home`
 - **Commits:** 76 (expected ~76)
 - **Date range:** 2025-11-05 to 2026-01-13
@@ -65,7 +65,7 @@ Extracted: 2026-03-11
   - `d749bf7` 2026-01-13 AGENTS.md: add terse prompt guidance
 - **Notes:** Most architecturally significant. Introduces: orchestrator model (opus orchestrates, haiku/sonnet execute), file organization table, session management, sub-agent delegation protocol, commit workflow delegation. All in 2 days.
 
-### scratch/pytest-md
+### pytest-md
 - **Path:** `~/code/claudeutils/scratch/pytest-md`
 - **Commits:** 55 (expected ~55)
 - **Date range:** 2026-01-02 to 2026-01-12
@@ -128,7 +128,7 @@ Extracted: 2026-03-11
 
 ### emojipack (standalone)
 - **Path:** `~/code/emojipack`
-- **Commits:** 70 — identical to scratch/emojipack (same repo, same history)
+- **Commits:** 70 — identical to emojipack (same repo, same history)
 - **Notes:** Not an independent data point.
 
 ### ddaanet

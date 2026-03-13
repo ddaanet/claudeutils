@@ -18,9 +18,9 @@
 | Commit | Date | Repo | Topics | Significance |
 |--------|------|------|--------|-------------|
 | `7b0a4b4` | 2025-09-30 | rules | T1, T2, T5 | Initial rules.md. T1: proto-memory (human-written rules consumed by agent). T2: "proceed autonomously" anti-pushback directive. T5: rule-based enforcement predating structural gates. |
-| `9cc5c62` | 2025-10-12 | scratch/emojipack | T2, T5 | "#auto Proceed autonomously" + "`just agent` before every commit." T2: anti-pushback pattern. T5: first commit gate. Same commit contains both anti-patterns and structural enforcement. |
-| `64cbf8f` | 2025-12-01 | oklch-theme | T1, T2 | LLM Limitation Awareness section. T1: metacognitive rules as proto-memory system (agent reflects on own limitations). T2: proto-pushback (flag uncertainty). Gemini project — pattern is model-general. |
-| `0bbdbf8` | 2025-11-23 | scratch/box-api | T1, T5 | AGENTS.md with session-specific rules + agent-vs-human commands. T1: filtering criterion for what to remember. T5: structural role differentiation. |
+| `9cc5c62` | 2025-10-12 | emojipack | T2, T5 | "#auto Proceed autonomously" + "`just agent` before every commit." T2: anti-pushback pattern. T5: first commit gate. Same commit contains both anti-patterns and structural enforcement. |
+| `64cbf8f` | 2025-12-01 | oklch-theme | T1, T2 | LLM Limitation Awareness section. T1: metacognitive rules as proto-memory system (agent reflects on own limitations). T2: metacognitive dead end (flag uncertainty — wishful thinking, same class as tuick cognitive protocols). Started Gemini, iterated Claude Desktop. |
+| `0bbdbf8` | 2025-11-23 | box-api | T1, T5 | AGENTS.md with session-specific rules + agent-vs-human commands. T1: filtering criterion for what to remember. T5: structural role differentiation. |
 
 ### Sessions appearing in 2+ topic reports
 
@@ -85,11 +85,11 @@ The single most pervasive failure mode, appearing in four of five topics:
 | Oct 25 | tuick: same template propagated | T2, T5 (template copy) |
 | Nov 23 | box-api: agent-vs-human commands, session rules | T1 (memory filtering), T5 (role separation) |
 | Nov 28 | oklch-theme: "Agent Memory" with self-update | T1 (agent→file write loop) |
-| Dec 1 | oklch-theme: LLM Limitation Awareness, opus orchestrator | T1 (metacognitive proto-memory), T2 (proto-pushback) |
+| Dec 1 | oklch-theme: LLM Limitation Awareness, opus orchestrator | T1 (metacognitive proto-memory), T2 (metacognitive dead end) |
 | Dec 12 | tuick: cognitive protocols added | T2 (overengineered pushback attempt) |
 | Dec 15 | tuick: cognitive protocols removed | T2 (dead end discarded) |
 | Jan 3 | pytest-md: .claude/settings.json | T5 (platform config enforcement) |
-| Jan 12 | scratch/home: file taxonomy, orchestrator constraints | T1 (structured memory), T5 (Allowed/Delegate model) |
+| Jan 12 | home: file taxonomy, orchestrator constraints | T1 (structured memory), T5 (Allowed/Delegate model) |
 | Jan 15 | agent-core initialized | T1 (shared memory infra), T5 (shared enforcement infra) |
 
 ### Week 1: Feb 1-8 — Foundations laid independently

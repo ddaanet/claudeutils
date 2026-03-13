@@ -8,13 +8,13 @@ Structural enforcement didn't begin with D+B anchoring. The first enforcement me
 
 | Date | Repo | Hash | Event |
 |------|------|------|-------|
-| 2025-10-12 | scratch/emojipack | `9cc5c62` | "`just agent` before every commit" — first commit gate. Mechanical recipe as enforcement. |
+| 2025-10-12 | emojipack | `9cc5c62` | "`just agent` before every commit" — first commit gate. Mechanical recipe as enforcement. |
 | 2025-10-25 | tuick | `7d2fa67` | Same commit gate propagated. Template-copy enforcement. |
-| 2025-11-23 | scratch/box-api | `0bbdbf8` | Agent-vs-human command separation: `just agent` (AI), `just dev` (human). Structural role differentiation. |
-| 2025-12-05 | scratch/box-api | `b3aa473` | "One-letter commands" — shorthand for frequent agent operations. |
-| 2026-01-03 | scratch/pytest-md | `fd939eb` | `.claude/settings.json` — platform-level configuration as enforcement. Rules encoded in platform, not prose. |
-| 2026-01-13 | scratch/home | `deb0d91` | Orchestrator constraints: "Allowed/Delegate" model. What orchestrator can and cannot do, structurally enforced. |
-| 2026-01-13 | scratch/home | `37b08e7` | "Require protocol read before execution" — read-before-act gate. |
+| 2025-11-23 | box-api | `0bbdbf8` | Agent-vs-human command separation: `just agent` (AI), `just dev` (human). Structural role differentiation. |
+| 2025-12-05 | box-api | `b3aa473` | "One-letter commands" — shorthand for frequent agent operations. |
+| 2026-01-03 | pytest-md | `fd939eb` | `.claude/settings.json` — platform-level configuration as enforcement. Rules encoded in platform, not prose. |
+| 2026-01-13 | home | `deb0d91` | Orchestrator constraints: "Allowed/Delegate" model. What orchestrator can and cannot do, structurally enforced. |
+| 2026-01-13 | home | `37b08e7` | "Require protocol read before execution" — read-before-act gate. |
 | 2026-01-22 | home | `83cef17` | Agent-core submodule — enforcement via shared infrastructure. Rules can't drift per-project. |
 
 **Enforcement escalation in pre-history:**
@@ -24,8 +24,8 @@ Structural enforcement didn't begin with D+B anchoring. The first enforcement me
 | Recipe gate | `just agent` before commit | emojipack, Oct 2025 |
 | Role separation | Agent vs human commands | box-api, Nov 2025 |
 | Platform config | `.claude/settings.json` | pytest-md, Jan 2026 |
-| Structural constraints | Allowed/Delegate model | scratch/home, Jan 2026 |
-| Read-before-act | Protocol read required | scratch/home, Jan 2026 |
+| Structural constraints | Allowed/Delegate model | home, Jan 2026 |
+| Read-before-act | Protocol read required | home, Jan 2026 |
 | Shared infrastructure | Agent-core submodule | home, Jan 2026 |
 
 The pre-history shows enforcement escalating through the same pattern as the claudeutils era — each mechanism addresses failures of the previous one — but at a coarser granularity. `just agent` prevents bad commits; role separation prevents wrong tool usage; platform config prevents configuration drift. The claudeutils era applies the same principle at the instruction-following level.
@@ -200,14 +200,14 @@ The implementation replaced prose gates with `when-resolve.py` calls — a scrip
 ### Inflection 0: The First Commit Gate (Oct 2025)
 
 **When:** Oct 12, 2025
-**Evidence:** scratch/emojipack `9cc5c62`, tuick `7d2fa67`, scratch/box-api `0bbdbf8`
+**Evidence:** emojipack `9cc5c62`, tuick `7d2fa67`, box-api `0bbdbf8`
 **What:** "`just agent` before every commit" — the first structural enforcement of quality. A recipe that must run before committing. Not prose advice ("run tests before committing") but a named gate in the workflow.
 **Significance:** This is structural enforcement at the workflow level, five months before D+B anchoring. The same principle (mechanical check, not advisory instruction) applied to a different problem (commit quality, not instruction following). The evolution: recipe gates → platform config → orchestrator constraints → D+B tool-call anchoring → PreToolUse hooks.
 
 ### Inflection 0.5: Platform-Level Configuration (Jan 2026)
 
 **When:** Jan 3, 2026
-**Evidence:** scratch/pytest-md `fd939eb`, scratch/home `deb0d91`
+**Evidence:** pytest-md `fd939eb`, home `deb0d91`
 **What:** `.claude/settings.json` moves enforcement from per-session instructions to platform configuration. Orchestrator constraints (Allowed/Delegate model) structurally limit what the orchestrator can do — not via prose rules but via role definitions.
 **Significance:** The enforcement moves from "instructions the agent should follow" to "configuration the platform enforces." This is the same conceptual step that PreToolUse hooks later take: enforcement at a layer the agent cannot bypass through rationalization.
 
@@ -251,7 +251,7 @@ Topic injection (UPS Tier 2.75) was the attempt to use keyword matching for ambi
 `just agent` commit gate (emojipack, Oct 2025)
   → Agent-vs-human command separation (box-api, Nov 2025)
     → Platform config: .claude/settings.json (pytest-md, Jan 2026)
-      → Orchestrator constraints: Allowed/Delegate (scratch/home, Jan 2026)
+      → Orchestrator constraints: Allowed/Delegate (home, Jan 2026)
         → Shared infrastructure: agent-core submodule (home, Jan 2026)
           → Defense-in-depth document: D+B named (Feb 8)
             → Prose gates skipped under momentum (Feb 24)
@@ -276,7 +276,7 @@ Structural enforcement is the meta-pattern that connects the other four retrospe
 
 - **Pushback** (Topic 2): Pushback rules are prose instructions that compete with sycophantic momentum. The same pattern: prose rules get overridden by behavioral momentum. D+B anchoring applies (force a specific verification tool call before agreeing). Pre-history parallel: tuick's cognitive protocols (overengineered metacognition) were the same failure class as verbose prose gates — more words doesn't mean more compliance.
 
-- **Deliverable review** (Topic 3): The review process itself was a structural gate — requiring a specific review skill invocation before marking work as delivered. The `review-pending` planstate enforces this structurally. External validation: devddaanet ran the full review→fix→re-review cycle (commits `265c8c7`, `cae9155`, `4ffb1ea`), confirming the structural gate works outside claudeutils.
+- **Deliverable review** (Topic 3): The review process itself was a structural gate — requiring a specific review skill invocation before marking work as delivered. The `review-pending` planstate enforces this structurally. devddaanet ran the full review→fix→re-review cycle (commits `265c8c7`, `cae9155`, `4ffb1ea`), but post-delivery commits (3 bug fixes, sync overhaul) show the review didn't catch everything — the structural gate ensures a review happens, not that it's comprehensive.
 
 - **Ground skill** (Topic 4): Grounding decisions via tool calls (Read the evidence, resolve recall entries) rather than prose reasoning. Same D+B principle: anchor the verification in a tool call, not in prose instructions to "check carefully."
 

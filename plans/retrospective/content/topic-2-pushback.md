@@ -2,7 +2,7 @@
 
 Evidence bundle for the retrospective blog post on anti-sycophancy protocol development.
 
-**Key narrative:** "Proceed autonomously" (anti-pushback) → LLM limitation awareness (proto-pushback) → cognitive protocols (overengineered, removed same day) → structured agreement tracking → stress-testing reveals rules get rationalized past → verdict-first rewrite → structural enforcement via grounding gates.
+**Key narrative:** "Proceed autonomously" (anti-pushback) → metacognitive wishful thinking (LLM limitation awareness, cognitive protocols — both dead ends) → structural enforcement → structured agreement tracking → stress-testing reveals rules get rationalized past → verdict-first rewrite → structural enforcement via grounding gates.
 
 ---
 
@@ -15,16 +15,16 @@ The earliest agent instructions actively suppressed pushback. The reversal happe
 | Date | Repo | Hash | Event |
 |------|------|------|-------|
 | 2025-09-30 | rules | `7b0a4b4` | "Proceed autonomously without asking" — anti-pushback. Agent directed to work without stopping for evaluation. |
-| 2025-10-12 | scratch/emojipack | `9cc5c62` | "#auto Proceed autonomously without asking until all tasks complete" — same pattern, hashtag-labeled. |
+| 2025-10-12 | emojipack | `9cc5c62` | "#auto Proceed autonomously without asking until all tasks complete" — same pattern, hashtag-labeled. |
 | 2025-10-25 | tuick | `7d2fa67` | Same emojipack template. No pushback mechanisms. |
-| 2025-12-01 | oklch-theme | `64cbf8f` | "LLM Limitation Awareness" — first metacognitive rules. "Flag uncertainty and request validation when: Multi-step reasoning (>3 steps), Long context (>50k tokens), Known failure modes: Hallucination, negation errors, context conflation." Proto-pushback. |
+| 2025-12-01 | oklch-theme | `64cbf8f` | "LLM Limitation Awareness" — metacognitive rules asking agent to flag uncertainty. Same class of wishful thinking as tuick's cognitive protocols — assumes confidence-monitoring capability that doesn't exist. |
 | 2025-12-12 | tuick | `a3e15a1` | "Cognitive protocols and rule improvements" — explicit metacognition rules added. Overengineered attempt at structured self-awareness. |
 | 2025-12-15 | tuick | `26c3b5d` | "Remove epistemic standards" — pullback from cognitive protocol experiment. Added and removed in 3 days. Too heavy-handed. |
-| 2026-01-13 | scratch/home | `37b08e7` | "Require protocol read before execution" — structural enforcement replacing trust-based compliance. |
+| 2026-01-13 | home | `37b08e7` | "Require protocol read before execution" — structural enforcement replacing trust-based compliance. |
 
 **The reversal arc:** Instructions went from "don't stop, don't ask" (Oct 2025) to "flag your own uncertainty" (Dec 2025) to "we'll force the check structurally" (Jan 2026). The cognitive protocols episode in tuick is a dead end — added Dec 12, removed Dec 15 — but it shows the middle ground was tried and rejected as too heavy.
 
-The oklch-theme moment is notable: it's a Gemini project, not Claude. The idea that agents should flag their own limitations emerged independently of the Claude-specific pushback protocol, suggesting the problem is model-general.
+oklch-theme started with Gemini (AGENTS.md references "Gemini agent"), later iterated in Claude Desktop. The LLM Limitation Awareness section and tuick's cognitive protocols are the same dead end at different scales — both assume agents can monitor uncertainty they don't have access to.
 
 ### Phase 1: Initial Design + Implementation (Feb 13)
 
@@ -169,16 +169,16 @@ The design added structural gates: artifact reads and recall resolution that pro
 ### Inflection 0: "Proceed Autonomously" — The Anti-Pushback Default
 
 **When:** Sep–Oct 2025
-**Evidence:** rules `7b0a4b4`, scratch/emojipack `9cc5c62`, tuick `7d2fa67`
+**Evidence:** rules `7b0a4b4`, emojipack `9cc5c62`, tuick `7d2fa67`
 **What:** The earliest agent instructions explicitly directed agents to work without stopping for evaluation. "Proceed autonomously without asking until all tasks complete." This was the default for three months across three projects.
 **Significance:** The starting point wasn't neutral — it was anti-pushback. The first agent instructions optimized for throughput, not quality. Pushback had to overcome an established convention, not fill a vacuum.
 
-### Inflection 0.5: Proto-Pushback — LLM Limitation Awareness
+### Inflection 0.5: Metacognitive Dead Ends
 
 **When:** Nov–Dec 2025
 **Evidence:** oklch-theme `64cbf8f`, tuick `a3e15a1` and `26c3b5d`
-**What:** oklch-theme introduced "LLM Limitation Awareness" asking agents to flag uncertainty. tuick tried "cognitive protocols" — structured metacognition rules — and removed them three days later as overengineered. scratch/home replaced trust-based compliance with structural enforcement ("require protocol read before execution").
-**Significance:** Three different approaches to the same problem in one month. oklch-theme's lightweight awareness worked. tuick's heavy cognitive protocols didn't. scratch/home's structural enforcement survived. The pattern: lightweight rules and structural gates succeed; heavy metacognitive frameworks fail. This presages the claudeutils pushback evolution.
+**What:** oklch-theme introduced "LLM Limitation Awareness" asking agents to flag uncertainty. tuick tried "cognitive protocols" — structured metacognition rules — and removed them three days later. Both are metacognitive wishful thinking: asking an LLM to monitor confidence it doesn't have. home replaced trust-based compliance with structural enforcement ("require protocol read before execution").
+**Significance:** The metacognitive approaches failed not because of weight (oklch-theme's was lightweight, tuick's was heavy) but because the mechanism is unsound — LLMs approximate reasoning through pattern fitting, not introspection. Only home's structural enforcement survived, presaging the principle that governs the entire system.
 
 ### Inflection 1: Prose Rules Get Rationalized Past
 
@@ -220,9 +220,9 @@ Agreement momentum detection (S3) failed across two improvement cycles. The prag
 
 ```
 "Proceed autonomously" — anti-pushback (rules, Oct 2025)
-  → LLM Limitation Awareness — proto-pushback (oklch-theme, Dec 2025)
+  → LLM Limitation Awareness — metacognitive dead end (oklch-theme, Dec 2025)
     → Cognitive protocols — overengineered, removed in 3 days (tuick, Dec 2025)
-      → Structural enforcement — "require protocol read" (scratch/home, Jan 2026)
+      → Structural enforcement — "require protocol read" (home, Jan 2026)
         → Formalized pushback fragment (claudeutils, Feb 13)
           → S3/S4 fail — rules rationalized past (Feb 13)
             → Research: sycophancy ≠ reasoning engagement (Feb 13-14)
@@ -241,7 +241,7 @@ The pre-claudeutils history adds context: pushback wasn't a natural starting poi
 | Artifact | Path/Ref | Role |
 |----------|----------|------|
 | Anti-pushback directive | rules `7b0a4b4`, emojipack `9cc5c62` | Pre-history: "proceed autonomously" |
-| LLM Limitation Awareness | oklch-theme `64cbf8f` | Pre-history: proto-pushback (Gemini project) |
+| LLM Limitation Awareness | oklch-theme `64cbf8f` | Pre-history: metacognitive dead end (started Gemini, iterated Claude Desktop) |
 | Cognitive protocols experiment | tuick `a3e15a1`, `26c3b5d` | Pre-history: overengineered, removed |
 | Original requirements | `plans/pushback/requirements.md` | FR-1 through FR-3, NFR-1/NFR-2, Q-1 through Q-4 |
 | Original design | `plans/pushback/design.md` (git history) | Two-layer architecture (fragment + hook) |

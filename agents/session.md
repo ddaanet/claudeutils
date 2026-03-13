@@ -1,24 +1,22 @@
-# Session Handoff: 2026-03-12
+# Session Handoff: 2026-03-13
 
-**Status:** Updated retrospective topic reports with expanded repo evidence. Branch work complete.
+**Status:** Interactive review of retrospective content with user corrections. Blog series plan created.
 
 ## Completed This Session
 
-**Update retrospective topic reports with expansion data:**
-- Identified which topics benefit from the 16-repo expansion evidence
-- Updated 4 reports integrating pre-history (Sep 2025–Jan 2026) and corrected measurements:
-  - `topic-1-memory-system.md` — Major revision: Phase 0 pre-history (rules→oklch-theme→scratch/home→agent-core), Phase G with 0% spontaneous recall, corrected 4.1% framing, full 7-month arc
-  - `topic-2-pushback.md` — Added pre-history reversal: "proceed autonomously" anti-pushback → proto-pushback → cognitive protocols (removed in 3 days) → structural enforcement
-  - `topic-5-structural-enforcement.md` — Added pre-history enforcement ladder: `just agent` gate → agent recipes → platform config → orchestrator constraints → shared infra
-  - `cross-topic-connections.md` — Extended unified timeline to Sep 2025, added pre-history commits table, updated measurement arc with 0%, added Arc 5 (anti-pushback reversal)
-- Topics 3 (deliverable-review) and 4 (ground skill) left as-is — minimal expansion benefit (T3: devddaanet validation noted in cross-topic; T4: origins remain claudeutils-internal)
-- The 4.1% framing correction is now applied directly (was previously flagged as separate task on main)
+**Retrospective content corrections (user-mediated):**
+- oklch-theme: "Gemini project, not Claude" → "started with Gemini, iterated in Claude Desktop" (4 files)
+- "Proto-pushback" framing → "metacognitive dead end / wishful thinking" — same class as cognitive protocols, not a precursor to pushback (6 files)
+- scratch/ repos: dropped prefix from all narrative references — scratch/ copies were a tooling workaround to access multiple repos from one Claude Code session, not a distinct era (11 files, 126 occurrences)
+- devddaanet "strongest external validation" → review gate ensures review happens, not that it's comprehensive. Post-delivery: 3 of 5 next commits are bug fixes (4 files)
 
-**Reorganize retrospective reports:**
-- Consolidated expansion reports from `plans/retrospective-repo-expansion/reports/` into `plans/retrospective/`
-- Separated blog content from plan artifacts: `content/` (13 blog raw materials) vs `reports/` (4 plan execution artifacts)
-- Added `plans/retrospective/content/README.md` with reading order and file index
-- Expansion plan's `deliverable-review.md` stays in `plans/retrospective-repo-expansion/reports/` (planstate dependency)
+**New content:**
+- `plans/retrospective/content/appendix-underlying-model.md` — Cross-cutting conclusion: LLMs optimize for linguistic consistency not correctness; context without procedural activation is dead weight; procedural activation works by constraining completion space
+- `plans/blog-series/brief.md` — Execution instructions for blog series (challenge structure → synthesize → flag unsubstantiated claims → research → adjust)
+- `plans/blog-series/conversation-full-export.md` — Blog series planning conversation from claude.ai (Remember → Ground → Handoff → Deliverable Review → Pipeline)
+
+**Discuss protocol redesign captured:**
+- `plans/discuss-redesign/brief.md` — New 3-step core: grounding → position → claim validation. Divergence as opt-in prefix (`bd:`). Evidence from discuss-protocol-mining (stress-test: 0 perspective changes, mining report in claudeutils commit `1857b6899233`)
 
 ## In-tree Tasks
 
@@ -32,6 +30,15 @@
   - Plan: retrospective-repo-expansion | Fixed 1 major (naming), 2 minor (noise, superseded artifact). Content overlap kept per user directive.
 - [x] **Update topic reports** — direct execution | sonnet
   - Updated T1, T2, T5, cross-topic with pre-history and corrected measurements
+- [ ] **Blog series synthesis** — `/design plans/blog-series/brief.md` | opus | restart
+  - Plan: blog-series | Challenge series structure, create post-oriented synthesis, ground claims
+
+## Worktree Tasks
+
+- [ ] **Discuss redesign** — `/design plans/discuss-redesign/brief.md` | opus | restart
+  - Plan: discuss-redesign | Replace current discuss protocol with lighter grounding → position → claim validation
+- [ ] **Fix brief skill trigger** — edit `agent-core/skills/brief/SKILL.md` description to lead with general mechanism | opus
+  - Plan: none — direct edit. Brief skill description starts with "Transfer context... to a worktree task" causing mid-sentence `/brief` invocations to be missed
 
 ## Blockers / Gotchas
 
@@ -41,10 +48,12 @@
 
 ## Reference Files
 
-- `plans/retrospective/content/` — all 13 blog raw materials (topics, synthesis, expansion evidence)
+- `plans/retrospective/content/` — 14 blog raw materials (topics, synthesis, expansion evidence, appendix)
 - `plans/retrospective/reports/` — plan execution artifacts (reviews)
+- `plans/blog-series/` — blog series plan (brief, claude.ai conversation export)
+- `plans/discuss-redesign/brief.md` — discuss protocol redesign context
 - `plans/measure-agent-recall/report.md` — spontaneous recall rate measurement (0%)
 
 ## Next Steps
 
-Branch work complete.
+Blog series synthesis is the next in-tree task.

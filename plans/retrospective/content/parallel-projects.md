@@ -149,7 +149,7 @@ Last 5 commits:
 ## emojipack (standalone)
 
 - **Date range:** 2025-10-12 to 2026-01-08
-- **Notes:** Identical history to scratch/emojipack. Same repo. Not an independent data point.
+- **Notes:** Identical history to emojipack under `~/code/claudeutils/scratch/emojipack`. Same repo. Not an independent data point.
 
 ## ddaanet
 

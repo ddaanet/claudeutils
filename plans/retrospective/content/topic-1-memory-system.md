@@ -11,14 +11,14 @@ Before memory-index.md existed, agent instructions *were* the memory system. The
 | 2025-09-30 | rules | `7b0a4b4` | Initial `rules.md` — 14 rules, human-curated, agent-consumed. No agent self-modification. |
 | 2025-10-02 | rules | `eacf188` | Rename to AGENTS.md — naming convention born. |
 | 2025-11-28 | oklch-theme | `b0c0d64` | AGENTS.md titled "Agent Memory" with retrospective self-update: "At the end of each session, perform a retrospective and update this file." First agent→file write loop. |
-| 2025-11-23 | scratch/box-api | `0bbdbf8` | Session-specific rules with filtering: "Include any feedback that is general enough in scope." First curation criterion for what to remember. |
-| 2026-01-12 | scratch/home | `e31a4c0` | File organization table: AGENTS.md (behavioral), session.md (transient), design-decisions.md (rationale), plans/ (artifacts). Memory distributed by content type. |
-| 2026-01-12 | scratch/pytest-md | `69bf88b` | Session log design — structured conversation state persistence. 100-line max, archive strategy. |
+| 2025-11-23 | box-api | `0bbdbf8` | Session-specific rules with filtering: "Include any feedback that is general enough in scope." First curation criterion for what to remember. |
+| 2026-01-12 | home | `e31a4c0` | File organization table: AGENTS.md (behavioral), session.md (transient), design-decisions.md (rationale), plans/ (artifacts). Memory distributed by content type. |
+| 2026-01-12 | pytest-md | `69bf88b` | Session log design — structured conversation state persistence. 100-line max, archive strategy. |
 | 2026-01-15 | pytest-md/agent-core | `5783aef` | Agent-core initialized — memory patterns extracted into shared infrastructure. |
 
 **Arc:** Human-written flat rules → agent retrospective self-update → filtering criterion for persistence → structured file taxonomy → shared infrastructure. Each step adds a capability: authorship (human→agent), selectivity (what to keep), organization (where to put it), sharing (across projects).
 
-The oklch-theme moment (`b0c0d64`) is notable: it's a Gemini project, not Claude. The agent→file write loop idea emerged independently, suggesting memory-as-file is not Claude-specific but a natural pattern for any stateless agent system.
+oklch-theme (`b0c0d64`) started with Gemini (AGENTS.md references "Gemini agent"), later iterated in Claude Desktop. The agent→file write loop idea is a natural pattern for any stateless agent system.
 
 ### Phase A: Foundation — Memory Index & Always-Loaded Context (Feb 1)
 
@@ -254,8 +254,8 @@ Design discussion that refined how external knowledge enters the system.
 ### Inflection 0.5: Structured File Taxonomy (Jan 2026)
 
 **When:** Jan 12, 2026
-**What changed:** scratch/home introduced a file organization table separating behavioral direction (AGENTS.md), session context (session.md), design rationale (design-decisions.md), and artifacts (plans/). Memory was distributed across files by content type rather than dumped into a single file.
-**Evidence:** scratch/home `e31a4c0`.
+**What changed:** home introduced a file organization table separating behavioral direction (AGENTS.md), session context (session.md), design rationale (design-decisions.md), and artifacts (plans/). Memory was distributed across files by content type rather than dumped into a single file.
+**Evidence:** home `e31a4c0`.
 **Significance:** This is the architectural predecessor of the memory-index. The problem it solved: a single AGENTS.md containing rules, session state, decisions, and plans grows unwieldy. The solution: separate files with defined roles. This taxonomy transferred directly to claudeutils.
 
 ### Inflection 1: Always-Loaded to Active Lookup
@@ -317,7 +317,7 @@ Design discussion that refined how external knowledge enters the system.
 Human-written flat rules (rules, Sep 2025)
   → Agent retrospective self-update (oklch-theme, Nov 2025)
     → Filtering criterion for persistence (box-api, Nov 2025)
-      → Structured file taxonomy (scratch/home, Jan 2026)
+      → Structured file taxonomy (home, Jan 2026)
         → Shared infrastructure extraction (agent-core, Jan 2026)
           → Always-loaded memory index (Feb 2026)
             → Active lookup tools /when, /how (Feb 2026)
