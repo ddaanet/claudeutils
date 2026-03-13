@@ -8,13 +8,13 @@
 | Requirement | Phase | Item(s) |
 |-------------|-------|---------|
 | FR-1 (plugin auto-discovery) | 1 | 1.1, 1.2 |
-| FR-2 (just claude launcher) | 4 | 4.1 |
+| FR-2 (just claude launcher) | 4 | 4.1, 4.2 |
 | FR-3 (/edify:init scaffolding) | 3 | 3.1 |
 | FR-4 (/edify:update sync) | 3 | 3.2 |
 | FR-5 (stale version nag) | 2 | 2.3 |
-| FR-6 (portable justfile) | 4 | 4.2 |
+| FR-6 (portable justfile) | 4 | 4.1, 4.2 |
 | FR-7 (symlink removal migration) | 6 | 6.1 |
-| FR-8 (plan-specific agent coexistence) | 1 | 1.2 (verified during plugin validation) |
+| FR-8 (plan-specific agent coexistence) | 1 | 1.3 (validate plugin + plan-specific agents coexist) |
 | FR-9 (hooks migrate to plugin) | 2 | 2.1, 2.2 |
 | FR-10 (version provenance) | 2 | 2.3 |
 | FR-11 (edify CLI install) | 2 | 2.3 |
@@ -34,11 +34,28 @@
 
 ## Expansion Guidance
 
+The following recommendations should be incorporated during full runbook expansion:
+
+**Phase-specific guidance:**
 - Phase 2 hook migration: outline Component 2 has complete hook inventory table and script-change table — use literally, do not re-audit
-- Phase 2 edify-setup.sh: consolidated setup hook is new code with env var export, venv install, version comparison — needs careful specification
+- Phase 2 edify-setup.sh: consolidated setup hook is new code with env var export, venv install, version comparison — needs careful specification. Recall entry "when using session start hooks" documents SessionStart output discard (#10373) — UPS fallback design must account for this
 - Phase 3 skills are agentic prose artifacts — opus model, prose review cycles
+- Phase 4: `portable.just` needs its own minimal bash prolog (only `fail`, `visible`, color variables) — see outline §Component 5 for details on import boundary constraints
 - Phase 6 symlink cleanup: mechanical but must preserve handoff-cli-tool-*.md regular files
-- Bootstrap constraint throughout: agent-core/ must remain functional, plugin verified before symlink removal
+
+**Checkpoint guidance:**
+- Phase 1 ends with checkpoint (Step 1.3) — gates all downstream phases
+- Phase 2 after Step 2.4: verify setup hook fires and env vars propagate before proceeding to Phase 6
+- Phase 6 after Step 6.2: final validation gate before Phase 7 doc cleanup
+
+**Consolidation candidates:**
+- Phase 5 (2 items, Low-Medium) could merge with Phase 2 (version coordination is closely related to setup hook). However, Phase 5 is independent and can run in parallel — keep separate for parallelism benefit
+- Phase 7 (inline) is correctly typed — orchestrator executes directly, no step files needed
+
+**Bootstrap constraint:**
+- agent-core/ must remain functional throughout migration
+- Plugin verified alongside existing symlinks before symlink removal (Phase 6)
+- Recall entry "when hook commands use relative paths" applies: all hooks.json commands must use `$CLAUDE_PLUGIN_ROOT` prefix for absolute resolution
 
 ---
 
@@ -62,7 +79,8 @@ Create the plugin structure inside existing `agent-core/` directory.
 
 - Step 1.3: Validate plugin loading
   - Test with `claude --plugin-dir ./agent-core` that skills/agents/hooks are discoverable
-  - Verify FR-1 (auto-discovery), FR-8 (plan-specific agent coexistence), NFR-1 (dev mode cycle)
+  - Verify FR-1 (auto-discovery), NFR-1 (dev mode cycle)
+  - Verify FR-8: plan-specific agents (`.claude/agents/handoff-cli-tool-*.md`) coexist with plugin agents — both discoverable, no conflicts
   - This is a manual validation checkpoint — STOP and report results before proceeding
 
 ### Phase 2: Hook migration and setup hook (type: general)
@@ -127,27 +145,30 @@ Create `/edify:init` and `/edify:update` skills — agentic prose artifacts requ
 
 ### Phase 4: Justfile modularization (type: general)
 
-Extract portable recipes and create launch wrapper.
+Extract portable recipes and update root justfile.
 
-- Step 4.1: Create `just claude` launch wrapper
-  - Add `claude` and `claude0` recipes to portable justfile
-  - Opinionated launch: system prompt replacement, plugin config
-  - FR-2 validation: `just claude` launches with system prompt, skills available
-  - Files: portable justfile (create/edit)
-
-- Step 4.2: Create `portable.just`
+- Step 4.1: Create `portable.just` with full recipe stack
   - Extract portable recipe stack from current `justfile` (per D-5 list):
-    - `claude` / `claude0` — launch wrapper
+    - `claude` / `claude0` — opinionated launch wrapper (system prompt replacement, plugin config) (FR-2)
     - `lint` / `format` / `check` — ruff, mypy, docformatter
     - `red` — permissive TDD variant
     - `precommit` — full lint with complexity
     - `precommit-base` — edify-plugin validators only
     - `test` — pytest with framework flags
-  - Do NOT include `wt-*` recipes (manual fallbacks, stay in project justfile)
+    - `wt-*` — manual worktree fallbacks (per D-5: included in portable stack)
   - Do NOT include `release` (project-specific)
   - Target: `agent-core/portable.just`
-  - Verify: new project with `import 'portable.just'` + `set allow-duplicate-recipes` → recipes work
-  - Files: `agent-core/portable.just` (create), `justfile` (edit — add import, keep project-specific recipes)
+  - Files: `agent-core/portable.just` (create)
+
+- Step 4.2: Update root justfile to import portable recipes
+  - Add `import 'agent-core/portable.just'` with `set allow-duplicate-recipes`
+  - Remove recipes that moved to `portable.just` (claude, wt-*, precommit-base, lint, format, check, test, red)
+  - Keep project-specific recipes (release, line-limits, project-specific helpers)
+  - Keep `bash_prolog` for project-specific helper functions
+  - Verify: `just claude` launches with system prompt, skills available (FR-2)
+  - Verify: `just --list` shows both imported and project-specific recipes
+  - Files: `justfile` (edit)
+  - Depends on: Step 4.1
 
 ### Phase 5: Version coordination and precommit (type: general)
 
@@ -170,6 +191,7 @@ Wire version consistency and release coordination.
 Execute LAST — only after plugin verified working. Irreversible within session.
 
 - Step 6.1: Remove symlinks and clean settings.json
+  - Post-phase state: `agent-core/hooks/hooks.json` contains all 9 surviving hooks (Phase 1+2), `agent-core/.claude-plugin/plugin.json` exists (Phase 1), `agent-core/hooks/edify-setup.sh` wired into hooks.json (Phase 2)
   - Remove 33 skill symlinks from `.claude/skills/`
   - Remove 13 agent symlinks from `.claude/agents/` (PRESERVE 6 `handoff-cli-tool-*.md` regular files)
   - Remove 4 hook symlinks from `.claude/hooks/`
@@ -178,6 +200,7 @@ Execute LAST — only after plugin verified working. Irreversible within session
   - Update `.gitignore` if needed
   - Verify: `claude --plugin-dir ./agent-core` still discovers all skills/agents/hooks
   - Files: `.claude/skills/*` (delete symlinks), `.claude/agents/*` (delete symlinks only), `.claude/hooks/*` (delete symlinks), `.claude/settings.json` (edit), `justfile` (edit)
+  - Depends on: Phases 1, 2 (plugin fully verified)
 
 - Step 6.2: Validate migration completeness
   - FR-1: plugin auto-discovery works without symlinks
@@ -190,6 +213,7 @@ Execute LAST — only after plugin verified working. Irreversible within session
 ### Phase 7: Script path updates and documentation (type: inline)
 
 Mechanical path updates and doc cleanup. All decisions pre-resolved, no feedback loop needed.
+Depends on: Phase 6 (symlinks removed, `sync-to-parent` deleted)
 
 - `settings.json` `permissions.allow`: update `agent-core/bin/` references
   - `agent-core/bin/prepare-runbook.py` → keep (rename happens later)
