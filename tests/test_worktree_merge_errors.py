@@ -7,8 +7,8 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from click.testing import CliRunner
 
+from claudeutils.git import _git
 from claudeutils.worktree.cli import worktree
-from claudeutils.worktree.git_ops import _git
 from claudeutils.worktree.merge import _format_git_error
 
 

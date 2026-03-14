@@ -7,8 +7,9 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
+from claudeutils.git import _is_dirty as _is_parent_dirty
+from claudeutils.git import _is_submodule_dirty
 from claudeutils.worktree.cli import worktree
-from claudeutils.worktree.git_ops import _is_parent_dirty, _is_submodule_dirty
 from tests.fixtures_worktree import _branch_exists, _create_worktree
 
 
@@ -40,7 +41,7 @@ def test_is_submodule_dirty(
 
     init_repo(repo_path)
 
-    assert _is_submodule_dirty() is False
+    assert _is_submodule_dirty("agent-core") is False
 
     original_run = subprocess.run
 
@@ -54,7 +55,7 @@ def test_is_submodule_dirty(
 
     monkeypatch.setattr(subprocess, "run", mock_run_clean)
     (repo_path / "agent-core").mkdir()
-    assert _is_submodule_dirty() is False
+    assert _is_submodule_dirty("agent-core") is False
 
     def mock_run_dirty(*args: object, **kwargs: object) -> object:
         cmd = args[0] if args else kwargs.get("args")
@@ -65,7 +66,7 @@ def test_is_submodule_dirty(
         return original_run(*args, **kwargs)  # type: ignore[call-overload]
 
     monkeypatch.setattr(subprocess, "run", mock_run_dirty)
-    assert _is_submodule_dirty() is True
+    assert _is_submodule_dirty("agent-core") is True
 
 
 def test_rm_blocks_on_dirty_worktree(
@@ -126,7 +127,7 @@ def test_rm_blocks_on_dirty_submodule(
 
     monkeypatch.setattr(
         "claudeutils.worktree.cli._is_submodule_dirty",
-        lambda: True,
+        lambda path: True,
     )
 
     runner = CliRunner()

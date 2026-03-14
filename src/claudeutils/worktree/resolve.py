@@ -6,8 +6,8 @@ from pathlib import Path
 
 import click
 
+from claudeutils.git import _git
 from claudeutils.validation.learnings import parse_segments
-from claudeutils.worktree.git_ops import _git
 from claudeutils.worktree.session import (
     extract_blockers,
     extract_task_blocks,

@@ -5,8 +5,8 @@ from pathlib import Path
 
 import click
 
+from claudeutils.git import _git
 from claudeutils.validation.learnings import parse_segments
-from claudeutils.worktree.git_ops import _git
 from claudeutils.worktree.resolve import (
     _merge_session_contents,
     _segments_to_content,

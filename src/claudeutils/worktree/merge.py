@@ -6,8 +6,9 @@ from pathlib import Path
 
 import click
 
+from claudeutils.git import _git
 from claudeutils.planstate.inference import _parse_lifecycle_status
-from claudeutils.worktree.git_ops import _git, _is_branch_merged, wt_path
+from claudeutils.worktree.git_ops import _is_branch_merged, wt_path
 from claudeutils.worktree.merge_state import (
     _detect_merge_state,
     _recover_untracked_file_collision,

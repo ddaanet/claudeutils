@@ -10,6 +10,7 @@ from typing import Never
 
 import click
 
+from claudeutils.git import _git, _is_submodule_dirty
 from claudeutils.validation.session_commands import (
     _COMMAND_REQUIRED_CHECKBOXES,
     _SKILL_NAME_PATTERN,
@@ -24,10 +25,8 @@ from claudeutils.worktree.git_ops import (
     _create_submodule_worktree,
     _delete_submodule_branch,
     _get_worktree_path_for_branch,
-    _git,
     _is_branch_merged,
     _is_merge_of,
-    _is_submodule_dirty,
     _parse_worktree_list,
     _probe_registrations,
     _remove_worktrees,
@@ -108,7 +107,7 @@ def _copy_test_sentinel(worktree_path: Path) -> None:
 def _initialize_environment(worktree_path: Path) -> None:
     try:
         subprocess.run(["just", "--version"], capture_output=True, check=True)
-    except (FileNotFoundError, subprocess.CalledProcessError):
+    except FileNotFoundError, subprocess.CalledProcessError:
         return
     r = subprocess.run(
         ["just", "setup"],
@@ -180,7 +179,7 @@ def _setup_worktree_safe(
     """Run _setup_worktree, cleaning up the directory on failure."""
     try:
         _setup_worktree(path, slug, base, session, task)
-    except (subprocess.CalledProcessError, OSError):
+    except subprocess.CalledProcessError, OSError:
         if path.exists():
             shutil.rmtree(path)
         container = path.parent
@@ -314,7 +313,7 @@ def _check_not_dirty(slug: str, worktree_path: Path) -> None:  # noqa: ARG001
                 "Commit or stash before removing worktree."
             )
             _fail(msg, 2)
-    if _is_submodule_dirty():
+    if _is_submodule_dirty("agent-core"):
         msg = (
             "Submodule (agent-core) has uncommitted changes. "
             "Commit or stash before removing worktree."
