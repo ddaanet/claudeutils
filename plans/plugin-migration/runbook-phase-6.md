@@ -1,88 +1,125 @@
-# Phase 6: Cache Regeneration
+### Phase 6: Symlink cleanup, settings migration, and doc updates (type: general, model: sonnet)
 
-**Purpose:** Regenerate cached help files after justfile changes
-
-**Dependencies:** Phase 4 (justfile import changes `just --list` output), Phase 5 (edify-plugin justfile sync-to-parent removal)
-
-**Model:** Haiku
-
-**Estimated Complexity:** Trivial (2 commands)
+Execute after plugin verified working. Irreversible within session.
 
 ---
 
-## Step 6.1: Regenerate cache files
+## Step 6.1: Remove symlinks and clean settings.json
 
-**Objective:** Regenerate `.cache/just-help.txt` and `.cache/just-help-edify-plugin.txt` to reflect updated justfile content.
+**Objective**: Remove all symlinks from `.claude/`, remove hook entries from `settings.json`, remove deny rules that guarded symlink targets, and remove `sync-to-parent` recipe.
 
-**Implementation:**
+**Prerequisites**:
+- Phases 1, 2, 5 complete (plugin fully verified, version coordination in place)
+- Post-phase state verification:
+  - `agent-core/hooks/hooks.json` contains all 10 hooks (9 surviving + setup hook)
+  - `agent-core/.claude-plugin/plugin.json` exists
+  - `agent-core/hooks/edify-setup.sh` wired into hooks.json
 
-1. **Regenerate root justfile cache:**
-```bash
-just cache
-```
+**Implementation**:
+1. **Remove skill symlinks** from `.claude/skills/`:
+   - `find .claude/skills/ -type l -delete` (removes all 33 symlinks)
+   - Verify: `find .claude/skills/ -type l | wc -l` returns 0
+2. **Remove agent symlinks** from `.claude/agents/`:
+   - `find .claude/agents/ -type l -delete` (removes 13 symlinks)
+   - PRESERVE 6 `handoff-cli-tool-*.md` regular files (they are NOT symlinks)
+   - Verify: regular files still exist: `ls .claude/agents/handoff-cli-tool-*.md`
+3. **Remove hook symlinks** from `.claude/hooks/`:
+   - `find .claude/hooks/ -type l -delete` (removes 4 symlinks)
+4. **Remove ALL hook entries** from `.claude/settings.json`:
+   - Delete the entire `"hooks": { ... }` section
+   - Settings.json retains: permissions, sandbox, plansDirectory, attribution, enabledPlugins
+5. **Remove deny rules** from `.claude/settings.json` that guarded symlink targets:
+   - Remove `Write(.claude/skills/*)`
+   - Remove `Write(.claude/agents/*)`
+   - Remove `Write(.claude/hooks/*)`
+   - Remove `Bash(ln:*)`
+6. **Remove `sync-to-parent` recipe** from `agent-core/justfile`
+7. **Update `.gitignore`** if it has entries related to symlinks
 
-This regenerates:
-- `.cache/just-help.txt` (includes imported recipes from portable.just)
-- `.cache/just-help-edify-plugin.txt` (sync-to-parent removed)
+**Expected Outcome**:
+- No symlinks in `.claude/skills/`, `.claude/agents/`, `.claude/hooks/`
+- 6 `handoff-cli-tool-*.md` regular files preserved in `.claude/agents/`
+- `settings.json` has no `hooks` section
+- `settings.json` deny list has no symlink-guard rules
+- `sync-to-parent` recipe removed
 
-**How `just cache` works:**
-- Runs root justfile `cache` recipe
-- Calls `make -C edify-plugin cache` which regenerates edify-plugin cache
-- Both cache files updated in single command
+**Error Conditions**:
+- If `find -type l` finds non-agent-core symlinks → investigate before deleting
+- If `handoff-cli-tool-*.md` files are accidentally symlinks → do not delete, escalate
+- If settings.json parse fails after editing → fix JSON syntax
 
-2. **Verify cache content changes:**
-
-**Root cache (should show imported recipes):**
-```bash
-cat .cache/just-help.txt | grep -E "^[[:space:]]+(claude|wt-new|wt-ls|wt-rm|wt-merge|precommit-base)"
-```
-
-**Expected:** All imported recipes appear (claude, claude0, wt-new, wt-ls, wt-rm, wt-merge, precommit-base)
-
-**Edify-plugin cache (should NOT show sync-to-parent):**
-```bash
-! grep -q sync-to-parent .cache/just-help-edify-plugin.txt
-```
-
-**Expected:** sync-to-parent recipe NOT present (recipe removed in Phase 5.2)
-
-**Expected Outcome:**
-- `.cache/just-help.txt` updated with imported recipes
-- `.cache/just-help-edify-plugin.txt` updated without sync-to-parent
-- Both cache files reflect current justfile state
-
-**Unexpected Result Handling:**
-- If `just cache` fails: check justfile syntax, verify edify-plugin/Makefile cache target exists
-- If imported recipes missing from root cache: verify import line in root justfile
-- If sync-to-parent still in edify-plugin cache: verify recipe removed in Phase 5.2
-
-**Validation:**
-- `.cache/just-help.txt` contains imported recipe names (claude, wt-new, etc.)
-- `.cache/just-help-edify-plugin.txt` does NOT contain sync-to-parent
-- Both files have recent modification timestamp (after `just cache` run)
-
-**Success Criteria:**
-- Both cache files regenerated successfully
-- Root cache includes imported recipes from portable.just
-- Edify-plugin cache excludes removed sync-to-parent recipe
-- CLAUDE.md @ references resolve (no broken cache file references)
-
-**Report Path:** `plans/plugin-migration/reports/phase-6-execution.md`
+**Validation**:
+- `find .claude/skills/ -type l | wc -l` returns 0
+- `find .claude/agents/ -type l | wc -l` returns 0
+- `find .claude/hooks/ -type l | wc -l` returns 0
+- `ls .claude/agents/handoff-cli-tool-*.md | wc -l` returns 6
+- `python3 -c "import json; d=json.load(open('.claude/settings.json')); assert 'hooks' not in d; print('OK')"`
+- Plugin still discovers all skills/agents/hooks (same tmux verification mechanism as Step 1.3)
 
 ---
 
-## Common Context
+## Step 6.2: Update fragments and documentation
 
-**Affected Files:**
-- `.cache/just-help.txt` (regenerated with imported recipes)
-- `.cache/just-help-edify-plugin.txt` (regenerated without sync-to-parent)
+**Objective**: Remove `sync-to-parent` references and symlink documentation from fragments.
 
-**Key Constraints:**
-- Must run AFTER Phase 4 (justfile import) and Phase 5 (sync-to-parent removal)
-- Cache generation depends on current justfile content
-- CLAUDE.md loads these files via @ references (must remain valid)
+**Prerequisites**:
+- Step 6.1 complete (symlinks removed, sync-to-parent deleted)
+- Read each fragment before editing:
+  - `agent-core/fragments/project-tooling.md`
+  - `agent-core/fragments/claude-config-layout.md`
+  - `agent-core/fragments/sandbox-exemptions.md`
+  - `agent-core/fragments/delegation.md`
 
-**Stop Conditions:**
-- If `just cache` fails (justfile syntax error, Makefile error)
-- If cache files not updated (check modification timestamps)
-- If CLAUDE.md @ references break (cache file paths changed)
+**Implementation**:
+1. `project-tooling.md`: remove `sync-to-parent` references (recipe no longer exists)
+2. `claude-config-layout.md`: remove symlink section (no more symlinks)
+3. `sandbox-exemptions.md`: remove `sync-to-parent` subsection (recipe deleted)
+4. `delegation.md`: update examples referencing `sync-to-parent` (reference obsolete)
+
+**Expected Outcome**:
+- No references to `sync-to-parent` in any fragment
+- No symlink documentation in `claude-config-layout.md`
+- All fragments valid markdown
+
+**Error Conditions**:
+- If fragment has other references to symlinks beyond the targeted sections → investigate scope
+- If removing a section leaves orphan cross-references → fix or note
+
+**Validation**:
+- `grep -r 'sync-to-parent' agent-core/fragments/` returns no matches
+- `grep -r 'symlink' agent-core/fragments/claude-config-layout.md` returns no matches (or only in historical context)
+
+---
+
+## Step 6.3: Validate migration completeness (checkpoint)
+
+**Objective**: Final validation gate before Phase 7 rename. Verify all functional requirements met post-symlink-removal.
+
+**Prerequisites**:
+- Steps 6.1, 6.2 complete
+
+**Implementation**:
+1. **FR-1**: Plugin auto-discovery works without symlinks
+   - `claude --plugin-dir ./agent-core` → skills and agents discoverable
+2. **FR-7**: All functionality preserved
+   - No broken references in CLAUDE.md, fragments, skills
+   - All `@`-references resolve
+3. **FR-9**: All hooks fire from plugin, settings.json hooks section empty
+   - Verify hooks.json contains all hooks
+   - Verify settings.json has no hooks section
+4. **NFR-2**: Validated architecturally — same content loaded via plugin auto-discovery instead of symlinks. No empirical measurement needed.
+5. **Run `just precommit`** — full validation gate
+   - Must pass completely (lint, format, type check, tests, version consistency)
+
+**Expected Outcome**:
+- All FRs verified
+- `just precommit` passes
+- System fully functional without symlinks
+
+**Error Conditions**:
+- If `just precommit` fails → fix issues before proceeding to Phase 7
+- If any FR check fails → diagnose and fix or escalate
+
+**Validation**:
+- Validation checkpoint — STOP and report results before Phase 7
+- All checks must pass before proceeding to directory rename
