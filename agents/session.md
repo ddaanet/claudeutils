@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-14
 
-**Status:** Discuss-redesign implemented — pushback.md rewritten with 3-step core protocol, 5 infrastructure improvement tasks briefed from reflect session.
+**Status:** Recall tasks moved in-tree for sequential design. Worktrees created for anchor-proof-state and outline-density-gate (parallel).
 
 ## Completed This Session
 
@@ -27,6 +27,11 @@
 - Skill re-injection test: Skill tool duplicates content on repeated calls (no dedup)
 - Centralize recall design direction: segmented /recall skill (<1ktok core + reference files per mode)
 
+**Task reorganization:**
+- Moved 3 recall tasks (remove-fuzzy-recall, remove-index-skill, centralize-recall) from Worktree to In-tree for sequential design with shared context
+- Removed stale "different repo" blocker — this IS the claudeutils repo (worktree)
+- Created worktrees: `anchor-proof-state`, `outline-density-gate` for parallel design
+
 ## In-tree Tasks
 
 - [x] **Retro repo expansion** → `retro-repo-expansion` — `/design plans/retrospective-repo-expansion/brief.md` | sonnet
@@ -43,6 +48,12 @@
   - Plan: blog-series | 5-post series synthesized, claims audited, adjustments applied
 - [x] **Review discuss redesign** — `/deliverable-review plans/discuss-redesign` | opus | restart
   - 0 critical, 0 major, 0 minor. All 8 outline decisions faithfully implemented.
+- [ ] **Remove fuzzy recall** — `/design plans/remove-fuzzy-recall/brief.md` | sonnet
+  - Plan: remove-fuzzy-recall | Hard failure on no-match, "read memory-index" guidance
+- [ ] **Remove index skill** — `/design plans/remove-memory-index-skill/brief.md` | opus
+  - Plan: remove-memory-index-skill | Delete vestigial skill, update corrector.md to Read file directly
+- [ ] **Centralize recall** — `/design plans/centralize-recall/brief.md` | opus | restart
+  - Plan: centralize-recall | Segmented /recall skill (<1ktok core), replace inline recall across skills/agents. Depends on: remove-fuzzy-recall, remove-index-skill
 
 ## Worktree Tasks
 
@@ -51,26 +62,15 @@
 - [ ] **Fix brief trigger** — edit `agent-core/skills/brief/SKILL.md` description to lead with general mechanism | opus
   - Plan: none — direct edit. Brief skill description starts with "Transfer context... to a worktree task" causing mid-sentence `/brief` invocations to be missed
 - [ ] **Review blog series** — `/deliverable-review plans/blog-series` | opus | restart
-- [ ] **Remove fuzzy recall** — `/design plans/remove-fuzzy-recall/brief.md` | sonnet
-  - Plan: remove-fuzzy-recall | Hard failure on no-match, "read memory-index" guidance. Target: claudeutils repo.
-- [ ] **Remove index skill** — `/design plans/remove-memory-index-skill/brief.md` | opus
-  - Plan: remove-memory-index-skill | Delete vestigial skill, update corrector.md to Read file directly
-- [ ] **Anchor proof state** — `/design plans/proof-state-anchor/brief.md` | opus | restart
+- [ ] **Anchor proof state** → `anchor-proof-state` — `/design plans/proof-state-anchor/brief.md` | opus | restart
   - Plan: proof-state-anchor | Visible state + actions output at each transition. D+B anchor + user feedback.
-- [ ] **Outline density gate** — `/design plans/outline-downgrade-density/brief.md` | opus
+- [ ] **Outline density gate** → `outline-density-gate` — `/design plans/outline-downgrade-density/brief.md` | opus
   - Plan: outline-downgrade-density | Content density check in write-outline.md downgrade criteria
-- [ ] **Centralize recall** — `/design plans/centralize-recall/brief.md` | opus | restart
-  - Plan: centralize-recall | Segmented /recall skill (<1ktok core), replace inline recall across skills/agents. Depends on: remove-fuzzy-recall, remove-memory-index-skill
 
 ## Blockers / Gotchas
 
-**Sandbox blocks sub-agent access to external repos:**
-- Artisan agents cannot `git -C ~/code/<repo>` outside project tree
-- Workaround: execute git commands directly from parent session
-
 **Centralize-recall depends on remove-fuzzy-recall + remove-index-skill:**
 - Must complete both prerequisites before centralizing recall instructions
-- remove-fuzzy-recall targets claudeutils repo (different worktree)
 
 ## Reference Files
 
@@ -83,4 +83,4 @@
 
 ## Next Steps
 
-All in-tree tasks complete. Remaining work is worktree tasks (review blog series, fix brief trigger, remove fuzzy recall, etc.).
+In-tree: three recall tasks sequential (remove-fuzzy-recall → remove-index-skill → centralize-recall). Worktree: anchor-proof-state and outline-density-gate can run in parallel.
