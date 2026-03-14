@@ -1,22 +1,19 @@
-# Session Handoff: 2026-03-13
+# Session Handoff: 2026-03-14
 
-**Status:** Interactive review of retrospective content with user corrections. Blog series plan created.
+**Status:** Blog series synthesis complete — 5-post series structure, per-post evidence syntheses, and claims audit produced.
 
 ## Completed This Session
 
-**Retrospective content corrections (user-mediated):**
-- oklch-theme: "Gemini project, not Claude" → "started with Gemini, iterated in Claude Desktop" (4 files)
-- "Proto-pushback" framing → "metacognitive dead end / wishful thinking" — same class as cognitive protocols, not a precursor to pushback (6 files)
-- scratch/ repos: dropped prefix from all narrative references — scratch/ copies were a tooling workaround to access multiple repos from one Claude Code session, not a distinct era (11 files, 126 occurrences)
-- devddaanet "strongest external validation" → review gate ensures review happens, not that it's comprehensive. Post-delivery: 3 of 5 next commits are bug fixes (4 files)
-
-**New content:**
-- `plans/retrospective/content/appendix-underlying-model.md` — Cross-cutting conclusion: LLMs optimize for linguistic consistency not correctness; context without procedural activation is dead weight; procedural activation works by constraining completion space
-- `plans/blog-series/brief.md` — Execution instructions for blog series (challenge structure → synthesize → flag unsubstantiated claims → research → adjust)
-- `plans/blog-series/conversation-full-export.md` — Blog series planning conversation from claude.ai (Remember → Ground → Handoff → Deliverable Review → Pipeline)
-
-**Discuss protocol redesign captured:**
-- `plans/discuss-redesign/brief.md` — New 3-step core: grounding → position → claim validation. Divergence as opt-in prefix (`bd:`). Evidence from discuss-protocol-mining (stress-test: 0 perspective changes, mining report in claudeutils commit `1857b6899233`)
+**Blog series synthesis (all 5 runbook steps):**
+- Series structure: 5-post arc organized by insight, didactic ordering preserved (`plans/blog-series/series-structure.md`)
+- Post 1: "The Rule That Changes the Rules" — rules.md to CLAUDE.md journey
+- Post 2: "When Your Agent Invents Instead of Researching" — confabulation, ground skill
+- Post 3: "Zero Percent" — 0% spontaneous recall, recognition bottleneck
+- Post 4: "385 Tests Pass, 8 Bugs Ship" — quality gates, defense-in-depth
+- Post 5: "Constrain, Don't Persuade" — structural enforcement thesis, pushback arc
+- Claims audit: 18 claims flagged, 11 grounded, 7 adjusted (file: `plans/blog-series/claims-audit.md`)
+- Research: arXiv 2509.21305 confirmed real, arXiv 2601.03359 exists but "<30%" claim not in paper, RAG "42-68%" untraceable, "84% forced-eval" untraceable — all adjusted by removing unverifiable percentages
+- Current counts updated: 33 skills, 27 fragments, 13 agents (were 18/23/14 in claude.ai conversation)
 
 ## In-tree Tasks
 
@@ -30,8 +27,8 @@
   - Plan: retrospective-repo-expansion | Fixed 1 major (naming), 2 minor (noise, superseded artifact). Content overlap kept per user directive.
 - [x] **Update topic reports** — direct execution | sonnet
   - Updated T1, T2, T5, cross-topic with pre-history and corrected measurements
-- [ ] **Blog series synthesis** — `/design plans/blog-series/brief.md` | opus | restart
-  - Plan: blog-series | Challenge series structure, create post-oriented synthesis, ground claims
+- [x] **Blog series synthesis** — `/design plans/blog-series/brief.md` | opus | restart
+  - Plan: blog-series | 5-post series synthesized, claims audited, adjustments applied
 
 ## Worktree Tasks
 
@@ -39,6 +36,7 @@
   - Plan: discuss-redesign | Replace current discuss protocol with lighter grounding → position → claim validation
 - [ ] **Fix brief skill trigger** — edit `agent-core/skills/brief/SKILL.md` description to lead with general mechanism | opus
   - Plan: none — direct edit. Brief skill description starts with "Transfer context... to a worktree task" causing mid-sentence `/brief` invocations to be missed
+- [ ] **Review blog series** — `/deliverable-review plans/blog-series` | opus | restart
 
 ## Blockers / Gotchas
 
@@ -46,14 +44,19 @@
 - Artisan agents cannot `git -C ~/code/<repo>` outside project tree
 - Workaround: execute git commands directly from parent session
 
+**Claims audit unverifiable items (sandbox limitation):**
+- Commit timestamps (C2.2), line counts (C5.2), tuick AGENTS.md count (C1.3) — cannot verify via git on external repos from this worktree
+- "1,459 commits with agentic evidence" (C1.1) — sum methodology unclear, adjusted to omit
+
 ## Reference Files
 
 - `plans/retrospective/content/` — 14 blog raw materials (topics, synthesis, expansion evidence, appendix)
-- `plans/retrospective/reports/` — plan execution artifacts (reviews)
-- `plans/blog-series/` — blog series plan (brief, claude.ai conversation export)
+- `plans/blog-series/series-structure.md` — final 5-post series ordering with rationale
+- `plans/blog-series/posts/` — 5 post syntheses with evidence chains
+- `plans/blog-series/claims-audit.md` — claim verification results (18 claims, 7 adjusted)
+- `plans/blog-series/runbook.md` — 5-step execution plan
 - `plans/discuss-redesign/brief.md` — discuss protocol redesign context
-- `plans/measure-agent-recall/report.md` — spontaneous recall rate measurement (0%)
 
 ## Next Steps
 
-Blog series synthesis is the next in-tree task.
+Deliverable review of blog-series is the next actionable task.
