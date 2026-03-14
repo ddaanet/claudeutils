@@ -147,7 +147,7 @@
   - Plan: proof-state-anchor | Visible state + actions output at each transition. D+B anchor + user feedback.
 - [ ] **Fix brief trigger** — edit `agent-core/skills/brief/SKILL.md` description to lead with general mechanism | opus
   - Plan: none — direct edit. Brief skill description starts with "Transfer context... to a worktree task" causing mid-sentence `/brief` invocations to be missed
-- [ ] **Outline density gate** → `outline-density-gate` — `/design plans/outline-downgrade-density/brief.md` | opus
+- [ ] **Outline density gate** — `/design plans/outline-downgrade-density/brief.md` | opus
   - Plan: outline-downgrade-density | Content density check in write-outline.md downgrade criteria
 - [ ] **Review blog series** — `/deliverable-review plans/blog-series` | opus | restart
 
@@ -184,6 +184,8 @@
 
 **Must complete both recall prerequisites before centralizing recall instructions**
 
+- Handoff skill needs clarification: task name remains constant through lifecycle, must not specify next step [from: outline-density-gate]
+- Plan artifact needed: `plans/handoff-task-naming/brief.md` [from: outline-density-gate]
 ## Reference Files
 
 - `plans/reports/prioritization-2026-03-12.md` — WSJF scoring, 42 tasks ranked
