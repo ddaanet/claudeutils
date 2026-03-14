@@ -41,9 +41,9 @@ Create the plugin structure inside existing `agent-core/` directory. Checkpoint 
 **Objective**: Rewrite `agent-core/hooks/hooks.json` to contain all 9 surviving hook definitions in wrapper format, with `$CLAUDE_PLUGIN_ROOT` paths.
 
 **Prerequisites**:
-- Read `.claude/settings.json` hooks section (current hook bindings — source of truth for matchers and event types)
+- Read `.claude/settings.visible.json` hooks section (current hook bindings — source of truth for matchers and event types)
 - Read `agent-core/hooks/hooks.json` (current subset — will be fully rewritten)
-- Read outline.md Component 2 hook inventory table (authoritative list of all hooks and their matchers)
+- Read `plans/plugin-migration/outline.md` Component 2 hook inventory table (authoritative list of all hooks and their matchers)
 
 **Implementation**:
 1. Rewrite `agent-core/hooks/hooks.json` in wrapper format per D-4:
@@ -78,7 +78,7 @@ Create the plugin structure inside existing `agent-core/` directory. Checkpoint 
 
 **Error Conditions**:
 - If JSON validation fails → fix syntax before proceeding
-- If hook count doesn't match 9 → verify against outline Component 2 table
+- If hook count doesn't match 9 → verify against `plans/plugin-migration/outline.md` Component 2 table
 
 **Validation**:
 - `python3 -c "import json; d=json.load(open('agent-core/hooks/hooks.json')); assert 'hooks' in d; print('Events:', list(d['hooks'].keys()))"`
@@ -94,18 +94,23 @@ Create the plugin structure inside existing `agent-core/` directory. Checkpoint 
 - Steps 1.1, 1.2 complete
 
 **Implementation**:
-1. **Requires design:** Programmatic Claude CLI verification via tmux. The agent runs inside a tmux session, so TTY is available. Before building custom tooling, search for existing tools/patterns for tmux-based CLI interaction (send-keys, capture-pane, output verification).
-2. Verification targets:
-   - FR-1: Skills from `agent-core/skills/` discoverable (check `/help` output or skill listing)
-   - FR-1: Agents from `agent-core/agents/` discoverable
-   - FR-1: Hooks from `agent-core/hooks/hooks.json` loaded
-   - FR-8: Plan-specific agents (`.claude/agents/handoff-cli-tool-*.md`) coexist with plugin agents — both discoverable, no conflicts
-   - NFR-1: Dev mode cycle time — edit a skill, restart, verify change visible
+1. Launch Claude with plugin dir in a new tmux pane using standard tmux interaction:
+   - `tmux new-window -n plugin-test`
+   - `tmux send-keys -t plugin-test "claude --plugin-dir ./agent-core" Enter`
+   - Wait 3 seconds for startup, then capture: `tmux capture-pane -t plugin-test -p`
+2. In the Claude session, run `/help` and verify skill listing. Check `/agents` for agent listing.
+3. Verify each target:
+   - FR-1: Skills from `agent-core/skills/` appear in `/help` output
+   - FR-1: Agents from `agent-core/agents/` appear in `/agents` output
+   - FR-1: Hooks active (send a prompt that triggers a hook, observe hook output)
+   - FR-8: Plan-specific agents (`.claude/agents/handoff-cli-tool-*.md`) coexist with plugin agents — verify both appear in `/agents`, no conflicts
+   - NFR-1: Edit one skill file (e.g., add a comment), restart Claude with `--plugin-dir`, verify the edited file loads (skill available, no stale cache)
+4. Capture tmux output for each verification step and include in report.
 
 **Expected Outcome**:
 - Plugin skills, agents, and hooks all discoverable via `--plugin-dir`
 - No conflicts between plugin agents and plan-specific agents
-- Dev mode cycle time comparable to symlink approach
+- Dev mode reload works: edit-restart-verify cycle confirms change visible on next start
 
 **Error Conditions**:
 - If plugin not discovered → check `plugin.json` format, directory structure

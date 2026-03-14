@@ -22,21 +22,28 @@ Extract portable recipes and update root justfile.
 3. Extract these recipes (per D-5):
    - `claude` / `claude0` — opinionated launch wrapper (system prompt replacement, plugin config)
    - `lint` / `format` / `check` — ruff, mypy, docformatter
-   - `red` — permissive TDD variant
+   - `red-lint` — permissive TDD variant (recipe name in justfile is `red-lint`, not `red`; D-5 outline uses `red` as shorthand)
    - `precommit` — full lint with complexity
    - `precommit-base` — edify-plugin validators only
    - `test` — pytest with framework flags
-   - `wt-*` — manual worktree fallbacks
+   - `wt-*` — manual worktree fallbacks (wt-new, wt-task, wt-ls, wt-rm, wt-merge)
 4. Do NOT include: `release`, `line-limits`, project-specific helpers
-5. Each module needs its own minimal bash prolog:
+5. Each module needs its own `bash_prolog` string variable — portable recipes use `#!{{ bash_prolog }}` as their shebang, so the portable module must define a self-contained prolog with all required bash functions. The root justfile's `bash_prolog` is NOT available to imported modules before the import resolves. Define:
    ```just
-   # Minimal prolog for portable recipes (cannot rely on root justfile's bash_prolog)
-   fail := 'echo "FAIL:" && exit 1'
-   visible := 'echo'
-   red := '\033[0;31m'
-   green := '\033[0;32m'
-   reset := '\033[0m'
+   # Self-contained bash prolog for portable module (cannot rely on root justfile's bash_prolog)
+   bash_prolog := "/usr/bin/env bash\nset -euo pipefail\n" + '''
+   RED=$'\033[31m'
+   GREEN=$'\033[32m'
+   NORMAL=$'\033[0m'
+   safe () { "$@" || status=false; }
+   end-safe () { ${status:-true}; }
+   show () { echo "$@"; }
+   visible () { show "$@"; "$@"; }
+   fail () { echo "${RED}FAIL: $*${NORMAL}" >&2; exit 1; }
+   '''
    ```
+   Note: `safe`/`end-safe` are needed by `lint` and `check`; `visible`/`fail` are needed by `wt-*`. Do not omit them.
+   Note: Variable merging across import boundaries means the root `bash_prolog` will override the portable module's `bash_prolog` in the root project context — this is correct behavior (root wins). The portable module's `bash_prolog` serves standalone-import consumers.
 6. Update `claude` recipe to use `--plugin-dir ./agent-core` flag
 
 **Expected Outcome**:
@@ -49,8 +56,10 @@ Extract portable recipes and update root justfile.
 - If `just` import syntax doesn't support the module structure → simplify to single file
 
 **Validation**:
-- `just --justfile agent-core/portable.just --list` shows all expected recipes (single-file case)
-- No project-specific recipes present
+- Single-file case: `just --justfile agent-core/portable.just --list` shows all expected recipes
+- Thematic case: `just --justfile agent-core/<module>.just --list` for each module file
+- `just --justfile agent-core/portable.just --evaluate bash_prolog` shows the prolog string (confirms variable is defined)
+- No project-specific recipes present (`release`, `line-limits` absent from listing)
 
 ---
 
@@ -68,16 +77,16 @@ Extract portable recipes and update root justfile.
    - Thematic: `import 'agent-core/lint.just'` etc.
 2. If using single `portable.just` with potential overrides: add `set allow-duplicate-recipes`
 3. Remove recipes that moved to portable module(s):
-   - `claude`, `claude0`, `lint`, `format`, `check`, `red`, `precommit-base`, `test`, `wt-*`
+   - `claude`, `claude0`, `lint`, `format`, `check`, `red-lint`, `precommit-base`, `test`, `wt-new`, `wt-task`, `wt-ls`, `wt-rm`, `wt-merge`
 4. Keep in root justfile:
    - `release` (project-specific)
    - `line-limits` (project-specific)
    - `bash_prolog` for project-specific helper functions
    - `precommit` (may need project-specific additions beyond base)
    - Project-specific worktree helpers
-5. Regenerate cached help files:
-   - `.cache/just-help.txt`
-   - `.cache/just-help-edify-plugin.txt` (if applicable)
+5. Generate or regenerate cached help files (these may not exist yet):
+   - `just --list > .cache/just-help.txt` (create `.cache/` directory first if needed)
+   - `.cache/just-help-edify-plugin.txt` — generate only if referenced by plugin hooks or skills
 
 **Expected Outcome**:
 - Root `justfile` imports portable module(s)
@@ -94,4 +103,4 @@ Extract portable recipes and update root justfile.
 - `just lint` works (imported recipe)
 - `just release --help` works (project-specific recipe, if exists)
 - `just precommit` passes (end-to-end validation)
-- Regenerated `.cache/just-help*.txt` files match `just --list` output
+- `.cache/just-help.txt` exists and matches `just --list` output

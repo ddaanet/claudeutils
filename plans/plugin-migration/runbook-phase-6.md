@@ -34,7 +34,10 @@ Execute after plugin verified working. Irreversible within session.
    - Remove `Write(.claude/hooks/*)`
    - Remove `Bash(ln:*)`
 6. **Remove `sync-to-parent` recipe** from `agent-core/justfile`
-7. **Update `.gitignore`** if it has entries related to symlinks
+7. **Delete `pretooluse-symlink-redirect.sh`** from `agent-core/hooks/`:
+   - `rm agent-core/hooks/pretooluse-symlink-redirect.sh`
+   - Verify entry removed from `agent-core/hooks/hooks.json` (should have been done in Phase 2 hook migration)
+8. **Update `.gitignore`**: run `grep -n 'symlink\|\.claude/skills\|\.claude/agents\|\.claude/hooks' .gitignore` — remove any lines that tracked symlinks as generated artifacts
 
 **Expected Outcome**:
 - No symlinks in `.claude/skills/`, `.claude/agents/`, `.claude/hooks/`
@@ -42,6 +45,7 @@ Execute after plugin verified working. Irreversible within session.
 - `settings.json` has no `hooks` section
 - `settings.json` deny list has no symlink-guard rules
 - `sync-to-parent` recipe removed
+- `pretooluse-symlink-redirect.sh` deleted
 
 **Error Conditions**:
 - If `find -type l` finds non-agent-core symlinks → investigate before deleting
@@ -54,6 +58,7 @@ Execute after plugin verified working. Irreversible within session.
 - `find .claude/hooks/ -type l | wc -l` returns 0
 - `ls .claude/agents/handoff-cli-tool-*.md | wc -l` returns 6
 - `python3 -c "import json; d=json.load(open('.claude/settings.json')); assert 'hooks' not in d; print('OK')"`
+- `test ! -f agent-core/hooks/pretooluse-symlink-redirect.sh && echo OK` returns OK
 - Plugin still discovers all skills/agents/hooks (same tmux verification mechanism as Step 1.3)
 
 ---
@@ -68,13 +73,11 @@ Execute after plugin verified working. Irreversible within session.
   - `agent-core/fragments/project-tooling.md`
   - `agent-core/fragments/claude-config-layout.md`
   - `agent-core/fragments/sandbox-exemptions.md`
-  - `agent-core/fragments/delegation.md`
 
 **Implementation**:
-1. `project-tooling.md`: remove `sync-to-parent` references (recipe no longer exists)
-2. `claude-config-layout.md`: remove symlink section (no more symlinks)
-3. `sandbox-exemptions.md`: remove `sync-to-parent` subsection (recipe deleted)
-4. `delegation.md`: update examples referencing `sync-to-parent` (reference obsolete)
+1. `project-tooling.md`: remove `sync-to-parent` references (recipe no longer exists), remove anti-pattern example using `ln -sf` to create symlinks
+2. `claude-config-layout.md`: remove the "Symlinks in .claude/:" subsection (lines referencing `.claude/agents/`, `.claude/skills/`, `.claude/hooks/` symlinks and `just sync-to-parent`)
+3. `sandbox-exemptions.md`: remove `sync-to-parent` subsection entirely (recipe deleted)
 
 **Expected Outcome**:
 - No references to `sync-to-parent` in any fragment
@@ -87,7 +90,7 @@ Execute after plugin verified working. Irreversible within session.
 
 **Validation**:
 - `grep -r 'sync-to-parent' agent-core/fragments/` returns no matches
-- `grep -r 'symlink' agent-core/fragments/claude-config-layout.md` returns no matches (or only in historical context)
+- `grep 'sync-to-parent\|Symlinks in .claude' agent-core/fragments/claude-config-layout.md` returns no matches
 
 ---
 
@@ -102,8 +105,8 @@ Execute after plugin verified working. Irreversible within session.
 1. **FR-1**: Plugin auto-discovery works without symlinks
    - `claude --plugin-dir ./agent-core` → skills and agents discoverable
 2. **FR-7**: All functionality preserved
-   - No broken references in CLAUDE.md, fragments, skills
-   - All `@`-references resolve
+   - `grep -r '@agent-core/' CLAUDE.md agents/ .claude/rules/ | grep -v Binary` — each path must exist: `ls <path>` for each returned reference
+   - `grep -rh '^@' agent-core/fragments/ agent-core/skills/ | sort -u` — verify each referenced fragment path exists on disk
 3. **FR-9**: All hooks fire from plugin, settings.json hooks section empty
    - Verify hooks.json contains all hooks
    - Verify settings.json has no hooks section

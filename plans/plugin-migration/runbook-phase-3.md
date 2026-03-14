@@ -19,27 +19,28 @@ Create `/edify:init` and `/edify:update` skills — agentic prose artifacts requ
 
 **Implementation**:
 1. Create `agent-core/skills/init/SKILL.md`:
-   - **Conversational, not predetermined recipe.** No real consumer use case yet — over-specifying behavior bakes in unvalidated assumptions
-   - Skill should load reference material and discuss setup with user:
-     - What fragments to copy to `agents/rules/`
-     - How to rewrite CLAUDE.md `@`-references to local copies
-     - What `agents/` structure to scaffold (session.md, learnings.md)
-     - `.edify.yaml` format and sync policy
+   - **Concrete actions, not open-ended conversation.** The outline specifies the operations: copy fragments, rewrite refs, scaffold structure, write `.edify.yaml`. The skill must execute these, not ask the user to decide them.
+   - Skill behavior (per outline FR-3 and Component 4):
+     - Copy fragments from `agent-core/fragments/` to `agents/rules/`
+     - Rewrite CLAUDE.md `@agent-core/fragments/` refs to `@agents/rules/` local copies
+     - Scaffold `agents/` structure: `session.md`, `learnings.md`, `jobs.md`
+     - Generate CLAUDE.md from `agent-core/templates/CLAUDE.template.md`
+     - Write `.edify.yaml` with current plugin version and sync policy (`nag` default)
    - Reference points the skill needs to be aware of:
      - Fragment inventory (`agent-core/fragments/*.md`)
      - `agents/` directory structure conventions
      - CLAUDE.md template at `agent-core/templates/CLAUDE.template.md`
      - `.edify.yaml` format (version, sync_policy)
    - Idempotent: check before acting, never destroy existing content
+   - No submodule detection — the edify project itself does not run `/edify:init`
    - Consumer mode only — marketplace install context
    - Frontmatter: `name: init`, appropriate description for triggering
 
-2. Create `agent-core/templates/CLAUDE.template.md`:
-   - Template for consumer project CLAUDE.md
-   - Uses `@agents/rules/` references (local copies, not `agent-core/` submodule paths)
+2. Update `agent-core/templates/CLAUDE.template.md` (file exists — needs ref rewrites):
+   - Currently uses `@agent-core/fragments/` paths — must be updated to `@agents/rules/` references (local copies for consumer projects)
    - Includes standard sections: workflows, communication rules, operational rules
    - Placeholders for project-specific content
-   - Must be a starting point, not a complete CLAUDE.md — the `/edify:init` conversation fills in project-specific details
+   - Must be a starting point, not a complete CLAUDE.md — consumer fills in project-specific details
 
 **Expected Outcome**:
 - `agent-core/skills/init/SKILL.md` exists with valid skill frontmatter and conversational design
@@ -74,7 +75,7 @@ Create `/edify:init` and `/edify:update` skills — agentic prose artifacts requ
    - Behavior: sync fragments + portable justfile module(s), update `.edify.yaml` version
    - Separate from init — update is sync-only, not scaffolding
    - Should handle:
-     - Compare current fragments in `agents/rules/` with plugin's `fragments/`
+     - Compare current fragments in `agents/rules/` with plugin's fragments at `agent-core/fragments/`
      - Copy updated fragments, preserving any local customizations (warn on conflicts)
      - Sync portable justfile module(s) to project
      - Update `.edify.yaml` version to match current plugin version

@@ -95,8 +95,8 @@ Phase 5 must complete first (`.edify.yaml` exists for setup hook to read/update)
       ```
    b. **Install edify CLI** into plugin-local venv:
       - Check for `uv` availability: `command -v uv`
-      - If available: `uv pip install --python "$CLAUDE_PLUGIN_ROOT/.venv" claudeutils==X.Y.Z`
-      - If not: fall back to `pip install` or warn (R-3 mitigation)
+      - If available: create plugin-local venv (`uv venv "$CLAUDE_PLUGIN_ROOT/.venv"` if not already present), then install into it (`uv pip install --python "$CLAUDE_PLUGIN_ROOT/.venv/bin/python" claudeutils==X.Y.Z`)
+      - If not: fall back to `pip install --target "$CLAUDE_PLUGIN_ROOT/.venv/lib"` or warn (R-3 mitigation)
       - Package name is `claudeutils` (current PyPI name; rename to `edify` is separate work)
       - Version pinned in script, updated with each plugin release
    c. **Write version provenance** to `.edify.yaml` (FR-10):
@@ -125,7 +125,7 @@ Phase 5 must complete first (`.edify.yaml` exists for setup hook to read/update)
 - If `.edify.yaml` doesn't exist → create it (first run scenario)
 
 **Validation**:
-- Script runs without error: `bash agent-core/hooks/edify-setup.sh`
+- Script runs without error from project root: `bash agent-core/hooks/edify-setup.sh`
 - After run: `.edify.yaml` version matches `plugin.json` version
 - Script is idempotent: running twice produces same result
 
@@ -140,7 +140,7 @@ Phase 5 must complete first (`.edify.yaml` exists for setup hook to read/update)
 - Post-phase state: `agent-core/hooks/hooks.json` (rewritten in Step 1.2) contains all 9 surviving hooks in wrapper format
 
 **Implementation**:
-1. Edit `agent-core/hooks/hooks.json` SessionStart section
+1. Edit `agent-core/hooks/hooks.json` SessionStart section (file is in wrapper format after Phase 1 rewrites it: `{"hooks": {"SessionStart": [...], ...}}` — edit within the existing wrapper)
 2. Add `edify-setup.sh` entry BEFORE `sessionstart-health.sh`:
    ```json
    "SessionStart": [
@@ -159,6 +159,7 @@ Phase 5 must complete first (`.edify.yaml` exists for setup hook to read/update)
      }
    ]
    ```
+   (This shows the value of the `"SessionStart"` key within `"hooks"` — not a standalone JSON document)
 3. Ordering matters: setup provides env vars that health check may need
 
 **Expected Outcome**:
