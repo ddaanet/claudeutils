@@ -17,6 +17,13 @@
 - [x] **Problem.md migration** — `/design plans/problem-md-migration/brief.md` | sonnet
   - Plan: problem-md-migration | Status: briefed
 
+- [ ] **Centralize recall** — `/design plans/centralize-recall/brief.md` | opus | restart
+  - Plan: centralize-recall | Segmented /recall skill (<1ktok core), replace inline recall across skills/agents. Depends on: remove-fuzzy-recall, remove-index-skill
+- [ ] **Remove fuzzy recall** — `/design plans/remove-fuzzy-recall/brief.md` | sonnet
+  - Plan: remove-fuzzy-recall | Hard failure on no-match, "read memory-index" guidance
+- [ ] **Remove index skill** — `/design plans/remove-memory-index-skill/brief.md` | opus
+  - Plan: remove-memory-index-skill | Delete vestigial skill, update corrector.md to Read file directly
+
 ## Worktree Tasks
 
 - [x] **Review recall gate** — `/deliverable-review plans/recall-gate` | opus | restart
@@ -156,6 +163,14 @@
 - [-] **Execute flag lint** — superseded by session validator
 - [-] **Registry cache to tmp** — fixed inline, plan killed
 
+- [ ] **Anchor proof state** → `anchor-proof-state` — `/design plans/proof-state-anchor/brief.md` | opus | restart
+  - Plan: proof-state-anchor | Visible state + actions output at each transition. D+B anchor + user feedback.
+- [ ] **Fix brief trigger** — edit `agent-core/skills/brief/SKILL.md` description to lead with general mechanism | opus
+  - Plan: none — direct edit. Brief skill description starts with "Transfer context... to a worktree task" causing mid-sentence `/brief` invocations to be missed
+- [ ] **Outline density gate** → `outline-density-gate` — `/design plans/outline-downgrade-density/brief.md` | opus
+  - Plan: outline-downgrade-density | Content density check in write-outline.md downgrade criteria
+- [ ] **Review blog series** — `/deliverable-review plans/blog-series` | opus | restart
+
 ## Blockers / Gotchas
 
 **Post-merge validation (permanent):**
@@ -186,6 +201,7 @@
 **markdown-migration candidate for closure:**
 - All sub-problems killed/absorbed/subsumed after /proof. No remaining deliverables.
 
+- Must complete both prerequisites before centralizing recall instructions [from: retro-repo-expansion]
 ## Reference Files
 
 - `plans/reports/prioritization-2026-03-12.md` — WSJF scoring, 42 tasks ranked

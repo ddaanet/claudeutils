@@ -1,0 +1,7 @@
+- **Classification:** Moderate
+- **Implementation certainty:** Moderate — steps are spelled out in brief, but series structure is an open question requiring judgment
+- **Requirement stability:** High — brief specifies 5 concrete steps with clear deliverables
+- **Behavioral code check:** No code changes. Blog content synthesis and investigation work.
+- **Work type:** Investigation — produces analysis, synthesis documents, grounded claims for blog posts
+- **Artifact destination:** investigation — `plans/blog-series/`
+- **Evidence:** Brief provides 5 ordered execution steps with concrete actions. No architectural uncertainty — the uncertainty is creative (series ordering, claim grounding). 14 raw material files in `plans/retrospective/content/` provide the input corpus.
