@@ -16,6 +16,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Inspect diff content. Only treat as prior handoff if `## Completed This Session` was modified. Task-only changes (current session edits) → fresh write.
 - Agent had conversation context proving it made the edits itself but followed the heuristic mechanically.
 
+## When delegating external repo git operations
+- Anti-pattern: Dispatch artisan agents to run `git -C ~/code/<repo>` on repos outside the project tree. Sandbox write-allow restrictions block the agent even though the operations are read-only.
+- Correct pattern: Execute git read operations (`git -C`, `git log`, `git show`) directly from the parent session. Sub-agents only work reliably within the project's sandbox-allowed paths.
+- scratch/* repos under claudeutils worked because `~/code/claudeutils` is in the write-allow list. External repos (~/code/rules, ~/code/tuick, etc.) failed.
 ## When agent dismisses test failures as "pre-existing"
 - Anti-pattern: Agent runs scoped tests (single file/module), gets green. At commit time, full suite shows failures. Agent classifies as "pre-existing" without verifying — two instances in one session (`68963394`, `63af67bf`).
 - Correct pattern: If `just precommit` shows failures not present in prior commit, they are regressions from this session. Verify with `git stash && just test && git stash pop` or check the test names against changed files.
@@ -54,7 +58,3 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Keep sub-problems together through design (shared context benefits). After design, split into separate tasks with explicit dependencies. Parent plan delivers at "designed" status (terminal). Children are new plans starting at "planned." Each gets own WSJF score, model tier, worktree classification.
 - Exception: Dependent sub-problems (S-B depends on S-A's output format) stay together through design but execute as separate tasks with cross-task dependency.
 - Design coherence under change: if a sub-problem's execution reveals the shared design was wrong, propagation via "merge parent" (worktree merge from parent branch) handles updates.
-## When delegating external repo git operations
-- Anti-pattern: Dispatch artisan agents to run `git -C ~/code/<repo>` on repos outside the project tree. Sandbox write-allow restrictions block the agent even though the operations are read-only.
-- Correct pattern: Execute git read operations (`git -C`, `git log`, `git show`) directly from the parent session. Sub-agents only work reliably within the project's sandbox-allowed paths.
-- scratch/* repos under claudeutils worked because `~/code/claudeutils` is in the write-allow list. External repos (~/code/rules, ~/code/tuick, etc.) failed.
