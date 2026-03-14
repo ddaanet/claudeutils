@@ -140,7 +140,7 @@
   - Note: plan dir only exists in retro-repo-expansion worktree, not on main. Create plan dir before design.
 - [ ] **Skill exit commit** — `/design plans/skill-exit-commit/requirements.md` | sonnet | 1.0
   - Plan: skill-exit-commit | Status: requirements
-- [ ] **Discussion** → `discussion` — `d:` | sonnet
+- [ ] **Discussion** — `d:` | sonnet
 - [!] **Verb form AB test** — see `plans/reports/ab-test/README.md` | sonnet | 0.5
   - Blocked on human: curate task-contexts.json, annotate ground-truth.md
 - [ ] **Anchor proof state** → `anchor-proof-state` — `/design plans/proof-state-anchor/brief.md` | opus | restart
