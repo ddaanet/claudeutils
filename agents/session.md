@@ -14,6 +14,11 @@
 - C2: execute-rule.md — `bd:` added to Tier 2 directives table
 - Corrector review: 0 critical, 0 major, 2 minor fixed (grounding step ambiguity, bd: label alignment)
 
+**Deliverable review of discuss-redesign:**
+- 0 critical, 0 major, 0 minor — all 8 outline decisions faithfully implemented
+- Report: `plans/discuss-redesign/reports/deliverable-review.md`
+- Lifecycle: `reviewed`
+
 **Reflect session findings (5 tasks briefed):**
 - Unanchored recall: 11 speculative triggers fired, 6 missed — root cause: no index-read anchor in /design A.1
 - /proof protocol dropped: state machine invisible, committed documented anti-pattern
@@ -36,7 +41,8 @@
   - Updated T1, T2, T5, cross-topic with pre-history and corrected measurements
 - [x] **Blog series synthesis** — `/design plans/blog-series/brief.md` | opus | restart
   - Plan: blog-series | 5-post series synthesized, claims audited, adjustments applied
-- [ ] **Review discuss redesign** — `/deliverable-review plans/discuss-redesign` | opus | restart
+- [x] **Review discuss redesign** — `/deliverable-review plans/discuss-redesign` | opus | restart
+  - 0 critical, 0 major, 0 minor. All 8 outline decisions faithfully implemented.
 
 ## Worktree Tasks
 
@@ -77,4 +83,4 @@
 
 ## Next Steps
 
-Deliverable review of discuss-redesign is the next actionable in-tree task.
+All in-tree tasks complete. Remaining work is worktree tasks (review blog series, fix brief trigger, remove fuzzy recall, etc.).
