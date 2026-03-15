@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from itertools import combinations
+
 from claudeutils.validation.task_parsing import ParsedTask
 
 
@@ -95,3 +97,60 @@ def render_unscheduled(
     lines = ["Unscheduled Plans:"]
     lines.extend(f"- {name} — {orphans[name]}" for name in sorted(orphans))
     return "\n".join(lines)
+
+
+def _build_dependency_edges(
+    pending: list[ParsedTask],
+    blockers: list[list[str]],
+) -> set[tuple[int, int]]:
+    """Build dependency edges between tasks.
+
+    Tasks are dependent if they share ``plan_dir`` or if a blocker
+    entry mentions both task names.
+    """
+    names = [t.name for t in pending]
+    plan_dirs = [t.plan_dir for t in pending]
+    edges: set[tuple[int, int]] = set()
+
+    blocker_text = " ".join(line for group in blockers for line in group)
+
+    for i in range(len(pending)):
+        for j in range(i + 1, len(pending)):
+            shared_plan = plan_dirs[i] and plan_dirs[j] and plan_dirs[i] == plan_dirs[j]
+            both_in_blocker = names[i] in blocker_text and names[j] in blocker_text
+            if shared_plan or both_in_blocker:
+                edges.add((i, j))
+
+    return edges
+
+
+def _is_independent(subset: tuple[int, ...], edges: set[tuple[int, int]]) -> bool:
+    """Check if no pair in subset has a dependency edge."""
+    return not any(
+        (subset[a], subset[b]) in edges
+        for a in range(len(subset))
+        for b in range(a + 1, len(subset))
+    )
+
+
+def detect_parallel(
+    tasks: list[ParsedTask],
+    blockers: list[list[str]],
+) -> list[str] | None:
+    """Find largest group of independent pending tasks.
+
+    Returns task names if group has 2+ members, else None.
+    """
+    pending = [t for t in tasks if t.checkbox == " "]
+    if len(pending) < 2:
+        return None
+
+    names = [t.name for t in pending]
+    edges = _build_dependency_edges(pending, blockers)
+
+    for size in range(len(pending), 1, -1):
+        for subset in combinations(range(len(pending)), size):
+            if _is_independent(subset, edges):
+                return [names[idx] for idx in subset]
+
+    return None

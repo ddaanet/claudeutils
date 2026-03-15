@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from claudeutils.session.status.render import (
+    detect_parallel,
     render_next,
     render_pending,
     render_unscheduled,
@@ -200,3 +201,65 @@ def test_render_unscheduled_excludes_task_plans() -> None:
     result = render_unscheduled(plans, {"active"})
     assert "active" not in result
     assert "orphan" in result
+
+
+# --- Cycle 3.3: detect_parallel ---
+
+
+def _task_with_plan(name: str, plan: str) -> ParsedTask:
+    """Build a task with plan_dir set."""
+    t = _task(name)
+    t.plan_dir = plan
+    return t
+
+
+def test_detect_parallel_group() -> None:
+    """Three tasks with different plan_dirs form a parallel group."""
+    tasks = [
+        _task_with_plan("A", "plan-a"),
+        _task_with_plan("B", "plan-b"),
+        _task_with_plan("C", "plan-c"),
+    ]
+    result = detect_parallel(tasks, [])
+    assert result is not None
+    assert set(result) == {"A", "B", "C"}
+
+
+def test_detect_parallel_no_group() -> None:
+    """Single task returns None."""
+    tasks = [_task_with_plan("Solo", "plan-solo")]
+    assert detect_parallel(tasks, []) is None
+
+
+def test_detect_parallel_shared_plan() -> None:
+    """Two tasks sharing plan_dir returns None."""
+    tasks = [
+        _task_with_plan("X", "parser"),
+        _task_with_plan("Y", "parser"),
+    ]
+    assert detect_parallel(tasks, []) is None
+
+
+def test_detect_parallel_mixed() -> None:
+    """Four tasks, 2 sharing plan → largest independent subset returned."""
+    tasks = [
+        _task_with_plan("Dep1", "shared"),
+        _task_with_plan("Dep2", "shared"),
+        _task_with_plan("Ind1", "plan-1"),
+        _task_with_plan("Ind2", "plan-2"),
+    ]
+    result = detect_parallel(tasks, [])
+    assert result is not None
+    # Largest independent group: 3 tasks (Dep1 or Dep2 + Ind1 + Ind2)
+    assert len(result) >= 2
+
+
+def test_detect_parallel_blocker_excludes() -> None:
+    """Blocker referencing task name creates dependency."""
+    tasks = [
+        _task_with_plan("Alpha", "plan-a"),
+        _task_with_plan("Beta", "plan-b"),
+    ]
+    blockers = [["Blocker: Alpha blocks Beta"]]
+    result = detect_parallel(tasks, blockers)
+    assert result is None
