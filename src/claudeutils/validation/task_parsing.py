@@ -40,6 +40,7 @@ class ParsedTask:
     worktree_marker: str | None = None
     restart: bool = False
     priority: str | None = field(default=None)
+    plan_dir: str | None = field(default=None)
 
 
 def parse_task_line(line: str, lineno: int = 0) -> ParsedTask | None:
