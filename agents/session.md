@@ -134,7 +134,7 @@
   - FR-4 added: remove bottom-to-top edit ordering refs
 - [ ] **Incident counting** — `/design plans/incident-counting/brief.md` | opus | 0.6
   - Plan: incident-counting | Status: briefed
-- [x] **Retro repo expansion** → `retro-repo-expansion` — plan delivered
+- [x] **Retro repo expansion** — plan delivered
 - [ ] **Recall pipeline** — `/design` | sonnet | 1.0
   - Deduplication, stdin parsing, usage scoring for recall entries
   - Note: plan dir only exists in retro-repo-expansion worktree, not on main. Create plan dir before design.
@@ -157,6 +157,9 @@
 - [-] **Recall tool consolidation** — absorbed into Active Recall
 - [-] **Execute flag lint** — superseded by session validator
 - [-] **Registry cache to tmp** — fixed inline, plan killed
+
+- [ ] **Outline proofing** — `/design plans/outline-proofing/brief.md` | opus | restart
+  - Plan: outline-proofing | Add /proof gate on all planning artifacts: /design Moderate, /runbook Tier 2, /runbook Tier 3. Eliminates Tier 1.
 
 ## Blockers / Gotchas
 
@@ -186,6 +189,8 @@
 
 - Handoff skill needs clarification: task name remains constant through lifecycle, must not specify next step [from: outline-density-gate]
 - Plan artifact needed: `plans/handoff-task-naming/brief.md` [from: outline-density-gate]
+- Must complete both prerequisites before centralizing recall instructions [from: retro-repo-expansion]
+- Outline-proofing adds /proof to /runbook Tier 2. Remove-fuzzy-recall is Tier 2. If outline-proofing lands first, remove-fuzzy-recall gets the new /proof gate. No blocking dependency — order-independent. [from: retro-repo-expansion]
 ## Reference Files
 
 - `plans/reports/prioritization-2026-03-12.md` — WSJF scoring, 42 tasks ranked
