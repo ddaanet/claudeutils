@@ -63,7 +63,7 @@ Normal update path is marketplace (`claude plugin update edify`) for both modes.
 | FR-1 | `claude --plugin-dir ./agent-core` → `/help` lists plugin skills; agents appear in `/agents` |
 | FR-2 | `just claude` launches with system prompt replacement, skills available |
 | FR-3 | Clean project + `/edify:init` → functional CLAUDE.md with `@` refs to `agents/rules/`, fragments copied |
-| FR-4 | Bump `plugin.json` version, restart → `/edify:update` syncs files, `.edify.yaml` version matches |
+| FR-4 | Bump `plugin.json` version, restart → `/edify:update` syncs unmodified files, skips user-edited files with warning. `--force` overwrites conflicts. `.edify.yaml` version + synced hashes updated |
 | FR-5 | Stale `.edify.yaml` → first prompt shows additionalContext nag |
 | FR-6 | New project with synced `portable.just` → `just claude`, `just precommit` work |
 | FR-7 | Remove symlinks from `.claude/` → all functionality preserved via plugin |
@@ -142,6 +142,21 @@ Complete hook inventory (audited from settings.json + hooks/ directory):
 - No submodule detection — edify project itself doesn't run init (it IS the plugin)
 
 `/edify:update` — separate skill, syncs fragments + `portable.just`, updates `.edify.yaml` version.
+
+**Conflict policy for `/edify:update`:**
+
+- **Sync targets:** `agents/rules/*` (from plugin `fragments/`), `portable.just` (from plugin root)
+- **Tracking mechanism:** `.edify.yaml` stores a `synced_hashes` map — keyed by relative file path, value is content hash at last sync. Written by both `/edify:init` (initial sync) and `/edify:update` (subsequent syncs)
+- **Per-file detection:** compare consumer file hash against `synced_hashes[file]` (the version last synced), not against the current plugin version
+- **Cases:**
+  - File missing in consumer → copy from plugin, record hash (new file)
+  - Consumer hash == synced hash → user hasn't edited → **safe to update** with new plugin version, record new hash
+  - Consumer hash ≠ synced hash → user has local edits → **conflict: warn and skip** (report file path, do not overwrite)
+  - No synced hash entry (legacy/first run) → treat as conflict (safe default)
+- **Never silent overwrite:** Conflicting files are never replaced without explicit user intent
+- **`--force` flag:** Overwrites conflicting files with plugin version. Applies to all conflicting files (no per-file granularity in v1 — user runs `--force` after reviewing the conflict list). Updates synced hashes for overwritten files
+- **Output:** Summary — files updated (safe), files copied (new), files conflicting (with paths), files current (no change). On `--force`: files overwritten
+- **Rationale:** Consumer may have local edits to fragments (project-specific behavioral rules). Comparing against last-synced version (not current plugin version) correctly distinguishes "user edited" from "plugin updated" — routine plugin updates flow through without false conflicts
 
 ### 5. Justfile Modularization
 
@@ -241,6 +256,7 @@ Issues found in `design.md` during this refresh:
 - **Python dependency mechanism:** Plugin-local venv via `uv pip install` in SessionStart hook
 - **Version scheme:** Semver, marketplace-driven, matches PyPI. Single version across `plugin.json` and `pyproject.toml`
 - **Bootstrap strategy:** Build plugin inside `agent-core/`, rename last
+- **Update conflict policy:** Warn-and-skip for user-edited files, auto-update for unmodified. Detection via synced content hashes in `.edify.yaml`. `--force` for intentional overwrite
 
 ## Risks
 
