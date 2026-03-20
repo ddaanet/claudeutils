@@ -10,7 +10,6 @@ from pathlib import Path
 import pytest
 
 from claudeutils.session.commit import (
-    CommitInput,
     CommitInputError,
     parse_commit_input,
 )
@@ -53,7 +52,6 @@ COMMIT_INPUT_FIXTURE = """\
 def test_parse_commit_input(section: str) -> None:
     """Parametrized test for each section of commit input."""
     result = parse_commit_input(COMMIT_INPUT_FIXTURE)
-    assert isinstance(result, CommitInput)
 
     if section == "files":
         assert result.files == [
@@ -279,7 +277,10 @@ def test_vet_check_pass(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
     src.parent.mkdir(parents=True)
     src.write_text("code")
 
-    # Create a report newer than the source file
+    # Pin source mtime to 10s ago so report is reliably newer
+    old_time = time.time() - 10
+    os.utime(src, (old_time, old_time))
+
     report_dir = tmp_path / "plans" / "bar" / "reports"
     report_dir.mkdir(parents=True)
     report = report_dir / "vet-review.md"

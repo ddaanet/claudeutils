@@ -37,7 +37,7 @@ def _strip_blockquote(lines: list[str]) -> str:
 
 def _parse_files(lines: list[str]) -> list[str]:
     """Extract file paths from ``- path`` lines."""
-    return [line.lstrip("- ").strip() for line in lines if line.startswith("- ")]
+    return [line.removeprefix("- ").strip() for line in lines if line.startswith("- ")]
 
 
 def _parse_options(lines: list[str]) -> set[str]:
@@ -45,7 +45,7 @@ def _parse_options(lines: list[str]) -> set[str]:
     opts: set[str] = set()
     for line in lines:
         if line.startswith("- "):
-            opt = line.lstrip("- ").strip()
+            opt = line.removeprefix("- ").strip()
             if opt not in _VALID_OPTIONS:
                 msg = f"Unknown option: {opt}"
                 raise CommitInputError(msg)

@@ -128,9 +128,12 @@ def _newest_mtime(files: list[Path]) -> float:
     return max(f.stat().st_mtime for f in files)
 
 
+_AGENT_CORE_PATTERNS = ["agent-core/bin/**", "agent-core/skills/**/*.sh"]
+
+
 def vet_check(files: list[str]) -> VetResult:
     """Check files against require-review patterns."""
-    patterns = _load_review_patterns()
+    patterns = _load_review_patterns() + _AGENT_CORE_PATTERNS
     if not patterns:
         return VetResult(passed=True)
 
