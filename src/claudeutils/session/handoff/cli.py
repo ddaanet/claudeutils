@@ -11,7 +11,11 @@ import click
 
 from claudeutils.git import _fail
 from claudeutils.session.handoff.context import PrecommitResult, format_diagnostics
-from claudeutils.session.handoff.parse import HandoffInputError, parse_handoff_input
+from claudeutils.session.handoff.parse import (
+    HandoffInput,
+    HandoffInputError,
+    parse_handoff_input,
+)
 from claudeutils.session.handoff.pipeline import (
     clear_state,
     load_state,
@@ -19,6 +23,14 @@ from claudeutils.session.handoff.pipeline import (
     save_state,
     write_completed,
 )
+
+
+def _parse_or_fail(text: str) -> HandoffInput:
+    """Parse handoff markdown or exit with code 2 on error."""
+    try:
+        return parse_handoff_input(text)
+    except HandoffInputError as e:
+        _fail(f"**Error:** {e}", code=2)
 
 
 def _run_precommit() -> PrecommitResult:
@@ -43,10 +55,7 @@ def handoff_cmd() -> None:
     stdin_text = sys.stdin.read().strip()
 
     if stdin_text:
-        try:
-            handoff_input = parse_handoff_input(stdin_text)
-        except HandoffInputError as e:
-            _fail(f"**Error:** {e}", code=2)
+        handoff_input = _parse_or_fail(stdin_text)
         save_state(stdin_text, step="write_session")
     else:
         state = load_state()
@@ -55,10 +64,7 @@ def handoff_cmd() -> None:
                 "**Error:** No input on stdin and no state file",
                 code=2,
             )
-        try:
-            handoff_input = parse_handoff_input(state.input_markdown)
-        except HandoffInputError as e:
-            _fail(f"**Error:** {e}", code=2)
+        handoff_input = _parse_or_fail(state.input_markdown)
 
     overwrite_status(session_path, handoff_input.status_line)
     write_completed(session_path, handoff_input.completed_lines)
@@ -67,13 +73,22 @@ def handoff_cmd() -> None:
 
     git_output: str | None = None
     if precommit_result.passed:
-        result = subprocess.run(
+        status_result = subprocess.run(
             ["git", "status", "--porcelain"],
             capture_output=True,
             text=True,
             check=False,
         )
-        git_output = result.stdout.strip() or None
+        diff_result = subprocess.run(
+            ["git", "diff", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        parts = [
+            p for p in [status_result.stdout.strip(), diff_result.stdout.strip()] if p
+        ]
+        git_output = "\n".join(parts) or None
 
     diagnostics = format_diagnostics(
         precommit_result,

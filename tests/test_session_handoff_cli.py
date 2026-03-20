@@ -109,6 +109,8 @@ def test_session_handoff_cli_fresh(
     assert "Implemented write_completed" in content
     assert "Previous task" not in content
     assert "All checks passed" in result.output
+    # State file cleared after successful pipeline
+    assert not (tmp_path / "tmp" / ".handoff-state.json").exists()
 
 
 def test_session_handoff_cli_resume(
@@ -136,6 +138,8 @@ def test_session_handoff_cli_resume(
     assert result.exit_code == 0
     content = session_file.read_text()
     assert "Phase 4 complete." in content
+    # State file cleared after successful resume
+    assert not (tmp_path / "tmp" / ".handoff-state.json").exists()
 
 
 def test_session_handoff_cli_no_stdin_no_state(
@@ -154,4 +158,4 @@ def test_session_handoff_cli_no_stdin_no_state(
     )
 
     assert result.exit_code == 2
-    assert "Error" in result.output
+    assert "**Error:**" in result.output
