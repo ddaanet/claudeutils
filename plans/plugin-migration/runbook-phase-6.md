@@ -59,7 +59,12 @@ Execute after plugin verified working. Irreversible within session.
 - `ls .claude/agents/handoff-cli-tool-*.md 2>/dev/null | wc -l` returns 0
 - `python3 -c "import json; d=json.load(open('.claude/settings.json')); assert 'hooks' not in d; print('OK')"`
 - `test ! -f agent-core/hooks/pretooluse-symlink-redirect.sh && echo OK` returns OK
-- Plugin still discovers all skills/agents/hooks (same tmux verification mechanism as Step 1.3)
+- **Automated plugin check** (from project root, symlinks now removed):
+  ```bash
+  claude -p "list your available slash commands" --plugin-dir ./agent-core 2>&1 | grep -c "design\|commit\|orchestrate" && \
+  claude -p "list your available agents" --plugin-dir ./agent-core 2>&1 | grep -c "agent"
+  ```
+  Skills and agents must be discoverable via `--plugin-dir` alone (no symlinks remain)
 
 ---
 
@@ -104,8 +109,12 @@ Execute after plugin verified working. Irreversible within session.
 - Steps 6.1, 6.2 complete
 
 **Implementation**:
-1. **FR-1**: Plugin auto-discovery works without symlinks
-   - `claude --plugin-dir ./agent-core` → skills and agents discoverable
+1. **FR-1**: Plugin auto-discovery works without symlinks (automated via `-p` headless mode):
+   ```bash
+   claude -p "list your available slash commands" --plugin-dir ./agent-core 2>&1 | tee tmp/migration-verify-skills.txt
+   claude -p "list your available agents" --plugin-dir ./agent-core 2>&1 | tee tmp/migration-verify-agents.txt
+   ```
+   - Skills and agents must appear in output (no symlinks, `--plugin-dir` only)
 2. **FR-7**: All functionality preserved
    - `grep -r '@agent-core/' CLAUDE.md agents/ .claude/rules/ | grep -v Binary` — each path must exist: `ls <path>` for each returned reference
    - `grep -rh '^@' agent-core/fragments/ agent-core/skills/ | sort -u` — verify each referenced fragment path exists on disk

@@ -1,40 +1,36 @@
-# Session Handoff: 2026-03-16
+# Session Handoff: 2026-03-20
 
-**Status:** Conflict policy added to outline. Step 3.2 unblocked. Tmux mechanism design needed before orchestration.
+**Status:** Plugin verification mechanism designed and spiked. Runbook steps updated with automated `claude -p` checks.
 
 ## Completed This Session
 
-**Outline amendment (conflict policy):**
-- Added `/edify:update` conflict policy to Component 4: synced-hash tracking in `.edify.yaml`, warn-and-skip for user-edited files, auto-update for unmodified, `--force` for intentional overwrite
-- Key design choice: compare consumer file against last-synced hash (not current plugin version) — distinguishes "user edited" from "plugin updated"
-- Updated FR-4 validation row for conflict scenarios (safe update, conflict skip, `--force` override, hash update)
-- Added "Update conflict policy" to Resolved Questions
+**Tmux verification mechanism — resolved via `claude -p` headless mode:**
+- Researched prior art: pchalasani/claude-code-tools (execution markers), claude-tmux (pattern detection), ccbot (JSONL polling), libtmux+pyte, mcp-tui-test
+- Spiked `claude -p "list your available slash commands" --plugin-dir ./agent-core` from clean directory (no `.claude/`) — all plugin skills returned. `-p` mode bypasses Ink TUI entirely.
+- Updated Step 1.3 (`runbook-phase-1.md`): 4 automated `claude -p` checks (skills, agents, coexistence, hooks) + 1 manual NFR-1 dev-reload check
+- Updated Step 6.1 validation (`runbook-phase-6.md`): automated `claude -p` replaces "same tmux mechanism" placeholder
+- Updated Step 6.3 FR-1 (`runbook-phase-6.md`): `claude -p` with output captured to `tmp/`
+- Updated `brief.md`: documents resolution, spike result, per-FR mechanism, prior art catalog
 
 ## In-tree Tasks
 
-- [x] **Update conflict policy** — `/design plans/plugin-migration/outline.md` | opus
-  - Plan: plugin-migration | Conflict policy added to Component 4, FR-4 validation updated, Resolved Questions updated
-- [ ] **Tmux verification mechanism** — `/design plans/plugin-migration/brief.md` | opus
-  - Plan: plugin-migration | Design how to drive/verify live Claude sessions via tmux for Steps 1.3, 6.3. Gap documented in brief.md
 - [ ] **Plugin migration** — `/orchestrate plugin-migration` | opus
-  - Plan: plugin-migration | Status: ready (blocked on tmux mechanism design)
-  - Note: design.md stale (outline supersedes)
+  - Plan: plugin-migration | Status: ready
+  - Note: design.md stale (outline supersedes). Steps 1.3, 6.1, 6.3 updated with `claude -p` automated verification.
 
 ## Blockers / Gotchas
-
-**Tmux verification mechanism unresolved:**
-- Steps 1.3, 2.4 (killed), 6.1, 6.3 reference "standard tmux interaction" — mechanism not designed. Brief at `plans/plugin-migration/brief.md`. Executor should treat as manual checkpoints (STOP and report).
 
 **design.md stale:**
 - Contains 5 documented errors (see outline Design Corrections section). Outline supersedes design.md for all decisions.
 
 ## Reference Files
 
-- `plans/plugin-migration/outline.md` — authoritative outline (now includes conflict policy)
-- `plans/plugin-migration/runbook-phase-3.md` — Phase 3 with Step 3.2 (previously blocked, now unblocked)
-- `plans/plugin-migration/brief.md` — tmux mechanism design gap
+- `plans/plugin-migration/outline.md` — authoritative outline
+- `plans/plugin-migration/brief.md` — tmux mechanism resolution + prior art
+- `plans/plugin-migration/runbook-phase-1.md` — Step 1.3 (automated `claude -p` checks)
+- `plans/plugin-migration/runbook-phase-6.md` — Steps 6.1, 6.3 (automated verification)
 - `plans/plugin-migration/recall-artifact.md` — recall entries for downstream consumers
 
 ## Next Steps
 
-`/design plans/plugin-migration/brief.md` — resolve tmux verification mechanism, then `/orchestrate plugin-migration`.
+`/orchestrate plugin-migration` — all blockers resolved, plan status ready.

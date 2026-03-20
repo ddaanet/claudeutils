@@ -1,14 +1,23 @@
-## 2026-03-14: Tmux verification mechanism unresolved — blocks Phase 1 execution
+## 2026-03-18: Tmux verification mechanism — RESOLVED
 
-**Gap:** Steps 1.3, 2.4, 6.1, and 6.3 all reference "standard tmux interaction" / "same tmux verification mechanism as Step 1.3" for validating plugin loading inside a live Claude session. This mechanism was flagged as an unresolved design dependency during runbook outline /proof (and again during corrector review). The designated resolution point was "pre-Phase-1 spike or during Phase 1 expansion" — neither occurred.
+**Resolution:** `claude -p` headless mode replaces tmux-based TUI interaction for plugin verification.
 
-**What's missing:** Step 1.3 has skeleton tmux commands (new-window, send-keys, capture-pane) but doesn't specify:
-- How to send commands to the Claude session interactively (e.g., how to type `/help` into the running claude process via tmux)
-- How to parse/verify structured output from capture-pane
-- How to handle the Claude process startup delay reliably
+**Spike result:** `claude -p "list your available slash commands" --plugin-dir ./agent-core` from a clean directory (no `.claude/`) returns all plugin skills. The `-p` flag runs non-interactively, bypasses Ink TUI entirely, outputs plain text. No tmux send-keys, no ANSI parsing, no readiness polling needed.
 
-**Required before Phase 1 execution:** Design the spike. Options:
-- Pre-Phase-1 spike step that validates the tmux approach works and documents the interaction pattern
-- Or accept manual validation for checkpoints 1.3, 2.4, 6.1, 6.3 (human runs and eyeballs output) and simplify step instructions accordingly
+**Verification mechanism (applied to Steps 1.3, 6.1, 6.3):**
+- **Skills (FR-1):** `claude -p "list your available slash commands" --plugin-dir ./agent-core`
+- **Agents (FR-1, FR-8):** `claude -p "list your available agents" --plugin-dir ./agent-core`
+- **Hooks (FR-1):** `claude -p "write test to /tmp/x" --plugin-dir ./agent-core` — triggers `pretooluse-block-tmp.sh`
+- **Clean-room test:** Run from `tmp/plugin-verify/` (no `.claude/`) to confirm `--plugin-dir` is the sole discovery path
+- **Coexistence (FR-8):** Run from project root (has `.claude/agents/handoff-cli-tool-*.md`) to verify both sources
+- **NFR-1 (dev reload):** Manual — edit skill, re-run check, confirm change visible. Only remaining manual step.
 
-**If proceeding without redesign:** Steps 1.3, 2.4, 6.1, 6.3 are manual verification checkpoints — the agent runs the tmux commands, captures output, and reports to orchestrator for human judgment. The "STOP and report" instruction already in those steps is consistent with this.
+**Step 2.4:** Absorbed into Step 2.3 during /proof. Was a phase-boundary STOP, not a tmux issue.
+
+**Prior art reviewed:**
+- pchalasani/claude-code-tools (`tmux-cli`): execution marker pattern (`echo START; cmd; echo END:$?`) for reliable tmux output capture
+- nielsgroen/claude-tmux: pattern-based readiness detection on `capture-pane` output
+- ccbot: JSONL transcript file polling (avoids terminal scraping entirely)
+- libtmux + pyte: Python tmux control with ANSI terminal emulation
+
+These are available if tmux-based verification is ever needed (e.g., for interactive multi-turn test scenarios). For plugin loading verification, `-p` mode is sufficient and simpler.

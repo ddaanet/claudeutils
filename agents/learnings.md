@@ -59,3 +59,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Keep sub-problems together through design (shared context benefits). After design, split into separate tasks with explicit dependencies. Parent plan delivers at "designed" status (terminal). Children are new plans starting at "planned." Each gets own WSJF score, model tier, worktree classification.
 - Exception: Dependent sub-problems (S-B depends on S-A's output format) stay together through design but execute as separate tasks with cross-task dependency.
 - Design coherence under change: if a sub-problem's execution reveals the shared design was wrong, propagation via "merge parent" (worktree merge from parent branch) handles updates.
+
+## When verifying plugin loading in Claude Code
+- Anti-pattern: Designing tmux send-keys + capture-pane interaction to drive Claude's interactive TUI. Fragile due to Ink/React rendering (ANSI codes, async redraws, space-padding). Dismissed as "no prior art" without checking `claude -p` headless mode or existing tmux automation libraries.
+- Correct pattern: `claude -p "prompt" --plugin-dir ./path` runs non-interactively with plain text output. Skills are discoverable, hooks fire, slash commands are recognized. No ANSI parsing, no readiness polling. Prior art exists: pchalasani/claude-code-tools (execution markers), claude-tmux (pattern detection), ccbot (JSONL transcript polling).
+- Evidence: Spike from clean directory confirmed all plugin skills returned via `-p` mode.
