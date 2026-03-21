@@ -15,3 +15,5 @@
 2026-03-18 review-pending — /proof plans/outline-proofing/design.md
 2026-03-18 reviewed — /proof plans/outline-proofing/design.md
 2026-03-20 reviewed — /deliverable-review
+2026-03-21 review-pending — /proof plans/outline-proofing/inline-plan.md
+2026-03-21 reviewed — /proof plans/outline-proofing/inline-plan.md
