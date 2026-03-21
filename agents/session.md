@@ -1,6 +1,6 @@
 # Session Handoff: 2026-03-21
 
-**Status:** M1/M2 outline-proofing findings fixed. Outline fix review pending.
+**Status:** M1/M2 findings fixed. Branch ready to merge.
 
 ## Completed This Session
 
@@ -16,8 +16,6 @@
 - [x] **Outline proofing review** — `/deliverable-review plans/outline-proofing` | opus | restart
 - [x] **Fix outline findings** — `/design plans/outline-proofing/reports/deliverable-review.md` | opus
   - Plan: outline-proofing | 2 minor findings: M1 prerequisites check scope (Tier 3), M2 implicit Read instruction
-- [ ] **Outline fix review** — `/deliverable-review plans/outline-proofing` | opus | restart
-
 ## Worktree Tasks
 
 - [x] **Implement proofing** — `/runbook plans/outline-proofing/design.md` | opus
@@ -48,4 +46,4 @@
 
 ## Next Steps
 
-Run `/deliverable-review plans/outline-proofing` to verify M1/M2 fixes, then merge the branch.
+Branch work complete.
