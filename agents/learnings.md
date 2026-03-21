@@ -72,3 +72,7 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: "Generate X using format from `references/foo.md`" — implies reading but doesn't require it. Agent may rationalize from memory rather than reading the file, producing format drift.
 - Correct pattern: Explicit Read instruction: "Read `references/foo.md`. Generate X using that format." Matches Complex path convention ("Read `references/write-outline.md`") and removes ambiguity.
 - Evidence: M2 in outline-proofing deliverable review — Moderate agentic-prose path step used implicit form while Complex path used explicit form.
+## When writing inline skill deliverable review task
+- Anti-pattern: Using the inline skill's template `Deliverable review: <job>` verbatim — contains a colon (forbidden by task validator) and exceeds the 25-character limit for any job name longer than 9 characters.
+- Correct pattern: Use a short noun phrase without colon: e.g. `<Job> fix review` (≤25 chars, no colon). Fix the template in inline/SKILL.md to use a valid task name format.
+- Evidence: Precommit caught "contains forbidden character ':'" and "exceeds 25 character limit" when writing the deliverable review task for outline-proofing.

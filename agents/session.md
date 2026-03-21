@@ -1,14 +1,13 @@
-# Session Handoff: 2026-03-20
+# Session Handoff: 2026-03-21
 
-**Status:** Deliverable review complete. 2 minor findings, fix task created.
+**Status:** M1/M2 outline-proofing findings fixed. Outline fix review pending.
 
 ## Completed This Session
 
-**Outline-proofing deliverable review:**
-- Reviewed 9 files (260 lines): 1 code, 2 test, 6 agentic prose
-- All 7 design IN-scope items confirmed delivered, 4 OUT-scope items unchanged
-- 2 minor findings: M1 prerequisites check scope (Tier 3 path missing D3 gate), M2 implicit Read instruction for write-inline-plan.md
-- Report: `plans/outline-proofing/reports/deliverable-review.md`
+**Fix outline findings (M1/M2):**
+- M1: Added D3 prerequisites gate to Tier 3 section of `agent-core/skills/runbook/SKILL.md` — mirrors existing Tier 2 gate; absent design artifact → STOP
+- M2: Made Read instruction explicit in `agent-core/skills/design/SKILL.md:145` — Moderate agentic-prose step 2 now says "Read `references/write-inline-plan.md`. **Generate** ... using that format."
+- Verification: skill-reviewer confirmed both PASS (reports/review-m1m2.md)
 
 ## In-tree Tasks
 
@@ -44,8 +43,9 @@
 - `plans/outline-proofing/lifecycle.md` — full proof state history
 - `plans/outline-proofing/reports/review-code.md` — corrector review (passed)
 - `plans/outline-proofing/reports/review-skills.md` — skill review (passed)
-- `plans/outline-proofing/reports/deliverable-review.md` — deliverable review (2 minor findings)
+- `plans/outline-proofing/reports/deliverable-review.md` — deliverable review (2 minor findings, both fixed)
+- `plans/outline-proofing/reports/review-m1m2.md` — M1/M2 fix verification (both PASS)
 
 ## Next Steps
 
-Run `/design plans/outline-proofing/reports/deliverable-review.md` to fix the 2 minor findings, then merge the branch.
+Run `/deliverable-review plans/outline-proofing` to verify M1/M2 fixes, then merge the branch.
