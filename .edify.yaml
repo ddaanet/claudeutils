@@ -1,4 +1,4 @@
 # Edify plugin version marker
-# Written by sessionstart-health.sh on session start, updated by /edify:update
+# Written by /edify:init, updated by sessionstart-health.sh on session start
 version: "0.0.2"
 sync_policy: nag  # nag | auto-with-report (future)
