@@ -1,7 +1,8 @@
-"""Tests for session handoff CLI wiring (Cycle 4.7)."""
+"""Tests for session handoff CLI wiring (Cycle 4.7 + rework)."""
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -148,3 +149,103 @@ def test_session_handoff_cli_no_stdin_no_state(
 
     assert result.exit_code == 2
     assert "**Error:**" in result.output
+
+
+# Cycle 2.2: handoff shows submodule changes
+
+
+def test_handoff_shows_submodule_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Handoff output includes dirty submodule changes."""
+    # Set up parent with submodule
+    sub_origin = tmp_path / "sub-origin"
+    sub_origin.mkdir()
+    _init_repo(sub_origin)
+    (sub_origin / "init.md").write_text("init\n")
+    subprocess.run(["git", "add", "."], cwd=sub_origin, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "init"],
+        cwd=sub_origin,
+        check=True,
+        capture_output=True,
+    )
+
+    parent = tmp_path / "parent"
+    parent.mkdir()
+    _init_repo(parent)
+    (parent / "init.md").write_text("init\n")
+    subprocess.run(["git", "add", "."], cwd=parent, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "init"],
+        cwd=parent,
+        check=True,
+        capture_output=True,
+    )
+
+    env = {
+        **os.environ,
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "protocol.file.allow",
+        "GIT_CONFIG_VALUE_0": "always",
+    }
+    subprocess.run(
+        ["git", "submodule", "add", str(sub_origin), "agent-core"],
+        cwd=parent,
+        check=True,
+        capture_output=True,
+        env=env,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "add sub"],
+        cwd=parent,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=parent / "agent-core",
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test"],
+        cwd=parent / "agent-core",
+        check=True,
+        capture_output=True,
+    )
+
+    monkeypatch.chdir(parent)
+
+    # Set up session.md in parent
+    session_file = parent / "agents" / "session.md"
+    session_file.parent.mkdir(parents=True, exist_ok=True)
+    session_file.write_text(SESSION_FOR_CLI)
+    subprocess.run(
+        ["git", "add", "agents/session.md"],
+        cwd=parent,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "add session"],
+        cwd=parent,
+        check=True,
+        capture_output=True,
+    )
+
+    # Dirty the submodule
+    (parent / "agent-core" / "dirty.md").write_text("new file\n")
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        ["_handoff"],
+        input=HANDOFF_STDIN,
+        env={"CLAUDEUTILS_SESSION_FILE": str(session_file)},
+    )
+
+    assert result.exit_code == 0
+    # Should include submodule section with internal file changes
+    assert "## Submodule" in result.output
+    assert "dirty.md" in result.output

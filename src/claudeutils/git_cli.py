@@ -37,32 +37,20 @@ def git_group() -> None:
     """Provide internal git utility commands."""
 
 
-@git_group.command(name="changes")
-def changes_cmd() -> None:
-    """Emit unified parent + submodule status and diff.
-
-    Output is structured markdown. Only dirty repos are shown. Submodule file
-    paths are prefixed with the submodule directory name. Exit 0 always
-    (informational).
-    """
+def git_changes() -> str:
+    """Return unified parent + submodule status and diff as markdown."""
     sections: list[str] = []
 
-    # Parent repo
     parent_status = git_status()
     parent_diff = git_diff()
-
     if parent_status or parent_diff:
         sections.append(_build_repo_section("## Parent\n", parent_status, parent_diff))
 
-    # Submodules
     for submodule_path in discover_submodules():
         sub_status_raw = git_status(repo_dir=submodule_path)
         sub_diff = git_diff(repo_dir=submodule_path)
-
         if not sub_status_raw and not sub_diff:
-            # Clean submodule — omit section
             continue
-
         prefixed_status = _prefix_status_lines(sub_status_raw, submodule_path)
         sections.append(
             _build_repo_section(
@@ -70,7 +58,11 @@ def changes_cmd() -> None:
             )
         )
 
-    if not sections:
-        click.echo("Tree is clean.")
-    else:
-        click.echo("\n\n".join(sections))
+    return "\n\n".join(sections) if sections else ""
+
+
+@git_group.command(name="changes")
+def changes_cmd() -> None:
+    """Emit unified parent + submodule status and diff."""
+    output = git_changes()
+    click.echo(output or "Tree is clean.")

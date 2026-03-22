@@ -95,7 +95,7 @@ def git_status(repo_dir: str | None = None) -> str:
         text=True,
         check=False,
     )
-    return result.stdout.strip()
+    return result.stdout.rstrip("\n")
 
 
 def git_diff(repo_dir: str | None = None) -> str:

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 from pathlib import Path
 
 import click
 
 from claudeutils.git import _fail
+from claudeutils.git_cli import git_changes
 from claudeutils.session.handoff.parse import (
     HandoffInput,
     HandoffInputError,
@@ -54,20 +54,7 @@ def handoff_cmd() -> None:
     overwrite_status(session_path, handoff_input.status_line)
     write_completed(session_path, handoff_input.completed_lines)
 
-    status_result = subprocess.run(
-        ["git", "status", "--porcelain"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    diff_result = subprocess.run(
-        ["git", "diff", "HEAD"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    parts = [p for p in [status_result.stdout.strip(), diff_result.stdout.strip()] if p]
-    git_output = "\n".join(parts)
+    git_output = git_changes()
     if git_output:
         click.echo(f"**Git status:**\n\n```\n{git_output}\n```")
 

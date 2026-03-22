@@ -8,7 +8,13 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from claudeutils.git import _fail, _git_ok, _is_submodule_dirty, discover_submodules
+from claudeutils.git import (
+    _fail,
+    _git_ok,
+    _is_submodule_dirty,
+    discover_submodules,
+    git_status,
+)
 from tests.pytest_helpers import init_repo_at as _init_repo
 
 
@@ -108,3 +114,41 @@ def test_is_submodule_dirty_parametrized(tmp_path: Path, scenario: str) -> None:
         (submod / "dirty.txt").write_text("dirty")
         result = _is_submodule_dirty(str(submod))
         assert result is True
+
+
+# Cycle 2.1: git_status strip bug
+
+
+def test_git_status_preserves_porcelain_format(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """git_status preserves leading space in XY porcelain code."""
+    _init_repo(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    # Create a tracked file, then modify without staging
+    f = tmp_path / "a.py"
+    f.write_text("original\n")
+    subprocess.run(
+        ["git", "add", "a.py"], cwd=tmp_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "add a"],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+    )
+    f.write_text("modified\n")
+
+    status = git_status()
+    # Unstaged modification: XY = " M" (space-M), line = " M a.py"
+    assert status.startswith(" M "), f"Expected ' M ...', got {status!r}"
+
+    # Clean repo returns empty
+    subprocess.run(
+        ["git", "checkout", "--", "a.py"],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+    )
+    assert git_status() == ""
