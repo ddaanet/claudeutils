@@ -72,6 +72,12 @@ All 18 addressed findings verified against rework delta:
 - **Design req:** "Skill integration (future): After CLI exists, `/commit` skill simplifies to: Gate A → discovery (`claudeutils _git changes`) → draft message + gitmoji → pipe to `claudeutils _commit`." Also: "Coupled skill update" — skill changes are in-scope.
 - **Impact:** CLI tools (`_commit`, `_handoff`, `_status`) exist but skills don't reference them. Commit skill reimplements staging/validation/commit instead of piping to `_commit`. Handoff skill writes session.md directly instead of piping to `_handoff`. Execute-rule.md MODE 1 contains inline STATUS template instead of delegating to `_status`. Pattern across handoff, commit, and status display surfaces.
 
+### 5. `_status` shows correct plan state but `_worktree ls` deduplicates with stale state
+
+- **File:** `src/claudeutils/worktree/cli.py` (plan listing logic)
+- **Axis:** Functional correctness
+- **Impact:** `_worktree ls` shows each plan under only one worktree. When a plan directory exists in multiple worktrees with different lifecycle states (e.g., `ready` on main, `rework` on session-cli-tool), the tool lists it under main with stale state. `_status` reads local lifecycle correctly. The handoff skill uses `_worktree ls` for command derivation — stale plan state → stale derived command.
+
 ## Minor Findings
 
 **Code (3):**
@@ -118,7 +124,7 @@ All 18 addressed findings verified against rework delta:
 | Severity | Count |
 |----------|-------|
 | Critical | 1 |
-| Major | 3 |
+| Major | 4 |
 | Minor | 6 |
 
-17 of 18 findings fully fixed. One Critical remains: `_commit_submodule` git commit returncode not checked. Three Major: SKILL.md allowed-tools gap, error messages not informative/actionable (S-3 violation, needs pattern exploration), skills don't reference CLI tools (design "Skill integration" requirement). Six minor issues (dead `render_next`, worktree-marker skip, `_is_dirty` strip, dead `step_reached`, old section name bypass, weak test assertion).
+17 of 18 findings fully fixed. One Critical remains: `_commit_submodule` git commit returncode not checked. Four Major: SKILL.md allowed-tools gap, error messages not informative/actionable (S-3 violation), skills don't reference CLI tools (design "Skill integration" requirement), `_worktree ls` plan deduplication shows stale state across worktrees. Six minor issues (dead `render_next`, worktree-marker skip, `_is_dirty` strip, dead `step_reached`, old section name bypass, weak test assertion).
