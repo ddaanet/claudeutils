@@ -90,3 +90,17 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 ## When matching glob patterns with zero-depth wildcards
 - Anti-pattern: Using `PurePath.match("src/**/*.py")` — it requires `**` to match at least one directory level. `src/foo.py` returns `False`.
 - Correct pattern: Use `PurePath.full_match()` (Python 3.13+) which handles `**` matching zero or more directory levels. `PurePath("src/foo.py").full_match("src/**/*.py")` returns `True`.
+
+## When reusing plan names for rework
+- Anti-pattern: Reusing a plan name for rework (e.g., `handoff-cli-tool` for both original implementation and rework). `prepare-runbook.py` regenerates agents with same names → CLI caches agents by name at startup → name match prevents reload → dispatched agents run stale context from the original implementation. Agent told to implement features that already exist → model simulates workflow instead of using tools.
+- Correct pattern: Iterate plan names for rework (e.g., `handoff-cli-tool-v2`). New agent names don't match cache → "agent not found" → forces restart, making the stale cache visible. Alternatively, restart session after regenerating agents with same names.
+- Evidence: 3/3 repros showed 0 tool uses. Binary search of plan context content was ineffective — all tests hit the same cached agent (duration ~2.6s for ~19K reported tokens = physically impossible without cache). test-driver worked because it had no stale plan context, not because plan context inherently triggers hallucination.
+
+## When reading simulated agent output
+- Anti-pattern: Agent returns text containing `<tool_call>`, `<function_calls><invoke>`, or similar XML — orchestrator reads these as real tool results. Happened 3 times in one session: each time the orchestrator accepted fabricated file content, test results, and git commits as real.
+- Correct pattern: Check CLI output for `(N tool uses)` count. 0 tool uses means the entire output is text simulation regardless of how convincing the XML formatting looks. Never trust agent-reported file content, test counts, or commit hashes without verifying against actual filesystem/git state.
+
+## When editing agent files mid-session
+- Anti-pattern: Modifying `.claude/agents/*.md` files mid-session and expecting dispatched agents to use the new content. Agent system prompts are built at startup and cached — file modifications are not picked up. Binary search via file edits is ineffective.
+- Correct pattern: Agent definitions require session restart to take effect. Duration is a diagnostic signal: if reported total_tokens is high but duration_ms is low (~2-3s for ~19K tokens), the response is coming from cached content. To test agent variants without restart, use `claude -p` to spawn fresh sessions that read current files.
+- Evidence: 4 dispatch tests with progressively stripped plan context all returned 0 tool uses with fabricated content in ~2.6s — identical behavior regardless of file edits.
