@@ -136,7 +136,7 @@ def _commit_submodule(
         cwd=sub_cwd,
         capture_output=True,
         text=True,
-        check=False,
+        check=True,
     )
     # Stage the updated submodule pointer in the parent
     subprocess.run(

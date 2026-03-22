@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -147,6 +148,73 @@ def test_pipeline_validates_before_submodule_commit(
     assert result.success is False
     # The bug: submodule committed before validation
     commit_sub.assert_not_called()
+
+
+# Cycle 1.1: Submodule commit failure propagates error
+
+
+def test_submodule_commit_failure_propagates(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Submodule commit failure (check=False case) detected and propagated."""
+    monkeypatch.chdir(tmp_path)
+    _init_repo(tmp_path)
+
+    sub = tmp_path / "agent-core"
+    sub.mkdir()
+    _init_repo(sub)
+    (sub / "f.md").write_text("v1\n")
+    subprocess.run(["git", "add", "."], cwd=sub, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "initial"],
+        cwd=sub,
+        check=True,
+        capture_output=True,
+    )
+
+    (sub / "f.md").write_text("v2\n")
+
+    ci = CommitInput(
+        files=["agent-core/f.md"],
+        message="update",
+        submodules={"agent-core": "submodule commit"},
+    )
+
+    # Mock subprocess.run to simulate git commit failure with check=True
+    original_run = subprocess.run
+
+    def mock_run(cmd: Any, **kwargs: Any) -> Any:  # noqa: ANN401
+        if (
+            isinstance(cmd, list)
+            and len(cmd) >= 2
+            and cmd[0] == "git"
+            and cmd[1] == "commit"
+            and kwargs.get("cwd") == sub
+        ):
+            # Raise CalledProcessError to simulate commit failure
+            exc = subprocess.CalledProcessError(1, cmd)
+            exc.stderr = "nothing to commit"
+            raise exc
+        return original_run(cmd, **kwargs)
+
+    with (
+        patch(
+            "claudeutils.session.commit_pipeline.discover_submodules",
+            return_value=["agent-core"],
+        ),
+        patch(
+            "claudeutils.session.commit_pipeline._run_precommit",
+            return_value=(True, "ok"),
+        ),
+        patch("subprocess.run", side_effect=mock_run),
+    ):
+        result = commit_pipeline(ci, cwd=tmp_path)
+
+    assert result.success is False, (
+        "Expected pipeline to fail when submodule commit fails, "
+        f"got success={result.success}"
+    )
+    assert "**Error:**" in result.output
 
 
 # C#5: amend+no-edit pipeline test
