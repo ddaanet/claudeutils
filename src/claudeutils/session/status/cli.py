@@ -7,15 +7,31 @@ from pathlib import Path
 
 import click
 
-from claudeutils.git import _fail
+from claudeutils.git import _fail, _is_dirty
+from claudeutils.planstate.inference import list_plans
 from claudeutils.session.parse import SessionFileError, parse_session
 from claudeutils.session.status.render import (
     detect_parallel,
-    render_next,
+    render_continuation,
     render_pending,
     render_unscheduled,
     render_worktree,
 )
+
+
+def _count_raw_tasks(content: str, section: str = "In-tree Tasks") -> int:
+    """Count task-like lines in a section (lines starting with ``- [``)."""
+    in_section = False
+    count = 0
+    for line in content.splitlines():
+        if line.startswith(f"## {section}"):
+            in_section = True
+            continue
+        if line.startswith("## ") and in_section:
+            break
+        if in_section and line.startswith("- ["):
+            count += 1
+    return count
 
 
 @click.command(name="status", hidden=True)
@@ -28,17 +44,25 @@ def status_cmd() -> None:
     except SessionFileError:
         _fail(f"**Error:** Session file not found: {session_path}", code=2)
 
+    content = session_path.read_text()
+    if _count_raw_tasks(content) != len(data.in_tree_tasks):
+        _fail(
+            "**Error:** Old-format tasks missing metadata (** and —)",
+            code=2,
+        )
+
+    all_plans = {p.name: p.status for p in list_plans(Path("plans"))}
     plan_states: dict[str, str] = {}
     for task in [*data.in_tree_tasks, *data.worktree_tasks]:
         if task.plan_dir:
-            plan_states.setdefault(task.plan_dir, "")
+            plan_states[task.plan_dir] = all_plans.get(task.plan_dir, "")
 
     sections: list[str] = []
 
-    # Next task
-    next_section = render_next(data.in_tree_tasks)
-    if next_section:
-        sections.append(next_section)
+    # Continuation header (dirty tree)
+    cont = render_continuation(is_dirty=_is_dirty(), plan_states=plan_states)
+    if cont:
+        sections.append(cont)
 
     # In-tree tasks
     pending_section = render_pending(data.in_tree_tasks, plan_states)
@@ -52,12 +76,10 @@ def status_cmd() -> None:
     if wt_section:
         sections.append(wt_section)
 
-    # Unscheduled plans (placeholder — no plan discovery yet)
     task_plan_dirs = {
         t.plan_dir for t in [*data.in_tree_tasks, *data.worktree_tasks] if t.plan_dir
     }
-    # Plan discovery deferred to Phase 4+
-    unscheduled = render_unscheduled({}, task_plan_dirs)
+    unscheduled = render_unscheduled(all_plans, task_plan_dirs)
     if unscheduled:
         sections.append(unscheduled)
 

@@ -5,6 +5,22 @@ from __future__ import annotations
 from claudeutils.validation.task_parsing import ParsedTask
 
 
+def render_continuation(
+    *,
+    is_dirty: bool,
+    plan_states: dict[str, str],
+) -> str:
+    """Render session continuation header when tree is dirty."""
+    if not is_dirty:
+        return ""
+
+    parts = ["Session: uncommitted changes — `/handoff`, `/commit`"]
+    for name, status in sorted(plan_states.items()):
+        if status == "review-pending":
+            parts[0] += f", `/deliverable-review plans/{name}`"
+    return parts[0]
+
+
 def render_next(tasks: list[ParsedTask]) -> str:
     """Render the Next: block for the first eligible pending task.
 
@@ -45,15 +61,22 @@ def render_pending(
         return ""
 
     lines = ["In-tree:"]
+    first_eligible = True
     for task in pending:
-        model_suffix = (
-            f" ({task.model})" if task.model and task.model != "sonnet" else ""
-        )
-        lines.append(f"- {task.name}{model_suffix}")
-        if task.plan_dir and task.plan_dir in plan_states:
-            lines.append(
-                f"  Plan: {task.plan_dir} | Status: {plan_states[task.plan_dir]}"
-            )
+        model = task.model or "sonnet"
+        if first_eligible and task.checkbox == " ":
+            restart = "yes" if task.restart else "no"
+            cmd = task.command or ""
+            lines.append(f"▶ {task.name} — `{cmd}` | {model} | restart: {restart}")
+            first_eligible = False
+        else:
+            model_suffix = f" ({model})" if model != "sonnet" else ""
+            lines.append(f"- {task.name}{model_suffix}")
+        state = plan_states.get(task.plan_dir or "", "")
+        if task.plan_dir and state:
+            lines.append(f"  Plan: {task.plan_dir} | Status: {state}")
+        elif task.plan_dir:
+            lines.append(f"  Plan: {task.plan_dir}")
     return "\n".join(lines)
 
 
