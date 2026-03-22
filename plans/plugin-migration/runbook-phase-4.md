@@ -1,267 +1,103 @@
-# Phase 4: Justfile Modularization
+### Phase 4: Justfile modularization (type: general, model: sonnet)
 
-**Purpose:** Extract portable recipes to `edify-plugin/just/portable.just` and update root justfile with import
+Extract portable recipes and update root justfile.
 
-**Dependencies:** Phase 0 (edify-plugin directory rename)
-
-**Model:** Haiku
-
-**Estimated Complexity:** Moderate (~200 lines moved + minimal bash prolog per D-5)
+**Depends on D-5 redesign:** Current D-5 specifies a single `portable.just`. Thematic modules are the better design — consumers import only what they need. Module boundaries need design work before this phase executes. If D-5 redesign has not occurred by execution time, proceed with single `portable.just` as originally designed.
 
 ---
 
-## Step 4.1: Create portable.just with extracted recipes
+## Step 4.1: Create portable justfile module(s)
 
-**Objective:** Extract portable recipes (claude, claude0, wt-*, precommit-base) from root justfile to `edify-plugin/just/portable.just` with minimal bash prolog.
+**Objective**: Extract portable recipe stack from current `justfile` into plugin-distributed module(s).
 
-**Implementation:**
+**Prerequisites**:
+- Read `justfile` (current recipe definitions — identify which recipes are portable vs project-specific)
+- Read outline.md §Key Decisions D-5 (full list of portable recipes)
+- Read outline.md §Component 5 (import boundary constraints, variable merging)
+- Check if D-5 redesign has occurred (thematic modules vs single file)
 
-1. **Create directory:**
-```bash
-mkdir -p edify-plugin/just
-```
+**Implementation**:
+1. Create `agent-core/portable.just` containing all portable recipes
+2. Extract these recipes (per D-5):
+   - `claude` / `claude0` — opinionated launch wrapper (system prompt replacement, plugin config)
+   - `lint` / `format` / `check` — ruff, mypy, docformatter
+   - `red-lint` — permissive TDD variant (recipe name in justfile is `red-lint`, not `red`; D-5 outline uses `red` as shorthand)
+   - `precommit` — full lint with complexity
+   - `precommit-base` — edify-plugin validators only
+   - `test` — pytest with framework flags
+   - `wt-*` — manual worktree fallbacks (wt-new, wt-task, wt-ls, wt-rm, wt-merge)
+4. Do NOT include: `release`, `line-limits`, project-specific helpers
+5. Each module needs its own `bash_prolog` string variable — portable recipes use `#!{{ bash_prolog }}` as their shebang, so the portable module must define a self-contained prolog with all required bash functions. The root justfile's `bash_prolog` is NOT available to imported modules before the import resolves. Define:
+   ```just
+   # Self-contained bash prolog for portable module (cannot rely on root justfile's bash_prolog)
+   bash_prolog := "/usr/bin/env bash\nset -euo pipefail\n" + '''
+   RED=$'\033[31m'
+   GREEN=$'\033[32m'
+   NORMAL=$'\033[0m'
+   safe () { "$@" || status=false; }
+   end-safe () { ${status:-true}; }
+   show () { echo "$@"; }
+   visible () { show "$@"; "$@"; }
+   fail () { echo "${RED}FAIL: $*${NORMAL}" >&2; exit 1; }
+   '''
+   ```
+   Note: `safe`/`end-safe` are needed by `lint` and `check`; `visible`/`fail` are needed by `wt-*`. Do not omit them.
+   Note: Variable merging across import boundaries means the root `bash_prolog` will override the portable module's `bash_prolog` in the root project context — this is correct behavior (root wins). The portable module's `bash_prolog` serves standalone-import consumers.
+6. Update `claude` recipe to use `--plugin-dir ./agent-core` flag
 
-2. **Extract portable recipes to edify-plugin/just/portable.just:**
+**Expected Outcome**:
+- Portable justfile module(s) exist in `agent-core/`
+- All portable recipes present with correct bash prolog
+- `release` and project-specific recipes NOT included
 
-Create file with minimal bash prolog and portable recipes:
+**Error Conditions**:
+- If recipe depends on project-specific variables not in prolog → add to prolog or restructure
+- If `just` import syntax doesn't support the module structure → simplify to single file
 
-```just
-# Minimal bash prolog (subset of root justfile prolog)
-# Portable recipes need only: fail, visible, color variables
-
-# Color variables
-RED := '\033[0;31m'
-GREEN := '\033[0;32m'
-YELLOW := '\033[1;33m'
-NC := '\033[0m' # No Color
-
-# Helper function: fail with error message
-fail := 'printf "${RED}Error: %s${NC}\n" "$1" >&2 && exit 1'
-
-# Helper function: print visible message
-visible := 'printf "${GREEN}%s${NC}\n" "$1"'
-
-# Claude with plugin directory
-claude:
-    claude --plugin-dir ./edify-plugin
-
-# Claude with empty system prompt
-claude0:
-    claude --plugin-dir ./edify-plugin --system-prompt ""
-
-# Create git worktree for parallel work
-wt-new name base="HEAD":
-    #!/usr/bin/env bash
-    set -euo pipefail
-    main_dir=$(pwd)
-    worktree_dir="../$(basename "$main_dir")-{{name}}"
-
-    # Create worktree
-    git worktree add -b wt/{{name}} "$worktree_dir" {{base}} || {{ fail }} "Failed to create worktree"
-
-    # Initialize submodule with --reference to avoid remote fetch
-    cd "$worktree_dir"
-    git submodule update --init --reference "$main_dir/edify-plugin" || {{ fail }} "Failed to initialize submodule"
-
-    {{ visible }} "Worktree created: $worktree_dir"
-    {{ visible }} "Branch: wt/{{name}}"
-
-# List active worktrees
-wt-ls:
-    git worktree list
-
-# Remove worktree and branch
-wt-rm name:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    main_dir=$(pwd)
-    worktree_dir="../$(basename "$main_dir")-{{name}}"
-
-    # Deinit submodule
-    cd "$worktree_dir"
-    git submodule deinit -f --all || true
-    cd "$main_dir"
-
-    # Remove worktree (force required for submodules)
-    git worktree remove --force "$worktree_dir" || {{ fail }} "Failed to remove worktree"
-
-    # Delete branch
-    git branch -D wt/{{name}} || {{ fail }} "Failed to delete branch"
-
-    {{ visible }} "Removed worktree and branch wt/{{name}}"
-
-# Merge worktree branch back
-wt-merge name:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # Merge branch
-    git merge --no-ff wt/{{name}} || {{ fail }} "Merge failed"
-
-    # Auto-resolve session.md conflicts (take theirs)
-    if git diff --name-only --diff-filter=U | grep -q agents/session.md; then
-        git checkout --theirs agents/session.md
-        git add agents/session.md
-        {{ visible }} "Auto-resolved agents/session.md (took theirs)"
-    fi
-
-    # Update submodule reference
-    git submodule update --init --recursive
-
-    {{ visible }} "Merged wt/{{name}}"
-
-# Run edify-plugin validators (base precommit)
-precommit-base:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # Run edify-plugin validators
-    edify-plugin/bin/validate-tasks.py || {{ fail }} "Task validation failed"
-    edify-plugin/bin/validate-learnings.py || {{ fail }} "Learnings validation failed"
-    edify-plugin/bin/validate-memory-index.py || {{ fail }} "Memory index validation failed"
-
-    {{ visible }} "Base validators passed"
-```
-
-**Recipe extraction notes:**
-- **Portable recipes only:** claude, claude0, wt-*, precommit-base (recipes that work without project-specific dependencies)
-- **Minimal prolog:** Only fail, visible, color variables (D-5 constraint)
-- **Submodule path:** wt-new uses `--reference "$main_dir/edify-plugin"` (updated from agent-core)
-- **Validators:** precommit-base calls validators via `edify-plugin/bin/` relative paths
-
-**Design References:**
-- D-5: Justfile import for portable recipes
-- Component 5: Portable recipes table (claude, claude0, wt-*, precommit-base)
-- Outline expansion guidance: wt-new recipe contains edify-plugin submodule reference
-
-**Validation:**
-- File exists at `edify-plugin/just/portable.just`
-- Recipes use minimal prolog only (fail, visible, colors)
-- claude/claude0 use `--plugin-dir ./edify-plugin`
-- wt-new uses `--reference "$main_dir/edify-plugin"`
-- precommit-base calls validators at `edify-plugin/bin/`
-- precommit-base works: `just --justfile edify-plugin/just/portable.just precommit-base`
-
-**Expected Outcome:** portable.just created with extracted recipes and minimal prolog.
-
-**Unexpected Result Handling:**
-- If recipe syntax error: verify Just syntax (use `just --justfile edify-plugin/just/portable.just --list`)
-- If prolog functions missing: ensure fail, visible, color variables defined
-- If submodule reference wrong: must use edify-plugin not agent-core
-
-**Success Criteria:**
-- portable.just exists and parses correctly with all 7 recipes (claude, claude0, wt-new, wt-ls, wt-rm, wt-merge, precommit-base)
-- Minimal prolog (no project-specific functions — only fail, visible, colors)
-- All edify-plugin paths updated
-- precommit-base validator calls work
+**Validation**:
+- `just --justfile agent-core/portable.just --list` shows all expected recipes
+- `just --justfile agent-core/portable.just --evaluate bash_prolog` shows the prolog string (confirms variable is defined)
+- No project-specific recipes present (`release`, `line-limits` absent from listing)
 
 ---
 
-## Step 4.2: Update root justfile with import
+## Step 4.2: Update root justfile to import portable modules
 
-**Objective:** Add import statement to root justfile, remove migrated recipes, keep project-specific recipes.
+**Objective**: Replace extracted recipes with import statement(s) and verify all recipes work.
 
-**Implementation:**
+**Prerequisites**:
+- Step 4.1 complete (portable module(s) exist)
+- Read `justfile` (current state)
 
-1. **Add import at top of root justfile (after prolog):**
+**Implementation**:
+1. Add import statement at top of `justfile`:
+   `import 'agent-core/portable.just'`
+2. Add `set allow-duplicate-recipes` for intentional recipe overrides
+3. Remove recipes that moved to portable module(s):
+   - `claude`, `claude0`, `lint`, `format`, `check`, `red-lint`, `precommit-base`, `test`, `wt-new`, `wt-task`, `wt-ls`, `wt-rm`, `wt-merge`
+4. Keep in root justfile:
+   - `release` (project-specific)
+   - `line-limits` (project-specific)
+   - `bash_prolog` for project-specific helper functions
+   - `precommit` (may need project-specific additions beyond base)
+   - Project-specific worktree helpers
+5. Generate or regenerate cached help files (these may not exist yet):
+   - `just --list > .cache/just-help.txt` (create `.cache/` directory first if needed)
+   - `.cache/just-help-edify-plugin.txt` — generate only if referenced by plugin hooks or skills
 
-Add this line after the `bash_prolog` definition:
+**Expected Outcome**:
+- Root `justfile` imports portable module(s)
+- Extracted recipes removed from root (no duplication unless `allow-duplicate-recipes` for intentional overrides)
+- All recipes functional
 
-```just
-import 'edify-plugin/just/portable.just'
-```
+**Error Conditions**:
+- If `just claude` fails → check import path, portable module syntax
+- If recipe override doesn't work → verify `set allow-duplicate-recipes` or restructure imports
+- If `just --list` missing recipes → check import path resolution
 
-2. **Remove migrated recipes from root justfile:**
-
-Delete these recipe definitions (now provided by import):
-- `claude`
-- `claude0`
-- `wt-new`
-- `wt-ls`
-- `wt-rm`
-- `wt-merge`
-- Remove `precommit-base` subset from `precommit` recipe (validators are now called via import)
-
-3. **Update precommit recipe to call precommit-base:**
-
-Change `precommit` recipe to use dependency pattern (base validators run first, then project-specific):
-
-```just
-precommit: precommit-base
-    # Add language-specific checks after base validators
-    ruff check
-    mypy
-    pytest
-```
-
-Note: The dependency `precommit: precommit-base` ensures base validators run before project-specific checks.
-
-4. **Keep project-specific recipes:**
-
-These remain in root justfile:
-- `help`
-- `dev`
-- `cache`
-- `test`
-- `line-limits`
-- `lint`
-- `check`
-- `format`
-- `release`
-
-5. **Keep full bash_prolog:**
-
-Root justfile retains full bash prolog with project-specific helpers (sync, run-checks, pytest-quiet) — not just the minimal fail/visible/colors subset used by portable.just.
-
-**Design References:**
-- D-5: justfile import mechanism
-- Component 5: Root justfile changes table
-- Outline expansion guidance: portable.just bash prolog scope (fail, visible, colors only)
-
-**Validation:**
-- Import line added: `grep "import 'edify-plugin/just/portable.just'" justfile`
-- Migrated recipes removed: `! grep -E "^(claude|claude0|wt-new|wt-ls|wt-rm|wt-merge):" justfile`
-- Project recipes remain: `grep -E "^(help|dev|cache|test):" justfile`
-- Justfile parses: `just --list` runs without error
-- End-to-end test: `just --list` shows both imported and local recipes, `just claude` invokes imported recipe
-
-**Expected Outcome:**
-- Root justfile imports portable.just
-- Migrated recipes removed from root
-- Project-specific recipes and full prolog remain
-- `just --list` shows both imported and local recipes
-
-**Unexpected Result Handling:**
-- If import fails: verify path `edify-plugin/just/portable.just` exists and is valid Just syntax
-- If `just --list` fails: check for syntax errors, duplicate recipe definitions
-- If recipes missing: ensure import added before removing local definitions
-
-**Success Criteria:**
-- Import statement present in root justfile
-- All 7 migrated recipes removed from root
-- Project-specific recipes remain intact
-- `just --list` succeeds and shows combined recipes
-- `just claude` works (calls imported recipe)
-
-**Report Path:** `plans/plugin-migration/reports/phase-4-execution.md`
-
----
-
-## Common Context
-
-**Affected Files:**
-- `edify-plugin/just/` (directory creation)
-- `edify-plugin/just/portable.just` (new file, ~200 lines)
-- `justfile` (modified: add import, remove recipes)
-
-**Key Constraints:**
-- portable.just uses minimal prolog only (fail, visible, colors per D-5)
-- Root justfile keeps full prolog for project-specific recipes
-- Import must come after prolog definition
-- All edify-plugin paths (not agent-core)
-- `--plugin-dir ./edify-plugin` in claude recipes
-
-**Stop Conditions:**
-- If portable.just syntax invalid (check with `just --justfile edify-plugin/just/portable.just --list`)
-- If root justfile import fails (path or syntax error)
-- If `just --list` shows errors after import
+**Validation**:
+- `just --list` shows both imported and project-specific recipes
+- `just lint` works (imported recipe)
+- `just release --help` works (project-specific recipe, if exists)
+- `just precommit` passes (end-to-end validation)
+- `.cache/just-help.txt` exists and matches `just --list` output

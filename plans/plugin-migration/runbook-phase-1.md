@@ -1,115 +1,146 @@
-# Phase 1: Plugin Manifest
+### Phase 1: Plugin manifest and structure (type: general, model: sonnet)
 
-**Purpose:** Create plugin manifest and version marker to enable Claude Code plugin discovery
-
-**Dependencies:** Phase 0 (edify-plugin directory exists)
-
-**Model:** Haiku
-
-**Estimated Complexity:** Simple (2 files with validation, error handling, format verification)
+Create the plugin structure inside existing `agent-core/` directory. Checkpoint at end gates all downstream phases.
 
 ---
 
-## Step 1.1: Create Plugin Infrastructure
+## Step 1.1: Create plugin manifest
 
-**Objective:** Create plugin.json manifest and .version marker for plugin discovery and fragment version tracking.
+**Objective**: Create `agent-core/.claude-plugin/plugin.json` with plugin name and version matching `pyproject.toml`.
 
-**Implementation:**
+**Prerequisites**:
+- Read `pyproject.toml` (extract current version — currently `0.0.2`)
 
-1. **Create plugin manifest directory and file:**
-```bash
-mkdir -p edify-plugin/.claude-plugin
-cat > edify-plugin/.claude-plugin/plugin.json <<'EOF'
-{
-  "name": "edify",
-  "version": "1.0.0",
-  "description": "Workflow infrastructure for Claude Code projects"
-}
-EOF
-```
+**Implementation**:
+1. Create directory `agent-core/.claude-plugin/`
+2. Create `agent-core/.claude-plugin/plugin.json`:
+   ```json
+   {
+     "name": "edify",
+     "version": "0.0.2",
+     "description": "Opinionated agent framework for Claude Code"
+   }
+   ```
+3. Version must match `pyproject.toml` `version` field exactly
 
-**Manifest design notes:**
-- Minimal structure per D-1 (name + version + description only)
-- Plugin name = `edify` (Latin *aedificare* = "to build" + "to instruct")
-- Auto-discovery handles skills/agents/hooks from conventional directories
-- No custom path overrides needed (edify-plugin already uses standard layout)
+**Expected Outcome**:
+- `agent-core/.claude-plugin/plugin.json` exists with valid JSON
+- `name` is `edify`, `version` matches `pyproject.toml`
 
-2. **Create version marker:**
-```bash
-printf '1.0.0' > edify-plugin/.version
-```
+**Error Conditions**:
+- If `.claude-plugin/` directory already exists → check contents, do not overwrite without verifying
+- If `pyproject.toml` version format is unexpected → escalate
 
-**Version marker purpose:**
-- Source version for fragment staleness detection (Component 7)
-- Compared against project's `.edify-version` by version-check hook
-- Semantic versioning: major = breaking CLAUDE.md structure, minor = new fragment, patch = content fix
-
-3. **Validate file creation:**
-```bash
-# Verify plugin.json exists
-test -f edify-plugin/.claude-plugin/plugin.json
-
-# Verify plugin.json parses as valid JSON (fallback to python if jq unavailable)
-if command -v jq >/dev/null 2>&1; then
-  jq . edify-plugin/.claude-plugin/plugin.json >/dev/null
-else
-  python3 -m json.tool edify-plugin/.claude-plugin/plugin.json >/dev/null
-fi
-
-# Verify .version exists
-test -f edify-plugin/.version
-
-# Verify .version contains exact string "1.0.0"
-[ "$(cat edify-plugin/.version)" = "1.0.0" ]
-
-# Verify .version has exactly 5 bytes (no trailing newline)
-[ "$(wc -c < edify-plugin/.version)" -eq 5 ]
-```
-
-**Expected Outcome:**
-- `edify-plugin/.claude-plugin/plugin.json` created with valid JSON
-- `edify-plugin/.version` created with `1.0.0` content (exactly 5 bytes)
-- Both validation commands exit 0
-- Files ready for plugin auto-discovery after Phase 2-3 (skills/agents/hooks)
-
-**Unexpected Result Handling:**
-- If `.claude-plugin/` creation fails: check permissions on edify-plugin/ directory
-- If plugin.json file test fails: verify directory creation succeeded, check write permissions
-- If JSON validation fails: check syntax (trailing commas, quotes, malformed JSON)
-- If .version file test fails: verify write permissions on edify-plugin/ directory
-- If .version content test fails: verify exact string `1.0.0` with no trailing newline (use `printf` not `echo`)
-- If .version byte count fails: check for trailing newline, spaces, or other hidden characters
-
-**Validation:**
-- `test -f edify-plugin/.claude-plugin/plugin.json` returns true
-- `test -f edify-plugin/.version` returns true
-- JSON validation succeeds (jq or python3 -m json.tool exit 0)
-- `[ "$(cat edify-plugin/.version)" = "1.0.0" ]` returns true
-- `[ "$(wc -c < edify-plugin/.version)" -eq 5 ]` returns true (no trailing newline)
-
-**Success Criteria:**
-- Both files created successfully
-- plugin.json parses as valid JSON with required fields (name, version, description)
-- .version contains semver string with exact byte count
-- Ready for plugin discovery components (Phase 2-3)
-
-**Report Path:** `plans/plugin-migration/reports/phase-1-execution.md`
+**Validation**:
+- `cat agent-core/.claude-plugin/plugin.json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['name']=='edify'; print('OK:', d['version'])"`
 
 ---
 
-## Common Context
+## Step 1.2: Create plugin hooks.json in wrapper format
 
-**Affected Files:**
-- `edify-plugin/.claude-plugin/` (directory creation)
-- `edify-plugin/.claude-plugin/plugin.json` (new file)
-- `edify-plugin/.version` (new file)
+**Objective**: Rewrite `agent-core/hooks/hooks.json` to contain all 9 surviving hook definitions in wrapper format, with `$CLAUDE_PLUGIN_ROOT` paths.
 
-**Key Constraints:**
-- plugin.json must be valid JSON (Claude Code plugin loader requirement)
-- .version must contain semver string for version-check hook comparison
-- Minimal plugin.json per D-1 (name + version + description only)
-- Auto-discovery from conventional directories (no path overrides in manifest)
+**Prerequisites**:
+- Read `.claude/settings.visible.json` hooks section (current hook bindings — source of truth for matchers and event types)
+- Read `agent-core/hooks/hooks.json` (current subset — will be fully rewritten)
+- Read `plans/plugin-migration/outline.md` Component 2 hook inventory table (authoritative list of all hooks and their matchers)
 
-**Stop Conditions:**
-- If edify-plugin/ directory doesn't exist (Phase 0 not complete)
-- If JSON validation fails repeatedly (syntax error in manifest)
+**Implementation**:
+1. Rewrite `agent-core/hooks/hooks.json` in wrapper format per D-4:
+   ```json
+   {
+     "hooks": {
+       "PreToolUse": [...],
+       "PostToolUse": [...],
+       "UserPromptSubmit": [...],
+       "SessionStart": [...],
+       "Stop": [...]
+     }
+   }
+   ```
+2. Include all 9 surviving hooks with correct matchers:
+   - `pretooluse-block-tmp.sh` — PreToolUse, matcher: `Write|Edit`
+   - `submodule-safety.py` — PreToolUse, matcher: `Bash` AND PostToolUse, matcher: `Bash` (two entries)
+   - `pretooluse-recipe-redirect.py` — PreToolUse, matcher: `Bash`
+   - `pretooluse-recall-check.py` — PreToolUse, matcher: `Task`
+   - `posttooluse-autoformat.sh` — PostToolUse, matcher: `Write|Edit`
+   - `userpromptsubmit-shortcuts.py` — UserPromptSubmit (no matcher)
+   - `sessionstart-health.sh` — SessionStart, matcher: `*`
+   - `stop-health-fallback.sh` — Stop, matcher: `*`
+3. All command paths use `$CLAUDE_PLUGIN_ROOT/hooks/` prefix (not `$CLAUDE_PROJECT_DIR`)
+4. Omit `pretooluse-symlink-redirect.sh` (deleted in Phase 2)
+5. Preserve existing command prefixes where needed (`python3`, `bash`)
+
+**Expected Outcome**:
+- `agent-core/hooks/hooks.json` contains wrapper format with all 5 event types
+- 9 hook entries total (submodule-safety appears in both PreToolUse and PostToolUse)
+- All paths use `$CLAUDE_PLUGIN_ROOT/hooks/`
+
+**Error Conditions**:
+- If JSON validation fails → fix syntax before proceeding
+- If hook count doesn't match 9 → verify against `plans/plugin-migration/outline.md` Component 2 table
+
+**Validation**:
+- `python3 -c "import json; d=json.load(open('agent-core/hooks/hooks.json')); assert 'hooks' in d; print('Events:', list(d['hooks'].keys()))"`
+- Count hook entries across all events equals 9
+
+---
+
+## Step 1.3: Validate plugin loading (checkpoint)
+
+**Objective**: Verify plugin auto-discovery works with `claude --plugin-dir ./agent-core`. Gates all downstream phases.
+
+**Prerequisites**:
+- Steps 1.1, 1.2 complete
+
+**Implementation**:
+
+**Automated checks (agent executes directly via `claude -p` headless mode):**
+
+1. **FR-1 Skills**: Verify plugin skills discoverable from a clean directory (no `.claude/`):
+   ```bash
+   mkdir -p tmp/plugin-verify && cd tmp/plugin-verify && \
+     claude -p "list your available slash commands" --plugin-dir ../../agent-core 2>&1 | tee ../../tmp/plugin-verify-skills.txt && \
+     cd ../..
+   ```
+   - Output must contain plugin skills (`/design`, `/commit`, `/orchestrate`, `/handoff`)
+   - If skills missing → check `plugin.json` format, directory structure
+2. **FR-1 Agents**: Verify plugin agents discoverable:
+   ```bash
+   cd tmp/plugin-verify && \
+     claude -p "list your available agents" --plugin-dir ../../agent-core 2>&1 | tee ../../tmp/plugin-verify-agents.txt && \
+     cd ../..
+   ```
+   - Output must list agents from `agent-core/agents/`
+3. **FR-8 Coexistence**: Verify plan-specific agents coexist with plugin agents:
+   ```bash
+   claude -p "list your available agents" --plugin-dir ./agent-core 2>&1 | tee tmp/plugin-verify-coexist.txt
+   ```
+   - Run from project root (has `.claude/agents/handoff-cli-tool-*.md`)
+   - Output must contain both plugin agents AND plan-specific agents — no conflicts
+4. **FR-1 Hooks**: Verify hooks fire from plugin:
+   ```bash
+   cd tmp/plugin-verify && \
+     claude -p "write the word test to /tmp/hook-test.txt" --plugin-dir ../../agent-core 2>&1 | tee ../../tmp/plugin-verify-hooks.txt && \
+     cd ../..
+   ```
+   - `pretooluse-block-tmp.sh` should block the `/tmp` write — look for hook output in response
+
+**Manual check (STOP — human performs):**
+
+5. **NFR-1 Dev mode reload**: Edit one skill file (add a comment), then re-run check 1. Confirm the edit is reflected (skill content changed). This validates the edit-restart cycle is no slower than symlinks.
+
+**Expected Outcome**:
+- Plugin skills, agents, and hooks all discoverable via `--plugin-dir`
+- No conflicts between plugin agents and plan-specific agents
+- Dev mode reload works: edit-restart-verify cycle confirms change visible on next start
+
+**Error Conditions**:
+- If plugin not discovered → check `plugin.json` format, directory structure
+- If hooks not loading → check wrapper format matches Claude Code expectations
+- If agent conflicts → check namespace prefixing
+
+**Validation**:
+- Checks 1-4 must pass (automated, agent verifies output)
+- Check 5: STOP and report NFR-1 result to orchestrator
+- All downstream phases depend on this checkpoint passing

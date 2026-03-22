@@ -1,321 +1,114 @@
-# Phase 2: Skills and Agents
+### Phase 2: Hook migration and setup hook (type: general, model: sonnet)
 
-**Purpose:** Verify existing skill/agent structure meets plugin requirements, create `/edify:init` and `/edify:update` skills.
+Migrate all hooks to plugin, create consolidated setup hook, audit scripts for env var usage.
+Phase 5 must complete first (`.edify.yaml` exists for setup hook to read/update).
 
-**Dependencies:** Phase 1 (plugin manifest exists)
-
-**Model:** Sonnet (skill design requires reasoning)
-
----
-
-## Step 2.1: Verify agent structure
-
-**Objective:** Confirm `edify-plugin/agents/` contains 14 agent `.md` files and structure matches plugin auto-discovery requirements.
-
-**Execution Model:** Haiku (inline verification)
-
-**Implementation:**
-
-Verify agent structure:
-
-```bash
-# Count agent .md files
-agent_count=$(find edify-plugin/agents -maxdepth 1 -name "*.md" -type f | wc -l)
-echo "Agent count: $agent_count"
-
-# List agent files
-find edify-plugin/agents -maxdepth 1 -name "*.md" -type f | sort
-```
-
-**Expected count:** 14 agent files
-
-**Design Reference:**
-- Design Component 1: "Plugin agents are discovered from `edify-plugin/agents/`. Plan-specific agents (`*-task.md`) live in `.claude/agents/` as regular files."
-- Plugin auto-discovery: All `.md` files in `agents/` directory load automatically
-
-**Validation:**
-- Agent count equals 14: `[ "$agent_count" -eq 14 ]`
-- All files are `.md` extension
-- Files are at `agents/` root level (not nested in subdirectories)
-
-**Expected Outcome:** 14 agent `.md` files confirmed at `edify-plugin/agents/`.
-
-**Error Conditions:**
-- Count mismatch → Investigate missing or extra files
-- Nested subdirectories found → Agents must be at root level for auto-discovery
-
-**Success Criteria:**
-- Exactly 14 `.md` files in `edify-plugin/agents/`
-- All agents at root level (no subdirectories)
+**Step numbering note:** Step 2.2 (originally "Apply hook script fixes from audit") was absorbed into Step 2.1 during /proof. Step 2.4 (originally "Wire setup hook into hooks.json") was absorbed into Step 2.3 during /proof. The gaps in step numbering are intentional — outline requirements traceability uses original step IDs.
 
 ---
 
-## Step 2.2: Verify skill structure
+## Step 2.1: Audit hook scripts for env var usage
 
-**Objective:** Confirm `edify-plugin/skills/` contains 16 skill subdirectories, each with `SKILL.md` file.
+**Objective**: Audit 4 hook scripts for `$CLAUDE_PROJECT_DIR` usage and hardcoded paths that may not resolve correctly under plugin context.
 
-**Execution Model:** Haiku (inline verification)
+**Prerequisites**:
+- Read outline.md Component 2 hook script changes table (authoritative list of which scripts need audit)
+- Read each of the 4 scripts:
+  - `agent-core/hooks/pretooluse-recipe-redirect.py`
+  - `agent-core/hooks/pretooluse-recall-check.py`
+  - `agent-core/hooks/sessionstart-health.sh`
+  - `agent-core/hooks/stop-health-fallback.sh`
 
-**Implementation:**
+**Implementation**:
+1. For each script, check:
+   - Uses of `$CLAUDE_PROJECT_DIR` — these are correct (available in all hook types, resolves to project root)
+   - Hardcoded `agent-core/` paths — these need `$CLAUDE_PLUGIN_ROOT` substitution (or `$EDIFY_PLUGIN_ROOT` after setup hook runs)
+   - Relative path references — must use absolute paths via env vars
+2. Record findings per script in a report at `plans/plugin-migration/reports/hook-audit.md`:
+   - Script name
+   - Finding: no-change-needed OR specific edits required (with line numbers)
+   - Rationale
+3. Apply fixes per audit findings:
+   - Replace hardcoded `agent-core/` paths with `$CLAUDE_PLUGIN_ROOT` or `$EDIFY_PLUGIN_ROOT`
+   - Fix any relative path references to use absolute resolution
+4. Delete `agent-core/hooks/pretooluse-symlink-redirect.sh` — purpose eliminated by plugin migration
+5. Verify no remaining bare references: `grep -r 'agent-core/' agent-core/hooks/*.py agent-core/hooks/*.sh` returns no matches (except comments)
 
-Verify skill structure:
+**Expected Outcome**:
+- `plans/plugin-migration/reports/hook-audit.md` exists with per-script findings
+- Each script classified as no-change or with specific edits listed
+- Audit fixes applied to all scripts requiring changes
+- `pretooluse-symlink-redirect.sh` deleted
+- No remaining bare `agent-core/` references in hook scripts
 
-```bash
-# Count skill directories
-skill_count=$(find edify-plugin/skills -mindepth 1 -maxdepth 1 -type d | wc -l)
-echo "Skill directory count: $skill_count"
+**Error Conditions**:
+- If a script uses env vars not available in plugin context → escalate (design assumption violated)
+- If a script has complex path resolution logic → document and escalate for careful review
+- If audit found no changes needed → skip fix step, proceed to deletion
+- If grep finds unexpected references → investigate and fix or escalate
 
-# Count SKILL.md files
-skill_md_count=$(find edify-plugin/skills -name "SKILL.md" | wc -l)
-echo "SKILL.md count: $skill_md_count"
-
-# List skill directories
-find edify-plugin/skills -mindepth 1 -maxdepth 1 -type d | sort
-
-# Verify each directory has SKILL.md
-for dir in edify-plugin/skills/*/; do
-  if [ ! -f "$dir/SKILL.md" ]; then
-    echo "Missing SKILL.md in: $dir"
-  fi
-done
-```
-
-**Expected counts:**
-- 16 skill subdirectories
-- 16 `SKILL.md` files (one per directory)
-
-**Design Reference:**
-- Design outline: "16 skills symlinked via `just sync-to-parent`"
-- Plugin auto-discovery: "All `SKILL.md` files in skill subdirectories load automatically"
-
-**Validation:**
-- Skill directory count: `[ "$skill_count" -eq 16 ]`
-- SKILL.md count: `[ "$skill_md_count" -eq 16 ]`
-- Every directory has SKILL.md file
-
-**Expected Outcome:** 16 skill subdirectories confirmed, each with `SKILL.md`.
-
-**Error Conditions:**
-- Count mismatch → Investigate missing or extra skills
-- Missing SKILL.md → Skill won't auto-discover (must be named exactly `SKILL.md`)
-- Skills at root level (not in subdirectories) → Won't auto-discover
-
-**Success Criteria:**
-- Exactly 16 subdirectories in `edify-plugin/skills/`
-- Every subdirectory contains `SKILL.md`
-- No orphan SKILL.md files outside skill directories
+**Validation**:
+- Audit report exists with entries for all 4 scripts
+- No scripts left unaudited
+- `grep -r 'agent-core/' agent-core/hooks/*.py agent-core/hooks/*.sh` returns no matches (except comments)
+- `ls agent-core/hooks/pretooluse-symlink-redirect.sh` returns "No such file"
 
 ---
 
-## Step 2.3: Create /edify:init skill
+## Step 2.3: Integrate setup into sessionstart-health.sh (checkpoint)
 
-**Objective:** Create `/edify:init` skill at `edify-plugin/skills/init/SKILL.md` for dev mode scaffolding.
+**Objective**: Update `sessionstart-health.sh` to include setup responsibilities — env var export, CLI install, version write, and staleness nag. Replaces the originally-planned separate `edify-setup.sh`. All setup failures reported via `systemMessage`, not as crashes.
 
-**Execution Model:** Sonnet (skill design)
+**Script Evaluation**: Moderate (additions to existing script)
+**Execution Model**: Sonnet
 
-**Implementation:**
+**Prerequisites**:
+- Read `agent-core/hooks/sessionstart-health.sh` (current state — understand existing structure)
+- Read outline.md Component 2 "Consolidated setup hook" section
+- Read outline.md §Key Decisions D-7 (python deps mechanism)
+- Step 5.1 complete (`.edify.yaml` exists)
+- Recall: "when using session start hooks" — SessionStart output discarded for new interactive sessions (#10373). UPS fallback already handled by existing session flag (`$TMPDIR/health-${session_id}`).
 
-Create skill directory and SKILL.md:
+**Implementation**:
+1. Edit `agent-core/hooks/sessionstart-health.sh`, inserting setup sections before existing health checks:
+   a. **Export `EDIFY_PLUGIN_ROOT`** via `$CLAUDE_ENV_FILE`:
+      ```bash
+      if [ -n "${CLAUDE_ENV_FILE:-}" ] && [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+          echo "EDIFY_PLUGIN_ROOT=$CLAUDE_PLUGIN_ROOT" >> "$CLAUDE_ENV_FILE"
+      fi
+      ```
+   b. **Install edify CLI** into plugin-local venv (failure → append warning to message):
+      - Check for `uv` availability: `command -v uv`
+      - If available: create plugin-local venv (`uv venv "$CLAUDE_PLUGIN_ROOT/.venv"` if not present), install (`uv pip install --python "$CLAUDE_PLUGIN_ROOT/.venv/bin/python" claudeutils==X.Y.Z`)
+      - If not: fall back to `pip install --target "$CLAUDE_PLUGIN_ROOT/.venv/lib"` or append `⚠️ CLI install failed: uv not found` to message
+      - Package name is `claudeutils` (current PyPI name; rename to `edify` is separate work)
+      - Version pinned in script, updated with each plugin release
+   c. **Write version provenance** to `.edify.yaml` (FR-10):
+      - Read plugin version from `$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json`
+      - Update `version` field in `.edify.yaml`
+      - On failure: append `⚠️ Version write failed` to message
+   d. **Compare versions and nag if stale** (FR-5):
+      - Compare `.edify.yaml` `version` with plugin version
+      - If mismatch: append `⚠️ Fragments may be stale. Run /edify:update` to message
+2. UPS fallback: existing session flag (`touch "$TMPDIR/health-${session_id}"`) already provides idempotency — no additional marker needed
+3. Guard all setup operations: `if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then ... fi` — skip silently if not in plugin context
+4. All setup failures are non-fatal — append to `message` variable, script continues to health checks and outputs `systemMessage`
 
-```bash
-mkdir -p edify-plugin/skills/init
-```
+**Expected Outcome**:
+- `sessionstart-health.sh` includes setup sections before health checks
+- Setup failures reported in `systemMessage` output alongside health status
+- No separate `edify-setup.sh` file created
+- After run: `.edify.yaml` version matches `plugin.json` version
 
-Then create `edify-plugin/skills/init/SKILL.md` with:
+**Error Conditions**:
+- If `$CLAUDE_ENV_FILE` is not set → skip env var export silently
+- If `$CLAUDE_PLUGIN_ROOT` is not set → skip all setup operations silently
+- If `uv` and `pip` both unavailable → append warning to message, continue
+- If `.edify.yaml` doesn't exist → create it (first run scenario)
 
-**YAML frontmatter:**
-```yaml
----
-name: edify:init
-description: Scaffold CLAUDE.md structure and fragment references for edify plugin (dev mode only)
-version: 1.0.0
----
-```
+**Validation**:
+- Script runs without error from project root: `bash agent-core/hooks/sessionstart-health.sh`
+- After run: `.edify.yaml` version matches `plugin.json` version
+- Script is idempotent: running twice produces same result
+- **STOP and report Phase 2 results to orchestrator before proceeding to Phase 3**
 
-**Skill content structure:**
-
-1. **Purpose section:**
-   - Scaffolds project structure for edify plugin
-   - Dev mode only (submodule present)
-   - Idempotent (safe to re-run)
-
-2. **When to Use:**
-   - New project setup
-   - Adding edify to existing project
-   - After cloning project with edify-plugin submodule
-
-3. **Behavior:**
-   - Detect installation mode: `test -d edify-plugin` (check `edify-plugin/` directory exists)
-   - Create `agents/` directory if missing: `mkdir -p agents`
-   - Create `agents/session.md` from template if missing: copy from `edify-plugin/templates/session.template.md`
-   - Create `agents/learnings.md` from template if missing: copy from `edify-plugin/templates/learnings.template.md`
-   - Create `agents/jobs.md` from template if missing: copy from `edify-plugin/templates/jobs.template.md`
-   - If no CLAUDE.md: copy `edify-plugin/templates/CLAUDE.template.md` with `@edify-plugin/fragments/` references
-   - If CLAUDE.md exists: no modification (preserve user content)
-   - Write `.edify-version` with current plugin version from `edify-plugin/.version`
-   - Use Bash tool for all file operations (mkdir, cp, version writes)
-
-4. **Consumer mode handling:**
-   - Detect consumer mode: `test ! -d edify-plugin` (no `edify-plugin/` directory)
-   - Add TODO markers: "Consumer mode fragment copying not yet implemented" (per D-7: Consumer Mode Deferred)
-   - Exit with clear message directing to dev mode setup
-
-5. **Idempotency guarantees:**
-   - Every operation checks before acting (if file exists, skip copy)
-   - Re-running applies only missing pieces
-   - No data destruction risk
-   - **Why init-specific**: Init scaffolds missing structure (safe to re-run); update overwrites (explicit sync action)
-
-**Design References:**
-- Component 1: Plugin auto-discovery (skills/*/SKILL.md pattern)
-- Component 4: `/edify:init` scaffolding behavior
-- D-3: Fragment distribution via skill, not script
-- D-7: Consumer mode deferred (dev mode only in this migration)
-
-**Validation:**
-- Skill file exists at `edify-plugin/skills/init/SKILL.md`
-- YAML frontmatter is valid: contains required fields (name, description, version), name is `edify:init`, version follows semver (1.0.0), no YAML parse errors
-- Skill description triggers on "scaffold", "setup", "init"
-- Dev mode logic is complete with explicit bash commands
-- Consumer mode has TODO markers referencing D-7
-
-**Expected Outcome:** `/edify:init` skill created with dev mode implementation.
-
-**Error Conditions:**
-- Invalid YAML frontmatter → Fix syntax, validate with `python -c 'import yaml; yaml.safe_load(open("..."))'`
-- Missing template files → Verify templates exist in `edify-plugin/templates/`, copy template from upstream if missing
-- Logic errors → Review behavior against design Component 4 and D-3
-
-**Success Criteria:**
-- Skill file exists and is well-formed
-- Skill invokable via `/edify:init` command
-- Dev mode behavior complete per design
-- Consumer mode clearly marked as TODO
-
----
-
-## Step 2.4: Create /edify:update skill
-
-**Objective:** Create `/edify:update` skill at `edify-plugin/skills/update/SKILL.md` for fragment sync.
-
-**Execution Model:** Sonnet (skill design)
-
-**Implementation:**
-
-Create skill directory and SKILL.md:
-
-```bash
-mkdir -p edify-plugin/skills/update
-```
-
-Then create `edify-plugin/skills/update/SKILL.md` with:
-
-**YAML frontmatter:**
-```yaml
----
-name: edify:update
-description: Sync fragments when edify plugin version changes (no-op in dev mode)
-version: 1.0.0
----
-```
-
-**Skill content structure:**
-
-1. **Purpose section:**
-   - Syncs fragments when plugin updates
-   - Dev mode: No-op (fragments read directly via `@edify-plugin/fragments/`)
-   - Consumer mode: Copies updated fragments to `agents/rules/`
-
-2. **When to Use:**
-   - After version check hook warns of fragment staleness
-   - Manually checking for fragment updates
-   - After plugin upgrade
-
-3. **Behavior (dev mode):**
-   - Check installation mode: `test -d edify-plugin` (verify `edify-plugin/` directory exists)
-   - Read current `$CLAUDE_PROJECT_DIR/.edify-version` and plugin version from `edify-plugin/.version`
-   - If versions match: "Already up to date"
-   - If versions differ: "Dev mode uses direct references, no sync needed. Updated .edify-version marker."
-   - Write current version to `$CLAUDE_PROJECT_DIR/.edify-version`
-   - Skill removes temp file `tmp/.edify-version-checked` to reset once-per-session gate after version update
-   - Exit successfully
-   - Use Bash tool for all file operations (version reads, version write, temp file removal)
-
-4. **Behavior (consumer mode):**
-   - Check installation mode: `test ! -d edify-plugin` (no `edify-plugin/` directory)
-   - Add TODO markers: "Consumer mode fragment copying not yet implemented" (per D-7: Consumer Mode Deferred)
-   - Copy fragments from `$CLAUDE_PLUGIN_ROOT/fragments/` to `agents/rules/`
-   - Update `@` references in CLAUDE.md
-   - Write current version to `$CLAUDE_PROJECT_DIR/.edify-version`
-
-5. **Version marker update:**
-   - Always update `.edify-version` to match plugin version source (`edify-plugin/.version` in dev mode, `$CLAUDE_PLUGIN_ROOT/.version` in consumer mode)
-   - Removes `tmp/.edify-version-checked` after update to allow version check hook to fire again
-
-**Design References:**
-- Component 1: Plugin auto-discovery (skills/*/SKILL.md pattern)
-- Component 4: `/edify:update` skill behavior
-- D-7: Consumer mode deferred
-- Fragment versioning: dev mode reads directly, consumer mode copies
-
-**Validation:**
-- Skill file exists at `edify-plugin/skills/update/SKILL.md`
-- YAML frontmatter is valid: contains required fields (name, description, version), name is `edify:update`, version follows semver (1.0.0), no YAML parse errors
-- Skill description triggers on "update", "sync", "fragments"
-- Dev mode logic is complete with explicit bash commands (version marker update only)
-- Consumer mode has TODO markers referencing D-7
-
-**Expected Outcome:** `/edify:update` skill created with dev mode as no-op.
-
-**Error Conditions:**
-- Invalid YAML frontmatter → Fix syntax
-- Missing version file references → Add correct paths
-- Logic errors → Review behavior against design
-
-**Success Criteria:**
-- Skill file exists and is well-formed
-- Skill invokable via `/edify:update` command
-- Dev mode behavior: version marker update only
-- Consumer mode clearly marked as TODO
-
----
-
-## Phase 2 Checkpoint
-
-**Verification:**
-
-Run these commands to verify Phase 2 completion:
-
-```bash
-# Verify agent structure
-agent_count=$(find edify-plugin/agents -maxdepth 1 -name "*.md" -type f | wc -l)
-[ "$agent_count" -eq 14 ] && echo "✓ Agent structure verified" || echo "✗ Agent count mismatch"
-
-# Verify skill structure
-skill_count=$(find edify-plugin/skills -mindepth 1 -maxdepth 1 -type d | wc -l)
-skill_md_count=$(find edify-plugin/skills -name "SKILL.md" | wc -l)
-[ "$skill_count" -eq 18 ] && [ "$skill_md_count" -eq 18 ] && echo "✓ Skill structure verified (16 existing + 2 new)" || echo "✗ Skill count mismatch"
-
-# Verify new skills exist
-test -f edify-plugin/skills/init/SKILL.md && echo "✓ /edify:init skill created" || echo "✗ /edify:init missing"
-test -f edify-plugin/skills/update/SKILL.md && echo "✓ /edify:update skill created" || echo "✗ /edify:update missing"
-
-# Verify YAML frontmatter is valid
-for skill in init update; do
-  python3 -c "import yaml; yaml.safe_load(open('edify-plugin/skills/$skill/SKILL.md'))" && \
-    echo "✓ $skill YAML valid" || echo "✗ $skill YAML invalid"
-done
-
-# Test plugin discovery (requires restart)
-echo "Manual test required:"
-echo "  1. Exit current Claude Code session"
-echo "  2. Restart: claude --plugin-dir ./edify-plugin"
-echo "  3. Verify /edify:init and /edify:update appear in /help output"
-echo "  4. Verify skills are invokable (run /edify:init --help or similar)"
-```
-
-**Success:** All verification commands pass, skills discoverable after restart
-
-**On failure:** Review error messages, fix issues, re-run verification
-
-**Next:** Proceed to Phase 3 (Hook Migration)

@@ -1,19 +1,17 @@
-# Vet Review: Phase 1 Runbook - Plugin Manifest
+# Runbook Review: Phase 1 — Plugin Manifest and Structure
 
-**Scope**: Phase 1 runbook file at `plans/plugin-migration/runbook-phase-1.md`
-**Date**: 2026-02-08T05:30:00Z
-**Mode**: review + fix
+**Artifact**: `plans/plugin-migration/runbook-phase-1.md`
+**Date**: 2026-03-14T00:00:00Z
+**Mode**: review + fix-all
+**Phase types**: General (3 steps)
 
 ## Summary
 
-Phase 1 creates plugin manifest and version marker for Claude Code plugin discovery. Review found **4 issues**: all minor (validation improvements, error message clarity, complexity reassessment). The core implementation is sound — file creation commands, validation logic, and design alignment are correct.
+Phase 1 creates the plugin manifest (`plugin.json`), rewrites hooks.json in wrapper format, and validates plugin loading via a checkpoint step. The core implementation approach is sound and aligned with the outline. Two major issues were found and fixed: a wrong settings.json path in Step 1.2 prerequisites (`.claude/settings.json` does not exist; the correct file is `.claude/settings.visible.json`), and a deferred decision in Step 1.3 ("Requires design" language left the tmux verification approach unresolved). Both were fixed inline. Two minor path-clarity issues were also corrected.
 
-**Issues Found:** 4 (0 critical, 0 major, 4 minor)
-**Fixes Applied:** 4
+**Overall Assessment**: Ready
 
-**Overall Assessment**: Ready (all issues fixed)
-
-## Issues Found
+## Findings
 
 ### Critical Issues
 
@@ -21,91 +19,48 @@ None.
 
 ### Major Issues
 
-None.
+1. **Wrong settings.json path in Step 1.2 prerequisites**
+   - Location: Step 1.2, Prerequisites
+   - Problem: Step says "Read `.claude/settings.json` hooks section" but `.claude/settings.json` does not exist in the project. The hooks configuration is in `.claude/settings.visible.json`. An executor following the step would fail to find the file.
+   - Fix: Changed to `.claude/settings.visible.json`
+   - **Status**: FIXED
+
+2. **Deferred decision in Step 1.3 — tmux verification approach unresolved**
+   - Location: Step 1.3, Implementation item 1
+   - Problem: "Requires design: Programmatic Claude CLI verification via tmux. Before building custom tooling, search for existing tools/patterns..." — this leaves the implementation approach undecided, which is a planning-time gap. Executors cannot proceed without a resolved approach.
+   - Fix: Replaced with concrete tmux interaction steps using `tmux new-window`, `send-keys`, `capture-pane`, and explicit verification sequence for each FR target.
+   - **Status**: FIXED
 
 ### Minor Issues
 
-1. **Validation command uses short-circuit AND instead of separate tests**
-   - Location: runbook-phase-1.md:50
-   - Note: `test -f ... && jq . ...` makes validation harder to debug — if file missing, jq never runs. Separate commands provide clearer diagnostics.
-   - Suggestion: Split into two commands with explicit failure messages
-   - **Status**: FIXED — Split validation into two separate commands with clear error context
+3. **Ambiguous `outline.md` reference in Step 1.2**
+   - Location: Step 1.2, Prerequisites and Error Conditions
+   - Problem: "Read outline.md Component 2..." and "verify against outline Component 2 table" — no full path. In a multi-file plan, this is ambiguous.
+   - Fix: Changed to `plans/plugin-migration/outline.md` in both locations.
+   - **Status**: FIXED
 
-2. **Byte count validation on same line as content check**
-   - Location: runbook-phase-1.md:53
-   - Note: Chaining three checks with && makes debugging difficult — which condition failed?
-   - Suggestion: Separate into distinct validation steps
-   - **Status**: FIXED — Split into three separate test commands
-
-3. **Missing jq installation test before usage**
-   - Location: runbook-phase-1.md:66 (error handling mentions jq missing but no proactive check)
-   - Note: Running validation that mentions "if jq not installed" implies jq is optional, but the validation step requires it
-   - Suggestion: Add explicit jq availability check before validation, or make jq fallback automatic
-   - **Status**: FIXED — Added automatic fallback to python3 -m json.tool if jq unavailable
-
-4. **Complexity classification underestimates file count and validation scope**
-   - Location: runbook-phase-1.md:9
-   - Note: "Trivial" suggests <5 minutes work, but phase includes: directory creation, 2 file creation with specific formats, JSON validation with jq/python fallback, byte-count verification, and comprehensive error handling guidance (6 error scenarios). This is closer to "Simple" (well-defined, single concern, 5-15 min).
-   - Suggestion: Reassess as "Simple" to set accurate execution expectations
-   - **Status**: FIXED — Updated complexity from "Trivial" to "Simple"
+4. **Subjective NFR-1 success criterion in Step 1.3**
+   - Location: Step 1.3, Expected Outcome
+   - Problem: "Dev mode cycle time comparable to symlink approach" is not binary-testable. An executor can't pass or fail this deterministically.
+   - Fix: Replaced with concrete criterion: "edit-restart-verify cycle confirms change visible on next start."
+   - **Status**: FIXED
 
 ## Fixes Applied
 
-**Phase 1 file: `plans/plugin-migration/runbook-phase-1.md`**
+- Step 1.2, Prerequisites — `.claude/settings.json` → `.claude/settings.visible.json`
+- Step 1.2, Prerequisites — `outline.md Component 2` → `plans/plugin-migration/outline.md` Component 2
+- Step 1.2, Error Conditions — `outline Component 2 table` → `plans/plugin-migration/outline.md` Component 2 table
+- Step 1.3, Implementation — replaced "Requires design" deferred block with concrete tmux interaction steps
+- Step 1.3, Expected Outcome — replaced subjective NFR-1 criterion with binary-testable outcome
 
-1. Line 9: Complexity assessment updated from "Trivial" to "Simple" — phase includes validation, error handling, and format verification beyond basic file creation
-2. Lines 48-54: Validation steps split into separate commands for clear diagnostics — JSON validation and version checks now provide specific error context
-3. Lines 48-54: Added automatic jq fallback to python3 -m json.tool — validation no longer assumes jq installed
-4. Lines 62-67: Unexpected result handling updated to match new validation structure — reflects separated validation steps
+## Unfixable Issues (Escalation Required)
 
-## Requirements Validation
-
-**Design reference:** `plans/plugin-migration/design.md`
-
-| Design Component | Phase 1 Coverage | Status |
-|------------------|------------------|--------|
-| C-1 Plugin Manifest (D-1 minimal structure) | plugin.json with name/version/description | Satisfied — runbook-phase-1.md:19-29 |
-| C-1 Auto-discovery (conventional directories) | Manifest explanation at line 31-35 | Satisfied — design note confirms no custom paths |
-| C-3 Fragment Version Marker | .version file creation at line 37-45 | Satisfied — correct format (no trailing newline) |
-| C-3 Version semantics | Design note at line 42-45 | Satisfied — semantic versioning rules documented |
-
-**Gaps:** None — Phase 1 satisfies its design scope completely.
-
-**Alignment with Phase 0 patterns:**
-
-| Pattern | Phase 0 | Phase 1 | Status |
-|---------|---------|---------|--------|
-| Implementation + Validation structure | Steps separated, explicit validation | Same pattern | ✓ |
-| Unexpected result handling | 6 scenarios documented | 4 scenarios documented | ✓ |
-| File existence validation | `test -f` commands | `test -f` commands | ✓ |
-| Report path specified | Yes | Yes | ✓ |
-| Design notes inline | Yes (symlink explanation) | Yes (manifest purpose) | ✓ |
-| Path correctness | edify-plugin/ throughout | edify-plugin/ throughout | ✓ |
+None — all issues fixed.
 
 ---
 
-## Positive Observations
+**Ready for next step**: Yes
 
-- **Correct paths:** All references use `edify-plugin/` consistently (no agent-core leakage)
-- **Design alignment:** Manifest structure matches D-1 exactly (minimal: name + version + description)
-- **Version marker format:** Correctly specifies no trailing newline (printf not echo) with byte-count validation
-- **Clear purpose:** Design notes explain why minimal manifest works (auto-discovery from conventional paths)
-- **Semantic versioning:** Documents version bump protocol for future reference
-- **Validation criteria:** Specific commands with expected output
-- **Error handling:** Covers common failure modes (permissions, JSON syntax, jq missing)
-- **Dependencies:** Correctly specifies Phase 0 prerequisite
-- **Idempotent-ready:** Commands can be re-run safely (mkdir -p, overwrite files)
+---
 
-## Recommendations
-
-None — phase is well-structured and aligned with design. All identified issues have been fixed.
-
-## Post-Fix Verification
-
-Verified fixes:
-1. Complexity updated to "Simple" — sets accurate expectations
-2. Validation commands separated — clearer error diagnostics on failure
-3. jq fallback automatic — no manual intervention needed if jq missing
-4. Error handling updated — matches new validation structure
-
-Phase 1 ready for execution.
+*Note: A prior review from 2026-02-08 (`phase-1-review.md`) reviewed a different version of this file (referencing `edify-plugin/` paths and `.version` files). That review is superseded by this one.*

@@ -16,10 +16,6 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Correct pattern: Inspect diff content. Only treat as prior handoff if `## Completed This Session` was modified. Task-only changes (current session edits) → fresh write.
 - Agent had conversation context proving it made the edits itself but followed the heuristic mechanically.
 
-## When delegating external repo git operations
-- Anti-pattern: Dispatch artisan agents to run `git -C ~/code/<repo>` on repos outside the project tree. Sandbox write-allow restrictions block the agent even though the operations are read-only.
-- Correct pattern: Execute git read operations (`git -C`, `git log`, `git show`) directly from the parent session. Sub-agents only work reliably within the project's sandbox-allowed paths.
-- scratch/* repos under claudeutils worked because `~/code/claudeutils` is in the write-allow list. External repos (~/code/rules, ~/code/tuick, etc.) failed.
 ## When agent dismisses test failures as "pre-existing"
 - Anti-pattern: Agent runs scoped tests (single file/module), gets green. At commit time, full suite shows failures. Agent classifies as "pre-existing" without verifying — two instances in one session (`68963394`, `63af67bf`).
 - Correct pattern: If `just precommit` shows failures not present in prior commit, they are regressions from this session. Verify with `git stash && just test && git stash pop` or check the test names against changed files.
@@ -59,6 +55,10 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Exception: Dependent sub-problems (S-B depends on S-A's output format) stay together through design but execute as separate tasks with cross-task dependency.
 - Design coherence under change: if a sub-problem's execution reveals the shared design was wrong, propagation via "merge parent" (worktree merge from parent branch) handles updates.
 
+## When delegating external repo git operations
+- Anti-pattern: Dispatch artisan agents to run `git -C ~/code/<repo>` on repos outside the project tree. Sandbox write-allow restrictions block the agent even though the operations are read-only.
+- Correct pattern: Execute git read operations (`git -C`, `git log`, `git show`) directly from the parent session. Sub-agents only work reliably within the project's sandbox-allowed paths.
+- scratch/* repos under claudeutils worked because `~/code/claudeutils` is in the write-allow list. External repos (~/code/rules, ~/code/tuick, etc.) failed.
 ## When dispatching corrector with plan-path-containing prompts
 - Anti-pattern: Including template notation like `plans/{plan}/` or `plans/<name>/` anywhere in the corrector prompt text. The PreToolUse recall-check hook uses `re.search(r"plans/([^/]+)/", prompt)` to extract the job name — it finds the FIRST match, which may be template text rather than the actual plan path.
 - Correct pattern: Put the actual plan path (`plans/outline-proofing/`) as the FIRST `plans/X/` reference in the prompt (e.g., "Plan: plans/outline-proofing/ — review implementation changes"). Avoid template-style placeholders in requirement text; use natural language descriptions instead.
@@ -76,3 +76,12 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Using the inline skill's template `Deliverable review: <job>` verbatim — contains a colon (forbidden by task validator) and exceeds the 25-character limit for any job name longer than 9 characters.
 - Correct pattern: Use a short noun phrase without colon: e.g. `<Job> fix review` (≤25 chars, no colon). Fix the template in inline/SKILL.md to use a valid task name format.
 - Evidence: Precommit caught "contains forbidden character ':'" and "exceeds 25 character limit" when writing the deliverable review task for outline-proofing.
+## When runbook steps reference undesigned mechanisms
+- Anti-pattern: Runbook skill generates steps with placeholder language ("standard tmux interaction", "same mechanism as Step X") for mechanisms not in the design artifact. Looks specified but isn't. Passes correctors and /proof orientation without surfacing as a blocker.
+- Correct pattern: When a step depends on a mechanism not in the design artifact, either (a) design it inline as a preceding spike step, or (b) emit a structured design gap and halt — do not generate the step with placeholder text.
+- Evidence: Steps 1.3, 2.4, 6.1, 6.3 in plugin-migration all referenced "standard tmux interaction" — mechanism for driving live Claude session via tmux not designed. Flagged in session.md blockers, brief written, /proof skipped Item 3 as blocked.
+
+## When verifying plugin loading in Claude Code
+- Anti-pattern: Designing tmux send-keys + capture-pane interaction to drive Claude's interactive TUI. Fragile due to Ink/React rendering (ANSI codes, async redraws, space-padding). Dismissed as "no prior art" without checking `claude -p` headless mode or existing tmux automation libraries.
+- Correct pattern: `claude -p "prompt" --plugin-dir ./path` runs non-interactively with plain text output. Skills are discoverable, hooks fire, slash commands are recognized. No ANSI parsing, no readiness polling. Prior art exists: pchalasani/claude-code-tools (execution markers), claude-tmux (pattern detection), ccbot (JSONL transcript polling).
+- Evidence: Spike from clean directory confirmed all plugin skills returned via `-p` mode.

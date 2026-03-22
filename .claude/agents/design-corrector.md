@@ -1,1 +1,0 @@
-../../agent-core/agents/design-corrector.md

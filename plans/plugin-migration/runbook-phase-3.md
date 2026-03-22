@@ -1,308 +1,99 @@
-# Phase 3: Hook Migration
+### Phase 3: Migration skills (type: general, model: opus)
 
-**Purpose:** Create plugin hook configuration, version check hook script, and delete obsolete symlink-redirect hook.
-
-**Dependencies:** Phase 1 (plugin manifest exists)
-
-**Model:** Haiku (configuration and script files)
+Create `/edify:init` and `/edify:update` skills — agentic prose artifacts requiring opus.
 
 ---
 
-## Step 3.1: Create hooks.json
+## Step 3.1: Create /edify:init skill and CLAUDE.md template
 
-**Objective:** Create `edify-plugin/hooks/hooks.json` with plugin hook configuration using direct format (per D-4).
+**Objective**: Create the `/edify:init` skill that helps new consumer projects set up edify framework, plus the CLAUDE.md template it references.
 
-**Execution Model:** Haiku (inline execution)
+**Script Evaluation**: Prose (agentic skill definition)
+**Execution Model**: Opus (architectural artifact — agentic prose determining downstream agent behavior)
 
-**Implementation:**
+**Prerequisites**:
+- Read outline.md Component 4 "Migration Command" section (behavioral specification)
+- Read 2-3 existing skills for format reference: `agent-core/skills/commit/SKILL.md`, `agent-core/skills/handoff/SKILL.md`
+- Read `agent-core/fragments/` directory listing (know what fragments exist for distribution)
+- Read current CLAUDE.md (understand `@`-reference structure for template design)
 
-Create `edify-plugin/hooks/hooks.json`:
+**Implementation**:
+1. Create `agent-core/skills/init/SKILL.md`:
+   - **Concrete actions, not open-ended conversation.** The outline specifies the operations: copy fragments, rewrite refs, scaffold structure, write `.edify.yaml`. The skill must execute these, not ask the user to decide them.
+   - Skill behavior (per outline FR-3 and Component 4):
+     - Copy fragments from `agent-core/fragments/` to `agents/rules/`
+     - CLAUDE.md handling (conditional):
+     - If CLAUDE.md exists in project root: rewrite `@agent-core/fragments/` refs to `@agents/rules/`
+     - If CLAUDE.md does not exist: generate from `agent-core/templates/CLAUDE.template.md`
+     - Scaffold `agents/` structure: `session.md`, `learnings.md`, `jobs.md`
+     - Write `.edify.yaml` with current plugin version and sync policy (`nag` default)
+   - Reference points the skill needs to be aware of:
+     - Fragment inventory (`agent-core/fragments/*.md`)
+     - `agents/` directory structure conventions
+     - CLAUDE.md template at `agent-core/templates/CLAUDE.template.md`
+     - `.edify.yaml` format (version, sync_policy)
+   - Idempotent: check before acting, never destroy existing content
+   - No submodule detection — the edify project itself does not run `/edify:init`
+   - Consumer mode only — marketplace install context
+   - Frontmatter: `name: init`, appropriate description for triggering
 
-```bash
-cat > edify-plugin/hooks/hooks.json << 'EOF'
-{
-  "PreToolUse": [
-    {
-      "matcher": "Write|Edit",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/pretooluse-block-tmp.sh",
-          "timeout": 5
-        }
-      ]
-    },
-    {
-      "matcher": "Bash",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/submodule-safety.py",
-          "timeout": 10
-        }
-      ]
-    }
-  ],
-  "PostToolUse": [
-    {
-      "matcher": "Bash",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/submodule-safety.py",
-          "timeout": 10
-        }
-      ]
-    }
-  ],
-  "UserPromptSubmit": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/userpromptsubmit-shortcuts.py",
-          "timeout": 5
-        },
-        {
-          "type": "command",
-          "command": "python3 $CLAUDE_PLUGIN_ROOT/hooks/userpromptsubmit-version-check.py",
-          "timeout": 5
-        }
-      ]
-    }
-  ]
-}
-EOF
-```
+2. Update `agent-core/templates/CLAUDE.template.md` (file exists — needs ref rewrites):
+   - Currently uses `@agent-core/fragments/` paths — must be updated to `@agents/rules/` references (local copies for consumer projects)
+   - Includes standard sections: workflows, communication rules, operational rules
+   - Placeholders for project-specific content
+   - Must be a starting point, not a complete CLAUDE.md — consumer fills in project-specific details
 
-**Design References:**
-- D-4: `hooks.json` separate file with DIRECT format `{"PreToolUse": [...]}` (not wrapper format)
-- Design Component 2: Hook migration with `$CLAUDE_PLUGIN_ROOT` paths
-- Design Component 2 table: Hook script changes (all scripts stay unchanged except symlink-redirect deletion)
+**Expected Outcome**:
+- `agent-core/skills/init/SKILL.md` exists with valid skill frontmatter and concrete action-oriented behavior (CLAUDE.md conditional, fragment copy, scaffold, `.edify.yaml` write)
+- `agent-core/templates/CLAUDE.template.md` exists with template structure
+- Skill references template path correctly
 
-**Format note:**
-- Direct format: hook events at root level (correct for `hooks/hooks.json` file)
-- Wrapper format (`{"hooks": {...}}`) only used for inline hooks in `plugin.json`
-- This file uses direct format per D-4 decision
+**Error Conditions**:
+- If `agent-core/skills/init/` directory doesn't exist → create it
+- If template references fragments that don't exist → verify fragment inventory
 
-**Path resolution:**
-- `$CLAUDE_PLUGIN_ROOT` resolves to plugin directory at runtime
-- Dev mode (`--plugin-dir ./edify-plugin`): resolves to `edify-plugin/`
-- Consumer mode (marketplace): resolves to cached plugin directory
-
-**Validation:**
-- File exists at `edify-plugin/hooks/hooks.json`
-- JSON is well-formed: `jq . edify-plugin/hooks/hooks.json`
-- Root level contains hook event keys (PreToolUse, PostToolUse, UserPromptSubmit) - NO wrapper `hooks` field
-- All scripts referenced exist (check in Step 3.2 after deletion)
-
-**Expected Outcome:** Plugin hook configuration file created with direct format.
-
-**Error Conditions:**
-- JSON syntax error → Fix JSON structure
-- `jq` not installed → Install with `brew install jq`
-- Wrapper format used → Must be direct format per D-4
-
-**Success Criteria:**
-- File exists at `edify-plugin/hooks/hooks.json`
-- JSON validates with `jq`
-- Direct format (hook events at root, no wrapper `hooks` field)
-- All referenced scripts exist (verified after Step 3.2)
+**Validation**:
+1. Commit changes
+2. Delegate to skill-reviewer for skill quality review
+3. Verify skill appears in plugin discovery: `claude --plugin-dir ./agent-core` → `/help` lists `/edify:init`
 
 ---
 
-## Step 3.2: Delete obsolete hook script
+## Step 3.2: Create /edify:update skill
 
-**Objective:** Delete `edify-plugin/hooks/pretooluse-symlink-redirect.sh` (purpose eliminated by plugin auto-discovery).
+**Objective**: Create the `/edify:update` skill that syncs fragments and portable justfile when plugin version changes.
 
-**Execution Model:** Haiku (inline execution)
+**Script Evaluation**: Prose (agentic skill definition)
+**Execution Model**: Opus (architectural artifact — agentic prose)
 
-**Implementation:**
+**⚠️ Design dependency:** The outline does not specify a conflict policy for fragment updates. Before implementing, the outline must define: (a) conflict definition (consumer file content differs from plugin's version), (b) update policy (warn-and-skip, never silent overwrite), (c) `--force` mechanism for intentional overwrite. Do not implement conflict detection without this policy.
 
-Remove symlink-redirect hook:
+**Prerequisites**:
+- Read outline.md Component 4 `/edify:update` section (verify conflict policy has been added)
+- Read `agent-core/skills/init/SKILL.md` (created in Step 3.1 — understand separation of concerns)
+- Read 1-2 existing skills for format reference
 
-```bash
-rm edify-plugin/hooks/pretooluse-symlink-redirect.sh
-```
+**Implementation**:
+1. Create `agent-core/skills/update/SKILL.md`:
+   - Behavior: sync fragments + portable justfile module(s), update `.edify.yaml` version
+   - Separate from init — update is sync-only, not scaffolding
+   - Should handle:
+     - Compare current fragments in `agents/rules/` with plugin's fragments at `agent-core/fragments/`
+     - Copy updated fragments, preserving any local customizations (warn on conflicts)
+     - Sync portable justfile module(s) to project
+     - Update `.edify.yaml` version to match current plugin version
+   - Idempotent: safe to run when already up-to-date
+   - Frontmatter: `name: update`, appropriate description
 
-**Design Reference:**
-- Design Component 2 table: "pretooluse-symlink-redirect.sh: Delete — Purpose eliminated — no symlinks to protect"
-- Design "Affected Files (Delete)" section: Lists this file for deletion
+**Expected Outcome**:
+- `agent-core/skills/update/SKILL.md` exists with valid skill frontmatter
+- Skill clearly separated from `/edify:init` (sync vs scaffold)
+- Handles conflict detection for modified fragments
 
-**Rationale:**
-This hook prevented editing edify-plugin files via symlinks. With plugin auto-discovery, skills/agents/hooks load directly from edify-plugin (no symlinks), so the hook's purpose is eliminated.
+**Error Conditions**:
+- If fragments directory doesn't exist in consumer project → suggest running `/edify:init` first
 
-**Validation:**
-- File no longer exists: `[ ! -f edify-plugin/hooks/pretooluse-symlink-redirect.sh ]`
-- Remaining hooks present: `pretooluse-block-tmp.sh`, `submodule-safety.py`, `userpromptsubmit-shortcuts.py`, `userpromptsubmit-version-check.py`
-
-**Expected Outcome:** Symlink-redirect hook script deleted.
-
-**Error Conditions:**
-- File doesn't exist (already deleted) → Success (idempotent)
-- Permission denied → Check write permissions on `edify-plugin/hooks/`
-
-**Success Criteria:**
-- `pretooluse-symlink-redirect.sh` no longer exists
-- Other hook scripts remain intact
-
----
-
-## Step 3.3: Create version check hook
-
-**Objective:** Create `edify-plugin/hooks/userpromptsubmit-version-check.py` with once-per-session version mismatch detection.
-
-**Execution Model:** Haiku (inline execution)
-
-**Implementation:**
-
-Create version check hook script:
-
-```bash
-cat > edify-plugin/hooks/userpromptsubmit-version-check.py << 'EOF'
-#!/usr/bin/env python3
-"""
-UserPromptSubmit hook: Check if project's .edify-version matches plugin .version.
-Fires once per session (uses temp file gate). Warns via additionalContext if mismatch.
-"""
-import json
-import os
-import sys
-from pathlib import Path
-
-
-def main():
-    # Read hook input from stdin
-    hook_input = json.load(sys.stdin)
-
-    project_dir = Path(os.environ.get("CLAUDE_PROJECT_DIR", "."))
-    plugin_root = Path(os.environ.get("CLAUDE_PLUGIN_ROOT", "edify-plugin"))
-
-    # Temp file for once-per-session gating
-    temp_file = project_dir / "tmp" / ".edify-version-checked"
-
-    # If already checked this session, exit silently
-    if temp_file.exists():
-        sys.exit(0)
-
-    # Read version files
-    project_version_file = project_dir / ".edify-version"
-    plugin_version_file = plugin_root / ".version"
-
-    # If project has no .edify-version, skip check (may not use managed fragments)
-    if not project_version_file.exists():
-        sys.exit(0)
-
-    # Read versions
-    project_version = project_version_file.read_text().strip()
-    plugin_version = plugin_version_file.read_text().strip() if plugin_version_file.exists() else "unknown"
-
-    # If versions match, mark as checked and exit silently
-    if project_version == plugin_version:
-        temp_file.parent.mkdir(parents=True, exist_ok=True)
-        temp_file.touch()
-        sys.exit(0)
-
-    # Version mismatch: warn via additionalContext
-    warning = f"⚠️ Fragments outdated (project: {project_version}, plugin: {plugin_version}). Run /edify:update."
-
-    output = {
-        "hookSpecificOutput": {
-            "additionalContext": warning
-        },
-        "systemMessage": f"Fragment version mismatch detected. {warning}"
-    }
-
-    # Mark as checked (only warn once per session)
-    temp_file.parent.mkdir(parents=True, exist_ok=True)
-    temp_file.touch()
-
-    print(json.dumps(output))
-    sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()
-EOF
-
-chmod +x edify-plugin/hooks/userpromptsubmit-version-check.py
-```
-
-**Design References:**
-- Design Component 7: Post-upgrade version check behavior
-- Once-per-session gating: temp file `tmp/.edify-version-checked`
-- Rationale: No PostUpgrade hook exists; UserPromptSubmit is earliest reliable hook point
-
-**Script behavior:**
-1. Check if already fired this session (temp file exists) → exit silently
-2. Read `.edify-version` (project) and `.version` (plugin)
-3. If project has no `.edify-version` → exit silently (not using managed fragments)
-4. If versions match → create temp file, exit silently
-5. If versions differ → inject warning via `additionalContext`, create temp file, exit
-
-**Temp file path:** `$CLAUDE_PROJECT_DIR/tmp/.edify-version-checked` (follows project tmp/ convention per CLAUDE.md, not system `/tmp/`; also avoids conflict with pretooluse-block-tmp.sh hook which blocks /tmp writes)
-
-**Validation:**
-- File exists at `edify-plugin/hooks/userpromptsubmit-version-check.py`
-- File is executable: `[ -x edify-plugin/hooks/userpromptsubmit-version-check.py ]`
-- Python syntax valid: `python3 -m py_compile edify-plugin/hooks/userpromptsubmit-version-check.py`
-- Script uses project `tmp/` directory (not system `/tmp/`)
-
-**Expected Outcome:** Version check hook script created and executable.
-
-**Error Conditions:**
-- Python syntax error → Fix script
-- Permission denied → Check write permissions
-- Incorrect temp file path (system `/tmp/`) → Must use `$CLAUDE_PROJECT_DIR/tmp/`
-
-**Success Criteria:**
-- Script exists and is executable
-- Python syntax is valid
-- Uses project `tmp/` directory for temp file
-- Follows once-per-session gating pattern
-
----
-
-## Phase 3 Checkpoint
-
-**Verification:**
-
-Run these commands to verify Phase 3 completion:
-
-```bash
-# Verify hooks.json exists and is valid
-test -f edify-plugin/hooks/hooks.json && jq . edify-plugin/hooks/hooks.json > /dev/null && echo "✓ hooks.json valid" || echo "✗ hooks.json invalid"
-
-# Verify symlink-redirect deleted
-[ ! -f edify-plugin/hooks/pretooluse-symlink-redirect.sh ] && echo "✓ Obsolete hook deleted" || echo "✗ Symlink-redirect still exists"
-
-# Verify version check hook exists and is executable
-test -x edify-plugin/hooks/userpromptsubmit-version-check.py && echo "✓ Version check hook created" || echo "✗ Version check hook missing or not executable"
-
-# Verify all referenced scripts exist
-for script in pretooluse-block-tmp.sh submodule-safety.py userpromptsubmit-shortcuts.py userpromptsubmit-version-check.py; do
-  test -f "edify-plugin/hooks/$script" && echo "✓ $script exists" || echo "✗ $script missing"
-done
-
-# Verify Python syntax for all Python hooks
-for script in submodule-safety.py userpromptsubmit-shortcuts.py userpromptsubmit-version-check.py; do
-  python3 -m py_compile "edify-plugin/hooks/$script" && echo "✓ $script syntax valid" || echo "✗ $script syntax error"
-done
-```
-
-**Manual test (requires restart):**
-1. Exit current Claude Code session
-2. Restart: `claude --plugin-dir ./edify-plugin`
-3. Verify hooks load without errors (check startup output)
-4. Test each hook event:
-   - **PreToolUse (Write/Edit):** Try `echo "test" > tmp/test.txt` → pretooluse-block-tmp.sh should block `/tmp/` writes
-   - **PreToolUse (Bash):** Try `cd subdir && ls` (if cwd ≠ project root) → submodule-safety should warn or block
-   - **PostToolUse (Bash):** Verify submodule-safety runs after Bash commands
-   - **UserPromptSubmit:** Submit any prompt → shortcuts hook processes (no visible output unless shortcut matched)
-   - **Version check:** Create `.edify-version` with old version, restart, verify warning on first prompt
-
-**Success:** All verification commands pass, hooks functional after restart
-
-**On failure:** Review error messages, check hook scripts exist, verify JSON syntax, restart to reload hooks
-
-**Next:** Proceed to Phase 4 (Justfile Modularization)
+**Validation**:
+1. Commit changes
+2. Delegate to skill-reviewer for skill quality review
+3. Verify skill appears in plugin discovery

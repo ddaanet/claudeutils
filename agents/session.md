@@ -40,7 +40,7 @@
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
   - Note: Blocker resolved (Bootstrap tag support). Step files generated. `/orchestrate handoff-cli-tool`
-- [ ] **Plugin migration** → `plugin-migration` — `/orchestrate plugin-migration` (refresh outline first) | opus | 3.2
+- [ ] **Plugin migration** — `/orchestrate plugin-migration` (refresh outline first) | opus | 3.2
   - Plan: plugin-migration | Status: ready (stale — Feb 9)
 - [ ] **Worktree merge lifecycle** — `/runbook plans/worktree-merge-resilience/outline.md` | sonnet | 2.8
   - Plan: worktree-merge-resilience | Status: outlined
@@ -202,6 +202,9 @@
 - Plan artifact needed: `plans/handoff-task-naming/brief.md` [from: outline-density-gate]
 - Must complete both prerequisites before centralizing recall instructions [from: retro-repo-expansion]
 - Outline-proofing adds /proof to /runbook Tier 2. Remove-fuzzy-recall is Tier 2. If outline-proofing lands first, remove-fuzzy-recall gets the new /proof gate. No blocking dependency — order-independent. [from: retro-repo-expansion]
+- SessionStart doesn't fire for new interactive sessions (#10373). Setup (env export, CLI install, staleness nag) only runs at session end via Stop fallback. [from: plugin-migration]
+- Existing plan on main: `health-check-ups-fallback [requirements]` [from: plugin-migration]
+- Contains 5 documented errors (see outline Design Corrections section). Outline supersedes design.md for all decisions. [from: plugin-migration]
 ## Reference Files
 
 - `plans/reports/prioritization-2026-03-12.md` — WSJF scoring, 42 tasks ranked
