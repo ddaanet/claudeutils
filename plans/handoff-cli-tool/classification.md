@@ -1,37 +1,38 @@
-# Classification: Fix handoff-cli RC4 findings
+# Classification: Fix handoff-cli RC5 findings
 
 **Date:** 2026-03-23
-**Input:** plans/handoff-cli-tool/reports/deliverable-review.md (RC4: 0C/2M/9m)
+**Input:** plans/handoff-cli-tool/reports/deliverable-review.md (RC5: 0C/2M/10m)
 **Plan status:** rework
-**Round:** 4 (prior: RC1=5C/11M/12m, RC2=1C/4M/6m, RC3=2M+6m pre-existing)
+**Round:** 5
 
 ## Composite Decomposition
 
-| # | Finding | Behavioral? | Classification | Destination | Action |
-|---|---------|-------------|----------------|-------------|--------|
-| M-1 | H-2 committed detection test | Yes (new test fn) | Moderate | production | Add test: commit session.md, call write_completed, assert overwrite |
-| M-2 | `_init_repo` duplication | Yes (new helper fn) | Moderate | production | Add `init_repo_minimal(path)` to pytest_helpers.py, replace 5 local variants |
-| m-1 | HandoffState `step_reached` field | Yes (new field, updated fn sig) | Moderate | production | Add field with default, update save_state signature |
-| m-2 | No ANSI color in `_status` | Yes (new logic paths) | Moderate | production | Add `color: bool` param to render fns, use click.style() |
-| m-3 | ▶ format deviation | No (format string edit) | Simple | production | Edit render.py:44 format string to match design spec |
-| m-4 | `_strip_hints` continuation | Yes (new conditional) | Moderate | production | Track in_hint state, skip indented continuation lines |
-| m-5 | Parallel cap-at-5 untested | Yes (new test fn) | Moderate | production | Add test: 6 independent tasks, verify cap returns 5 |
-| m-6 | or-disjunction assertions | No (edit existing) | Simple | production | Split `assert A or B` into separate focused assertions |
-| m-7 | Integration test incomplete | No (extend existing) | Simple | production | Add completed-section and status-line assertions |
-| m-8 | .gitignore/settings.local.json | — | Skip | — | Benign, no action |
-| m-9 | worktree/cli.py:311 hardcodes agent-core | — | Skip | — | Pre-existing, not regression |
+| # | Finding | Behavioral? | Classification | Action |
+|---|---------|-------------|----------------|--------|
+| M-1 | `_strip_hints` state reset | Yes (logic path) | Defect | `prev_was_hint = False` → `True` at continuation branch |
+| M-2 | `vet_check` missing `cwd` | Yes (new param) | Defect | Thread `cwd` through `_load_review_patterns`, `_find_reports`, `vet_check` |
+| m-1 | `## Message` EOF semantics | Yes (add conditional) | Conformance | Add `is_message_section` flag to `_split_sections` |
+| m-2 | `step_reached` unused | No | Accept | Vestigial but schema-conformant — no action |
+| m-3 | Pipeline stage ordering | No | Accept | Valid deviation — no action |
+| m-4 | Diagnostic output guarded | Yes (remove guard) | Conformance | Remove `if git_output:` — emit diagnostics unconditionally |
+| m-5 | stderr discarded | Yes (capture change) | Robustness | Capture stderr in `_run_precommit`/`_run_lint` |
+| m-6 | `_git()` strips stdout | No (docstring) | Documentation | Add porcelain warning to docstring |
+| m-7 | Ternary precedence | No (formatting) | Readability | Parenthesize `(... if amend else ...)` |
+| m-8 | Local init helpers persist | No (test refactor) | Test quality | Replace with `init_repo_minimal` in 2 pre-existing files |
+| m-9 | No multi-continuation test | No (test addition) | Test coverage | Add multi-continuation + single-space edge case tests |
+| m-10 | Missing dash-prefix assertion | No (test addition) | Test quality | Add `- ` prefix assertion |
 
 ## Overall
 
-- **Classification:** Moderate (composite — 6 Moderate + 3 Simple actionable)
-- **Implementation certainty:** High — file:line refs, approach specified
+- **Classification:** Defect/conformance batch — all mechanisms specified by review
+- **Implementation certainty:** High — exact code locations and fixes provided
 - **Requirement stability:** High — design specs and observable behaviour
-- **Behavioral code check:** Yes (new helper, new conditionals, new test functions)
+- **Behavioral code check:** M-1/M-2/m-1/m-4/m-5 are behavioral; remainder non-behavioral
 - **Work type:** Production
 - **Artifact destination:** production
 - **Model:** sonnet
-- **Evidence:** M-1/M-2 test coverage/quality; m-1 spec conformance; m-2/m-4 add conditional logic; m-3/m-6/m-7 mechanical edits
+- **Evidence:** Review report provides root cause, fix mechanism, and code locations for all items
 
 ## Routing
 
-Moderate (non-prose) → `/runbook plans/handoff-cli-tool`
+Defect batch with complete investigation (review report = specification). Route: `/inline plans/handoff-cli-tool execute`

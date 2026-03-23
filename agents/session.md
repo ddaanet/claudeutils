@@ -1,20 +1,14 @@
 # Session Handoff: 2026-03-23
 
-**Status:** RC4 findings fixed (2M/7m actionable, m-8/m-9 skipped). RC5 review queued.
+**Status:** RC5 review complete — 0C/2M/10m. Fix task queued.
 
 ## Completed This Session
 
-**Fix handoff-cli RC4 (all actionable findings):**
-- M-2: `init_repo_minimal` helper in pytest_helpers.py, replaced 5 local `_init_repo` variants
-- M-1: `test_write_completed_overwrites_committed_state` — committed-state coverage
-- m-4: `_strip_hints` stateful loop — filters indented continuation lines after hint/advice
-- m-1: `HandoffState.step_reached: str = "write_session"` — spec conformance (H-4)
-- m-3: ▶ format two-line design spec: `▶ {name} ({model}) | Restart: {Yes/No}` + `  \`{cmd}\``
-- m-2: ANSI color in `render_pending` — `color: bool = False` kwarg, `click.style` on ▶ line, CLI passes `sys.stdout.isatty()`
-- m-5: `test_detect_parallel_caps_at_five` — 7 independent tasks → result len == 5
-- m-6: split or-disjunction assertions in test_session_commit_pipeline.py
-- m-7: extended `test_handoff_then_status` with session.md content assertions
-- Skipped m-8 (incidental .gitignore/settings.local.json), m-9 (pre-existing worktree hardcode)
+**Handoff-cli RC5 deliverable review:**
+- Full-scope review: Layer 1 (three opus agents: code, test, prose+config) + Layer 2 (interactive cross-cutting)
+- RC4 fix verification: 8/9 actionable findings confirmed fixed, m-4 partial (continuation logic has residual multi-continuation bug → M-1)
+- New findings: M-1 (`_strip_hints` state reset after first continuation), M-2 (`vet_check` missing cwd propagation), 10 minor
+- Report: `plans/handoff-cli-tool/reports/deliverable-review.md`
 
 ## In-tree Tasks
 
@@ -26,8 +20,10 @@
   - Plan: handoff-cli-tool | 0C/2M/9m
 - [x] **Fix handoff-cli RC4** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | sonnet
   - Plan: handoff-cli-tool | 2M + 7m resolved, m-8/m-9 skipped
-- [ ] **Handoff-cli RC5** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-  - Plan: handoff-cli-tool | Verify RC4 fixes: init_repo_minimal, step_reached, ▶ format, ANSI color, _strip_hints
+- [x] **Handoff-cli RC5** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+  - Plan: handoff-cli-tool | 0C/2M/10m
+- [ ] **Fix handoff-cli RC5** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | sonnet
+  - Plan: handoff-cli-tool | M-1 strip_hints continuation, M-2 vet_check cwd, 10 minor
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -68,8 +64,8 @@
 
 ## Reference Files
 
-- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC4 findings (0C/2M/9m)
+- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC5 findings (0C/2M/10m)
 
 ## Next Steps
 
-Run RC5 deliverable review via `/deliverable-review plans/handoff-cli-tool` (opus) to verify all RC4 fixes hold.
+Fix RC5 findings via `/design plans/handoff-cli-tool/reports/deliverable-review.md` (sonnet). Both Majors are small fixes: M-1 change `prev_was_hint = False` → `True` in continuation branch, M-2 add `cwd` parameter to `vet_check` and helpers.

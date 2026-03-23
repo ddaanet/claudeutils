@@ -1,27 +1,24 @@
-# Prose & Config Deliverable Review (RC4)
+# Prose & Config Deliverable Review (RC5)
 
 **Design reference:** `plans/handoff-cli-tool/outline.md`
 **Date:** 2026-03-23
-**Scope:** Four files (2 agentic prose, 2 configuration). Full-scope review — not delta-scoped.
-**Prior review:** RC3 prose review (0C/0M/2m). Both minor findings were observations, not action items.
+**Scope:** Four files (2 agentic prose, 2 configuration). Full-scope review.
+**Prior review:** RC4 prose review (0C/0M/1m).
 
 ## Files Reviewed
 
-| File | Type | Delta |
-|------|------|-------|
-| `agent-core/skills/design/SKILL.md` | Agentic prose | +3/-4 |
-| `agent-core/skills/handoff/SKILL.md` | Agentic prose | +6/-2 |
-| `.claude/settings.local.json` | Configuration | +1/-1 |
+| File | Type | Delta (vs main) |
+|------|------|-----------------|
+| `agent-core/skills/design/SKILL.md` | Agentic prose | +3/-17 (net -14) |
+| `agent-core/skills/handoff/SKILL.md` | Agentic prose | +6/-2 (net +4) |
+| `.claude/settings.local.json` | Configuration | +1/-1 (trailing newline) |
 | `.gitignore` | Configuration | +1/-1 |
 
-## RC3 Finding Verification
+## RC4 Finding Verification
 
-| Finding | Status |
-|---------|--------|
-| RC3 m-1: Step 7 placement diverges from outline wording | Observation only — no fix needed. Verified: Step 7 correctly positioned after writes, before STATUS. Outline's "before calling `_handoff` CLI" has no anchor while skill-CLI integration is deferred. |
-| RC3 m-2: `.gitignore` and `settings.local.json` outside scope | Observation only — no fix needed. Verified: both still present, both benign. |
-| Prior C#1: `Bash(wc:*)` missing tool prefixes | FIXED — `Bash(just:*,wc:*,git:*,claudeutils:*)` at line 4 |
-| Prior N-1: Missing `Bash(claudeutils:*)` | FIXED — present at line 4 |
+| RC4 Finding | Status |
+|-------------|--------|
+| m-1: design/SKILL.md change outside plan scope | Persists (observation) — design SKILL.md change remains attributed to this plan. Not actionable within plan scope. |
 
 ## Findings
 
@@ -35,41 +32,58 @@ None.
 
 ### Minor
 
-1. **design/SKILL.md change is outside plan scope**
-
-   - **File:** `agent-core/skills/design/SKILL.md:135-139`
-   - **Axis:** Excess (scope boundary)
-
-   The outline's Scope OUT says "Skill modifications (commit/status skills updated separately)." The Coupled skill update exception covers only the handoff skill precommit gate. The design SKILL.md change (removing "implement directly" from Simple routing, chaining to `/inline`) is a design skill behavioral fix unrelated to handoff-cli-tool delivery. Committed as `1c5a55aa` during the same session as RC3 fixes but not traceable to any RC3 finding or outline requirement.
-
-   The change itself is functionally correct (closes a known loophole per learning "When skill steps offer competing execution paths") and well-motivated. The excess finding is purely about plan attribution — this change should not be in the handoff-cli-tool deliverable set. No action needed (the fix is good), but future reviews of this plan should exclude it from scope.
+None.
 
 ## Per-File Assessment
 
 ### `agent-core/skills/handoff/SKILL.md`
 
-- **Conformance:** Step 7 "Precommit Gate" satisfies the outline's coupled skill update requirement. `just precommit` runs after all writes, before STATUS display.
-- **Functional correctness:** Gate behavior correct — failure stops with output, success continues. Placement after file mutations ensures all changes are validated.
-- **Functional completeness:** All three mutations (session.md, learnings.md, plan-archive.md) listed as preceding the gate. No gaps.
-- **Vacuity:** No vacuous directives. "On failure: output the precommit result, STOP" is specific and actionable.
-- **Excess:** No unnecessary additions.
-- **Constraint precision:** "fix issues and retry" is appropriately open-ended for a failure recovery instruction.
-- **Determinism:** Step ordering (7 before 8) is unambiguous.
-- **Scope boundaries:** Step 7 added, Step 8 renumbered. No other skill content modified.
-- **`allowed-tools`:** `Bash(just:*,wc:*,git:*,claudeutils:*)` covers all tools the skill needs — `just precommit`, `wc` for size checks, `git` for dirty detection, `claudeutils` for future CLI integration.
+**Changes from main:**
+1. `allowed-tools` expanded from `Bash(wc:*)` to `Bash(just:*,wc:*,git:*,claudeutils:*)`
+2. Step 7 "Precommit Gate" inserted before STATUS display (old Step 7 renumbered to Step 8)
+
+**Conformance:** The outline states: "Handoff skill must add `just precommit` as a pre-handoff gate (before calling `_handoff` CLI)." Step 7 runs `just precommit` after all file mutations (session.md, learnings.md, plan-archive.md) and before Step 8 (STATUS display). The gate is positioned after writes but before any downstream handoff output, satisfying the design intent. The skill does not yet call `_handoff` CLI (that integration is deferred per "Skill integration (future)"), so "before calling `_handoff` CLI" has no current anchor. The gate is correctly positioned relative to what exists: after mutations, before display.
+
+**Functional correctness:** The gate instruction specifies failure behavior ("output the precommit result, STOP -- fix issues and retry") and success behavior ("continue to STATUS display"). Both paths are unambiguous. The `allowed-tools` addition of `just:*` is necessary for `just precommit` to execute within the skill's sandbox.
+
+**Functional completeness:** All three file mutations that could introduce precommit-failing content (session.md, learnings.md, plan-archive.md) are enumerated as preceding the gate. No mutation path bypasses it.
+
+**Vacuity:** The gate performs real work -- `just precommit` runs format, lint, and test checks. Not ceremonial.
+
+**Excess:** The `git:*` and `claudeutils:*` additions to `allowed-tools` are forward-looking (skill-CLI integration is deferred). However, the skill already uses `git diff HEAD` in Step 1 (prior handoff detection) and `claudeutils _worktree ls` in Step 2 (command derivation). These tool permissions were previously missing -- the skill relied on the calling agent's tool permissions. Adding them is a correctness fix, not excess.
+
+**Actionability:** "Run `just precommit` after all writes" is directly executable. "On failure: output the precommit result, STOP" maps to observable actions. "fix issues and retry" is appropriately open-ended for error recovery.
+
+**Constraint precision:** No judgment words. "after all writes" is enumerable. "On failure / On success" is binary.
+
+**Determinism:** Step ordering (7 before 8) is unambiguous. Same precommit failures produce the same stop behavior.
+
+**Scope boundaries:** Changes are limited to `allowed-tools` line and a new step. No other skill content modified.
 
 ### `agent-core/skills/design/SKILL.md`
 
-- **Functional correctness:** The change is correct. Removing "implement directly" from step 3 and adding an explicit prohibition closes the competing-paths loophole. `/inline` provides corrector gates.
-- **Scope:** Outside plan scope (see Minor finding 1).
+**Changes from main:** Simple routing (line 135-139) restructured:
+- Removed "Execute: check for applicable skills and project recipes first, then implement directly" (step 3)
+- Removed Moderate agentic-prose path (7-line inline-plan generation sub-procedure)
+- Removed Moderate non-prose path (7-line outline generation sub-procedure)
+- Added "Do NOT implement directly -- `/inline` provides corrector gates and triage feedback"
+- Moderate routing collapsed to single-line per path
+
+**Conformance:** The outline's Scope OUT says "Skill modifications (commit/status skills updated separately)." The coupled skill update exception names only the handoff skill. This change is outside plan scope.
+
+**Functional correctness:** The change is correct. It closes the "competing execution paths" loophole documented in learnings ("When skill steps offer competing execution paths"). The old Simple routing had step 3 "implement directly" competing with step 4's chain to `/inline`. The new version removes the direct-implementation permission and makes `/inline` the sole execution path.
+
+The Moderate routing collapse is also correct. The expanded sub-procedures duplicated guidance that belongs in `/inline` and `/runbook` respectively. The collapsed form routes to the right downstream skill without redundant inline instructions.
+
+**Excess:** Outside plan scope. The fix is valid but should be attributed elsewhere. Observation only -- no action needed, consistent with RC4 finding.
 
 ### `.claude/settings.local.json`
 
-Content is `{}`. No meaningful change from baseline (trailing newline difference at most). No findings.
+Content: `{}` (3 bytes: `{`, `}`, newline). The diff shows `+1/-1` which is a trailing newline normalization. No semantic change. No findings.
 
 ### `.gitignore`
 
-`/.vscode/` changed to `/.vscode`. Trailing slash removal means the pattern now matches both files and directories named `.vscode`. Functionally correct for the intended purpose (IDE artifacts). Outside plan scope but benign.
+`/.vscode/` changed to `/.vscode`. The trailing slash removal means the pattern now matches both a file and a directory named `.vscode` at the root. Git's default behavior already matches directories without trailing slashes, so this is a minor normalization that broadens the pattern slightly (also matches a hypothetical `.vscode` file). Functionally correct for IDE artifact exclusion. Outside plan scope but benign.
 
 ## Summary
 
@@ -77,8 +91,8 @@ Content is `{}`. No meaningful change from baseline (trailing newline difference
 |----------|-------|
 | Critical | 0 |
 | Major | 0 |
-| Minor | 1 |
+| Minor | 0 |
 
-One minor scope-attribution finding (design SKILL.md change attributed to handoff-cli-tool plan but unrelated to its outline). All prior findings verified. The handoff skill precommit gate (coupled skill update) is correctly implemented per design specification.
+The RC4 minor finding (design SKILL.md scope attribution) persists as an observation but does not warrant a new finding -- it was already identified and dispositioned in RC4. All four files are functionally correct. The handoff skill precommit gate satisfies the outline's coupled skill update requirement. No new findings.
 
 **Verdict:** Pass. No blocking findings.
