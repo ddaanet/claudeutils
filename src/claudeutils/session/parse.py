@@ -72,7 +72,8 @@ def parse_status_line(content: str) -> str | None:
 def parse_completed_section(content: str) -> list[str]:
     """Extract lines under ``## Completed This Session``.
 
-    Returns list of non-empty lines. Empty list if section missing or empty.
+    Preserves blank lines between sub-groups. Empty list if section missing or
+    empty.
     """
     bounds = find_section_bounds(content, "Completed This Session")
     if bounds is None:
@@ -80,7 +81,13 @@ def parse_completed_section(content: str) -> list[str]:
 
     lines = content.split("\n")
     section_lines = lines[bounds[0] + 1 : bounds[1]]
-    return [line for line in section_lines if line.strip()]
+
+    while section_lines and not section_lines[0].strip():
+        section_lines = section_lines[1:]
+    while section_lines and not section_lines[-1].strip():
+        section_lines = section_lines[:-1]
+
+    return section_lines
 
 
 def parse_tasks(content: str, section: str = "In-tree Tasks") -> list[ParsedTask]:

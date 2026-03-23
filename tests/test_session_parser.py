@@ -191,3 +191,25 @@ def test_parse_session_extracts_blockers(tmp_path: Path) -> None:
     assert len(data.blockers) == 2
     assert "Item depends on external API availability" in data.blockers[0][0]
     assert "Concurrent execution cap" in data.blockers[1][0]
+
+
+def test_parse_completed_preserves_blank_lines() -> None:
+    """Blank lines between sub-groups preserved in output."""
+    content = """\
+## Completed This Session
+
+### Group A
+- Item 1
+
+### Group B
+- Item 2
+"""
+    lines = parse_completed_section(content)
+    assert isinstance(lines, list)
+    assert any(line == "" for line in lines), "Should contain empty string"
+    item1_idx = next(i for i, line in enumerate(lines) if "Item 1" in line)
+    group_b_idx = next(i for i, line in enumerate(lines) if "### Group B" in line)
+    blank_between = any(lines[i] == "" for i in range(item1_idx + 1, group_b_idx))
+    assert blank_between, "Blank line should exist between Item 1 and Group B"
+    assert any("### Group A" in line for line in lines)
+    assert any("### Group B" in line for line in lines)
