@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
+import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from claudeutils.session.commit import CommitInput
+from claudeutils.session.commit_gate import vet_check
 from claudeutils.session.commit_pipeline import commit_pipeline
 from tests.pytest_helpers import init_repo_at as _init_repo
 
@@ -209,3 +212,45 @@ def test_validate_unknown_reason(
 
     assert result.success is False
     assert "unknown" in result.output.lower()
+
+
+def test_vet_stale_includes_file_detail(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Stale report includes file names and timestamps."""
+    monkeypatch.chdir(tmp_path)
+    _init_repo(tmp_path)
+
+    # Create pyproject.toml with require-review patterns
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        """[tool.claudeutils.commit]
+require-review = ["src/**/*.py"]
+"""
+    )
+
+    # Create plans directory structure
+    reports_dir = tmp_path / "plans" / "review-2026-01" / "reports"
+    reports_dir.mkdir(parents=True)
+
+    # Create a report file with old mtime
+    report_file = reports_dir / "vet-review.md"
+    report_file.write_text("# Review Report\n")
+    report_mtime = time.time() - 300  # 5 minutes ago
+    os.utime(report_file, (report_mtime, report_mtime))
+
+    # Create src/foo.py with newer mtime
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    source_file = src_dir / "foo.py"
+    source_file.write_text("x = 1\n")
+    source_mtime = time.time()
+    os.utime(source_file, (source_mtime, source_mtime))
+
+    result = vet_check(["src/foo.py"])
+
+    assert result.passed is False
+    assert result.reason == "stale"
+    assert result.stale_info is not None
+    assert "foo.py" in result.stale_info
+    assert "vet-review.md" in result.stale_info

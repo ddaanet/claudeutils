@@ -5,7 +5,18 @@ from __future__ import annotations
 import subprocess
 import tomllib
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path, PurePath
+
+
+def _build_clean_file_error_msg(clean_files: list[str]) -> str:
+    """Build message for CleanFileError with file list."""
+    files_list = "\n".join(f"- {f}" for f in clean_files)
+    return (
+        "**Error:** Listed files have no uncommitted changes\n"
+        f"{files_list}\n\n"
+        "STOP: Do not remove files and retry."
+    )
 
 
 class CleanFileError(Exception):
@@ -14,13 +25,7 @@ class CleanFileError(Exception):
     def __init__(self, clean_files: list[str]) -> None:
         """Build error with STOP directive listing clean files."""
         self.clean_files = clean_files
-        files_list = "\n".join(f"- {f}" for f in clean_files)
-        msg = (
-            "**Error:** Listed files have no uncommitted changes\n"
-            f"{files_list}\n\n"
-            "STOP: Do not remove files and retry."
-        )
-        super().__init__(msg)
+        super().__init__(_build_clean_file_error_msg(clean_files))
 
 
 def _git_output(
@@ -124,9 +129,10 @@ def _find_reports() -> list[Path]:
     ]
 
 
-def _newest_mtime(files: list[Path]) -> float:
-    """Return the newest mtime among files."""
-    return max(f.stat().st_mtime for f in files)
+def _newest_file(files: list[Path]) -> tuple[float, Path]:
+    """Return newest mtime and path among files."""
+    newest = max(files, key=lambda f: f.stat().st_mtime)
+    return newest.stat().st_mtime, newest
 
 
 _AGENT_CORE_PATTERNS = ["agent-core/bin/**", "agent-core/skills/**/*.sh"]
@@ -154,15 +160,24 @@ def vet_check(files: list[str]) -> VetResult:
     if not matched_paths:
         return VetResult(passed=True)
 
-    newest_source = _newest_mtime(matched_paths)
-    newest_report = _newest_mtime(reports)
+    newest_source_mtime, newest_source_path = _newest_file(matched_paths)
+    newest_report_mtime, newest_report_path = _newest_file(reports)
 
-    if newest_source > newest_report:
-        delta = f"{newest_source - newest_report:.0f}s"
+    if newest_source_mtime > newest_report_mtime:
+        source_time = datetime.fromtimestamp(newest_source_mtime, tz=UTC).strftime(
+            "%Y-%m-%d %H:%M"
+        )
+        report_time = datetime.fromtimestamp(newest_report_mtime, tz=UTC).strftime(
+            "%Y-%m-%d %H:%M"
+        )
+        stale_info = (
+            f"- Newest change: {newest_source_path.name} ({source_time})\n"
+            f"- Newest report: {newest_report_path.name} ({report_time})"
+        )
         return VetResult(
             passed=False,
             reason="stale",
-            stale_info=f"Source newer than reports by {delta}",
+            stale_info=stale_info,
         )
 
     return VetResult(passed=True)
