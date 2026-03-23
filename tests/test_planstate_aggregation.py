@@ -3,6 +3,7 @@
 import subprocess
 import time
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from claudeutils.planstate.aggregation import (
     TreeInfo,
@@ -10,6 +11,7 @@ from claudeutils.planstate.aggregation import (
     _is_dirty,
     _latest_commit,
     _parse_worktree_list,
+    aggregate_trees,
 )
 
 
@@ -209,3 +211,45 @@ def test_git_metadata_helpers(tmp_path: Path) -> None:
     assert len(latest) == 2
     assert latest[0] == "Test commit 2"
     assert isinstance(latest[1], int)
+
+
+def test_aggregate_trees_no_dedup(tmp_path: Path) -> None:
+    """Each tree shows its own plan; main doesn't overwrite."""
+    main_path = tmp_path / "main"
+    main_path.mkdir()
+    wt_path = tmp_path / "wt" / "branch"
+    wt_path.mkdir(parents=True)
+
+    main_plans = main_path / "plans"
+    wt_plans = wt_path / "plans"
+    main_plans.mkdir()
+    wt_plans.mkdir()
+
+    shared_plan_dir = "shared-plan"
+    (main_plans / shared_plan_dir).mkdir()
+    (wt_plans / shared_plan_dir).mkdir()
+
+    (main_plans / shared_plan_dir / "lifecycle.md").write_text("- reviewed\n")
+    (wt_plans / shared_plan_dir / "lifecycle.md").write_text("- rework\n")
+
+    porcelain = (
+        f"worktree {main_path}\n"
+        "branch refs/heads/main\n"
+        "\n"
+        f"worktree {wt_path}\n"
+        "branch refs/heads/branch\n"
+        "\n"
+    )
+
+    with patch("claudeutils.planstate.aggregation.subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0, stdout=porcelain)
+        result = aggregate_trees(main_path)
+
+    plan_names = [p.name for p in result.plans]
+    assert plan_names.count("shared-plan") == 2
+
+    main_plan = next(p for p in result.plans if p.tree_path == str(main_path))
+    assert main_plan.status == "reviewed"
+
+    wt_plan = next(p for p in result.plans if p.tree_path == str(wt_path))
+    assert wt_plan.status == "rework"
