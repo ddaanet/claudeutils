@@ -1,36 +1,32 @@
-# Session Handoff: 2026-03-14
+# Session Handoff: 2026-03-23
 
-**Status:** Re-prioritized 42 tasks. Merged retro-repo-expansion + anchor-proof-state. 8 plans delivered via merges. Proof SKILL.md conflict resolved + review fixes applied. Worktrees dispatched for Session CLI tool + Plugin migration + Discussion.
+**Status:** Merged 4 worktrees (outline-density-gate, discussion, retro-repo-expansion, plugin-migration). Captured edify-rename requirements with full /proof review. PEP 541 claim pending for PyPI `edify` name.
 
 ## Completed This Session
 
-**Re-prioritization (42 tasks):**
-- Scored all pending tasks via WSJF using `plans/prototypes/score.py`
-- Session CLI tool rises to #1 (3.7, ME=1). Plugin migration holds #2 (3.2, DP=8)
-- Report: `plans/reports/prioritization-2026-03-12.md`
+**Worktree merges + removals:**
+- outline-density-gate — clean merge, removed
+- discussion — clean merge, force-removed (1 uncommitted file in worktree)
+- retro-repo-expansion — clean merge, removed
+- plugin-migration — conflict resolution (settings.json: kept HEAD deny list; agent-core/skills/runbook/SKILL.md: kept HEAD Tier 1 removal), submodule commit for branch changes, removed
+- outline-proofing — created worktree, merged, removed (plan delivered)
 
-**Worktree merges:**
-- Merged retro-repo-expansion — plans + learnings, worktree preserved
-- Merged anchor-proof-state — resolved proof SKILL.md conflicts (4 regions, kept HEAD's item-level review protocol), worktree preserved
+**Cleanup:**
+- Committed settings.visible.json sandbox workaround removal
+- Removed leaked `src/claudeutils/session/` directory from main
 
-**Proof SKILL.md review fixes (skill-reviewer):**
-- Removed `/review-plan` parenthetical from corrector dispatch table
-- Simplified author-corrector coupling to point directly to `pipeline-contracts.md`
-- Deduplicated kill sub-action description (reference file defers to SKILL.md)
-
-**Plans delivered via merges (8):**
-- skill-agent-bootstrap, quality-grounding, review-agent-quality, design-pipeline-evolution
-- markdown-migration, diagnose-compression-loss, research-backlog, retrospective-repo-expansion
-
-**Worktree dispatch:**
-- Created session-cli-tool, plugin-migration, discussion worktrees
+**Edify rename requirements:**
+- Captured and proofed `plans/edify-rename/requirements.md`
+- Full brand rename: repo (edify), submodule dir (plugin/), package (edify), CLI (edify)
+- PyPI `edify` name taken (abandoned, 33 downloads/month) — PEP 541 claim needed
+- Blocked on session-cli-tool merge (C-1: avoids double-rename)
+- Key decisions: `plugin/` not `edify-plugin/` for submodule dir; main repo `claudeutils` → `edify`; FR-10 deletes 16 delivered plans with archive entries
 
 ## In-tree Tasks
 
 - [ ] **Centralize recall** — `/design plans/centralize-recall/brief.md` | opus | restart
-  - Plan: centralize-recall | Segmented /recall skill (<1ktok core), replace inline recall across skills/agents. Depends on: remove-fuzzy-recall, remove-index-skill
-- [ ] **Remove fuzzy recall** — `/design plans/remove-fuzzy-recall/brief.md` | sonnet
-  - Plan: remove-fuzzy-recall | Hard failure on no-match, "read memory-index" guidance
+  - Plan: centralize-recall | Segmented /recall skill (<1ktok core), replace inline recall across skills/agents. Depends on: remove-index-skill
+- [x] **Remove fuzzy recall** — plan delivered
 - [ ] **Remove index skill** — `/design plans/remove-memory-index-skill/brief.md` | opus
   - Plan: remove-memory-index-skill | Delete vestigial skill, update corrector.md to Read file directly
 
@@ -40,8 +36,11 @@
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
   - Note: Blocker resolved (Bootstrap tag support). Step files generated. `/orchestrate handoff-cli-tool`
-- [ ] **Plugin migration** — `/orchestrate plugin-migration` (refresh outline first) | opus | 3.2
-  - Plan: plugin-migration | Status: ready (stale — Feb 9)
+- [x] **Plugin migration** — plan merged
+- [ ] **Edify rename** — `/design plans/edify-rename/` | opus
+  - Plan: edify-rename | Status: reviewed (requirements proofed)
+  - Blocked on: session-cli-tool merge (C-1). Design after merge — new content will change file counts.
+  - FR-13: File PEP 541 claim on pypi/support for `edify` name (parallel, non-blocking for rename)
 - [ ] **Worktree merge lifecycle** — `/runbook plans/worktree-merge-resilience/outline.md` | sonnet | 2.8
   - Plan: worktree-merge-resilience | Status: outlined
   - Absorbs: Merge lifecycle audit, Plan-completion ceremony
@@ -81,7 +80,6 @@
   - Plan: parallel-orchestration | Status: briefed
 - [ ] **Gate batch** — `/design plans/gate-batch/requirements.md` | sonnet | 1.6
   - Plan: gate-batch | Status: requirements
-- [x] **Skill agent bootstrap** — plan delivered
 - [ ] **Worktree lifecycle CLI** — `/design plans/worktree-lifecycle-cli/brief.md` | sonnet | 1.6
   - Plan: worktree-lifecycle-cli | Status: briefed
   - Exit ceremony + Wt rm task cleanup + Worktree ad-hoc task + CLI UX + --base submodule bug
@@ -91,11 +89,8 @@
   - Plan: hook-batch-2 | Status: requirements
 - [ ] **Update prioritize skill** — `/design plans/update-prioritize-skill/requirements.md` | sonnet | 1.2
   - Plan: update-prioritize-skill | Status: requirements
-- [x] **Quality grounding** — plan delivered
 - [ ] **Cross-tree operations** — `/design plans/cross-tree-operations/requirements.md` | sonnet | 1.0
   - Plan: cross-tree-operations | Status: requirements
-- [x] **Review agent quality** — plan delivered
-- [x] **Design pipeline evolution** — plan delivered
 - [ ] **Tweakcc** — `/design plans/tweakcc/requirements.md` | sonnet | 1.0
   - Plan: tweakcc | Status: requirements
 - [ ] **Design review protocol** — `/design plans/resumed-review-protocol/brief.md` | opus | restart | 1.6
@@ -114,11 +109,8 @@
 - [ ] **Threshold token migration** — `/design plans/threshold-token-migration/brief.md` | sonnet | 1.3
   - Plan: threshold-token-migration | Status: briefed
   - Migrate line-based thresholds to token-based. Large blast radius expected.
-- [x] **Markdown migration** — plan delivered
 - [ ] **Python hook ordering fix** — `/design plans/precommit-python3-redirect/requirements.md` | haiku | restart | 0.8
   - Plan: precommit-python3-redirect | Status: requirements
-- [x] **Diagnose compression loss** — plan delivered
-- [x] **Research backlog** — plan delivered
 - [ ] **Fix TDD context scoping** — `/design plans/tdd-context-scoping/brief.md` | sonnet | 1.4
   - Plan: tdd-context-scoping | Status: briefed
 - [ ] **Health check UPS fallback** — `/design plans/health-check-ups-fallback/requirements.md` | sonnet | 0.6
@@ -134,13 +126,12 @@
   - FR-4 added: remove bottom-to-top edit ordering refs
 - [ ] **Incident counting** — `/design plans/incident-counting/brief.md` | opus | 0.6
   - Plan: incident-counting | Status: briefed
-- [x] **Retro repo expansion** — plan delivered
 - [ ] **Recall pipeline** — `/design` | sonnet | 1.0
   - Deduplication, stdin parsing, usage scoring for recall entries
   - Note: plan dir only exists in retro-repo-expansion worktree, not on main. Create plan dir before design.
 - [ ] **Skill exit commit** — `/design plans/skill-exit-commit/requirements.md` | sonnet | 1.0
   - Plan: skill-exit-commit | Status: requirements
-- [ ] **Discussion** → `discussion` — `d:` | sonnet
+- [ ] **Discussion** — `d:` | sonnet
 - [!] **Verb form AB test** — see `plans/reports/ab-test/README.md` | sonnet | 0.5
   - Blocked on human: curate task-contexts.json, annotate ground-truth.md
 - [ ] **Anchor proof state** → `anchor-proof-state` — `/design plans/proof-state-anchor/brief.md` | opus | restart
@@ -150,6 +141,7 @@
 - [ ] **Outline density gate** — `/design plans/outline-downgrade-density/brief.md` | opus
   - Plan: outline-downgrade-density | Content density check in write-outline.md downgrade criteria
 - [ ] **Review blog series** — `/deliverable-review plans/blog-series` | opus | restart
+- [x] **Outline proofing** — plan delivered
 
 ### Terminal
 
@@ -157,9 +149,6 @@
 - [-] **Recall tool consolidation** — absorbed into Active Recall
 - [-] **Execute flag lint** — superseded by session validator
 - [-] **Registry cache to tmp** — fixed inline, plan killed
-
-- [ ] **Outline proofing** — `/design plans/outline-proofing/brief.md` | opus | restart
-  - Plan: outline-proofing | Add /proof gate on all planning artifacts: /design Moderate, /runbook Tier 2, /runbook Tier 3. Eliminates Tier 1.
 
 - [ ] **Adaptive proof** — `/design plans/context-adaptive-proof/brief.md` | opus
   - Plan: context-adaptive-proof | Fork+summary when proof hits context limit
@@ -205,6 +194,8 @@
 - SessionStart doesn't fire for new interactive sessions (#10373). Setup (env export, CLI install, staleness nag) only runs at session end via Stop fallback. [from: plugin-migration]
 - Existing plan on main: `health-check-ups-fallback [requirements]` [from: plugin-migration]
 - Contains 5 documented errors (see outline Design Corrections section). Outline supersedes design.md for all decisions. [from: plugin-migration]
+- `remove-fuzzy-recall` planstate shows `[delivered]` but was pending in prior session — verify before deleting plan directory in FR-10
+
 ## Reference Files
 
 - `plans/reports/prioritization-2026-03-12.md` — WSJF scoring, 42 tasks ranked
@@ -215,7 +206,8 @@
 - `plans/decision-drift-audit/brief.md` — Decision file consistency audit (split from quality-grounding)
 - `plans/merge-parent-generalization/brief.md` — Generalize merge to arbitrary parent branch
 - `plans/threshold-token-migration/brief.md` — Line-based to token-based threshold migration
+- `plans/edify-rename/requirements.md` — Full brand rename requirements (proofed)
 
 ## Next Steps
 
-Session CLI tool and Plugin migration active in worktrees. Discussion worktree available. Anchor-proof-state and outline-density-gate worktrees preserved from merge — continue or `wt-rm`.
+Session CLI tool active in worktree. Edify rename requirements proofed, blocked on session-cli-tool merge. File PEP 541 claim for PyPI `edify` name immediately (clean context, no dependencies). Anchor-proof-state worktree preserved.

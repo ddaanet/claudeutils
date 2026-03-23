@@ -503,3 +503,39 @@ Segment loading at gate boundaries (/design and /runbook). Skills load reference
 ## interactive-review
 
 Extended /proof with item-by-item review mode grounded in Fagan inspection, Phabricator draft-then-submit, and cognitive load research. 4 uniform verdicts (approve/revise/kill/skip), orientation phase, batch-apply with structured accumulation, per-item recall context, artifact-type granularity detection, iteration guards. Outline served as design (sufficiency gate). Supplementary grounding resolved 4 domain gaps. Deliverable review: 0 critical, 0 major, 2 minor (1 fixed inline, 1 dropped). Affected: agent-core/skills/proof/SKILL.md, agent-core/skills/proof/references/item-review.md.
+
+## skill-agent-bootstrap
+
+Standardized skill pre-work protocol and sub-agent operational rule injection. Four sub-problems scoped; two resolved by platform capability analysis. SP-1 (skill pre-work) and SP-2 (agent rule injection) remained. Delivered at brief status — sub-problems split into independent tasks per multi-sub-problem pattern. Affected: agent-core/skills/ (pre-work protocol), agent-core/agents/ (rule injection).
+
+## quality-grounding
+
+Systematic grounding of ungrounded methodology claims across 5 high-leverage workflow skills, decision file drift audit, prose quality terminology, and safety review gaps. Four sub-problems. SP-2 (decision drift) split into separate plan (decision-drift-audit). Delivered at brief status — sub-problems split post-design. Source audit: `plans/reports/workflow-grounding-audit.md`.
+
+## review-agent-quality
+
+Addressed false positive and false negative failure modes in corrector/review agents. Evidence: 3-way review filtering, haiku model tier false positives, validate-runbook lifecycle false positives, missed `_git()` return value bug. Built on vet-false-positives "Do NOT Flag" taxonomy. Delivered at brief status after design-backlog-review consolidated findings.
+
+## design-pipeline-evolution
+
+Two capabilities for /design skill: formal decomposition tier (jobs needing breakdown before design) and model-aware routing within design (sub-problems carrying model tier metadata). Interaction with Multi-Sub-Problem Sufficiency Gate. Delivered at brief status — sub-problems split for independent execution.
+
+## markdown-migration
+
+Three loosely coupled concerns: regex-based markdown structure detection, token cache API, and hardcoded operational thresholds. Parser sub-problem fully subsumed by markdown-ast-parser plan. Token cache assessed as sufficient (YAGNI). Thresholds absorbed into quality-grounding SP-2. Delivered at brief status — all sub-problems resolved via absorption or YAGNI.
+
+## diagnose-compression-loss
+
+Scoped RCA for handoff prose quality change after session compression commit `0418cedb`. Investigation dropped — lack of evidence for the claimed regression. Brief documented symptoms and investigation vectors but was never executed.
+
+## research-backlog
+
+Five deferred research tasks consolidated from backlog prioritization. SP-1, SP-2, SP-3 absorbed into system-property-tracing (ground state coverage, workflow formal analysis, design-to-deliverable pipeline are system properties). SP-4 (behavioral design specification) and SP-5 remained as independent research items. Delivered at brief status — sub-problems absorbed or deferred.
+
+## retrospective-repo-expansion
+
+Extended retrospective evidence base beyond claudeutils to 15+ repos spanning Oct 2025–Mar 2026. Pre-claudeutils agentic evolution (rules, oklch-theme, scratch repos), parallel agentic projects (pytest-md, home, tuick, jobsearch, devddaanet), and pre-agentic Claude-assisted projects. Produced cross-repo pattern analysis and pre-history timeline. Affected: plans/retrospective/content/.
+
+## outline-proofing
+
+Added /proof gates to all planning artifact generation points in /design and /runbook. /design Moderate path gets /proof on inline-plan.md (agentic-prose) or outline.md (non-prose). /runbook Tier 2 gets /proof on runbook-outline.md. /runbook Tier 3 gets /proof at Phase 0.87 (unconditional, post-simplification). Eliminated Tier 1 from /runbook (absorbed into /design Moderate). Deliverable review found 2 minor issues, both fixed. Affected: agent-core/skills/design/SKILL.md, agent-core/skills/runbook/SKILL.md, agent-core/skills/runbook/references/tier3-planning-process.md.
