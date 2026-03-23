@@ -209,3 +209,58 @@ def test_status_rejects_pending_tasks_section(tmp_path: Path) -> None:
     )
     assert result.exit_code == 2
     assert "pending tasks" in result.output.lower()
+
+
+# Cycle 1.2: blockers wired to detect_parallel
+
+
+def test_status_parallel_uses_blockers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Blocker dependencies prevent parallel detection."""
+    monkeypatch.chdir(tmp_path)
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+
+    session = """\
+# Session Handoff: 2026-03-23
+
+**Status:** Working.
+
+## Completed This Session
+
+- Nothing
+
+## In-tree Tasks
+
+- [ ] **Task A** — `/runbook plans/task-a/r.md` | sonnet
+  - Plan: task-a
+- [ ] **Task B** — `/runbook plans/task-b/r.md` | sonnet
+  - Plan: task-b
+
+## Blockers / Gotchas
+
+- Task B depends on Task A for completion.
+"""
+    (agents_dir / "session.md").write_text(session)
+
+    plan_a = tmp_path / "plans" / "task-a"
+    plan_a.mkdir(parents=True)
+    (plan_a / "lifecycle.md").write_text("2026-03-23 ready\n")
+    (plan_a / "brief.md").write_text("Brief A.\n")
+
+    plan_b = tmp_path / "plans" / "task-b"
+    plan_b.mkdir(parents=True)
+    (plan_b / "lifecycle.md").write_text("2026-03-23 ready\n")
+    (plan_b / "brief.md").write_text("Brief B.\n")
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        ["_status"],
+        catch_exceptions=False,
+        env={"CLAUDEUTILS_SESSION_FILE": str(agents_dir / "session.md")},
+    )
+
+    assert result.exit_code == 0
+    assert "Parallel" not in result.output

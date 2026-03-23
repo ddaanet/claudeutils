@@ -96,7 +96,7 @@ def status_cmd() -> None:
         sections.append(unscheduled)
 
     # Parallel detection
-    parallel = detect_parallel(data.in_tree_tasks, [])
+    parallel = detect_parallel(data.in_tree_tasks, data.blockers)
     if parallel:
         names = "\n  - ".join(parallel)
         header = f"Parallel ({len(parallel)} tasks, independent):"
