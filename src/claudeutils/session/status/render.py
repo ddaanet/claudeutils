@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import click
+
 from claudeutils.validation.task_parsing import ParsedTask
 
 
@@ -24,8 +26,10 @@ def render_continuation(
 def render_pending(
     tasks: list[ParsedTask],
     plan_states: dict[str, str],
+    *,
+    color: bool = False,
 ) -> str:
-    """Render the In-tree: section listing pending tasks.
+    """Render In-tree section listing pending tasks.
 
     Filters to pending (checkbox ``" "``). Non-default model shown in parens.
     Plan status shown as nested line if available.
@@ -41,7 +45,10 @@ def render_pending(
         if first_eligible and task.checkbox == " " and task.worktree_marker is None:
             restart = "Yes" if task.restart else "No"
             cmd = task.command or ""
-            lines.append(f"▶ {task.name} ({model}) | Restart: {restart}")
+            header_line = f"▶ {task.name} ({model}) | Restart: {restart}"
+            if color:
+                header_line = click.style(header_line, bold=True, fg="green")
+            lines.append(header_line)
             lines.append(f"  `{cmd}`")
             first_eligible = False
         else:

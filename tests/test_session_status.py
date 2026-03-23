@@ -224,6 +224,25 @@ def test_detect_parallel_blocker_excludes() -> None:
     assert result is None
 
 
+def test_render_pending_color_mode() -> None:
+    """Color mode applies ANSI codes to ▶ header line."""
+    task = _task(
+        "Build widget",
+        command="/design plans/w/brief.md",
+        model="sonnet",
+        restart=True,
+    )
+    # With color=True, output contains ANSI escape sequences
+    result_colored = render_pending([task], {}, color=True)
+    assert "\x1b[" in result_colored
+    # Without color arg (default), no ANSI codes
+    result_default = render_pending([task], {})
+    assert "\x1b[" not in result_default
+    # With color=False, no ANSI codes
+    result_plain = render_pending([task], {}, color=False)
+    assert "\x1b[" not in result_plain
+
+
 # --- Cycle 3.4: CLI wiring ---
 
 

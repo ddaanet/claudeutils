@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from pathlib import Path
 
 import click
@@ -77,7 +78,9 @@ def status_cmd() -> None:
         sections.append(cont)
 
     # In-tree tasks
-    pending_section = render_pending(data.in_tree_tasks, plan_states)
+    pending_section = render_pending(
+        data.in_tree_tasks, plan_states, color=sys.stdout.isatty()
+    )
     if pending_section:
         sections.append(pending_section)
     else:
