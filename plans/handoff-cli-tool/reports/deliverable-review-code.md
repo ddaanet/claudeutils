@@ -1,102 +1,130 @@
-# Code Review: handoff-cli-tool (Round 2)
+# Code Review: handoff-cli-tool (Round 3)
 
 **Reviewer:** Opus 4.6
 **Design reference:** `plans/handoff-cli-tool/outline.md`
+**Scope:** 25 code files, +1585 lines. Full conformance review against design outline.
 
-## Fix Verification
+## Round 2 Fix Verification
 
-### C#2 (CR-1): `_git_commit` ignores non-zero exit code — PARTIALLY FIXED
+| Finding | Fix Status |
+|---------|-----------|
+| C#1 `_commit_submodule check=True` | FIXED — `commit_pipeline.py:139` uses `check=True` |
+| M#2 SKILL.md `claudeutils:*` | FIXED — verified in prior review report |
+| M#3 `_error()` fallback | FIXED — `commit_pipeline.py:217` uses `exc.stderr or f"exit code {exc.returncode}"` |
+| m-1 Dead `render_next` | FIXED — no `render_next` in `src/` (grep confirmed) |
+| m-2 ▶ skips worktree-marked tasks | FIXED — `render.py:41` checks `task.worktree_marker is None` |
+| m-3 `_is_dirty` raw subprocess | FIXED — `git.py:128-134` uses raw `subprocess.run` with `rstrip("\n")` |
+| m-4 Dead `step_reached` field | FIXED — no `step_reached` in `src/` (grep confirmed) |
+| m-5 Old section name detection | FIXED — `status/cli.py:22-28` checks before count validation |
+| m-6 Weak `or` assertion | FIXED — per prior review verification |
+| Corrector: `except ValueError, AttributeError` | FIXED — `aggregation.py:112,135` restored parenthesized tuples |
 
-- **Parent commit:** FIXED. `_git_commit()` now uses `check=True` (`commit_pipeline.py:82`), and the caller catches `CalledProcessError` at line 313.
-- **Submodule commit:** NOT FIXED. `_commit_submodule()` still uses `check=False` for the `git commit` subprocess (`commit_pipeline.py:139`). If the submodule commit fails, the function silently proceeds to stage the (unchanged) submodule pointer in the parent (line 142-147) and returns whatever stdout was produced. The `CalledProcessError` catch at the call site (line 305) only fires from the `git add` calls (which use `check=True`), not from a failed commit.
-
-### C#3 (CR-2): Submodule committed before validation gate — FIXED
-
-- The pipeline now follows correct ordering: `_validate_inputs` (line 272) → `_stage_files` (line 285) → `_validate` precommit/vet (line 290) → submodule commits (line 296) → parent commit (line 310).
-- Evidence: submodule commit loop at lines 296-307 is after validation gate at lines 289-292.
-
-### C#4: Exit code 2 for CleanFileError — FIXED
-
-- `session/cli.py:31-32` catches `CleanFileError` and calls `_fail(str(e), code=2)`.
-
-### MN-1: Uncaught CalledProcessError from `_stage_files` — FIXED
-
-- `commit_pipeline.py:283-287` wraps `_stage_files` in `try/except subprocess.CalledProcessError`, returning `_error("staging failed", e)`.
-
-### M#10 (MJ-5): `git_status()` strip bug — FIXED
-
-- `git.py:98` now uses `return result.stdout.rstrip("\n")` instead of `.strip()`.
-
-### M#11: Handoff uses shared `git_changes()` — FIXED
-
-- `handoff/cli.py:13` imports `git_changes` from `claudeutils.git_cli`.
-- `handoff/cli.py:57` calls `git_changes()` and echoes the result.
-
-### M#7 (MJ-2): Plan state discovery — FIXED
-
-- `status/cli.py:11` imports `list_plans` from `claudeutils.planstate.inference`.
-- `status/cli.py:54` builds `all_plans` dict from real lifecycle states via `list_plans(Path("plans"))`.
-- `status/cli.py:58` populates `plan_states` from `all_plans.get(task.plan_dir, "")`.
-
-### M#8 (MJ-1): Session continuation header — FIXED
-
-- `status/cli.py:63` calls `render_continuation(is_dirty=_is_dirty(), plan_states=plan_states)`.
-- `render.py:8-21` implements `render_continuation` — returns header when dirty, appends `/deliverable-review` for `review-pending` plans, returns empty string when clean.
-
-### M#9 (MJ-3): Output format — FIXED
-
-- `render.py:70` uses `▶` marker for the first eligible pending task.
-- The `▶` task is rendered inline in the In-tree section with command, model, and restart metadata.
-- No separate `Next:` section in the CLI output path (`status/cli.py` does not call `render_next`).
-
-### M#12: Old format enforcement — FIXED
-
-- `status/cli.py:48-52` compares `_count_raw_tasks(content)` against `len(data.in_tree_tasks)`. Mismatch exits with code 2: "Old-format tasks missing metadata."
+All 10 round 2 rework fixes verified. No regressions detected from the fix application.
 
 ## New Findings
 
-### N-1: `_commit_submodule` silently ignores submodule commit failure
+### Critical
 
-- **File:** `src/claudeutils/session/commit_pipeline.py:134-148`
-- **Axis:** Robustness, error signaling
-- **Severity:** Major
-- **Description:** This is the remaining half of the original C#2 finding. The submodule `git commit` at line 134-140 uses `check=False` without inspecting `result.returncode`. If the commit fails (empty commit, hook rejection, lock contention), the function proceeds to stage the submodule pointer in the parent and returns potentially empty or error-containing stdout. The caller's `CalledProcessError` catch (line 305) never fires for this failure mode. Fix: either use `check=True` (and let the existing catch handle it) or inspect `result.returncode` and raise on failure.
+None.
 
-### N-2: `render_next` is dead code
+### Major
 
-- **File:** `src/claudeutils/session/status/render.py:24-47`
-- **Axis:** Excess
-- **Severity:** Minor
-- **Description:** `render_next()` is defined and tested (10 tests in `test_session_status.py`) but never called from production code. The `▶` integration in `render_pending` replaced its purpose. The function and its tests add maintenance burden without contributing to the production path.
+**F-1: Parallel detection ignores Blockers/Gotchas section**
 
-### N-3: `step_reached` field is unused in handoff resume
+- `src/claudeutils/session/status/cli.py:98`
+- Axis: Functional completeness
+- Design ST-1: "Independent when: no shared plan directory, no logical dependency (Blockers/Gotchas)." The status CLI calls `detect_parallel(data.in_tree_tasks, [])` — always passing an empty blockers list. The session parser (`parse.py`) does not extract the Blockers/Gotchas section. `_build_dependency_edges` in `render.py:97-119` accepts blockers and joins their text for name-matching, but the input is always empty. Tasks linked via Blockers/Gotchas will be incorrectly classified as parallelizable.
 
-- **File:** `src/claudeutils/session/handoff/pipeline.py:21`, `src/claudeutils/session/handoff/cli.py:46-52`
-- **Axis:** Vacuity
-- **Severity:** Minor
-- **Description:** `HandoffState.step_reached` is saved (line 29-35 of `pipeline.py`) but never read during resume. The resume path at `cli.py:46-52` loads the state file and re-parses `input_markdown`, then unconditionally re-executes all pipeline steps. The field is dead data. This is acceptable because the operations are idempotent (overwrite, not append), but the dead field adds misleading complexity suggesting partial-resume capability.
+**F-2: Stale report vet check output lacks file-level detail**
 
-### N-4: `_count_raw_tasks` does not detect old section name
+- `src/claudeutils/session/commit_gate.py:160-166`
+- Axis: Conformance
+- Design specifies stale-report output as:
+  ```
+  **Vet check:** stale report
+  - Newest change: src/auth.py (2026-02-20 14:32)
+  - Newest report: plans/foo/reports/vet-review.md (2026-02-20 12:15)
+  ```
+  Implementation returns `VetResult(stale_info=f"Source newer than reports by {delta}s")` — a time delta string, not per-file information with timestamps. The consumer at `commit_pipeline.py:176` renders this as `**Vet check:** stale report\n{vr.stale_info}`. The LLM consumer (commit skill) cannot identify which file is newest or which report to regenerate.
 
-- **File:** `src/claudeutils/session/status/cli.py:22-34, 47-52`
-- **Axis:** Robustness
-- **Severity:** Minor
-- **Description:** If session.md uses the old section name `## Pending Tasks` instead of `## In-tree Tasks`, both `_count_raw_tasks` and `parse_tasks` return 0 (neither finds the section). The validation `0 != 0` is false, so the check passes silently. Status output shows "No in-tree tasks" instead of the intended exit-2 error. The old-format enforcement only catches metadata-format issues within the correct section name, not the section name itself.
+### Minor
 
-### N-5: Redundant `task.checkbox == " "` check in `render_pending`
+**F-3: Duplicate `_fail` function in `worktree/cli.py`**
 
-- **File:** `src/claudeutils/session/status/render.py:67`
-- **Axis:** Excess
-- **Severity:** Trivial
-- **Description:** Line 67 checks `task.checkbox == " "` but `pending` is already filtered to `checkbox == " "` at line 59. The condition is always true. Harmless but adds noise.
+- `src/claudeutils/worktree/cli.py:66-68` vs `src/claudeutils/git.py:33-39`
+- Axis: Modularity
+- Design S-2 specifies extracting shared helpers to `claudeutils/git.py`. Session CLI files import `_fail` from `git.py`. The worktree CLI retains its own local `_fail` with identical behavior. Not a correctness issue — duplication adds maintenance risk (divergent fixes).
 
-## Summary
+**F-4: `render_pending` ▶ line format deviates from design**
 
-| Category | Count |
+- `src/claudeutils/session/status/render.py:44`
+- Axis: Conformance
+- Design specifies:
+  ```
+  ▶ <first task> (<model>) | Restart: <yes/no>
+    `<command>`
+  ```
+  Command on a separate indented line, model in parentheses, `Restart` capitalized. Implementation renders:
+  ```
+  ▶ <task> — `<cmd>` | <model> | restart: <restart>
+  ```
+  Command inline with the marker, model pipe-separated, lowercase `restart`. The implementation format is denser and arguably better for terminal display. Not a correctness issue but differs from design spec.
+
+**F-5: Handoff completed parser strips blank lines between content groups**
+
+- `src/claudeutils/session/handoff/parse.py:52`
+- Axis: Functional correctness
+- `parse_handoff_input` filters blank lines: `if line.strip():`. When the completed section contains multiple `### ` heading groups separated by blank lines, the parser strips the separators. `write_completed` in `pipeline.py:121` does not restore them. Result: heading groups written without blank-line separation, causing markdown rendering to merge list items across headings.
+
+**F-6: `session_path.read_text()` called twice in status CLI**
+
+- `src/claudeutils/session/status/cli.py:52,56`
+- Axis: Robustness
+- `parse_session(session_path)` reads the file at line 52, then `session_path.read_text()` reads it again at line 56 for `_check_old_section_name` and `_count_raw_tasks`. Between the two reads, the file could be modified by another process (unlikely but possible during concurrent agent sessions). The second read could see different content than what was parsed. A single read with content reuse would be safer.
+
+**F-7: `_check_old_section_name` uses substring match**
+
+- `src/claudeutils/session/status/cli.py:24`
+- Axis: Robustness
+- `if "## Pending Tasks" in content` matches the string anywhere in session.md, including prose content under other sections (e.g., "Renamed ## Pending Tasks to ## In-tree Tasks" in a completed-session entry). A line-anchored match `re.search(r"^## Pending Tasks", content, re.MULTILINE)` would be more precise.
+
+**F-8: `_strip_hints` only removes `hint:` prefix, not continuation lines**
+
+- `src/claudeutils/session/commit_pipeline.py:187-189`
+- Axis: Functional completeness
+- Design: "Strip git `hint:` and advice lines." Implementation strips lines starting with `hint:` but git hint output includes indented continuation lines (e.g., `hint:   Waiting for your editor to close the file...` followed by `hint:` on its own line). Continuation lines starting with whitespace or `advice.` lines would survive. Low impact — hint lines are rare in the commit use case, and over-filtering risks stripping legitimate output.
+
+## Conformance Summary
+
+| Design Section | Status |
+|---------------|--------|
+| S-1: Package structure | Conforms — `session/` package with cli, parse, commit, commit_gate, commit_pipeline, handoff/, status/ |
+| S-2: `_git()` extraction | Conforms — extracted to `git.py`, worktree imports updated |
+| S-3: Output/error conventions | Conforms — stdout only, exit codes 0/1/2, `**Header:** content` format |
+| S-4: Session.md parser | Conforms — `parse.py` composes existing functions, handles both sections |
+| S-5: Git changes utility | Conforms — `git_cli.py` provides `git_changes()` + `_git changes` CLI |
+| H-1: Domain boundaries | Conforms — CLI writes status + completed only |
+| H-2: Committed detection | Conforms — simplified to always-overwrite (documented, tested, reviewed) |
+| H-3: Diagnostic output | Conforms — `git_changes()` emitted after writes |
+| H-4: State caching | Conforms — `tmp/.handoff-state.json`, save before mutation, clear on success |
+| C-1: Scripted vet check | Conforms — pyproject.toml patterns + agent-core patterns, report discovery |
+| C-2: Submodule coordination | Conforms — partition, validate messages, commit submodule first |
+| C-3: Input validation | Conforms — `validate_files` checks `git status --porcelain` + HEAD files for amend |
+| C-4: Validation levels | Conforms — `just-lint`/`no-vet` options orthogonal |
+| C-5: Amend semantics | Conforms — amend flag, no-edit flag, message validation |
+| ST-0: Worktree-destined tasks | Conforms — ▶ skips tasks with worktree markers |
+| ST-1: Parallel group detection | Partial — plan_dir check works, blocker check not wired (F-1) |
+| ST-2: Preconditions and degradation | Conforms — missing session.md = exit 2, old format = exit 2 |
+| Registration in `cli.py` | Conforms — `_handoff`, `_commit`, `_status`, `_git` all registered |
+
+## Verdict
+
+| Severity | Count |
 |----------|-------|
-| Fix verifications | 10 |
-| FIXED | 9 |
-| PARTIALLY FIXED | 1 (C#2 — parent path fixed, submodule path not) |
-| New findings | 5 (1 Major, 3 Minor, 1 Trivial) |
+| Critical | 0 |
+| Major | 2 |
+| Minor | 6 |
 
-The rework addressed the majority of round 1 findings. The one remaining issue is N-1 (submodule commit failure not checked), which is the other half of the original C#2 that was fixed for the parent commit path but missed for the submodule commit path. The new minor findings are dead code (`render_next`, `step_reached`) and edge-case robustness gaps.
+No critical issues. Two major findings: F-1 (parallel detection ignores blockers — functional completeness gap) and F-2 (stale vet output lacks file detail — conformance gap with design output format). Six minor findings covering code duplication, format deviations, edge-case robustness, and a blank-line stripping issue in handoff parsing.
+
+The round 2 rework successfully addressed all 10 targeted findings with no regressions. The remaining issues are either conformance gaps against the detailed design output specifications or robustness improvements for edge cases.

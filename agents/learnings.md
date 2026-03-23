@@ -109,3 +109,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Design specifies "Skill integration (future)" for wiring skills to CLI tools. Each review phase treats "(future)" as out-of-scope. Three review rounds pass without catching that skills never reference the CLI. The qualifier creates a permanent deferral — no phase owns it.
 - Correct pattern: "(future)" on an in-scope requirement is a delivery gap, not a scope exclusion. When the CLI exists, integration is no longer future — it's current. Reviewers must check "Skill integration" items against actual CLI availability, not accept the "(future)" label at face value.
 - Evidence: `_commit`, `_handoff`, `_status` all delivered. Round 1 review, rework, round 2 review — none caught that commit/handoff skills still reimplement what the CLI does. Agent hand-constructed STATUS output in the same session it reviewed the `_status` CLI.
+
+## When scoping deliverable review iterations
+- Anti-pattern: Delta-scoping re-reviews (reviewing only changes since last review) to save tokens. Each round inherits blind spots of all prior rounds. Findings missed in round N remain undetected in rounds N+1, N+2, etc.
+- Correct pattern: Full-scope every time. The cost of re-reading unchanged code is lower than the cost of accumulating undetected findings across rounds.
+- Evidence: Rounds 1 and 2 both ran full-scope reviews but missed 2M+6m findings. RC3 Layer 1 agents (also full-scope) caught them. Delta-scoping RC3 would have missed them a third time.

@@ -1,40 +1,58 @@
-# Prose+Config Review: handoff-cli-tool (Round 2)
+# Prose+Config Review: handoff-cli-tool (RC3)
 
 **Design reference:** `plans/handoff-cli-tool/outline.md`
-**Date:** 2026-03-22
+**Date:** 2026-03-23
+**Scope:** Agentic prose (1 file) + configuration (2 files). Cumulative review of all plan-attributed changes.
 
 ## Files Reviewed
 
-| File | Type |
-|------|------|
-| `agent-core/skills/handoff/SKILL.md` | Agentic prose |
-| `.claude/settings.local.json` | Configuration |
+| File | Type | Delta |
+|------|------|-------|
+| `agent-core/skills/handoff/SKILL.md` | Agentic prose | +6/-2 |
+| `.claude/settings.local.json` | Configuration | +1/-1 |
+| `.gitignore` | Configuration | +1/-1 |
 
-## Fix Verification
+## Prior Finding Verification
 
-**C#1: FIXED.** `allowed-tools` changed from `Bash(wc:*)` to `Bash(just:*,wc:*,git:*)`. Step 7 (`just precommit`) now covered by `Bash(just:*)`. Step 1 (`git diff HEAD -- agents/session.md`) and line 93 (`git rev-parse --git-dir`) now covered by `Bash(git:*)`. The fix also resolves the pre-existing major finding from round 1 (missing `Bash(git diff:*)`).
+| Finding | Round | Status |
+|---------|-------|--------|
+| C#1 (round 1): `Bash(wc:*)` missing `just:*`, `git:*` | R1 | FIXED — `Bash(just:*,wc:*,git:*,claudeutils:*)` |
+| N-1 (round 2): Missing `Bash(claudeutils:*)` | R2 | FIXED — `claudeutils:*` present at line 4 |
 
 ## New Findings
 
-### N-1. SKILL.md — Missing `Bash(claudeutils:*)` for command derivation
+No critical or major findings.
 
-- **Location:** `agent-core/skills/handoff/SKILL.md:4` (allowed-tools) vs `:77` (instruction)
-- **Axis:** Functional correctness
-- **Severity:** Major
+### Minor
 
-Line 77 instructs: "Run `Bash: claudeutils _worktree ls` to load current plan statuses." The allowed-tools `Bash(just:*,wc:*,git:*)` does not include `claudeutils`. The skill agent cannot execute this command.
+**1. SKILL.md Step 7 placement diverges from outline wording**
 
-Round 1 recommended adding `Bash(claudeutils _worktree ls)` alongside the `just precommit` fix. The `just` and `git` parts were addressed; `claudeutils` was not.
+- **File:** `agent-core/skills/handoff/SKILL.md:147-149`
+- **Axis:** Conformance
+- **Severity:** Minor
 
-**Fix:** Change allowed-tools to `Bash(just:*,wc:*,git:*,claudeutils:*)` or add the specific pattern `Bash(claudeutils _worktree ls)`.
+Outline says: "Handoff skill must add `just precommit` as a pre-handoff gate (before calling `_handoff` CLI)." SKILL.md places the precommit gate as Step 7 "after all writes (session.md, learnings.md, plan-archive.md)" — i.e. post-write, pre-STATUS. The skill does not call the `_handoff` CLI (skill-CLI integration deferred to `plans/skill-cli-integration/`), so "before calling `_handoff` CLI" has no anchor point. Current placement is the correct adaptation: validates after all file mutations, before display. When skill-CLI integration lands, the gate will need repositioning to satisfy the outline's "before calling `_handoff` CLI" placement. No action needed now — documenting for traceability.
 
-### settings.local.json — No findings
+**2. `.gitignore` and `.claude/settings.local.json` are outside outline scope**
 
-File contains `{}`. No plan-related configuration. Consistent with round 1 assessment (not a plan deliverable).
+- **Files:** `.gitignore:17`, `.claude/settings.local.json:1`
+- **Axis:** Excess
+- **Severity:** Minor
+
+Neither file appears in the outline's IN scope. Changes are incidental cleanup during plan execution:
+- `.gitignore`: `/.vscode/` changed to `/.vscode` — removes trailing slash so pattern matches sandbox char-device artifact (not a directory). Functionally correct.
+- `.claude/settings.local.json`: Reduced from 9-line sandbox/permissions config to `{}`. Permissions now handled by `settings.json`. Functionally correct.
+
+Both changes are benign and justified by their commit messages. No conformance issue — flagged only because they are attributed to this plan's deliverable set but have no design basis.
 
 ## Summary
 
-| Category | Count | Details |
-|----------|-------|---------|
-| Fix verified | 1 | C#1 FIXED — `Bash(just:*,wc:*,git:*)` covers precommit gate and git commands |
-| New findings | 1 | N-1 Major — `claudeutils _worktree ls` (line 77) blocked by allowed-tools (line 4) |
+| Severity | Count |
+|----------|-------|
+| Critical | 0 |
+| Major | 0 |
+| Minor | 2 |
+
+All prior findings (C#1, N-1) verified fixed. Two minor observations: Step 7 placement is a correct adaptation of the outline's coupled-skill-update requirement given deferred CLI integration; two config files are out-of-scope cleanup included in the deliverable set.
+
+**Verdict:** Pass. No blocking findings.

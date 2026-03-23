@@ -1,39 +1,28 @@
 # Session Handoff: 2026-03-23
 
-**Status:** Handoff-cli round 2 rework complete (10 findings fixed). Corrector caught and fixed 1 critical regression (Python 2 except syntax). Three new pending tasks from session observations.
+**Status:** Handoff-cli RC3 complete — 0C/0M from rework delta, 2M+6m pre-existing first caught by full-scope Layer 1 agents. Delta-only review methodology invalidated by evidence.
 
 ## Completed This Session
 
-**Handoff-cli round 2 rework:**
-- Composite triage: 11 findings decomposed, M#4 (skill-CLI integration) split to separate plan
-- Integration-first TDD: 7 cycles across 5 phases, all green
-- C#1: `_commit_submodule` `check=True` — submodule commit failure now propagates error
-- M#2: SKILL.md `claudeutils:*` added to handoff allowed-tools
-- M#3: `_error()` fallback changed from `str(exc)` to `f"exit code {exc.returncode}"` — no more raw CalledProcessError repr
-- M#5: `aggregate_trees` dedup removed — plans shown per-tree, not deduplicated to main
-- m-1: Dead `render_next` deleted (function + 10 tests)
-- m-2: `render_pending` ▶ now skips worktree-marked tasks
-- m-3: `_is_dirty` uses raw subprocess instead of `_git()` to preserve porcelain format
-- m-4: Dead `step_reached` field removed from `HandoffState`
-- m-5: Old section name `## Pending Tasks` detected and rejected with exit 2
-- m-6: Weak `or` assertion split into two separate assertions
-- Corrector review: 1 critical regression caught (Python 2 `except ValueError, AttributeError:` → fixed to tuple form)
-- Report: `plans/handoff-cli-tool/reports/review.md`
+**Handoff-cli RC3 deliverable review:**
+- Delta scope: 15 files, 325+/143- (commits `c2f7bd75..f3017971`)
+- Layer 1: three opus agents (code, test, prose+config) ran full scope
+- All 10 round 2 fixes verified, corrector regression verified fixed
+- Rework delta findings: 2 minor (substring match in `_check_old_section_name`, `load_state()` backward-incompatible with pre-rework state files)
+- Pre-existing findings first caught: 2M (blocker detection gap in status CLI, stale vet output lacks file detail) + 6m
+- Report: `plans/handoff-cli-tool/reports/deliverable-review.md`
+- Lifecycle: `reviewed`
 
-**RCA: inline recall keywords in delegation prompt:**
-- Deviation: inlined recall keywords in corrector dispatch instead of referencing artifact path
-- Root cause: pattern entrainment from 6 prior test-driver dispatches
-- Classification: insufficient context at decision point + unanchored gate
-- Brief written: `plans/inline-dispatch-recall/brief.md`
+**Methodological conclusion:**
+- Delta-scoped review misses pre-existing findings — two prior full-scope reviews missed 2M+6m that only surfaced when Layer 1 agents ran on full deliverable set
+- User conclusion: "incremental is not valid" — methodology should be full-scope every time
 
 ## In-tree Tasks
 
-- [x] **Review handoff-cli rework** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-  - Plan: handoff-cli-tool
-- [x] **Fix handoff-cli round 2** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | sonnet
-  - Plan: handoff-cli-tool | 10 findings fixed, corrector-reviewed
-- [ ] **Handoff-cli RC3** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-  - Plan: handoff-cli-tool
+- [x] **Handoff-cli RC3** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+  - Plan: handoff-cli-tool | 0C/0M(delta), 2m(delta), 2M+6m(pre-existing)
+- [ ] **Fix handoff-cli round 3** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | sonnet
+  - Plan: handoff-cli-tool | 2 minor rework, 2 major + 6 minor pre-existing
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -70,15 +59,15 @@
 - `/codify` overdue — next session should consolidate older learnings
 
 **pretooluse-recall-check hook regex:**
-- `[^/]+` matches across newlines/spaces, capturing prose text between `plans/` and next `/`. Three blocked dispatches this session. Brief at `plans/inline-dispatch-recall/brief.md` covers fix.
+- `[^/]+` matches across newlines/spaces, capturing prose text between `plans/` and next `/`. Brief at `plans/inline-dispatch-recall/brief.md` covers fix.
 
 ## Reference Files
 
-- `plans/handoff-cli-tool/reports/review.md` — corrector review (1C fixed, 1m deferred)
-- `plans/handoff-cli-tool/reports/deliverable-review.md` — round 2 findings (input)
-- `plans/handoff-cli-tool/runbook.md` — Tier 2 runbook (integration-first TDD)
+- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC3 review (0C/0M delta, 2M+6m pre-existing)
+- `plans/handoff-cli-tool/reports/review.md` — corrector review from round 2 rework
+- `plans/handoff-cli-tool/lifecycle.md` — reviewed status
 - `plans/skill-cli-integration/brief.md` — M#4 split-out brief
 
 ## Next Steps
 
-Deliverable review for handoff-cli round 2 rework, then `/codify` to consolidate learnings (111 lines, soft limit 80).
+Fix handoff-cli round 3 findings, then `/codify` (learnings at 111 lines, soft limit 80).

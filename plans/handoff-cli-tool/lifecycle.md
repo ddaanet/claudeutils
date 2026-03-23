@@ -7,3 +7,5 @@
 2026-03-22 ready — /runbook rework plan + prepare-runbook.py
 2026-03-22 review-pending — /orchestrate
 2026-03-22 rework — /deliverable-review
+2026-03-23 review-pending — /deliverable-review
+2026-03-23 reviewed — /deliverable-review

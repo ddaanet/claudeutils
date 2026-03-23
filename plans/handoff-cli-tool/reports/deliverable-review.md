@@ -1,130 +1,101 @@
-# Deliverable Review: handoff-cli-tool (Round 2)
+# Deliverable Review: handoff-cli-tool (Round 3)
 
-**Date:** 2026-03-22
+**Date:** 2026-03-23
 **Methodology:** agents/decisions/deliverable-review.md
-**Scope:** Rework delta only (778+/196- across 16 files, commits `2611ceff..c2f7bd75`)
+**Scope:** Rework delta only (325+/143- across 15 files, commits `c2f7bd75..f3017971`)
+**Layer 1:** Three opus agents (code, test, prose+config) — full scope, filtered to delta
+**Layer 2:** Cross-cutting checks + delta verification
 
-## Rework Delta Inventory
+## Round 2 Fix Verification
 
-| Type | Files | + | - | Net |
-|------|-------|---|---|-----|
-| Code | 8 | +156 | -131 | +25 |
-| Test | 7 | +622 | -55 | +567 |
-| Agentic prose | 1 | +1 | -1 | +0 |
-| Deleted | 1 | +0 | -45 | -45 |
-| **Total** | **16** | **+778** | **-196** | **+547** |
+All 10 findings fixed. Corrector regression fixed.
 
-## Fix Verification
-
-All 18 addressed findings verified against rework delta:
-
-| Finding | Severity | Status | Evidence |
-|---------|----------|--------|----------|
-| C#1 | Critical | ✅ FIXED | SKILL.md: `Bash(just:*,wc:*,git:*)` |
-| C#2 | Critical | ⚠️ PARTIAL | `_git_commit` fixed (`check=True`); `_commit_submodule` NOT fixed — see Critical #1 below |
-| C#3 | Critical | ✅ FIXED | Pipeline reordered: `_validate_inputs` → stage → `_validate` → submodule commits |
-| C#4 | Critical | ✅ FIXED | CLI catches `CleanFileError`, calls `_fail(str(e), code=2)` |
-| C#5 | Critical | ✅ FIXED | `test_commit_amend_no_edit` in `test_commit_pipeline_errors.py:155-188` |
-| MN-1 | Minor | ✅ FIXED | `_error()` helper + try/except in pipeline for staging and commit |
-| M#6 | Major | ✅ FIXED | `handoff/context.py` deleted, tests removed |
-| M#7 | Major | ✅ FIXED | `list_plans(Path("plans"))` populates real states |
-| M#8 | Major | ✅ FIXED | `render_continuation()` added, checks `_is_dirty()` |
-| M#9 | Major | ✅ FIXED | `▶` marker in `render_pending`, `render_next` call removed from CLI |
-| M#10 | Major | ✅ FIXED | `git_status()` uses `.rstrip("\n")` |
-| M#11 | Major | ✅ FIXED | Handoff CLI imports and uses `git_changes()` |
-| M#12 | Major | ✅ FIXED | `_count_raw_tasks()` validation, exit 2 on mismatch |
-| M#13 | Major | ✅ FIXED | Renamed + `test_commit_skips_vet_when_no_vet` added |
-| M#14 | Major | ✅ FIXED | `or` → two separate `assert` statements |
-| M#15 | Major | ✅ FIXED | `test_write_completed_overwrites_not_appends` added |
-| M#16 | Major | ✅ FIXED | `test_validate_stale_vet_failure` + `test_validate_unknown_vet_reason` |
-| m-4 | Minor | ✅ FIXED | `or` → two separate `assert` statements |
+| Finding | Status | Evidence |
+|---------|--------|----------|
+| C#1 `_commit_submodule check=True` | ✅ | `commit_pipeline.py:139` — `check=True`, pipeline catches CalledProcessError at :306 |
+| M#2 SKILL.md `claudeutils:*` | ✅ | `SKILL.md:4` — `Bash(just:*,wc:*,git:*,claudeutils:*)` |
+| M#3 `_error()` fallback | ✅ | `commit_pipeline.py:217` — `exc.stderr or f"exit code {exc.returncode}"` |
+| M#4 Skill-CLI integration | ⏳ DEFERRED | Split to `plans/skill-cli-integration/` — worktree task in session.md |
+| M#5 `aggregate_trees` dedup | ✅ | `aggregation.py:203-208` — all plans appended per-tree, no dict dedup |
+| m-1 Dead `render_next` | ✅ | Function removed from `render.py` |
+| m-2 ▶ worktree-marker skip | ✅ | `render.py:41` — `task.worktree_marker is None` |
+| m-3 `_is_dirty` raw subprocess | ✅ | `git.py:128-134` — raw `subprocess.run`, `rstrip("\n")` preserves porcelain format |
+| m-4 Dead `step_reached` | ✅ | Field removed from `HandoffState`, `save_state()` simplified |
+| m-5 Old section name detection | ✅ | `status/cli.py:22-28` — `_check_old_section_name()` before count validation |
+| m-6 Weak `or` assertion | ✅ | `test_status_rework.py:142-144` — two separate asserts |
+| Corrector: Python 2 except syntax | ✅ | `aggregation.py:112,135` — parenthesized tuple form restored |
 
 ## Critical Findings
 
-### 1. `_commit_submodule` git commit still uses `check=False` without returncode check
-
-- **File:** `src/claudeutils/session/commit_pipeline.py:134-148`
-- **Axis:** Robustness, error signaling
-- **Design req:** S-3 — exit code carries semantic signal; C#2 original finding explicitly stated "Same issue in `_commit_submodule()` (line 134-148)"
-- **Impact:** `_commit_submodule()` runs `subprocess.run(cmd, ..., check=False)` for the git commit (line 134-139) and returns `result.stdout.strip()` without checking `result.returncode` (line 148). The pipeline's `try/except CalledProcessError` at lines 297-306 only catches errors from the two `git add` calls (which use `check=True`), not from the git commit. If submodule commit fails (hook rejection, nothing staged), the function silently returns empty/error text, pipeline treats it as success, stages unchanged pointer, and proceeds to parent commit. Submodule changes silently lost.
-- **Rework gap:** Cycle 1.1 runbook specified `_commit_submodule returns tuple[bool, str] with same pattern`. Implementation changed `_git_commit` to `check=True` but did not apply the equivalent fix to `_commit_submodule`.
+None.
 
 ## Major Findings
 
-### 2. SKILL.md missing `Bash(claudeutils:*)` in allowed-tools
-
-- **File:** `agent-core/skills/handoff/SKILL.md:4` vs `:77`
-- **Axis:** Functional correctness
-- **Impact:** Line 77 instructs "Run `Bash: claudeutils _worktree ls`" for command derivation. Allowed-tools `Bash(just:*,wc:*,git:*)` does not include `claudeutils`. The skill agent cannot execute this command — plan state discovery for command derivation is blocked.
-- **Source:** Prose Layer 1
-
-### 3. Error messages not informative or actionable
-
-- **File:** `src/claudeutils/session/commit_pipeline.py:215-220`
-- **Axis:** Error signaling, conformance
-- **Design req:** S-3 — "Error and warning output uses `**Header:** content` format." Error messages must be informative (why it failed) and helpful (how to correct).
-- **Impact:** `_error()` helper falls back to `str(exc)` when `exc.stderr` is empty, dumping raw `CalledProcessError` repr with command array (e.g., `Command '['git', 'commit', '-m', '...']' returned non-zero exit status 1`). Not structured markdown, not informative, not actionable. Needs exploration to determine if this pattern exists elsewhere in the codebase.
-
-### 4. Skills don't reference CLI tools
-
-- **File:** `agent-core/skills/commit/SKILL.md`, `agent-core/skills/handoff/SKILL.md`
-- **Axis:** Conformance, functional completeness
-- **Design req:** "Skill integration (future): After CLI exists, `/commit` skill simplifies to: Gate A → discovery (`claudeutils _git changes`) → draft message + gitmoji → pipe to `claudeutils _commit`." Also: "Coupled skill update" — skill changes are in-scope.
-- **Impact:** CLI tools (`_commit`, `_handoff`, `_status`) exist but skills don't reference them. Commit skill reimplements staging/validation/commit instead of piping to `_commit`. Handoff skill writes session.md directly instead of piping to `_handoff`. Execute-rule.md MODE 1 contains inline STATUS template instead of delegating to `_status`. Pattern across handoff, commit, and status display surfaces.
-
-### 5. `_status` shows correct plan state but `_worktree ls` deduplicates with stale state
-
-- **File:** `src/claudeutils/worktree/cli.py` (plan listing logic)
-- **Axis:** Functional correctness
-- **Impact:** `_worktree ls` shows each plan under only one worktree. When a plan directory exists in multiple worktrees with different lifecycle states (e.g., `ready` on main, `rework` on session-cli-tool), the tool lists it under main with stale state. `_status` reads local lifecycle correctly. The handoff skill uses `_worktree ls` for command derivation — stale plan state → stale derived command.
+None from rework delta.
 
 ## Minor Findings
 
-**Code (3):**
+### 1. `_check_old_section_name` uses substring match, not line-anchored
 
-- **`render_next` is dead code** — `render.py:24-47`. Function no longer imported or called after M#9 fix merged next-task display into `render_pending`. Same class as M#6 (dead code).
+- **File:** `src/claudeutils/session/status/cli.py:24`
+- **Axis:** Robustness
+- **Introduced by:** m-5 fix
+- `"## Pending Tasks" in content` matches anywhere in session.md, including prose (e.g., "Renamed ## Pending Tasks to ## In-tree Tasks" in a completed entry). `re.search(r"^## Pending Tasks", content, re.MULTILINE)` would be more precise. False-positive risk is low in practice.
 
-- **▶ selection doesn't skip worktree-marked tasks** — `render.py:64-70`. Design ST-0: "Tasks with any `→` marker skipped for Next: selection." `render_pending` doesn't check `task.worktree_marker` before assigning `▶`. Low risk — in-tree tasks normally lack worktree markers. Dead `render_next` (line 36-37) had this check.
+### 2. `load_state()` backward-incompatible with pre-rework state files
 
-- **`_is_dirty()` uses `_git()` which `.strip()`s — same bug class as M#10** — `git.py:128` calls `_git("status", "--porcelain")` which returns `r.stdout.strip()` (line 24). First status line's leading space stripped → `line[3:]` off-by-one for first line only. Error direction: false-positive (over-reports dirty), so safe but inconsistent with the M#10 fix applied to `git_status()`.
+- **File:** `src/claudeutils/session/handoff/pipeline.py:44-45`
+- **Axis:** Robustness
+- **Introduced by:** m-4 fix (removed `step_reached`)
+- `HandoffState(**data)` on a state file containing `step_reached` raises `TypeError: unexpected keyword argument`. Crash-recovery path breaks if: handoff crashes before rework → code updated → retry. Impact: near-zero (state files are ephemeral crash recovery in `tmp/`, cleared on success).
 
-- **`step_reached` field is dead data** — `handoff/pipeline.py:21`. Saved but never read during resume. Resume path (`handoff/cli.py:46-52`) re-executes all steps unconditionally. Acceptable (operations are idempotent) but misleading — suggests partial-resume capability that doesn't exist. Source: Code Layer 1.
+## Pre-existing Findings (not from rework)
 
-- **Old section name `## Pending Tasks` not detected** — `status/cli.py:22-34`. If session.md uses old section name, both `_count_raw_tasks("In-tree Tasks")` and `parse_tasks("In-tree Tasks")` return 0. Validation `0 != 0` passes silently → "No in-tree tasks" instead of exit 2. Source: Code Layer 1.
+Observed during review but pre-dating the rework delta. Included for tracking — these exist in the current deliverable set regardless of rework.
 
-**Test (1):**
+**Major (pre-existing):**
 
-- **`test_status_rejects_old_format` uses weak `or` assertion** — `test_status_rework.py:143`. Same weak disjunction pattern that M#14 and m-4 fixed in other test files.
+- **Parallel detection ignores Blockers/Gotchas** — `status/cli.py:98` passes `[]` to `detect_parallel`. Session parser doesn't extract blockers. ST-1 design specifies blocker-based dependency. Unit-tested in `detect_parallel` but never wired e2e.
+- **Stale vet output lacks file-level detail** — `commit_gate.py:160-166` returns time delta, not per-file info with timestamps. Design specifies `Newest change: src/auth.py (date)` format.
+
+**Minor (pre-existing, 6):**
+
+- Duplicate `_fail` in `worktree/cli.py` vs `git.py` (S-2 extraction incomplete)
+- `render_pending` ▶ line format differs from design spec (denser inline format vs separate command line)
+- Handoff completed parser strips blank lines between `### ` groups
+- `session_path.read_text()` called twice in status CLI (parse_session + raw read)
+- `_strip_hints` only removes `hint:` prefix, not `advice` lines
+- `_init_repo` duplicated in 8 test files instead of using shared `pytest_helpers.init_repo_at`
 
 ## Gap Analysis
 
-| Round 1 Finding | Round 2 Status |
-|-----------------|----------------|
-| C#1 SKILL.md | Fixed |
-| C#2 git commit returncode | Partial — parent fixed, submodule NOT fixed (Critical #1) |
-| C#3 pipeline ordering | Fixed |
-| C#4 exit code semantics | Fixed |
-| C#5 amend+no-edit test | Fixed |
-| M#6 dead code | Fixed (new dead code introduced: `render_next`) |
-| M#7 plan discovery | Fixed |
-| M#8 continuation header | Fixed |
-| M#9 output format | Fixed |
-| M#10 strip bug | Fixed (same class persists in `_is_dirty`) |
-| M#11 handoff git changes | Fixed |
-| M#12 old format enforcement | Fixed |
-| M#13 no-vet test direction | Fixed |
-| M#14 weak assertion | Fixed (same pattern introduced in new test) |
-| M#15 H-2 append test | Fixed |
-| M#16 validate edge cases | Fixed |
-| MN-1 uncaught exception | Fixed |
-| m-4 weak CLI assertion | Fixed |
+| Design Requirement | Status |
+|-------------------|--------|
+| S-1 Package structure | ✓ Conforms |
+| S-2 `_git()` extraction | ✓ Conforms |
+| S-3 Output/error conventions | ✓ Conforms |
+| S-4 Session.md parser | ✓ Conforms |
+| S-5 Git changes utility | ✓ Conforms |
+| H-1 Domain boundaries | ✓ Conforms |
+| H-2 Committed detection | ✓ Simplified to overwrite (documented) |
+| H-3 Diagnostic output | ✓ Conforms |
+| H-4 State caching | ✓ Conforms |
+| C-1 Scripted vet check | ✓ Conforms (output detail gap — pre-existing) |
+| C-2 Submodule coordination | ✓ Conforms |
+| C-3 Input validation | ✓ Conforms |
+| C-4 Validation levels | ✓ Conforms |
+| C-5 Amend semantics | ✓ Conforms |
+| ST-0 Worktree-destined tasks | ✓ Conforms |
+| ST-1 Parallel group detection | Partial — blocker check not wired (pre-existing) |
+| ST-2 Preconditions/degradation | ✓ Conforms |
+| CLI registration | ✓ Conforms |
 
 ## Summary
 
-| Severity | Count |
-|----------|-------|
-| Critical | 1 |
-| Major | 4 |
-| Minor | 6 |
+| Severity | Rework delta | Pre-existing |
+|----------|-------------|-------------|
+| Critical | 0 | 0 |
+| Major | 0 | 2 |
+| Minor | 2 | 6 |
 
-17 of 18 findings fully fixed. One Critical remains: `_commit_submodule` git commit returncode not checked. Four Major: SKILL.md allowed-tools gap, error messages not informative/actionable (S-3 violation), skills don't reference CLI tools (design "Skill integration" requirement), `_worktree ls` plan deduplication shows stale state across worktrees. Six minor issues (dead `render_next`, worktree-marker skip, `_is_dirty` strip, dead `step_reached`, old section name bypass, weak test assertion).
+All 10 round 2 findings verified fixed. Corrector regression (Python 2 except syntax) verified fixed. Two minor issues introduced by the rework: substring match in old-section detection, backward-incompatible state file format. Two pre-existing Major findings (blocker detection gap, vet output detail) and six pre-existing Minor findings.
