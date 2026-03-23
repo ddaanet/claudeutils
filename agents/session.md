@@ -1,27 +1,21 @@
 # Session Handoff: 2026-03-23
 
-**Status:** RC5 fixes applied. RC6 deliverable review queued.
+**Status:** RC6 review complete (0C/1M/5m). Fix task queued.
 
 ## Completed This Session
 
-**Handoff-cli RC5 fixes (10 findings):**
-- M-1: `_strip_hints` continuation state `False` → `True` (commit_pipeline.py:199)
-- M-2: `vet_check` + `_load_review_patterns` + `_find_reports` now accept `cwd` parameter; call site updated (commit_gate.py, commit_pipeline.py:170)
-- m-1: `_split_sections` stops splitting after `## Message` via `in_message` flag (commit.py)
-- m-4: Removed `if git_output:` guard — diagnostics unconditional (handoff/cli.py)
-- m-5: `_run_precommit`/`_run_lint` capture stderr alongside stdout (commit_pipeline.py)
-- m-6: `_git()` docstring warns against porcelain usage (git.py)
-- m-7: Parenthesized ternary in `validate_files` (commit_gate.py:91)
-- m-8: Replaced local `_init_git_repo` helpers with `init_repo_minimal` in 2 planstate test files
-- m-9: Added `test_strip_hints_multi_continuation` and `test_strip_hints_single_space_not_continuation`
-- m-10: Added `startswith("- ")` assertion to `test_status_format_merged_next`
-- m-2 (vestigial `step_reached`), m-3 (valid deviation) accepted as-is
+**Handoff-cli RC6 deliverable review:**
+- Full-scope review: Layer 1 (three opus agents) + Layer 2 (interactive cross-cutting)
+- All 10 RC5 findings verified fixed
+- Result: 0C/1M/5m — trend RC4 2M/9m → RC5 2M/10m → RC6 1M/5m
+- M-1: No test for `_split_sections` `in_message` flag — design-specified behavior (outline.md:162-164) with code but no regression test. Low practical risk (blockquote format prevents edge case).
+- Lifecycle: `reviewed` (0 Critical)
 
 ## In-tree Tasks
 
-- [x] **Fix handoff-cli RC5** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | sonnet
-  - Plan: handoff-cli-tool | All 10 actionable findings fixed
-- [ ] **Handoff-cli RC6** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+- [x] **Handoff-cli RC6** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+  - Plan: handoff-cli-tool
+- [ ] **Fix handoff-cli RC6** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
   - Plan: handoff-cli-tool
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
@@ -63,9 +57,8 @@
 
 ## Reference Files
 
-- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC5 findings (0C/2M/10m)
-- `plans/handoff-cli-tool/reports/review-skip.md` — RC5 fix review skip justification
+- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC6 findings (0C/1M/5m)
 
 ## Next Steps
 
-RC6 deliverable review via `/deliverable-review plans/handoff-cli-tool` (opus, restart). All RC5 findings addressed — expecting convergence toward 0C/0M.
+Fix RC6 findings via `/design plans/handoff-cli-tool/reports/deliverable-review.md` (opus). Primary finding: add regression test for `in_message` flag in `_split_sections`.
