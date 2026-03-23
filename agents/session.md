@@ -1,26 +1,33 @@
 # Session Handoff: 2026-03-23
 
-**Status:** RC4 deliverable review complete (0C/2M/9m). All RC3 Majors resolved. Fix task queued.
+**Status:** RC4 findings fixed (2M/7m actionable, m-8/m-9 skipped). RC5 review queued.
 
 ## Completed This Session
 
-**Handoff-cli RC4 deliverable review:**
-- Full-scope review: Layer 1 (3 opus agents: code, test, prose+config) + Layer 2 (interactive cross-cutting)
-- RC3 fix verification: all 2M+6m code findings verified fixed (blockers wired, stale detail, _fail dedup, blank lines, double read, regex)
-- RC4 findings: 0C/2M/9m — test coverage gap (H-2 committed detection), _init_repo duplication, 9 minor conformance/quality items
-- Report: `plans/handoff-cli-tool/reports/deliverable-review.md`
-- Lifecycle updated: `reviewed`
+**Fix handoff-cli RC4 (all actionable findings):**
+- M-2: `init_repo_minimal` helper in pytest_helpers.py, replaced 5 local `_init_repo` variants
+- M-1: `test_write_completed_overwrites_committed_state` — committed-state coverage
+- m-4: `_strip_hints` stateful loop — filters indented continuation lines after hint/advice
+- m-1: `HandoffState.step_reached: str = "write_session"` — spec conformance (H-4)
+- m-3: ▶ format two-line design spec: `▶ {name} ({model}) | Restart: {Yes/No}` + `  \`{cmd}\``
+- m-2: ANSI color in `render_pending` — `color: bool = False` kwarg, `click.style` on ▶ line, CLI passes `sys.stdout.isatty()`
+- m-5: `test_detect_parallel_caps_at_five` — 7 independent tasks → result len == 5
+- m-6: split or-disjunction assertions in test_session_commit_pipeline.py
+- m-7: extended `test_handoff_then_status` with session.md content assertions
+- Skipped m-8 (incidental .gitignore/settings.local.json), m-9 (pre-existing worktree hardcode)
 
 ## In-tree Tasks
 
 - [x] **Handoff-cli RC3** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
   - Plan: handoff-cli-tool | 0C/0M(delta), 2m(delta), 2M+6m(pre-existing)
 - [x] **Fix handoff-cli round 3** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | sonnet
-  - Plan: handoff-cli-tool | All findings resolved: Simple batch (5), Moderate batch (3), corrector fixes applied
+  - Plan: handoff-cli-tool | All findings resolved
 - [x] **Handoff-cli RC4** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
   - Plan: handoff-cli-tool | 0C/2M/9m
-- [ ] **Fix handoff-cli RC4** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | sonnet
-  - Plan: handoff-cli-tool | 2M (test coverage gap, helper dedup) + 9m
+- [x] **Fix handoff-cli RC4** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | sonnet
+  - Plan: handoff-cli-tool | 2M + 7m resolved, m-8/m-9 skipped
+- [ ] **Handoff-cli RC5** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+  - Plan: handoff-cli-tool | Verify RC4 fixes: init_repo_minimal, step_reached, ▶ format, ANSI color, _strip_hints
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -62,9 +69,7 @@
 ## Reference Files
 
 - `plans/handoff-cli-tool/reports/deliverable-review.md` — RC4 findings (0C/2M/9m)
-- `plans/handoff-cli-tool/reports/deliverable-review-test.md` — RC4 test layer review
-- `plans/handoff-cli-tool/reports/review.md` — corrector review of Moderate batch
 
 ## Next Steps
 
-Fix RC4 findings via `/design plans/handoff-cli-tool/reports/deliverable-review.md` (sonnet).
+Run RC5 deliverable review via `/deliverable-review plans/handoff-cli-tool` (opus) to verify all RC4 fixes hold.
