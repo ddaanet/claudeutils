@@ -9,7 +9,11 @@ from unittest.mock import patch
 import pytest
 
 from claudeutils.session.commit import CommitInput
-from claudeutils.session.commit_pipeline import CommitResult, commit_pipeline
+from claudeutils.session.commit_pipeline import (
+    CommitResult,
+    _strip_hints,
+    commit_pipeline,
+)
 from tests.pytest_helpers import init_repo_at as _init_repo
 
 # Cycle 6.1: parent-only commit pipeline
@@ -37,7 +41,7 @@ def test_commit_parent_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
 
     assert isinstance(result, CommitResult)
     assert result.success is True
-    assert "foo" in result.output.lower() or "1 file" in result.output
+    assert "foo" in result.output.lower()
 
     log = subprocess.run(
         ["git", "log", "--oneline", "-1"],
@@ -72,7 +76,8 @@ def test_commit_precommit_failure(
         result = commit_pipeline(ci, cwd=tmp_path)
 
     assert result.success is False
-    assert "Precommit" in result.output or "failed" in result.output
+    assert "Precommit" in result.output
+    assert "failed" in result.output
 
     status = subprocess.run(
         ["git", "status", "--porcelain"],
@@ -91,3 +96,23 @@ def test_commit_precommit_failure(
         check=False,
     )
     assert "Add bar" not in log.stdout
+
+
+def test_strip_hints_filters_continuation_lines() -> None:
+    """Strip continuation lines following hint/advice."""
+    input1 = "hint: use --force\n  (helpful continuation)\nother line"
+    result1 = _strip_hints(input1)
+    assert "other line" in result1
+    assert "helpful continuation" not in result1
+    assert "hint:" not in result1
+
+    input2 = "advice: do this\n\tcontinuation here\nnormal line"
+    result2 = _strip_hints(input2)
+    assert "normal line" in result2
+    assert "continuation here" not in result2
+    assert "advice:" not in result2
+
+    input3 = "regular line\nhint: tip\n  more tip"
+    result3 = _strip_hints(input3)
+    assert "regular line" in result3
+    assert "more tip" not in result3
