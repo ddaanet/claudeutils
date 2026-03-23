@@ -1,32 +1,18 @@
 # Session Handoff: 2026-03-23
 
-**Status:** Merged 4 worktrees (outline-density-gate, discussion, retro-repo-expansion, plugin-migration). Captured edify-rename requirements with full /proof review. PEP 541 claim pending for PyPI `edify` name.
+**Status:** Fixed hook dual-registration and semgrep plugin errors. Settings.json hooks removed — plugin hooks.json is canonical source.
 
 ## Completed This Session
 
-**Worktree merges + removals:**
-- outline-density-gate — clean merge, removed
-- discussion — clean merge, force-removed (1 uncommitted file in worktree)
-- retro-repo-expansion — clean merge, removed
-- plugin-migration — conflict resolution (settings.json: kept HEAD deny list; agent-core/skills/runbook/SKILL.md: kept HEAD Tier 1 removal), submodule commit for branch changes, removed
-- outline-proofing — created worktree, merged, removed (plan delivered)
-
-**Cleanup:**
-- Committed settings.visible.json sandbox workaround removal
-- Removed leaked `src/claudeutils/session/` directory from main
-
-**Edify rename requirements:**
-- Captured and proofed `plans/edify-rename/requirements.md`
-- Full brand rename: repo (edify), submodule dir (plugin/), package (edify), CLI (edify)
-- PyPI `edify` name taken (abandoned, 33 downloads/month) — PEP 541 claim needed
-- Blocked on session-cli-tool merge (C-1: avoids double-rename)
-- Key decisions: `plugin/` not `edify-plugin/` for submodule dir; main repo `claudeutils` → `edify`; FR-10 deletes 16 delivered plans with archive entries
+**Hook fixes:**
+- Removed stale hooks section from `.claude/settings.json` — was dual-registering all hooks (settings.json + plugin hooks.json), causing every hook to fire twice
+- Settings.json referenced `.claude/hooks/` (directory doesn't exist) and `pretooluse-symlink-redirect.sh` (file never created)
+- Disabled `semgrep@claude-plugins-official` at project level — no `semgrep` binary installed, causing SessionStart:startup and UserPromptSubmit errors on every session
 
 ## In-tree Tasks
 
 - [ ] **Centralize recall** — `/design plans/centralize-recall/brief.md` | opus | restart
   - Plan: centralize-recall | Segmented /recall skill (<1ktok core), replace inline recall across skills/agents. Depends on: remove-index-skill
-- [x] **Remove fuzzy recall** — plan delivered
 - [ ] **Remove index skill** — `/design plans/remove-memory-index-skill/brief.md` | opus
   - Plan: remove-memory-index-skill | Delete vestigial skill, update corrector.md to Read file directly
 
@@ -36,7 +22,6 @@
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
   - Note: Blocker resolved (Bootstrap tag support). Step files generated. `/orchestrate handoff-cli-tool`
-- [x] **Plugin migration** — plan merged
 - [ ] **Edify rename** — `/design plans/edify-rename/` | opus
   - Plan: edify-rename | Status: reviewed (requirements proofed)
   - Blocked on: session-cli-tool merge (C-1). Design after merge — new content will change file counts.
@@ -141,7 +126,6 @@
 - [ ] **Outline density gate** — `/design plans/outline-downgrade-density/brief.md` | opus
   - Plan: outline-downgrade-density | Content density check in write-outline.md downgrade criteria
 - [ ] **Review blog series** — `/deliverable-review plans/blog-series` | opus | restart
-- [x] **Outline proofing** — plan delivered
 
 ### Terminal
 
