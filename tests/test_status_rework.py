@@ -141,3 +141,35 @@ def test_status_rejects_old_format(tmp_path: Path) -> None:
     )
     assert result.exit_code == 2
     assert "old-format" in result.output.lower() or "metadata" in result.output.lower()
+
+
+# Cycle 3.1: old section name detected
+
+
+def test_status_rejects_pending_tasks_section(tmp_path: Path) -> None:
+    """Old section name 'Pending Tasks' is rejected with exit 2."""
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    old_section_name = """\
+# Session Handoff: 2026-03-20
+
+**Status:** Working.
+
+## Completed This Session
+
+- Nothing
+
+## Pending Tasks
+
+- [ ] **Task** — `/cmd` | sonnet
+"""
+    (agents_dir / "session.md").write_text(old_section_name)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        ["_status"],
+        env={"CLAUDEUTILS_SESSION_FILE": str(agents_dir / "session.md")},
+    )
+    assert result.exit_code == 2
+    assert "pending tasks" in result.output.lower()

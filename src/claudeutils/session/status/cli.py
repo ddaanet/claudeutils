@@ -19,6 +19,15 @@ from claudeutils.session.status.render import (
 )
 
 
+def _check_old_section_name(content: str) -> None:
+    """Reject old section name 'Pending Tasks'."""
+    if "## Pending Tasks" in content:
+        _fail(
+            "**Error:** Old section name 'Pending Tasks' — rename to 'In-tree Tasks'",
+            code=2,
+        )
+
+
 def _count_raw_tasks(content: str, section: str = "In-tree Tasks") -> int:
     """Count task-like lines in a section (lines starting with ``- [``)."""
     in_section = False
@@ -45,6 +54,8 @@ def status_cmd() -> None:
         _fail(f"**Error:** Session file not found: {session_path}", code=2)
 
     content = session_path.read_text()
+    _check_old_section_name(content)
+
     if _count_raw_tasks(content) != len(data.in_tree_tasks):
         _fail(
             "**Error:** Old-format tasks missing metadata (** and —)",

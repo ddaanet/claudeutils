@@ -23,3 +23,16 @@
 - Files modified: `src/claudeutils/session/commit_pipeline.py` (2 lines changed in `_error()` function), `tests/test_commit_pipeline_errors.py` (2 tests added, imports updated)
 - Stop condition: none
 - Decision made: Fallback message provides actionable info (exit code) without raw Python implementation details, aligning with recall entry "when cli error messages are llm-consumed"
+
+## Phase 3: Status Output Validation
+
+### Cycle 3.1: Old section name detected and rejected 2026-03-23
+- Status: GREEN_VERIFIED
+- Test command: `pytest tests/test_status_rework.py::test_status_rejects_pending_tasks_section -xvs`
+- RED result: FAIL as expected — `_status` with `## Pending Tasks` returns exit code 0 instead of 2; silent pass on mismatch count
+- GREEN result: PASS — Added `_check_old_section_name()` helper that rejects `## Pending Tasks` with exit code 2 and informative error message
+- Regression check: 1772/1773 passed, 1 xfail (no regressions)
+- Refactoring: Extracted check to helper function to avoid complexity warning (status_cmd was at complexity 10, extracted check reduced to below threshold)
+- Files modified: `src/claudeutils/session/status/cli.py` (helper added, status_cmd call added), `tests/test_status_rework.py` (test added)
+- Stop condition: none
+- Decision made: Helper function extraction kept `status_cmd` complexity manageable without major refactoring of validation logic
