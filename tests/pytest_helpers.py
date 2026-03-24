@@ -120,6 +120,64 @@ def setup_baseline_agents(tmp_path: Path) -> None:
     )
 
 
+def create_submodule_origin(base: Path, name: str) -> Path:
+    """Create a submodule origin repo for testing."""
+    origin = base / f"{name}-origin"
+    origin.mkdir()
+    subprocess.run(["git", "init"], cwd=origin, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=origin,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test"],
+        cwd=origin,
+        check=True,
+        capture_output=True,
+    )
+    (origin / "init.md").write_text("init")
+    subprocess.run(["git", "add", "."], cwd=origin, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "init"],
+        cwd=origin,
+        check=True,
+        capture_output=True,
+    )
+    return origin
+
+
+def add_submodule(parent: Path, origin: Path, name: str) -> None:
+    """Add a submodule to parent repo and configure git identity."""
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "protocol.file.allow=always",
+            "submodule",
+            "add",
+            str(origin),
+            name,
+        ],
+        cwd=parent,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=parent / name,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test"],
+        cwd=parent / name,
+        check=True,
+        capture_output=True,
+    )
+
+
 def assert_json_output(
     capsys: pytest.CaptureFixture[str], expected_length: int | None = None
 ) -> list[dict[str, object]]:

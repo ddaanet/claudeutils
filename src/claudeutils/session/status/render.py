@@ -42,7 +42,7 @@ def render_pending(
     first_eligible = True
     for task in pending:
         model = task.model or "sonnet"
-        if first_eligible and task.checkbox == " " and task.worktree_marker is None:
+        if first_eligible and task.worktree_marker is None:
             restart = "Yes" if task.restart else "No"
             cmd = task.command or ""
             header_line = f"▶ {task.name} ({model}) | Restart: {restart}"

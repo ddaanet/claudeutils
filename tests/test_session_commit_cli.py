@@ -35,6 +35,16 @@ def test_commit_cli_success(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
     assert result.exit_code == 0
     assert "foo" in result.output.lower()
 
+    # Verify commit was actually created
+    log = subprocess.run(
+        ["git", "log", "--oneline", "-1"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "foo" in log.stdout.lower()
+
 
 def test_commit_cli_validation_error(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch

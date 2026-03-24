@@ -1,21 +1,26 @@
-# Session Handoff: 2026-03-23
+# Session Handoff: 2026-03-24
 
-**Status:** RC6 review complete (0C/1M/5m). Fix task queued.
+**Status:** RC6 fixes applied (6/6). Deliverable review queued.
 
 ## Completed This Session
 
-**Handoff-cli RC6 deliverable review:**
-- Full-scope review: Layer 1 (three opus agents) + Layer 2 (interactive cross-cutting)
-- All 10 RC5 findings verified fixed
-- Result: 0C/1M/5m — trend RC4 2M/9m → RC5 2M/10m → RC6 1M/5m
-- M-1: No test for `_split_sections` `in_message` flag — design-specified behavior (outline.md:162-164) with code but no regression test. Low practical risk (blockquote format prevents edge case).
-- Lifecycle: `reviewed` (0 Critical)
+**Fix handoff-cli RC6 (0C/1M/5m):**
+- M-1: `test_split_sections_in_message_preserves_headings` — verifies `## ` after `## Message` stays in body (test_session_commit.py)
+- m-1: `git log --oneline -1` confirmation added to `test_commit_cli_success` (test_session_commit_cli.py)
+- m-2: Submodule assertion tightened to `"## Submodule: agent-core"` (test_session_handoff_cli.py)
+- m-3: `test_commit_multi_submodule_order` — alpha/beta both committed before parent (test_session_commit_pipeline_ext.py)
+- m-4: Redundant `task.checkbox == " "` removed from render.py:45 (already filtered at line 37)
+- m-5: `ParsedTask` import aligned to `session.parse` re-export (test_session_status.py)
+- Submodule helpers extracted to pytest_helpers.py (`create_submodule_origin`, `add_submodule`)
+- Corrector review: 0C/0M — ready (plans/handoff-cli-tool/reports/review.md)
 
 ## In-tree Tasks
 
 - [x] **Handoff-cli RC6** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
   - Plan: handoff-cli-tool
-- [ ] **Fix handoff-cli RC6** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
+- [x] **Fix handoff-cli RC6** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
+  - Plan: handoff-cli-tool
+- [ ] **Handoff-cli RC7** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
   - Plan: handoff-cli-tool
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
@@ -58,7 +63,8 @@
 ## Reference Files
 
 - `plans/handoff-cli-tool/reports/deliverable-review.md` — RC6 findings (0C/1M/5m)
+- `plans/handoff-cli-tool/reports/review.md` — Corrector review of RC6 fixes (0C/0M)
 
 ## Next Steps
 
-Fix RC6 findings via `/design plans/handoff-cli-tool/reports/deliverable-review.md` (opus). Primary finding: add regression test for `in_message` flag in `_split_sections`.
+Deliverable review via `/deliverable-review plans/handoff-cli-tool` (opus, restart). RC7 should be clean — all RC6 findings addressed with corrector-verified fixes.

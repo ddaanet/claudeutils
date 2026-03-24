@@ -8,13 +8,13 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.cli import cli
+from claudeutils.session.parse import ParsedTask
 from claudeutils.session.status.render import (
     detect_parallel,
     render_pending,
     render_unscheduled,
     render_worktree,
 )
-from claudeutils.validation.task_parsing import ParsedTask
 
 
 def _task(name: str, **kwargs: object) -> ParsedTask:

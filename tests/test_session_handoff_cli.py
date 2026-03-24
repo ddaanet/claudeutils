@@ -231,5 +231,5 @@ def test_handoff_shows_submodule_changes(
 
     assert result.exit_code == 0
     # Should include submodule section with internal file changes
-    assert "## Submodule" in result.output
+    assert "## Submodule: agent-core" in result.output
     assert "dirty.md" in result.output

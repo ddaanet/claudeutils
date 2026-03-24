@@ -11,6 +11,7 @@ import pytest
 
 from claudeutils.session.commit import (
     CommitInputError,
+    _split_sections,
     parse_commit_input,
 )
 from claudeutils.session.commit_gate import (
@@ -136,6 +137,26 @@ def test_parse_commit_multiple_submodules() -> None:
     assert len(result.submodules) == 2
     assert "agent-core" in result.submodules
     assert "other-lib" in result.submodules
+
+
+def test_split_sections_in_message_preserves_headings() -> None:
+    """## headings after ## Message stay in message body."""
+    text = (
+        "## Files\n"
+        "- foo.py\n"
+        "\n"
+        "## Message\n"
+        "> First line\n"
+        ">\n"
+        "## Not a section\n"
+        "> More content\n"
+    )
+    sections = _split_sections(text)
+    names = [name for name, _ in sections]
+    assert names == ["Files", "Message"]
+    # The "## Not a section" line must be in Message body
+    msg_lines = sections[1][1]
+    assert any("## Not a section" in line for line in msg_lines)
 
 
 def test_parse_commit_blockquote_stripping() -> None:

@@ -10,75 +10,25 @@ import pytest
 
 from claudeutils.session.commit import CommitInput
 from claudeutils.session.commit_pipeline import commit_pipeline
-from tests.pytest_helpers import init_repo_at as _init_repo
+from tests.pytest_helpers import (
+    add_submodule,
+    create_submodule_origin,
+)
+from tests.pytest_helpers import (
+    init_repo_at as _init_repo,
+)
 
 
 def _init_repo_with_submodule(tmp_path: Path) -> Path:
     """Set up parent repo with agent-core submodule."""
-    sub_origin = tmp_path / "sub-origin"
-    sub_origin.mkdir()
-    subprocess.run(["git", "init"], cwd=sub_origin, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@test.com"],
-        cwd=sub_origin,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test"],
-        cwd=sub_origin,
-        check=True,
-        capture_output=True,
-    )
-    (sub_origin / "init.md").write_text("init")
-    subprocess.run(
-        ["git", "add", "."],
-        cwd=sub_origin,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "commit", "-m", "init"],
-        cwd=sub_origin,
-        check=True,
-        capture_output=True,
-    )
-
+    origin = create_submodule_origin(tmp_path, "sub")
     parent = tmp_path / "parent"
     parent.mkdir()
     _init_repo(parent)
-
-    # Allow local file transport for submodule clone
-    subprocess.run(
-        [
-            "git",
-            "-c",
-            "protocol.file.allow=always",
-            "submodule",
-            "add",
-            str(sub_origin),
-            "agent-core",
-        ],
-        cwd=parent,
-        check=True,
-        capture_output=True,
-    )
+    add_submodule(parent, origin, "agent-core")
     subprocess.run(
         ["git", "commit", "-m", "add submodule"],
         cwd=parent,
-        check=True,
-        capture_output=True,
-    )
-    # Configure submodule git identity
-    subprocess.run(
-        ["git", "config", "user.email", "test@test.com"],
-        cwd=parent / "agent-core",
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test"],
-        cwd=parent / "agent-core",
         check=True,
         capture_output=True,
     )
@@ -374,3 +324,70 @@ def test_commit_amend_validation(
     assert "Amend HEAD-only file" in log.stdout
     commits = [ln for ln in log.stdout.strip().split("\n") if ln]
     assert len(commits) == 2
+
+
+# Multi-submodule ordering (outline.md:265-267)
+
+
+def test_commit_multi_submodule_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Two submodules committed before parent."""
+    origin_a = create_submodule_origin(tmp_path, "alpha")
+    origin_b = create_submodule_origin(tmp_path, "beta")
+
+    parent = tmp_path / "parent"
+    parent.mkdir()
+    _init_repo(parent)
+    add_submodule(parent, origin_a, "alpha")
+    add_submodule(parent, origin_b, "beta")
+    subprocess.run(
+        ["git", "commit", "-m", "add submodules"],
+        cwd=parent,
+        check=True,
+        capture_output=True,
+    )
+    monkeypatch.chdir(parent)
+
+    (parent / "alpha" / "a.md").write_text("alpha change")
+    (parent / "beta" / "b.md").write_text("beta change")
+    (parent / "src").mkdir(exist_ok=True)
+    (parent / "src" / "main.py").write_text("parent code")
+
+    ci = CommitInput(
+        files=["alpha/a.md", "beta/b.md", "src/main.py"],
+        message="✨ Multi-submodule commit",
+        submodules={
+            "alpha": "Alpha update",
+            "beta": "Beta update",
+        },
+    )
+
+    with patch(
+        "claudeutils.session.commit_pipeline._run_precommit",
+        return_value=(True, "ok"),
+    ):
+        result = commit_pipeline(ci, cwd=parent)
+
+    assert result.success is True
+
+    # Both submodules committed
+    for name, msg in [("alpha", "Alpha update"), ("beta", "Beta update")]:
+        sub_log = subprocess.run(
+            ["git", "log", "--oneline", "-1"],
+            cwd=parent / name,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert msg in sub_log.stdout
+
+    # Parent committed last with both pointers staged
+    parent_log = subprocess.run(
+        ["git", "log", "--oneline", "-1"],
+        cwd=parent,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "Multi-submodule" in parent_log.stdout
