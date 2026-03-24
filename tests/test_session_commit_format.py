@@ -63,3 +63,12 @@ def test_format_strips_hints() -> None:
     assert "hint:" not in output
     assert "advice:" not in output
     assert "1 file changed" in output
+
+
+def test_format_empty_parent_with_submodule() -> None:
+    """Empty parent_output with submodule output → no trailing newline."""
+    output = format_commit_output(
+        submodule_outputs={"agent-core": "[main 4b2c1a0] 🤖 Update fragment"},
+        parent_output="",
+    )
+    assert not output.endswith("\n")

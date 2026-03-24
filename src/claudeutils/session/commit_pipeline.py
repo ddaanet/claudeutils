@@ -231,7 +231,8 @@ def format_commit_output(
             parts.append(f"{path}:")
             parts.append(_strip_hints(out))
 
-    parts.append(_strip_hints(parent_output))
+    if parent_output:
+        parts.append(_strip_hints(parent_output))
 
     return "\n".join(parts)
 
