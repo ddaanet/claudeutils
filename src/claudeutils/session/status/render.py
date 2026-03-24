@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import click
 
-from claudeutils.validation.task_parsing import ParsedTask
+from claudeutils.session.parse import ParsedTask
 
 
 def render_continuation(

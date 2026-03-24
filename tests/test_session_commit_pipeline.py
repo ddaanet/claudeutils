@@ -118,6 +118,15 @@ def test_strip_hints_filters_continuation_lines() -> None:
     assert "more tip" not in result3
 
 
+def test_strip_hints_single_space_then_double() -> None:
+    """Double-space lines after hint stay filtered after a single-space line."""
+    text = "hint: do this\n single\n  continuation\nnormal"
+    result = _strip_hints(text)
+    assert "single" in result
+    assert "continuation" not in result
+    assert "normal" in result
+
+
 def test_strip_hints_multi_continuation() -> None:
     """Multi-line continuations after hint all filtered."""
     text = "hint: use --force\n  line1\n  line2\n  line3\nnormal"

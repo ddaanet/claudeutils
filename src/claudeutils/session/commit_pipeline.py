@@ -202,9 +202,9 @@ def _strip_hints(text: str) -> str:
             prev_was_hint = True
         elif prev_was_hint and line and line[0] in (" ", "\t"):
             if line[0] == "\t" or (line[0] == " " and len(line) > 1 and line[1] == " "):
-                prev_was_hint = True
+                prev_was_hint = True  # tab/double-space = continuation, filter
             else:
-                prev_was_hint = False
+                prev_was_hint = True  # single-space: pass through but keep hint context
                 result.append(line)
         else:
             prev_was_hint = False
@@ -331,6 +331,7 @@ def commit_pipeline(
             return _error(f"submodule {path} failed", e)
         submodule_outputs[path] = sub_output
 
+    assert ci.message is not None or no_edit
     try:
         parent_output = _git_commit(
             ci.message or "", amend=amend, no_edit=no_edit, cwd=cwd

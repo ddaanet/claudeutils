@@ -1,12 +1,12 @@
-# Review: handoff-cli-tool RC7 fixes
+# Review: handoff-cli-tool RC8 fixes
 
-**Scope**: RC7 minor finding fixes across 6 test files (m-1..m-6)
+**Scope**: RC8 minor finding fixes (m-1 through m-6) across 6 files
 **Date**: 2026-03-24
 **Mode**: review + fix
 
 ## Summary
 
-All 6 RC7 minor findings have been correctly applied. The fixes cover: vacuous assertion replacement, parametrized test collapse, import alignment, new combination test, and two assertion string pins. Each fix matches its requirement exactly. No issues found.
+All 6 RC8 minor findings have been correctly applied. The fixes cover: test match= pin, handoff completed-lines assertion, empty-Files validation, dead-code replacement with assertion, _strip_hints continuation logic, and render.py import alignment. Each fix matches its requirement exactly. S-4 import interface verified.
 
 **Overall Assessment**: Ready
 
@@ -22,36 +22,37 @@ None.
 
 ### Minor Issues
 
-None.
+None — all six findings from RC8 were correctly fixed in the implementation under review.
 
 ## Fixes Applied
 
-All 6 fixes were pre-applied before this review. No edits required.
+All 6 fixes were pre-applied before this review. No edits required. Verification per requirement:
 
-- `tests/test_session_commit_format.py:21` — m-1: vacuous `assert A or B` replaced with `output.split("\n")[0].startswith("[")` (VERIFIED)
-- `tests/test_session_commit.py:50-67` — m-2: 4 single-field parametrized cases collapsed to one test asserting all fields from shared fixture (VERIFIED)
-- `tests/test_status_rework.py:11` — m-3: `from claudeutils.session.parse import ParsedTask` aligns import to S-4 public interface (VERIFIED)
-- `tests/test_session_commit_validation.py:259-291` — m-4: `test_commit_just_lint_no_vet` added; asserts precommit not called, lint called once, vet not called (VERIFIED)
-- `tests/test_git_cli.py:83` — m-5: `"Tree is clean." in result.output` pins to actual emitted string (VERIFIED)
-- `tests/test_session_handoff_cli.py:90` — m-6: `"**Git status:**" in result.output` pins to markdown-formatted string (VERIFIED)
+- `tests/test_session_commit.py:101` — m-1: `match="no-edit contradicts"` added to `pytest.raises`. Matches against `"no-edit contradicts ## Message section"` in commit.py:125. Pinned to specific error text. (VERIFIED)
+- `tests/test_session_handoff.py:47` — m-2: `assert any("**Handoff CLI tool design" in line ...)` added. Fixture at line 31 contains `"**Handoff CLI tool design (Phase A):**"`. Verifies that heading entry is present in completed_lines, not just that the list is non-empty. (VERIFIED)
+- `src/claudeutils/session/commit.py:116-118` and `tests/test_session_commit.py:107-110` — m-3: Empty `## Files` list raises `CommitInputError("## Files section is empty")`. `match="empty"` in new test matches. `files is None` path at line 112-114 (missing section) remains distinct. Two separate validation paths preserved correctly. (VERIFIED)
+- `src/claudeutils/session/commit_pipeline.py:334` — m-4: `assert ci.message is not None or no_edit` replaces `ci.message or ""` dead-code fallback. Invariant is guaranteed by `_validate_inputs` which returns `CommitResult(success=False)` if `ci.message is None and not no_edit` (line 262). Assertion is unreachable-at-violation and documents the contract. (VERIFIED)
+- `src/claudeutils/session/commit_pipeline.py:203-208` and `tests/test_session_commit_pipeline.py:121-127` — m-5: Single-space lines after hint pass through (`result.append(line)`) while `prev_was_hint` stays True. Subsequent double-space or tab lines hit the continuation branch (filtered, no append). `test_strip_hints_single_space_then_double` exercises: hint → single-space (passes) → double-space (filtered) → normal (passes). Consistent with existing tests `test_strip_hints_single_space_not_continuation` and `test_strip_hints_filters_continuation_lines`. (VERIFIED)
+- `src/claudeutils/session/status/render.py:7` — m-6: Import changed from `claudeutils.validation.task_parsing` to `claudeutils.session.parse`. S-4 interface verified: `parse.py` imports `ParsedTask` from `validation.task_parsing` at line 13 and re-exports it in `__all__` at line 21. Import consistent with `status/cli.py`. (VERIFIED)
 
 ## Requirements Validation
 
 | Requirement | Status | Evidence |
 |-------------|--------|----------|
-| m-1: Vacuous disjunction removed | Satisfied | test_session_commit_format.py:21 |
-| m-2: Parametrize collapsed to single combined assertion test | Satisfied | test_session_commit.py:50-67 |
-| m-3: Import aligned to claudeutils.session.parse | Satisfied | test_status_rework.py:11 |
-| m-4: test_commit_just_lint_no_vet added | Satisfied | test_session_commit_validation.py:259-291 |
-| m-5: Assertion pinned to "Tree is clean." | Satisfied | test_git_cli.py:83 |
-| m-6: Assertion pinned to "**Git status:**" | Satisfied | test_session_handoff_cli.py:90 |
+| m-1: match= pin for specific error message | Satisfied | test_session_commit.py:101 |
+| m-2: heading entry verified in completed_lines | Satisfied | test_session_handoff.py:47 |
+| m-3: empty Files section raises with "empty" | Satisfied | commit.py:116-118 + test_session_commit.py:107-110 |
+| m-4: explicit assertion replaces dead-code fallback | Satisfied | commit_pipeline.py:334 |
+| m-5: single-space passes, prev_was_hint stays True | Satisfied | commit_pipeline.py:203-208 + test_session_commit_pipeline.py:121-127 |
+| m-6: render.py imports ParsedTask from session.parse | Satisfied | render.py:7; parse.py re-exports via __all__ |
+
+**S-4 Verification**: `parse.py` imports `ParsedTask` from `claudeutils.validation.task_parsing` at line 13 and includes it in `__all__` at line 21. Re-export is present and correct.
 
 ---
 
 ## Positive Observations
 
-- m-2 collapsed test is stronger than the original: asserts all fields (files, options, submodule dict key and message body, parent message and body) in one parse from the shared fixture, vs. one field per case in the parametrized form
-- m-4 test structure mirrors `test_commit_just_lint` exactly, making the combination-option coverage immediately legible by comparison
-- All docstring summaries comply with the ≤70-char content constraint (m-2: 64 chars, m-4: 43 chars)
-- m-1 replacement is more specific than a substring check: verifies the first-line prefix character (`[`), making the "no label prefix" intent explicit in the assertion itself
-- m-5 and m-6 pins surface the actual emitted strings in the assertion, removing the case-folding and substring indirection that masked the exact contract
+- `_strip_hints` inner if/else comments (`# tab/double-space = continuation, filter` and `# single-space: pass through but keep hint context`) make the intent explicit without over-explaining.
+- The `assert ci.message is not None or no_edit` pattern correctly documents an invariant rather than silently masking unreachable code. The assertion is self-documenting: the condition mirrors the logic in `_validate_inputs` exactly.
+- `test_parse_commit_empty_files_raises` correctly exists as a standalone test function rather than an additional case inside `test_parse_commit_input_edge_cases`, keeping the new validation path clearly named and independently runnable.
+- All docstring content in new tests is within the ≤70-char constraint required by docformatter.

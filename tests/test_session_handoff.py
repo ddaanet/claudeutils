@@ -44,6 +44,7 @@ def test_parse_handoff_input() -> None:
     assert result.status_line == "Design Phase A complete — outline reviewed."
     assert len(result.completed_lines) > 0
     assert any("Produced outline" in line for line in result.completed_lines)
+    assert any("**Handoff CLI tool design" in line for line in result.completed_lines)
 
 
 def test_parse_handoff_missing_status() -> None:

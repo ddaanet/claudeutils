@@ -119,3 +119,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Delta-scoping re-reviews (reviewing only changes since last review) to save tokens. Each round inherits blind spots of all prior rounds. Findings missed in round N remain undetected in rounds N+1, N+2, etc.
 - Correct pattern: Full-scope every time. The cost of re-reading unchanged code is lower than the cost of accumulating undetected findings across rounds.
 - Evidence: Rounds 1 and 2 both ran full-scope reviews but missed 2M+6m findings. RC3 Layer 1 agents (also full-scope) caught them. Delta-scoping RC3 would have missed them a third time.
+
+## When dispatching corrector review from /inline
+- Anti-pattern: Dispatching `superpowers:code-reviewer` (PR review toolkit) for post-execution corrector review. That agent is for PR reviews, not inline execution quality gates.
+- Correct pattern: /inline Phase 4a routing table (review-requirement.md) says code/tests → `corrector` (subagent_type="corrector"). Use it directly — it's a fix-capable reviewer that writes reports and applies fixes.
+- Evidence: User rejected `superpowers:code-reviewer` dispatch during RC8 fix /inline Phase 4a.

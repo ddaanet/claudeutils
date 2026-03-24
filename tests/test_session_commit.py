@@ -98,10 +98,16 @@ def test_parse_commit_input_edge_cases() -> None:
     assert "no-edit" in result.options
 
     # no-edit with ## Message present → error (contradictory)
-    with pytest.raises(CommitInputError):
+    with pytest.raises(CommitInputError, match="no-edit contradicts"):
         parse_commit_input(
             "## Files\n- f.py\n\n## Options\n- amend\n- no-edit\n\n## Message\n> msg\n"
         )
+
+
+def test_parse_commit_empty_files_raises() -> None:
+    """## Files section with no entries raises CommitInputError."""
+    with pytest.raises(CommitInputError, match="empty"):
+        parse_commit_input("## Files\n\n## Message\n> msg\n")
 
 
 def test_parse_commit_no_options() -> None:

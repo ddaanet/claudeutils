@@ -1,21 +1,22 @@
 # Session Handoff: 2026-03-24
 
-**Status:** RC8 deliverable review complete (0C/0M/6m). Fix task queued.
+**Status:** RC8 fix complete (0C/0M/0m from corrector). Deliverable review queued.
 
 ## Completed This Session
 
-**Handoff-cli RC8 deliverable review:**
-- Three Layer 1 opus agents (code, test, prose+config) + Layer 2 interactive cross-cutting
-- RC7 fixes: 6/6 verified fixed
-- New findings: 0C/0M/6m — 2 test specificity, 3 code robustness, 1 cross-cutting consistency
-- Code agent found 5 minors; 2 dropped during Layer 2 consolidation (step_reached: carry-forward from RC5; STATE_FILE: conforms to spec)
-- Lifecycle updated, fix task created
+**Fix handoff-cli RC8 (6m findings):**
+- m-1: `match="no-edit contradicts"` added to bare pytest.raises (test_session_commit.py:101)
+- m-2: heading assertion added to test_parse_handoff_input (test_session_handoff.py:47)
+- m-3: empty Files section validation + TDD cycle (commit.py `_validate` + new test)
+- m-4: `assert ci.message is not None or no_edit` replaces dead `or ""` (commit_pipeline.py:334)
+- m-5: `_strip_hints` fix via TDD — single-space passes through, `prev_was_hint` stays True so subsequent double-space lines still filtered (commit_pipeline.py:203-208 + test)
+- m-6: `ParsedTask` import fixed to `claudeutils.session.parse` in render.py:7
+- Corrector review: 0C/0M/0m — all 6 findings verified satisfied
 
 ## In-tree Tasks
 
 - [x] **Handoff-cli RC8** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [ ] **Fix handoff-cli RC8** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
-  - Plan: handoff-cli-tool | 0C/0M/6m — 2 test specificity, 3 code robustness, 1 cross-cutting consistency
+- [x] **Fix handoff-cli RC8** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -24,6 +25,7 @@
 
 ## Worktree Tasks
 
+- [ ] **Handoff-cli RC9** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
 - [ ] **Planstate disambiguation** — `/design plans/planstate-disambiguation/brief.md` | sonnet
 - [ ] **Historical proof feedback** — `/design plans/historical-proof-feedback/brief.md` | sonnet
   - Prerequisite: updated proof skill integrated in all worktrees
@@ -48,7 +50,7 @@
 
 ## Blockers / Gotchas
 
-**Learnings at soft limit (111 lines):**
+**Learnings at soft limit (122 lines):**
 - `/codify` overdue — next session should consolidate older learnings
 
 **pretooluse-recall-check hook regex:**
@@ -57,11 +59,9 @@
 ## Reference Files
 
 - `plans/handoff-cli-tool/reports/deliverable-review.md` — RC8 findings (0C/0M/6m)
-- `plans/handoff-cli-tool/reports/deliverable-review-code.md` — Layer 1 code review
-- `plans/handoff-cli-tool/reports/deliverable-review-test.md` — Layer 1 test review
-- `plans/handoff-cli-tool/reports/deliverable-review-prose.md` — Layer 1 prose+config review
+- `plans/handoff-cli-tool/reports/review.md` — RC8 fix corrector review (0C/0M/0m)
 - `plans/handoff-cli-tool/lifecycle.md` — Full lifecycle through RC8
 
 ## Next Steps
 
-Fix RC8 findings via `/design plans/handoff-cli-tool/reports/deliverable-review.md`. Trend: 0C/0M stable across 3 rounds, minors shifting from test-only to mixed code+test.
+Run deliverable review for handoff-cli-tool (RC9 round) via `/deliverable-review plans/handoff-cli-tool` — verify RC8 fix is complete with 0 findings.

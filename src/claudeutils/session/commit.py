@@ -113,6 +113,10 @@ def _validate(
         msg = "Missing required section: ## Files"
         raise CommitInputError(msg)
 
+    if not files:
+        msg = "## Files section is empty"
+        raise CommitInputError(msg)
+
     if "no-edit" in options and "amend" not in options:
         msg = "no-edit requires amend option"
         raise CommitInputError(msg)
