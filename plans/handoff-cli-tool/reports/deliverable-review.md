@@ -1,4 +1,4 @@
-# Deliverable Review: handoff-cli-tool (RC7)
+# Deliverable Review: handoff-cli-tool (RC8)
 
 **Date:** 2026-03-24
 **Methodology:** agents/decisions/deliverable-review.md
@@ -9,23 +9,23 @@
 | Type | Files | + | - | Net |
 |------|-------|---|---|-----|
 | Code | 26 | +1733 | -95 | +1638 |
-| Test | 20 | +3486 | -59 | +3427 |
+| Test | 20 | +3513 | -59 | +3454 |
 | Agentic prose | 2 | +9 | -6 | +3 |
 | Configuration | 2 | +2 | -2 | +0 |
-| **Total** | **50** | **+5230** | **-162** | **+5068** |
+| **Total** | **50** | **+5257** | **-162** | **+5095** |
 
-### RC6 Finding Verification
+### RC7 Finding Verification
 
-| RC6 Finding | Status | Evidence |
+| RC7 Finding | Status | Evidence |
 |-------------|--------|----------|
-| M-1 (`_split_sections` `in_message` test) | FIXED | test_session_commit.py:142-159 — asserts section names `== ["Files", "Message"]` and `## Not a section` in Message body |
-| m-1 (`git log` confirmation) | FIXED | test_session_commit_cli.py:39-46 — `subprocess.run(["git", "log", "--oneline", "-1"])` |
-| m-2 (submodule assertion tightened) | FIXED | test_session_handoff_cli.py:234 — `"## Submodule: agent-core"` |
-| m-3 (multi-submodule order test) | FIXED | test_session_commit_pipeline_ext.py:332-393 — alpha/beta submodules |
-| m-4 (redundant checkbox removed) | FIXED | render.py:45 — condition is `first_eligible and task.worktree_marker is None` |
-| m-5 (`ParsedTask` import aligned) | FIXED | test_session_status.py:11 — `from claudeutils.session.parse import ParsedTask` |
+| m-1: Vacuous disjunction in commit_format test | FIXED | test_session_commit_format.py:21 — `output.split("\n")[0].startswith("[")` |
+| m-2: Four parametrize cases → combined assertion | FIXED | test_session_commit.py:50-67 — single `test_parse_commit_input` asserting all fields |
+| m-3: `ParsedTask` import path inconsistency | FIXED | test_status_rework.py:11 — `from claudeutils.session.parse import ParsedTask` |
+| m-4: Missing `just-lint` + `no-vet` combination test | FIXED | test_session_commit_validation.py:259-291 — `test_commit_just_lint_no_vet` |
+| m-5: Imprecise "clean" assertion | FIXED | test_git_cli.py:83 — `"Tree is clean." in result.output` |
+| m-6: Imprecise "Git status" assertion | FIXED | test_session_handoff_cli.py:90 — `"**Git status:**" in result.output` |
 
-6 of 6 RC6 findings verified fixed.
+6 of 6 RC7 findings verified fixed.
 
 ## Critical Findings
 
@@ -37,32 +37,36 @@ None.
 
 ## Minor Findings
 
-### Test Quality
+### Test Specificity
 
-1. **m-1: Format test vacuous disjunction** (test_session_commit_format.py:21, vacuity)
-   - `assert ":" not in output.split("\n")[0] or "a7f38c2]" in output` — second disjunct is always true by construction (fixture includes that hash). Intended check (no submodule label prefix on first line) is masked.
+1. **m-1: Bare `pytest.raises` without match** (test_session_commit.py:101, specificity)
+   - `pytest.raises(CommitInputError)` for no-edit + Message contradiction case lacks `match=` parameter. All other raises in `test_parse_commit_input_edge_cases` use `match=` to verify the error reason. This case passes on any `CommitInputError`, not specifically the contradictory-options check.
 
-2. **m-2: Parametrize over shared fixture** (test_session_commit.py:50-75, excess)
-   - Four parametrize cases all parse the same `COMMIT_INPUT_FIXTURE`, each checking one field. A single test asserting all fields would be equivalent. Parametrization suggests independence that doesn't exist.
+2. **m-2: Heading format not verified in handoff parse test** (test_session_handoff.py:45-46, specificity)
+   - `test_parse_handoff_input` asserts `len(result.completed_lines) > 0` and `any("Produced outline" in line ...)`. Does not verify the `### Handoff CLI tool design (Phase A)` heading line is present, despite H-1/H-2 specifying `### ` headings in completed entries.
 
-3. **m-3: `ParsedTask` import path inconsistency** (test_status_rework.py:13, consistency)
-   - Imports from `claudeutils.validation.task_parsing` while test_session_status.py:11 and test_session_parser.py:7 use `claudeutils.session.parse` (the S-4 public interface). Residual from RC6 m-5 fix scope.
+### Code Robustness
 
-4. **m-4: No test for `just-lint` + `no-vet` combination** (test_session_commit_validation.py, completeness)
-   - Design C-4 specifies orthogonal options including combined `just-lint` + `no-vet`. Individual option tests exist; the specific combination has no dedicated test. Implicit coverage via orthogonality.
+3. **m-3: Empty `## Files` section not rejected** (src/claudeutils/session/commit.py:38-40, robustness)
+   - `_parse_files` returns `[]` for a `## Files` section with no `- path` entries. `_validate` checks `files is None` but not `files == []`. Empty list passes through pipeline to `git commit` which fails with opaque "nothing to commit" error. Explicit empty-list check with clear error message would be more informative.
 
-5. **m-5: Imprecise "clean" assertion** (test_git_cli.py:83, specificity)
-   - `assert "clean" in result.output.lower()` matches any output containing "clean." Implementation emits `"Tree is clean."` — a pinned assertion would catch format regressions.
+4. **m-4: `ci.message or ""` fallback masks unreachable state** (src/claudeutils/session/commit_pipeline.py:336, robustness)
+   - `_git_commit(ci.message or "", ...)` passes empty string when `ci.message is None` and `no_edit is False`. The `_validate_inputs` guard at line 262 prevents this path, but the `or ""` fallback silently masks what should be an impossible state. An assertion would make the invariant explicit.
 
-6. **m-6: Imprecise "Git status" assertion** (test_session_handoff_cli.py:90, specificity)
-   - `assert "Git status" in result.output` — substring of actual `"**Git status:**"`. Adequate but not pinned.
+5. **m-5: `_strip_hints` fragile continuation detection** (src/claudeutils/session/commit_pipeline.py:204, robustness)
+   - Hint continuation detection uses nested condition: tab or double-space after a hint line is treated as continuation. Single-space-prefixed non-double-spaced lines break detection. Edge case unlikely in practice (git hint output uses consistent indentation), but the logic is fragile.
+
+### Cross-Cutting Consistency
+
+6. **m-6: `ParsedTask` import bypasses S-4 interface in render.py** (src/claudeutils/session/status/render.py:7, consistency)
+   - Imports `ParsedTask` from `claudeutils.validation.task_parsing` instead of `claudeutils.session.parse`. The sibling `status/cli.py:14` correctly imports from `session.parse`. The S-4 parser re-exports `ParsedTask` as its public interface. Same class as RC7 m-3 (which fixed the identical pattern in test code) — now identified in production code.
 
 ### Carried Forward (not counted)
 
-- `step_reached` vestigial (RC5 m-2, accepted — idempotent replay is safe)
-- Pipeline ordering deviation: staging before precommit (RC5 m-3, accepted — required for precommit to see staged state)
+- `step_reached` vestigial in HandoffState (RC5 m-2, accepted — idempotent replay is safe)
+- Pipeline ordering: staging before precommit (RC5 m-3, accepted — required for precommit to see staged state)
 - `→ wt` marker not detected by `WORKTREE_MARKER_PATTERN` (pre-existing parser limitation)
-- `SESSION_FIXTURE` defined after first usage (pre-existing quality issue)
+- `SESSION_FIXTURE` defined after first usage in test_session_status.py (pre-existing quality issue, not plan-introduced)
 
 ## Gap Analysis
 
@@ -75,7 +79,7 @@ None.
 | S-5: Git changes utility | Covered | git_cli.py with submodule-aware output |
 | H-1: Domain boundaries | Covered | CLI writes status + completed only |
 | H-2: Committed detection | Covered | Uniform overwrite |
-| H-3: Diagnostic output | Covered | Unconditional after RC5 fix |
+| H-3: Diagnostic output | Covered | Unconditional after writes |
 | H-4: State caching | Covered | step_reached vestigial but safe |
 | C-1: Scripted vet check | Covered | Patterns + reports with cwd propagation |
 | C-2: Submodule coordination | Covered | Partition, validate, commit-first |
@@ -91,14 +95,14 @@ None.
 
 ## Summary
 
-| Severity | Count | Delta from RC6 |
+| Severity | Count | Delta from RC7 |
 |----------|-------|----------------|
 | Critical | 0 | 0 (unchanged) |
-| Major | 0 | -1 (RC6 M-1 resolved) |
-| Minor | 6 | +1 (RC6: 5m resolved, 6 new m) |
+| Major | 0 | 0 (unchanged) |
+| Minor | 6 | 0 (RC7: 6m resolved, 6 new m) |
 
-**RC6 fixes:** 6 of 6 findings verified fixed. All Majors resolved.
+**RC7 fixes:** 6 of 6 findings verified fixed.
 
-**New minors:** Test specificity (m-1, m-5, m-6), style (m-2, m-3), and one design-combination gap (m-4). All are at the test-quality level — no code or behavioral issues found.
+**New minors:** 2 test specificity (m-1, m-2), 3 code robustness (m-3, m-4, m-5), 1 cross-cutting consistency (m-6). Code robustness findings are defensive — no functional correctness issues, all edge cases. The consistency finding (m-6) is the production-code equivalent of the RC7 m-3 test fix.
 
-**Trend:** RC4 2M/9m → RC5 2M/10m → RC6 1M/5m → RC7 0C/0M/6m. Zero Critical and Major findings across two consecutive rounds. Minor count stable at test-quality level.
+**Trend:** RC4 2M/9m → RC5 2M/10m → RC6 1M/5m → RC7 0C/0M/6m → RC8 0C/0M/6m. Zero Critical and Major across three consecutive rounds. Minor count stable at 6 but composition shifted from test-only to mixed (code + test + cross-cutting).
