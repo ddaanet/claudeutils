@@ -1,26 +1,25 @@
 # Session Handoff: 2026-03-24
 
-**Status:** RC9 deliverable review complete — 0C/1M/10m. Fix task queued.
+**Status:** Fix handoff-cli RC9 complete — 1M/10m fixed, corrector clean (0C/0M/0m new findings).
 
 ## Completed This Session
 
-**Handoff-cli RC9 deliverable review:**
-- All 6 RC8 findings verified fixed (m-1 through m-6)
-- Layer 1: three opus agents (code, test, prose+config) — reports in plans/handoff-cli-tool/reports/
-- Layer 2: cross-cutting confirmed M-1 — `vet_check` at commit_gate.py:159 uses `Path(f).exists()` ignoring `cwd` param; every other call site in same function passes `cwd` correctly
-- New findings: 0C/1M/10m
-  - M-1: vet_check freshness check silently passes when cwd differs from process cwd
-  - m-1..m-6: bare pytest.raises without match, redundant len>0 assertions, fixture format mismatch
-  - m-7..m-10: vestigial step_reached, hardcoded agent-core patterns, missing docstring warning, unconditional parent output append
-- Lifecycle: reviewed (line 21); report: plans/handoff-cli-tool/reports/deliverable-review.md
+**Fix handoff-cli RC9 (all findings):**
+- M-1: `vet_check` path resolution — `Path(f).exists()` → `(Path(cwd or ".") / f).exists()` at commit_gate.py:164-165; TDD RED/GREEN confirmed
+- m-10: `format_commit_output` parent_output empty guard — `if parent_output:` before append at commit_pipeline.py:234; TDD RED/GREEN confirmed
+- m-1..m-3: `match=` added to three bare `pytest.raises` (CleanFileError, SessionFileError, CalledProcessError)
+- m-4/m-5: redundant `len(…) > 0` assertions removed (test_session_handoff.py, test_session_parser.py)
+- m-6: `HANDOFF_INPUT_FIXTURE` updated from bold-colon to `### ` heading format; assertion updated
+- m-7: `HandoffState.step_reached` vestigial field removed; dead test removed; zero grep matches in src/tests
+- m-9: `_git_output` docstring extended with porcelain-safety warning (42 content chars, D205-safe)
+- m-8: deferred per outline.md C-1 (submodule config model) — tracked in plans/submodule-vet-config
+- Corrector review (plans/handoff-cli-tool/reports/review.md): 0C/0M/0m new findings; all 10 fixable items verified
 
 ## In-tree Tasks
 
-- [x] **Handoff-cli RC8** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [x] **Fix handoff-cli RC8** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
-- [x] **Handoff-cli RC9** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [ ] **Fix handoff-cli RC9** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
+- [x] **Fix handoff-cli RC9** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
   - Plan: handoff-cli-tool | Status: reviewed
+- [ ] **Handoff-cli RC10** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -53,7 +52,7 @@
 
 ## Blockers / Gotchas
 
-**Learnings at soft limit (122 lines):**
+**Learnings at soft limit (126 lines):**
 - `/codify` overdue — next session should consolidate older learnings
 
 **pretooluse-recall-check hook regex:**
@@ -61,10 +60,9 @@
 
 ## Reference Files
 
-- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC9 findings (0C/1M/10m)
-- `plans/handoff-cli-tool/reports/deliverable-review-code.md` — Layer 1 code agent report
-- `plans/handoff-cli-tool/reports/deliverable-review-test.md` — Layer 1 test agent report
+- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC9 findings (0C/1M/10m), now all resolved
+- `plans/handoff-cli-tool/reports/review.md` — RC9 fix corrector review (0C/0M/0m)
 
 ## Next Steps
 
-Run `/design plans/handoff-cli-tool/reports/deliverable-review.md` to address RC9 findings — M-1 (vet_check cwd bug) is the priority, followed by the 10 minors.
+Run `/deliverable-review plans/handoff-cli-tool` (RC10) to verify fix quality — M-1 path resolution and m-10 conditional guard are the primary targets.
