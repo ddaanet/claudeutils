@@ -32,7 +32,12 @@ def _git_output(
     *args: str,
     cwd: Path | None = None,
 ) -> str:
-    """Run git command and return stdout."""
+    """Run git command and return stripped stdout.
+
+    Warning: `.strip()` destroys leading spaces in porcelain XY format.
+    Do not use for ``git status --porcelain`` output — use raw
+    ``result.stdout.splitlines()`` instead.
+    """
     result = subprocess.run(
         ["git", *args],
         cwd=cwd,

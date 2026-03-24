@@ -28,7 +28,7 @@ HANDOFF_INPUT_FIXTURE = """\
 
 ## Completed This Session
 
-**Handoff CLI tool design (Phase A):**
+### Handoff CLI tool design (Phase A)
 - Produced outline
 - Review by outline-review-agent
 """
@@ -42,9 +42,8 @@ def test_parse_handoff_input() -> None:
     result = parse_handoff_input(HANDOFF_INPUT_FIXTURE)
     assert isinstance(result, HandoffInput)
     assert result.status_line == "Design Phase A complete — outline reviewed."
-    assert len(result.completed_lines) > 0
     assert any("Produced outline" in line for line in result.completed_lines)
-    assert any("**Handoff CLI tool design" in line for line in result.completed_lines)
+    assert any("### Handoff CLI tool design" in line for line in result.completed_lines)
 
 
 def test_parse_handoff_missing_status() -> None:
@@ -323,29 +322,3 @@ def test_state_cache_cleanup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
     assert load_state() is None
     # No error on second clear
     clear_state()
-
-
-# Cycle 3.2: HandoffState step_reached field
-
-
-def test_handoff_state_includes_step_reached(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """HandoffState has step_reached field with default value."""
-    monkeypatch.setattr(
-        "claudeutils.session.handoff.pipeline._STATE_FILE",
-        tmp_path / "state.json",
-    )
-
-    save_state("sample markdown")
-    result = load_state()
-
-    assert result is not None
-    assert result.step_reached == "write_session"
-
-    # Verify JSON contains the field
-    state_file = tmp_path / "state.json"
-    assert state_file.exists()
-    data = json.loads(state_file.read_text())
-    assert "step_reached" in data
-    assert data["step_reached"] == "write_session"

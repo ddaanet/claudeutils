@@ -23,7 +23,7 @@ def test_git_commit_raises_on_failure(tmp_path: Path) -> None:
     """_git_commit raises CalledProcessError on non-zero exit."""
     _init_repo(tmp_path)
     # Nothing staged — git commit will exit 1
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(subprocess.CalledProcessError, match="non-zero exit status"):
         _git_commit("nothing to commit", cwd=tmp_path)
 
 

@@ -54,7 +54,6 @@ def test_parse_session_sections(section_key: str) -> None:
     elif section_key == "completed":
         lines = parse_completed_section(SESSION_MD_FIXTURE)
         assert isinstance(lines, list)
-        assert len(lines) > 0
         assert any("Extracted git helpers" in line for line in lines)
 
     elif section_key == "in_tree_tasks":
@@ -144,7 +143,7 @@ def test_parse_session(tmp_path: Path) -> None:
 
 def test_parse_session_missing_file(tmp_path: Path) -> None:
     """parse_session() raises SessionFileError for nonexistent file."""
-    with pytest.raises(SessionFileError):
+    with pytest.raises(SessionFileError, match="not found"):
         parse_session(tmp_path / "nonexistent.md")
 
 

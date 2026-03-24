@@ -254,7 +254,7 @@ def test_validate_files_amend(tmp_path: Path) -> None:
         check=True,
         capture_output=True,
     )
-    with pytest.raises(CleanFileError):
+    with pytest.raises(CleanFileError, match="no uncommitted changes"):
         validate_files(["src/bar.py"], cwd=tmp_path, amend=True)
 
 
