@@ -1,47 +1,31 @@
-# Code Deliverable Review: handoff-cli-tool (RC9)
+# Code Review: handoff-cli-tool (RC10 Layer 1)
 
-## RC8 Finding Verification
+## RC9 Fix Verification
 
-| Finding | Status | Evidence |
-|---------|--------|----------|
-| m-3: Empty Files section not rejected | FIXED | commit.py:116-118 — `if not files: raise CommitInputError("## Files section is empty")` added after the `files is None` check |
-| m-4: ci.message or "" fallback | FIXED | commit_pipeline.py:334 — `assert ci.message is not None or no_edit` replaces dead `or ""` fallback; upstream guard at line 262 returns error if `ci.message is None and not no_edit` |
-| m-5: _strip_hints fragile detection | FIXED | commit_pipeline.py:203-208 — now distinguishes tab/double-space (continuation, filtered) from single-space (passes through via `result.append(line)`, `prev_was_hint` stays True so subsequent double-space lines still filtered) |
-| m-6: ParsedTask import in render.py | FIXED | render.py:7 — `from claudeutils.session.parse import ParsedTask` (re-exported from parse.py:13,21 via `claudeutils.validation.task_parsing`) |
+**M-1 VERIFIED** — commit_gate.py:164-165 — `root = Path(cwd or ".")` and `matched_paths = [root / f for f in matched if (root / f).exists()]`. Path resolution now correctly threads `cwd` parameter.
 
-All 4 code-relevant RC8 findings verified fixed.
+**m-7 VERIFIED** — handoff/pipeline.py:15-19 — `HandoffState` dataclass has only `input_markdown` and `timestamp` fields. No trace of `step_reached` in any `grep` across src/tests.
 
-## New Findings
+**m-8 CARRIED** (by design) — commit_gate.py:143 — `_AGENT_CORE_PATTERNS` hardcoded. Deferred per outline C-1.
 
-### Critical
+**m-9 VERIFIED** — commit_gate.py:34-39 — `_git_output` docstring now includes: "Warning: `.strip()` destroys leading spaces in porcelain XY format. Do not use for ``git status --porcelain`` output — use raw ``result.stdout.splitlines()`` instead."
 
-None
+**m-10 VERIFIED** — commit_pipeline.py:234 — `if parent_output:` guard prevents appending empty string.
 
-### Major
+## Findings
 
-**M-1: `vet_check` path existence checked against process cwd, not repo cwd** — commit_gate.py:159
-- Axis: robustness
-- `matched_paths = [Path(f) for f in matched if Path(f).exists()]` resolves relative to the process working directory, not the `cwd` parameter passed to `vet_check`. When `cwd` differs from process cwd (e.g., tests, submodule contexts), the existence check evaluates against the wrong directory. Should be `(Path(cwd or ".") / f).exists()`. The same `cwd` is correctly threaded to `_load_review_patterns(cwd)`, `_find_reports(cwd)`, and `_dirty_files(cwd)` — this line is the exception.
-- Impact: When all matched files are relative paths that don't exist at process cwd, `matched_paths` becomes empty and `vet_check` returns `passed=True`, silently skipping the freshness check.
+[M] handoff/pipeline.py:44-45 — robustness — `load_state()` uses `HandoffState(**data)` to deserialize state files. After m-7 removed the `step_reached` field from `HandoffState`, any pre-existing state file written before the fix (containing `step_reached`) will crash with `TypeError: HandoffState.__init__() got an unexpected keyword argument 'step_reached'`. State files persist across sessions in `tmp/.handoff-state.json`. Fix: filter `data` to known fields before unpacking, or use a try/except that clears corrupt state.
 
-### Minor
+[m] commit_pipeline.py:269-273 — error signaling — When `validate_files` raises `CleanFileError` for submodule files (line 273), the error message contains paths relative to the submodule root (e.g., `fragments/foo.md` instead of `agent-core/fragments/foo.md`). The `_partition_by_submodule` function strips the submodule prefix at line 107. The calling agent sees clean-file paths without context about which repo they belong to.
 
-**m-1: `step_reached` stored but never read during resume** — handoff/pipeline.py:20, handoff/cli.py:46-52
-- Axis: conformance (H-4)
-- Carried from RC8 m-2. `HandoffState.step_reached` is set to `"write_session"` but the resume path re-runs the full pipeline regardless. Functionally safe (writes are idempotent), but the field is vestigial — either honor it or remove it.
+[m] handoff/pipeline.py:75 — robustness — `overwrite_status` builds a regex replacement string: `r"\g<1>\n**Status:** " + status_text + r"\n\g<3>"`. If `status_text` contains regex backreference patterns (e.g., `\g<1>` or `\1`), `re.subn` would interpret them during substitution. While unlikely in practice, status text originates from user-written handoff input. Fix: use a function replacement callback instead of string replacement to avoid interpretation.
 
-**m-2: `_AGENT_CORE_PATTERNS` hardcoded** — commit_gate.py:138
-- Axis: modularity
-- Carried from RC8 m-4 (reworded). Hardcoded `["agent-core/bin/**", "agent-core/skills/**/*.sh"]` will break if the submodule is renamed. Outline C-1 explicitly defers config model for submodule patterns.
+[m] git_cli.py:32 — functional correctness — `_build_repo_section` concatenates `header + "\n\n".join(parts)`. When only one part exists (status without diff, or diff without status), the output has no `\n\n` separator — correct. But when `header` is `"## Parent\n"` and both status and diff exist, the output is `"## Parent\nstatus...\n\ndiff..."`. The heading's trailing `\n` runs directly into status text with no blank line between heading and content. Minor formatting inconsistency — markdown renderers may not separate them clearly.
 
-**m-3: `_git_output` in commit_gate.py lacks porcelain warning** — commit_gate.py:31-43
-- Axis: robustness
-- `_git_output` strips stdout like `git.py:_git`, but unlike `_git` it has no docstring warning about porcelain format destruction. Currently only used for `diff-tree` (safe to strip), but the missing warning invites misuse.
+[m] session/status/render.py:118 — robustness — `_build_dependency_edges` joins all blocker groups into one string and checks whether two task names both appear anywhere in it. Two tasks mentioned in completely unrelated blocker entries would be falsely marked as dependent. Per ST-1 the spec says "no logical dependency (Blockers/Gotchas)" — the current check is overly conservative but functionally safe (prevents parallel execution that might be safe, never allows parallel execution that isn't).
 
-**m-4: `format_commit_output` trailing element when parent_output is empty** — commit_pipeline.py:234
-- Axis: functional correctness
-- `parts.append(_strip_hints(parent_output))` unconditionally appends the parent output. When `parent_output` is empty string (which shouldn't happen in normal flow since parent commit always produces output), this appends an empty element, producing a trailing newline in the joined result.
+[m] session/status/cli.py:67 — robustness — `list_plans(Path("plans"))` uses a relative path. If the process cwd differs from the project root, this resolves to the wrong directory. The session file path uses `CLAUDEUTILS_SESSION_FILE` env var (line 51) and `_is_dirty()` uses no `cwd` parameter (line 76). All three assume process cwd equals project root — consistent assumption but not defensively coded.
 
 ## Summary
 
-0 critical, 1 major, 4 minor
+0 critical, 1 major, 5 minor

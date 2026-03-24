@@ -1,73 +1,61 @@
-# Test Deliverable Review: handoff-cli-tool (RC9)
+# Test Review: handoff-cli-tool (RC10 Layer 1)
 
 **Date:** 2026-03-24
-**Scope:** 20 test files, test-only review
+**Scope:** 21 test files, full-scope review
 **Axes:** conformance, functional correctness, functional completeness, vacuity, excess, specificity, coverage, independence
 
-## RC8 Finding Verification
+## RC9 Fix Verification
 
-| Finding | Status | Evidence |
-|---------|--------|----------|
-| m-1: Bare pytest.raises without match (test_session_commit.py:101) | FIXED | test_session_commit.py:101 — `pytest.raises(CommitInputError, match="no-edit contradicts")` |
-| m-2: Heading not verified in parse test (test_session_handoff.py:45-46) | FIXED | test_session_handoff.py:47 — `assert any("**Handoff CLI tool design" in line for line in result.completed_lines)` verifies heading entry presence |
+| Finding | Status | File:Line | Evidence |
+|---------|--------|-----------|----------|
+| m-1: `match=` added to bare `pytest.raises(CleanFileError)` | VERIFIED | test_session_commit.py:257 | `pytest.raises(CleanFileError, match="no uncommitted changes")` |
+| m-2: `match=` added to bare `pytest.raises(SessionFileError)` | VERIFIED | test_session_parser.py:146 | `pytest.raises(SessionFileError, match="not found")` |
+| m-3: `match=` added to bare `pytest.raises(CalledProcessError)` | VERIFIED | test_commit_pipeline_errors.py:26 | `pytest.raises(subprocess.CalledProcessError, match="non-zero exit status")` |
+| m-4: Redundant `len(…) > 0` removed from test_session_handoff.py | VERIFIED | test_session_handoff.py | No `len(...) > 0` patterns in file |
+| m-5: Redundant `len(…) > 0` removed from test_session_parser.py | REGRESSION | test_session_parser.py:138 | `assert len(data.completed) > 0` still present |
+| m-6: `HANDOFF_INPUT_FIXTURE` updated to `### ` heading format | VERIFIED | test_session_handoff.py:31 | Uses `### Handoff CLI tool design (Phase A)` |
 
-2 of 2 test-relevant RC8 findings verified fixed.
+5 of 6 RC9 test fixes verified. 1 regression: m-5 not applied.
 
-## New Findings
-
-### Critical
-
-None.
-
-### Major
-
-None.
+## Findings
 
 ### Minor
 
-1. **m-1: Bare `pytest.raises(CleanFileError)` without match** (test_session_commit.py:257, specificity)
-   - `test_validate_files_amend` second raises block uses `pytest.raises(CleanFileError)` without `match=`. The first CleanFileError test at line 217 correctly uses `exc_info` to verify content. This bare raises passes on any CleanFileError regardless of whether it's the "amend but not in HEAD" variant or the standard "clean file" variant.
+[m-1] test_session_parser.py:138 — vacuity — `assert len(data.completed) > 0` is redundant. Subsequent assertion at line 139 (`data.in_tree_tasks[0].name == "Build parser"`) exercises the parsed data; the `any(...)` pattern used elsewhere is more specific. RC9 m-5 fix did not land.
 
-2. **m-2: Bare `pytest.raises(SessionFileError)` without match** (test_session_parser.py:147, specificity)
-   - `test_parse_session_missing_file` uses bare `pytest.raises(SessionFileError)` without `match=`. Passes on any SessionFileError, not specifically a "file not found" error.
+[m-2] test_session_commit.py:217 — specificity — `pytest.raises(CleanFileError) as exc_info:` without `match=`. The test performs subsequent manual assertions on `err.clean_files` and `str(err)`, so it is not truly bare — but it lacks the `match=` pattern applied to the sibling at line 257 (RC9 m-1 fix). Bare raises without `match=` would pass on any CleanFileError, though the manual assertions mitigate this. Same class as prior m-1/m-2/m-3 findings, missed across 9 prior rounds.
 
-3. **m-3: Bare `pytest.raises(subprocess.CalledProcessError)` without match** (test_commit_pipeline_errors.py:26, specificity)
-   - `test_git_commit_raises_on_failure` catches any CalledProcessError. While the error source is narrow (git commit with nothing staged), a `match=` or exit code check would pin the expected failure mode.
+[m-3] test_worktree_merge_errors.py:83 — specificity — `pytest.raises(subprocess.CalledProcessError) as exc_info:` without `match=`. Same pattern as the CalledProcessError fixed in test_commit_pipeline_errors.py. The manual assertion on `exc_info.value.stderr` provides some specificity, but `match=` would fail faster on wrong exception cause.
 
-4. **m-4: Redundant `len(...) > 0` assertion** (test_session_handoff.py:45, vacuity)
-   - `assert len(result.completed_lines) > 0` is redundant — the subsequent `any(...)` assertions on lines 46-47 already imply non-empty. Should assert a specific expected count or be removed.
+[m-4] test_session_status.py:280-298 — conformance — `SESSION_FIXTURE` module constant defined after its first usage at line 253. Forward reference works in Python but violates conventional top-of-module placement for test fixtures. Carried from RC8/RC9 (previously noted as "not counted").
 
-5. **m-5: Redundant `len(...) > 0` assertion** (test_session_parser.py:57, vacuity)
-   - `assert len(lines) > 0` in `test_parse_session_sections` completed branch — same pattern as m-4. The `any("Extracted git helpers" ...)` assertion on line 58 already implies non-empty.
+[m-5] test_session_commit_pipeline.py:121-127 — specificity — `test_strip_hints_single_space_then_double` docstring says "Double-space lines after hint stay filtered after a single-space line" but the assertion `"continuation" not in result` is ambiguous — the word "continuation" could appear in the double-space line for any reason. The test verifies behavior correctly but the assertion string could match unrelated content if the test data changed.
 
-6. **m-6: Handoff fixture uses bold-colon format, not `### ` headings** (test_session_handoff.py:31, conformance)
-   - `HANDOFF_INPUT_FIXTURE` line 31 uses `**Handoff CLI tool design (Phase A):**` (bold-colon format). Design outline.md:75 specifies "Completed entries use `### ` headings (standard markdown nesting), not bold-colon format." The `test_parse_handoff_preserves_blank_lines` test (line 70) correctly uses `### ` headings. The primary fixture should match the design-specified input format.
+[m-6] test_session_status.py:263 — coverage — `test_session_status_cli` assertion `"Next:" in result.output or "In-tree:" in result.output` is a disjunction. The design spec says `Next:` is suppressed when it duplicates the first in-tree task (single-task case not present here). The test should assert the specific expected section based on the fixture content (multi-task fixture should produce `In-tree:` with `▶` marker, not `Next:`).
 
-### Carried Forward (not counted)
-
-- `SESSION_FIXTURE` defined after first usage in test_session_status.py (RC8 m-1, pre-existing style issue)
+[m-7] test_session_integration.py:34-35 — conformance — Integration test task `**Build widget**` has command `/design plans/widget/brief.md` but there is no `plans/widget/` directory created in the test setup. The status command reads plan states from filesystem. The test passes because missing plan directories produce empty state, but this means plan state rendering is untested in the integration path.
 
 ## Summary
 
-| Severity | Count | Delta from RC8 |
-|----------|-------|----------------|
-| Critical | 0 | 0 (unchanged) |
-| Major | 0 | 0 (unchanged) |
-| Minor | 6 | +4 net (RC8 2m resolved, 6 new) |
+| Severity | Count |
+|----------|-------|
+| Critical | 0 |
+| Major | 0 |
+| Minor | 7 |
 
-**RC8 fixes:** 2 of 2 test-relevant findings verified fixed.
+**RC9 verification:** 5/6 verified, 1 regression (m-5 `len > 0` not removed from test_session_parser.py:138).
 
-**New minors:** 3 bare `pytest.raises` without `match=` (m-1 through m-3, same class as RC8 m-1 fix), 2 redundant `len > 0` assertions (m-4, m-5), 1 fixture/design conformance mismatch (m-6).
+**New findings:** 6 new minors. Two are specificity issues with bare `pytest.raises` (m-2, m-3) that prior rounds fixed in sibling locations but missed here. One is a carried-forward fixture ordering issue (m-4). Three are test quality concerns: ambiguous assertion string (m-5), disjunctive assertion weakening specificity (m-6), and missing filesystem setup weakening integration coverage (m-7).
 
 **Axes summary:**
 
 | Axis | Status |
 |------|--------|
-| Conformance | 1 minor (m-6) — primary handoff fixture format contradicts design spec |
-| Functional correctness | Pass — tests verify actual git state, not just return values |
-| Functional completeness | Pass — all design sections covered |
-| Vacuity | 2 minors (m-4, m-5) — redundant length checks |
-| Excess | Pass — no unnecessary test code |
-| Specificity | 3 minors (m-1, m-2, m-3) — bare pytest.raises without match= |
-| Coverage | Pass — critical scenarios all present |
-| Independence | Pass — no inter-test dependencies |
+| Conformance | 2 minors (m-4 fixture ordering, m-7 integration setup) |
+| Functional correctness | Pass — tests verify actual git state and command output |
+| Functional completeness | Pass — design sections (S-1 through S-5, H-1 through H-4, C-1 through C-5, ST-0 through ST-2) all have test coverage |
+| Vacuity | 1 minor (m-1 redundant len check — RC9 regression) |
+| Excess | Pass |
+| Specificity | 3 minors (m-2, m-3 bare raises; m-6 disjunctive assertion) |
+| Coverage | 1 minor (m-7 integration plan state untested) |
+| Independence | Pass — no inter-test dependencies detected |

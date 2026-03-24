@@ -1,4 +1,4 @@
-# Deliverable Review: handoff-cli-tool (RC9)
+# Deliverable Review: handoff-cli-tool (RC10)
 
 **Date:** 2026-03-24
 **Methodology:** agents/decisions/deliverable-review.md
@@ -8,24 +8,29 @@
 
 | Type | Files | + | - | Net |
 |------|-------|---|---|-----|
-| Code | 26 | +1738 | -95 | +1643 |
-| Test | 20 | +3529 | -59 | +3470 |
+| Code | 26 | +1744 | -95 | +1649 |
+| Test | 20 | +3535 | -59 | +3476 |
 | Agentic prose | 2 | +9 | -6 | +3 |
 | Configuration | 2 | +2 | -2 | +0 |
-| **Total** | **50** | **+5278** | **-162** | **+5116** |
+| **Total** | **50** | **+5290** | **-162** | **+5128** |
 
-### RC8 Finding Verification
+### RC9 Finding Verification
 
-| RC8 Finding | Status | Evidence |
+| RC9 Finding | Status | Evidence |
 |-------------|--------|----------|
-| m-1: Bare `pytest.raises` without match (test_session_commit.py:101) | FIXED | test_session_commit.py:101 — `pytest.raises(CommitInputError, match="no-edit contradicts")` |
-| m-2: Heading not verified in handoff parse test (test_session_handoff.py:47) | FIXED | test_session_handoff.py:47 — `assert any("**Handoff CLI tool design" in line ...)` |
-| m-3: Empty `## Files` section not rejected (commit.py) | FIXED | commit.py:116-118 — `if not files: raise CommitInputError("## Files section is empty")` after `files is None` check |
-| m-4: `ci.message or ""` fallback masks unreachable state (commit_pipeline.py:334) | FIXED | commit_pipeline.py:334 — `assert ci.message is not None or no_edit` replaces `or ""` |
-| m-5: `_strip_hints` fragile continuation detection (commit_pipeline.py:203-208) | FIXED | commit_pipeline.py:203-208 — single-space passes through, `prev_was_hint` stays True for subsequent filtering |
-| m-6: `ParsedTask` import from wrong module in render.py:7 | FIXED | render.py:7 — `from claudeutils.session.parse import ParsedTask` |
+| M-1: `vet_check` path resolution (commit_gate.py:164-165) | FIXED | `root = Path(cwd or ".")` and `matched_paths = [root / f ...]` |
+| m-1: Bare `pytest.raises(CleanFileError)` (test_session_commit.py:257) | FIXED | `pytest.raises(CleanFileError, match="no uncommitted changes")` |
+| m-2: Bare `pytest.raises(SessionFileError)` (test_session_parser.py:146) | FIXED | `pytest.raises(SessionFileError, match="not found")` |
+| m-3: Bare `pytest.raises(CalledProcessError)` (test_commit_pipeline_errors.py:26) | FIXED | `pytest.raises(subprocess.CalledProcessError, match="non-zero exit status")` |
+| m-4: Redundant `len(…) > 0` (test_session_handoff.py) | FIXED | No `len(...) > 0` patterns in file |
+| m-5: Redundant `len(…) > 0` (test_session_parser.py:57) | FIXED | Specific instance at line 57 removed |
+| m-6: `HANDOFF_INPUT_FIXTURE` bold-colon format (test_session_handoff.py:31) | FIXED | Uses `### Handoff CLI tool design (Phase A)` heading format |
+| m-7: `step_reached` vestigial field (handoff/pipeline.py) | FIXED | `HandoffState` has only `input_markdown` and `timestamp` |
+| m-8: `_AGENT_CORE_PATTERNS` hardcoded submodule name (commit_gate.py:143) | CARRIED | Deferred per design C-1 |
+| m-9: `_git_output` docstring (commit_gate.py:34-39) | FIXED | Porcelain-safety warning added |
+| m-10: `format_commit_output` unconditional append (commit_pipeline.py:234) | FIXED | `if parent_output:` guard |
 
-6 of 6 RC8 findings verified fixed.
+10 of 10 fixable RC9 findings verified fixed. m-8 correctly carried forward.
 
 ## Critical Findings
 
@@ -33,57 +38,73 @@ None.
 
 ## Major Findings
 
-**M-1: `vet_check` path existence checked against process cwd, not `cwd` parameter** — commit_gate.py:159
+**M-1: `load_state()` crashes on pre-m-7 state files** — handoff/pipeline.py:44-45
 - Axis: robustness (code)
-- `matched_paths = [Path(f) for f in matched if Path(f).exists()]` resolves relative paths against the process working directory, not the `cwd` parameter passed to `vet_check`. The same `cwd` is correctly threaded to `_load_review_patterns(cwd)`, `_find_reports(cwd)`, and `_dirty_files(cwd)` — line 159 is the exception.
-- Impact: When `cwd` differs from process cwd (test fixtures, submodule contexts), `matched_paths` may be empty — `vet_check` returns `passed=True`, silently bypassing the freshness check. Fix: `(Path(cwd or ".") / f).exists()`.
-- Layer 2 confirmation: `commit_pipeline.py:176` calls `vet_check(ci.files, cwd=cwd)` with `cwd` propagated from the pipeline entry point — the bug is in the gate, not the caller.
+- `load_state()` uses `HandoffState(**data)` to deserialize from JSON. RC9 m-7 removed `step_reached` from `HandoffState`. Pre-existing state files (written before the fix, persisting in `tmp/.handoff-state.json` after a mid-pipeline crash) still contain `step_reached` → `TypeError: unexpected keyword argument`. State files persist across sessions — this is a legitimate recovery path.
+- Fix: filter `data` to `HandoffState.__dataclass_fields__` before unpacking, or catch `TypeError` and clear corrupt state.
+- Layer: Layer 1 code agent
+
+**M-2: Handoff CLI missing session.md existence check** — handoff/cli.py
+- Axis: error signaling (code), conformance (S-3)
+- `handoff_cmd` calls `overwrite_status(session_path, ...)` and `write_completed(session_path, ...)` without validating `session_path` exists. If session.md is missing, `FileNotFoundError` propagates as an unhandled exception with Python traceback. Status CLI handles this identically-situated error gracefully (status/cli.py:55-56: `try/except OSError → _fail(msg, code=2)`). Same gap applies to `ValueError` from missing headings in `overwrite_status` and `_write_completed_section`.
+- Violates S-3: "All output to stdout as structured markdown — results, diagnostics, AND errors."
+- Fix: wrap pipeline calls in try/except, route through `_fail(msg, code=2)`.
+- Layer: Layer 2 cross-cutting
 
 ## Minor Findings
 
-### Test Specificity
-
-1. **m-1: Bare `pytest.raises(CleanFileError)` without match** (tests/test_session_commit.py:257, specificity)
-   - `test_validate_files_amend` second raises block uses `pytest.raises(CleanFileError)` without `match=`. Passes on any CleanFileError — does not distinguish the "amend but not in HEAD" variant from the standard clean-file variant.
-
-2. **m-2: Bare `pytest.raises(SessionFileError)` without match** (tests/test_session_parser.py:147, specificity)
-   - `test_parse_session_missing_file` catches any `SessionFileError`. A `match="not found"` or similar would pin the expected failure reason.
-
-3. **m-3: Bare `pytest.raises(subprocess.CalledProcessError)` without match** (tests/test_commit_pipeline_errors.py:26, specificity)
-   - `test_git_commit_raises_on_failure` catches any `CalledProcessError`. Exit code check or returncode match would tighten the expected failure mode.
-
-### Test Vacuity
-
-4. **m-4: Redundant `len(...) > 0` assertion** (tests/test_session_handoff.py:45, vacuity)
-   - `assert len(result.completed_lines) > 0` is redundant — the `any(...)` assertions on lines 46-47 already imply non-empty.
-
-5. **m-5: Redundant `len(...) > 0` assertion** (tests/test_session_parser.py:57, vacuity)
-   - Same pattern as m-4. The `any("Extracted git helpers" ...)` assertion on line 58 already implies non-empty.
-
-### Test Conformance
-
-6. **m-6: Handoff fixture uses bold-colon format, not `### ` headings** (tests/test_session_handoff.py:31, conformance)
-   - `HANDOFF_INPUT_FIXTURE` line 31 uses `**Handoff CLI tool design (Phase A):**` (bold-colon). outline.md:75 specifies "Completed entries use `### ` headings (standard markdown nesting), not bold-colon format." The primary fixture should match the specified canonical input format.
-
 ### Code Robustness
 
-7. **m-7: `step_reached` stored but never read during resume** (src/claudeutils/session/handoff/pipeline.py:20, conformance H-4)
-   - Carried from RC8 m-2. `HandoffState.step_reached` is set but the resume path re-runs the full pipeline regardless. Functionally safe (writes are idempotent), but the field is vestigial. Either honor it or remove it.
+1. **m-1: Submodule CleanFileError paths lack repo context** (commit_pipeline.py:269-273, error signaling)
+   - `_partition_by_submodule` strips submodule prefix (line 107). When `validate_files` raises `CleanFileError` for submodule files, error message shows paths relative to submodule root (`fragments/foo.md`) instead of full paths (`agent-core/fragments/foo.md`).
 
-8. **m-8: `_AGENT_CORE_PATTERNS` hardcoded submodule name** (src/claudeutils/session/commit_gate.py:138, modularity)
-   - Hardcoded `["agent-core/bin/**", "agent-core/skills/**/*.sh"]` breaks if submodule is renamed. outline.md C-1 explicitly defers config model for submodule patterns — carried forward as acknowledged.
+2. **m-2: `overwrite_status` regex replacement vulnerable to backreferences** (handoff/pipeline.py:75, robustness)
+   - `re.subn(replacement, text)` where replacement includes `status_text` from user input. If status_text contains `\g<1>` or `\1`, `re.subn` interprets them as backreferences. Low probability (status lines are prose) but violates defensive coding principle. Fix: use function callback for replacement.
 
-9. **m-9: `_git_output` lacks porcelain-safety docstring warning** (src/claudeutils/session/commit_gate.py:31-43, robustness)
-   - `_git_output` strips stdout like `git.py:_git`, but unlike `_git` has no warning that `.strip()` destroys porcelain format. Currently safe (only used for `diff-tree`), but the omission invites misuse.
+3. **m-3: `_build_repo_section` heading/content gap** (git_cli.py:32, functional correctness)
+   - `header + "\n\n".join(parts)` — header `"## Parent\n"` runs directly into first part with no blank line. Markdown heading without separator. Output is machine-consumed, so rendering impact is minimal.
 
-10. **m-10: `format_commit_output` unconditional parent append** (src/claudeutils/session/commit_pipeline.py:234, functional correctness)
-    - `parts.append(_strip_hints(parent_output))` appends unconditionally. If `parent_output` is empty (edge case — parent commit normally produces output), a trailing empty element joins with a spurious newline. Low-probability but defensive guard would be cleaner.
+4. **m-4: Blocker dependency edges overly conservative** (status/render.py:118, robustness)
+   - `_build_dependency_edges` joins all blocker groups into one string and checks task name substring membership. Two tasks mentioned in unrelated blocker entries are falsely marked dependent. Functionally safe (prevents parallelism that might be valid, never allows unsafe parallelism).
+
+5. **m-5: `list_plans` uses relative path** (status/cli.py:67, robustness)
+   - `list_plans(Path("plans"))` assumes cwd = project root. Consistent with session file and `_is_dirty()` — all three make the same assumption. Not defensively coded but matches the CLI invocation context (skills run from project root).
+
+### Test Specificity
+
+6. **m-6: Redundant `len(data.completed) > 0` assertion** (test_session_parser.py:138, vacuity)
+   - Same class as RC9 m-4/m-5 (fixed at other locations). This instance was not in the RC9 report — different test function (`test_parse_session_full` vs parametrized test at line 57).
+
+7. **m-7: Bare `pytest.raises(CleanFileError)` without `match=`** (test_session_commit.py:217, specificity)
+   - Same class as RC9 m-1. The test has manual assertions on `err.clean_files` and `str(err)` at lines 221-223, but lacks the `match=` pattern applied to the sibling at line 257.
+
+8. **m-8: Bare `pytest.raises(CalledProcessError)` without `match=`** (test_worktree_merge_errors.py:83, specificity)
+   - Same class as RC9 m-3. Manual stderr assertions follow (lines 86-89) but `match=` would tighten the initial catch.
+
+9. **m-9: Ambiguous assertion string** (test_session_commit_pipeline.py:121-127, specificity)
+   - `"continuation" not in result` — the word could match unrelated content if test data changed. Test verifies correct behavior but assertion string is fragile.
+
+10. **m-10: Disjunctive assertion weakens specificity** (test_session_status.py:263, specificity)
+    - `"Next:" in result.output or "In-tree:" in result.output` — passes if either is present. Design spec defines when each appears; test should assert the specific expected section.
+
+### Test Coverage
+
+11. **m-11: Integration test references nonexistent plan directory** (test_session_integration.py:34-35, coverage)
+    - Task `**Build widget**` references `/design plans/widget/brief.md` but no `plans/widget/` exists in test setup. Test passes because missing plans produce empty state — plan state rendering is untested in the integration path.
+
+### Code Style (Extraction Regressions)
+
+12. **m-12: Un-parenthesized except clauses** (worktree/cli.py:104,176, conformance)
+    - `except FileNotFoundError, subprocess.CalledProcessError:` and `except subprocess.CalledProcessError, OSError:` — parentheses removed during S-2 extraction refactoring. Functionally equivalent in Python 3.14 but unconventional; parenthesized form is canonical.
+
+13. **m-13: Unreachable `return None` after `_fail`** (worktree/cli.py:286, vacuity)
+    - `return None` after `_fail(msg, 2)` — dead code since `_fail` returns `Never`. Also wrong type (`None` vs `tuple[bool, str | None]`). Added during extraction, likely to satisfy a linter.
 
 ### Carried Forward (not counted)
 
-- `→ wt` marker not detected by `WORKTREE_MARKER_PATTERN` (pre-existing parser limitation)
-- `SESSION_FIXTURE` defined after first usage in test_session_status.py (pre-existing style issue)
-- Pipeline ordering: staging before precommit (RC5 m-3, accepted — required for precommit to see staged state)
+- m-8 (RC9): `_AGENT_CORE_PATTERNS` hardcoded submodule name — deferred per design C-1
+- `SESSION_FIXTURE` defined after first usage in test_session_status.py (pre-existing style)
+- Pipeline ordering: staging before precommit (accepted — required for precommit to see staged state)
 - Skill integration "(future)" for _commit/_handoff/_status (tracked as separate worktree task "Skill-CLI integration")
 
 ## Gap Analysis
@@ -92,19 +113,18 @@ None.
 |---|---|---|
 | S-1: Package structure | Covered | session/ package with sub-packages |
 | S-2: `_git()` extraction + submodule discovery | Covered | git.py, worktree imports updated |
-| S-3: Output and error conventions | Covered | stdout only, exit 0/1/2 |
+| S-3: Output and error conventions | Partial | Handoff CLI missing error handling for absent session.md (M-2) |
 | S-4: Session.md parser | Covered | parse.py |
 | S-5: Git changes utility | Covered | git_cli.py with submodule-aware output |
 | H-1: Domain boundaries | Covered | CLI writes status + completed only |
 | H-2: Committed detection | Covered | Uniform overwrite |
 | H-3: Diagnostic output | Covered | Unconditional after writes |
-| H-4: State caching | Covered | step_reached vestigial but safe |
-| C-1: Scripted vet check | Partial | Patterns + reports — cwd bug in freshness check (M-1) |
+| H-4: State caching | Partial | Backward compat gap for pre-m-7 state files (M-1) |
+| C-1: Scripted vet check | Covered | RC9 M-1 path resolution fixed and verified |
 | C-2: Submodule coordination | Covered | Partition, validate, commit-first |
 | C-3: Input validation | Covered | CleanFileError with STOP directive |
 | C-4: Validation levels | Covered | Orthogonal just-lint/no-vet options |
 | C-5: Amend semantics | Covered | amend, no-edit, message validation |
-| C-Message: EOF semantics | Covered | in_message flag |
 | ST-0: Worktree-destined tasks | Covered | worktree_marker check in ▶ selection |
 | ST-1: Parallel detection | Covered | Consecutive windows, blocker edges, cap 5 |
 | ST-2: Preconditions | Covered | Missing file/old format → exit 2 |
@@ -113,16 +133,16 @@ None.
 
 ## Summary
 
-| Severity | Count | Delta from RC8 |
+| Severity | Count | Delta from RC9 |
 |----------|-------|----------------|
 | Critical | 0 | 0 (unchanged) |
-| Major | 1 | +1 |
-| Minor | 10 | +4 (RC8: 6m resolved, 10 new m) |
+| Major | 2 | +1 (RC9 M-1 fixed, 2 new) |
+| Minor | 13 | +3 (RC9: 9 fixed, 13 new) |
 
-**RC8 fixes:** 6 of 6 findings verified fixed.
+**RC9 fixes:** 10 of 10 fixable findings verified fixed. m-8 carried forward.
 
-**New major:** vet_check path existence bug (M-1) — cwd not used for `Path(f).exists()` at commit_gate.py:159. Silently bypasses freshness check when process cwd differs from repo cwd.
+**New majors:** M-1 (`load_state` backward compat after m-7 removal) is a regression introduced by the RC9 fix itself — removing `step_reached` from the dataclass without handling existing state files. M-2 (handoff CLI missing error handling) is a gap missed in all prior rounds, exposed by cross-module consistency check against status CLI.
 
-**New minors:** 3 bare `pytest.raises` without `match=` (same class as prior rounds), 2 redundant `len > 0` assertions, 1 fixture format/spec mismatch, 4 code robustness items.
+**New minors:** 2 bare `pytest.raises` without `match=` at locations prior rounds didn't fix (same class as RC9 m-1/m-2/m-3). 1 redundant `len > 0` at a different location than the one fixed (same class as RC9 m-4/m-5). 2 extraction regressions in worktree/cli.py. 8 other test/code quality items.
 
-**Trend:** RC4 2M/9m → RC5 2M/10m → RC6 1M/5m → RC7 0C/0M/6m → RC8 0C/0M/6m → RC9 0C/1M/10m. The M-1 vet_check cwd bug is a regression — the similar cwd threading pattern exists correctly in every other call site in commit_gate.py.
+**Trend:** RC4 2M/9m → RC5 2M/10m → RC6 1M/5m → RC7 0C/0M/6m → RC8 0C/0M/6m → RC9 0C/1M/10m → RC10 0C/2M/13m. Finding count increased because (a) RC9 fixes introduced a regression (M-1), (b) cross-cutting analysis caught a gap missed in all prior per-file reviews (M-2), and (c) same-class test specificity findings at new locations continue surfacing (m-6, m-7, m-8).

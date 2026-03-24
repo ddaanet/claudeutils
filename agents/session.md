@@ -1,25 +1,25 @@
 # Session Handoff: 2026-03-24
 
-**Status:** Fix handoff-cli RC9 complete — 1M/10m fixed, corrector clean (0C/0M/0m new findings).
+**Status:** RC10 deliverable review complete — 0C/2M/13m. All RC9 fixes verified. Two new majors: load_state backward compat, handoff CLI missing error handling.
 
 ## Completed This Session
 
-**Fix handoff-cli RC9 (all findings):**
-- M-1: `vet_check` path resolution — `Path(f).exists()` → `(Path(cwd or ".") / f).exists()` at commit_gate.py:164-165; TDD RED/GREEN confirmed
-- m-10: `format_commit_output` parent_output empty guard — `if parent_output:` before append at commit_pipeline.py:234; TDD RED/GREEN confirmed
-- m-1..m-3: `match=` added to three bare `pytest.raises` (CleanFileError, SessionFileError, CalledProcessError)
-- m-4/m-5: redundant `len(…) > 0` assertions removed (test_session_handoff.py, test_session_parser.py)
-- m-6: `HANDOFF_INPUT_FIXTURE` updated from bold-colon to `### ` heading format; assertion updated
-- m-7: `HandoffState.step_reached` vestigial field removed; dead test removed; zero grep matches in src/tests
-- m-9: `_git_output` docstring extended with porcelain-safety warning (42 content chars, D205-safe)
-- m-8: deferred per outline.md C-1 (submodule config model) — tracked in plans/submodule-vet-config
-- Corrector review (plans/handoff-cli-tool/reports/review.md): 0C/0M/0m new findings; all 10 fixable items verified
+**Handoff-cli RC10 deliverable review:**
+- Three-layer review (3 opus agents + interactive cross-cutting), 50 files / 5290 lines
+- RC9 fix verification: 10/10 fixable findings confirmed fixed, m-8 carried forward
+- New M-1: `load_state()` crashes on pre-m-7 state files containing removed `step_reached` field
+- New M-2: handoff/cli.py missing session.md existence check — `FileNotFoundError` as traceback violates S-3
+- 13 new minors: 3 bare `pytest.raises` at unfixed locations, 2 worktree/cli.py extraction regressions (un-parenthesized except, dead return), 8 test/code quality items
+- Report: `plans/handoff-cli-tool/reports/deliverable-review.md`
+- Lifecycle: updated to `rework`
 
 ## In-tree Tasks
 
 - [x] **Fix handoff-cli RC9** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
   - Plan: handoff-cli-tool | Status: reviewed
-- [ ] **Handoff-cli RC10** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+- [x] **Handoff-cli RC10** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+- [ ] **Fix handoff-cli RC10** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
+  - Plan: handoff-cli-tool | Status: rework
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -60,9 +60,11 @@
 
 ## Reference Files
 
-- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC9 findings (0C/1M/10m), now all resolved
-- `plans/handoff-cli-tool/reports/review.md` — RC9 fix corrector review (0C/0M/0m)
+- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC10 findings (0C/2M/13m)
+- `plans/handoff-cli-tool/reports/deliverable-review-code.md` — Layer 1 code agent report
+- `plans/handoff-cli-tool/reports/deliverable-review-test.md` — Layer 1 test agent report
+- `plans/handoff-cli-tool/reports/deliverable-review-prose.md` — Layer 1 prose+config agent report
 
 ## Next Steps
 
-Run `/deliverable-review plans/handoff-cli-tool` (RC10) to verify fix quality — M-1 path resolution and m-10 conditional guard are the primary targets.
+Fix RC10 findings — M-1 (filter state file fields) and M-2 (wrap handoff pipeline in try/except) are the primary targets. `/design` will triage complexity.
