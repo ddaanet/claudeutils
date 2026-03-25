@@ -107,21 +107,21 @@ def test_commit_precommit_failure(
 
 def test_strip_hints_filters_continuation_lines() -> None:
     """Strip continuation lines following hint/advice."""
-    input1 = "hint: use --force\n  (helpful continuation)\nother line"
+    input1 = "hint: use --force\n  (helpful continuation)\n[main abc123] commit msg"
     result1 = _strip_hints(input1)
-    assert "other line" in result1
+    assert "[main abc123] commit msg" in result1
     assert "helpful continuation" not in result1
     assert "hint:" not in result1
 
-    input2 = "advice: do this\n\tcontinuation here\nnormal line"
+    input2 = "advice: do this\n\tcontinuation here\n 3 files changed, 10 insertions(+)"
     result2 = _strip_hints(input2)
-    assert "normal line" in result2
+    assert "3 files changed" in result2
     assert "continuation here" not in result2
     assert "advice:" not in result2
 
-    input3 = "regular line\nhint: tip\n  more tip"
+    input3 = "[main def456] add feature\nhint: tip\n  more tip"
     result3 = _strip_hints(input3)
-    assert "regular line" in result3
+    assert "[main def456] add feature" in result3
     assert "more tip" not in result3
 
 

@@ -243,6 +243,27 @@ def test_render_pending_color_mode() -> None:
     assert "\x1b[" not in result_plain
 
 
+SESSION_FIXTURE = """\
+# Session Handoff: 2026-03-15
+
+**Status:** Phase 3 in progress.
+
+## Completed This Session
+
+- Built parser
+
+## In-tree Tasks
+
+- [ ] **Build CLI** — `/runbook plans/cli/r.md` | sonnet
+  - Plan: cli | Status: ready
+- [ ] **Fix tests** — `just fix` | haiku
+
+## Worktree Tasks
+
+- [ ] **Remote work** → `wt` — `/design plans/remote/b.md` | sonnet
+"""
+
+
 # --- Cycle 3.4: CLI wiring ---
 
 
@@ -300,24 +321,3 @@ def test_session_status_malformed_task_error(tmp_path: Path) -> None:
     assert result.exit_code == 2
     assert "Old-format" not in result.output
     assert "without required metadata" in result.output
-
-
-SESSION_FIXTURE = """\
-# Session Handoff: 2026-03-15
-
-**Status:** Phase 3 in progress.
-
-## Completed This Session
-
-- Built parser
-
-## In-tree Tasks
-
-- [ ] **Build CLI** — `/runbook plans/cli/r.md` | sonnet
-  - Plan: cli | Status: ready
-- [ ] **Fix tests** — `just fix` | haiku
-
-## Worktree Tasks
-
-- [ ] **Remote work** → `wt` — `/design plans/remote/b.md` | sonnet
-"""

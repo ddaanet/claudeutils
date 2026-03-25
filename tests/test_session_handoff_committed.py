@@ -99,8 +99,8 @@ def test_write_completed_appends_when_prior_uncommitted(
     session_file.write_text(SESSION_WITH_COMPLETED)
     _commit_session(tmp_path, session_file)
 
-    # Simulate prior uncommitted handoff: replace old
-    # content with new (removing old, writing new)
+    # Remove committed content and add new — triggers append mode
+    # (committed lines absent from current section)
     prior_content = SESSION_WITH_COMPLETED.replace(
         "- Old task A\n- Old task B\n",
         "- First handoff.\n",
