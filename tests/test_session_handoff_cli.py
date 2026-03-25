@@ -336,3 +336,30 @@ def test_handoff_updates_step_reached_after_writes(
 
     # State file persists until explicit clear
     assert (tmp_path / "tmp" / ".handoff-state.json").exists()
+
+
+# m-6: empty git_changes output
+
+
+def test_handoff_skips_empty_git_block(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Empty git_changes omits code block, not an empty one."""
+    monkeypatch.chdir(tmp_path)
+    session_file = _setup_cli_repo(tmp_path)
+
+    monkeypatch.setattr(
+        "claudeutils.session.handoff.cli.git_changes",
+        lambda: "",
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        ["_handoff"],
+        input=HANDOFF_STDIN,
+        env={"CLAUDEUTILS_SESSION_FILE": str(session_file)},
+    )
+
+    assert result.exit_code == 0
+    assert "```\n\n```" not in result.output
