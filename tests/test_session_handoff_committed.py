@@ -262,3 +262,58 @@ def test_write_completed_autostrip_preserves_blank_lines(
     assert "- Old task A" not in completed
     # Inter-group blank line preserved in uncommitted content
     assert "- Item 1\n\n### Group 2" in completed
+
+
+# m-17: direct _detect_write_mode unit test (all 3 modes)
+
+
+def test_detect_write_mode_all_three_modes(tmp_path: Path) -> None:
+    """Each mode triggers under its documented condition."""
+    init_repo_minimal(tmp_path)
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    session_file = agents_dir / "session.md"
+    session_file.write_text(SESSION_WITH_COMPLETED)
+    _commit_session(tmp_path, session_file)
+
+    # No changes → overwrite
+    mode, _ = _detect_write_mode(session_file)
+    assert mode == "overwrite"
+
+    # Remove committed, add new → append
+    session_file.write_text(
+        SESSION_WITH_COMPLETED.replace(
+            "- Old task A\n- Old task B\n",
+            "- Replaced content\n",
+        )
+    )
+    mode, _ = _detect_write_mode(session_file)
+    assert mode == "append"
+
+    # Keep committed, add new → autostrip
+    session_file.write_text(
+        SESSION_WITH_COMPLETED.replace(
+            "- Old task B\n",
+            "- Old task B\n- Additional item\n",
+        )
+    )
+    mode, committed = _detect_write_mode(session_file)
+    assert mode == "autostrip"
+    assert "- Old task A" in committed
+
+
+# m-14: autostrip error fallback (git show fails → overwrite)
+
+
+def test_detect_write_mode_overwrite_on_no_head(tmp_path: Path) -> None:
+    """Returns overwrite when HEAD has no session.md."""
+    init_repo_minimal(tmp_path)
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    session_file = agents_dir / "session.md"
+    session_file.write_text(SESSION_WITH_COMPLETED)
+    # File exists on disk but NOT committed → git show HEAD: fails
+
+    mode, committed = _detect_write_mode(session_file)
+    assert mode == "overwrite"
+    assert committed == ""

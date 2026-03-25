@@ -363,3 +363,29 @@ def test_handoff_skips_empty_git_block(
 
     assert result.exit_code == 0
     assert "```\n\n```" not in result.output
+
+
+# m-15: resume from write_session step
+
+
+def test_handoff_resume_from_write_session(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Resume from write_session re-executes session writes."""
+    monkeypatch.chdir(tmp_path)
+    session_file = _setup_cli_repo(tmp_path)
+    save_state(HANDOFF_STDIN, step_reached="write_session")
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        ["_handoff"],
+        env={"CLAUDEUTILS_SESSION_FILE": str(session_file)},
+    )
+
+    assert result.exit_code == 0
+    content = session_file.read_text()
+    # Writes executed: status updated and completed replaced
+    assert "Phase 4 complete." in content
+    assert "Implemented write_completed" in content
+    assert "Previous task" not in content
