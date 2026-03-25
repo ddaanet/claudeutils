@@ -1,26 +1,20 @@
 # Session Handoff: 2026-03-25
 
-**Status:** RC12 review complete (1C/0M/22m) + design context prerequisite briefed. Next: fix RC12 critical with outline.md in context.
+**Status:** RC12 critical fixed. Deliverable review (RC13) queued next.
 
 ## Completed This Session
 
-**Handoff-cli RC12 deliverable review:**
-- Full-scope review: L1 (3 opus agents: code, test, prose+config) + L2 (interactive cross-cutting)
-- Verified RC11 M-1 (H-2 committed detection) and M-2 (H-4 step_reached) both FIXED
-- Found C-1: `session/cli.py:29-32` catches `CleanFileError` from `commit_pipeline()` but not `CommitInputError` — regression from m-2/m-3 fix. Violates S-3 on output channel (stderr), format (Click vs structured markdown), exit code (1 vs 2)
-- L1 code agent incorrectly marked m-2/m-3 as FIXED (checked raise site, not catch site scope)
-- Report: `plans/handoff-cli-tool/reports/deliverable-review.md` (RC12)
-- Lifecycle: `rework`
-
-**Design context prerequisite discussion:**
-- Root cause of 12-round plateau: fix agents operated without design specification. Report references requirement IDs (S-3, H-2) but definitions live in outline.md. Agent inferred spec from finding description — incomplete, causing regressions.
-- Broader principle: any agent modifying existing code needs design specification in context. If absent, reverse-engineer + user-validate. TDD step agents exempt (deliberately context-restricted, design pre-distilled into step boundaries).
-- Briefed: `plans/design-context-prerequisite/brief.md`
+**Fix handoff-cli RC12 critical (C-1):**
+- Added `except CommitInputError` clause at `session/cli.py:33-34` — catches pipeline-raised `CommitInputError` from `_validate_inputs()` with `**Error:**` format and exit 2
+- Added CLI-level test `test_commit_cli_submodule_missing_message_exits_2` — exercises missing-submodule-message path through `commit_cmd`
+- Corrector review: 0 issues, all S-3 requirements satisfied (`review-rc12-fix.md`)
+- Precommit: 1794 pass, 1 xfail
 
 ## In-tree Tasks
 
 - [x] **Handoff-cli RC12** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [ ] **Fix handoff-cli RC12** — `/design plans/handoff-cli-tool/reports/deliverable-review.md plans/handoff-cli-tool/outline.md` | opus
+- [x] **Fix handoff-cli RC12** — `/design plans/handoff-cli-tool/reports/deliverable-review.md plans/handoff-cli-tool/outline.md` | opus
+- [ ] **Handoff-cli RC13** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -67,8 +61,8 @@
 ## Reference Files
 
 - `plans/handoff-cli-tool/reports/deliverable-review.md` — RC12 findings (1C/0M/22m)
-- `plans/design-context-prerequisite/brief.md` — design context prerequisite brief
+- `plans/handoff-cli-tool/reports/review-rc12-fix.md` — corrector review of C-1 fix
 
 ## Next Steps
 
-Fix RC12 critical: add `CommitInputError` to except clause at `session/cli.py:31`. Fix task includes outline.md for full S-3 contract context.
+Deliverable review RC13 for handoff-cli-tool — verify C-1 fix closes the regression.

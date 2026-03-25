@@ -10,7 +10,13 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.session.cli import commit_cmd
-from tests.pytest_helpers import init_repo_at as _init_repo
+from tests.pytest_helpers import (
+    add_submodule,
+    create_submodule_origin,
+)
+from tests.pytest_helpers import (
+    init_repo_at as _init_repo,
+)
 
 # Cycle 6.6: CLI wiring
 
@@ -118,3 +124,32 @@ def test_commit_cli_clean_file_exits_2(
 
     assert result.exit_code == 2
     assert "no uncommitted changes" in result.output.lower()
+
+
+def test_commit_cli_submodule_missing_message_exits_2(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CommitInputError from missing submodule section → exit 2."""
+    origin = create_submodule_origin(tmp_path, "sub")
+    parent = tmp_path / "parent"
+    parent.mkdir()
+    _init_repo(parent)
+    add_submodule(parent, origin, "agent-core")
+    subprocess.run(
+        ["git", "commit", "-m", "add submodule"],
+        cwd=parent,
+        check=True,
+        capture_output=True,
+    )
+    monkeypatch.chdir(parent)
+
+    (parent / "agent-core" / "new.md").write_text("content")
+
+    stdin = "## Files\n- agent-core/new.md\n\n## Message\n> ✨ Add to submod\n"
+
+    runner = CliRunner()
+    result = runner.invoke(commit_cmd, input=stdin)
+
+    assert result.exit_code == 2
+    assert "**Error:**" in result.output
+    assert "no ## Submodule" in result.output

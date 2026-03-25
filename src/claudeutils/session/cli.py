@@ -30,6 +30,8 @@ def commit_cmd() -> None:
         result = commit_pipeline(ci)
     except CleanFileError as e:
         _fail(str(e), code=2)
+    except CommitInputError as e:
+        _fail(f"**Error:** {e}", code=2)
 
     click.echo(result.output)
 
