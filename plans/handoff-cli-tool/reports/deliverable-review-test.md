@@ -1,65 +1,87 @@
-# Test Review: handoff-cli-tool (RC11)
+# Test Review: handoff-cli-tool (RC12)
 
 **Date:** 2026-03-25
-**Scope:** 20 test files (+3665/-60 lines), full-scope review
+**Scope:** 22 test files (+3866 lines), full-scope review
 **Axes:** conformance, functional correctness, functional completeness, vacuity, excess, specificity, coverage, independence
 
-## RC10 Fix Verification
+## RC11 Fix Verification
 
 | Finding | Status | Evidence |
 |---------|--------|----------|
-| m-2: `overwrite_status` regex backreference | VERIFIED | test_session_handoff.py:157-167 — `test_overwrite_status_backreference_in_text` asserts `\g<1>` and `\g<3>` survive in output |
-| m-6: Redundant `len > 0` removed | VERIFIED | test_session_parser.py:138 — no `len(...) > 0` patterns remain |
-| m-7, m-8: `match=` added to bare `pytest.raises` | VERIFIED | test_session_commit.py:217 uses `match="no uncommitted changes"`, test_worktree_merge_errors.py:83 uses `match="non-zero exit"` |
-| m-10: Disjunctive assertion replaced | VERIFIED | test_session_status.py:263 — asserts `"In-tree:" in result.output` (specific, not disjunctive) |
-| m-11: Integration test plan dir | VERIFIED | test_session_integration.py:37-39 — creates `plans/widget/` with `brief.md` |
-| m-13: Dead `return None` removed | N/A (code, not test) | — |
+| m-11: SESSION_FIXTURE before first usage | FIXED | test_session_status.py:280-298 — `SESSION_FIXTURE` is now defined at line 280, but first usage is `test_session_status_cli` at line 249 which references it at line 253. Forward reference remains. **NOT FIXED** — the constant is still defined after its first usage. |
+| m-12: Improved assertion strings | PARTIAL | test_session_commit_pipeline.py:128-134 — `test_strip_hints_single_space_then_double` assertions use `"single-space-line"`, `"double-space-cont"`, `"normal-line"` which are now more specific to the test data. However, `test_strip_hints_filters_continuation_lines` at line 108-125 still uses generic words `"continuation"`, `"other line"`. Improved but not fully addressed. |
+| m-13: test_git_metadata_helpers conflates paths | NOT FIXED | test_planstate_aggregation.py:102-197 — still creates two repos in one test function (positive path at line 159, negative path at line 161-190). Same finding persists. |
+| m-14: Two tests exercise same code path | NOT FIXED | test_session_handoff.py:217-248 — `test_write_completed_with_accumulated_content` and `test_write_completed_overwrites_not_appends` still exercise same `_write_completed_section` code path. Same finding persists. |
+| m-15: Inconsistent submodule setup helpers | NOT FIXED | test_session_commit_pipeline.py:157-212 uses `create_submodule_origin` + `add_submodule` while test_session_commit_pipeline_ext.py:22-35 uses `_init_repo_with_submodule`. Same finding persists. |
 
-All RC10 test-related fixes verified.
+**Corrector review claim (dead mock removed from step_reached test):** Verified. test_session_handoff.py:300-332 `test_save_state_includes_step_reached` and `test_load_state_backward_compat_missing_step_reached` operate on real state files with no mocks. No dead mock present.
 
-## Findings
+## Coverage Checklist
 
-### Minor
+| # | Scenario | Covered | Test Reference |
+|---|----------|---------|----------------|
+| 1 | H-2 overwrite (no prior diff) | Y | test_session_handoff_committed.py:46-60 `test_write_completed_overwrite_when_no_diff` |
+| 2 | H-2 append (old cleared, new present) | Y | test_session_handoff_committed.py:88-116 `test_write_completed_appends_when_prior_uncommitted` |
+| 3 | H-2 autostrip (old preserved with additions) | Y | test_session_handoff_committed.py:122-151 `test_write_completed_autostrip_when_old_preserved` |
+| 4 | H-4 step_reached resume: skip to diagnostics | Y | test_session_handoff_cli.py:291-315 `test_handoff_resume_from_diagnostics_skips_writes` |
+| 5 | H-4 step_reached: value persistence | Y | test_session_handoff_cli.py:318-338 `test_handoff_updates_step_reached_after_writes` |
+| 6 | C-1 vet check: no config passes | Y | test_session_commit.py:263-268 |
+| 7 | C-1 vet check: unreviewed fails | Y | test_session_commit.py:295-309 |
+| 8 | C-1 vet check: stale fails | Y | test_session_commit.py:312-336, test_session_commit_validation.py:217-257 |
+| 9 | C-2 submod files+msg | Y | test_session_commit_pipeline_ext.py:41-81 |
+| 10 | C-2 submod files, no msg | Y | test_session_commit_pipeline_ext.py:84-106 |
+| 11 | C-2 no submod files, msg present | Y | test_session_commit_pipeline_ext.py:109-136 |
+| 12 | C-2 no submod files, no msg | Y | test_session_commit_pipeline_ext.py:139-162 |
+| 13 | C-3 clean files exit 2 + STOP | Y | test_session_commit.py:203-222, test_session_commit_cli.py:95-121 |
+| 14 | C-4 default (precommit + vet) | Y | test_session_commit_validation.py:48-72 |
+| 15 | C-4 no-vet | Y | test_session_commit_validation.py:75-98 |
+| 16 | C-4 just-lint | Y | test_session_commit_validation.py:21-45 |
+| 17 | C-4 just-lint + no-vet | Y | test_session_commit_validation.py:259-291 |
+| 18 | C-5 amend parent-only | Y | test_session_commit_pipeline_ext.py:168-210 |
+| 19 | C-5 amend submodule+parent | Y | test_session_commit_pipeline_ext.py:213-284 |
+| 20 | C-5 amend+no-edit | Y | test_commit_pipeline_errors.py:251-284 |
+| 21 | C-5 no-edit without amend error | Y | test_session_commit.py:86-88 |
+| 22 | ST-0 worktree marker skip | Y | test_status_rework.py:151-180 |
+| 23 | ST-1 parallel: consecutive, cap 5, dep exclusion | Y | test_session_status.py:165-225 |
+| 24 | ST-2 missing session.md exit 2 | Y | test_session_status.py:266-277 |
+| 25 | ST-2 old format exit 2 | Y | test_status_rework.py:118-145 |
+| 26 | S-3 exit 0 success | Y | test_session_commit_cli.py:18-46 |
+| 27 | S-3 exit 1 pipeline error | Y | test_session_commit_cli.py:63-89 |
+| 28 | S-3 exit 2 input validation | Y | test_session_commit_cli.py:49-60, test_session_status.py:266-277 |
 
-[m-1] test_session_status.py:280-298 — conformance — `SESSION_FIXTURE` module constant defined after its first usage at line 253 (`test_session_status_cli`). Forward reference works in Python but violates conventional top-of-module placement for test fixtures. Carried from RC8/RC9/RC10.
+All 28 design scenarios have test coverage.
 
-[m-2] test_session_commit_pipeline.py:121-134 — specificity — `test_strip_hints_single_space_then_double` and related hint-stripping tests use assertion strings like `"continuation"` and `"single"` that are also substrings of docstrings and variable names. The tests verify behavior correctly but the assertion strings are generic words that could match unrelated content if the test data changed. Low risk since test data is inline.
+## New Findings
 
-[m-3] test_planstate_aggregation.py:102-197 — independence — `test_git_metadata_helpers` creates a second repo (`repo2`) within the same test function to test `_commits_since_handoff` with no session.md. This conflates two scenarios (positive path and negative path) in one test. Not a correctness issue but reduces isolation for failure diagnosis.
+**F-1** `test_session_status.py:280-298` — conformance — Minor
+`SESSION_FIXTURE` defined at line 280, after first usage at line 253 (`test_session_status_cli`). Forward reference works in Python (module-level names resolved at call time, not definition time) but violates conventional top-of-module fixture placement. Carried across RC8 through RC11 as m-11 with claimed fix. The claimed fix (m-11 from RC11) is incorrect — the constant is still after its first usage.
 
-[m-4] test_session_handoff.py:235-261 — conformance — `test_write_completed_with_accumulated_content` and `test_write_completed_overwrites_not_appends` both test the same behavior (replacing section content), differing only in initial state. The docstrings adequately distinguish them, but the tests exercise the same code path — `_write_completed_section` always replaces. Not vacuous (they verify different initial states produce the same correct result), but close to redundant.
+**F-2** `test_session_commit_pipeline.py:108-125` — specificity — Minor
+`test_strip_hints_filters_continuation_lines` assertions use generic words: `"continuation"`, `"other line"`, `"normal line"`. These match the inline test data, but are common English words that could produce false passes if test data drifted. The related tests at lines 128-154 use more distinctive test data (`"single-space-line"`, `"double-space-cont"`, `"normal-line"`) which is better. Carried from RC10 m-9 / RC11 m-12.
 
-[m-5] test_session_commit_pipeline.py:157-212 — conformance — `test_submodule_clean_error_shows_full_path` uses `create_submodule_origin` + `add_submodule` helpers while other submodule tests in `test_session_commit_pipeline_ext.py` use `_init_repo_with_submodule`. Two different helper patterns for the same setup. Not a correctness issue but inconsistent.
+**F-3** `test_planstate_aggregation.py:102-197` — independence — Minor
+`test_git_metadata_helpers` tests both the positive path (3 commits after session.md anchor = count 3) and the negative path (no session.md in history = count 0) in one test function. Creates a second repo at line 161. Splitting would improve failure diagnosis. Carried from RC11 m-13.
 
-## Coverage Assessment
+**F-4** `test_session_handoff.py:217-248` — independence — Minor
+`test_write_completed_with_accumulated_content` (line 217) and `test_write_completed_overwrites_not_appends` (line 234) exercise the same code path (`write_completed` which delegates to `_write_completed_section`). Both verify replacement behavior; the first from a state with accumulated content, the second via two sequential calls. Not vacuous (different initial states), but near-redundant. Carried from RC11 m-14.
 
-| Design Scenario | Test File(s) | Status |
-|----------------|-------------|--------|
-| **H-2: Completed write modes** (overwrite, append, auto-strip) | test_session_handoff.py:205-288 | COVERED — Design note: implementation unified all three modes into simple section replacement (`_write_completed_section`). Tests verify: fresh write (overwrite), empty prior section, accumulated content replacement, idempotent overwrite, committed-state overwrite. All three prior-state variants exercised. |
-| **C-1: Vet check** (unreviewed, stale, no patterns) | test_session_commit.py:263-362, test_session_commit_validation.py:217-257 | COVERED — `test_vet_check_no_config` (no patterns = pass), `test_vet_check_unreviewed` (no report = fail with reason), `test_vet_check_stale` (old report = fail), `test_vet_check_pass` (fresh report = pass). Stale info detail verified with file names and timestamps. |
-| **C-2: Submodule 4-state matrix** (files x message) | test_session_commit_pipeline_ext.py:41-163 | COVERED — All four cells: (yes/yes) `test_commit_with_submodule`, (yes/no) `test_commit_submodule_no_message`, (no/yes) `test_commit_submodule_orphan_message`, (no/no) `test_commit_no_submodule_changes`. Multi-submodule ordering also covered at line 332. |
-| **C-3: Clean files error + STOP** | test_session_commit.py:203-222, test_session_commit_cli.py:95-121 | COVERED — `test_validate_files_clean_error` asserts `CleanFileError` with `match="no uncommitted changes"`, checks `clean_files` list and `STOP` in string. CLI test `test_commit_cli_clean_file_exits_2` verifies exit code 2. |
-| **C-4: Validation levels** (precommit, lint-only, no-vet, combined) | test_session_commit_validation.py:21-291 | COVERED — `test_commit_just_lint` (lint only, precommit not called), `test_commit_default_calls_vet` (default calls vet), `test_commit_skips_vet_when_no_vet` (no-vet skips), `test_commit_combined_options` (just-lint + amend), `test_commit_just_lint_no_vet` (just-lint + no-vet). All four validation levels plus combinations. |
-| **C-5: Amend semantics** (amend + no-edit, amend without message, submodule amend) | test_commit_pipeline_errors.py:251-284, test_session_commit_pipeline_ext.py:165-327 | COVERED — `test_commit_amend_no_edit` (preserves message), `test_commit_amend_parent` (replaces commit), `test_commit_amend_submodule` (both amended), `test_commit_amend_validation` (HEAD files accepted). Amend without message: implicitly covered by `test_parse_commit_edge_cases` (amend + no-edit without Message = valid). |
-| **ST-0: Worktree-destined tasks** (marker handling) | test_session_parser.py:75-84, test_status_rework.py:151-180 | COVERED — Parser extracts `worktree_marker` = `"my-slug"` and `"wt"`. `test_render_pending_skips_worktree_marked` verifies tasks with marker skip `Next:` selection, second task gets `▶`. |
-| **ST-1: Parallel group detection** | test_session_status.py:165-225, test_status_rework.py:218-267 | COVERED — Tests: different plan_dirs form group, single task = None, shared plan = None, mixed plans with consecutive window, cap at 5, blocker excludes. CLI integration verifies blockers prevent parallel detection. |
-| **ST-2: Missing session.md and old format** | test_session_status.py:266-277, test_status_rework.py:118-212 | COVERED — `test_session_status_missing_session` asserts exit 2 + "Error". `test_status_rejects_old_format` asserts exit 2 for tasks without metadata. `test_status_rejects_pending_tasks_section` asserts exit 2 for old section name. |
-| **Error output format** (Header + STOP) | test_session_commit.py:203-222, test_session_commit_cli.py:49-60, test_commit_pipeline_errors.py:110-131 | COVERED — `**Error:**` format verified in clean-file errors, pipeline errors, CLI wiring. `STOP` directive verified in CleanFileError. `_error()` structured output tested with empty and populated stderr. |
-| **S-2: git extraction + submodule discovery** | test_git_helpers.py:22-118 | COVERED — `_git_ok`, `discover_submodules` (none and present), `_is_submodule_dirty` (clean, dirty, nonexistent). |
-| **S-3: Output conventions** (exit codes) | test_session_commit_cli.py, test_session_handoff_cli.py, test_session_status.py | COVERED — Exit 0 (success), exit 1 (pipeline failure), exit 2 (input validation) verified across all three subcommands. |
-| **S-4: Session parser** | test_session_parser.py | COVERED — Status line, completed section, in-tree tasks with metadata, worktree tasks with markers, blockers extraction, date extraction, old format handling, missing file error. |
-| **S-5: Git changes utility** | test_git_cli.py | COVERED — Clean repo, dirty repo, submodule with prefixed paths, clean submodule omitted. |
-| **H-3: Diagnostic output** | test_session_handoff_cli.py:69-93 | COVERED — Fresh handoff verifies `**Git status:**` in output. |
-| **H-4: State caching** | test_session_handoff.py:293-337, test_session_handoff_cli.py:96-137 | COVERED — save/load/clear lifecycle, resume from state file, no-stdin-no-state error, backward compatibility with unknown fields. |
-| **Integration (Phase 7)** | test_session_integration.py | COVERED — Handoff-then-status round-trip verifying session.md updates propagate. |
+**F-5** `test_session_commit_pipeline.py:157-212` — conformance — Minor
+Submodule setup uses `create_submodule_origin` + `add_submodule` from pytest_helpers.py. Meanwhile `test_session_commit_pipeline_ext.py:22-35` defines its own `_init_repo_with_submodule` wrapper around the same helpers. Inconsistent patterns for the same operation. Carried from RC11 m-15.
 
-## Notes
+**F-6** `test_session_handoff_committed.py:88-116` — functional correctness — Minor
+`test_write_completed_appends_when_prior_uncommitted` simulates the "append" mode by replacing old content with new before calling `write_completed`. The test verifies both prior and new content present. However, the simulation replaces `"- Old task A\n- Old task B\n"` with `"- First handoff.\n"` — this means HEAD still has `"- Old task A\n- Old task B\n"` while working copy has `"- First handoff.\n"`. The detection logic (`_detect_write_mode`) checks whether committed lines are a subset of current lines. Since committed lines (`Old task A`, `Old task B`) are NOT a subset of current lines (`First handoff.`), and committed != current, mode correctly resolves to "append". Test logic is correct, but the comment at line 99-100 ("Simulate prior uncommitted handoff: replace old content with new (removing old, writing new)") is misleading — it describes the agent behavior but not the mode detection rationale.
 
-- Tests use real git repos via `tmp_path` fixtures throughout, consistent with the `testing.md` decision to prefer E2E over mocked subprocess (line 166).
-- `_run_precommit` is consistently mocked across pipeline tests (cannot rely on `justfile` in test environment) while git operations use real repos.
-- The `pytest_helpers.py` module provides shared helpers (`init_repo_at`, `init_repo_minimal`, `create_submodule_origin`, `add_submodule`) that avoid duplication across test files.
-- Test files are well-organized by module: parser tests in `test_session_parser.py`, pipeline tests split across `test_session_commit_pipeline.py` (parent) and `test_session_commit_pipeline_ext.py` (submodule/amend), validation in `test_session_commit_validation.py`.
-- All design scenarios from the outline (S-1 through S-5, H-1 through H-4, C-1 through C-5, ST-0 through ST-2) have test coverage.
+**F-7** `test_session_handoff_committed.py:122-151` — functional correctness — Minor
+`test_write_completed_autostrip_when_old_preserved` tests the autostrip path. The source implementation at `pipeline.py:217` has `except ValueError, subprocess.CalledProcessError:` which in Python 3.14 (PEP 758) catches both exceptions. The test correctly exercises the non-error path (successful `git show`), so this except clause is not tested. The autostrip error fallback path (`_find_repo_root` raising `ValueError` or `git show` failing) has no dedicated test.
+
+**F-8** `test_session_handoff_cli.py:291-315` — coverage — Minor
+`test_handoff_resume_from_diagnostics_skips_writes` tests resume from `step_reached="diagnostics"`. There is no test for resume from `step_reached="write_session"` — this would exercise the path where writes are performed during resume (state exists but writes haven't completed). The fresh-handoff test (`test_session_handoff_cli_fresh`) covers the write path from stdin, but resume-from-write_session is a distinct entry point (state file exists, stdin empty, writes still needed).
+
+**F-9** `test_session_handoff.py:217-231` — excess — Minor
+`test_write_completed_with_accumulated_content` at line 217 tests `write_completed` on a file where the committed content has been appended to (adding `"- New task done.\n"` after `"- Old task B\n"`). This is actually testing simple overwrite behavior — the function always replaces the section regardless of accumulated content. The H-2 committed-detection tests in `test_session_handoff_committed.py` now properly exercise the detection-aware paths. This test is a residual from pre-H-2 implementation; it still passes and verifies a valid invariant (section replacement works), but overlaps with the new committed detection tests.
+
+**F-10** `test_session_handoff_committed.py` — coverage — Minor
+The three H-2 mode tests initialize repos but all use `init_repo_minimal` which requires explicit `git add` + `git commit` via `_commit_session`. The autostrip test (line 122) modifies the file after committing, creating a diff. However, none of the three tests assert which mode was actually selected by `_detect_write_mode`. They verify the final output (correct content in file), which is the important thing, but a mode-detection unit test (testing `_detect_write_mode` directly for each case) would strengthen coverage and catch silent mode misclassification.
 
 ## Summary
 
@@ -67,17 +89,32 @@ All RC10 test-related fixes verified.
 |----------|-------|
 | Critical | 0 |
 | Major | 0 |
-| Minor | 5 |
+| Minor | 10 |
 
-RC10 test fixes all verified. Five new minors: one carried-forward fixture ordering issue (m-1), one generic assertion string concern (m-2), one test isolation note (m-3), one near-redundancy observation (m-4), one inconsistent helper pattern (m-5). All are low-risk style/structure observations.
+**RC11 fix verification:**
+- m-11 (SESSION_FIXTURE ordering): NOT FIXED — still defined after first usage (F-1)
+- m-12 (assertion strings): PARTIAL — some tests improved, others unchanged (F-2)
+- m-13 (conflated paths): NOT FIXED (F-3)
+- m-14 (same code path): NOT FIXED (F-4)
+- m-15 (inconsistent helpers): NOT FIXED (F-5)
+- Corrector dead mock removal: VERIFIED — no dead mocks remain
+
+**New findings (not carried):**
+- F-6: Misleading comment in append mode test
+- F-7: Autostrip error fallback path untested
+- F-8: No test for resume from `step_reached="write_session"`
+- F-9: Pre-H-2 accumulated content test now redundant with committed detection tests
+- F-10: No direct `_detect_write_mode` unit test
+
+**Trend:** RC11 0C/0M/5m → RC12 0C/0M/10m. Minor count increased because: 5 carried (m-11 through m-15 not addressed as stated), 5 new from fresh full-scope review of newly added test_session_handoff_committed.py (3 findings) and gaps in H-2/H-4 test coverage (2 findings).
 
 | Axis | Status |
 |------|--------|
-| Conformance | 2 minors (m-1 fixture ordering, m-5 helper inconsistency) |
-| Functional correctness | Pass |
-| Functional completeness | Pass — all design scenarios covered |
+| Conformance | 3 minors (F-1 fixture ordering, F-5 helper inconsistency, F-6 misleading comment) |
+| Functional correctness | Pass — all tests verify correct behavior |
+| Functional completeness | 2 minors (F-7 untested error path, F-8 missing resume-from-write_session) |
 | Vacuity | Pass — no ceremonial tests |
-| Excess | Pass — no unspecified test artifacts |
-| Specificity | 1 minor (m-2 generic assertion strings) |
-| Coverage | Pass — full design scenario coverage table above |
-| Independence | 1 minor (m-3 conflated scenarios), 1 minor (m-4 near-redundancy) |
+| Excess | 1 minor (F-9 pre-H-2 test now redundant) |
+| Specificity | 1 minor (F-2 generic assertion strings) |
+| Coverage | Pass — all 28 design scenarios covered (see checklist) |
+| Independence | 2 minors (F-3 conflated scenarios, F-4 near-redundant tests) |

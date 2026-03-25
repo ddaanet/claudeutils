@@ -1,38 +1,21 @@
 # Session Handoff: 2026-03-25
 
-**Status:** RC11 fixes implemented — H-2 committed detection, H-4 step_reached, 10 code minors, 2 test minors. Corrector reviewed (0C/0M/3m). Pending deliverable review.
+**Status:** RC12 review complete — 1C/0M/22m. Critical: CommitInputError from _validate_inputs uncaught in commit_cmd (m-2/m-3 fix regression). One-line fix needed.
 
 ## Completed This Session
 
-**Fix handoff-cli RC11:**
-- Implemented H-2 committed detection: 3 write modes (overwrite/append/autostrip) in `pipeline.py`
-- Implemented H-4 step_reached: `HandoffState` field + CLI resume skip logic
-- Fixed m-2/m-3: submodule missing-message now raises `CommitInputError` (exit 2 per S-3)
-- Fixed m-9: "Patchable in tests" → "Module-level for monkeypatch.setattr"
-- Fixed m-4: clarified `_strip_hints` single-space continuation comment
-- Added documentation comments for m-1 (WORKTREE_MARKER_PATTERN), m-7 (dependency edges), m-8 (relative path), m-10 (TODO consolidate)
-- Fixed m-11: moved SESSION_FIXTURE before first usage in test_session_status.py
-- Fixed m-12: improved assertion strings in test_session_commit_pipeline.py
-- Split test_session_handoff.py (461→332 lines) — extracted H-2 tests to test_session_handoff_committed.py
-- Corrector review: 0C/0M/3m — fixed unguarded CalledProcessError in autostrip, removed dead mock in step_reached test
-
-**Handoff skill fix:**
-- Removed legacy uncommitted-prior-handoff detection from SKILL.md Step 1 (CLI's H-2 owns this)
-- Removed "Multiple handoffs before commit" merge directive from Step 2
-- Removed stale "When detecting prior uncommitted handoff" learning
-
-**Remaining RC11 minors not addressed:** m-5 (already documented), m-6 (comment added), m-13/m-14/m-15 (test structure — low priority)
+**Handoff-cli RC12 deliverable review:**
+- Full-scope review: L1 (3 opus agents: code, test, prose+config) + L2 (interactive cross-cutting)
+- Verified RC11 M-1 (H-2 committed detection) and M-2 (H-4 step_reached) both FIXED
+- Found C-1: `session/cli.py:29-32` catches `CleanFileError` from `commit_pipeline()` but not `CommitInputError` — regression from m-2/m-3 fix. Violates S-3 on output channel (stderr), format (Click vs structured markdown), exit code (1 vs 2)
+- L1 code agent incorrectly marked m-2/m-3 as FIXED (checked raise site, not catch site scope)
+- Report: `plans/handoff-cli-tool/reports/deliverable-review.md` (RC12)
+- Lifecycle: `rework`
 
 ## In-tree Tasks
 
-- [x] **Fix handoff-cli RC9** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
-  - Plan: handoff-cli-tool | Status: reviewed
-- [x] **Handoff-cli RC10** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [x] **Fix handoff-cli RC10** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
-  - Plan: handoff-cli-tool | Status: rework
-- [x] **Handoff-cli RC11** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [x] **Fix handoff-cli RC11** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
-  - Plan: handoff-cli-tool | Status: reviewed
+- [x] **Handoff-cli RC12** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+- [ ] **Fix handoff-cli RC12** — `/design plans/handoff-cli-tool/reports/deliverable-review.md` | opus
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -62,7 +45,6 @@
   - Fix review-dispatch-template to enforce artifact-path-only recall pattern
 - [ ] **Worktree ls filtering** — `/design plans/worktree-ls-filtering/brief.md` | sonnet
   - _worktree ls dumps all plans across all trees; handoff only needs session.md plan dirs
-- [ ] **Handoff-cli RC12** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
 
 ## Blockers / Gotchas
 
@@ -77,10 +59,8 @@
 
 ## Reference Files
 
-- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC11 findings (0C/2M/15m)
-- `plans/handoff-cli-tool/reports/review-rc11-fix.md` — Corrector review of RC11 fix (0C/0M/3m)
-- `plans/handoff-cli-tool/runbook-fix-rc11.md` — Execution runbook
+- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC12 findings (1C/0M/22m)
 
 ## Next Steps
 
-Deliverable review RC12 — `/deliverable-review plans/handoff-cli-tool` in a new opus session with restart.
+Fix RC12 critical: add `CommitInputError` to except clause at `session/cli.py:31`. One-line fix + CLI-level test for missing-submodule-message path.

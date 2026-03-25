@@ -1,68 +1,47 @@
-# Prose & Configuration Review Findings
+# Prose & Config Review: handoff-cli-tool (RC12)
 
-**Review round:** RC11 (full-scope, no delta-scoping per scoping-deliverable-review-iterations learning)
+**Review round:** RC12 (full-scope)
 **Design reference:** `plans/handoff-cli-tool/outline.md`
-**Methodology:** `agents/decisions/deliverable-review.md`
+**Files reviewed:** 4 (2 agentic prose, 2 configuration)
+
+## Findings
+
+### handoff SKILL.md
+
+**1.** handoff/SKILL.md:146 — actionability — **Minor**
+Step 7 says "On failure: output the precommit result, STOP — fix issues and retry." The compound instruction is ambiguous: "STOP" in this codebase means halt for user intervention (communication rule 1, S-3 conventions), but "fix issues and retry" implies autonomous self-correction. These compete. Suggest: "On failure: output the precommit result, STOP — wait for guidance" to align with stop-on-unexpected rule.
+
+**2.** handoff/SKILL.md:27 — constraint precision — **Minor**
+"The CLI's committed detection (H-2) handles uncommitted prior handoffs; the skill always writes full state." References H-2 by identifier only. An agent encountering this line has no path to resolve "H-2" — it's an outline identifier, not a skill/CLI reference. Low impact since the behavioral instruction ("skill always writes full state") is self-contained, but the H-2 reference is inert prose.
+
+### design SKILL.md
+
+**3.** design/SKILL.md:135-142 — scope boundaries — **Minor**
+The Simple and Moderate routing changes (commit `d85e7e7`) are a standalone bugfix for the "competing execution paths" learning, not a handoff-cli-tool deliverable. Outline line 373 lists "Skill modifications" as OUT. Included in this review's file set but structurally independent. No defect — scope attribution note.
+
+### .claude/settings.local.json
+
+**4.** .claude/settings.local.json — vacuity — **Minor**
+Change adds a trailing newline to `{}`. POSIX line-ending compliance. No functional effect.
+
+### .gitignore
+
+**5.** .gitignore:17 — scope boundaries — **Minor**
+`/.vscode/` to `/.vscode` broadens from directory-only to file-or-directory match. Correctly handles the `.vscode` character device created by sandbox. Unrelated to handoff-cli-tool plan scope — incidental fix.
+
+## Completeness Check
+
+- **Precommit gate in handoff skill:** Delivered (Step 7, line 146). `just precommit` runs after all writes, before STATUS display.
+- **CLI invocation from handoff skill:** Not present. The outline's "Coupled skill update" says "(before calling `_handoff` CLI)" but `skill-cli-integration` plan (`plans/skill-cli-integration/brief.md`) explicitly defers this: "/handoff skill — currently writes session.md directly. Should compose with `_handoff` CLI." The coupled update scope is the precommit gate only; CLI composition is future work.
+- **allowed-tools:** Correctly expanded to `Bash(just:*,wc:*,git:*,claudeutils:*)` — each glob maps to a required step.
+- **Legacy detection removal:** Lines 27-28 (old uncommitted-prior-handoff detection + merge directive) correctly removed. CLI's H-2 owns this.
+- **Handoff state file in .gitignore:** Not needed — `tmp/.handoff-state.json` is covered by existing `/tmp/` entry (line 6).
+- **settings.local.json relevance:** Trailing newline only. No plan-related content.
 
 ## Summary
 
-Reviewed 4 files (+11/-8 lines): 2 agentic prose (design SKILL.md, handoff SKILL.md), 2 configuration (settings.local.json, .gitignore). Evaluated agentic prose against universal + actionability, constraint precision, determinism, scope boundaries axes. Evaluated configuration against universal axes only.
+- Critical: 0
+- Major: 0
+- Minor: 5 (1 actionability, 1 constraint precision, 2 scope attribution, 1 vacuity)
 
-## Critical Findings
-
-None.
-
-## Major Findings
-
-None.
-
-## Minor Findings
-
-None.
-
-## Per-File Assessment
-
-### agent-core/skills/handoff/SKILL.md (Agentic prose, +6/-2)
-
-Three changes across commits 52db16c..45f33d6:
-
-**1. allowed-tools expansion (line 4):** `Bash(wc:*)` to `Bash(just:*,wc:*,git:*,claudeutils:*)`.
-- **Conformance:** Each glob maps to a skill step: `just:*` for Step 7 precommit gate, `git:*` for Steps 1/2 diff/status checks, `claudeutils:*` for Step 2 `_worktree ls`. No excess grants beyond what steps require. No missing permissions.
-- **Functional correctness:** Without `just:*`, Step 7 (`just precommit`) would fail at tool permission level. The grant is necessary.
-
-**2. Fresh-write-resets-Completed rule (line 28):** Added bullet under Step 1 (Gather Context).
-- **Actionability:** Concrete instruction: "contains only work from this conversation." Agent knows exactly what content belongs.
-- **Scope boundaries:** Correctly scoped to fresh-write paths only; the incremental merge path (prior uncommitted handoff) is unaffected.
-- **Conformance:** Aligns with outline H-2 "Overwrite" mode for first-handoff/committed state.
-
-**3. Precommit Gate — Step 7 (lines 147-149):**
-- **Conformance:** Outline line 375 requires: "Handoff skill must add `just precommit` as a pre-handoff gate (before calling `_handoff` CLI)." The gate is delivered. The outline specifies "before calling `_handoff` CLI" but the skill does not yet call `_handoff` CLI — Skill integration is explicitly future scope (outline line 379). In the current architecture where the skill performs writes itself, positioning after all mutation steps (2-6) and before display (Step 8) is the functionally equivalent location.
-- **Constraint precision:** Specifies exact command (`just precommit`), exact failure behavior ("output the precommit result, STOP"), exact success behavior ("continue to STATUS display"). No agent judgment required.
-- **Determinism:** Binary gate — precommit passes or fails. No interpretation needed.
-- **Functional completeness:** Step renumbering correct (old Step 7 Display STATUS becomes Step 8).
-
-### agent-core/skills/design/SKILL.md (Agentic prose, +3/-4)
-
-Single change (commit d85e7e7): Simple routing loophole fix.
-
-- **Conformance (scope):** Outline line 373 lists "Skill modifications (commit/status skills updated separately)" as OUT. This design SKILL.md change is a concurrent bugfix for the "competing execution paths" learning (learnings.md line 113), not a plan deliverable. It addresses a defect discovered during plan execution but is independent of the handoff-cli-tool scope. Reviewed because it was in the provided file set — no conformance concern since it does not conflict with plan scope.
-- **Functional correctness:** Old routing offered steps 3 ("implement directly") and 4 ("chain to /inline") as competing paths. Agent would execute at step 3, bypassing corrector gates. New routing collapses to: recall (step 1), explore (step 2), chain to /inline (step 3). Explicit prohibition added: "Do NOT implement directly." Closes the documented loophole.
-- **Actionability:** Three numbered steps, each with a concrete action. No ambiguity.
-- **Determinism:** Simple classification maps to exactly one routing path with no conditional branching.
-- **Excess:** None. The change is minimal — removes the competing permission and adds the prohibition. No unrelated content introduced.
-
-### .claude/settings.local.json (Configuration, +1/-1)
-
-- **Functional correctness:** Content remains `{}`. Change is trailing newline addition (POSIX compliance). No semantic change.
-- **Vacuity:** Not vacuous — POSIX-compliant line endings prevent diff noise and tool warnings.
-
-### .gitignore (Configuration, +1/-1)
-
-- **Functional correctness:** `/.vscode/` changed to `/.vscode`. Removes trailing slash, broadening from directory-only match to file-or-directory match. Correctly handles the `.vscode` character device created by Claude Code sandboxing (not a directory, so `/.vscode/` pattern would not match it).
-- **Excess:** None. Change is within plan execution scope (sandbox compatibility fix encountered during development).
-
-## Notes
-
-- The handoff SKILL.md precommit gate is well-positioned in the skill lifecycle. When the future `_handoff` CLI integration happens (outline line 379), the gate's position relative to the CLI call will need verification, but the current placement is correct for the current architecture.
-- The design SKILL.md fix, while out of plan scope, is a genuine and well-executed bugfix grounded in a documented learning with evidence.
-- All four changes are minimal and targeted. No scope creep detected.
+All changes are functionally correct. The handoff SKILL.md delivers the coupled skill update specified by the outline. No missing deliverables within the scoped interpretation (precommit gate + legacy removal). The two minors on handoff SKILL.md (findings 1-2) are polish items with no functional impact.

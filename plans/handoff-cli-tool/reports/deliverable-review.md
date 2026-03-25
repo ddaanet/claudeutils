@@ -1,4 +1,4 @@
-# Deliverable Review: handoff-cli-tool (RC11)
+# Deliverable Review: handoff-cli-tool (RC12)
 
 **Date:** 2026-03-25
 **Methodology:** agents/decisions/deliverable-review.md
@@ -9,84 +9,113 @@
 
 | Type | Files | + | - | Net |
 |------|-------|---|---|-----|
-| Code | 26 | +1751 | -96 | +1655 |
-| Test | 20 | +3665 | -60 | +3605 |
-| Agentic prose | 2 | +9 | -6 | +3 |
+| Code | 26 | +1898 | -97 | +1801 |
+| Test | 21 | +3866 | -60 | +3806 |
+| Agentic prose | 2 | +10 | -10 | +0 |
 | Configuration | 2 | +2 | -2 | +0 |
-| **Total** | **50** | **+5427** | **-164** | **+5263** |
+| **Total** | **51** | **+5776** | **-169** | **+5607** |
 
-### RC10 Finding Verification
+### RC11 Finding Verification
 
-| RC10 Finding | Status | Evidence |
+| RC11 Finding | Status | Evidence |
 |-------------|--------|----------|
-| M-1: `load_state()` backward compat | FIXED | pipeline.py:45-47 — filters `data` to `HandoffState.__dataclass_fields__` |
-| M-2: Handoff CLI error handling | FIXED | cli.py:54-58 — try/except `(OSError, ValueError)` around pipeline calls |
-| m-1: Submodule CleanFileError paths | VERIFIED | Regression test confirms paths include submodule prefix |
-| m-2: `overwrite_status` regex backreference | FIXED | pipeline.py:77-80 — function callback replacement |
-| m-3: `_build_repo_section` blank line | FIXED | git_cli.py:32 |
-| m-6: Redundant `len > 0` | FIXED | test_session_parser.py:138 |
-| m-7: Bare `pytest.raises` (test_session_commit.py) | FIXED | match="no uncommitted changes" |
-| m-8: Bare `pytest.raises` (test_worktree_merge_errors.py) | FIXED | match="non-zero exit" |
-| m-9: Ambiguous assertion string | CARRIED | m-12 below — same finding at same location |
-| m-10: Disjunctive assertion | FIXED | test_session_status.py:263 — specific `"In-tree:"` |
-| m-11: Integration test plan dir | FIXED | test_session_integration.py:37-39 — creates `plans/widget/` |
-| m-12: Un-parenthesized except (PEP 758) | DISMISSED | Python 3.14 canonical form per PEP 758 |
-| m-13: Dead `return None` | FIXED | worktree/cli.py:264 — removed, `noqa: RET503` added |
-
-11 of 13 RC10 findings fixed. m-9 carried (same location). m-12 dismissed (PEP 758).
+| M-1: H-2 committed detection | FIXED | pipeline.py:143-233 — three modes (overwrite/append/autostrip) |
+| M-2: H-4 step_reached | FIXED | HandoffState field + cli.py:59 resume skip |
+| m-1: WORKTREE_MARKER_PATTERN | FIXED | task_parsing.py:21-23 documentation |
+| m-2/m-3: Submodule missing-message | **REGRESSION** | Raises CommitInputError but CLI handler doesn't catch it (C-1) |
+| m-4: _strip_hints continuation | FIXED | commit_pipeline.py:207-208 comment |
+| m-5: _dirty_files -u flag | DOCUMENTED | commit_gate.py:56 comment |
+| m-6: git_changes() unconditional | FIXED | handoff/cli.py:68 comment |
+| m-7: dependency edges substring | FIXED | render.py:118-120 comment |
+| m-8: list_plans relative path | FIXED | status/cli.py:67-68 comment |
+| m-9: testability comment | FIXED | commit_pipeline.py:25,43 |
+| m-10: TODO consolidate | FIXED | commit_gate.py:41 |
+| m-11: SESSION_FIXTURE ordering | NOT FIXED | Still defined at line 280, first used at line 253 |
+| m-12: assertion strings | PARTIAL | Some tests improved, others unchanged |
+| m-13/m-14/m-15: test structure | NOT FIXED | Expected — session.md stated "not addressed" |
+| Corrector: autostrip guard | FIXED | pipeline.py:217 catches both exceptions |
+| Corrector: dead mock | FIXED | No dead mocks remain |
 
 ## Critical Findings
 
-None.
+**C-1** `session/cli.py:29-32` — error signaling, conformance (S-3)
+
+`commit_pipeline(ci)` can raise `CommitInputError` from `_validate_inputs()` (commit_pipeline.py:276-278: "Files under {path}/ but no ## Submodule {path} section"). The except clause at cli.py:31 catches `CleanFileError` only.
+
+Propagation path: `_validate_inputs` raises `CommitInputError` → `commit_pipeline` doesn't catch it → `commit_cmd` except only matches `CleanFileError` → exception propagates to Click → stderr "Error:" format, exit 1.
+
+Violates S-3 on three axes:
+- **Output channel:** stderr instead of stdout
+- **Output format:** Click's "Error:" prefix instead of `**Error:**` structured markdown
+- **Exit code:** 1 (pipeline error) instead of 2 (input validation)
+
+This is a regression from the m-2/m-3 fix. Pre-fix: `_validate_inputs` returned `CommitResult(success=False)` → wrong exit code (1 instead of 2) but structured stdout output. Post-fix: raises `CommitInputError` → correct error semantics but unhandled → worse behavior on all three S-3 axes.
+
+**Fix:** Add `CommitInputError` to the except clause at cli.py:31:
+```python
+try:
+    result = commit_pipeline(ci)
+except (CleanFileError, CommitInputError) as e:
+    _fail(str(e) if isinstance(e, CleanFileError) else f"**Error:** {e}", code=2)
+```
+
+**Test gap:** No CLI-level test exercises the missing-submodule-message path through `commit_cmd`. Unit test at test_session_commit_pipeline_ext.py:104 catches `CommitInputError` directly from `commit_pipeline()` but doesn't test the CLI handler.
 
 ## Major Findings
 
-**M-1** `session/handoff/pipeline.py:89-100` — conformance, functional completeness
-H-2 committed detection not implemented in CLI. Design specifies three write modes based on `git diff HEAD -- agents/session.md`:
-- No diff → Overwrite
-- Old removed, new present → Append
-- Old preserved with additions → Auto-strip committed content, keep new additions
-
-Implementation collapses all three into unconditional overwrite. Docstring acknowledges simplification. Risk mitigated: handoff skill's Step 1 handles uncommitted-prior-handoff detection, and CLI is internal-only (hidden, skill-called). Design allocated this to CLI.
-
-**M-2** `session/handoff/pipeline.py:14-19` — conformance, functional completeness
-H-4 `step_reached` field missing from `HandoffState`. Design specifies `step_reached: "write_session" | "diagnostics"` for granular resume. Implementation replays full pipeline on resume. Functionally safe — all writes idempotent (overwrite). Related to M-1: if committed detection were implemented, idempotency would not hold, making step_reached necessary.
+None.
 
 ## Minor Findings
 
-### Code (10)
+### Code (7)
 
-**m-1** `validation/task_parsing.py:21` — conformance — `WORKTREE_MARKER_PATTERN` requires backtick-wrapped slug. Design's `→ wt` marker (ST-0, no backticks) won't match. Practical impact low: `→ wt` tasks belong in Worktree Tasks section (rendered separately).
+**m-1** `handoff/pipeline.py:203,228` — functional correctness — Append and autostrip modes strip blank lines (`if line.strip()`) from current section before combining. Loses inter-group markdown spacing (blank lines between `###` sub-groups).
 
-**m-2** `session/commit_pipeline.py:276-282` — conformance — Missing submodule message returns exit 1 (pipeline error). Per S-3, malformed caller input → exit 2.
+**m-2** `handoff/pipeline.py:206-219` — modularity — Autostrip mode re-executes `_find_repo_root` + `git show HEAD:` already done in `_detect_write_mode`. Could pass committed content from detection.
 
-**m-3** `session/commit_pipeline.py:263-267` — error signaling — Redundant missing-message check yields exit 1. Parser already catches this with exit 2. If kept, should exit 2.
+**m-3** `status/cli.py:60-65` — robustness — Old-format detection compares raw task line count against parsed task count. Malformed lines (matching `- [` but failing parse) produce misleading "Old-format" error.
 
-**m-4** `session/commit_pipeline.py:193-213` — robustness — `_strip_hints` single-space continuation logic: line both kept in output AND treated as hint context. Intent ambiguous.
+**m-4** `commit_gate.py:66` — functional correctness — `len(line) > 3` guard in `_dirty_files()` should be `>= 3` per porcelain format spec. No practical impact (git never produces empty paths).
 
-**m-5** `session/commit_gate.py:51-68` — robustness — `_dirty_files` uses `-u` flag. Performance concern with many untracked files.
+**m-5** `handoff/pipeline.py:173-178` — robustness — `_detect_write_mode` compares stripped lines for set membership. Different indentation between committed and current content → false match after `.strip()`. Edge case — completed content is typically unindented.
 
-**m-6** `session/handoff/cli.py:60-61` — robustness — `git_changes()` called unconditionally for diagnostics. Minor unnecessary work when tree is clean (unlikely after writes).
+**m-6** `handoff/cli.py:70` — functional correctness — When tree is clean, `git_changes()` returns empty string → output is an empty fenced code block. The Click command wrapper (`changes_cmd`) handles this with "Tree is clean." but handoff CLI calls the Python function directly.
 
-**m-7** `session/status/render.py:105-127` — functional correctness — `_build_dependency_edges` uses substring matching in concatenated blocker text. False dependency links possible for common words. Conservative (prevents parallelism, never enables unsafe parallelism).
+**m-7** `handoff/pipeline.py:115-140,170` — robustness — `_extract_completed_section` with `splitlines(keepends=True)` preserves trailing newlines, but mode detection compares raw text with `==` (newline-sensitive) while writers use `.splitlines()` (newline-insensitive). Trailing newline difference could trigger append when overwrite was intended.
 
-**m-8** `session/status/cli.py:67` — functional correctness — `list_plans(Path("plans"))` uses relative path. Matches other relative-path assumptions in CLI context.
+### Test (10)
 
-**m-9** `session/commit_pipeline.py:22-37,40-55` — testability — `_run_precommit`/`_run_lint` comment "Patchable in tests" but are module-level functions. `monkeypatch.setattr` works.
+**m-8** `test_session_status.py:280` — conformance — SESSION_FIXTURE defined after first usage (line 253). Carried from RC11 m-11; claimed fix not applied.
 
-**m-10** `session/commit_gate.py:31-48` — modularity — `_git_output` duplicates `git.py:_git()` but adds `cwd` parameter. Shared helper doesn't support `cwd`.
+**m-9** `test_session_commit_pipeline.py:108-125` — specificity — Generic assertion words ("continuation", "other line"). Carried from RC11 m-12. Partially improved in adjacent tests.
 
-### Test (5)
+**m-10** `test_planstate_aggregation.py:102-197` — independence — Conflates positive/negative paths in one function. Carried from RC11 m-13.
 
-**m-11** `test_session_status.py:280-298` — conformance — `SESSION_FIXTURE` defined after first usage. Forward reference works but unconventional.
+**m-11** `test_session_handoff.py:217-248` — independence — Two tests exercise same `_write_completed_section` path. Near-redundant. Carried from RC11 m-14.
 
-**m-12** `test_session_commit_pipeline.py:121-134` — specificity — Hint-stripping assertion strings ("continuation", "single") are generic. Low risk with inline test data. Carried from RC10 m-9.
+**m-12** `test_session_commit_pipeline.py:157-212` / `test_session_commit_pipeline_ext.py:22-35` — conformance — Inconsistent submodule setup helpers. Carried from RC11 m-15.
 
-**m-13** `test_planstate_aggregation.py:102-197` — independence — `test_git_metadata_helpers` conflates positive and negative paths.
+**m-13** `test_session_handoff_committed.py:99-100` — functional correctness — Comment "Simulate prior uncommitted handoff" describes agent behavior but not mode-detection rationale. Misleading.
 
-**m-14** `test_session_handoff.py:235-261` — conformance — Two tests exercise same `_write_completed_section` code path, differing only in initial state. Near-redundant.
+**m-14** `test_session_handoff_committed.py` — coverage — Autostrip error fallback path (`_find_repo_root` ValueError or `git show` failure) has no dedicated test.
 
-**m-15** `test_session_commit_pipeline.py:157-212` — conformance — Inconsistent submodule setup helpers between test files.
+**m-15** `test_session_handoff_cli.py` — coverage — No test for resume from `step_reached="write_session"` (writes performed during resume). Only diagnostics-skip tested.
+
+**m-16** `test_session_handoff.py:217` — excess — Pre-H-2 accumulated content test now redundant with committed detection tests in test_session_handoff_committed.py.
+
+**m-17** `test_session_handoff_committed.py` — coverage — No direct `_detect_write_mode` unit test. Integration tests verify final output but don't assert mode selection.
+
+### Prose+Config (5)
+
+**m-18** handoff/SKILL.md:146 — actionability — "STOP — fix issues and retry" competes with communication rule 1 (stop and wait for guidance).
+
+**m-19** handoff/SKILL.md:27 — constraint precision — H-2 reference identifier unresolvable by agents.
+
+**m-20** design/SKILL.md:135-142 — scope — Changes are standalone bugfix, not handoff-cli-tool deliverable. Scope attribution note.
+
+**m-21** .claude/settings.local.json — vacuity — Trailing newline change only.
+
+**m-22** .gitignore:17 — scope — `.vscode/` → `.vscode` broadening unrelated to plan scope.
 
 ## Gap Analysis
 
@@ -94,15 +123,15 @@ H-4 `step_reached` field missing from `HandoffState`. Design specifies `step_rea
 |-------------------|--------|-----------|
 | S-1: Package structure | Covered | session/ subpackage |
 | S-2: `_git()` extraction + submodule discovery | Covered | git.py, worktree imports updated |
-| S-3: Output and error conventions | Covered | All stdout, exit codes 0/1/2 |
+| S-3: Output and error conventions | **Regression** | C-1: CommitInputError uncaught in commit_cmd |
 | S-4: Session.md parser | Covered | session/parse.py |
 | S-5: Git changes utility | Covered | git_cli.py |
 | H-1: Domain boundaries | Covered | CLI: status + completed writes |
-| H-2: Committed detection | **Simplified** | All modes → overwrite (M-1) |
+| H-2: Committed detection | Covered | Three modes implemented (RC11 M-1 fixed) |
 | H-3: Diagnostic output | Covered | git_changes() after writes |
-| H-4: State caching | **Simplified** | No step_reached (M-2) |
+| H-4: State caching + step_reached | Covered | HandoffState field + resume logic (RC11 M-2 fixed) |
 | C-1: Scripted vet check | Covered | pyproject.toml patterns + report freshness |
-| C-2: Submodule coordination | Covered | 4-state matrix |
+| C-2: Submodule coordination | **Partial** | 4-state matrix works; error path violates S-3 (C-1) |
 | C-3: Input validation + STOP | Covered | CleanFileError |
 | C-4: Validation levels | Covered | Orthogonal options |
 | C-5: Amend semantics | Covered | diff-tree, directional propagation |
@@ -114,24 +143,25 @@ H-4 `step_reached` field missing from `HandoffState`. Design specifies `step_rea
 
 ## Cross-Cutting Analysis (Layer 2)
 
-- **Path consistency:** `CLAUDEUTILS_SESSION_FILE` env var, consistent between handoff and status ✅
-- **API contract alignment:** `ParsedTask` ↔ `render_pending()`, `CommitInput` ↔ `commit_pipeline()` ✅
-- **Naming uniformity:** Error classes, data classes, private functions — consistent ✅
-- **`_fail()` consolidation:** Single definition in `git.py`, all subcommands import ✅
-- **Import chain (S-2):** All worktree modules correct ✅
-- **Fragment convention:** Skill changes follow patterns ✅
-- **RC10 test fixes:** All test-related fixes verified ✅
+- **Path consistency:** `CLAUDEUTILS_SESSION_FILE` env var consistent between handoff and status ✓
+- **API contract alignment:** `CommitInputError` raised by `commit_pipeline._validate_inputs` but not caught by `cli.commit_cmd` ✗ (C-1)
+- **Naming uniformity:** Error classes, data classes, private functions — consistent ✓
+- **`_fail()` consolidation:** Single definition in `git.py`, all subcommands import ✓
+- **Import chain (S-2):** All worktree modules updated to import from `claudeutils.git` ✓
+- **Fragment convention:** Skill changes follow patterns ✓
+- **State file coverage:** `tmp/.handoff-state.json` covered by existing `/tmp/` gitignore ✓
+- **RC11 fix verification:** L1 code agent incorrectly marked m-2/m-3 as FIXED; the fix introduced a regression (C-1)
 
 ## Summary
 
 | Severity | Count |
 |----------|-------|
-| Critical | 0 |
-| Major | 2 |
-| Minor | 15 |
+| Critical | 1 |
+| Major | 0 |
+| Minor | 22 |
 
-**RC10 fixes:** 11 of 13 fixed. 1 carried (m-12, generic assertion strings). 1 dismissed (PEP 758).
+**RC11 fix verification:** Both majors (M-1 H-2, M-2 H-4) confirmed fixed. m-2/m-3 fix introduced a regression (C-1). 7 of 10 code minors addressed. 1 of 5 test minors partially addressed; 4 unaddressed as stated. Corrector fixes verified.
 
-**Remaining Majors:** Both are design-spec conformance deviations, not functional defects. M-1 (H-2 committed detection) and M-2 (H-4 step_reached) are documented simplifications — the implementation is internally consistent and functionally safe. The handoff skill provides the detection logic that the design allocated to the CLI, and idempotent writes make step_reached unnecessary.
+**Critical finding (C-1):** The m-2/m-3 fix changed `_validate_inputs` to raise `CommitInputError` (correct error type for exit 2) but didn't update `commit_cmd`'s except clause to catch it from `commit_pipeline()`. The exception propagates to Click, producing stderr output with exit 1 — worse than the pre-fix behavior on all three S-3 axes (channel, format, code). One-line fix: add `CommitInputError` to the except clause at cli.py:31.
 
-**Trend:** RC9 0C/2M/13m → RC10 0C/2M/13m → RC11 0C/2M/15m. Major count stable at 2 — same two design simplifications surfaced in RC10 and RC11 (M-1/M-2 are spec-level decisions, not code bugs). Minor count increased by 2 (5 new test minors, 3 code minors resolved from RC10 but replaced by different code minors from fresh full-scope review).
+**Trend:** RC9 0C/2M/13m → RC10 0C/2M/13m → RC11 0C/2M/15m → RC12 1C/0M/22m. Both long-standing majors resolved. New Critical from incomplete error handler update. Minor count reflects full-scope review of new H-2/H-4 code surface (7 code, 5 new test) plus 5 carried test minors and 5 prose/config scope notes.

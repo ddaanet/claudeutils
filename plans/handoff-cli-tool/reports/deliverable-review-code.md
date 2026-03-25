@@ -1,73 +1,105 @@
-# Code Review: handoff-cli-tool (RC11)
+# Code Review: handoff-cli-tool (RC12)
+
+**Date:** 2026-03-25
+**Methodology:** Full-scope review of all 26 code files against outline.md
+**Review type:** RC11 fix verification + new finding scan
+
+## RC11 Fix Verification
+
+### Majors
+
+**M-1 (H-2 committed detection): FIXED**
+`pipeline.py:143-233` — `_detect_write_mode()` implements three-way classification:
+- `committed == current` → "overwrite" (line 170)
+- `committed_lines.issubset(current_lines)` → "autostrip" (line 180)
+- else → "append" (line 183)
+
+`write_completed()` dispatches on mode (lines 198-233): overwrite calls `_write_completed_section` directly; append extracts current non-blank lines, concatenates with new_lines; autostrip computes committed set, filters current to uncommitted lines, concatenates.
+
+Corrector fix verified: `except ValueError, subprocess.CalledProcessError:` guard at line 217 handles both error paths in autostrip mode.
+
+**M-2 (H-4 step_reached): FIXED**
+`pipeline.py:16-22` — `HandoffState` has `step_reached: str = "write_session"` field.
+`save_state()` accepts `step_reached` parameter (line 24).
+`cli.py:47` — Fresh path saves with `step_reached="write_session"`.
+`cli.py:59` — Resume path: `if state is None or state.step_reached != "diagnostics":` skips writes when already at diagnostics.
+`cli.py:66` — After writes succeed, updates to `step_reached="diagnostics"`.
+Backward compat: `load_state()` filters to known fields (line 49-50), defaulting `step_reached` to `"write_session"`.
+
+### Code Minors
+
+**m-1 (WORKTREE_MARKER_PATTERN documentation): FIXED**
+`task_parsing.py:21-23` — Comment documents that bare `→ wt` (ST-0) won't match and those tasks belong in Worktree Tasks section.
+
+**m-2/m-3 (submodule missing-message exit code): FIXED**
+`commit_pipeline.py:275-278` — Missing submodule message now raises `CommitInputError`. `cli.py:26-27` catches `CommitInputError` with `code=2`. Redundant check at old location removed.
+
+**m-4 (_strip_hints single-space continuation): FIXED**
+`commit_pipeline.py:207-208` — Comment clarified: "Single-space indent: not a hint continuation, but keep hint context active (next line may be a continuation)."
+
+**m-5 (_dirty_files -u flag): NOT FIXED (documented)**
+`commit_gate.py:56` — Comment explains `-u` purpose. No code change, as expected.
+
+**m-6 (git_changes() unconditional): NOT FIXED**
+No comment added at `cli.py:69`. Session notes claim "comment added" but the call is uncommented. Trivial — git_changes() is fast and tree is almost certainly dirty after writes.
+
+**m-7 (_build_dependency_edges substring matching): FIXED**
+`render.py:118-120` — Comment documents conservative behavior.
+
+**m-8 (list_plans relative path): FIXED**
+`status/cli.py:67-68` — Comment documents cwd assumption.
+
+**m-9 (testability comment): FIXED**
+`commit_pipeline.py:25,43` — Both functions now have "Module-level for ``monkeypatch.setattr`` in tests."
+
+**m-10 (TODO consolidate): FIXED**
+`commit_gate.py:41` — TODO comment added for `_git_output` duplication.
+
+**m-11 (SESSION_FIXTURE ordering): NOT FIXED**
+`test_session_status.py:280` — `SESSION_FIXTURE` still defined at line 280, first used at line 253. Session notes claim "moved SESSION_FIXTURE before first usage" but it remains after. Python forward-references work at module level, so no functional impact.
+
+**m-12 (assertion strings): CARRIED**
+`test_session_commit_pipeline.py:108-153` — Assertion strings contextual with inline test data. Low risk.
+
+### Corrector Fixes
+
+**Unguarded CalledProcessError in autostrip: FIXED**
+`pipeline.py:217` — `except ValueError, subprocess.CalledProcessError:` catches both error paths, falls back to plain overwrite on failure.
+
+**Dead mock in step_reached test: FIXED**
+No dead mocks observed in test_session_handoff.py or test_session_handoff_cli.py.
+
+## New Findings
+
+**1.** `session/handoff/pipeline.py:203,228` — functional correctness, Minor
+Append and autostrip modes strip blank lines from current section content (`if line.strip()`) before combining with `new_lines`. If the current section has markdown structure (blank lines separating `###` sub-groups), that structure is lost. Both modes produce collapsed output missing inter-group spacing. Design H-2 doesn't specify blank-line preservation, but the handoff input format uses `###` headings which conventionally have blank-line separation.
+
+**2.** `session/handoff/pipeline.py:206-219` — modularity, Minor
+Autostrip mode duplicates the `_find_repo_root` + `git show HEAD:` sequence already executed inside `_detect_write_mode` (lines 149-164). The committed content is computed once during detection, discarded, then recomputed in `write_completed`. Could pass committed content from detection to avoid the extra `git show`. Performance impact negligible (one extra subprocess call).
+
+**3.** `session/status/cli.py:60-65` — robustness, Minor
+Old-format detection compares `_count_raw_tasks(content)` (lines matching `- [`) against `len(data.in_tree_tasks)` (successfully parsed tasks). If a task line matches `- [` but fails to parse (e.g., missing `**name**` bold markers), counts diverge and the CLI exits with misleading "Old-format tasks missing metadata" error. The actual issue would be malformed task lines, not old-format ones.
+
+**4.** `session/commit_gate.py:66` — functional correctness, Minor
+`_dirty_files()` checks `len(line) > 3` before extracting `line[3:]`. Porcelain format has a 3-character prefix (`XY `) followed by the path. The guard `> 3` skips lines with exactly 3 characters (status code + space, empty path). Git status never produces empty paths in practice, but the guard should be `>= 3` for correctness against the format specification.
+
+**5.** `session/handoff/pipeline.py:173-178` — robustness, Minor
+`_detect_write_mode` compares stripped lines between committed and current content to determine mode, but the stripping is one-way: `line.strip()` removes leading/trailing whitespace for set membership. If committed content has a line like `"  - indented item"` and current has `"- indented item"`, they would match after `.strip()`, causing mode detection to classify as "overwrite" when content actually differs. Edge case — session.md completed content is typically unindented.
+
+**6.** `session/handoff/cli.py:70` — excess, Minor
+Diagnostics output wraps `git_changes()` in a markdown fenced code block (```` ``` ````). When the tree is clean, `git_changes()` returns an empty string and the output becomes `` **Git status:**\n\n```\n\n``` `` — an empty code block. The `git_cli.py:68` `changes_cmd` handles this with "Tree is clean." but the handoff CLI calls `git_changes()` directly (the Python function, not the Click command), missing that fallback.
+
+**7.** `session/handoff/pipeline.py:115-140` — robustness, Minor
+`_extract_completed_section` uses `splitlines(keepends=True)` and `"".join()` to preserve line endings, but the two call sites handle the result differently: `_detect_write_mode` compares raw text with `==` (line 170, newline-sensitive) and `write_completed` splits with `.splitlines()` (line 228, newline-insensitive). A trailing newline difference between committed and current completed sections would cause `_detect_write_mode` to see a diff (not overwrite) while the content is semantically identical, potentially triggering append mode when overwrite was intended.
 
 ## Summary
 
-Full-scope review of 26 code files (+1751/-96 lines) against outline.md design specification. Evaluated on all code-specific axes: conformance, functional correctness, functional completeness, vacuity, excess, robustness, modularity, testability, idempotency, error signaling.
+| Severity | Count |
+|----------|-------|
+| Critical | 0 |
+| Major | 0 |
+| Minor | 7 |
 
-## Critical Findings
+**RC11 fix verification:** Both majors (M-1, M-2) confirmed fixed. 8 of 10 code minors fixed. 2 not addressed as expected (m-5 documented, m-6 no comment visible). 1 claimed fix not applied (m-11 SESSION_FIXTURE ordering). Corrector fixes verified.
 
-None.
-
-## Major Findings
-
-**M-1** `session/handoff/pipeline.py:89-100` — conformance, functional completeness — H-2 committed detection not implemented. Design specifies three write modes based on `git diff HEAD -- agents/session.md`:
-- No diff -> Overwrite
-- Old removed, new present -> Append
-- Old preserved with additions -> Auto-strip committed content, keep new additions
-
-Implementation collapses all three into unconditional overwrite via `_write_completed_section`. The docstring acknowledges the three modes exist but claims they all produce the same result. This is incorrect: append mode should preserve existing uncommitted content and add new content; auto-strip should keep new additions while stripping committed content. Only the overwrite case matches the current behavior.
-
-**M-2** `session/handoff/pipeline.py:14-19` — conformance, functional completeness — H-4 `step_reached` field missing from `HandoffState`. Design specifies state file contents as `{"input_markdown": "...", "timestamp": "...", "step_reached": "..."}` with values `"write_session"` | `"diagnostics"`. Implementation stores only `input_markdown` and `timestamp`. The resume path (cli.py:52) re-executes from the beginning rather than resuming from `step_reached`. If a crash occurs after `overwrite_status` but before `write_completed`, resume will re-overwrite the status (idempotent) but also re-write completed (safe since it's an overwrite). If crash occurs after `write_completed` but before diagnostics, resume re-executes both writes (idempotent since both are overwrites). While functionally safe given the current overwrite-only behavior, this deviates from the design specification.
-
-## Minor Findings
-
-### Conformance
-
-**m-1** `validation/task_parsing.py:21` — S-4/ST-0 `→ wt` marker not parseable. `WORKTREE_MARKER_PATTERN` matches only `` → `slug` `` (backtick-wrapped alphanumeric slug). The design specifies `→ wt` (no backticks) as a distinct marker for tasks destined for worktree but not yet branched. Tasks with `→ wt` in session.md will have `worktree_marker = None`, causing them to appear as regular tasks in status output and be eligible for `Next:` selection — violating ST-0.
-
-**m-2** `session/commit_pipeline.py:276-282` — S-3 exit code semantics — Missing submodule message (C-2 "files in Files, no Submodule section") returns `CommitResult(success=False)` which exits 1 (pipeline error). Per S-3, this is input validation (malformed caller input) and should exit 2. The caller provided submodule-prefixed files without the corresponding `## Submodule` section.
-
-**m-3** `session/commit_pipeline.py:263-267` — error signaling — `_validate_inputs` returns `CommitResult(success=False, output="**Error:** No commit message provided")` for missing message, yielding exit 1. The parser (`commit.py:129-131`) already catches this case with `CommitInputError("Missing required section: ## Message")` yielding exit 2. Redundant check that would only trigger if `parse_commit_input` is bypassed. If kept, should exit 2 (validation error).
-
-### Robustness
-
-**m-4** `session/commit_pipeline.py:193-213` — `_strip_hints` continuation logic has a dead branch. Lines 206-208: when `prev_was_hint` is True and a line starts with a single space followed by a non-space, the code sets `prev_was_hint = True` and appends the line. The comment says "single-space: pass through but keep hint context" but this means a single-space-indented line after a hint is both kept in output AND treated as a hint continuation (subsequent continuation lines after it would also be filtered). The intent is ambiguous.
-
-**m-5** `session/commit_gate.py:51-68` — `_dirty_files` uses `-u` flag for untracked file expansion. On repositories with many untracked files, this could be slow. Not a correctness issue but a performance consideration.
-
-**m-6** `session/handoff/cli.py:60-61` — `git_changes()` is called for diagnostics output even when the tree is clean. The function always runs `git status --porcelain` and `git diff HEAD` for parent and each submodule. Minor unnecessary work when everything is committed.
-
-### Functional Correctness
-
-**m-7** `session/status/render.py:105-127` — `_build_dependency_edges` uses text-search in concatenated blocker content. If a task name like "Fix" appears as a substring in unrelated blocker text (e.g., "Fixed in prior session"), two tasks sharing common words would be falsely linked. Overly conservative (prevents safe parallelism) but never incorrectly enables unsafe parallelism.
-
-**m-8** `session/status/cli.py:67` — `list_plans(Path("plans"))` uses relative path. If process cwd differs from project root, resolves to wrong directory. Consistent with other relative-path assumptions in the status command but not defensively coded.
-
-### Testability
-
-**m-9** `session/commit_pipeline.py:22-37,40-55` — `_run_precommit` and `_run_lint` have comment "Patchable in tests" but use module-level functions. Test patching works via `monkeypatch.setattr` but the design note suggests these were intended to be more formally patchable (e.g., via dependency injection or protocol). Minor — current approach works.
-
-### Style
-
-**m-10** `session/commit_gate.py:31-48` — `_git_output` duplicates `git.py:_git()` functionality. Both run a git command and return stripped stdout. The commit_gate module defines its own local version to avoid importing from `git.py`. This creates two functions with identical semantics that could drift independently.
-
-## Notes
-
-- S-1 package structure conforms to design — `session/` subpackage with `cli.py`, `parse.py`, `commit.py`, `commit_gate.py`, `commit_pipeline.py`, `handoff/`, `status/`. Minor deviation: `handoff.py` is a subpackage (`handoff/`) rather than a single module, and `status.py` is similarly split into `status/cli.py` + `status/render.py`. Reasonable modularity improvement over the flat design.
-- S-2 `_git()` extraction to `git.py` is complete. Worktree module imports from `claudeutils.git`. Submodule discovery via `git submodule status` is properly dynamic.
-- S-3 output conventions are correctly followed: all session subcommands output to stdout, exit codes are semantic (0/1/2), no stderr usage.
-- S-5 `_git changes` utility is implemented and registered. Clean tree output is "Tree is clean." rather than the design's phrasing "output says so" (implementation choice, conformant).
-- C-1 vet check correctly loads patterns from `pyproject.toml`, includes `_AGENT_CORE_PATTERNS` hardcoded (deferred per outline), discovers reports via glob.
-- C-2 four-state submodule matrix is implemented: files+message -> commit submodule first; files only -> stop (needs message); message only -> warning (ignored); neither -> parent-only.
-- C-3 input validation with STOP directive is correctly implemented via `CleanFileError`.
-- C-4 validation levels are orthogonal: `just-lint` and `no-vet` options work independently and in combination.
-- C-5 amend semantics correctly use `diff-tree` for HEAD file check, propagate `--amend` to both submodule and parent when submodule files present, enforce `no-edit` requires `amend`.
-- ST-2 missing session.md and old format both produce fatal error exit 2, conformant.
-- Error messages follow cli.md conventions: facts only, STOP for data-loss risk, no suggestions.
-- `tests/pytest_helpers.py` provides well-structured test infrastructure with `init_repo_at`, `init_repo_minimal`, `create_submodule_origin`, `add_submodule`.
-- `planstate/aggregation.py` and `recall_cli/cli.py` changes are correctly scoped: aggregation removes duplicated `_is_dirty` and uses `extract_plan_order`; recall_cli imports `_fail` from new location.
-- Worktree module files correctly updated imports to `claudeutils.git`.
-
-## Severity Summary
-
-0 Critical, 2 Major, 10 Minor
+**Trend:** RC9 0C/2M/13m → RC10 0C/2M/13m → RC11 0C/2M/15m → RC12 0C/0M/7m. Both long-standing majors resolved. All 7 new minors are from fresh full-scope review of the H-2/H-4 implementations — new code surface area that didn't exist in prior rounds.
