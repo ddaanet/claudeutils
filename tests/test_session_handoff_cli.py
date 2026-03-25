@@ -242,14 +242,15 @@ def test_handoff_shows_submodule_changes(
 def test_load_state_ignores_unknown_fields(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """load_state() ignores fields removed in m-7."""
+    """load_state() ignores truly unknown fields, loads known ones."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "tmp").mkdir()
 
     state_data = {
         "input_markdown": "test markdown",
         "timestamp": "2026-03-24T12:00:00+00:00",
-        "step_reached": 3,  # Removed field from pre-m-7
+        "step_reached": "write_session",
+        "unknown_field": "should be ignored",
     }
     (tmp_path / "tmp" / ".handoff-state.json").write_text(json.dumps(state_data))
 
@@ -258,7 +259,8 @@ def test_load_state_ignores_unknown_fields(
     assert result is not None
     assert result.input_markdown == "test markdown"
     assert result.timestamp == "2026-03-24T12:00:00+00:00"
-    assert not hasattr(result, "step_reached")
+    assert result.step_reached == "write_session"
+    assert not hasattr(result, "unknown_field")
 
 
 def test_handoff_missing_session_file(

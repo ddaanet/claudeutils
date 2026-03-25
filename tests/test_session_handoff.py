@@ -335,3 +335,38 @@ def test_state_cache_cleanup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
     assert load_state() is None
     # No error on second clear
     clear_state()
+
+
+def test_save_state_includes_step_reached(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """save_state writes step_reached to state file."""
+    monkeypatch.chdir(tmp_path)
+
+    save_state("# input", step_reached="write_session")
+
+    state_file = tmp_path / "tmp" / ".handoff-state.json"
+    data = json.loads(state_file.read_text())
+    assert data["step_reached"] == "write_session"
+
+
+def test_load_state_backward_compat_missing_step_reached(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """load_state defaults step_reached when missing."""
+    monkeypatch.chdir(tmp_path)
+
+    tmp_path.joinpath("tmp").mkdir(exist_ok=True)
+    state_file = tmp_path / "tmp" / ".handoff-state.json"
+    state_file.write_text(
+        json.dumps(
+            {
+                "input_markdown": "# test",
+                "timestamp": "2026-03-25T12:00:00+00:00",
+            }
+        )
+    )
+
+    state = load_state()
+    assert state is not None
+    assert state.step_reached == "write_session"
