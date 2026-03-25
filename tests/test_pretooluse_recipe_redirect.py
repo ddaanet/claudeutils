@@ -100,7 +100,10 @@ class TestOutputFormat:
     def test_output_format_when_match_exists(self) -> None:
         """Redirect output matches PreToolUse hook JSON contract."""
         result = call_hook(
-            {"tool_name": "Bash", "tool_input": {"command": "ln -sf src dest"}}
+            {
+                "tool_name": "Bash",
+                "tool_input": {"command": "git worktree add --detach ../foo HEAD"},
+            }
         )
         assert "hookSpecificOutput" in result
         assert result["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
@@ -111,28 +114,6 @@ class TestOutputFormat:
 
 class TestRedirectPatterns:
     """All three redirect patterns fire with correct additionalContext."""
-
-    def test_ln_command_redirect(self) -> None:
-        """Ln redirects to just sync-to-parent."""
-        result = call_hook(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "ln -sf agent-core/skills .claude/skills"},
-            }
-        )
-        assert result
-        assert (
-            "just sync-to-parent" in result["hookSpecificOutput"]["additionalContext"]
-        )
-        assert result["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
-        assert "systemMessage" in result
-
-    def test_ln_bare_command_redirect(self) -> None:
-        """Bare ln with no args still redirects."""
-        result = call_hook({"tool_name": "Bash", "tool_input": {"command": "ln"}})
-        assert (
-            "just sync-to-parent" in result["hookSpecificOutput"]["additionalContext"]
-        )
 
     def test_git_worktree_redirect(self) -> None:
         """Git worktree redirects to _worktree, not _worktree merge."""
