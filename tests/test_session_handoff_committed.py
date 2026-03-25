@@ -203,3 +203,62 @@ def test_detect_write_mode_indentation_not_autostrip(
 
     mode = _detect_write_mode(session_file)
     assert mode != "autostrip"
+
+
+# m-1: blank line preservation in append/autostrip
+
+
+def test_write_completed_append_preserves_blank_lines(
+    tmp_path: Path,
+) -> None:
+    """Blank lines between groups preserved in append mode."""
+    init_repo_minimal(tmp_path)
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    session_file = agents_dir / "session.md"
+    session_file.write_text(SESSION_WITH_COMPLETED)
+    _commit_session(tmp_path, session_file)
+
+    # Prior uncommitted handoff: replaced content has groups with
+    # blank line between (triggers append — committed removed)
+    prior = SESSION_WITH_COMPLETED.replace(
+        "- Old task A\n- Old task B\n",
+        "### Group 1\n- Item 1\n\n### Group 2\n- Item 2\n",
+    )
+    session_file.write_text(prior)
+
+    write_completed(session_file, ["- Fresh work."])
+
+    content = session_file.read_text()
+    completed = content.split("## Completed This Session")[1]
+    completed = completed.split("## In-tree")[0]
+    assert "- Item 1\n\n### Group 2" in completed
+
+
+def test_write_completed_autostrip_preserves_blank_lines(
+    tmp_path: Path,
+) -> None:
+    """Blank lines in uncommitted content preserved in autostrip."""
+    init_repo_minimal(tmp_path)
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    session_file = agents_dir / "session.md"
+    session_file.write_text(SESSION_WITH_COMPLETED)
+    _commit_session(tmp_path, session_file)
+
+    # Agent appends: committed items kept + two new groups with
+    # blank line between (triggers autostrip — committed preserved)
+    prior = SESSION_WITH_COMPLETED.replace(
+        "- Old task B\n",
+        "- Old task B\n\n### Group 1\n- Item 1\n\n### Group 2\n- Item 2\n",
+    )
+    session_file.write_text(prior)
+
+    write_completed(session_file, ["- Fresh."])
+
+    content = session_file.read_text()
+    completed = content.split("## Completed This Session")[1]
+    completed = completed.split("## In-tree")[0]
+    assert "- Old task A" not in completed
+    # Inter-group blank line preserved in uncommitted content
+    assert "- Item 1\n\n### Group 2" in completed

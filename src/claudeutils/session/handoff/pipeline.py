@@ -200,7 +200,7 @@ def write_completed(session_path: Path, new_lines: list[str]) -> None:
         _write_completed_section(session_path, new_lines)
     elif mode == "append":
         current = _extract_completed_section(session_path.read_text())
-        current_lines = [line for line in current.splitlines() if line.strip()]
+        current_lines = list(current.splitlines())
         combined = current_lines + new_lines
         _write_completed_section(session_path, combined)
     elif mode == "autostrip":
@@ -226,7 +226,7 @@ def write_completed(session_path: Path, new_lines: list[str]) -> None:
         uncommitted = [
             line
             for line in current_section.splitlines()
-            if line.strip() and line.strip() not in committed_set
+            if not line.strip() or line.strip() not in committed_set
         ]
 
         combined = uncommitted + new_lines
