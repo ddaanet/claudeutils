@@ -99,30 +99,11 @@ def test_dirty_state_detection(tmp_path: Path) -> None:
     assert _is_dirty(repo_path) is False
 
 
-def test_git_metadata_helpers(tmp_path: Path) -> None:
-    """Test _commits_since_handoff and _latest_commit."""
+def _init_repo_with_session(tmp_path: Path, n_commits: int = 3) -> Path:
+    """Set up a git repo with session.md anchor and N subsequent commits."""
     repo_path = str(tmp_path)
-    subprocess.run(
-        ["git", "init"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-
-    # Create session.md anchor
-    session_file = Path(tmp_path) / "agents" / "session.md"
+    init_repo_minimal(tmp_path)
+    session_file = tmp_path / "agents" / "session.md"
     session_file.parent.mkdir(parents=True, exist_ok=True)
     session_file.write_text("# Session\n")
     subprocess.run(
@@ -137,11 +118,8 @@ def test_git_metadata_helpers(tmp_path: Path) -> None:
         check=True,
         capture_output=True,
     )
-
-    # 3 commits after session.md
-    for i in range(3):
-        test_file = Path(tmp_path) / f"file{i}.txt"
-        test_file.write_text(f"Content {i}\n")
+    for i in range(n_commits):
+        (tmp_path / f"file{i}.txt").write_text(f"Content {i}\n")
         subprocess.run(
             ["git", "add", f"file{i}.txt"],
             cwd=repo_path,
@@ -155,42 +133,40 @@ def test_git_metadata_helpers(tmp_path: Path) -> None:
             check=True,
             capture_output=True,
         )
+    return tmp_path
 
-    assert _commits_since_handoff(Path(repo_path)) == 3
 
-    # No session.md in history → 0
-    repo2 = str(tmp_path / "repo2")
-    Path(repo2).mkdir()
-    subprocess.run(["git", "init"], cwd=repo2, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo2,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo2,
-        check=True,
-        capture_output=True,
-    )
-    (Path(repo2) / "file.txt").write_text("Content\n")
+def test_commits_since_handoff_counts(tmp_path: Path) -> None:
+    """Counts commits after session.md anchor."""
+    repo = _init_repo_with_session(tmp_path, n_commits=3)
+    assert _commits_since_handoff(repo) == 3
+
+
+def test_commits_since_handoff_zero_without_session(tmp_path: Path) -> None:
+    """Returns 0 when no session.md in git history."""
+    repo_path = tmp_path / "repo2"
+    repo_path.mkdir()
+    init_repo_minimal(repo_path)
+    (repo_path / "file.txt").write_text("Content\n")
     subprocess.run(
         ["git", "add", "file.txt"],
-        cwd=repo2,
+        cwd=str(repo_path),
         check=True,
         capture_output=True,
     )
     subprocess.run(
         ["git", "commit", "-m", "Test"],
-        cwd=repo2,
+        cwd=str(repo_path),
         check=True,
         capture_output=True,
     )
-    assert _commits_since_handoff(Path(repo2)) == 0
+    assert _commits_since_handoff(repo_path) == 0
 
-    # _latest_commit returns (subject, timestamp)
-    latest = _latest_commit(Path(repo_path))
+
+def test_latest_commit_returns_subject_and_timestamp(tmp_path: Path) -> None:
+    """Returns (subject, unix_timestamp) tuple."""
+    repo = _init_repo_with_session(tmp_path, n_commits=3)
+    latest = _latest_commit(repo)
     assert isinstance(latest, tuple)
     assert len(latest) == 2
     assert latest[0] == "Test commit 2"
