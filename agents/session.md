@@ -1,39 +1,23 @@
-# Session Handoff: 2026-03-24
+# Session Handoff: 2026-03-25
 
-**Status:** Completed 4 inline tasks: remove-memory-index-skill, fix brief trigger, update tokens CLI, FR-4 bottom-to-top cleanup.
+**Status:** Completed FR-1: fixed SessionStart hook error after /clear (TMPDIR unbound variable).
 
 ## Completed This Session
 
-**Worktree cleanup:**
-- Merged and removed `anchor-proof-state` worktree (1 line delta: edify-rename/lifecycle.md)
-- Removed `discussion` worktree
-
-**Remove memory-index skill:**
-- Deleted `agent-core/skills/memory-index/` directory
-- Removed `"memory-index"` from `corrector.md` skills frontmatter (line 7)
-- Only consumer was corrector.md — other files referenced `agents/memory-index.md` (data file), not the skill
-
-**Fix brief trigger:**
-- Updated `agent-core/skills/brief/SKILL.md` description to lead with general mechanism
-- Added "brief this" as explicit trigger; worktree use case now secondary
-
-**Update tokens CLI:**
-- `claudeutils tokens` model arg → `--model` option with `sonnet` default
-- Updated test: `test_cli_requires_model_argument` → `test_cli_model_is_optional`
-
-**FR-4: Remove bottom-to-top edit ordering:**
-- Removed from 6 files: `tool-batching.md`, `item-review.md`, 4 role sys.md files
-- Replaced with accurate rule: parallel when strings non-overlapping, sequential when one edit's result is another's target
-- Renamed "Sequential Same-File Edits" → "Same-File Edits" in 4 role files + SYSPROMPT_GENERATION_GUIDE.md
+**FR-1: Fix SessionStart hook error after /clear:**
+- Root cause: `set -euo pipefail` in `sessionstart-health.sh` + `TMPDIR` unset when SessionStart fires after `/clear` → "TMPDIR: unbound variable" on `touch "$TMPDIR/health-${session_id}"`
+- Fix: added `TMPDIR="${TMPDIR:-/tmp}"` after `set -euo pipefail` — mirrors `stop-health-fallback.sh` line 4
+- Verified with `env -i` test: reproduces error without fix, clean with fix
 
 ## In-tree Tasks
 
 - [ ] **Centralize recall** — `/design plans/centralize-recall/brief.md` | opus | restart
   - Plan: centralize-recall | Segmented /recall skill (<1ktok core), replace inline recall across skills/agents. Prerequisite (remove-index-skill) now complete.
-- [x] **Remove index skill** — completed this session
+- [x] **Remove index skill** — completed prior session
 
 ## Worktree Tasks
 
+- [ ] **Small fixes FR-1 review** — `/deliverable-review plans/small-fixes-batch` | opus | restart
 - [ ] **Session CLI tool** → `session-cli-tool` — `/orchestrate handoff-cli-tool` | sonnet | restart | 3.7
   - Plan: handoff-cli-tool | Status: ready
   - Absorbs: Fix task-context bloat
@@ -104,7 +88,7 @@
   - Plan: design-context-gate | Status: briefed
 - [ ] **Design JIT expansion** — `/design plans/design-jit-expansion/brief.md` | sonnet | 1.4
   - Plan: design-jit-expansion | Status: briefed
-- [x] **Update tokens CLI** — completed this session
+- [x] **Update tokens CLI** — completed prior session
 - [ ] **Threshold token migration** — `/design plans/threshold-token-migration/brief.md` | sonnet | 1.3
   - Plan: threshold-token-migration | Status: briefed
   - Migrate line-based thresholds to token-based. Large blast radius expected.
@@ -122,7 +106,7 @@
   - Plan: planstate-brief-inference | Status: requirements
 - [ ] **Small fixes batch** — `/design plans/small-fixes-batch/requirements.md` | sonnet | 1.0
   - Plan: small-fixes-batch | Status: requirements
-  - FR-4 complete. FR-1, FR-2, FR-3 remain.
+  - FR-4, FR-1 complete. FR-2, FR-3 remain.
 - [ ] **Incident counting** — `/design plans/incident-counting/brief.md` | opus | 0.6
   - Plan: incident-counting | Status: briefed
 - [ ] **Recall pipeline** — `/design` | sonnet | 1.0
@@ -135,7 +119,7 @@
   - Blocked on human: curate task-contexts.json, annotate ground-truth.md
 - [ ] **Anchor proof state** — `/design plans/proof-state-anchor/brief.md` | opus | restart
   - Plan: proof-state-anchor | Visible state + actions output at each transition. D+B anchor + user feedback.
-- [x] **Fix brief trigger** — completed this session
+- [x] **Fix brief trigger** — completed prior session
 - [ ] **Outline density gate** — `/design plans/outline-downgrade-density/brief.md` | opus
   - Plan: outline-downgrade-density | Content density check in write-outline.md downgrade criteria
 - [ ] **Review blog series** — `/deliverable-review plans/blog-series` | opus | restart
@@ -208,4 +192,4 @@
 
 ## Next Steps
 
-Centralize recall unblocked (remove-index-skill done). Session CLI tool active in worktree — highest priority next.
+Session CLI tool in worktree — highest priority. Centralize recall unblocked (remove-index-skill done).
