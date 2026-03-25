@@ -390,3 +390,37 @@ def test_write_completed_overwrite_when_no_diff(tmp_path: Path) -> None:
     assert "- New work." in content
     assert "- Old task A" not in content
     assert "- Old task B" not in content
+
+
+# Cycle 2.2: Detect uncommitted prior — append mode
+
+
+def test_write_completed_appends_when_prior_uncommitted(
+    tmp_path: Path,
+) -> None:
+    """write_completed appends when prior changes not committed."""
+    init_repo_minimal(tmp_path)
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    session_file = agents_dir / "session.md"
+    session_file.write_text(SESSION_WITH_COMPLETED)
+    _commit_session(tmp_path, session_file)
+
+    # Simulate prior uncommitted handoff: replace old
+    # content with new (removing old, writing new)
+    prior_content = SESSION_WITH_COMPLETED.replace(
+        "- Old task A\n- Old task B\n",
+        "- First handoff.\n",
+    )
+    session_file.write_text(prior_content)
+
+    # Now call write_completed with additional work
+    write_completed(session_file, ["- Additional work."])
+
+    content = session_file.read_text()
+    # Should have both prior uncommitted + new
+    assert "- First handoff." in content
+    assert "- Additional work." in content
+    # Should NOT have old committed content
+    assert "- Old task A" not in content
+    assert "- Old task B" not in content
