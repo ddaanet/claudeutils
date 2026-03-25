@@ -124,3 +124,8 @@ Institutional knowledge accumulated across sessions. Append new learnings at the
 - Anti-pattern: Dispatching `superpowers:code-reviewer` (PR review toolkit) for post-execution corrector review. That agent is for PR reviews, not inline execution quality gates.
 - Correct pattern: /inline Phase 4a routing table (review-requirement.md) says code/tests → `corrector` (subagent_type="corrector"). Use it directly — it's a fix-capable reviewer that writes reports and applies fixes.
 - Evidence: User rejected `superpowers:code-reviewer` dispatch during RC8 fix /inline Phase 4a.
+
+## When PEP 758 changes except syntax conventions
+- Anti-pattern: Flagging `except A, B:` as un-parenthesized in Python 3.14 reviews. PEP 758 made parentheses optional for except clauses — `except A, B:` catches both exceptions, not `A` assigned to `B`.
+- Correct pattern: In Python 3.14+, unparenthesized except is canonical. `ruff format` enforces this form and actively removes added parentheses. Do not flag as a style issue in reviews.
+- Evidence: RC10 m-12 finding; Edit tool changes reverted by PostToolUse autoformat hook (ruff format).

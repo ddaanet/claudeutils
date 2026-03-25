@@ -261,7 +261,7 @@ def merge(slug: str) -> None:
         _fail(f"git error: {stderr or e}")
 
 
-def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:
+def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:  # noqa: RET503
     """Check if branch can be removed safely."""
     branch_check = subprocess.run(
         ["git", "rev-parse", "--verify", slug],
@@ -285,7 +285,6 @@ def _guard_branch_removal(slug: str) -> tuple[bool, str | None]:
         else f"Branch {slug} has {count} unmerged commit(s). Merge first."
     )
     _fail(msg, 2)
-    return None
 
 
 def _delete_branch(slug: str, removal_type: str | None) -> None:

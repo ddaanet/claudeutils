@@ -80,7 +80,9 @@ def test_git_helper_preserves_stderr_in_exception(tmp_path: Path) -> None:
     repo.mkdir()
     subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
 
-    with pytest.raises(subprocess.CalledProcessError) as exc_info:
+    with pytest.raises(
+        subprocess.CalledProcessError, match="non-zero exit"
+    ) as exc_info:
         _git("-C", str(repo), "add", "nonexistent.txt")
 
     assert exc_info.value.stderr is not None

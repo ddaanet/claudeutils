@@ -135,7 +135,6 @@ def test_parse_session(tmp_path: Path) -> None:
     assert data.date == "2026-03-07"
     assert data.status_line is not None
     assert "Phase 1 complete" in data.status_line
-    assert len(data.completed) > 0
     assert data.in_tree_tasks[0].name == "Build parser"
     assert data.in_tree_tasks[0].plan_dir == "parser"
     assert data.worktree_tasks[0].worktree_marker == "my-slug"

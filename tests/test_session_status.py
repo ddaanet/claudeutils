@@ -260,7 +260,7 @@ def test_session_status_cli(tmp_path: Path) -> None:
         env={"CLAUDEUTILS_SESSION_FILE": str(agents_dir / "session.md")},
     )
     assert result.exit_code == 0
-    assert "Next:" in result.output or "In-tree:" in result.output
+    assert "In-tree:" in result.output
 
 
 def test_session_status_missing_session(tmp_path: Path) -> None:

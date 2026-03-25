@@ -202,7 +202,7 @@ def test_submodule_clean_error_shows_full_path(
             "claudeutils.session.commit_pipeline._run_precommit",
             return_value=(True, "ok"),
         ),
-        pytest.raises(CleanFileError) as exc_info,
+        pytest.raises(CleanFileError, match="no uncommitted changes") as exc_info,
     ):
         commit_pipeline(ci, cwd=tmp_path)
 

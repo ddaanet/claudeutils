@@ -29,7 +29,7 @@ def _build_repo_section(header: str, status: str, diff: str) -> str:
         parts.append(status)
     if diff:
         parts.append(diff)
-    return header + "\n\n".join(parts)
+    return header + "\n" + "\n\n".join(parts)
 
 
 @click.group(name="_git", hidden=True)

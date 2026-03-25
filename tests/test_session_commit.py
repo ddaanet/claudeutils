@@ -214,13 +214,12 @@ def test_validate_files_clean_error(tmp_path: Path) -> None:
     )
     # File is committed, not modified — clean
 
-    with pytest.raises(CleanFileError) as exc_info:
+    with pytest.raises(CleanFileError, match="no uncommitted changes") as exc_info:
         validate_files(["clean.py"], cwd=tmp_path)
 
     err = exc_info.value
     assert "clean.py" in err.clean_files
     assert "STOP" in str(err)
-    assert "no uncommitted changes" in str(err).lower()
 
 
 def test_validate_files_amend(tmp_path: Path) -> None:

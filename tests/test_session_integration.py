@@ -34,6 +34,9 @@ def test_handoff_then_status(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
         "- [ ] **Build widget** — `/design plans/widget/brief.md`"
         " | sonnet\n"
     )
+    plans_dir = tmp_path / "plans" / "widget"
+    plans_dir.mkdir(parents=True)
+    (plans_dir / "brief.md").write_text("# Widget\n\nBuild a widget.\n")
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True, capture_output=True)
     subprocess.run(
         ["git", "commit", "-m", "init"], cwd=tmp_path, check=True, capture_output=True
