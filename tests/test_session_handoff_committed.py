@@ -5,7 +5,10 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from claudeutils.session.handoff.pipeline import write_completed
+from claudeutils.session.handoff.pipeline import (
+    _detect_write_mode,
+    write_completed,
+)
 from tests.pytest_helpers import init_repo_minimal
 
 SESSION_WITH_COMPLETED = """\
@@ -149,3 +152,54 @@ def test_write_completed_autostrip_when_old_preserved(
     assert "- New uncommitted item" in content
     # Fresh work should be present
     assert "- Fresh work." in content
+
+
+# m-7: trailing whitespace normalization in section comparison
+
+
+def test_detect_write_mode_trailing_whitespace(tmp_path: Path) -> None:
+    """Trailing blank line diff is overwrite, not autostrip."""
+    init_repo_minimal(tmp_path)
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    session_file = agents_dir / "session.md"
+
+    # Commit with trailing blank line before next section
+    session_file.write_text(SESSION_WITH_COMPLETED)
+    _commit_session(tmp_path, session_file)
+
+    # Remove trailing blank line — content semantically identical
+    no_trailing = SESSION_WITH_COMPLETED.replace(
+        "- Old task B\n\n## In-tree Tasks",
+        "- Old task B\n## In-tree Tasks",
+    )
+    session_file.write_text(no_trailing)
+
+    mode = _detect_write_mode(session_file)
+    assert mode == "overwrite"
+
+
+# m-5: indentation-aware comparison
+
+
+def test_detect_write_mode_indentation_not_autostrip(
+    tmp_path: Path,
+) -> None:
+    """Indentation change prevents false autostrip match."""
+    init_repo_minimal(tmp_path)
+    agents_dir = tmp_path / "agents"
+    agents_dir.mkdir()
+    session_file = agents_dir / "session.md"
+
+    session_file.write_text(SESSION_WITH_COMPLETED)
+    _commit_session(tmp_path, session_file)
+
+    # Change indentation of one item + add new content
+    modified = SESSION_WITH_COMPLETED.replace(
+        "- Old task A\n",
+        "  - Old task A\n- New addition\n",
+    )
+    session_file.write_text(modified)
+
+    mode = _detect_write_mode(session_file)
+    assert mode != "autostrip"

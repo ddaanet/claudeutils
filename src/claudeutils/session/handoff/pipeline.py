@@ -137,7 +137,7 @@ def _extract_completed_section(text: str) -> str:
     if end_idx is None:
         end_idx = len(lines)
 
-    return "".join(lines[start_idx:end_idx])
+    return "".join(lines[start_idx:end_idx]).strip("\n")
 
 
 def _detect_write_mode(session_path: Path) -> str:
@@ -171,10 +171,10 @@ def _detect_write_mode(session_path: Path) -> str:
         return "overwrite"
 
     committed_lines = {
-        line.strip() for line in committed_completed.splitlines() if line.strip()
+        line.rstrip() for line in committed_completed.splitlines() if line.strip()
     }
     current_lines = [
-        line.strip() for line in current_completed.splitlines() if line.strip()
+        line.rstrip() for line in current_completed.splitlines() if line.strip()
     ]
 
     if committed_lines and committed_lines.issubset(set(current_lines)):
