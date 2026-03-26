@@ -28,3 +28,6 @@
 2026-03-25 reviewed — /deliverable-review
 2026-03-26 review-pending — /deliverable-review
 2026-03-26 reviewed — /deliverable-review
+2026-03-26 review-pending — /deliverable-review
+2026-03-26 reviewed — /deliverable-review
+2026-03-26 delivered — user decision (0C/0M×4 rounds, 8m accepted)
