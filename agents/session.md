@@ -1,24 +1,21 @@
 # Session Handoff: 2026-03-26
 
-**Status:** RC13 fix complete — 18 minors addressed (4 dismissed), corrector clean. RC14 review queued.
+**Status:** RC14 review complete — 0C/0M/10m (7 active + 3 dismissed). All 18 RC13 fixes verified. Fix task queued.
 
 ## Completed This Session
 
-**Fix handoff-cli RC13 (18 of 22 minors):**
-- Tier 2 plan: 5 TDD cycles + 4 general steps + 1 inline phase, 10 commits
-- Code fixes (TDD): m-7+m-5 comparison consistency (`.strip("\n")`, `.rstrip()`), m-1 blank line preservation in append/autostrip, m-2 `_detect_write_mode` refactored to return `tuple[str, str]`, m-3 status error accuracy, m-6 empty diagnostics guard
-- Test fixes: m-8 fixture ordering, m-9 assertion specificity, m-10 split conflated tests, m-11 removed redundant test, m-13 comment rewrite, m-14/m-15/m-17 new coverage
-- Prose: m-18 STOP directive alignment, m-19 H-2 reference clarity
-- Dismissed: m-4 (defensive guard), m-20/m-21/m-22 (scope notes, trivial)
-- Corrector: 0C/0M/3m fixed (rstrip consistency, assertion strength)
-- Report: `plans/handoff-cli-tool/reports/review-rc13-fix.md`
+**Handoff-cli RC14 deliverable review:**
+- Full-scope review: L1 (3 opus agents: code, test, prose+config) + L2 (interactive cross-cutting)
+- All 18 RC13 fix minors verified fixed, all 3 corrector fixes verified, 4 dismissals reconfirmed
+- New findings: 2 code clarity (hint logic, _git_output dup), 5 test style (submodule helpers expanded, 2 tight assertions, 1 vacuity, 1 deferred coverage)
+- Trend: RC13 22m → RC14 10m
+- Report: `plans/handoff-cli-tool/reports/deliverable-review.md`
 
 ## In-tree Tasks
 
-- [x] **Handoff-cli RC13** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [x] **Fix handoff-cli RC13** — `/design plans/handoff-cli-tool/reports/deliverable-review.md plans/handoff-cli-tool/outline.md` | opus
-  - 22 minors: 7 code (edge cases), 10 test (quality/coverage), 5 prose+config (scope/style)
-- [ ] **Handoff-cli RC14** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+- [x] **Handoff-cli RC14** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
+- [ ] **Fix handoff-cli RC14** — `/design plans/handoff-cli-tool/reports/deliverable-review.md plans/handoff-cli-tool/outline.md` | opus
+  - 0C/0M/10m (7 active + 3 dismissed): 2 code clarity, 5 test style/coverage, 3 dismissed scope notes
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -64,11 +61,10 @@
 
 ## Reference Files
 
-- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC13 findings (0C/0M/22m)
+- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC14 findings (0C/0M/10m)
 - `plans/handoff-cli-tool/reports/review-rc13-fix.md` — RC13 fix corrector review
-- `plans/handoff-cli-tool/runbook-fix-rc13.md` — Tier 2 runbook for the 18 fixes
 - `plans/handoff-cli-tool/classification.md` — RC13 fix composite classification
 
 ## Next Steps
 
-Deliverable review RC14 — verify 18 fixes, check 4 carried dismissals.
+Fix handoff-cli RC14 — 7 active minors (code clarity + test style). All non-functional.

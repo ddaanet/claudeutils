@@ -26,3 +26,5 @@
 2026-03-25 rework — /deliverable-review
 2026-03-25 review-pending — /deliverable-review
 2026-03-25 reviewed — /deliverable-review
+2026-03-26 review-pending — /deliverable-review
+2026-03-26 reviewed — /deliverable-review
