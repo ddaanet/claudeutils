@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path, PurePath
 
+from claudeutils.git import _git
+
 
 def _build_clean_file_error_msg(clean_files: list[str]) -> str:
     """Build message for CleanFileError with file list."""
@@ -26,28 +28,6 @@ class CleanFileError(Exception):
         """Build error with STOP directive listing clean files."""
         self.clean_files = clean_files
         super().__init__(_build_clean_file_error_msg(clean_files))
-
-
-def _git_output(
-    *args: str,
-    cwd: Path | None = None,
-) -> str:
-    """Run git command and return stripped stdout.
-
-    Warning: `.strip()` destroys leading spaces in porcelain XY format.
-    Do not use for ``git status --porcelain`` output — use raw
-    ``result.stdout.splitlines()`` instead.
-
-    TODO: Consolidate with ``git.py:_git()`` — add ``cwd`` param there.
-    """
-    result = subprocess.run(
-        ["git", *args],
-        cwd=cwd,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.stdout.strip()
 
 
 def _dirty_files(cwd: Path | None = None) -> set[str]:
@@ -72,13 +52,14 @@ def _dirty_files(cwd: Path | None = None) -> set[str]:
 
 def _head_files(cwd: Path | None = None) -> set[str]:
     """Get files in HEAD commit via diff-tree."""
-    output = _git_output(
+    output = _git(
         "diff-tree",
         "--root",
         "--no-commit-id",
         "--name-only",
         "-r",
         "HEAD",
+        check=False,
         cwd=cwd,
     )
     return set(output.splitlines()) if output else set()

@@ -130,10 +130,8 @@ def test_commit_submodule_orphan_message(
 
     assert result.success is True
     assert "**Warning:**" in result.output
-    assert (
-        "Submodule message provided but no changes found for: agent-core. Ignored."
-        in result.output
-    )
+    assert "no changes found" in result.output
+    assert "agent-core" in result.output
 
 
 def test_commit_no_submodule_changes(

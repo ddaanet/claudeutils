@@ -10,6 +10,7 @@ import click
 def _git(
     *args: str,
     check: bool = True,
+    cwd: Path | None = None,
     env: dict[str, str] | None = None,
     input_data: str | None = None,
 ) -> str:
@@ -20,6 +21,7 @@ def _git(
     """
     r = subprocess.run(
         ["git", *args],
+        cwd=cwd,
         capture_output=True,
         text=True,
         check=check,

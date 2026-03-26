@@ -201,12 +201,10 @@ def _strip_hints(text: str) -> str:
         if is_hint:
             prev_was_hint = True
         elif prev_was_hint and line and line[0] in (" ", "\t"):
-            if line[0] == "\t" or (line[0] == " " and len(line) > 1 and line[1] == " "):
-                prev_was_hint = True  # tab/double-space = continuation, filter
-            else:
-                # Single-space indent: not a hint continuation, but keep
-                # hint context active (next line may be a continuation).
-                prev_was_hint = True
+            # Any indented line after a hint keeps hint context active.
+            # Only single-space (non-continuation) lines are kept.
+            is_continuation = line[0] == "\t" or (len(line) > 1 and line[1] == " ")
+            if not is_continuation:
                 result.append(line)
         else:
             prev_was_hint = False

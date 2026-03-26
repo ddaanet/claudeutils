@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 from pathlib import Path
 
@@ -12,7 +11,11 @@ from click.testing import CliRunner
 
 from claudeutils.cli import cli
 from claudeutils.session.handoff.pipeline import load_state, save_state
-from tests.pytest_helpers import init_repo_minimal
+from tests.pytest_helpers import (
+    add_submodule,
+    create_submodule_origin,
+    init_repo_minimal,
+)
 
 
 def _commit_session(path: Path, session_file: Path) -> None:
@@ -143,19 +146,6 @@ def test_handoff_shows_submodule_changes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Handoff output includes dirty submodule changes."""
-    # Set up parent with submodule
-    sub_origin = tmp_path / "sub-origin"
-    sub_origin.mkdir()
-    init_repo_minimal(sub_origin)
-    (sub_origin / "init.md").write_text("init\n")
-    subprocess.run(["git", "add", "."], cwd=sub_origin, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "commit", "-m", "init"],
-        cwd=sub_origin,
-        check=True,
-        capture_output=True,
-    )
-
     parent = tmp_path / "parent"
     parent.mkdir()
     init_repo_minimal(parent)
@@ -167,39 +157,14 @@ def test_handoff_shows_submodule_changes(
         check=True,
         capture_output=True,
     )
-
-    env = {
-        **os.environ,
-        "GIT_CONFIG_COUNT": "1",
-        "GIT_CONFIG_KEY_0": "protocol.file.allow",
-        "GIT_CONFIG_VALUE_0": "always",
-    }
-    subprocess.run(
-        ["git", "submodule", "add", str(sub_origin), "agent-core"],
-        cwd=parent,
-        check=True,
-        capture_output=True,
-        env=env,
-    )
+    origin = create_submodule_origin(tmp_path, "agent-core")
+    add_submodule(parent, origin, "agent-core")
     subprocess.run(
         ["git", "commit", "-m", "add sub"],
         cwd=parent,
         check=True,
         capture_output=True,
     )
-    subprocess.run(
-        ["git", "config", "user.email", "test@test.com"],
-        cwd=parent / "agent-core",
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test"],
-        cwd=parent / "agent-core",
-        check=True,
-        capture_output=True,
-    )
-
     monkeypatch.chdir(parent)
 
     # Set up session.md in parent
@@ -389,3 +354,5 @@ def test_handoff_resume_from_write_session(
     assert "Phase 4 complete." in content
     assert "Implemented write_completed" in content
     assert "Previous task" not in content
+    # State file cleared after successful resume
+    assert not (tmp_path / "tmp" / ".handoff-state.json").exists()

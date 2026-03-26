@@ -1,21 +1,23 @@
 # Session Handoff: 2026-03-26
 
-**Status:** RC14 review complete — 0C/0M/10m (7 active + 3 dismissed). All 18 RC13 fixes verified. Fix task queued.
+**Status:** RC14 fixes complete — all 7 active minors fixed. Corrector review 0C/0M. Deliverable review queued.
 
 ## Completed This Session
 
-**Handoff-cli RC14 deliverable review:**
-- Full-scope review: L1 (3 opus agents: code, test, prose+config) + L2 (interactive cross-cutting)
-- All 18 RC13 fix minors verified fixed, all 3 corrector fixes verified, 4 dismissals reconfirmed
-- New findings: 2 code clarity (hint logic, _git_output dup), 5 test style (submodule helpers expanded, 2 tight assertions, 1 vacuity, 1 deferred coverage)
-- Trend: RC13 22m → RC14 10m
-- Report: `plans/handoff-cli-tool/reports/deliverable-review.md`
+**Fix handoff-cli RC14:**
+- m-1: Factored out redundant `prev_was_hint = True` in `_strip_hints` (`commit_pipeline.py`)
+- m-2: Consolidated `_git_output` into `_git()` by adding `cwd` param (`git.py`, `commit_gate.py`)
+- m-3: Standardized submodule test helpers to canonical `create_submodule_origin` + `add_submodule` (`test_git_cli.py`, `test_session_handoff_cli.py`)
+- m-4, m-5: Loosened tight assertions to key fragments (`test_session_commit_pipeline_ext.py`, `test_session_status.py`)
+- m-6: Fixed vacuous test — added git repo setup so `_detect_write_mode` exercises autostrip path (`test_session_handoff.py`)
+- m-7: Added state-file-cleared assertion to resume test (`test_session_handoff_cli.py`)
+- Corrector review: 0C/0M (`plans/handoff-cli-tool/reports/review-rc14-fix.md`)
 
 ## In-tree Tasks
 
 - [x] **Handoff-cli RC14** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [ ] **Fix handoff-cli RC14** — `/design plans/handoff-cli-tool/reports/deliverable-review.md plans/handoff-cli-tool/outline.md` | opus
-  - 0C/0M/10m (7 active + 3 dismissed): 2 code clarity, 5 test style/coverage, 3 dismissed scope notes
+- [x] **Fix handoff-cli RC14** — `/design plans/handoff-cli-tool/reports/deliverable-review.md plans/handoff-cli-tool/outline.md` | opus
+- [ ] **Handoff-cli RC15** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
 - [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
   - Plan: runbook-warnings | Status: briefed
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
@@ -62,9 +64,9 @@
 ## Reference Files
 
 - `plans/handoff-cli-tool/reports/deliverable-review.md` — RC14 findings (0C/0M/10m)
-- `plans/handoff-cli-tool/reports/review-rc13-fix.md` — RC13 fix corrector review
-- `plans/handoff-cli-tool/classification.md` — RC13 fix composite classification
+- `plans/handoff-cli-tool/reports/review-rc14-fix.md` — RC14 fix corrector review (0C/0M)
+- `plans/handoff-cli-tool/classification.md` — RC14 fix composite classification
 
 ## Next Steps
 
-Fix handoff-cli RC14 — 7 active minors (code clarity + test style). All non-functional.
+Handoff-cli RC15 — full-scope deliverable review of the RC14 fixes.

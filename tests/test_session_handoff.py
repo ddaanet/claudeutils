@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -20,6 +21,7 @@ from claudeutils.session.handoff.pipeline import (
     save_state,
     write_completed,
 )
+from tests.pytest_helpers import init_repo_at
 
 HANDOFF_INPUT_FIXTURE = """\
 **Status:** Design Phase A complete — outline reviewed.
@@ -215,8 +217,22 @@ def test_write_completed_with_empty_section(tmp_path: Path) -> None:
 
 
 def test_write_completed_with_accumulated_content(tmp_path: Path) -> None:
-    """write_completed replaces accumulated prior-session content."""
+    """Autostrip removes committed content, keeps new additions."""
+    init_repo_at(tmp_path)
     session_file = tmp_path / "session.md"
+    # Commit original completed content
+    session_file.write_text(SESSION_WITH_COMPLETED)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", "session.md"],
+        capture_output=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "commit", "-m", "add session"],
+        capture_output=True,
+        check=True,
+    )
+    # Accumulate new content alongside committed content
     accumulated = SESSION_WITH_COMPLETED.replace(
         "- Old task B\n",
         "- Old task B\n- New task done.\n",

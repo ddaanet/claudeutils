@@ -9,62 +9,19 @@ import pytest
 from click.testing import CliRunner
 
 from claudeutils.git_cli import git_group
-from tests.pytest_helpers import init_repo_at as _init_repo
+from tests.pytest_helpers import add_submodule, create_submodule_origin, init_repo_at
 
 
-def _add_submodule_gitlink(parent: Path, sub_name: str) -> Path:
-    """Register sub_name as a gitlink submodule inside parent without cloning.
-
-    Uses git plumbing (update-index --cacheinfo 160000) so the submodule repo
-    stays as an independent git repo in place rather than being cloned.
-    """
-    sub_path = parent / sub_name
-    sub_path.mkdir()
-
-    # Initialize the submodule as its own git repo
-    _init_repo(sub_path)
-
-    # Register the gitmodules config
-    (parent / ".gitmodules").write_text(
-        f'[submodule "{sub_name}"]\n\tpath = {sub_name}\n\turl = ./{sub_name}\n'
-    )
-
-    # Get the submodule HEAD hash
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=str(sub_path),
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    commit_hash = result.stdout.strip()
-
-    # Register the gitlink in the parent index
-    subprocess.run(
-        [
-            "git",
-            "update-index",
-            "--add",
-            "--cacheinfo",
-            f"160000,{commit_hash},{sub_name}",
-        ],
-        cwd=str(parent),
-        capture_output=True,
-        check=True,
-    )
-    subprocess.run(
-        ["git", "add", ".gitmodules"],
-        cwd=str(parent),
-        capture_output=True,
-        check=True,
-    )
+def _add_submodule(parent: Path, tmp_path: Path, sub_name: str) -> Path:
+    """Add a submodule using canonical pytest_helpers."""
+    origin = create_submodule_origin(tmp_path, sub_name)
+    add_submodule(parent, origin, sub_name)
     subprocess.run(
         ["git", "-C", str(parent), "commit", "-m", f"add submodule {sub_name}"],
         capture_output=True,
         check=True,
     )
-
-    return sub_path
+    return parent / sub_name
 
 
 def test_git_changes_clean_repo(
@@ -73,7 +30,7 @@ def test_git_changes_clean_repo(
     """Clean repo produces 'Tree is clean.' output with exit 0."""
     repo = tmp_path / "repo"
     repo.mkdir()
-    _init_repo(repo)
+    init_repo_at(repo)
     monkeypatch.chdir(repo)
 
     runner = CliRunner()
@@ -89,7 +46,7 @@ def test_git_changes_dirty_repo(
     """Dirty parent produces ## Parent section with filename and diff."""
     repo = tmp_path / "repo"
     repo.mkdir()
-    _init_repo(repo)
+    init_repo_at(repo)
     monkeypatch.chdir(repo)
 
     # Create a tracked file change (modify README.md which is tracked)
@@ -113,8 +70,8 @@ def test_git_changes_with_submodule(
     """Dirty submodule produces ## Submodule: section with prefixed paths."""
     parent = tmp_path / "parent"
     parent.mkdir()
-    _init_repo(parent)
-    sub_path = _add_submodule_gitlink(parent, "agent-core")
+    init_repo_at(parent)
+    sub_path = _add_submodule(parent, tmp_path, "agent-core")
     monkeypatch.chdir(parent)
 
     # Make the submodule dirty: add a new untracked file (clear "?? " prefix in status)
@@ -140,8 +97,8 @@ def test_git_changes_clean_submodule_omitted(
     """Clean submodule section omitted when parent is dirty."""
     parent = tmp_path / "parent"
     parent.mkdir()
-    _init_repo(parent)
-    _add_submodule_gitlink(parent, "agent-core")
+    init_repo_at(parent)
+    _add_submodule(parent, tmp_path, "agent-core")
     monkeypatch.chdir(parent)
 
     # Make only the parent dirty (not the submodule)
