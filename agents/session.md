@@ -1,28 +1,20 @@
 # Session Handoff: 2026-03-26
 
-**Status:** handoff-cli-tool delivered. RC15 0C/0M/8m accepted. Plan closed after 15 review rounds.
+**Status:** Runbook warnings designed and planned (Tier 2 TDD, 4 cycles). Awaiting execution.
 
 ## Completed This Session
 
-**Handoff-cli RC15 deliverable review:**
-- Full-scope L1 (2 opus agents: code, test) + L2 (interactive cross-cutting + prose/config)
-- RC14 fix verification: all 7 active minors verified fixed, no regressions
-- New findings: 0C/0M/13m (8 active + 5 dismissed)
-- Report: `plans/handoff-cli-tool/reports/deliverable-review.md`
-
-**Plan delivery decision:**
-- 0C/0M held across 4 consecutive rounds (RC12→RC15)
-- Minor count steady-state (~8 per full-scope pass over 6000 lines) — convergence stalled
-- User accepted 8 active minors, marked plan delivered
-- Identified root cause: monolithic review scope prevents convergence. Led to design-segmentation-gate task.
+**Runbook warnings /design + /runbook:**
+- Complexity triage: Moderate (high implementation certainty, high requirement stability, behavioral code change)
+- Classification: production artifact destination (`agent-core/bin/`)
+- Tier 2 assessment: single component, ~2 files, 4 TDD cycles
+- Runbook written: `plans/runbook-warnings/runbook.md`
+- User interrupted before /inline execution began (Phase 1 entry gate not yet reached)
 
 ## In-tree Tasks
 
-- [x] **Handoff-cli RC14** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [x] **Fix handoff-cli RC14** — `/design plans/handoff-cli-tool/reports/deliverable-review.md plans/handoff-cli-tool/outline.md` | opus
-- [x] **Handoff-cli RC15** — `/deliverable-review plans/handoff-cli-tool` | opus | restart
-- [ ] **Runbook warnings** — `/design plans/runbook-warnings/brief.md` | sonnet
-  - Plan: runbook-warnings | Status: briefed
+- [ ] **Runbook warnings** — `/inline plans/runbook-warnings` | sonnet
+  - Plan: runbook-warnings | Status: planned | Tier 2 — route to /inline not prepare-runbook.py
 - [ ] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
   - Spike complete. Findings positive. Production integration deferred to status CLI.
 - [ ] **Skill-CLI integration** — `/design plans/skill-cli-integration/brief.md` | opus | restart
@@ -68,10 +60,9 @@
 
 ## Reference Files
 
-- `plans/handoff-cli-tool/reports/deliverable-review.md` — RC15 findings (0C/0M/13m, 8 active)
-- `plans/handoff-cli-tool/lifecycle.md` — full lifecycle (15 review entries, delivered)
-- `plans/design-segmentation-gate/brief.md` — new task brief
+- `plans/runbook-warnings/runbook.md` — Tier 2 TDD runbook (4 cycles)
+- `plans/runbook-warnings/classification.md` — Moderate classification artifact
 
 ## Next Steps
 
-Skill-CLI integration — wire skills to delivered CLI tools.
+Execute runbook-warnings via `/inline plans/runbook-warnings`.
