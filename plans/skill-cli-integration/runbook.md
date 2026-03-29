@@ -11,117 +11,120 @@
 **Spike prototype:** `tmp/spike-stop-hook/status-hook.sh` — validated mechanism. Production changes: real CLI call, tightened regex, ANSI reset per line.
 
 **Hook conventions:**
-- Existing hooks in `agent-core/hooks/`
 - Registration in `.claude/settings.json` under `hooks.Stop`
 - Hook input: JSON on stdin with `last_assistant_message`, `stop_hook_active`
 - Hook output: JSON with `systemMessage` (and optionally `additionalContext`)
-- Existing Stop hook: `stop-health-fallback.sh` (runs on sessions without SessionStart)
+- Existing Stop hook: `stop-health-fallback.sh` (bash, runs on sessions without SessionStart)
 
-**Test pattern for bash hooks:** pytest with subprocess — no existing hook tests in project. Test helper runs `bash <hook-path>` with JSON piped to stdin, parses JSON output. Hook uses `${STATUS_CMD:-claudeutils _status}` for testability.
+**Hook implementation: Python module** (not bash — bash test suites are ugly). Core logic is a pure function `process_hook(dict) -> dict | None`. Tests import and call directly. CLI entry point reads stdin/writes stdout in `if __name__ == "__main__"`. Self-contained (stdlib only: `json`, `re`, `subprocess`) — no claudeutils imports, runnable via `python3 path/to/module.py`.
 
 ---
 
 ### Phase 1: Hook core behavior (type: tdd)
 
-**Artifact:** `agent-core/hooks/stop-status-display.sh`
+**Artifact:** `src/claudeutils/hooks/stop_status_display.py`
 **Test file:** `tests/test_stop_hook_status.py`
 **Model:** sonnet
 
+**Module structure:**
+- `should_trigger(message: str) -> bool` — regex match `^Status\.$`
+- `format_ansi(text: str) -> str` — prepend `\033[0m` reset to each line
+- `get_status(cmd: tuple[str, ...] = ("claudeutils", "_status")) -> str` — run CLI, return output
+- `process_hook(data: dict, status_fn: Callable[[], str] | None = None) -> dict | None` — orchestrate: guard → trigger → status → format → response
+- `main()` — stdin JSON → `process_hook()` → stdout JSON
+
 #### Cycle 1.1: Trigger detection + loop guard
 
-**Bootstrap:** Create `agent-core/hooks/stop-status-display.sh` with stub (reads stdin, exits 0). Create `tests/test_stop_hook_status.py` with `run_hook()` helper that runs script via subprocess, pipes JSON stdin, returns parsed JSON output. Do not commit.
+**Bootstrap:** Create `src/claudeutils/hooks/__init__.py` (empty) and `src/claudeutils/hooks/stop_status_display.py` with stubs: `should_trigger` returns `False`, `process_hook` returns `None`. Do not commit.
 
 ---
 
 **RED Phase:**
 
-**Test:** `test_trigger_positive_match`
+**Test:** `test_should_trigger` (parametrized)
 **Assertions:**
-- Input `{"last_assistant_message": "Status.", "stop_hook_active": false}` → output dict contains `"systemMessage"` key
-- Input `{"last_assistant_message": "Check the Status.", "stop_hook_active": false}` → output is empty dict (substring, not full line)
-- Input `{"last_assistant_message": "Status", "stop_hook_active": false}` → output is empty dict (no period)
-- Input `{"last_assistant_message": "Status.\nMore text", "stop_hook_active": false}` → output is empty dict (not last line)
+- `should_trigger("Status.")` → `True`
+- `should_trigger("Check the Status.")` → `False` (not start-of-line)
+- `should_trigger("Status")` → `False` (no period)
+- `should_trigger("Status.\nMore text")` → `False` (multiline)
+- `should_trigger("")` → `False`
 
-**Expected failure:** `AssertionError` — stub exits 0 with no output, positive case expects systemMessage key
+**Expected failure:** `AssertionError` — stub returns `False` for all inputs, first parametrized case expects `True`
 
-**Verify RED:** `pytest tests/test_stop_hook_status.py::test_trigger_positive_match -v`
+**Verify RED:** `just green`
 
-**Test:** `test_loop_guard`
+**Test:** `test_process_hook_loop_guard`
 **Assertions:**
-- Input `{"last_assistant_message": "Status.", "stop_hook_active": true}` → output is empty dict (guard prevents action)
+- `process_hook({"last_assistant_message": "Status.", "stop_hook_active": True})` → `None`
+- `process_hook({"last_assistant_message": "Status.", "stop_hook_active": False}, status_fn=lambda: "mock")` → dict containing `"systemMessage"`
 
-**Expected failure:** Same — stub produces no output regardless, but assertion structure must be present for GREEN verification
+**Expected failure:** `AssertionError` — stub `process_hook` returns `None` for all inputs
 
-**Verify RED:** `pytest tests/test_stop_hook_status.py::test_loop_guard -v`
+**Verify RED:** `just green`
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Trigger detection with full-line regex and loop guard
+**Implementation:** Trigger detection with regex and loop guard
 
 **Behavior:**
-- Read JSON from stdin, extract `last_assistant_message` and `stop_hook_active`
-- If `stop_hook_active` is true, exit 0 immediately
-- Match `last_assistant_message` against `^Status\.$` (full line, period required)
-- On match: output JSON with `systemMessage` containing placeholder text (real CLI in cycle 1.2)
-- No match: exit 0
-
-**Approach:** `jq` for JSON parsing (consistent with spike), `grep -qx 'Status\.'` or bash `[[ == ]]` for regex, `jq -n` for JSON output
+- `should_trigger`: match message against `^Status\.$` using `re.fullmatch`
+- `process_hook`: check `stop_hook_active` first (return None if true), then call `should_trigger` on `last_assistant_message`, on match call `status_fn` (or default `get_status`), return `{"systemMessage": result}`
 
 **Changes:**
-- File: `agent-core/hooks/stop-status-display.sh`
-  Action: Replace stub with detection logic
-  Location hint: Full file replacement
+- File: `src/claudeutils/hooks/stop_status_display.py`
+  Action: Implement `should_trigger` and `process_hook` core flow
+  Location hint: Replace stubs
 
 **Verify GREEN:** `just green`
 
 ---
 
-#### Cycle 1.2: CLI integration + ANSI formatting
+#### Cycle 1.2: ANSI formatting + CLI integration
 
-**Prerequisite:** Read `agent-core/hooks/stop-status-display.sh` — understand current trigger detection from cycle 1.1
+**Prerequisite:** Read `src/claudeutils/hooks/stop_status_display.py` — understand trigger detection from cycle 1.1
 
 ---
 
 **RED Phase:**
 
-**Test:** `test_output_calls_status_command`
+**Test:** `test_format_ansi`
 **Assertions:**
-- With env `STATUS_CMD="echo 'mock status line'"` and trigger input → `systemMessage` contains `"mock status line"`
-- Verifies hook delegates to configurable command
+- `format_ansi("line1\nline2\nline3")` → each line starts with `\033[0m`
+- `format_ansi("")` → starts with `\033[0m` (reset even for empty)
+- First line prepended with extra leading `\033[0m\n` (escape dim "Stop says:" prefix)
 
-**Test:** `test_output_has_ansi_reset_per_line`
+**Test:** `test_process_hook_uses_status_fn`
 **Assertions:**
-- With env `STATUS_CMD="printf 'line1\nline2\nline3'"` and trigger input → each non-empty line in `systemMessage` starts with `\033[0m`
-- Empty lines may or may not have reset (implementation choice)
+- `process_hook(trigger_input, status_fn=lambda: "mock output")` → `systemMessage` contains `"mock output"` with ANSI resets
+- Verifies injection works end-to-end
 
-**Test:** `test_cli_failure_graceful`
+**Test:** `test_process_hook_status_failure`
 **Assertions:**
-- With env `STATUS_CMD="false"` (exit 1) and trigger input → `systemMessage` contains fallback text (not empty, not crash)
+- `process_hook(trigger_input, status_fn=raises_exception)` → `systemMessage` contains "Status unavailable" fallback (not None, not crash)
+- Where `raises_exception` is `lambda: (_ for _ in ()).throw(RuntimeError("fail"))`
 
-**Expected failure:** `AssertionError` — cycle 1.1 uses placeholder text, not CLI command
+**Expected failure:** `AssertionError` — cycle 1.1 returns raw status output without ANSI formatting
 
-**Verify RED:** `pytest tests/test_stop_hook_status.py::test_output_calls_status_command -v`
+**Verify RED:** `just green`
 
 ---
 
 **GREEN Phase:**
 
-**Implementation:** Replace placeholder with configurable CLI call and ANSI formatting
+**Implementation:** ANSI formatting and status provider integration
 
 **Behavior:**
-- Run `${STATUS_CMD:-claudeutils _status}` to get status output
-- Prepend `\033[0m` (ANSI reset) to each line of output
-- On CLI failure: use "Status unavailable" fallback
-- Package formatted output as `systemMessage` in JSON response
-
-**Approach:** Capture CLI stdout, pipe through sed or while-read loop to prepend reset code, use jq for JSON construction
+- `format_ansi`: prepend `\033[0m` to each line, add leading `\033[0m\n` for dim-escape
+- `get_status`: run `subprocess.run(cmd, capture_output=True, text=True)`, return stdout, raise on failure
+- `process_hook`: wrap status call in try/except, format output, package as systemMessage
+- `main`: read stdin as JSON, call `process_hook`, print result as JSON if not None
 
 **Changes:**
-- File: `agent-core/hooks/stop-status-display.sh`
-  Action: Replace placeholder output with CLI call + ANSI formatting
-  Location hint: Inside the trigger-matched branch
+- File: `src/claudeutils/hooks/stop_status_display.py`
+  Action: Implement `format_ansi`, `get_status`, `main`, wire formatting into `process_hook`
+  Location hint: Add functions, update `process_hook` to call `format_ansi`
 
 **Verify GREEN:** `just green`
 
@@ -131,13 +134,13 @@
 
 **Model:** sonnet
 
-Register `stop-status-display.sh` in `.claude/settings.json` alongside existing `stop-health-fallback.sh`.
+Register Python hook in `.claude/settings.json` alongside existing `stop-health-fallback.sh`.
 
 **Edit:** `.claude/settings.json` — add second entry to `hooks.Stop[0].hooks` array:
 ```json
 {
   "type": "command",
-  "command": "bash $CLAUDE_PROJECT_DIR/agent-core/hooks/stop-status-display.sh"
+  "command": "python3 $CLAUDE_PROJECT_DIR/src/claudeutils/hooks/stop_status_display.py"
 }
 ```
 
@@ -218,7 +221,7 @@ echo "$INPUT" | claudeutils _commit
 
 On CLI exit 0: success. On exit 1: validation failure (surface CLI output). On exit 2: parse error (surface and fix input).
 
-**Replace Post-Commit section:** Remove "Display STATUS per execute-rule.md MODE 1." Replace with:
+**Replace Post-Commit section:** Remove "Then display STATUS per execute-rule.md MODE 1." Replace with:
 ```
 Output `Status.` — Stop hook renders.
 ```

@@ -83,7 +83,8 @@ SP-H must ship first — trigger string is meaningless without the hook. SP-1 an
 ## Files Affected
 
 **SP-H:**
-- NEW: `agent-core/hooks/status-display.sh` (or `.claude/hooks/`)
+- NEW: `src/claudeutils/hooks/__init__.py`, `src/claudeutils/hooks/stop_status_display.py`
+- NEW: `tests/test_stop_hook_status.py`
 - EDIT: `.claude/settings.json` (register Stop hook)
 
 **SP-1:**
