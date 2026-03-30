@@ -98,12 +98,17 @@ Each agent: read files in scope, apply replacements, report changed file count.
 
 ## Execution Model
 
-**Dispatch protocol:** Orchestrator reads this outline. For Steps 1.2 and 2.2, dispatches N parallel agents via Task tool. Each agent receives:
-- Directory scope (which files to process)
+**Orchestrator role:** Pure sequencer. Dispatches agents, reads pass/fail returns. Does not run bash, grep, or git directly — all mechanical work delegated to avoid context churn.
+
+**Dispatch protocol:** ALL steps delegated to agents (not just batch steps). Each agent receives:
+- Step scope and objective
 - Replacement pairs (`agent-core` → `plugin`, `claudeutils` → `edify` for Phase 1)
 - Instruction: grep scope for patterns, apply replacements via Edit tool, report count
+- For batch steps (1.2, 2.2): directory scope (which files to process)
 
-**Recall injection:** Each agent receives the 5 resolved recall entries inline (path references, grep discovery, hook paths, naming). Compact constraint format.
+**Parallel dispatch:** Sliding window, max 4 agents in-flight. Next agent launches as soon as any slot frees. Total dispatch count per batch step stays at ~9-10.
+
+**Recall injection:** Each agent receives recall entries by reference: `plans/edify-rename/recall-artifact.md` — agents resolve themselves.
 
 **Model:** Sonnet for all agents (mechanical grep-replace, no design decisions).
 
@@ -112,16 +117,16 @@ Each agent: read files in scope, apply replacements, report changed file count.
 - After Step 2.3: parent committed, zero agent-core refs in parent tree, tests pass
 
 **Error escalation:**
-- Agent reports file it cannot edit (permission, binary) → orchestrator handles
+- Agent reports file it cannot edit (permission, binary) → orchestrator dispatches targeted fix agent
 - Verification grep returns non-zero → orchestrator dispatches targeted fix agent for remaining matches
 - Test failure → orchestrator reads failure, dispatches targeted fix agent
 
 ## Weak Orchestrator Metadata
 
-**Total Steps:** 6 (2 sequential phases × 3 steps each)
-**Parallel Dispatch:** Steps 1.2 and 2.2 each fan out to ~9-10 parallel agents
+**Total Steps:** 6 (2 sequential phases × 3 steps each), all delegated
+**Parallel Dispatch:** Steps 1.2 and 2.2 each fan out to ~9-10 agents, sliding window max 4 in-flight
 **Execution Model:**
-- All steps: Sonnet (mechanical replacement)
+- All steps: Sonnet (mechanical replacement), all delegated (orchestrator is pure sequencer)
 **Step Dependencies:** Phase 1 → Phase 2 (sequential). Within each phase: discovery → parallel batch → verification (sequential)
 **Error Escalation:** Sonnet → User (structural git issues, unexpected binary files)
 **Report Locations:** `plans/edify-rename/reports/`
