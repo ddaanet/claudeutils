@@ -1,21 +1,27 @@
-# Session Handoff: 2026-03-27
+# Session Handoff: 2026-03-30
 
-**Status:** Skill-CLI integration designed (outlined). 3 SPs: hook, execute-rule, commit skill. SP-3 handoff deferred.
+**Status:** Runbook warnings fixed (directory-aware validation). Broad pipeline discussion — questioning runbooks, behavioral guardrails, planning-first paradigm.
 
 ## Completed This Session
 
-**Skill-CLI integration /design:**
-- Classified: Moderate (all axes high), composite 3 sub-problems
-- Explored CLI implementations (`_commit`, `_handoff`, `_status`) — full input/output/mutation surface mapped
-- Design decisions: Stop hook trigger convention (`^Status\.$`), /commit composition boundary, execute-rule simplification
-- SP-3 (handoff integration) deferred — `_handoff` CLI handles 2 of ~6 session.md mutations, partial composition adds complexity for minimal gain
-- Discussion: incremental vs batch handoff model → batch wins (consistency, crash recovery, synthesis quality)
-- Wrote: `plans/skill-cli-integration/classification.md`, `plans/skill-cli-integration/outline.md`
+**Runbook warnings fix:**
+- Rejected original plan (cross-step creation-verb heuristic) — "fixes upon fixes" on ambiguous format
+- Implemented approach A: directory-aware validation in `validate_file_references()`
+- Parent dir exists + file missing → warn (likely typo). Parent dir missing → silent (greenfield).
+- 2-line production change, 2 tests in new file
+- Spec: `docs/superpowers/specs/2026-03-30-runbook-warnings-directory-aware-design.md`
+
+**Pipeline comparative analysis (discussion, not implementation):**
+- Explored superpowers plugin architecture (12 skills, 1 reviewer agent, platform-native)
+- Compared with agent-core/edify (34 skills, 13 agents, 27 fragments, 3-tier pipeline)
+- Referenced `inbox/brief-invariant-guided-agent.md` (prototype → observe → formalize → verify)
+- Referenced `mac-de-anna/docs/memory-version-control-design.md` (git-backed memory)
+- Conclusions: planning pipeline is BDUF under question. Behavioral guardrails are prompt-level patches for model-level tendencies. Memory/recall and structural enforcement (hooks, gates) survive any workflow paradigm. Runbooks, plan-specific agents, corrector chains, deliverable-review ceremony are candidates for removal.
 
 ## In-tree Tasks
 
-- [ ] **Runbook warnings** — `/inline plans/runbook-warnings` | sonnet
-  - Plan: runbook-warnings | Status: planned | Tier 2 — route to /inline not prepare-runbook.py
+- [x] **Runbook warnings** — `/inline plans/runbook-warnings` | sonnet
+  - Replaced with directory-aware validation (approach A). Original cross-step plan abandoned.
 - [x] **Stop hook spike** — `/design plans/stop-hook-status-spike/brief.md` | haiku
   - Spike complete. Findings positive. Production integration absorbed into skill-cli-integration SP-H.
 - [ ] **Skill-CLI integration** — `/runbook plans/skill-cli-integration/outline.md` | sonnet
@@ -50,7 +56,7 @@
 
 ## Blockers / Gotchas
 
-**Learnings at soft limit (138 lines):**
+**Learnings at soft limit (143 lines):**
 - `/codify` overdue — next session should consolidate older learnings
 
 **pretooluse-recall-check hook regex:**
@@ -59,13 +65,17 @@
 **Flaky test:**
 - `test_worktree_merge_learnings.py::test_merge_learnings_segment_diff3_prevents_orphans` — intermittent merge conflict failure. Passes on retry.
 
+**Pipeline direction under active questioning:**
+- User questioning entire design → runbook → orchestrate pipeline, behavioral guardrails, and planning-first paradigm
+- No decisions made yet — discussion only. Next session should not assume pipeline continuity.
+
 ## Reference Files
 
+- `docs/superpowers/specs/2026-03-30-runbook-warnings-directory-aware-design.md` — Spec for directory-aware validation
 - `plans/skill-cli-integration/outline.md` — Design outline with SPs, composition boundary, dependency order
-- `plans/skill-cli-integration/classification.md` — Moderate classification, SP-3 deferral rationale
-- `plans/stop-hook-status-spike/brief.md` — Spike findings (trigger mechanism, ANSI styling)
-- `tmp/spike-stop-hook/status-hook.sh` — Hook prototype (SP-H starting point)
+- External: `~/code/inbox/brief-invariant-guided-agent.md` — prototype-first + invariant verification paradigm
+- External: `~/code/mac-de-anna/docs/memory-version-control-design.md` — git-backed version-controlled memory
 
 ## Next Steps
 
-Execute runbook-warnings via `/inline plans/runbook-warnings`. Skill-CLI integration next after that (`/runbook` on outlined plan).
+Skill-CLI integration next (`/runbook` on outlined plan) — but pipeline direction is unsettled. User may want to reprioritize or restructure before continuing pipeline-dependent work.
