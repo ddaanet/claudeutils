@@ -185,7 +185,7 @@ class AggregatedStatus:
 
 
 def aggregate_trees(repo_root: Path) -> AggregatedStatus:
-    """Aggregate plans across all worktrees; main tree wins on name conflict."""
+    """Aggregate plans across all worktrees; each tree shows its own plan."""
     result = subprocess.run(
         ["git", "-C", str(repo_root), "worktree", "list", "--porcelain"],
         check=False,
@@ -199,33 +199,22 @@ def aggregate_trees(repo_root: Path) -> AggregatedStatus:
     trees = _parse_worktree_list(result.stdout)
     sorted_trees = sorted(trees, key=lambda t: t.latest_commit_timestamp, reverse=True)
 
-    plans_dict: dict[str, PlanState] = {}
+    plans: list[PlanState] = []
 
     for tree in trees:
-        if tree.is_main:
-            continue
         tree_plans = list_plans(Path(tree.path) / "plans")
         for plan in tree_plans:
             plan.tree_path = tree.path
-            if plan.name not in plans_dict:
-                plans_dict[plan.name] = plan
-
-    for tree in trees:
-        if not tree.is_main:
-            continue
-        tree_plans = list_plans(Path(tree.path) / "plans")
-        for plan in tree_plans:
-            plan.tree_path = tree.path
-            plans_dict[plan.name] = plan
+            plans.append(plan)
 
     # Sort by session.md task order; unmatched plans alphabetically at end
     plan_order = _read_plan_order(trees)
     max_pos = len(plan_order)
-    plans = sorted(
-        plans_dict.values(),
+    sorted_plans = sorted(
+        plans,
         key=lambda p: (plan_order.get(p.name, max_pos), p.name),
     )
-    return AggregatedStatus(plans=plans, trees=sorted_trees)
+    return AggregatedStatus(plans=sorted_plans, trees=sorted_trees)
 
 
 def _read_plan_order(trees: list[TreeInfo]) -> dict[str, int]:

@@ -49,6 +49,46 @@ def setup_cli_mocks(
         )
 
 
+def init_repo_at(path: Path) -> None:
+    """Initialize a git repo at path with an initial commit.
+
+    Uses -C style so path need not be cwd. Suitable for multi-repo test setups.
+    """
+    subprocess.run(["git", "init", str(path)], capture_output=True, check=True)
+    subprocess.run(
+        ["git", "-C", str(path), "config", "user.email", "test@test.com"],
+        capture_output=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(path), "config", "user.name", "Test"],
+        capture_output=True,
+        check=True,
+    )
+    (path / "README.md").write_text("init")
+    subprocess.run(
+        ["git", "-C", str(path), "add", "."], capture_output=True, check=True
+    )
+    subprocess.run(
+        ["git", "-C", str(path), "commit", "-m", "init"],
+        capture_output=True,
+        check=True,
+    )
+
+
+def init_repo_minimal(path: Path) -> None:
+    """Init a git repo with user config (cwd style)."""
+    for args in [
+        ["git", "init"],
+        ["git", "config", "user.email", "test@test.com"],
+        ["git", "config", "user.name", "Test"],
+    ]:
+        result = subprocess.run(
+            args, cwd=path, check=False, capture_output=True, text=True
+        )
+        assert result.returncode == 0, f"git {' '.join(args)} failed: {result.stderr}"
+
+
 def setup_git_repo(tmp_path: Path) -> None:
     """Initialize a git repo in tmp_path for git add in validate_and_create."""
     subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=False)
@@ -77,6 +117,64 @@ def setup_baseline_agents(tmp_path: Path) -> None:
     corrector = agents_dir / "corrector.md"
     corrector.write_text(
         "---\nname: corrector\nmodel: sonnet\n---\n# Corrector\nBaseline corrector."
+    )
+
+
+def create_submodule_origin(base: Path, name: str) -> Path:
+    """Create a submodule origin repo for testing."""
+    origin = base / f"{name}-origin"
+    origin.mkdir()
+    subprocess.run(["git", "init"], cwd=origin, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=origin,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test"],
+        cwd=origin,
+        check=True,
+        capture_output=True,
+    )
+    (origin / "init.md").write_text("init")
+    subprocess.run(["git", "add", "."], cwd=origin, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "init"],
+        cwd=origin,
+        check=True,
+        capture_output=True,
+    )
+    return origin
+
+
+def add_submodule(parent: Path, origin: Path, name: str) -> None:
+    """Add a submodule to parent repo and configure git identity."""
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "protocol.file.allow=always",
+            "submodule",
+            "add",
+            str(origin),
+            name,
+        ],
+        cwd=parent,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=parent / name,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test"],
+        cwd=parent / name,
+        check=True,
+        capture_output=True,
     )
 
 

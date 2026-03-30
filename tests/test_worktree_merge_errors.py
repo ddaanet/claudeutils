@@ -7,8 +7,8 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from click.testing import CliRunner
 
+from claudeutils.git import _git
 from claudeutils.worktree.cli import worktree
-from claudeutils.worktree.git_ops import _git
 from claudeutils.worktree.merge import _format_git_error
 
 
@@ -80,7 +80,9 @@ def test_git_helper_preserves_stderr_in_exception(tmp_path: Path) -> None:
     repo.mkdir()
     subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
 
-    with pytest.raises(subprocess.CalledProcessError) as exc_info:
+    with pytest.raises(
+        subprocess.CalledProcessError, match="non-zero exit"
+    ) as exc_info:
         _git("-C", str(repo), "add", "nonexistent.txt")
 
     assert exc_info.value.stderr is not None

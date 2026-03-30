@@ -5,22 +5,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-
-def _git(
-    *args: str,
-    check: bool = True,
-    env: dict[str, str] | None = None,
-    input_data: str | None = None,
-) -> str:
-    r = subprocess.run(
-        ["git", *args],
-        capture_output=True,
-        text=True,
-        check=check,
-        env=env,
-        input=input_data,
-    )
-    return r.stdout.strip()
+from claudeutils.git import _git, _is_dirty, _is_submodule_dirty  # noqa: F401
 
 
 def wt_path(slug: str, create_container: bool = False) -> Path:  # noqa: FBT001,FBT002
@@ -73,43 +58,6 @@ def _classify_branch(slug: str) -> tuple[int, bool]:
         is_focused = msg == f"Focused session for {slug}"
 
     return (count, is_focused)
-
-
-def _is_parent_dirty(exclude_path: str | None = None) -> bool:
-    """Return True if parent repo has staged/unstaged/untracked changes.
-
-    exclude_path: if given, skip status lines whose path starts with
-    Path(exclude_path).name + "/" (used to ignore the worktree container dir
-    when it appears as an untracked entry inside the repo).
-    """
-    output = _git("status", "--porcelain", check=False)
-    if not output:
-        return False
-
-    exclude_prefix = (Path(exclude_path).name + "/") if exclude_path else None
-    for line in output.strip().split("\n"):
-        if not line:
-            continue
-        path = line[3:]
-        if exclude_prefix and path.startswith(exclude_prefix):
-            continue
-        return True
-    return False
-
-
-def _is_submodule_dirty() -> bool:
-    """Return True if agent-core is dirty; False if absent or clean."""
-    submodule_path = Path("agent-core")
-    if not submodule_path.exists():
-        return False
-
-    result = subprocess.run(
-        ["git", "-C", "agent-core", "status", "--porcelain"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return bool(result.stdout.strip())
 
 
 def _parse_worktree_list(porcelain: str, main_path: str) -> list[tuple[str, str, str]]:

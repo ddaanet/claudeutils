@@ -15,12 +15,14 @@ from claudeutils.discovery import list_top_level_sessions
 from claudeutils.exceptions import ClaudeUtilsError
 from claudeutils.extraction import extract_feedback_recursively
 from claudeutils.filtering import categorize_feedback, filter_feedback
+from claudeutils.git_cli import git_group
 from claudeutils.markdown import process_file
 from claudeutils.model.cli import model
 from claudeutils.models import FeedbackItem
 from claudeutils.paths import get_project_history_dir
 from claudeutils.recall.cli import recall
 from claudeutils.recall_cli.cli import recall_cmd
+from claudeutils.session.cli import commit_cmd, handoff_cmd, status_cmd
 from claudeutils.statusline.cli import statusline
 from claudeutils.tokens_cli import handle_tokens
 from claudeutils.validation.cli import validate
@@ -150,6 +152,10 @@ cli.add_command(statusline)
 cli.add_command(validate)
 cli.add_command(when_cmd)
 cli.add_command(worktree)
+cli.add_command(handoff_cmd, "_handoff")
+cli.add_command(commit_cmd, "_commit")
+cli.add_command(status_cmd, "_status")
+cli.add_command(git_group)
 
 
 @cli.command(help="Extract feedback from session")
@@ -326,17 +332,14 @@ def compose_command(
         sys.exit(4)
 
     try:
-        # Load configuration
         if verbose:
             click.echo(f"Loading config from {config_file}")
 
         config = load_config(config_file)
 
-        # Override output if specified
         if output:
             config["output"] = output
 
-        # Show plan if dry-run
         if dry_run:
             _show_compose_plan(config_file, config)
             return
@@ -348,7 +351,6 @@ def compose_command(
         adjust_headers_val = cast("bool", config.get("adjust_headers", False))
         separator_val = cast("str", config.get("separator", "---"))
 
-        # Compose the document
         compose(
             fragments=fragments_val,
             output=output_val,
@@ -372,7 +374,6 @@ def markdown() -> None:
     errors: list[str] = []
     valid_files: list[Path] = []
 
-    # Validate files
     for filepath_str in files:
         filepath = Path(filepath_str)
         if filepath.suffix != ".md":
@@ -382,7 +383,6 @@ def markdown() -> None:
         else:
             valid_files.append(filepath)
 
-    # Process valid files
     for filepath in valid_files:
         try:
             if process_file(filepath):

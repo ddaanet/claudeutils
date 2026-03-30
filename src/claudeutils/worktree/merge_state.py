@@ -4,7 +4,8 @@ import subprocess
 
 import click
 
-from claudeutils.worktree.git_ops import _git, _is_branch_merged
+from claudeutils.git import _git
+from claudeutils.worktree.git_ops import _is_branch_merged
 
 
 def _detect_merge_state(slug: str) -> str:

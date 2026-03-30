@@ -9,28 +9,7 @@ from claudeutils.planstate.aggregation import (
     _task_summary,
     aggregate_trees,
 )
-
-
-def _init_git_repo(repo_path: str) -> None:
-    """Initialize a git repository with standard config."""
-    subprocess.run(
-        ["git", "init"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.email", "test@example.com"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "Test User"],
-        cwd=repo_path,
-        check=True,
-        capture_output=True,
-    )
+from tests.pytest_helpers import init_repo_minimal
 
 
 def test_task_summary_extraction(tmp_path: Path) -> None:
@@ -39,7 +18,7 @@ def test_task_summary_extraction(tmp_path: Path) -> None:
     repo_path.mkdir()
     repo_str = str(repo_path)
 
-    _init_git_repo(repo_str)
+    init_repo_minimal(repo_path)
 
     # Create session.md with In-tree Tasks section
     session_dir = repo_path / "agents"
@@ -83,7 +62,7 @@ def test_tree_sorting_by_timestamp(tmp_path: Path) -> None:
     """Sort trees by latest_commit_timestamp descending."""
     main_repo = tmp_path / "main"
     main_repo.mkdir()
-    _init_git_repo(str(main_repo))
+    init_repo_minimal(main_repo)
 
     # Main commit at T1 (oldest)
     test_file = main_repo / "main.txt"
@@ -193,7 +172,7 @@ def test_per_tree_plan_discovery(tmp_path: Path) -> None:
     """Discover plans from each tree and aggregate with deduplication."""
     main_repo = tmp_path / "main"
     main_repo.mkdir()
-    _init_git_repo(str(main_repo))
+    init_repo_minimal(main_repo)
 
     # plan-a in main
     plans_dir = main_repo / "plans"
@@ -243,11 +222,15 @@ def test_per_tree_plan_discovery(tmp_path: Path) -> None:
     result = aggregate_trees(main_repo)
 
     assert isinstance(result, AggregatedStatus)
-    assert len(result.plans) == 2
-    plan_names = {plan.name for plan in result.plans}
-    assert plan_names == {"plan-a", "plan-b"}
+    # Worktree inherits plan-a from main, then adds plan-b
+    # So we have: main=[plan-a], worktree=[plan-a, plan-b]
+    # Result: plan-a appears twice (once per tree), plan-b appears once
+    assert len(result.plans) == 3
+    plan_names = [plan.name for plan in result.plans]
+    assert plan_names.count("plan-a") == 2
+    assert plan_names.count("plan-b") == 1
 
-    # Deduplication: plan-c in both trees, main wins
+    # No dedup: plan-c in both trees appears twice, each with own state
     plan_c_main = plans_dir / "plan-c"
     plan_c_main.mkdir()
     (plan_c_main / "outline.md").write_text("# Plan C\n")
@@ -282,8 +265,10 @@ def test_per_tree_plan_discovery(tmp_path: Path) -> None:
 
     result = aggregate_trees(main_repo)
     plan_c_results = [p for p in result.plans if p.name == "plan-c"]
-    assert len(plan_c_results) == 1
+    assert len(plan_c_results) == 2
 
-    # Verify main tree won (has outline.md, not requirements.md)
-    assert "outline.md" in plan_c_results[0].artifacts
-    assert "requirements.md" not in plan_c_results[0].artifacts
+    # Each tree shows its own state: main has outline, worktree has requirements
+    main_plan_c = next(p for p in plan_c_results if p.tree_path == str(main_repo))
+    wt_plan_c = next(p for p in plan_c_results if p.tree_path == str(wt_path))
+    assert "outline.md" in main_plan_c.artifacts
+    assert "requirements.md" in wt_plan_c.artifacts

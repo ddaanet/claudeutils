@@ -24,6 +24,11 @@
   - Plan: centralize-recall | Segmented /recall skill (<1ktok core), replace inline recall across skills/agents. Prerequisite (remove-index-skill) now complete.
 - [x] **Remove index skill** — completed prior session
 
+- [ ] **Outline template trim** — `/design plans/outline-template-trim/brief.md` | opus | restart
+- [ ] **Review skill-CLI** — `/deliverable-review plans/skill-cli-integration` | opus | restart
+- [ ] **Skill-CLI completion** — `/design plans/skill-cli-completion/brief.md` | opus | restart
+  - Commit discovery (_git changes), commit --test flag, handoff composition. Before deliverable review.
+
 ## Worktree Tasks
 
 - [x] **Fix batch findings** — plan archived
@@ -151,6 +156,30 @@
 - [ ] **Sycophancy probe** — `/design plans/sycophancy-probe/brief.md` | sonnet
   - Plan: sycophancy-probe | Out-of-platform tool using session-scraper + API calls
 
+- [ ] **Commit drift guard** — `/design plans/commit-drift-guard/brief.md` | opus
+  - Design how _commit CLI verifies files haven't changed since last diff
+- [ ] **Design context prereq** — `/design plans/design-context-prerequisite/brief.md` | opus | restart
+  - Agents modifying code need design spec in context. Fragment change.
+- [ ] **Design segmentation gate** — `/design plans/design-segmentation-gate/brief.md` | opus | restart
+  - Add sub-problem split gate after design finalization, before runbook. Prevents monolithic review scope.
+- [ ] **Historical proof feedback** — `/design plans/historical-proof-feedback/brief.md` | sonnet
+  - Prerequisite: updated proof skill integrated in all worktrees
+- [ ] **Inline dispatch recall** — `/design plans/inline-dispatch-recall/brief.md` | sonnet
+  - Fix review-dispatch-template to enforce artifact-path-only recall pattern
+- [ ] **Inline resume policy** — `/design plans/inline-resume-policy/brief.md` | sonnet
+  - Add resume-between-cycles directive to /inline delegation protocol
+- [ ] **Learnings startup report** — `/design plans/learnings-startup-report/brief.md` | sonnet
+- [ ] **Pending brief generation** — `/design plans/pending-brief-generation/brief.md` | sonnet
+  - p: directive should create plans/<slug>/brief.md to back the task
+- [ ] **Planstate disambiguation** — `/design plans/planstate-disambiguation/brief.md` | sonnet
+- [!] **Resolve learning refs** — `/design plans/resolve-learning-refs/brief.md` | sonnet
+  - Blocker: blocks invariant documentation workflow (recall can't resolve learning keys)
+- [ ] **Runbook integration-first** — `/design plans/runbook-integration-first/brief.md` | sonnet
+  - Addendum to runbook-quality-directives plan
+- [ ] **Submodule vet config** — `/design plans/submodule-vet-config/brief.md` | sonnet
+- [ ] **Worktree ls filtering** — `/design plans/worktree-ls-filtering/brief.md` | sonnet
+  - _worktree ls dumps all plans across all trees; handoff only needs session.md plan dirs
+
 ## Blockers / Gotchas
 
 **Post-merge validation (permanent):**
@@ -187,6 +216,11 @@
 - `remove-fuzzy-recall` planstate shows `[delivered]` but was pending in prior session — verify before deleting plan directory in FR-10
 - pre-existing test failures: `tests/test_pretooluse_recipe_redirect.py` (3 tests) — not regressions
 
+- `/codify` overdue — next session should consolidate older learnings [from: session-cli-tool]
+- `[^/]+` matches across newlines/spaces, capturing prose text between `plans/` and next `/`. Brief at `plans/inline-dispatch-recall/brief.md` covers fix. [from: session-cli-tool]
+- `test_worktree_merge_learnings.py::test_merge_learnings_segment_diff3_prevents_orphans` — intermittent merge conflict failure. Passes on retry. [from: session-cli-tool]
+- User questioning entire design → runbook → orchestrate pipeline, behavioral guardrails, and planning-first paradigm [from: session-cli-tool]
+- No decisions made yet — discussion only. Next session should not assume pipeline continuity. [from: session-cli-tool]
 ## Reference Files
 
 - `plans/reports/prioritization-2026-03-12.md` — WSJF scoring, 42 tasks ranked
