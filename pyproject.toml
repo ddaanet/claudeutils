@@ -1,7 +1,7 @@
 [project]
-name = "edify"
+name = "edify-cli"
 version = "0.0.2"
-description = "Tools for managing Claude Code conversations and projects"
+description = "CLI toolkit for the edify Claude Code plugin"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
@@ -15,8 +15,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ddaanet/claudeutils"
-Repository = "https://github.com/ddaanet/claudeutils"
+Homepage = "https://github.com/ddaanet/edify"
+Repository = "https://github.com/ddaanet/edify"
 
 [project.scripts]
 edify = "edify.cli:main"
