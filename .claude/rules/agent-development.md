@@ -1,6 +1,7 @@
 ---
 paths:
   - ".claude/agents/**/*"
+  - "plugin/agents/**/*"
 ---
 
 # Agent Development Context

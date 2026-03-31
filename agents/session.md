@@ -1,32 +1,22 @@
 # Session Handoff: 2026-03-31
 
-**Status:** Edify rename complete (SP-1 + SP-2 + SP-3). Package now `edify`, CLI now `edify`. Remaining FRs (GitHub rename, PyPI, delivered plan cleanup, marketplace) are separate tasks.
+**Status:** Edify rename all agent-executable work complete. FR-9d (rules paths) done this session. Remaining FRs are external/human (GitHub rename, PyPI, marketplace).
 
 ## Completed This Session
 
-**SP-2 (package rename `claudeutils` → `edify`):**
-- `src/claudeutils/` → `src/edify/` (103 files moved)
-- CLI entry point: `edify = "edify.cli:main"` in pyproject.toml
-- All imports rewritten: 103 src files, 160 test files, 7 plugin runtime ref files
-- Agentic prose + active plans updated (~94 + ~370 occurrences)
-- Submodule commit (plugin runtime refs deferred from SP-1) + parent commit
-- 419 files changed total, 1820/1821 tests pass, 1 xfail (matches baseline)
-- Execution: /inline Tier 2 — scout discovery, 5 parallel artisan agents, scout verification
-- Reports in `plans/edify-rename/reports/sp2-*.md`
-
-**Execution approach:**
-- `uv sync` sufficient to swap installed package name (not `uv tool install --force`)
-- Review skip justified: mechanical string replacement, verification grep + precommit is the quality gate
-- GitHub URL stragglers in pyproject.toml intentionally deferred (FR-12)
+**Edify rename FR-9d (.claude/rules paths):**
+- Updated `agent-development.md` — added `plugin/agents/**/*` to paths frontmatter
+- Updated `hook-development.md` — added `plugin/hooks/**/*` to paths frontmatter
+- Updated `plugin-dev-validation.md` — added `plugin/` paths in artifact type body text
+- `skill-development.md` already had both `.claude/` and `plugin/` paths
+- Verified FR-10 was already complete (commit `f534420e`, stale in prior session.md)
 
 ## In-tree Tasks
 
-- [ ] **Edify rename** — `/design plans/edify-rename/requirements.md` | sonnet
+- [x] **Edify rename** — `/design plans/edify-rename/requirements.md` | sonnet
   - Plan: edify-rename | Status: reviewed
-  - SP-3 (plan cleanup): complete
-  - SP-1 (submodule rename): complete
-  - SP-2 (package rename): complete
-  - Remaining FRs: FR-10 (delete delivered plans), FR-11 (marketplace), FR-12 (GitHub repo rename), FR-13 (PyPI PEP 541), FR-9c (PyPI name), FR-9d (.claude/rules)
+  - All agent-executable SPs and FRs complete
+  - External FRs remain: FR-11 (marketplace), FR-12 (GitHub repo rename), FR-13 (PyPI PEP 541), FR-9c (PyPI name)
 - [ ] **Centralize recall** — `/design plans/centralize-recall/brief.md` | opus | restart
   - Plan: centralize-recall | Segmented /recall skill (<1ktok core), replace inline recall across skills/agents. Prerequisite (remove-index-skill) now complete.
 - [ ] **Outline template trim** — `/design plans/outline-template-trim/brief.md` | opus | restart
@@ -235,4 +225,4 @@
 
 ## Next Steps
 
-Edify rename core work complete (SP-1 + SP-2 + SP-3). Remaining edify-rename FRs are external/low-priority (GitHub repo rename, PyPI claim, delivered plan cleanup, marketplace). Next priority: pick from backlog per WSJF scoring.
+Edify rename fully complete (agent-executable). Pick from backlog per WSJF scoring.

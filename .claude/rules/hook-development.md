@@ -2,6 +2,7 @@
 paths:
   - ".claude/hooks/**/*"
   - ".claude/hooks.json"
+  - "plugin/hooks/**/*"
 ---
 
 # Hook Development Context

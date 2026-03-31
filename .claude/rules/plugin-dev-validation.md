@@ -11,8 +11,8 @@ When planning work that creates or modifies plugin components (skills, agents, h
 
 **Artifact types:**
 - Skills (`.claude/skills/**/SKILL.md`, `plugin/skills/**/SKILL.md`)
-- Agents (`.claude/agents/*.md`)
-- Hooks (`.claude/hooks/*.{sh,py}`, hook configuration in `settings.json`)
+- Agents (`.claude/agents/*.md`, `plugin/agents/*.md`)
+- Hooks (`.claude/hooks/*.{sh,py}`, `plugin/hooks/*.{sh,py}`, hook configuration in `settings.json`)
 - Commands (`.claude/commands/**/*`)
 - Plugin structure (`plugin.json`, directory layout)
 
